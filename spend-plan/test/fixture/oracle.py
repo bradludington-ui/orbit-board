@@ -677,11 +677,7 @@ def build(state, settings, view):
     m = Model(settings, view)
     out = {'asOf': settings['asOf'], 'E': m.E, 'firstFY': settings['firstFY'], 'asOfIndex': m.asof_idx,
            'window': {'start': m.wstart, 'end': m.wend},
-           'shown': {'services': [s for s in SERVICES + [SVC_UNKNOWN] if view['svc'].get(s, True)],
-                     'lanes': [l for l in ('disc', 'mand') if view['lane'].get(l, True)]},
            'special': sorted(m.special)}
-    out['shown']['all'] = all(view['svc'].get(s, True) for s in SERVICES + [SVC_UNKNOWN]) and \
-        all(view['lane'].get(l, True) for l in ('disc', 'mand'))
     derived = {}
     i = 0
     for ap in AP_IDS + ['unidentified']:
@@ -692,6 +688,15 @@ def build(state, settings, view):
             i += 1
             rows.append(d)
         derived[ap] = rows
+    # §9: the seventh switch, Service not identified, exists only when some row would count but for the switches and
+    # has no service; the switches a plan has are the ones what is shown is stated over (review S2)
+    has_unknown = any(not r['bad'] and r['fy'] is not None and r['fy'] >= settings['firstFY'] and r['svc'] == SVC_UNKNOWN
+                      for ap in AP_IDS for r in derived[ap])
+    exist = SERVICES + ([SVC_UNKNOWN] if has_unknown else [])
+    out['shown'] = {'services': [s for s in exist if view['svc'].get(s, True)],
+                    'lanes': [l for l in ('disc', 'mand') if view['lane'].get(l, True)]}
+    out['shown']['all'] = all(view['svc'].get(s, True) for s in exist) and \
+        all(view['lane'].get(l, True) for l in ('disc', 'mand'))
     blocks = {}
     excluded = {'beforeFirst': 0, 'beforeFirstRows': 0, 'beforeFirstByFy': {}, 'unidentified': 0,
                 'unidentifiedRows': 0, 'unreadableRows': 0}

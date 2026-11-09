@@ -6,10 +6,11 @@
 #   export-read.py csv DIR              every .csv in DIR (LibreOffice's conversion), read with the csv module
 #
 # A cell is [column (0-based), value, style index]; styles is a table of [fill, font colour, bold, italic, number format,
-# size, indent, horizontal]. Only cells holding a value or carrying a fill are listed: a status cell with no status is
+# size, indent, horizontal, vertical]. Only cells holding a value or carrying a fill are listed: a status cell with no status is
 # then still seen, and its fill can be checked.
 import sys, json, csv, os, datetime
 import openpyxl
+import openpyxl.utils
 
 
 def rgb(c):
@@ -47,7 +48,11 @@ def book(path):
             'fitToPage': bool(pr.pageSetUpPr.fitToPage) if pr.pageSetUpPr is not None else False,
             'grid': ws.sheet_view.showGridLines, 'freeze': ws.freeze_panes,
             'summaryBelow': pr.outlinePr.summaryBelow if pr.outlinePr is not None else None,
+            # Excel draws one outline button more than this; the bars promise four (review XP-1)
+            'outlineLevelRow': ws.sheet_format.outlineLevelRow if ws.sheet_format is not None else None,
             'merges': sorted(str(m) for m in ws.merged_cells.ranges),
+            # each column's width, in Excel's units, so a test can measure a block's shape (review XP-3)
+            'colWidths': [ws.column_dimensions[openpyxl.utils.get_column_letter(c)].width for c in range(1, ws.max_column + 1)],
             'maxRow': ws.max_row, 'maxCol': ws.max_column, 'rows': [],
         }
         dims = ws.row_dimensions
@@ -66,7 +71,8 @@ def book(path):
                 key = (fill, rgb(f.color) if f is not None else None, bool(f.b) if f is not None else False,
                        bool(f.i) if f is not None else False, c.number_format, f.sz if f is not None else None,
                        c.alignment.indent if c.alignment is not None else 0,
-                       c.alignment.horizontal if c.alignment is not None else None)
+                       c.alignment.horizontal if c.alignment is not None else None,
+                       c.alignment.vertical if c.alignment is not None else None)
                 k = sidx.get(key)
                 if k is None:
                     k = sidx[key] = len(styles)

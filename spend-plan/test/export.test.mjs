@@ -7,6 +7,9 @@
 // are compared row by row to the fixture's own manifest (what each generated row is).
 //
 //   node spend-plan/test/export.test.mjs
+// The test runs in a zone that is not UTC, so a time the workbook writes in UTC cannot pass for this computer's own (review
+// XP-9): at 12:00Z it is 07:00 in New York. Set before any date is made; Node reads TZ again when it changes.
+process.env.TZ = 'America/New_York';
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -70,6 +73,19 @@ function pmoSorted(labels) {
   const rank = l => { const i = PMO_ORDER.indexOf(normKey(l)); return i >= 0 ? [0, i] : l === '(no PMO)' ? [2, 0] : [1, 0]; };
   return labels.slice().sort((a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1] || cmp(a, b); });
 }
+// v12's PMO TAB order, which is not its block order: its tabs run AV, BOP, CDS, MxS, PP, PSM, TSS (review XP-5), while a
+// block's PMO rows put PSM before PP (§4.4). Any other PMO follows by label, '(no PMO)' last.
+const PMO_TAB_SEQ = ['air vehicle (av)', 'business operations (bop)', 'combat data systems (cds)', 'maintenance systems (mxs)',
+  'propulsion (pp)', 'product support management (psm)', 'training systems (tss)'];
+function tabSorted(labels) {
+  const rank = l => { const i = PMO_TAB_SEQ.indexOf(normKey(l)); return i >= 0 ? [0, i] : l === '(no PMO)' ? [2, 0] : [1, 0]; };
+  return labels.slice().sort((a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1] || cmp(a, b); });
+}
+// this computer's date and time, 'YYYY-MM-DD HH:MM', as the Import Report writes an import's time (review XP-9)
+function localWhen(iso) {
+  const d = new Date(iso);
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
 function shownText(X) {
   if (X.shown.all) return 'All services, both lanes';
   const sv = X.shown.services.length === SERVICES.length ? 'all' : X.shown.services.length ? X.shown.services.join(', ') : 'none';
@@ -112,6 +128,10 @@ function pctOk(got, want) {
   return typeof got === 'number' && Math.abs(got - want) <= 1e-12;
 }
 const show = v => JSON.stringify(v);
+// §2: "nothing non-zero reads as zero". A money cell under $5,000 holds its number and shows '<0.01' or '(<0.01)' by its
+// format; #,##0.00 showed 0.00, against the '<0.01' the screens and pictures print for the same cell (review XP-6)
+const TINY_FM = '"<0.01";"(<0.01)";-';
+const isTiny = v => typeof v === 'number' && v !== 0 && Math.abs(v) < 0.005;
 
 // The block columns as the header row lays them out: A label, B Total, then Prior Yr … FY{E+1}+ [, No date], then Total
 function blockLayout(X) {
@@ -180,12 +200,20 @@ function checkBand(where, rows, i, L, X, x) {
     } else {
       if (v !== null && v !== undefined && v !== '') sb.push(what + ' has a word ' + show(v) + ' but no status');
       if (st && Object.values(STATUS_FILL).includes(st[0])) sb.push(what + ' has a status colour but no status');
+      // review S9: no fill of its own, only the closed months' grey, as on the screen; v12's FFE699 base fill was a
+      // word-less near-yellow beside "Within 10"
+      if (st && st[0] && !(closedId && st[0] === 'F2F2F2')) sb.push(what + ' has no status but the fill ' + st[0]);
     }
   };
+  let closedId = false;
   if (stt) {
     one(stt.m.get(1), x.status, 'actual', 'Total (B)');
     one(stt.m.get(L.last), x.status, 'actual', 'Total (last)');
-    for (const id of L.ids) one(stt.m.get(L.at[id]), x.statusC[id][0], x.statusC[id][1], id);
+    for (const id of L.ids) {
+      closedId = id === 'prior' || (/^m\d+$/.test(id) && Number(id.slice(1)) <= X.asOfIndex);
+      one(stt.m.get(L.at[id]), x.statusC[id][0], x.statusC[id][1], id);
+    }
+    closedId = false;
   }
   C.chk(where + ': OSD Status in every column (colour, word, plan italic)', !sb.length, sb.slice(0, 6).join('; '));
   // closed columns carry the light grey fill on Monthly Totals; open ones do not
@@ -257,7 +285,7 @@ try {
   writeFileSync(join(tmp.dir, 'auth.json'), JSON.stringify({ authorized: AUTH }));
   const SCENARIOS = [{ name: 'all', off: [] }, { name: 'usaf-off', off: ['USAF'] },
     { name: 'auth', off: [], auth: AUTH, args: ['--files', join(tmp.dir, 'pull-all.xlsx'), '--asof', '2026-10', '--first', '2025', '--settings', join(tmp.dir, 'auth.json')] }];
-  let allFile = null, allSheetCount = 0, allX = null, allModel = null, allSettings = null;
+  let allFile = null, allSheetCount = 0, allX = null, allModel = null, allSettings = null, allTiny = [];
   for (const sc of SCENARIOS) {
     const X = oracle(sc.name, sc.args);
     const settings = SP.defaultSettings(TODAY);
@@ -286,7 +314,7 @@ try {
 
     // ------------------------------------------------------------------------------- the sheet list, in §8's order
     const apsWith = AP_ORDER.filter(ap => Object.keys(X.blocks).some(k => k.startsWith(ap + '|')));
-    const pmoLabels = pmoSorted(Object.keys(X.pmoTabs));
+    const pmoLabels = tabSorted(Object.keys(X.pmoTabs));
     const rawAps = AP_ORDER.filter(ap => X.rowsByAp[ap] !== undefined);
     C.eq(sc.name + ': the sheets, in order', names, ['Summary', 'Slide Snapshots'].concat(apsWith.map(ap => AP_LABEL[ap]),
       pmoLabels.map(l => 'PMO ' + X.pmoCodes[l]), ['Not Allocated'], rawAps.map(ap => RAW_SHEET[ap]), ['Import Report', 'Settings']));
@@ -299,12 +327,14 @@ try {
       if (!(f && f.text === CUI && /bold/i.test(f.font || ''))) pb.push(s.name + ' footer ' + show(f));
       if (!(fr && fr.text === 'Page &P of &N')) pb.push(s.name + ' footer right ' + show(fr));
       if (s.orientation !== 'landscape' || String(s.paperSize) !== '1') pb.push(s.name + ' page ' + s.orientation + ' paper ' + s.paperSize);
-      if (!s.fitToPage || Number(s.fitToWidth) !== 1 || Number(s.fitToHeight) !== 0) pb.push(s.name + ' fit ' + s.fitToPage + ' ' + s.fitToWidth + 'x' + s.fitToHeight);
       const raw = /Raw Data$/.test(s.name);
+      // a raw data sheet is 36 columns, about 44 in wide: fitted to one page wide it printed at 23%, its 10 pt text at
+      // 2.3 pt (review XP-11). It prints at full size across pages, as v12's raw tabs had no fit; reports fit one page wide.
+      if (raw ? s.fitToPage : (!s.fitToPage || Number(s.fitToWidth) !== 1 || Number(s.fitToHeight) !== 0)) pb.push(s.name + ' fit ' + s.fitToPage + ' ' + s.fitToWidth + 'x' + s.fitToHeight);
       if (raw ? s.grid === false : s.grid !== false) pb.push(s.name + ' gridlines ' + s.grid);
       if (s.formulas) pb.push(s.name + ' holds formulas');
     }
-    C.chk(sc.name + ': every sheet carries the CUI header and footer, letter landscape fit to one page wide, gridlines off on reports', !pb.length, pb.slice(0, 6).join('; '));
+    C.chk(sc.name + ': every sheet carries the CUI header and footer, letter landscape, reports fit to one page wide and raw data at full size, gridlines off on reports', !pb.length, pb.slice(0, 6).join('; '));
     C.eq(sc.name + ': no sheet holds a formula (values only)', B.sheets.filter(s => s.formulas).map(s => s.name), []);
     const L = blockLayout(X);
 
@@ -330,6 +360,8 @@ try {
           apNow = x.ap; groupStart = 5 + j;
         } else if (row.v(0) !== null) bad.push(k + ' repeats its appropriation label');
         if (row.v(1) !== x.fy) bad.push(k + ' FY ' + row.v(1));
+        // the FY is the number, shown as v12 shows it: FY2025 (review XP-5)
+        if ((row.st(1) || [])[4] !== '"FY"0') bad.push(k + ' FY format ' + show(row.st(1)));
         if (!moneyOk(row.v(2), x.approved)) bad.push(k + ' approved ' + row.v(2));
         if (!moneyOk(row.v(3), x.authorized)) bad.push(k + ' authorized ' + row.v(3));
         if (!moneyOk(row.v(4), x.obligated)) bad.push(k + ' obligated ' + row.v(4));
@@ -343,7 +375,7 @@ try {
         const dag = (row.st(3) && row.st(3)[4] || '').includes('†');
         if (dag !== !x.authorizedEntered) bad.push(k + ' † ' + dag);
         if (row.st(8) && row.st(8)[4] !== '+0.00%;-0.00%;0.00%') bad.push(k + ' delta format ' + row.st(8)[4]);
-        if (row.st(2) && row.st(2)[4] !== '#,##0.00;(#,##0.00);-') bad.push(k + ' money format ' + row.st(2)[4]);
+        if (row.st(2) && row.st(2)[4] !== '#,##0.00;(#,##0.00);-' && row.st(2)[4] !== TINY_FM) bad.push(k + ' money format ' + row.st(2)[4]);
       });
       C.chk(sc.name + ' Summary: every block’s row against the oracle', !bad.length, bad.slice(0, 6).join('; '));
       // the appropriation label is merged down its rows
@@ -356,6 +388,8 @@ try {
         && moneyOk(tot.v(4), T.obligated) && moneyOk(tot.v(5), T.unobligated) && pctOk(tot.v(6), T.oblPct) && [7, 8, 9].every(i => tot.v(i) === null),
         tot ? [0, 2, 3, 4, 5, 6, 7, 8, 9].map(i => tot.v(i)).join(' | ') : 'no row');
       C.chk(sc.name + ' Summary: the TOTAL row is navy, white, bold', tot && tot.st(0) && tot.st(0)[0] === '1F3A68' && tot.st(0)[1] === 'FFFFFF' && tot.st(0)[2]);
+      // v12's TOTAL - Sustainment label is left-aligned with no indent (review XP-5)
+      C.chk(sc.name + ' Summary: the TOTAL label is left-aligned, not indented, as v12’s', tot && tot.st(0) && tot.st(0)[7] === 'left' && !tot.st(0)[6], show(tot && tot.st(0)));
       const leg = rows.findIndex(r => r.v(0) === 'Legend (OSD Status):');
       C.eq(sc.name + ' Summary: the legend’s coloured cells and words', leg < 0 ? null : [1, 2, 3].map(d => [rows[leg + d].v(0), rows[leg + d].st(0) && rows[leg + d].st(0)[0], rows[leg + d].v(1)]),
         [['On track', '00B050', 'Green — at or above the OSD goal'], ['Within 10', 'FFD700', 'Yellow — within 10 points of it'], ['Behind', 'C00000', 'Red — more than 10 points behind']]);
@@ -370,14 +404,34 @@ try {
     {
       const S = sheetView(B, 'Slide Snapshots'), rows = S.rows;
       C.eq(sc.name + ' Slides: title', rows[0].v(0), 'Slide Snapshots - picture-ready blocks for PowerPoint');
-      C.chk(sc.name + ' Slides: line 2 says how to make the picture', String(rows[1].v(0)).startsWith('Each block is sized for a 13.33 in x 4.5 in slide region.'));
+      // §8.2's line 2, restated. v12's "Each block is sized for a 13.33 in x 4.5 in slide region" was never so of the sheet
+      // (review XP-3); the shape is measured below, against what this line says of it.
+      C.eq(sc.name + ' Slides: line 2 says how to make the picture, and what a copied block is', rows[1].v(0),
+        'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture or Save pictures.'
+        + ' To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line under OSD Status'
+        + ' and use Copy as Picture; it is wider for its height than that region, so size it by its width.');
       C.eq(sc.name + ' Slides: line 3 is the shown text', rows[2].v(0), SX);
+      // Excel's own units: a column of width w is about 7w + 5 px at 96 dpi; a row is its height in points (15 if none)
+      const colPx = S.s.colWidths.map(w => Math.trunc(7 * (w || 8.43) + 5));
+      const merges = new Set(S.s.merges);
+      const lastCol = String.fromCharCode(64 + L.W);
       const bars = rows.map((r, i) => [i, r.v(0)]).filter(([i, v]) => typeof v === 'string' && / - Spend Plan \(PMO Summary, slide-ready\)$/.test(v));
       C.eq(sc.name + ' Slides: one block per block, in model order', bars.map(b => b[1]),
         Object.values(X.blocks).map(x => AP_LABEL[x.ap] + ' FY' + x.fy + ' - Spend Plan (PMO Summary, slide-ready)'));
+      const shapes = [];
       bars.forEach(([i], j) => {
         const k = Object.keys(X.blocks)[j], x = X.blocks[k], w = 'Slides ' + sc.name + ' ' + k;
         if (!x) return;
+        // The range line 2 names starts at a CUI line, then (filtered) the shown text, then the bar: a range picture
+        // carries no page header or footer and not line 3, so the marking and the filter must be inside it (review XP-2).
+        const top = X.shown.all ? i - 1 : i - 2;
+        const cuiAt = (rr, where) => {
+          const row = rows[rr], st = row && row.st(0);
+          C.chk(w + ': ' + where, row && row.v(0) === CUI && st && st[2] === true && st[7] === 'center'
+            && merges.has('A' + row.r + ':' + lastCol + row.r), row ? show([row.v(0), st, row.r]) : 'no row');
+        };
+        cuiAt(top, 'the picture range opens with the CUI marking, bold, centred across the block');
+        if (!X.shown.all) C.eq(w + ': the picture range states what is shown, under the marking', rows[i - 1] && rows[i - 1].v(0), SX);
         checkHeader(w, rows[i + 1], 'PMO', L);
         const want = Object.keys(x.pmos);
         let r = i + 2;
@@ -388,8 +442,16 @@ try {
         r++;
         C.eq(w + ': a blank row, then Monthly Totals', rows[r] && rows[r].v(0), 'Monthly Totals');
         r = checkBand(w, rows, r, L, X, x);
-        checkNa(w, rows, r, x.na, L);
+        cuiAt(r, 'the picture range closes with the CUI marking, under OSD Status');
+        // the range's shape, CUI line to CUI line, as Excel would picture it
+        const pxW = colPx.slice(0, L.W).reduce((a, b) => a + b, 0);
+        let pt = 0; for (let q = top; q <= r; q++) pt += rows[q].ht || 15;
+        shapes.push((pxW / 96) / (pt / 72));
+        checkNa(w, rows, r + 1, x.na, L);
       });
+      // what line 2 says of a block copied from here: wider for its height than the 13.33 x 4.5 in region (2.96 : 1)
+      C.chk(sc.name + ' Slides: every block is wider for its height than the 13.33 x 4.5 in region, as line 2 says',
+        shapes.length === bars.length && shapes.every(a => a > 13.33 / 4.5 * 1.2), show(shapes.map(a => a.toFixed(2))));
     }
 
     // ------------------------------------------------------------------------------- §8.3–8.5 the appropriation sheets
@@ -404,6 +466,9 @@ try {
       keys.forEach((k, j) => {
         const x = X.blocks[k], row = rows[3 + j];
         if (!row || row.v(0) !== x.fy) { bad.push(k + ' FY ' + (row && row.v(0))); return; }
+        // v12's FY cell here: FY2024, 11 pt bold navy (review XP-5)
+        const fs = row.st(0) || [];
+        if (!(fs[4] === '"FY"0' && fs[2] === true && fs[5] === 11 && fs[1] === '1F3A68')) bad.push(k + ' FY cell ' + show(fs));
         if (!moneyOk(row.v(1), x.approved) || !moneyOk(row.v(2), x.authorized) || !moneyOk(row.v(3), x.obligated) || !moneyOk(row.v(4), x.unobligated)) bad.push(k + ' money');
         if (!pctOk(row.v(5), x.oblPct) || !pctOk(row.v(6), x.goal) || !pctOk(row.v(7), x.delta)) bad.push(k + ' pct');
         const sw = row.v(8), sf = row.st(8) && row.st(8)[0];
@@ -413,7 +478,12 @@ try {
       if (!(tr && tr.v(0) === 'Total - All FYs' && moneyOk(tr.v(1), A.approved) && moneyOk(tr.v(2), A.authorized) && moneyOk(tr.v(3), A.obligated)
         && moneyOk(tr.v(4), A.unobligated) && pctOk(tr.v(5), A.oblPct) && tr.v(6) === null && tr.v(8) === null)) bad.push('Total - All FYs ' + (tr ? [0, 1, 3, 5, 6].map(i => tr.v(i)).join('|') : 'missing'));
       C.chk(w0 + ': the FY table against the oracle', !bad.length, bad.slice(0, 6).join('; '));
+      C.chk(w0 + ': Total - All FYs is centred, as v12’s', tr && tr.st(0) && tr.st(0)[7] === 'center' && !tr.st(0)[6], show(tr && tr.st(0)));
       C.eq(w0 + ': summary rows sit above their detail', S.s.summaryBelow, false);
+      // four outline buttons, as the bar's "(1/2/3/4 in left margin)" says and as v12 and the PMO tabs have: PMO rows at
+      // level 0, so button 4 opens the CCaRs. With the PMO at level 1 Excel drew five, and button 4 stopped at Plan Event
+      // (review XP-1).
+      C.eq(w0 + ': four outline buttons (outline levels 0 to 3)', S.s.outlineLevelRow, 3);
       const bars = rows.map((r, i) => [i, r.v(0)]).filter(([i, v]) => typeof v === 'string' && /^FY\d{4} - Spend Plan by PMO \/ Title \/ Plan Event \/ CCaR {2}\(1\/2\/3\/4 in left margin\)$/.test(v));
       C.eq(w0 + ': one block per FY', bars.map(b => b[1].slice(2, 6)), keys.map(k => String(X.blocks[k].fy)));
       bars.forEach(([i], j) => {
@@ -424,15 +494,18 @@ try {
         let r = i + 2;
         for (; r < rows.length && !isBlank(rows[r]); r++) {
           const row = rows[r], lev = row.level, lab = row.v(0);
-          if (lev < 1 || lev > 4) { ob.push('row ' + row.r + ' at level ' + lev); continue; }
-          path.length = lev - 1; path.push(lab);
-          if ((lev >= 3) !== row.hidden) ob.push('row ' + row.r + ' level ' + lev + (row.hidden ? ' hidden' : ' shown'));
+          // the PMO row is told apart from the furniture at level 0 by its style: 11 pt bold navy, no fill
+          const st0 = row.st(0) || [];
+          const isPmo = lev === 0 && st0[5] === 11 && st0[2] === true && st0[1] === '1F3A68' && !st0[0];
+          if (lev < 0 || lev > 3 || (lev === 0 && !isPmo)) { ob.push('row ' + row.r + ' at level ' + lev + ' ' + show(lab)); continue; }
+          path.length = lev; path.push(lab);
+          if ((lev >= 2) !== row.hidden) ob.push('row ' + row.r + ' level ' + lev + (row.hidden ? ' hidden' : ' shown'));
           const total = row.v(1);
           if (row.v(L.last) !== total) ob.push('row ' + row.r + ' Totals disagree');
           const key = path.join('|');
-          if (lev === 1) T.pmos[lab] = row; else (lev === 2 ? T.titles : lev === 3 ? T.pes : T.ccars)[key] = total;
+          if (lev === 0) T.pmos[lab] = row; else (lev === 1 ? T.titles : lev === 2 ? T.pes : T.ccars)[key] = total;
         }
-        C.chk(w + ': the tree is PMO 1, Title 2, Plan Event 3 hidden, CCaR 4 hidden', !ob.length, ob.slice(0, 5).join('; '));
+        C.chk(w + ': the tree is PMO 0, Title 1, Plan Event 2 hidden, CCaR 3 hidden (v12’s levels: button 4 shows the CCaRs)', !ob.length, ob.slice(0, 5).join('; '));
         C.eq(w + ': the PMO rows', Object.keys(T.pmos), Object.keys(x.pmos));
         for (const [lab, row] of Object.entries(T.pmos)) if (x.pmos[lab]) checkMoneyRow(w + ' PMO ' + lab, row, L, x.pmos[lab].total, x.pmos[lab].cols);
         for (const [what, got, want] of [['Title', T.titles, x.titles], ['Plan Event', T.pes, x.pes], ['CCaR (labelled with its number)', T.ccars, x.ccars]]) {
@@ -467,6 +540,7 @@ try {
         if (!row) { bad.push(k + ' missing'); return; }
         if (ap !== apNow) { if (row.v(0) !== AP_LABEL[ap]) bad.push(k + ' label ' + row.v(0)); apNow = ap; }
         if (row.v(1) !== Number(k.split('|')[1])) bad.push(k + ' FY ' + row.v(1));
+        if ((row.st(1) || [])[4] !== '"FY"0') bad.push(k + ' FY format ' + show(row.st(1)));
         if (!moneyOk(row.v(2), x.approved) || !moneyOk(row.v(3), x.approved) || !moneyOk(row.v(4), x.obligated) || !moneyOk(row.v(5), x.unobligated)) bad.push(k + ' money ' + [2, 3, 4, 5].map(i => row.v(i)).join('|'));
         if (!pctOk(row.v(6), x.oblPct) || !pctOk(row.v(7), x.goal) || !pctOk(row.v(8), x.delta)) bad.push(k + ' pct');
         if (x.status ? row.v(9) !== STATUS_WORD[x.status] || (row.st(9) && row.st(9)[0]) !== STATUS_FILL[x.status] : row.v(9) !== null) bad.push(k + ' status ' + row.v(9));
@@ -476,7 +550,9 @@ try {
       if (!(tr && tr.v(0) === 'Total - All' && moneyOk(tr.v(2), ta) && moneyOk(tr.v(3), ta) && moneyOk(tr.v(4), to) && moneyOk(tr.v(5), ta - to)
         && pctOk(tr.v(6), ta ? to / ta : null))) bad.push('Total - All ' + (tr ? [0, 2, 4, 6].map(i => tr.v(i)).join('|') : 'missing'));
       C.chk(w0 + ': the table against the oracle (Authorized = Approved)', !bad.length, bad.slice(0, 6).join('; '));
+      C.chk(w0 + ': Total - All is centred, as v12’s', tr && tr.st(0) && tr.st(0)[7] === 'center' && !tr.st(0)[6], show(tr && tr.st(0)));
       C.eq(w0 + ': the Authorized note', rows[4 + keys.length] && rows[4 + keys.length].v(0), 'Authorized is entered by appropriation and FY; a PMO row shows Approved.');
+      C.eq(w0 + ': four outline buttons (outline levels 0 to 3), as on the appropriation sheets', S.s.outlineLevelRow, 3);
       const bars = rows.map((r, i) => [i, r.v(0), r.st(0)]).filter(([i, v, st]) => typeof v === 'string' && st && st[0] === '305496');
       C.eq(w0 + ': one block per block, in Full Fund, Spares, O&M, OPN then FY order', bars.map(b => b[1]),
         keys.map(k => AP_LABEL[k.split('|')[0]] + ' - FY' + k.split('|')[1]));
@@ -535,6 +611,7 @@ try {
         const gv = [0, 1, 2, 3, 4].map(i => g.v(i));
         if (JSON.stringify(gv) !== JSON.stringify(wr.slice(0, 5)) || !moneyOk(g.v(8), wr[5])) bad.push('row ' + g.r + ' ' + show(gv.concat(g.v(8))) + ' want ' + show(wr));
         if (![5, 6, 7].every(i => typeof g.v(i) === 'string' && g.v(i).length)) bad.push('row ' + g.r + ' lacks its CCaR(s), PMO(s) or Title(s)');
+        if ((g.st(1) || [])[4] !== '"FY"0') bad.push('row ' + g.r + ' FY format ' + show(g.st(1)));
       });
       C.chk(sc.name + ' Not Allocated: every item of every block, in §5 order, against the oracle', !bad.length, bad.slice(0, 4).join('; '));
     }
@@ -594,6 +671,20 @@ try {
       const IR = sheetView(B, 'Import Report').rows.map(r => r.v(0)).filter(Boolean);
       C.chk(sc.name + ' Import Report: the import report lines are there', IR.some(l => /^Rows read: /.test(l)) && IR.some(l => /^Unreadable rows/.test(l)), IR.slice(0, 5).join(' / '));
       C.chk(sc.name + ' Import Report: each pull is named with its rows', ['O&M', 'Full Fund', 'Initial Spares', 'OPN'].every(l => IR.some(x => x.startsWith('  ' + l + ': '))));
+      // The Summary's note sends the reader here for the rows whose appropriation is not identified; each must be named
+      // (where, CCaR, title, budget, plan event, FY, dollars), or nobody can find it: they are on no raw sheet (review XP-8).
+      const unid = manifest.gen1.filter(i => i.ap === null);
+      const ub = [];
+      for (const u of unid) {
+        const line = IR.find(l => l.includes('“' + u.ccar + '”') && l.includes('“' + u.title + '”'));
+        if (!line) { ub.push(u.id + ' not listed'); continue; }
+        for (const want of ['“' + u.budget + '”', '“' + u.pe + '”', 'FY' + u.fy, '$' + commas(String(Math.floor(u.cents / 100))) + '.' + pad2(u.cents % 100), 'row ']) {
+          if (!line.includes(want)) ub.push(u.id + ' lacks ' + want + ': ' + line);
+        }
+      }
+      C.chk(sc.name + ' Import Report: every row whose appropriation is not identified is listed, with what identifies it', unid.length === 2 && !ub.length, ub.slice(0, 3).join('; '));
+      // the import's time in this computer's time, as the sheet titles' dates are, never UTC (review XP-9)
+      C.eq(sc.name + ' Import Report: the import’s time is this computer’s', IR.find(l => /^Import of /.test(l)), 'Import of ' + localWhen(NOW) + ' (this computer’s time): 1 file.');
       const ST = sheetView(B, 'Settings').rows;
       const kv = k => { const r = ST.find(x => x.v(0) === k); return r ? r.v(1) : undefined; };
       C.eq(sc.name + ' Settings: data through, execution year, first FY', [kv('Data through'), String(kv('Execution year')).slice(0, 6), kv('First FY shown')],
@@ -606,6 +697,44 @@ try {
       const budgets = bh < 0 ? [] : ST.slice(bh + 1).filter(r => !isBlank(r));
       const wantBud = new Set(manifest.gen1.map(i => normKey(i.budget)));
       C.eq(sc.name + ' Settings: one budget row per budget name', budgets.length, wantBud.size);
+    }
+
+    // ------------------------------------------------------------------------------- v12's look, cell by cell
+    {
+      const tb = [], sb = [], vb = [], mb = [], tiny = [];
+      const v12Sheets = new Set(['Summary', 'Slide Snapshots'].concat(apsWith.map(ap => AP_LABEL[ap]), pmoLabels.map(l => 'PMO ' + X.pmoCodes[l])));
+      for (const nm of names) {
+        if (/Raw Data$/.test(nm)) continue;
+        const V = sheetView(B, nm);
+        // v12's sheet title (style 58): 16 pt bold navy TEXT, no fill, centred; a white-on-navy bar was the block bars'
+        // look, not the title's (review XP-4)
+        const t0 = V.rows[0].st(0) || [];
+        if (!(t0[0] === null && t0[1] === '1F3A68' && t0[2] === true && t0[5] === 16 && t0[7] === 'center')) tb.push(nm + ' ' + show(t0));
+        for (const row of V.rows) for (const [ci, c] of row.m) {
+          const st = c.st || [], fmt = String(st[4] || ''), money = fmt.includes('#,##0.00') || fmt.includes('<0.01');
+          if (money && typeof c.v === 'number') {
+            // the '<0.01' format exactly on the non-zero cells under $5,000, and #,##0.00 on every other
+            if (isTiny(c.v) !== fmt.includes('<0.01') || (!isTiny(c.v) && !fmt.includes('#,##0.00'))) mb.push(nm + ' row ' + row.r + ' col ' + ci + ' ' + c.v + ' ' + fmt);
+            if (isTiny(c.v)) tiny.push([nm, row.r, ci, c.v]);
+          }
+          // v12 centres money and the outline's labels vertically (review XP-5)
+          if (v12Sheets.has(nm) && ((money && typeof c.v === 'number') || (ci === 0 && [2, 4, 6].includes(st[6]))) && st[8] !== 'center') vb.push(nm + ' row ' + row.r + ' col ' + ci + ' ' + show(st));
+        }
+      }
+      for (const nm of ['Summary', 'Slide Snapshots']) {
+        const st = sheetView(B, nm).rows[1].st(0) || [];
+        // v12's subtitle (styles 65 and 68): 11 pt italic grey, centred
+        if (!(st[3] === true && st[5] === 11 && st[1] === '707070' && st[7] === 'center')) sb.push(nm + ' ' + show(st));
+      }
+      C.chk(sc.name + ': every report sheet’s title is v12’s, 16 pt bold navy text with no fill', !tb.length, tb.slice(0, 3).join('; '));
+      C.chk(sc.name + ': the subtitles are v12’s, 11 pt italic grey, centred', !sb.length, sb.join('; '));
+      C.chk(sc.name + ': money and outline labels are centred vertically, as v12’s', !vb.length, vb.length + ': ' + vb.slice(0, 3).join('; '));
+      C.chk(sc.name + ': a non-zero figure under $5,000 is shown as <0.01, every other as #,##0.00', !mb.length, mb.length + ': ' + mb.slice(0, 3).join('; '));
+      if (sc.name === 'all') {
+        // the fixture must hold such figures, or the check above passes by having nothing to look at
+        C.chk('all: the fixture’s workbook holds non-zero figures under $5,000 (so the <0.01 check has something to read)', tiny.length > 0, String(tiny.length));
+        allTiny = tiny;
+      }
     }
 
     // shown text on every report sheet
@@ -660,6 +789,25 @@ try {
       show(parts.map(p => p.length)) + ' ' + show(lines.map(r => r.ht)));
   }
 
+  // ------------------------------------------------------------------------------------------- '<0.01' at its edges
+  // The fixture's small figures are a few dollars, so they cannot tell $5,000 from any lower edge: the rule is held at its
+  // boundary on the spec. One PMO row is given $4,999.99, $5,000.00, a cent, minus $4,999.99, minus $5,000.00 and zero.
+  {
+    const b = allModel.blocks.find(x => x.pmoRows.length);
+    const p = b.pmoRows[0], saved = p.cols.slice();
+    const edge = [499999, 500000, 1, -499999, -500000, 0];
+    edge.forEach((c, j) => { p.cols[1 + j] = c; });
+    const spec = SP.excelSpec(allModel, parsed.pulls, allSettings, { report: parsed.report, today: TODAY });
+    p.cols = saved;
+    const sl = spec.sheets.find(x => x.name === 'Slide Snapshots').rows;
+    const at = sl.findIndex(r => r.cells[0] && r.cells[0].v === b.apLabel + ' FY' + b.fy + ' - Spend Plan (PMO Summary, slide-ready)');
+    const row = sl.find((r, i) => i > at && r.cells[0] && r.cells[0].v === p.label);
+    // columns: A label, B Total, C Prior Yr, D Oct …: model column k is cell 2 + k
+    const got = edge.map((c, j) => { const cell = row && row.cells[2 + 1 + j]; return cell && cell.s ? cell.s.fmt : null; });
+    C.eq('<0.01 at its edges: under $5,000 and not zero takes it, $5,000 and zero do not', got,
+      [TINY_FM, '#,##0.00;(#,##0.00);-', TINY_FM, TINY_FM, '#,##0.00;(#,##0.00);-', '#,##0.00;(#,##0.00);-']);
+  }
+
   // ------------------------------------------------------------------------------------------- LibreOffice
   {
     const lo = join(tmp.dir, 'lo-csv');
@@ -672,6 +820,14 @@ try {
     const tot = sum.find(row => row[0] === 'TOTAL - Sustainment');
     C.eq('LibreOffice shows the TOTAL row as the format says: Approved, and Authorized marked †', tot ? [tot[2], tot[3]] : null,
       [m2(allX.summary.approved), m2(allX.summary.authorized) + '†']);
+    // the '<0.01' format, as another program shows it (review XP-6)
+    const tb = [];
+    for (const [nm, r, ci, v] of allTiny) {
+      const key = Object.keys(CSV).find(k => k.endsWith('-' + nm + '.csv'));
+      const got = key && CSV[key][r - 1] ? CSV[key][r - 1][ci] : undefined;
+      if (got !== (v > 0 ? '<0.01' : '(<0.01)')) tb.push(nm + ' row ' + r + ' col ' + ci + ' shows ' + show(got));
+    }
+    C.chk('LibreOffice shows every non-zero figure under $5,000 as <0.01', allTiny.length > 0 && !tb.length, allTiny.length + ' cells; ' + tb.slice(0, 3).join('; '));
   }
 
   // ------------------------------------------------------------------------------------------- the UI action

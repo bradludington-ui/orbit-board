@@ -101,14 +101,16 @@ function pic_layout(ctx, block, model) {
       return o.kind === 'plan' ? cell(pic_pct(o.v), 'c', fPlan, PIC.plan, closedFill(c)) : cell(pic_pct(o.v), 'c', fBandB, PIC.navy, closedFill(c));
     }));
   rows.push(band('OSD Goal %', cell(pic_pct(block.goal), 'c', fBandB, PIC.navy), c => cell(pic_pct(block.goalC[c.index]), 'c', fBandB, PIC.navy, closedFill(c))));
-  const st = (status, plan) => {
-    if (!status || !PIC.status[status]) return cell('', 'c', fBandB, PIC.ink, PIC.gold);   // no goal here: v12's base fill, no word
+  // no status (no goal here, or No date): no fill but the closed months' grey, as the workbook and the screens draw it. A
+  // word-less gold cell beside a yellow "Within 10" read as a status by colour alone (review S9)
+  const st = (status, plan, c) => {
+    if (!status || !PIC.status[status]) return cell('', 'c', fBandB, PIC.ink, c ? closedFill(c) : null);
     const word = SP.statusWord(status);
-    // a plan status: its fill and readable ink, in italic, as the workbook prints it (integration ruling)
+    // a plan status: its fill and readable ink, in italic, as the workbook prints it (CONTRACT §8)
     if (plan) return cell(word, 'c', fPlan, PIC.statusInk[status], PIC.status[status]);
     return cell(word, 'c', fBandB, PIC.statusInk[status], PIC.status[status]);
   };
-  rows.push(band('OSD Status', st(block.status, false), c => { const s = block.statusC[c.index] || {}; return st(s.status, s.kind === 'plan'); }));
+  rows.push(band('OSD Status', st(block.status, false, null), c => { const s = block.statusC[c.index] || {}; return st(s.status, s.kind === 'plan', c); }));
 
   // widths: each column as wide as its widest text, the label column up to labelMax (wider labels wrap)
   const widths = new Array(nNum + 1).fill(0);
@@ -239,6 +241,58 @@ SP.blockCanvas = function blockCanvas(block, model) {
   return cv;
 };
 
+// THE PNG'S RESOLUTION. A canvas writes no pHYs chunk, and Office places a PNG without one at 96 dpi: 2000 x 675 px came
+// out 20.83 x 7.03 in, larger than a 13.33 x 7.5 in slide, and its size on the slide was whatever PowerPoint's
+// shrink-to-fit made of it (review XP-7). One pHYs chunk saying 150 dpi (5906 px a metre) goes right after IHDR, before
+// any image data, as the PNG specification orders it; one already there is replaced, never doubled.
+const PIC_PPM = Math.round(150 / 0.0254);   // 5906
+const PIC_CRC = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+  return t;
+})();
+function pic_crc(u8, from, to) {
+  let c = 0xFFFFFFFF;
+  for (let i = from; i < to; i++) c = PIC_CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+// a PNG's bytes -> the same with one pHYs of 150 dpi; anything that is not a PNG with IHDR first comes back unchanged
+function pic_withDpi(u8) {
+  const sig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  if (!(u8 instanceof Uint8Array) || u8.length < 33 || sig.some((b, i) => u8[i] !== b)) return u8;
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const type = i => String.fromCharCode(u8[i + 4], u8[i + 5], u8[i + 6], u8[i + 7]);
+  if (type(8) !== 'IHDR') return u8;
+  const keep = [];          // [from, to) runs of the original bytes to keep (the signature too), any pHYs left out
+  let i = 8, run = 0;
+  while (i + 12 <= u8.length) {
+    const len = dv.getUint32(i), end = i + 12 + len;
+    if (end > u8.length) return u8;
+    if (type(i) === 'pHYs') { keep.push([run, i]); run = end; }
+    i = end;
+    if (type(i - 12 - len) === 'IEND') break;
+  }
+  keep.push([run, u8.length]);
+  const ch = new Uint8Array(21);
+  const cv = new DataView(ch.buffer);
+  cv.setUint32(0, 9); ch.set([0x70, 0x48, 0x59, 0x73], 4);   // length 9, 'pHYs'
+  cv.setUint32(8, PIC_PPM); cv.setUint32(12, PIC_PPM); ch[16] = 1;   // px per metre, x and y; unit: the metre
+  cv.setUint32(17, pic_crc(ch, 4, 17));
+  const ihdrEnd = 8 + 12 + dv.getUint32(8);
+  const total = keep.reduce((a, [f, t]) => a + t - f, 0) + ch.length;
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const [f, t] of keep) {
+    // the chunk goes in right after IHDR, which the first run of kept bytes always holds
+    if (f <= ihdrEnd && ihdrEnd <= t) {
+      out.set(u8.subarray(f, ihdrEnd), o); o += ihdrEnd - f;
+      out.set(ch, o); o += ch.length;
+      out.set(u8.subarray(ihdrEnd, t), o); o += t - ihdrEnd;
+    } else { out.set(u8.subarray(f, t), o); o += t - f; }
+  }
+  return out;
+}
+
 // The PNG is encoded with toDataURL, synchronously, not with toBlob. Measured at integration in Chromium on the real
 // workbook: with the Slide blocks view on screen, toBlob on a canvas that is not in the page waited about a second
 // for the browser's idle time on every picture (Save all pictures took 17 s for 11 blocks); toDataURL takes about 20 ms.
@@ -249,7 +303,7 @@ function pic_dataUrlBlob(url) {
   const bin = atob(url.slice(i + 1));
   const a = new Uint8Array(bin.length);
   for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
-  return new Blob([a], { type: 'image/png' });
+  return new Blob([pic_withDpi(a)], { type: 'image/png' });
 }
 SP.blockPng = function blockPng(block, model) {
   return new Promise((resolve, reject) => {
@@ -262,7 +316,10 @@ SP.blockPng = function blockPng(block, model) {
       if (b) { resolve(b); return; }
     }
     if (typeof cv.toBlob !== 'function') { reject(new Error('This browser cannot turn a drawing into a PNG, so no picture was made.')); return; }
-    cv.toBlob(b => (b ? resolve(b) : reject(fail())), 'image/png');
+    cv.toBlob(b => {
+      if (!b) { reject(fail()); return; }
+      b.arrayBuffer().then(ab => resolve(new Blob([pic_withDpi(new Uint8Array(ab))], { type: 'image/png' })), () => resolve(b));
+    }, 'image/png');
   });
 };
 
@@ -287,7 +344,9 @@ SP.copyBlockPicture = async function copyBlockPicture(block, model) {
       : 'the clipboard refused it' + (e && e.message ? ': ' + e.message : '');
     return { ok: false, message: 'The picture of ' + name + ' was not copied: ' + why + '.' + instead };
   }
-  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x 675 px, 13.33 x 4.5 in): paste it into the slide.' };
+  // The browser re-encodes a clipboard picture and may drop its 150 dpi (review XP-7), so the size is said, not promised
+  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x 675 px, drawn for 13.33 x 4.5 in): paste it into the slide;'
+    + ' if it comes in larger, set its width to 13.33 in.' };
 };
 
 SP.allPicturesZip = async function allPicturesZip(model) {

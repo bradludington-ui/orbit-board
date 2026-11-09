@@ -250,6 +250,88 @@ try {
   C.chk('refused data with no save time: Save still asks first', E2.dialogs.length === 1 && /newer version/.test(E2.dialogs[0]), E2.dialogs.join(' | '));
   C.chk('refused data with no save time: Cancel leaves it as it was', r.ok === false && readFileSync(R2, 'utf8') === untimed, J(r));
   await E2.p.close();
+
+  // =================================================== review S1: the question says which file, and which save came first
+  // Every other save time used to read "saved …, after this page was opened — by someone else, or in another window", and
+  // the page's own file name was never compared with the one picked: OK wrote this page over another team's plan.
+  const hourAgo = new Date(Date.now() - 3600e3).toISOString(), halfAgo = new Date(Date.now() - 1800e3).toISOString();
+  const OT = join(tmp.dir, 'other-team-plan.html');
+  const otherHtml = pageHtml({ modules: MODS, state: Object.assign({}, VALID, { savedAt: hourAgo }) });
+  writeFileSync(OT, otherHtml);
+  // (a) a page opened with no saved plan; its first Save picks the other team's plan, saved before the page opened
+  const FR = join(tmp.dir, 'fresh-page.html');
+  writeFileSync(FR, pageHtml({ modules: MODS }));
+  const Fa = await open(ctx, FR);
+  await edit(Fa, { firstFY: 2026 });
+  Fa.answer = 'dismiss';
+  await pick(Fa, { path: OT });
+  r = await save(Fa);
+  const qa = Fa.dialogs[0] || '';
+  C.chk('S1 (a): the question names the file picked and this page’s own file', qa.includes('“other-team-plan.html”') && qa.includes('not “fresh-page.html”'), qa);
+  C.chk('S1 (a): it says the plan was saved BEFORE this page was opened, when', /before this page was opened/.test(qa) && qa.includes(localWhen(hourAgo)) && !/after this page/.test(qa), qa);
+  C.chk('S1 (a): it does not call another plan "someone else, or another window"', !/someone else|another window/.test(qa), qa);
+  C.chk('S1 (a): Cancel writes nothing, and the result names both files', r.ok === false && readFileSync(OT, 'utf8') === otherHtml
+    && /other-team-plan\.html/.test(r.message) && /fresh-page\.html/.test(r.message) && /Nothing was written/.test(r.message), J(r));
+  await Fa.p.close();
+  // (b) a page opened from its own plan; its first Save picks the other team's plan, saved before this page's
+  const OW = join(tmp.dir, 'own-plan.html');
+  writeFileSync(OW, pageHtml({ modules: MODS, state: Object.assign({}, VALID, { savedAt: halfAgo }) }));
+  const Fb = await open(ctx, OW);
+  await edit(Fb, { firstFY: 2026 });
+  Fb.answer = 'dismiss';
+  await pick(Fb, { path: OT });
+  r = await save(Fb);
+  const qb = Fb.dialogs[0] || '';
+  C.chk('S1 (b): the question names this page’s own file', qb.includes('not “own-plan.html”, the file this page was opened from'), qb);
+  C.chk('S1 (b): it says the picked plan was saved before this page’s, with both times', /before the plan this page opened or last saved/.test(qb)
+    && qb.includes(localWhen(hourAgo)) && qb.includes(localWhen(halfAgo)) && !/after this page/.test(qb), qb);
+  C.chk('S1 (b): Cancel leaves both files as they were', r.ok === false && readFileSync(OT, 'utf8') === otherHtml, J(r));
+  Fb.answer = 'accept';
+  await pick(Fb, { path: OT });
+  r = await save(Fb);
+  C.chk('S1 (b): OK writes there, and the result says this page’s own file does not have the work', r.ok === true && stateIn(OT).settings.firstFY === 2026
+    && /own-plan\.html/.test(r.message) && /does not have this work/.test(r.message), J(r));
+  await Fb.p.close();
+  writeFileSync(OT, otherHtml);
+  // (c) this page's own file, put back as an older copy: "before", an older copy, never "someone else"
+  const OW2 = join(tmp.dir, 'own-plan-2.html');
+  writeFileSync(OW2, pageHtml({ modules: MODS, state: Object.assign({}, VALID, { savedAt: halfAgo }) }));
+  const Fc = await open(ctx, OW2);
+  writeFileSync(OW2, pageHtml({ modules: MODS, state: Object.assign({}, VALID, { savedAt: hourAgo }) }));
+  await edit(Fc, { firstFY: 2026 });
+  Fc.answer = 'dismiss';
+  await pick(Fc, { path: OW2 });
+  r = await save(Fc);
+  const qc = Fc.dialogs[0] || '';
+  C.chk('S1 (c): an older copy of this page’s own file: "before", and no word of another file or someone else',
+    /before the plan this page opened or last saved/.test(qc) && /older copy/.test(qc) && !/someone else|You picked/.test(qc), qc);
+  await Fc.p.close();
+  // (d) two saves in one minute: the times carry their seconds, so which came first can be read
+  const OW3 = join(tmp.dir, 'own-plan-3.html');
+  const tMine = '2026-11-09T11:00:10.000Z', tTheirs = '2026-11-09T11:00:45.000Z';
+  writeFileSync(OW3, pageHtml({ modules: MODS, state: Object.assign({}, VALID, { savedAt: tMine }) }));
+  const Fd = await open(ctx, OW3);
+  writeFileSync(OW3, pageHtml({ modules: MODS, state: Object.assign({}, VALID, { savedAt: tTheirs }) }));
+  Fd.answer = 'dismiss';
+  await pick(Fd, { path: OW3 });
+  r = await save(Fd);
+  const qd = Fd.dialogs[0] || '';
+  C.chk('S1 (d): two saves in one minute are told apart by their seconds', qd.includes(localWhen(tTheirs) + ':45') && qd.includes(localWhen(tMine) + ':10')
+    && /after this page last opened or saved/.test(qd) && /someone else/.test(qd), qd);
+  await Fd.p.close();
+  // (e) another file holding no plan at all: asked before this page's plan goes there, and Cancel writes nothing
+  const BL = join(tmp.dir, 'blank-copy.html');
+  const blankHtml = pageHtml({ modules: MODS });
+  writeFileSync(BL, blankHtml);
+  const Fe = await open(ctx, OW);
+  Fe.answer = 'dismiss';
+  await pick(Fe, { path: BL });
+  r = await save(Fe);
+  C.chk('S1 (e): another file with no plan in it: asked first, naming both, and Cancel writes nothing',
+    Fe.dialogs.length === 1 && /not “own-plan\.html”/.test(Fe.dialogs[0]) && /holds no saved plan/.test(Fe.dialogs[0]) && r.ok === false
+    && readFileSync(BL, 'utf8') === blankHtml, Fe.dialogs.join(' | ') + ' ' + J(r));
+  C.eq('S1: no script error', [Fa.errors, Fb.errors, Fc.errors, Fd.errors, Fe.errors], [[], [], [], [], []]);
+  await Fe.p.close();
   await ctx.close();
 
   // ===================================================== no file windows at all: Save downloads (§11)
@@ -275,6 +357,22 @@ try {
   C.chk('no file windows: Save a copy downloads a copy', res2.ok === true && /copy/.test(dl2.suggestedFilename()) && /\.html$/.test(dl2.suggestedFilename()),
     J(res2) + ' ' + dl2.suggestedFilename());
   C.eq('no file windows: no question, no error', [P.dialogs, P.errors], [[], []]);
+  // review S8: the download is not this page's own file. Marked clean, the page read "Saved" and closed without a
+  // question while the file it was opened from still lacked the work.
+  await edit(P, { firstFY: 2024 });
+  const [dl3, res3] = await Promise.all([P.p.waitForEvent('download', { timeout: 10000 }), save(P)]);
+  C.eq('S8: after Save downloads, the work still counts as unsaved, and says it was downloaded',
+    [res3.ok, !!dl3, await dirty(P), await ev(P, () => SP.saveStatus())], [true, true, true, 'downloaded']);
+  C.chk('S8: the message says the page still asks before it is closed', /asks before it is closed/.test(res3.message), J(res3));
+  P.answer = 'dismiss';
+  await P.p.close({ runBeforeUnload: true });
+  await new Promise(res => setTimeout(res, 500));
+  C.chk('S8: leaving asks', P.dialogs.some(d => d.startsWith('beforeunload')), J(P.dialogs));
+  const P2 = await open(ctx2, H);
+  await edit(P2, { firstFY: 2024 });
+  await Promise.all([P2.p.waitForEvent('download', { timeout: 10000 }), save(P2)]);
+  await edit(P2, { firstFY: 2026 });
+  C.eq('S8: an edit after the download is plain unsaved work', await ev(P2, () => SP.saveStatus()), 'unsaved');
   await ctx2.close();
 } catch (e) {
   C.chk('the test ran to the end', false, (e && e.stack) || String(e));

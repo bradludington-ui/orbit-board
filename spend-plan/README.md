@@ -30,13 +30,24 @@ Press **Import CCaR pull…** and pick one or more files.
   - Columns the tool does not know are kept, and appear in the raw data sheets of the export.
 - **Where rows go.** Each row is placed in O&M, Full Fund, Initial Spares or OPN by its **Budget** name. If the budget
   does not say, the sheet name decides.
+  - If every row of one appropriation sits on a sheet named for another (say, the only Full Fund row is on the O&M tab),
+    the page asks before those rows replace that appropriation's data: such a row is most likely misfiled. **Cancel**
+    changes nothing; move the row to its own tab, or correct its Budget, and import again.
 - **What an import replaces.** Each appropriation in the import replaces that appropriation's data. The data it replaces
   is kept, so **What changed** can compare the two. Appropriations not in the import keep their data, and the top bar says
-  when each was imported.
+  when each was imported. The same pull imported again changes nothing What changed compares.
+- **The message line** says what was imported, and also any file that was refused, rows that could not be read, and rows
+  whose Date could not be read (they sit in the **No date** column). A refused file or a misfiled-looking row shows as a
+  warning.
 - **Data through** is reset to the last full month before the import, and the message line says so. Change it if you
-  need to.
+  need to. An import that places no row in any appropriation leaves it alone.
 - **Nothing is dropped quietly.** A row whose FY or Amount cannot be read is kept, counted in no figure, and listed in the
-  **Import report**. So are text amounts (`$0.00`), amounts in parentheses, and trimmed spaces.
+  **Import report**. So are text amounts (`$0.00`), amounts in parentheses, blank amounts, and trimmed spaces. An Amount
+  that is a formula saved without its result (a workbook some program wrote and never calculated) cannot be read: open the
+  file in Excel, save it, and import it again.
+- **Moving a plan into a new copy of the tool.** Import the saved plan's `.html` file on its own. The page takes its pulls,
+  the earlier pulls, the import history and the settings (Authorized, special CCaRs, goals, budget overrides), and works
+  every figure out again by its own rules. **Save** to keep it.
 - **When an import is refused, nothing changes.** For example, one appropriation's rows in two different sheets, or the
   same file given twice. The message names each sheet and how many rows it holds, so a misfiled row is easy to find.
 
@@ -54,7 +65,8 @@ The view buttons sit under the top bar.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Not Allocated list.
 - **Not Allocated.** Every item in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
   that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count.
-- **Import report.** What the last import read, used, skipped and could not read.
+- **Import report.** What the last import read, used, skipped and could not read; then any data on screen from earlier
+  imports, with the rows in it that count nowhere.
 - **What changed.** The last pull against the one before it, for each appropriation imported twice: Approved and
   Obligated by FY, CCaRs new and gone, CCaRs that moved PMO, and every changed line, largest first.
 - **Settings.** See below.
@@ -83,12 +95,15 @@ The filter bar has a box for each service and one for each lane (Discretionary a
   `[filtered]`.
 - The switches belong to this browser, not to the file. Changing them does not mark the file unsaved.
 - *Service not identified* appears only when a budget name matches no service rule. The **Settings** budget table lets you
-  set its service.
+  set its service. Once no row needs it, its box goes, and it no longer counts as a switch: nothing says *filtered*
+  because of it.
 
 ## Data through and First FY
 
 - **Data through** is the last month whose data counts as actual. The execution year is the FY of that month. For
   example, Data through Oct-2026 makes the execution year FY2027.
+  - It takes a month from January 1990 to December 2100. While you type a year, nothing changes until the year is whole.
+    If you leave the box with a year not finished, or empty, it goes back to the month in use and the message line says so.
 - **First FY** is the oldest money year shown. It starts at FY2025. Money for earlier years is counted nowhere, and the
   Summary's notes say how much there is.
 
@@ -114,18 +129,25 @@ example.
   the Import Report and Settings.
 - It holds values only, no formulas. Money is in $M.
 - It uses v12's look. Every sheet is marked CUI at the top and the bottom, and prints on letter, landscape, one page wide.
-- On the appropriation sheets and PMO tabs, the outline buttons at the left open the rows level by level. The sheets
-  open showing PMO and Title rows.
+- On the appropriation sheets and PMO tabs, the four outline buttons at the left open the rows level by level, as in
+  v12: 1 PMO, 2 Title, 3 Plan Event, 4 CCaR. The sheets open showing PMO and Title rows.
 
 ## Pictures for slides
 
 - **Copy picture** puts one block on the clipboard. Paste it into PowerPoint. If the browser does not allow it, the
-  message says so; use **Save picture**.
+  message says so; use **Save picture**. If a pasted picture comes in larger than the slide region, set its width to
+  13.33 in (a browser may drop the picture's resolution on the clipboard).
 - **Save picture** saves one block as a PNG.
 - **Save all pictures (.zip)** saves every block, one PNG each.
 
-Each picture is 2000 × 675 pixels: 13.33 × 4.5 inches at 150 dpi, the slide region. It runs from the block's title through
+Each picture is 2000 × 675 pixels: 13.33 × 4.5 inches at 150 dpi, the slide region. A saved picture says 150 dpi, so
+PowerPoint places it at that size. It runs from the block's title through
 OSD Status, and is marked CUI at the top and the bottom.
+
+The workbook's Slide Snapshots sheet has the same blocks. To copy one from there with Copy as Picture, select it from the
+CUI line above its title through the CUI line under OSD Status: a picture of a cell range does not carry the sheet's
+header and footer, so the marking (and, in a filtered workbook, what is shown) is inside the block. A block copied that
+way is wider for its height than the slide region; size it by its width.
 
 ## Saving
 
@@ -133,16 +155,22 @@ OSD Status, and is marked CUI at the top and the bottom.
   - **The first Save asks you to pick this file.** A file window opens. Pick the file you opened, the one named in the
     message line. The tool reads it and checks it before it writes anything. After that, Save does not ask you to pick
     again while the page is open.
+  - If you pick a different file, Save says so and asks first, naming both files, before it writes anything.
   - The top bar says **Saved** or **Unsaved changes**. The browser asks before you close a page with unsaved changes.
 - **Save a copy…** writes a new file under a name you choose. This page keeps saving to its own file.
 - **Where the browser cannot write files** (for example Firefox), Save downloads the file instead. The shared copy is not
-  updated until you put the download in its place.
+  updated until you put the download in its place. Until then the top bar says **Downloaded, not in the file yet**, and the
+  browser still asks before you close the page.
 
 ### When Save asks a question, or refuses
 
-- **"… was saved … by someone else, or in another window. Write over it?"** Someone saved this file after you opened it.
+- **"… holds a plan saved …, after this page last opened or saved its plan … — by someone else, or in another window.
+  Write over it?"** Someone saved this file after you opened it.
   - **OK** writes your work over theirs, and their changes are lost.
   - **Cancel** writes nothing. To keep both, use **Save a copy…**, then open their file and compare.
+- **"… before the plan this page opened or last saved …"**: the file holds an older save, such as an older copy put back.
+- **"You picked …, not …, the file this page was opened from."**: you picked another file. **Cancel**, then Save again and
+  pick this page's own file. **OK** writes there instead, and this page goes on saving there until it is closed.
 - **"Not saved: … is not an SFCB Spend Plan file"** (or *holds data saved by another tool*, or *could not be read*): you
   picked the wrong file. Nothing was written. Save again and pick this page's own file.
 - **"Not saved: no file was picked."** The file window was closed. Save again.
@@ -208,7 +236,7 @@ Two smaller differences, from the same rules:
 ## CUI
 
 The data is CUI//REL TO US DoW. The marking is at the top and bottom of every screen, on every sheet of the export (header
-and footer), and on every picture. A copy of this file that holds data is CUI. Keep it, and everything exported from it,
+and footer, and above and below each Slide Snapshots block), and on every picture. A copy of this file that holds data is CUI. Keep it, and everything exported from it,
 where CUI may be kept.
 
 ## For maintainers

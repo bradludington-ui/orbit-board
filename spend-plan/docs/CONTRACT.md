@@ -448,24 +448,35 @@ download, and say what was written.
 - **Values only. No formulas.**
 - Money cells hold **$M** (`cents / 1e8`) with format `#,##0.00;(#,##0.00);-`. Percentages use `0.00%`; Delta uses
   `+0.00%;-0.00%;0.00%`.
+  - A non-zero amount under $5,000 keeps its number and takes the format `"<0.01";"(<0.01)";-` (marked as its column is), so
+    nothing non-zero reads as zero (§2), as on the screens and in the pictures. `#,##0.00` showed it as 0.00.
+- An FY is a number with the format `"FY"0`, so it shows `FY2025`, as v12 wrote it.
 - **Every sheet:**
   - header `CUI//REL TO US DoW`, centred, bold;
   - footer `CUI//REL TO US DoW` centred, with `Page &P of &N` on the right;
-  - letter, landscape, fit to one page wide;
+  - letter, landscape; the report sheets fit to one page wide, and the raw data sheets print at full size across pages, as
+    v12's had no fit (36 columns are about 44 in wide: fitted to one page they printed at 23%);
   - gridlines off on the report sheets.
 
 **The look is v12's.** Read `### look` and `### summary-slides` in FINDINGS.md:
 
 - Calibri 10–16;
-- titles, block bars, the TOTAL row and the Not Allocated bars in navy `1F3A68`, white, bold;
+- sheet titles 16 pt bold navy `1F3A68` text with no fill, centred (v12's style 58); subtitles 11 pt italic `707070`, centred;
+- block bars, the TOTAL row and the Not Allocated bars white, bold, on navy `1F3A68`; the TOTAL label left-aligned on the
+  Summary and centred (`Total - All FYs`, `Total - All`) on the appropriation sheets and PMO tabs;
+- money cells and the outline's labels centred vertically; an appropriation sheet's FY cell 11 pt bold navy;
 - PMO-tab block bars `305496`, and their strips `BDD7EE`;
 - header rows `FFE699` with a medium `404040` box;
 - data cells with thin `808080` borders;
 - status fills green `00B050`, yellow `FFD700`, red `C00000`, with the word in the cell, white on red and green, black on yellow;
+  a status cell with no status (no goal, No date) has no fill but a closed column's grey, on the screens and in the pictures
+  too: v12's `FFE699` base fill there was a word-less near-yellow beside *Within 10*;
 - outline styles: PMO 11 pt bold navy; Title 10 pt bold, indent 2; Plan Event 10 pt, indent 4; CCaR 9 pt, indent 6.
 
 **Closed columns** (actual months up to the as-of month, and Prior) carry a light grey fill (`F2F2F2`) on their data cells.
-**Plan cells** of the Obligation % and Status rows are italic and grey (`808080`). The Obligation % label reads
+**Plan cells** of the Obligation % row are italic and grey (`808080`). Plan cells of the OSD Status row keep their status fill
+and ink (white on green and red, black on yellow) and are italic: grey on the red or green fill measured about 1.5 : 1 and
+could not be read. The screens and the pictures draw them the same way. The Obligation % label reads
 `Obligation %  (Approved 3,482.32M; actual through Oct, plan after)`.
 
 ### 8.1 Summary
@@ -486,17 +497,27 @@ download, and say what was written.
 ### 8.2 Slide Snapshots
 
 - **Title:** `Slide Snapshots - picture-ready blocks for PowerPoint`.
-- **Line 2:** `Each block is sized for a 13.33 in x 4.5 in slide region. In the dashboard, Slide blocks > Copy picture or Save
-  pictures makes the picture; or select a block here from its title through OSD Status and use Copy as Picture.`
+- **Line 2:** `The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture or
+  Save pictures. To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line under
+  OSD Status and use Copy as Picture; it is wider for its height than that region, so size it by its width.`
+  (v12's line said each block was sized for that region. It never was: a block here is about 19 x 3.4 in, 5.7 : 1, against the
+  region's 2.96 : 1.)
 - **Line 3:** `model.shown.text`.
 - **Each block, in model order:**
-  1. bar `{Ap} FY{fy} - Spend Plan (PMO Summary, slide-ready)`;
-  2. header `PMO | Total | Prior Yr | Oct … Sep | FY{E+1}+ | [No date] | Total`;
-  3. the PMO rows;
-  4. a blank row;
-  5. Monthly Totals, Cumulative Totals, Obligation %, OSD Goal %, OSD Status;
-  6. the bar `Not Allocated Requirements` and the §5 lines (label in A, text in B, merged across, wrapped);
-  7. two blank rows.
+  1. a line `CUI//REL TO US DoW`, bold, centred across the block;
+  2. when not everything is shown, `model.shown.text`;
+  3. bar `{Ap} FY{fy} - Spend Plan (PMO Summary, slide-ready)`;
+  4. header `PMO | Total | Prior Yr | Oct … Sep | FY{E+1}+ | [No date] | Total`;
+  5. the PMO rows;
+  6. a blank row;
+  7. Monthly Totals, Cumulative Totals, Obligation %, OSD Goal %, OSD Status;
+  8. the line `CUI//REL TO US DoW` again;
+  9. the bar `Not Allocated Requirements` and the §5 lines (label in A, text in B, merged across, wrapped);
+  10. two blank rows.
+
+  Items 1–8 are the range line 2 names. A range picture carries only its cells, never the sheet's CUI header and footer or its
+  line 3, so the marking (§6 item 14) and the filter statement (§4.3) are inside the range, as they are in the dashboard's
+  pictures (§10).
 
 ### 8.3–8.5 O&M, Full Fund, Initial Spares, OPN (one sheet each, for every appropriation with a block)
 
@@ -507,13 +528,18 @@ download, and say what was written.
 - **Then each FY block:**
   1. bar `FY{fy} - Spend Plan by PMO / Title / Plan Event / CCaR  (1/2/3/4 in left margin)`;
   2. the header;
-  3. the tree: PMO at outline level 1, Title 2, Plan Event 3 (hidden), CCaR 4 (hidden). The CCaR row's label is the CCaR number;
+  3. the tree: PMO at outline level 0, Title 1, Plan Event 2 (hidden), CCaR 3 (hidden), as v12 stored them and as the PMO tabs
+     do (`outlineLevelRow` 3). Excel then draws the four outline buttons the bar names: 1 PMO, 2 Title, 3 Plan Event, 4 CCaR.
+     (FINDINGS numbers the four levels 1–4 by their buttons; stored one higher, the sheet had five buttons and its button 4
+     stopped at Plan Event.) The CCaR row's label is the CCaR number;
   4. the totals band (Monthly Totals = the sum of the PMO rows = the block total);
   5. the Not Allocated bar and lines.
 - Summary rows sit above their detail (`outlineAbove`). The sheet opens showing PMO and Title rows.
 
 ### 8.6 PMO tabs: `PMO {code}`, one per PMO with money in any block
 
+- **Tab order is v12's:** PMO AV, BOP, CDS, MxS, PP, PSM, TSS (Propulsion before Product Support, unlike the PMO rows inside a
+  block, §4.4), then any other PMO in the model's order (by label, `(no PMO)` last).
 - **Title:** `PMO: {label} - Sustainment Spend Plan (Cross-Appropriation Detail)`.
 - **Line 2:** the shown text.
 - **Table:** *Appropriation, FY, Approved, Authorized, Obligated, Unobligated, Obl %, OSD Goal %, Delta (pp), Status*.
@@ -539,7 +565,10 @@ download, and say what was written.
     not).
   - Amount in dollars as a number, with format `#,##0.00`; Month and Date as dates.
   - Freeze row 1. Only appropriations with a pull.
-- **`Import Report`**: the report as text rows.
+- **`Import Report`**: the report as text rows. An import's time is written in this computer's time, `YYYY-MM-DD HH:MM`, as
+  the sheet titles' dates are. Every row whose appropriation is not identified is listed on its own line (where it was, its
+  CCaR, Title, Budget, Plan Event, FY and dollars): those rows are on no raw sheet, and the Summary's note sends the reader
+  here. The screen's Import report lists them too.
 - **`Settings`**: as-of, execution year, first FY, the switches, the goal table, the Authorized entries, the special CCaRs, and
   the budget table (name, rows, $M, service, lane, override).
 
@@ -550,7 +579,8 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 **Top bar:**
 
 - the title `SFCB Spend Plan` and the execution year;
-- **Data through** (a month picker writing `settings.asOf`) and **First FY** (a number input);
+- **Data through** (a month picker writing `settings.asOf`, from 1990-01 to 2100-12; a year still being typed is not taken,
+  and a box left holding no month in that range goes back to the month in use, saying why) and **First FY** (a number input);
 - each appropriation's pull date;
 - buttons **Import CCaR pull…** (a file input, multiple, `.xlsx,.csv`), **Save**, **Save a copy…**, **Export Excel**,
   **Help**;
@@ -558,7 +588,9 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 
 **Filter bar:**
 
-- six service checkboxes, and a seventh, *Service not identified*, only when such rows exist;
+- six service checkboxes, and a seventh, *Service not identified*, only when such rows exist. A switch with no box does not
+  exist for that plan: `model.shown` is stated over the switches that exist, so the seventh, left off in this browser, makes
+  nothing read as filtered on a plan with no such rows (review S2);
 - *Discretionary* and *Mandatory* checkboxes;
 - the line `model.shown.text`.
 
@@ -597,7 +629,9 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
   canvas of **2000 × 675** px (13.33 × 4.5 in at 150 dpi) with a white background.
   - It uses the same colours and words as §8, with `SP.CUI` in small bold text at the top and bottom.
   - The table is scaled to fit the region's width, and down further if it would not fit its height; it never overflows.
-- **`await SP.blockPng(block, model)`** returns a PNG Blob.
+- **`await SP.blockPng(block, model)`** returns a PNG Blob carrying one `pHYs` chunk of 150 dpi (5906 px a metre), so Office
+  places it at 13.33 × 4.5 in; without it Office reads 96 dpi and places it at 20.83 × 7.03 in. A browser may re-encode a
+  clipboard picture without it, so Copy picture's message says how to size it.
 - **`await SP.copyBlockPicture(...)`** writes it to the clipboard (`ClipboardItem`). Where that is refused, it says so and offers
   **Save picture** instead.
 - **`await SP.allPicturesZip(model)`** uses `SP.zipFiles`. Each file is named `{Ap} FY{fy}.png`.
@@ -632,11 +666,14 @@ SP.state = { v:1, tool:'sfcb-spend-plan', savedAt:'ISO'|null, settings, pulls:{c
     - it carries `<meta name="sfcb-spend-plan"`;
     - its saved state's `savedAt` is the one this page opened with, or null;
     - it is not a different tool.
-  - If the file was saved by someone else since, it asks before writing over it, saying when. The handle is remembered for the
-    session in memory.
+  - If the file was saved by someone else since, it asks before writing over it, saying when, and whether that save came
+    before or after the one this page opened with (or, with none, after the page was opened). A picked file whose name is not
+    the page's own is said to be another file, naming both, and is written only after the person says so. The handle is
+    remembered for the session in memory.
   - **Save a copy…** uses `showSaveFilePicker` (a new file).
   - Without those APIs, Save downloads the file with its current name. It then says the shared copy is not updated until the
-    download is put in its place.
+    download is put in its place. The page's own file still lacks the work, so the page stays unsaved (the top bar says it was
+    downloaded) and leaving still asks.
 - **Opening.** The embedded state is loaded and checked: right tool, right `v`, the shapes it reads. A state that fails is not
   used; the page says why and opens empty.
 - **Leaving.** `beforeunload` asks when there are unsaved changes.

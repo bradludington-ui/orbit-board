@@ -7,7 +7,10 @@
   --cuiH:20px;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;
+  /* the keyboard's place is never under the sticky top or the bottom CUI line (WCAG 2.2 2.4.11, review S5): --topH and
+     --theadH are what they cover, measured by the screens (90-ui.js ui_layout) as the top grows and shrinks */
+  scroll-padding-top:calc(var(--topH, 140px) + var(--theadH, 0px) + 8px);scroll-padding-bottom:calc(var(--cuiH) + 8px)}
 /* a column at least the window's height, so on a short view the bottom CUI line sits at the bottom, not mid-screen */
 body{margin:0;background:#fff;color:#111;font:13px/1.35 Calibri,Carlito,"Segoe UI",Arial,sans-serif;
   min-height:100vh;display:flex;flex-direction:column}
@@ -38,11 +41,16 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:#fff;border-bot
 .savest.dirty{color:#000;background:var(--gold)}
 .pulls{padding:2px 12px;font-size:12px;color:#222;background:var(--soft);border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .pulls .d{font-variant-numeric:tabular-nums}
-.msg{padding:0 12px;font-size:13px;overflow-wrap:anywhere}
-.msg-info,.msg-ok,.msg-err{padding:4px 12px;border-left:5px solid}
+.msgrow{display:flex;align-items:flex-start}
+.msg{flex:1 1 auto;min-width:0;padding:0 12px;font-size:13px;overflow-wrap:anywhere}
+.msgx{flex:0 0 auto;margin:3px 12px 3px 6px;font:inherit;font-size:12px;font-weight:600;padding:1px 8px;border:1px solid var(--navy);border-radius:3px;
+  background:#fff;color:var(--navy);cursor:pointer;white-space:nowrap}
+.msgx:hover{background:var(--gold);color:#000}
+.msg-info,.msg-ok,.msg-warn,.msg-err{padding:4px 12px;border-left:5px solid}
 .msg-info{background:var(--soft);border-color:var(--navy2)}
 .msg-ok{background:#e9f6ec;border-color:var(--green)}
 .msg-err{background:#fde9e7;border-color:var(--red);color:#7a0000;font-weight:600}
+.msg-warn{background:#fff6d6;border-color:#b07d00;color:#4a3600;font-weight:600}
 nav.views{display:flex;flex-wrap:wrap;gap:2px;padding:4px 12px 0;background:#fff}
 nav.views button{font:inherit;padding:3px 10px;border:1px solid #b7c2d3;border-bottom:0;border-radius:3px 3px 0 0;background:#f3f5f9;color:var(--navy);cursor:pointer}
 nav.views button:hover{background:var(--gold);color:#000}
@@ -85,6 +93,13 @@ input[type=month]:focus-within{outline:3px solid var(--focus);outline-offset:1px
 
 /* tables: a wide one scrolls inside its own box; the page itself never scrolls sideways */
 .tw{max-width:100%;overflow-x:auto;margin:2px 0 8px}
+/* a tree's column headings stay on screen as it scrolls (review S6). A box that scrolls sideways is the scroll container
+   its headings would stick to, so a tree that fits its box gets no such box and sticks under the sticky top; one wider
+   than the window scrolls inside a box of its own, as tall as the window leaves, with the headings at that box's top. */
+.tw.treew.fit{overflow:visible}
+.tw.treew.fit table.tree thead th{position:sticky;top:var(--topH, 140px);z-index:5}
+.tw.treew.box{max-height:calc(100vh - var(--topH, 140px) - var(--cuiH) - 12px);overflow:auto;scroll-padding-top:3em}
+.tw.treew.box table.tree thead th{position:sticky;top:0;z-index:5}
 table.grid{border-collapse:collapse;font-size:12px;background:#fff}
 .grid th,.grid td{border:1px solid var(--grid);padding:2px 6px;vertical-align:top}
 .grid thead tr.hd th,.grid tr.hd th{background:var(--gold);border:1px solid var(--box);border-top-width:2px;border-bottom-width:2px;font-weight:700;text-align:center;white-space:nowrap}
@@ -176,4 +191,6 @@ section.chg{margin-bottom:18px}
 @media print{
   header.top,.filters,.slidebtns,.acts{display:none}
   .cui{position:static}
+  .tw.treew.box{max-height:none;overflow:visible}
+  table.tree thead th{position:static}
 }

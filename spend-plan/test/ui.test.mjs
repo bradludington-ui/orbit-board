@@ -431,6 +431,17 @@ C.chk('keyboard: Enter on Help opens the guide', /Where this differs from v12/.t
 await P.keyboard.press('Enter');
 await clean(A, 'keyboard');
 
+// ------------------------------------- the rows no appropriation claims are each named in the Import report (review XP-8)
+{
+  await view(P, 'report');
+  const rt = await text(P, '#uiMain');
+  const man = JSON.parse(readFileSync(join(FX, 'manifest.json'), 'utf8'));
+  const unid = man.gen1.filter(i => i.ap === null);
+  const miss = unid.filter(u => !['“' + u.ccar + '”', '“' + u.title + '”', '“' + u.budget + '”', '“' + u.pe + '”', 'FY' + u.fy].every(w => rt.includes(w)));
+  C.chk('the Import report names every row whose appropriation is not identified', unid.length === 2 && !miss.length,
+    miss.map(u => u.id).join(', ') + ' not named');
+}
+
 // -------------------------------------------------------------- a refused import changes nothing, and says why
 await view(P, 'summary');
 const tot0 = await cents(P, 'tr[data-bk=total] td.n');

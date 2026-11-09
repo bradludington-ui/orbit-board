@@ -16,7 +16,10 @@
   --cuiH:20px;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;
+  /* the keyboard's place is never under the sticky top or the bottom CUI line (WCAG 2.2 2.4.11, review S5): --topH and
+     --theadH are what they cover, measured by the screens (90-ui.js ui_layout) as the top grows and shrinks */
+  scroll-padding-top:calc(var(--topH, 140px) + var(--theadH, 0px) + 8px);scroll-padding-bottom:calc(var(--cuiH) + 8px)}
 /* a column at least the window's height, so on a short view the bottom CUI line sits at the bottom, not mid-screen */
 body{margin:0;background:#fff;color:#111;font:13px/1.35 Calibri,Carlito,"Segoe UI",Arial,sans-serif;
   min-height:100vh;display:flex;flex-direction:column}
@@ -47,11 +50,16 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:#fff;border-bot
 .savest.dirty{color:#000;background:var(--gold)}
 .pulls{padding:2px 12px;font-size:12px;color:#222;background:var(--soft);border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .pulls .d{font-variant-numeric:tabular-nums}
-.msg{padding:0 12px;font-size:13px;overflow-wrap:anywhere}
-.msg-info,.msg-ok,.msg-err{padding:4px 12px;border-left:5px solid}
+.msgrow{display:flex;align-items:flex-start}
+.msg{flex:1 1 auto;min-width:0;padding:0 12px;font-size:13px;overflow-wrap:anywhere}
+.msgx{flex:0 0 auto;margin:3px 12px 3px 6px;font:inherit;font-size:12px;font-weight:600;padding:1px 8px;border:1px solid var(--navy);border-radius:3px;
+  background:#fff;color:var(--navy);cursor:pointer;white-space:nowrap}
+.msgx:hover{background:var(--gold);color:#000}
+.msg-info,.msg-ok,.msg-warn,.msg-err{padding:4px 12px;border-left:5px solid}
 .msg-info{background:var(--soft);border-color:var(--navy2)}
 .msg-ok{background:#e9f6ec;border-color:var(--green)}
 .msg-err{background:#fde9e7;border-color:var(--red);color:#7a0000;font-weight:600}
+.msg-warn{background:#fff6d6;border-color:#b07d00;color:#4a3600;font-weight:600}
 nav.views{display:flex;flex-wrap:wrap;gap:2px;padding:4px 12px 0;background:#fff}
 nav.views button{font:inherit;padding:3px 10px;border:1px solid #b7c2d3;border-bottom:0;border-radius:3px 3px 0 0;background:#f3f5f9;color:var(--navy);cursor:pointer}
 nav.views button:hover{background:var(--gold);color:#000}
@@ -94,6 +102,13 @@ input[type=month]:focus-within{outline:3px solid var(--focus);outline-offset:1px
 
 /* tables: a wide one scrolls inside its own box; the page itself never scrolls sideways */
 .tw{max-width:100%;overflow-x:auto;margin:2px 0 8px}
+/* a tree's column headings stay on screen as it scrolls (review S6). A box that scrolls sideways is the scroll container
+   its headings would stick to, so a tree that fits its box gets no such box and sticks under the sticky top; one wider
+   than the window scrolls inside a box of its own, as tall as the window leaves, with the headings at that box's top. */
+.tw.treew.fit{overflow:visible}
+.tw.treew.fit table.tree thead th{position:sticky;top:var(--topH, 140px);z-index:5}
+.tw.treew.box{max-height:calc(100vh - var(--topH, 140px) - var(--cuiH) - 12px);overflow:auto;scroll-padding-top:3em}
+.tw.treew.box table.tree thead th{position:sticky;top:0;z-index:5}
 table.grid{border-collapse:collapse;font-size:12px;background:#fff}
 .grid th,.grid td{border:1px solid var(--grid);padding:2px 6px;vertical-align:top}
 .grid thead tr.hd th,.grid tr.hd th{background:var(--gold);border:1px solid var(--box);border-top-width:2px;border-bottom-width:2px;font-weight:700;text-align:center;white-space:nowrap}
@@ -185,6 +200,8 @@ section.chg{margin-bottom:18px}
 @media print{
   header.top,.filters,.slidebtns,.acts{display:none}
   .cui{position:static}
+  .tw.treew.box{max-height:none;overflow:visible}
+  table.tree thead th{position:static}
 }
 </style>
 </head>
@@ -490,6 +507,42 @@ function xr_colIndex(letters) {
 }
 const XR_MAXCOL = 16384;   // XFD: a reference past it is not a worksheet cell, and an array that long is a damaged file
 
+// A FILE WITH NO ZIP DIRECTORY, SAID AS WHAT IT IS. Every such file used to be called "possibly truncated; export it
+// again" -- the wrong advice for an old .xls, a web page some system named .xls, a CSV named .xlsx or a saved plan, none
+// of which a fresh export fixes (review IMP-10). Only a file that starts like a zip and has lost its end is truncated.
+const XR_OLE2 = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+function xr_notZip(u) {
+  const no = 'That file is not an .xlsx workbook: ';
+  const asXlsx = ' Open it in Excel, save it as an Excel Workbook (.xlsx), and import that.';
+  if (u.length >= 8 && XR_OLE2.every((b, i) => u[i] === b)) {
+    return no + 'it is an Excel 97–2003 workbook (.xls), which this tool does not read.' + asXlsx;
+  }
+  if (u.length >= 2 && u[0] === 0x50 && u[1] === 0x4B) {
+    return 'That file is not an .xlsx workbook (no ZIP end-of-directory record). It starts like one, so it was most '
+      + 'likely cut short in a download or a copy; export it again and retry.';
+  }
+  const head = new TextDecoder('utf-8').decode(u.subarray(0, Math.min(u.length, 8192))).replace(/^\uFEFF/, '').replace(/^\s+/, '');
+  if (/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(head)) {
+    return no + 'it is a saved SFCB Spend Plan, not a CCaR pull. To bring that plan into this page, import the plan file on its '
+      + 'own: the page then offers to take its pulls, history and settings.';
+  }
+  if (/^<\?xml[\s\S]{0,4000}urn:schemas-microsoft-com:office:spreadsheet/i.test(head)) {
+    return no + 'it is an Excel 2003 XML Spreadsheet.' + asXlsx;
+  }
+  if (/^<(?:!doctype\s+html|html|head|body|table|meta|style|div)\b/i.test(head)) {
+    return no + 'it is a web page (HTML). Some systems save a table this way and name it .xls.' + asXlsx;
+  }
+  // text: no NUL and nearly every byte printable or a line break
+  let ctl = 0;
+  const n = Math.min(u.length, 8192);
+  for (let i = 0; i < n; i++) { const b = u[i]; if (b === 0) { ctl = n; break; } if (b < 9 || (b > 13 && b < 32)) ctl++; }
+  if (ctl * 50 < n) {
+    return no + 'it is plain text. If it is a CSV export, give it a name ending .csv and import it again.';
+  }
+  return 'That file is not an .xlsx workbook (no ZIP end-of-directory record), and it is not a kind of file this tool '
+    + 'recognises. If it came from a download, it may have been truncated; export it again and retry.';
+}
+
 // EVERY OFFSET BELOW COMES OUT OF THE FILE ITSELF, so a truncated or damaged workbook can point anywhere. Unchecked, a
 // DataView read past the end throws "Offset is outside the bounds of the DataView" -- true, and useless to someone who
 // just wants to know their CCaR pull did not survive the download. Each read is bounded, and each failure says what is
@@ -509,10 +562,7 @@ async function readXlsx(buf) {
   // the same four bytes inside compressed data and reads garbage as a directory.
   let e = -1;
   for (let i = SZ - 22, lo = Math.max(0, SZ - 22 - 65535); i >= lo; i--) { if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; } }
-  if (e < 0) throw new Error(SZ === 0
-    ? 'That file is empty — nothing was read.'
-    : 'That file is not an .xlsx workbook (no ZIP end-of-directory record). If it came from a '
-      + 'download, it may have been truncated; export it again and retry.');
+  if (e < 0) throw new Error(SZ === 0 ? 'That file is empty — nothing was read.' : xr_notZip(u));
   need(e, 22, 'its end-of-directory record runs past the end of the file');
   const cnt = dv.getUint16(e + 10, true), cdOff = dv.getUint32(e + 16, true);
   if (cnt === 0xFFFF || cdOff === 0xFFFFFFFF) throw BAD('it is written in the ZIP64 format, which this reader does not read');
@@ -599,7 +649,7 @@ async function readXlsx(buf) {
     const xml = await get(part);
     // a part named in the rels but absent from the zip is a broken workbook, not a quiet skip
     if (!xml) { sheets.push({ name, state, rows: [], rowNo: [], problem: 'its data (' + part + ') is missing from the file' }); continue; }
-    const rows = [], rowNo = [];
+    const rows = [], rowNo = [], noResult = [];
     // <row …/> carries no cells: Excel writes one for a row that only has a height or a style. Without its own branch the
     // lazy body below would run on into the next row and swallow it.
     for (const rm of xml.matchAll(/<(?:\w+:)?row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/(?:\w+:)?row>)/g)) {
@@ -644,6 +694,17 @@ async function readXlsx(buf) {
             }
           }
         }
+        // A FORMULA SAVED WITHOUT ITS RESULT. Excel always saves a result with a formula: a number, an error (t="e"), or an
+        // empty text (t="str" with <v/>, which v12's own formula columns hold by the thousand and which is rightly blank). A
+        // formula of number type with no value was written by a program that never calculated it (openpyxl writes
+        // <f>…</f><v></v>). Read as blank, an Amount so written counted as $0 and was reported nowhere (review IMP-6). It is
+        // read as its formula's text instead, so an Amount or FY written that way makes its row unreadable and is named,
+        // and the sheet counts every such cell.
+        const fm = v === null && t === 'n' && body ? /<(?:\w+:)?f\b[^>]*?(?:\/>|>([\s\S]*?)<\/(?:\w+:)?f>)/.exec(body) : null;
+        if (fm) {
+          v = '=' + (fm[1] ? txt(fm[1]).trim() : '(a shared formula)');
+          noResult.push(SP.colLetter(ci) + (rno || (rowNo.length ? rowNo[rowNo.length - 1] + 1 : 1)));
+        }
         if (v !== null) { cells[ci] = v; if (ci + 1 > maxc) maxc = ci + 1; }
       }
       const arr = new Array(maxc);
@@ -652,7 +713,7 @@ async function readXlsx(buf) {
       rows.push(arr);
       rowNo.push(rno);
     }
-    sheets.push({ name, state, rows, rowNo });
+    sheets.push({ name, state, rows, rowNo, noResult });
   }
   return { sheets, date1904, esc };
 }
@@ -705,6 +766,11 @@ SP.readCsv = readCsv;
 const IMP_N = SP.RAW_HEADERS.length;                                        // 32
 const IMP_COL = new Map(SP.RAW_HEADERS.map((h, i) => [SP.normKey(h), i]));   // normKey(header) -> stored position
 const IMP_FORMULA_COLS = new Map([['svc (auto)', 'Svc (auto)'], ['inc (auto)', 'Inc (auto)']]);   // v12's formula columns
+// The four columns this tool's own Raw Data sheets append (§8.7). They are worked out again on every load, so a re-imported
+// export reads them as nothing, like v12's formula columns. Kept as extras they came back as "Service (2)" … "Counted (2)"
+// on the next round, and grew every round after (review IMP-7). Only all four together are the tool's: one alone may be a
+// real column of someone's pull, and is kept.
+const IMP_OWN_COLS = ['service', 'lane', 'status', 'counted'];
 const IMP_FY = 0, IMP_MONTH = 1, IMP_CCAR = 2, IMP_TITLE = 3, IMP_BUDGET = 4, IMP_PE = 7, IMP_DATE = 8, IMP_AMT = 9,
   IMP_ALLOC = 10, IMP_PMO = 18;
 const IMP_HDR_ROWS = 15;
@@ -906,7 +972,8 @@ function imp_findHeader(rows, rowNo) {
 // One sheet -> {info, rows:[stored rows with their appropriation]}. acc collects the report's counts across the import.
 function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   const info = { name: sh.name, state: sh.state || 'visible', used: false, why: null, headerRow: null, rows: 0, blank: 0,
-    byAp: {}, extras: [], ignoredCols: [], missingCols: [], disagree: null };
+    byAp: {}, extras: [], ignoredCols: [], ownCols: [], missingCols: [], disagree: null, extraOnly: [],
+    noResult: Array.isArray(sh.noResult) ? sh.noResult.slice() : [] };
   const out = [];
   if (sh.problem) { info.why = sh.problem; return { info, out }; }
   const rows = sh.rows, rowNo = sh.rowNo;
@@ -922,6 +989,9 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   // columns BY HEADER NAME, never by position
   const head = rows[hdr.i];
   const col = new Array(IMP_N).fill(-1), named = new Set(), dup = [], extras = [], seenExtra = new Map();
+  const ignored = new Set();   // columns read as nothing: v12's formula columns, this tool's own derived ones
+  const headKeys = new Set(head.map(h => SP.normKey(imp_text(h))));
+  const ownExport = IMP_OWN_COLS.every(k => headKeys.has(k)), ownSeen = new Set();
   head.forEach((h, j) => {
     const text = imp_text(h);
     if (text === '') return;
@@ -930,7 +1000,8 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
       const k = IMP_COL.get(nk);
       if (col[k] >= 0) dup.push({ name: SP.RAW_HEADERS[k], a: col[k], b: j });
       else { col[k] = j; named.add(j); }
-    } else if (IMP_FORMULA_COLS.has(nk)) { info.ignoredCols.push(text); named.add(j); }
+    } else if (IMP_FORMULA_COLS.has(nk)) { info.ignoredCols.push(text); named.add(j); ignored.add(j); }
+    else if (ownExport && IMP_OWN_COLS.includes(nk) && !ownSeen.has(nk)) { ownSeen.add(nk); info.ownCols.push(text); named.add(j); ignored.add(j); }
     else {
       // two columns with one unknown header keep both, the second as "Name (2)", so neither overwrites the other
       const n = (seenExtra.get(nk) || 0) + 1;
@@ -947,6 +1018,11 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   }
   info.missingCols = SP.RAW_HEADERS.filter((h, k) => col[k] < 0);
   const isBlankRow = r => { for (let k = 0; k < IMP_N; k++) if (col[k] >= 0 && !imp_isBlank(r[col[k]])) return false; return true; };
+  // A row with nothing in the 32 CCaR columns is skipped (CONTRACT §3), but one with something in another column is not
+  // blank: it was counted as a blank row and its text was found nowhere (review IMP-13). It is still skipped, and it is
+  // listed by row with what it held.
+  const known = new Set(col.filter(j => j >= 0));
+  const extraName = new Map();
   // A value in a column with no header is still data: it is kept as an extra column named by its letter, never dropped.
   const unnamed = new Set();
   for (let i = hdr.i + 1; i < rows.length; i++) {
@@ -957,13 +1033,27 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   for (const j of unnamed) extras.push({ name: 'Column ' + SP.colLetter(j), j });
   extras.sort((a, b) => a.j - b.j);
   info.extras = extras.map(e => e.name);
+  for (const e of extras) extraName.set(e.j, e.name);
+  const othersOf = r => {
+    const o = [];
+    for (let j = 0; j < r.length; j++) {
+      if (known.has(j) || ignored.has(j) || imp_isBlank(r[j])) continue;
+      o.push([extraName.get(j) || 'Column ' + SP.colLetter(j), imp_raw(r[j])]);
+    }
+    return o;
+  };
   const sheetAp = imp_apOfSheet(sh.name);
   const csv = kind === 'csv';
   let disN = 0, disC = 0;
   const disBy = {};
   for (let i = hdr.i + 1; i < rows.length; i++) {
     const r = rows[i];
-    if (isBlankRow(r)) { info.blank++; continue; }
+    if (isBlankRow(r)) {
+      const o = othersOf(r);
+      if (o.length) { info.extraOnly.push({ row: rowNo[i], values: o }); acc.extraOnly.push({ file: fileName, sheet: sh.name, row: rowNo[i], values: o }); }
+      else info.blank++;
+      continue;
+    }
     const rn = rowNo[i];
     const c = new Array(IMP_N);
     const bad = [], raw = {};
@@ -1041,10 +1131,32 @@ function imp_sameBytes(a, b) {
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
 }
+// how many well-formed UTF-8 multi-byte sequences a file holds, and how many bytes are not part of one
+function imp_utf8Count(u) {
+  let valid = 0, invalid = 0;
+  for (let i = 0; i < u.length;) {
+    const b = u[i];
+    if (b < 0x80) { i++; continue; }
+    const n = b >= 0xC2 && b <= 0xDF ? 1 : b >= 0xE0 && b <= 0xEF ? 2 : b >= 0xF0 && b <= 0xF4 ? 3 : 0;
+    let ok = n > 0 && i + n < u.length;
+    for (let k = 1; ok && k <= n; k++) if ((u[i + k] & 0xC0) !== 0x80) ok = false;
+    if (ok) { valid++; i += n + 1; } else { invalid++; i++; }
+  }
+  return { valid, invalid };
+}
 function imp_hash(u) { let h = 0x811c9dc5; for (let i = 0; i < u.length; i++) { h ^= u[i]; h = Math.imul(h, 0x01000193); } return h >>> 0; }
 // a refusal: nothing was imported, and the message says why in words a person can act on
 function imp_refuse(msg, report) { const e = new Error(msg); e.refused = true; e.report = report || null; return e; }
 function imp_where(s) { return imp_q(s.file) + ' › ' + imp_q(s.sheet); }
+// An import's time in this computer's own time, 'YYYY-MM-DD HH:MM'. Printed as stored (UTC) it read
+// '2026-11-09T19:07:23.967Z': a reader in Virginia after 7 pm saw tomorrow's date beside sheet titles dated today
+// (review XP-9). Text that is not a time is printed as it is.
+function imp_localWhen(iso) {
+  const t = typeof iso === 'string' ? Date.parse(iso) : NaN;
+  if (isNaN(t)) return String(iso ?? '');
+  const d = new Date(t), p2 = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+}
 
 // files: [{name, data: ArrayBuffer | typed array | string}] -> {pulls, report}. A name ending .csv is read as CSV, any other
 // as .xlsx. Throws an Error with .refused = true (and .report) when the import as a whole is refused: nothing to change.
@@ -1064,9 +1176,10 @@ SP.parseFiles = async function parseFiles(files, opts) {
   }
   // trimmedBy is keyed by column headers out of the file, so it has no prototype
   const acc = { conv: { number: 0, blank: 0, text: 0, dollar: 0, paren: 0, subcent: 0, trimmed: 0 }, trimmedBy: Object.create(null),
-    subcent: [], unreadable: [], dateBad: [], alloc: new Map() };
+    subcent: [], unreadable: [], dateBad: [], alloc: new Map(), extraOnly: [] };
   const report = { importedAt, files: [], rowsRead: 0, rowsBlank: 0, byAp: {}, conversions: acc.conv, trimmedBy: acc.trimmedBy,
-    subcent: acc.subcent, unreadable: acc.unreadable, dateUnreadable: acc.dateBad, disagreements: [], alloc: [], notes: [] };
+    subcent: acc.subcent, unreadable: acc.unreadable, dateUnreadable: acc.dateBad, disagreements: [], alloc: [], notes: [],
+    extraOnly: acc.extraOnly, strays: [] };
   const got = [];   // {ap, row, file, sheet, fileIdx}
   for (let fi = 0; fi < files.length; fi++) {
     const f = files[fi] || {};
@@ -1079,16 +1192,32 @@ SP.parseFiles = async function parseFiles(files, opts) {
     try {
       if (kind === 'csv') {
         let text = typeof f.data === 'string' ? f.data : null;
+        let stray = 0;
         if (text === null) {
           try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes[fi]); }
           catch (e) {
-            // Excel's "CSV (Comma delimited)" is Windows-1252, not UTF-8; read as UTF-8 its accents would become U+FFFD
-            try { text = new TextDecoder('windows-1252').decode(bytes[fi]); fr.notes.push('It is not UTF-8 text; it was read as Windows-1252, the encoding Excel uses for CSV.'); }
-            catch (e2) { text = new TextDecoder('utf-8').decode(bytes[fi]); fr.notes.push('It is not UTF-8 text; characters that could not be read show as \uFFFD.'); }
+            // Excel's "CSV (Comma delimited)" is Windows-1252, not UTF-8; read as UTF-8 its accents would become U+FFFD. But
+            // one stray byte in a UTF-8 file is not a Windows-1252 file: read so, its byte-order mark became "ï»¿" on the FY
+            // header (and the file was refused for having no FY), and every –, ’ and é in it became two or three wrong
+            // characters (review IMP-8). A byte-order mark, or more good UTF-8 sequences than bad bytes, says UTF-8.
+            const u = bytes[fi], cnt = imp_utf8Count(u);
+            const bom = u.length >= 3 && u[0] === 0xEF && u[1] === 0xBB && u[2] === 0xBF;
+            if (bom || cnt.valid > cnt.invalid) { text = new TextDecoder('utf-8').decode(u); stray = cnt.invalid; }
+            else {
+              try { text = new TextDecoder('windows-1252').decode(u); fr.notes.push('It is not UTF-8 text; it was read as Windows-1252, the encoding Excel uses for CSV.'); }
+              catch (e2) { text = new TextDecoder('utf-8').decode(u); fr.notes.push('It is not UTF-8 text; characters that could not be read show as \uFFFD.'); }
+            }
           }
         }
         if (bytes[fi].length === 0) { fr.refused = 'the file is empty'; continue; }
         const rows = SP.readCsv(text);
+        if (stray) {
+          const at = [];
+          rows.forEach((r, i) => { if (r.some(c => c.indexOf('\uFFFD') >= 0)) at.push(i + 1); });
+          fr.notes.push('It is UTF-8 text, but ' + imp_plural(stray, 'byte in it is', 'bytes in it are') + ' not: each such byte '
+            + 'was read as \uFFFD (the character for one that cannot be read), and the rest of the file as written'
+            + (at.length ? ' (row' + (at.length === 1 ? ' ' : 's ') + at.slice(0, 10).join(', ') + (at.length > 10 ? ', …' : '') + ')' : '') + '.');
+        }
         sheets = [{ name: name.replace(/^.*[\\/]/, '').replace(/\.csv$/i, ''), state: 'visible', rows, rowNo: rows.map((r, i) => i + 1) }];
       } else {
         const wb = await SP.readXlsx(bytes[fi]);
@@ -1124,8 +1253,9 @@ SP.parseFiles = async function parseFiles(files, opts) {
     if (g.ap === 'unidentified') continue;
     if (!srcBy.has(g.ap)) srcBy.set(g.ap, new Map());
     const m = srcBy.get(g.ap), key = g.fileIdx + '\u0000' + g.sheet;
-    const e = m.get(key) || { file: g.file, sheet: g.sheet, n: 0 };
-    e.n++; m.set(key, e);
+    const e = m.get(key) || { file: g.file, sheet: g.sheet, n: 0, cents: 0 };
+    e.n++; if (!g.row.bad) e.cents += g.row.c[IMP_AMT];
+    m.set(key, e);
   }
   const clash = [];
   for (const ap of IMP_AP_IDS) {
@@ -1134,9 +1264,21 @@ SP.parseFiles = async function parseFiles(files, opts) {
     clash.push(imp_apLabel(ap) + ' rows come from ' + m.size + ' sheets: '
       + [...m.values()].map(e => imp_where(e) + ' holds ' + imp_plural(e.n, imp_apLabel(ap) + ' row')).join('; '));
   }
+  // The advice used to end "or import the files one at a time": taken, the misfiled row became the whole of its
+  // appropriation's pull and replaced that pull without a word (review IMP-1). The row has to move, or its Budget change.
   if (clash.length) throw imp_refuse('Nothing was imported. Each appropriation’s rows must come from one sheet in one import, and '
-    + clash.join('. ') + '. Rows are placed by their Budget name, so a row on the wrong tab shows here as a small count: move it, '
-    + 'or import the files one at a time.', report);
+    + clash.join('. ') + '. Rows are placed by their Budget name, so a row on the wrong tab shows here as a small count: move it '
+    + 'to the sheet of its own appropriation, or correct its Budget, and import again.', report);
+  // AN APPROPRIATION ALL OF WHOSE ROWS SIT ON A SHEET NAMED FOR ANOTHER. The budget still wins (CONTRACT §3), but such rows
+  // are the very shape of a misfiled row, and imported they become the WHOLE of their appropriation's pull: one Full Fund
+  // row on the O&M tab, imported in an O&M-only file, replaced a 40-row Full Fund pull with itself (review IMP-1). They are
+  // recorded here, so the store can ask before they replace a pull and say so after.
+  for (const ap of IMP_AP_IDS) {
+    const m = srcBy.get(ap);
+    if (!m || m.size !== 1) continue;
+    const e = [...m.values()][0], sheetAp = imp_apOfSheet(e.sheet);
+    if (sheetAp && sheetAp !== ap) report.strays.push({ ap, label: imp_apLabel(ap), file: e.file, sheet: e.sheet, sheetAp, rows: e.n, cents: e.cents });
+  }
   // THE PULLS, in the order given: files, then sheets in workbook order, then rows top to bottom
   const pulls = {};
   for (const g of got) {
@@ -1186,11 +1328,17 @@ SP.importReportLines = function importReportLines(report) {
     if (aps.length) bits[1] += ' (' + aps.join(', ') + ')';
     if (s.blank) bits.push(imp_plural(s.blank, 'blank row') + ' skipped');
     if (s.ignoredCols.length) bits.push(s.ignoredCols.join(' and ') + ' ignored (the old workbook’s formula columns)');
+    if (s.ownCols && s.ownCols.length) bits.push(s.ownCols.join(', ') + ' ignored (this tool’s own columns, worked out again on every load)');
+    const nr = Array.isArray(s.noResult) ? s.noResult : [];
+    if (nr.length) bits.push(imp_plural(nr.length, 'cell holds', 'cells hold') + ' a formula saved without its result ('
+      + nr.slice(0, 10).join(', ') + (nr.length > 10 ? ', …' : '') + '): each is read as its formula’s text, so an Amount or FY '
+      + 'written that way makes its row unreadable; open the file in Excel and save it, so the results are saved, and import it again');
+    if (s.extraOnly && s.extraOnly.length) bits.push(imp_plural(s.extraOnly.length, 'row') + ' skipped with values only outside the CCaR columns');
     if (s.extras.length) bits.push('extra column' + (s.extras.length === 1 ? '' : 's') + ' kept: ' + s.extras.map(imp_q).join(', '));
     if (s.missingCols.length) bits.push('not in this sheet, read as blank: ' + s.missingCols.join(', '));
     return bits.join('; ');
   };
-  L.push('Import of ' + report.importedAt + ': ' + imp_plural(report.files.length, 'file') + '.');
+  L.push('Import of ' + imp_localWhen(report.importedAt) + ' (this computer’s time): ' + imp_plural(report.files.length, 'file') + '.');
   for (const fr of report.files) {
     L.push('File ' + imp_q(fr.name) + ' (' + (fr.kind === 'csv' ? 'CSV' : '.xlsx') + ', ' + imp_plural(fr.bytes, 'byte') + ')'
       + (fr.refused ? ': REFUSED — ' + fr.refused : fr.date1904 ? ': dates use the 1904 date system' : ''));
@@ -1201,6 +1349,12 @@ SP.importReportLines = function importReportLines(report) {
     }
   }
   L.push('Rows read: ' + SP.fmtInt(report.rowsRead) + '. Blank rows skipped: ' + SP.fmtInt(report.rowsBlank) + '.');
+  const xo = Array.isArray(report.extraOnly) ? report.extraOnly : [];
+  if (xo.length) {
+    L.push('Rows skipped because none of the 32 CCaR columns holds anything, though another column does (their text is here, '
+      + 'and nowhere else): ' + SP.fmtInt(xo.length) + '.');
+    for (const x of xo) L.push('  ' + imp_where(x) + ' row ' + x.row + ': ' + x.values.map(([h, v]) => h + ' ' + imp_q(v)).join(', ') + '.');
+  }
   for (const ap of Object.keys(report.byAp || {})) {
     const b = report.byAp[ap];
     L.push(b.label + ': ' + imp_plural(b.rows, 'row') + ', ' + SP.fmtUsd(b.cents)
@@ -1213,6 +1367,7 @@ SP.importReportLines = function importReportLines(report) {
   if (cv.dollar) conv.push(imp_plural(cv.dollar, 'amount') + ' written with $ (such as "$0.00")');
   if (cv.paren) conv.push(imp_plural(cv.paren, 'amount') + ' in parentheses, read as negative');
   if (cv.subcent) conv.push(imp_plural(cv.subcent, 'amount') + ' with fractions of a cent, rounded to the cent (half away from zero)');
+  if (cv.blank) conv.push(imp_plural(cv.blank, 'blank amount') + ' read as $0');
   if (cv.trimmed) conv.push(imp_plural(cv.trimmed, 'value') + ' with spaces trimmed from the ends');
   L.push('Conversions: ' + (conv.length ? conv.join('; ') + '.' : 'none.'));
   const tb = Object.keys(report.trimmedBy || {});
@@ -1231,9 +1386,98 @@ SP.importReportLines = function importReportLines(report) {
   L.push('Budget and sheet name disagree: ' + (dis.length ? '' : 'none.'));
   for (const d of dis) L.push('  ' + imp_where(d) + ' (by its name, ' + imp_apLabel(d.sheetAp) + '): ' + imp_plural(d.rows, 'row')
     + ', ' + SP.fmtUsd(d.cents) + ', placed by Budget as ' + Object.keys(d.byBudget).map(a => imp_apLabel(a) + ' ' + SP.fmtInt(d.byBudget[a])).join(', ') + '.');
+  for (const x of Array.isArray(report.strays) ? report.strays : []) {
+    L.push('Every ' + x.label + ' row in this import sits on a sheet named for ' + imp_apLabel(x.sheetAp) + ': ' + imp_where(x) + ' holds '
+      + imp_plural(x.rows, 'row') + ', ' + SP.fmtUsd(x.cents) + ', placed by Budget as ' + x.label + ', and ' + (x.rows === 1 ? 'it is' : 'they are')
+      + ' the whole ' + x.label + ' pull this import brings. If ' + (x.rows === 1 ? 'it is' : 'they are') + ' misfiled, move '
+      + (x.rows === 1 ? 'it' : 'them') + ' to the ' + x.label + ' sheet, or correct the Budget, and import again.');
+  }
   L.push('Alloc values:');
   for (const a of report.alloc || []) L.push('  ' + (a.text === '' ? '(blank)' : imp_q(a.text)) + ': ' + imp_plural(a.rows, 'row') + ', ' + SP.fmtUsd(a.cents) + '.');
   for (const n of report.notes || []) L.push(n);
+  return L;
+};
+
+// THE ROWS WHOSE APPROPRIATION IS NOT IDENTIFIED, one line each. They are on no raw sheet (§8.7 has one per appropriation),
+// and the Summary's note sends the reader to the Import report for them, which gave only their count and dollars: a reader
+// could not find which rows they were (review XP-8). Each is named by where it was, and by what identifies it.
+//   pulls   the current pulls
+SP.unidentifiedLines = function unidentifiedLines(pulls) {
+  const L = [];
+  const p = pulls && typeof pulls === 'object' ? pulls.unidentified : null;
+  if (!p || typeof p !== 'object' || !Array.isArray(p.rows) || !p.rows.length) return L;
+  const files = Array.isArray(p.files) ? p.files.filter(f => f && typeof f === 'object') : [];
+  // src[0] is the file's place in its IMPORT, not in this pull's file list (which holds only the files these rows came
+  // from), so a row is matched to its file by its sheet's name; two files with a sheet of that name are both named
+  const fileOf = r => {
+    const sh = Array.isArray(r.src) ? String(r.src[1]) : '';
+    const fs = files.length === 1 ? files : files.filter(f => Array.isArray(f.sheets) && f.sheets.map(String).includes(sh));
+    return fs.length === 1 ? String(fs[0].name) : files.length ? 'one of ' + files.map(f => String(f.name)).join(', ') : 'a file not recorded';
+  };
+  const t = (r, k) => { const v = r.c[k]; return v === null || v === undefined ? '' : String(v); };
+  L.push('Rows whose appropriation is not identified (their Budget names none, nor does their sheet), counted nowhere: ' + SP.fmtInt(p.rows.length) + '.');
+  for (const r of p.rows) {
+    if (!r || !Array.isArray(r.c)) continue;
+    const raw = r.raw && typeof r.raw === 'object' ? r.raw : {};
+    const fy = typeof r.c[IMP_FY] === 'number' ? 'FY' + r.c[IMP_FY] : 'FY ' + imp_q(Object.prototype.hasOwnProperty.call(raw, 'FY') ? String(raw.FY) : '') + ' not read';
+    const amt = typeof r.c[IMP_AMT] === 'number' ? SP.fmtUsd(r.c[IMP_AMT]) : 'amount ' + imp_q(Object.prototype.hasOwnProperty.call(raw, 'Amount') ? String(raw.Amount) : '') + ' not read';
+    L.push('  ' + imp_where({ file: fileOf(r), sheet: Array.isArray(r.src) && r.src[1] !== undefined ? String(r.src[1]) : '?' })
+      + ' row ' + (Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?') + ': CCaR ' + imp_q(t(r, IMP_CCAR)) + ', Title ' + imp_q(t(r, IMP_TITLE))
+      + ', Budget ' + imp_q(t(r, IMP_BUDGET)) + ', Plan Event ' + imp_q(t(r, IMP_PE)) + ', ' + fy + ', ' + amt + '.');
+  }
+  return L;
+};
+
+// THE PULLS ON SCREEN THAT THE LAST IMPORT DID NOT BRING. Only the last import's report is kept (CONTRACT §11), but an
+// appropriation it did not replace keeps its pull, and with it any rows that count nowhere. The Summary names those rows
+// and sends the reader to the Import report, which (being the last import's) listed none of them and said "Unreadable
+// rows: none." (review IMP-2). These lines are worked out from the pulls themselves, every row of which keeps its sheet,
+// row number, reasons and raw text, so whatever the report a pull came with, what it holds is listed with it.
+//   pulls   the current pulls; report  the last import's report (or null)
+SP.keptPullLines = function keptPullLines(pulls, report) {
+  const L = [];
+  if (!pulls || typeof pulls !== 'object') return L;
+  const by = report && report.byAp && typeof report.byAp === 'object' && !Array.isArray(report.byAp) ? report.byAp : {};
+  const at = report ? report.importedAt : undefined;
+  for (const ap of IMP_AP_IDS.concat(['unidentified'])) {
+    const p = pulls[ap];
+    if (!p || typeof p !== 'object' || !Array.isArray(p.rows)) continue;
+    // unidentified rows carry no import time of their own: they are the last import's whenever its report counts some
+    if (Object.prototype.hasOwnProperty.call(by, ap) && (ap === 'unidentified' || p.importedAt === at)) continue;
+    const files = Array.isArray(p.files) ? p.files.filter(f => f && typeof f === 'object') : [];
+    const fileOf = r => (files.length === 1 ? String(files[0].name) : files.length ? 'one of ' + files.map(f => String(f.name)).join(', ') : 'a file not recorded');
+    const where = r => imp_where({ file: fileOf(r), sheet: Array.isArray(r.src) && r.src[1] !== undefined ? String(r.src[1]) : '?' })
+      + ' row ' + (Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?');
+    let cents = 0;
+    const bad = [], dates = [];
+    for (const r of p.rows) {
+      if (!r || !Array.isArray(r.c)) continue;
+      const amt = r.c[IMP_AMT];
+      if (Array.isArray(r.bad) && r.bad.length) bad.push(r);
+      else if (typeof amt === 'number') cents += amt;
+      const raw = r.raw && typeof r.raw === 'object' ? r.raw : {};
+      for (const h of ['Month', 'Date']) if (Object.prototype.hasOwnProperty.call(raw, h)) dates.push([r, h, raw[h]]);
+    }
+    const src = files.map(f => (Array.isArray(f.sheets) && f.sheets.length ? f.sheets : ['?']).map(sn => imp_where({ file: String(f.name), sheet: String(sn) })).join(', ')).join(', ');
+    if (ap === 'unidentified') {
+      L.push(imp_apLabel(ap) + ': ' + imp_plural(p.rows.length, 'row') + ', ' + SP.fmtUsd(cents) + (src ? ', from ' + src : '') + ', counted nowhere.');
+    } else {
+      L.push(imp_apLabel(ap) + ': ' + imp_plural(p.rows.length, 'row') + ', ' + SP.fmtUsd(cents)
+        + (bad.length ? ' (plus ' + imp_plural(bad.length, 'unreadable row') + ', counted in no figure)' : '')
+        + ', imported ' + (typeof p.importedAt === 'string' && p.importedAt ? imp_localWhen(p.importedAt) : 'at a time not recorded') + (src ? ', from ' + src : '') + '.');
+    }
+    if (bad.length) {
+      L.push('  Unreadable rows (kept, counted in no figure): ' + SP.fmtInt(bad.length) + '.');
+      for (const r of bad) {
+        const amt = r.c[IMP_AMT];
+        L.push('    ' + where(r) + ': ' + r.bad.map(String).join('; ') + (typeof amt === 'number' ? '; amount ' + SP.fmtUsd(amt) : '') + '.');
+      }
+    }
+    if (dates.length) {
+      L.push('  Dates that could not be read (the row is kept and placed in No date): ' + SP.fmtInt(dates.length) + '.');
+      for (const [r, h, v] of dates) L.push('    ' + where(r) + ': ' + h + ' ' + imp_q(String(v)) + '.');
+    }
+  }
   return L;
 };
 
@@ -1407,14 +1651,24 @@ function eng_view(v) {
   const svcOn = s => !(eng_own(v.svc, s) && !v.svc[s]);
   const laneOn = l => !(eng_own(v.lane, l) && !v.lane[l]);
   const services = ENG_ALL_SVC.filter(svcOn), lanes = ENG_LANES.filter(laneOn);
-  const all = services.length === ENG_ALL_SVC.length && lanes.length === ENG_LANES.length;
+  return { svc: new Set(services), lane: new Set(lanes), svcOn, laneOn };
+}
+// What every product says it shows (§4.3), over the switches that EXIST on this plan: the six services always, and
+// "Service not identified" only when some row would count but for the switches and has no service (§9 draws its box
+// only then). The switches live in this browser, not in the plan, so one turned off on a plan that has such rows stayed
+// off on a plan that has none: there it hides nothing and has no box to turn it back on, yet every sheet, picture and
+// file name said "filtered", and with USAF off the list named a service no box offered (review S2).
+function eng_shown(V, present) {
+  const exist = ENG_ALL_SVC.filter(s => s !== SP.SVC_UNKNOWN || present.svc.has(s));
+  const services = exist.filter(V.svcOn), lanes = ENG_LANES.filter(V.laneOn);
+  const all = services.length === exist.length && lanes.length === ENG_LANES.length;
   let text = 'All services, both lanes';
   if (!all) {
-    const sv = services.length === ENG_ALL_SVC.length ? 'all' : services.length ? services.join(', ') : 'none';
+    const sv = services.length === exist.length ? 'all' : services.length ? services.join(', ') : 'none';
     const ln = lanes.length ? lanes.map(l => SP.LANE_WORDS[l]).join(', ') : 'none';
     text = 'Services shown: ' + sv + '; lanes shown: ' + ln;
   }
-  return { svc: new Set(services), lane: new Set(lanes), shown: { services, lanes, all, text } };
+  return { services, lanes, all, text };
 }
 
 // the calendar of one as-of month: the execution year, the window, the columns and which of them are closed
@@ -1780,7 +2034,7 @@ SP.buildModel = function buildModel(pulls, settings, view) {
   }
   const model = {
     asOf: S.asOf, asOfLabel: SP.asOfLabel(S.asOf), E: cx.E, firstFY: S.firstFY, window: { start: cx.wstart, end: cx.wend },
-    cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: V.shown, special: S.special,
+    cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: eng_shown(V, present), special: S.special,
     present: { services: ENG_ALL_SVC.filter(s => present.svc.has(s)), lanes: ENG_LANES.filter(l => present.lane.has(l)) },
     blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp,
     summary: { rows: blocks, total: eng_tot(blocks), notes: [] },
@@ -2675,12 +2929,17 @@ const EX_FM = '#,##0.00;(#,##0.00);-';     // $M, negatives in parentheses, zero
 // format, not text, so the cell is still the number (anyone summing the column gets the right total) and the mark shows.
 function ex_markFmt(mark) { return '#,##0.00"' + mark + '";(#,##0.00)"' + mark + '";-"' + mark + '"'; }
 const EX_MARKS = ['†', '‡', '†‡'];
-const EX_FP = '0.00%', EX_FD = '+0.00%;-0.00%;0.00%', EX_FUSD = '#,##0.00';
+const EX_FP = '0.00%', EX_FD = '+0.00%;-0.00%;0.00%', EX_FUSD = '#,##0.00', EX_FYF = '"FY"0';
+// §2: "nothing non-zero reads as zero". #,##0.00 shows a non-zero amount under $5,000 as 0.00 or (0.00), where the screens
+// and the pictures print fmtM's '<0.01' for the same figure (review XP-6). Such a cell keeps its number and takes this
+// format instead, marked as its column is (ex_mc).
+function ex_tinyFmt(mark) { return mark ? '"<0.01' + mark + '";"(<0.01)' + mark + '";-"' + mark + '"' : '"<0.01";"(<0.01)";-'; }
 // A literal '&' in a header is an Excel code; SP.CUI has none, and doubling keeps it so if the marking ever gains one.
 const EX_CUI = String(SP.CUI).replace(/&/g, '&&');
 const EX_HEADER = '&C&"Calibri,Bold"' + EX_CUI;
 const EX_FOOTER = '&C&"Calibri,Bold"' + EX_CUI + '&RPage &P of &N';
 const EX_PAGE = Object.freeze({ orientation: 'landscape', paper: 'letter', fitWidth: 1, fitHeight: 0 });
+const EX_PAGE_DATA = Object.freeze({ orientation: 'landscape', paper: 'letter' });
 const EX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 // A Not Allocated month is split across rows at about this many characters. One cell can hold 32,767 and one row can be
 // 409 points tall (about 30 lines); a no-cap month on the real pull would otherwise be clipped in its row, or cut by the
@@ -2703,10 +2962,14 @@ const EX_BOX = Object.freeze({ t: ['medium', EX_BOXC], b: ['medium', EX_BOXC], l
 const EXS = (() => {
   const X = {};
   const f = (o) => Object.freeze(o);
-  // titles and lines under them
-  X.title = ex_s(f({ b: true, sz: 16, color: EX_WHITE }), EX_NAVY, null, f({ h: 'center', v: 'center' }));
-  X.sub = ex_s(f({ i: true, sz: 10, color: EX_SUB }), null, null, f({ h: 'left', v: 'top', wrap: true }));
+  // titles and lines under them. v12's sheet title (style 58) is 16 pt bold navy TEXT with no fill: the white-on-navy
+  // look belongs to the block bars and the TOTAL row, and a title drawn as a bar was the plainest difference from v12 on
+  // every sheet (review XP-4). Its subtitles (styles 65, 68) are 11 pt italic grey, centred.
+  X.title = ex_s(f({ b: true, sz: 16, color: EX_NAVY }), null, null, f({ h: 'center', v: 'center' }));
+  X.sub = ex_s(f({ i: true, sz: 11, color: EX_SUB }), null, null, f({ h: 'center', v: 'center', wrap: true }));
   X.shown = ex_s(f({ b: true, sz: 10, color: EX_NAVY }), null, null, f({ h: 'left', v: 'center', indent: 1 }));
+  // the CUI marking inside a slide block's picture range, centred over the block as the picture's own bands are
+  X.cui = ex_s(f({ b: true, sz: 10, color: '000000' }), null, null, f({ h: 'center', v: 'center' }));
   // column headers: light gold, a medium box
   X.head = ex_s(f({ b: true, sz: 11, color: EX_INK }), EX_GOLD, null, f({ h: 'center', v: 'center', wrap: true }), EX_BOX);
   // block bars: the first cell boxes the left, the last the right, every cell the top and bottom (a merge is painted from
@@ -2727,8 +2990,10 @@ const EXS = (() => {
   const fonts = [f({ b: true, sz: 11, color: EX_NAVY }), f({ b: true, sz: 10, color: EX_INK }), f({ sz: 10, color: EX_INK }), f({ sz: 9, color: EX_INK })];
   const bold = [fonts[0], fonts[1], f({ b: true, sz: 10, color: EX_INK }), f({ b: true, sz: 9, color: EX_INK })];
   const indent = [0, 2, 4, 6];
-  const right = f({ h: 'right' });
-  X.treeLab = fonts.map((fo, k) => ex_s(fo, null, null, f(indent[k] ? { h: 'left', v: 'top', wrap: true, indent: indent[k] } : { h: 'left', v: 'top', wrap: true }), EX_THIN));
+  // v12 centres its money and its outline labels vertically; at the bottom (the default) a figure beside a wrapped label
+  // sat a line or two below it (review XP-5)
+  const right = f({ h: 'right', v: 'center' });
+  X.treeLab = fonts.map((fo, k) => ex_s(fo, null, null, f(indent[k] ? { h: 'left', v: 'center', wrap: true, indent: indent[k] } : { h: 'left', v: 'center', wrap: true }), EX_THIN));
   // [kind][closed 0|1]: a month cell; treeTot[kind]: a Total cell (bold below the Title, as v12 printed them)
   X.treeCell = fonts.map(fo => [ex_s(fo, null, EX_FM, right, EX_THIN), ex_s(fo, EX_CLOSED, EX_FM, right, EX_THIN)]);
   X.treeTot = bold.map(fo => ex_s(fo, null, EX_FM, right, EX_THIN));
@@ -2744,18 +3009,23 @@ const EXS = (() => {
   X.bandPlan = ex_s(planF, null, EX_FP, center, EX_THIN);
   X.bandStatus = {};
   // a PLAN status keeps its fill and its readable ink, and is italic: grey on the red or green fill measured about
-  // 1.5:1 and could not be read on a slide. Grey stays on the Obligation % plan cells, which have no fill (integration
-  // ruling, the same in the screens and the pictures).
+  // 1.5:1 and could not be read on a slide. Grey stays on the Obligation % plan cells, which have no fill (CONTRACT §8,
+  // where the ruling now stands, review XP-10; the same in the screens and the pictures).
   for (const st of ['green', 'yellow', 'red']) {
     X.bandStatus[st] = [ex_s(f({ b: true, sz: 10, color: EX_STATUS_INK[st] }), EX_STATUS_FILL[st], null, center, EX_THIN),
       ex_s(f({ b: true, i: true, sz: 10, color: EX_STATUS_INK[st] }), EX_STATUS_FILL[st], null, center, EX_THIN)];
   }
-  // no status (no goal, or the No date column): v12's base fill for the row, and no word
-  X.bandStatus.none = [ex_s(bf, EX_GOLD, null, center, EX_THIN), ex_s(planF, EX_GOLD, null, center, EX_THIN)];
+  // No status (no goal, or the No date column) has no fill of its own, only the closed months' grey, as the goal cells
+  // above it and the screens draw it. It was v12's base fill for the row, FFE699, a word-less near-yellow beside the
+  // FFD700 of "Within 10" that read as a status by colour alone; v12 never showed one, because its FY27+ column, the only
+  // one with no goal, was hidden (review S9).
   // the FY tables at the top of the Summary, appropriation and PMO sheets
   const t10 = f({ sz: 10, color: EX_INK }), b10 = f({ b: true, sz: 10, color: EX_INK });
   X.tApLab = ex_s(f({ b: true, sz: 11, color: EX_NAVY }), null, null, f({ h: 'left', v: 'center', wrap: true, indent: 1 }), EX_THIN);
-  X.tFy = ex_s(t10, null, '0', center, EX_THIN);
+  // The FY is a number, shown as v12 wrote it, FY2025, so it still sorts and filters as one (review XP-5). On an
+  // appropriation sheet's own table it is the row's label, as v12's is: 11 pt bold navy.
+  X.tFy = ex_s(t10, null, EX_FYF, center, EX_THIN);
+  X.tFyAp = ex_s(f({ b: true, sz: 11, color: EX_NAVY }), null, EX_FYF, center, EX_THIN);
   X.tM = ex_s(t10, null, EX_FM, right, EX_THIN);
   X.tMMark = Object.fromEntries(EX_MARKS.map(m => [m, ex_s(t10, null, ex_markFmt(m), right, EX_THIN)]));
   X.tPct = ex_s(b10, null, EX_FP, center, EX_THIN);
@@ -2766,7 +3036,9 @@ const EXS = (() => {
   for (const st of ['green', 'yellow', 'red']) X.tStatus[st] = ex_s(f({ b: true, sz: 10, color: EX_STATUS_INK[st] }), EX_STATUS_FILL[st], null, center, EX_THIN);
   // the TOTAL row: navy, white, bold
   const tw = f({ b: true, sz: 11, color: EX_WHITE });
-  X.totLab = ex_s(tw, EX_NAVY, null, f({ h: 'left', v: 'center', indent: 1 }), EX_THIN);
+  // v12's labels: TOTAL - Sustainment on the Summary left-aligned; Total - All FYs and Total - All centred (review XP-5)
+  X.totLab = ex_s(tw, EX_NAVY, null, f({ h: 'left', v: 'center', wrap: true }), EX_THIN);
+  X.totLabC = ex_s(tw, EX_NAVY, null, f({ h: 'center', v: 'center', wrap: true }), EX_THIN);
   X.totM = ex_s(tw, EX_NAVY, EX_FM, right, EX_THIN);
   X.totMMark = Object.fromEntries(EX_MARKS.map(m => [m, ex_s(tw, EX_NAVY, ex_markFmt(m), right, EX_THIN)]));
   X.totP = ex_s(tw, EX_NAVY, EX_FP, center, EX_THIN);
@@ -2783,6 +3055,7 @@ const EXS = (() => {
   // list tables (Not Allocated, raw data, settings)
   X.lText = ex_s(t10, null, null, f({ h: 'left', v: 'top', wrap: true }), EX_THIN);
   X.lFy = ex_s(t10, null, '0', f({ h: 'center', v: 'top' }), EX_THIN);
+  X.lFyY = ex_s(t10, null, EX_FYF, f({ h: 'center', v: 'top' }), EX_THIN);
   X.lM = ex_s(t10, null, EX_FM, f({ h: 'right', v: 'top' }), EX_THIN);
   X.lPct = ex_s(t10, null, EX_FP, center, EX_THIN);
   X.rText = ex_s(t10, null, null, null, EX_THIN);
@@ -2808,6 +3081,19 @@ const EX_CURVES = [['om1', 'O&M, first year'], ['om2', 'O&M, second year or late
 // ---------------------------------------------------------------------------------------------------------------
 // cents -> $M as the cell's number. A missing figure is an empty cell, never 0: "no goal" and "a goal of 0%" differ.
 function ex_M(c) { return typeof c === 'number' && isFinite(c) ? c / 1e8 : null; }
+// a money cell: cents as $M, in style s, or in s's '<0.01' twin when the amount is non-zero and under $5,000 (fmtM's rule)
+const ex_tinyOf = new Map();
+function ex_mc(c, s) {
+  const v = ex_M(c);
+  if (v === null || !s || c === 0 || Math.abs(c) >= 500000) return ex_cell(v, s);
+  let t = ex_tinyOf.get(s);
+  if (!t) {
+    const mark = EX_MARKS.find(m => s.fmt === ex_markFmt(m)) || '';
+    t = Object.freeze(Object.assign({}, s, { fmt: ex_tinyFmt(mark) }));
+    ex_tinyOf.set(s, t);
+  }
+  return ex_cell(v, t);
+}
 function ex_num(x) { return typeof x === 'number' && isFinite(x) ? x : null; }
 function ex_cell(v, s) {
   if (v === null || v === undefined || (typeof v === 'number' && !isFinite(v))) return s ? { s } : null;
@@ -2880,7 +3166,7 @@ function ex_widthOf(K, c1, c2) { let w = 0; for (let i = c1; i <= c2; i++) w += 
 function ex_title(K, text) { return ex_span(K, text, EXS.title, 0, K.W - 1, { ht: 27.75 }); }
 // an explanatory line: italic grey, wrapped, as tall as its words need
 function ex_subLine(K, text) {
-  return ex_span(K, text, EXS.sub, 0, K.W - 1, { ht: ex_ht(ex_lines(text, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  return ex_span(K, text, EXS.sub, 0, K.W - 1, { ht: ex_ht(ex_lines(text, ex_widthOf(K, 0, K.W - 1), 11), 11) });
 }
 // the line every report sheet carries: what the switches show (§4.3)
 function ex_shownLine(K, M) { return ex_span(K, M.shown.text, EXS.shown, 0, K.W - 1); }
@@ -2916,14 +3202,15 @@ function ex_blockHead(K, M, first) {
 }
 // one money row: label, Total, each shown column, Total
 function ex_moneyRow(K, label, labS, cols, total, cellS, totS, opts) {
-  const tv = ex_M(total);
-  const cells = [{ v: label, s: labS }, ex_cell(tv, totS)];
-  for (const i of K.dc) cells.push(ex_cell(ex_M(cols[i]), cellS[K.closed[i] ? 1 : 0]));
-  cells.push(ex_cell(tv, totS));
+  const cells = [{ v: label, s: labS }, ex_mc(total, totS)];
+  for (const i of K.dc) cells.push(ex_mc(cols[i], cellS[K.closed[i] ? 1 : 0]));
+  cells.push(ex_mc(total, totS));
   return ex_push(K, cells, opts);
 }
-// The tree, PMO -> Title -> Plan Event -> CCaR. `base` is the outline level of the PMO row: 1 on the appropriation sheets,
-// 0 on a PMO tab (CONTRACT §8.5, §8.6). Plan Event and CCaR rows are hidden, so a sheet opens at PMO and Title.
+// The tree, PMO -> Title -> Plan Event -> CCaR. `base` is the outline level of the PMO row: 0 on every sheet, as v12 had
+// it (CONTRACT §8.5, §8.6), so Excel draws the four outline buttons each bar names and button 4 opens the CCaRs. With the
+// PMO at level 1 the appropriation sheets had five, and their button 4 stopped at Plan Event (review XP-1). Plan Event and
+// CCaR rows are hidden, so a sheet opens at PMO and Title.
 function ex_tree(K, tree, base) {
   for (const n of SP.treeRows(tree, 4)) {
     const k = n.level - 1;
@@ -2954,13 +3241,13 @@ function ex_band(K, M, b) {
   for (const i of K.dc) g.push(ex_cell(ex_num(b.goalC[i]), EXS.bandP[K.closed[i] ? 1 : 0]));
   g.push(ex_cell(goal, EXS.bandP[0]));
   ex_push(K, g);
-  const sc = (status, plan) => {
-    const set = EXS.bandStatus[status && EXS.bandStatus[status] ? status : 'none'];
-    return ex_cell(status ? ex_statusWord(status) : null, set[plan ? 1 : 0]);
+  const sc = (status, plan, closed) => {
+    if (!status || !EXS.bandStatus[status]) return ex_cell(null, EXS.bandP[closed ? 1 : 0]);
+    return ex_cell(ex_statusWord(status), EXS.bandStatus[status][plan ? 1 : 0]);
   };
-  const s = [{ v: 'OSD Status', s: L }, sc(b.status, false)];
-  for (const i of K.dc) { const x = b.statusC[i] || {}; s.push(sc(x.status, x.kind === 'plan')); }
-  s.push(sc(b.status, false));
+  const s = [{ v: 'OSD Status', s: L }, sc(b.status, false, false)];
+  for (const i of K.dc) { const x = b.statusC[i] || {}; s.push(sc(x.status, x.kind === 'plan', !!K.closed[i])); }
+  s.push(sc(b.status, false, false));
   ex_push(K, s);
 }
 // §5's one line per month, under its bar. A month longer than EX_NA_CHUNK continues on the next row with its label
@@ -2994,15 +3281,15 @@ function ex_na(K, M, items) {
 // mark: '', '†' or '‡' (SP.authMark); on a TOTAL also '†‡'
 function ex_figCells(r, mark) {
   const st = r.status && EXS.tStatus[r.status] ? r.status : null;
-  return [ex_cell(ex_M(r.approved), EXS.tM), ex_cell(ex_M(r.authorized), EXS.tMMark[mark] || EXS.tM),
-    ex_cell(ex_M(r.obligated), EXS.tM), ex_cell(ex_M(r.unobligated), EXS.tM), ex_cell(ex_num(r.oblPct), EXS.tPct),
+  return [ex_mc(r.approved, EXS.tM), ex_mc(r.authorized, EXS.tMMark[mark] || EXS.tM),
+    ex_mc(r.obligated, EXS.tM), ex_mc(r.unobligated, EXS.tM), ex_cell(ex_num(r.oblPct), EXS.tPct),
     ex_cell(ex_num(r.goal), EXS.tGoal), ex_cell(ex_num(r.delta), EXS.tDelta),
     st ? { v: ex_statusWord(st), s: EXS.tStatus[st] } : { s: EXS.tBlank }];
 }
 // a TOTAL row: the sums and their Obl %; no goal, delta or status (§8.1)
 function ex_totCells(t, mark) {
-  return [ex_cell(ex_M(t.approved), EXS.totM), ex_cell(ex_M(t.authorized), EXS.totMMark[mark] || EXS.totM),
-    ex_cell(ex_M(t.obligated), EXS.totM), ex_cell(ex_M(t.unobligated), EXS.totM), ex_cell(ex_num(t.oblPct), EXS.totP),
+  return [ex_mc(t.approved, EXS.totM), ex_mc(t.authorized, EXS.totMMark[mark] || EXS.totM),
+    ex_mc(t.obligated, EXS.totM), ex_mc(t.unobligated, EXS.totM), ex_cell(ex_num(t.oblPct), EXS.totP),
     { s: EXS.totBlank }, { s: EXS.totBlank }, { s: EXS.totBlank }];
 }
 // rows grouped by appropriation, the label merged down its rows. rows: [{apLabel, fy, figures…, mark}]. -> the last row
@@ -3059,16 +3346,28 @@ function ex_summary(M) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// §8.2 SLIDE SNAPSHOTS: each block from its bar through OSD Status is the picture region
+// §8.2 SLIDE SNAPSHOTS: each block from the CUI line above its bar through the CUI line under OSD Status is the
+// picture region
 // ---------------------------------------------------------------------------------------------------------------
+// Line 2. It said "Each block is sized for a 13.33 in x 4.5 in slide region", which v12 said and was never so: a block
+// here is about 19 x 3.4 in (5.7 : 1, review XP-3), a 70-wide label column and the money columns. The dashboard's
+// pictures are drawn to that region; a block copied from this sheet is not, and the line says so.
+const EX_SLIDES_HOW = 'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture'
+  + ' or Save pictures. To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line'
+  + ' under OSD Status and use Copy as Picture; it is wider for its height than that region, so size it by its width.';
 function ex_slides(M) {
   const K = ex_blockSheet('Slide Snapshots', M);
   ex_title(K, 'Slide Snapshots - picture-ready blocks for PowerPoint');
-  ex_subLine(K, 'Each block is sized for a 13.33 in x 4.5 in slide region. In the dashboard, Slide blocks > Copy picture or Save'
-    + ' pictures makes the picture; or select a block here from its title through OSD Status and use Copy as Picture.');
+  ex_subLine(K, EX_SLIDES_HOW);
   ex_shownLine(K, M);
   ex_blank(K);
   for (const b of M.blocks) {
+    // The marking and the filter go INSIDE the range line 2 tells people to copy. A range picture takes the cells and
+    // nothing else: the sheet's CUI header and footer, and its line 3, never reach the slide, so a block copied as v12
+    // laid it out was an unmarked CUI picture, and on a filtered workbook one that did not say services were hidden
+    // (review XP-2). The dashboard's own pictures carry both, top and bottom; so does this range.
+    ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+    if (!M.shown.all) ex_shownLine(K, M);
     ex_bar(K, b.apLabel + ' FY' + b.fy + ' - Spend Plan (PMO Summary, slide-ready)', EXS.barSlide, 25.5);
     ex_blockHead(K, M, 'PMO');
     for (const p of b.pmoRows) {
@@ -3077,6 +3376,7 @@ function ex_slides(M) {
     }
     ex_blank(K);
     ex_band(K, M, b);
+    ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
     ex_na(K, M, b.na);
     ex_blank(K); ex_blank(K);
   }
@@ -3093,9 +3393,9 @@ function ex_apSheet(M, a, pulls) {
   ex_title(K, 'F-35 Sustainment ' + a.label + ' - Spend Plan & FY Summary (from the CCaR pull imported ' + (when || 'on an unknown date') + ')');
   ex_shownLine(K, M);
   ex_headRow(K, ['FY'].concat(EX_FIG_HEADS), 30);
-  for (const b of a.blocks) ex_push(K, [{ v: b.fy, s: EXS.tFy }].concat(ex_figCells(b, SP.authMark(b, M))));
+  for (const b of a.blocks) ex_push(K, [{ v: b.fy, s: EXS.tFyAp }].concat(ex_figCells(b, SP.authMark(b, M))));
   const am = SP.authMarks(a.blocks, M);
-  const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLab }].concat(ex_totCells(a.total, ex_totMark(am))));
+  const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLabC }].concat(ex_totCells(a.total, ex_totMark(am))));
   K.sh.freeze = 'A' + (tr + 1);
   // ‡ is said under the table it marks: this sheet has no Summary notes beside it (review R3)
   if (am.ddag) ex_markLines(K, { ddag: true });
@@ -3103,7 +3403,7 @@ function ex_apSheet(M, a, pulls) {
   for (const b of a.blocks) {
     ex_bar(K, 'FY' + b.fy + ' - Spend Plan by PMO / Title / Plan Event / CCaR  (1/2/3/4 in left margin)', EXS.barAp, 21.75);
     ex_blockHead(K, M, 'PMO / Title / Plan Event / CCaR');
-    ex_tree(K, b.tree, 1);
+    ex_tree(K, b.tree, 0);
     ex_blank(K);
     ex_band(K, M, b);
     ex_na(K, M, b.na);
@@ -3121,7 +3421,7 @@ function ex_pmoSheet(M, p) {
   ex_shownLine(K, M);
   ex_headRow(K, ['Appropriation', 'FY'].concat(EX_FIG_HEADS), 30);
   ex_apFyRows(K, p.rows.map(r => Object.assign({}, r, { mark: '' })));
-  const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLab }, { s: EXS.totBlank }].concat(ex_totCells(p.total, '')));
+  const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLabC }, { s: EXS.totBlank }].concat(ex_totCells(p.total, '')));
   K.sh.freeze = 'A' + (tr + 1);
   ex_span(K, 'Authorized is entered by appropriation and FY; a PMO row shows Approved.', EXS.note, 0, 9);
   ex_blank(K);
@@ -3139,6 +3439,16 @@ function ex_pmoSheet(M, p) {
   return K.sh;
 }
 
+// v12's PMO tabs run AV, BOP, CDS, MxS, PP, PSM, TSS: Propulsion before Product Support, though a block's PMO rows put
+// PSM first (SP.PMO_ORDER, §4.4). The tabs keep v12's order (review XP-5); any other PMO follows in the model's order (by
+// label, '(no PMO)' last).
+const EX_PMO_TABS = ['AV', 'BOP', 'CDS', 'MxS', 'PP', 'PSM', 'TSS']
+  .map(code => SP.normKey(SP.PMO_ORDER.find(n => n.endsWith('(' + code + ')')) || ''));
+function ex_pmoTabs(pmos) {
+  const rank = p => { const i = EX_PMO_TABS.indexOf(SP.normKey(p.label)); return i < 0 ? EX_PMO_TABS.length : i; };
+  return pmos.map((p, j) => [p, j]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0]);
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // §8.7 THE OTHER SHEETS
 // ---------------------------------------------------------------------------------------------------------------
@@ -3151,10 +3461,10 @@ function ex_naSheet(M) {
   if (!M.naAll.length) { ex_span(K, 'No Not Allocated items.', EXS.text, 0, K.W - 1); return K.sh; }
   for (const it of M.naAll) {
     const col = M.cols[it.colIndex];
-    ex_push(K, [{ v: it.apLabel, s: EXS.lText }, { v: it.fy, s: EXS.lFy }, { v: col ? col.label : it.col, s: EXS.lText },
+    ex_push(K, [{ v: it.apLabel, s: EXS.lText }, { v: it.fy, s: EXS.lFyY }, { v: col ? col.label : it.col, s: EXS.lText },
       { v: String(it.label ?? ''), s: EXS.lText }, { v: String(it.statusLabel ?? ''), s: EXS.lText },
       { v: (it.ccars || []).join('; '), s: EXS.lText }, { v: (it.pmos || []).join('; '), s: EXS.lText },
-      { v: (it.titles || []).join('; '), s: EXS.lText }, ex_cell(ex_M(it.cents), EXS.lM)]);
+      { v: (it.titles || []).join('; '), s: EXS.lText }, ex_mc(it.cents, EXS.lM)]);
   }
   return K.sh;
 }
@@ -3178,7 +3488,9 @@ function ex_rawSheet(M, a, p, settings) {
   }
   const heads = SP.RAW_HEADERS.concat(extras, ['Service', 'Lane', 'Status', 'Counted']);
   const widths = EX_RAW_W.concat(extras.map(() => 16), [18, 13.99, 24, 40]);
-  const K = ex_sheet(a.rawSheet, widths, { freeze: 'A2' });
+  // A data sheet prints at full size across pages, as v12's raw tabs had no fit: 36 columns are about 44 in wide, and
+  // fitted to one page wide they printed at 23%, 10 pt text at 2.3 pt (review XP-11). The reports fit one page wide.
+  const K = ex_sheet(a.rawSheet, widths, { freeze: 'A2', page: EX_PAGE_DATA });
   delete K.sh.grid;   // a data sheet keeps its gridlines, as v12's raw tabs did
   ex_push(K, heads.map(t => ({ v: t, s: EXS.rHead })), { ht: 21.75 });
   const svcOn = new Set(M.shown.services), laneOn = new Set(M.shown.lanes);
@@ -3229,11 +3541,28 @@ function ex_reportSheet(M, pulls, meta) {
     ex_push(K, [{ v: '  Appropriation not identified: ' + SP.fmtInt(un.rows.length) + (un.rows.length === 1 ? ' row' : ' rows')
       + ', counted nowhere.', s: EXS.line }]);
   }
+  // each such row, named: they are on no raw sheet, and the Summary sends the reader here for them (review XP-8)
+  const unl = typeof SP.unidentifiedLines === 'function' ? SP.unidentifiedLines(pulls) : [];
+  if (unl.length) {
+    ex_blank(K);
+    for (const line of unl) ex_push(K, [{ v: line, s: line.startsWith(' ') ? EXS.line : EXS.lineB }]);
+  }
   ex_blank(K);
   const rep = meta && meta.report;
-  if (!rep) { ex_push(K, [{ v: 'No import report is held for the last import.', s: EXS.line }]); return K.sh; }
-  ex_push(K, [{ v: 'The last import:', s: EXS.lineB }]);
-  for (const line of SP.importReportLines(rep)) ex_push(K, [{ v: line, s: EXS.line }]);
+  if (!rep) ex_push(K, [{ v: 'No import report is held for the last import.', s: EXS.line }]);
+  else {
+    ex_push(K, [{ v: 'The last import:', s: EXS.lineB }]);
+    for (const line of SP.importReportLines(rep)) ex_push(K, [{ v: line, s: EXS.line }]);
+  }
+  // the pulls the last import did not replace, listed from their own rows: the Summary's notes count their unreadable
+  // rows, and the last import's report alone said "none" (review IMP-2)
+  const kept = typeof SP.keptPullLines === 'function' ? SP.keptPullLines(pulls, rep || null) : [];
+  if (kept.length) {
+    ex_blank(K);
+    ex_push(K, [{ v: 'Pulls in this workbook from earlier imports (' + (rep ? 'the last import did not replace them' : 'no report is held for them')
+      + '); what each holds that counts nowhere:', s: EXS.lineB }]);
+    for (const line of kept) ex_push(K, [{ v: line, s: EXS.line }]);
+  }
   return K.sh;
 }
 
@@ -3251,7 +3580,12 @@ function ex_settingsSheet(M, pulls, settings) {
   ex_push(K, [{ v: 'Switches (this browser’s view; every figure counts only what is shown, except an entered Authorized and the Summary’s notes on rows not counted,'
     + ' which cover every service and lane)', s: EXS.h11 }]);
   const shownS = new Set(M.shown.services), shownL = new Set(M.shown.lanes);
-  for (const sv of SP.SERVICES.concat([SP.SVC_UNKNOWN])) kv(sv, shownS.has(sv) ? 'Shown' : 'Hidden');
+  // the seventh switch exists only on a plan with rows that have no service (§9); on any other it hides nothing, and the
+  // line says so rather than "Hidden" for a switch this plan has no box for (review S2)
+  const hasUnknown = Array.isArray(M.present && M.present.services) && M.present.services.includes(SP.SVC_UNKNOWN);
+  for (const sv of SP.SERVICES.concat([SP.SVC_UNKNOWN])) {
+    kv(sv, sv === SP.SVC_UNKNOWN && !hasUnknown ? 'No such rows (no switch)' : shownS.has(sv) ? 'Shown' : 'Hidden');
+  }
   for (const l of ['disc', 'mand']) kv(SP.LANE_WORDS[l] + ' lane', shownL.has(l) ? 'Shown' : 'Hidden');
   kv('In words', M.shown.text);
   ex_blank(K);
@@ -3270,7 +3604,7 @@ function ex_settingsSheet(M, pulls, settings) {
     auth.sort();
     for (const k of auth) {
       const [ap, fy] = k.split('|'), a = SP.APS.find(x => x.id === ap);
-      ex_push(K, [{ v: (a ? a.label : ap) + ' FY' + fy, s: EXS.lText }, ex_cell(ex_M(s.authorized[k]), EXS.lM)]);
+      ex_push(K, [{ v: (a ? a.label : ap) + ' FY' + fy, s: EXS.lText }, ex_mc(s.authorized[k], EXS.lM)]);
     }
   }
   ex_blank(K);
@@ -3285,7 +3619,7 @@ function ex_settingsSheet(M, pulls, settings) {
   for (const b of bt) {
     const ov = b.override ? [b.override.svc ? 'Service: ' + b.override.svc : '', b.override.lane ? 'Lane: ' + SP.LANE_WORDS[b.override.lane] : '']
       .filter(Boolean).join('; ') : '';
-    ex_push(K, [{ v: b.name === '' ? '(blank)' : String(b.name), s: EXS.lText }, { v: b.rows, s: EXS.lFy }, ex_cell(ex_M(b.cents), EXS.lM),
+    ex_push(K, [{ v: b.name === '' ? '(blank)' : String(b.name), s: EXS.lText }, { v: b.rows, s: EXS.lFy }, ex_mc(b.cents, EXS.lM),
       { v: b.svc + (b.unknown ? '  (no rule names a service: check this name)' : ''), s: EXS.lText },
       { v: SP.LANE_WORDS[b.lane] || b.lane, s: EXS.lText }, { v: ov, s: EXS.lText }]);
   }
@@ -3303,7 +3637,7 @@ SP.excelSpec = function excelSpec(model, pulls, settings, meta) {
   pulls = pulls && typeof pulls === 'object' ? pulls : {};
   const sheets = [ex_summary(M), ex_slides(M)];
   for (const a of M.aps) sheets.push(ex_apSheet(M, a, pulls));
-  for (const p of M.pmos) sheets.push(ex_pmoSheet(M, p));
+  for (const p of ex_pmoTabs(M.pmos)) sheets.push(ex_pmoSheet(M, p));
   sheets.push(ex_naSheet(M));
   for (const a of SP.APS) {
     const p = pulls[a.id];
@@ -3456,14 +3790,16 @@ function pic_layout(ctx, block, model) {
       return o.kind === 'plan' ? cell(pic_pct(o.v), 'c', fPlan, PIC.plan, closedFill(c)) : cell(pic_pct(o.v), 'c', fBandB, PIC.navy, closedFill(c));
     }));
   rows.push(band('OSD Goal %', cell(pic_pct(block.goal), 'c', fBandB, PIC.navy), c => cell(pic_pct(block.goalC[c.index]), 'c', fBandB, PIC.navy, closedFill(c))));
-  const st = (status, plan) => {
-    if (!status || !PIC.status[status]) return cell('', 'c', fBandB, PIC.ink, PIC.gold);   // no goal here: v12's base fill, no word
+  // no status (no goal here, or No date): no fill but the closed months' grey, as the workbook and the screens draw it. A
+  // word-less gold cell beside a yellow "Within 10" read as a status by colour alone (review S9)
+  const st = (status, plan, c) => {
+    if (!status || !PIC.status[status]) return cell('', 'c', fBandB, PIC.ink, c ? closedFill(c) : null);
     const word = SP.statusWord(status);
-    // a plan status: its fill and readable ink, in italic, as the workbook prints it (integration ruling)
+    // a plan status: its fill and readable ink, in italic, as the workbook prints it (CONTRACT §8)
     if (plan) return cell(word, 'c', fPlan, PIC.statusInk[status], PIC.status[status]);
     return cell(word, 'c', fBandB, PIC.statusInk[status], PIC.status[status]);
   };
-  rows.push(band('OSD Status', st(block.status, false), c => { const s = block.statusC[c.index] || {}; return st(s.status, s.kind === 'plan'); }));
+  rows.push(band('OSD Status', st(block.status, false, null), c => { const s = block.statusC[c.index] || {}; return st(s.status, s.kind === 'plan', c); }));
 
   // widths: each column as wide as its widest text, the label column up to labelMax (wider labels wrap)
   const widths = new Array(nNum + 1).fill(0);
@@ -3594,6 +3930,58 @@ SP.blockCanvas = function blockCanvas(block, model) {
   return cv;
 };
 
+// THE PNG'S RESOLUTION. A canvas writes no pHYs chunk, and Office places a PNG without one at 96 dpi: 2000 x 675 px came
+// out 20.83 x 7.03 in, larger than a 13.33 x 7.5 in slide, and its size on the slide was whatever PowerPoint's
+// shrink-to-fit made of it (review XP-7). One pHYs chunk saying 150 dpi (5906 px a metre) goes right after IHDR, before
+// any image data, as the PNG specification orders it; one already there is replaced, never doubled.
+const PIC_PPM = Math.round(150 / 0.0254);   // 5906
+const PIC_CRC = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+  return t;
+})();
+function pic_crc(u8, from, to) {
+  let c = 0xFFFFFFFF;
+  for (let i = from; i < to; i++) c = PIC_CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+// a PNG's bytes -> the same with one pHYs of 150 dpi; anything that is not a PNG with IHDR first comes back unchanged
+function pic_withDpi(u8) {
+  const sig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  if (!(u8 instanceof Uint8Array) || u8.length < 33 || sig.some((b, i) => u8[i] !== b)) return u8;
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const type = i => String.fromCharCode(u8[i + 4], u8[i + 5], u8[i + 6], u8[i + 7]);
+  if (type(8) !== 'IHDR') return u8;
+  const keep = [];          // [from, to) runs of the original bytes to keep (the signature too), any pHYs left out
+  let i = 8, run = 0;
+  while (i + 12 <= u8.length) {
+    const len = dv.getUint32(i), end = i + 12 + len;
+    if (end > u8.length) return u8;
+    if (type(i) === 'pHYs') { keep.push([run, i]); run = end; }
+    i = end;
+    if (type(i - 12 - len) === 'IEND') break;
+  }
+  keep.push([run, u8.length]);
+  const ch = new Uint8Array(21);
+  const cv = new DataView(ch.buffer);
+  cv.setUint32(0, 9); ch.set([0x70, 0x48, 0x59, 0x73], 4);   // length 9, 'pHYs'
+  cv.setUint32(8, PIC_PPM); cv.setUint32(12, PIC_PPM); ch[16] = 1;   // px per metre, x and y; unit: the metre
+  cv.setUint32(17, pic_crc(ch, 4, 17));
+  const ihdrEnd = 8 + 12 + dv.getUint32(8);
+  const total = keep.reduce((a, [f, t]) => a + t - f, 0) + ch.length;
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const [f, t] of keep) {
+    // the chunk goes in right after IHDR, which the first run of kept bytes always holds
+    if (f <= ihdrEnd && ihdrEnd <= t) {
+      out.set(u8.subarray(f, ihdrEnd), o); o += ihdrEnd - f;
+      out.set(ch, o); o += ch.length;
+      out.set(u8.subarray(ihdrEnd, t), o); o += t - ihdrEnd;
+    } else { out.set(u8.subarray(f, t), o); o += t - f; }
+  }
+  return out;
+}
+
 // The PNG is encoded with toDataURL, synchronously, not with toBlob. Measured at integration in Chromium on the real
 // workbook: with the Slide blocks view on screen, toBlob on a canvas that is not in the page waited about a second
 // for the browser's idle time on every picture (Save all pictures took 17 s for 11 blocks); toDataURL takes about 20 ms.
@@ -3604,7 +3992,7 @@ function pic_dataUrlBlob(url) {
   const bin = atob(url.slice(i + 1));
   const a = new Uint8Array(bin.length);
   for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
-  return new Blob([a], { type: 'image/png' });
+  return new Blob([pic_withDpi(a)], { type: 'image/png' });
 }
 SP.blockPng = function blockPng(block, model) {
   return new Promise((resolve, reject) => {
@@ -3617,7 +4005,10 @@ SP.blockPng = function blockPng(block, model) {
       if (b) { resolve(b); return; }
     }
     if (typeof cv.toBlob !== 'function') { reject(new Error('This browser cannot turn a drawing into a PNG, so no picture was made.')); return; }
-    cv.toBlob(b => (b ? resolve(b) : reject(fail())), 'image/png');
+    cv.toBlob(b => {
+      if (!b) { reject(fail()); return; }
+      b.arrayBuffer().then(ab => resolve(new Blob([pic_withDpi(new Uint8Array(ab))], { type: 'image/png' })), () => resolve(b));
+    }, 'image/png');
   });
 };
 
@@ -3642,7 +4033,9 @@ SP.copyBlockPicture = async function copyBlockPicture(block, model) {
       : 'the clipboard refused it' + (e && e.message ? ': ' + e.message : '');
     return { ok: false, message: 'The picture of ' + name + ' was not copied: ' + why + '.' + instead };
   }
-  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x 675 px, 13.33 x 4.5 in): paste it into the slide.' };
+  // The browser re-encodes a clipboard picture and may drop its 150 dpi (review XP-7), so the size is said, not promised
+  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x 675 px, drawn for 13.33 x 4.5 in): paste it into the slide;'
+    + ' if it comes in larger, set its width to 13.33 in.' };
 };
 
 SP.allPicturesZip = async function allPicturesZip(model) {
@@ -3699,6 +4092,8 @@ let st_gen = 0;                  // moves on every change; a save marks the page
 let st_base = null;              // the savedAt of this page's own file as last read or written: Save's collision check
 let st_baseWhy = '';             // why the opened state was refused (ST_REFUSED), for the question Save then asks
 let st_handle = null;            // this page's own file, once picked and checked; remembered for the session only
+let st_openedAt = null;          // when this page was opened: what a file's save time is "before" or "after"
+let st_dlOnly = false;           // the last Save was a download: this page's own file still lacks the work (review S8)
 let st_busy = false;
 let st_inited = false;
 let st_cap = null;               // the page as captured at boot: {html, stateAt, stateLen, stateOpen, appAt, appLen, appOpen, boot}
@@ -3709,6 +4104,7 @@ const st_subs = [];
 function st_changed() {
   st_gen++;
   st_dirty = true;
+  st_dlOnly = false;
   st_fire();
 }
 function st_fire() {
@@ -3744,6 +4140,25 @@ function st_pageName() {
   let n = '';
   try { n = decodeURIComponent(String(location.pathname || '').split('/').pop() || ''); } catch (e) { n = ''; }
   return /\.html?$/i.test(n) ? n : 'sfcb-spend-plan.html';
+}
+// the page's own file name when its address names one, else '' (a name Save cannot compare a picked file with)
+function st_pageNameKnown() {
+  let n = '';
+  try { n = decodeURIComponent(String(location.pathname || '').split('/').pop() || ''); } catch (e) { n = ''; }
+  return /\.html?$/i.test(n) ? n : '';
+}
+// two file names that are one file on a share: Windows does not tell capitals apart
+function st_sameName(a, b) {
+  const k = x => String(x || '').normalize('NFC').trim().toLowerCase();
+  return k(a) === k(b);
+}
+// two save times, each to the minute, or to the second when the minutes are the same: two saves a few seconds apart read
+// as one time, and "saved 18:57, after … (18:57)" could not be told from "before" (review S1)
+function st_whenPair(a, b) {
+  const wa = st_when(a), wb = st_when(b);
+  if (wa !== wb) return [wa, wb];
+  const sec = iso => { const d = new Date(Date.parse(iso)); return isNaN(d.getTime()) ? '' : ':' + st_pad(d.getSeconds()); };
+  return [wa + sec(a), wb + sec(b)];
 }
 function st_copyName() {
   const d = new Date();
@@ -3801,6 +4216,26 @@ function st_checkSettings(s) {
   if (s.special !== undefined && !(Array.isArray(s.special) && s.special.every(x => typeof x === 'string'))) return 'its special CCaRs are not a list of names';
   return '';
 }
+// THE LAST IMPORT REPORT, in the shapes the Import report view and the workbook's Import Report sheet read. Checked only
+// for being an object, a report whose files were text opened normally and then could not be drawn ("fr.notes is not
+// iterable"), on the screen and in every export (review IMP-14). Its lists and tables are checked, then the report is
+// read once the way those two read it, so whatever it holds that they cannot read is found here, on opening.
+const ST_REP_LISTS = ['files', 'subcent', 'unreadable', 'dateUnreadable', 'disagreements', 'alloc', 'notes', 'refusedFiles',
+  'ignoredSheets', 'extraOnly', 'strays'];
+function st_checkReport(rep) {
+  if (rep === null || rep === undefined) return '';
+  const no = 'its last import report is not in the shape this page reads (';
+  if (!st_isObj(rep)) return no + 'it is not a report)';
+  for (const k of ST_REP_LISTS) if (rep[k] !== undefined && !Array.isArray(rep[k])) return no + 'its ' + k + ' is not a list)';
+  for (const k of ['byAp', 'conversions', 'trimmedBy']) if (rep[k] !== undefined && !st_isObj(rep[k])) return no + 'its ' + k + ' is not a table)';
+  for (const fr of rep.files || []) {
+    if (!st_isObj(fr) || !Array.isArray(fr.sheets) || !Array.isArray(fr.notes) || !fr.sheets.every(st_isObj)) return no + 'a file in it is not a file)';
+  }
+  if (typeof SP.importReportLines === 'function') {
+    try { SP.importReportLines(rep); } catch (e) { return no + st_err(e) + ')'; }
+  }
+  return '';
+}
 function st_check(st) {
   if (!st_isObj(st)) return 'it is not a saved plan';
   if (st.tool !== ST_TOOL) return 'it was saved by another tool' + (typeof st.tool === 'string' && st.tool ? ' (“' + st.tool + '”)' : '');
@@ -3817,6 +4252,7 @@ function st_check(st) {
   if (sb) return sb;
   if (st.history !== undefined && !(Array.isArray(st.history) && st.history.every(st_isObj))) return 'its import history is not a list of imports';
   if (st.lastImport !== undefined && st.lastImport !== null && !st_isObj(st.lastImport)) return 'its last import report is not a report';
+  if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
   return '';
 }
 
@@ -3891,7 +4327,8 @@ SP.storeInit = function storeInit() {
     st_unloadOn = true;
   }
   SP.state = st_empty();
-  st_dirty = false; st_base = null; st_baseWhy = '';
+  st_dirty = false; st_base = null; st_baseWhy = ''; st_dlOnly = false;
+  st_openedAt = new Date().toISOString();
   const tag = document.getElementById('spState');
   const text = tag ? String(tag.textContent || '').trim() : '';
   if (!tag || text === '' || text === 'null') return { ok: true, message: '' };
@@ -3982,6 +4419,23 @@ function st_totals(pulls, settings) {
   }
   return out;
 }
+// the readable dollars of a pull (unreadable rows count in no figure)
+function st_cents(p) {
+  let c = 0;
+  for (const r of (p && Array.isArray(p.rows) ? p.rows : [])) if (!(r.bad && r.bad.length) && typeof r.c[9] === 'number') c += r.c[9];
+  return c;
+}
+function st_usd(c) { return SP.fmtUsd ? SP.fmtUsd(c) : String(c / 100); }
+// The same pull, row for row: what each row holds, never where it was read from. A pull imported again (an easy slip in
+// a downloads folder) moved the identical current pull into previous and threw away the one What changed compared with,
+// while the message said "the pull it replaces is kept for What changed" (review IMP-11).
+function st_sameRows(a, b) {
+  if (!st_isObj(a) || !st_isObj(b) || !Array.isArray(a.rows) || !Array.isArray(b.rows) || a.rows.length !== b.rows.length) return false;
+  if (JSON.stringify(a.headers || null) !== JSON.stringify(b.headers || null)) return false;
+  const key = r => JSON.stringify([r.c, r.x || {}, r.bad || null, r.raw || null]);
+  for (let i = 0; i < a.rows.length; i++) if (key(a.rows[i]) !== key(b.rows[i])) return false;
+  return true;
+}
 SP.applyImport = function applyImport(parsed) {
   if (!st_isObj(parsed) || !st_isObj(parsed.pulls)) throw new Error('There was nothing to import (the import gave no pulls), so nothing was changed.');
   const keys = Object.keys(parsed.pulls).filter(k => ST_PULL_KEYS.includes(k) && parsed.pulls[k] && Array.isArray(parsed.pulls[k].rows));
@@ -3992,8 +4446,39 @@ SP.applyImport = function applyImport(parsed) {
   const st = SP.state;
   const before = {};
   for (const a of SP.APS) if (st.pulls.current[a.id]) before[a.id] = st.pulls.current[a.id];
+
+  // AN APPROPRIATION WHOSE EVERY ROW SITS ON A SHEET NAMED FOR ANOTHER (parseFiles records them). Its rows become the
+  // whole of its pull, so one Full Fund row misfiled on the O&M tab of an O&M file replaced a 40-row, $40M Full Fund pull
+  // with itself, and nothing said so (review IMP-1). The person is asked first, as Save asks before writing over a file;
+  // declined, nothing changes.
+  const strays = (Array.isArray(report.strays) ? report.strays : []).filter(x => st_isObj(x) && keys.includes(x.ap));
+  if (strays.length) {
+    const say = x => {
+      const cur = before[x.ap], lab = st_apLabel(x.ap), one = x.rows === 1;
+      return 'Every ' + lab + ' row in this import sits on “' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + st_apLabel(x.sheetAp)
+        + ': ' + st_rows(x.rows) + ', ' + st_usd(x.cents) + ', placed as ' + lab + ' by ' + (one ? 'its' : 'their') + ' Budget name. '
+        + (cur ? 'Imported, ' + (one ? 'it replaces' : 'they replace') + ' the whole current ' + lab + ' pull (' + st_rows(cur.rows.length) + ', '
+            + st_usd(st_cents(cur)) + ', imported ' + st_day(cur.importedAt) + ').'
+          : 'Imported, ' + (one ? 'it becomes' : 'they become') + ' the whole ' + lab + ' pull.');
+    };
+    const q = strays.map(say).join('\n\n') + '\n\nIf ' + (strays.length === 1 && strays[0].rows === 1 ? 'that row is' : 'those rows are')
+      + ' misfiled, press Cancel: nothing is imported, and you can move ' + (strays.length === 1 && strays[0].rows === 1 ? 'it' : 'them')
+      + ' to the right sheet (or correct the Budget) and import again.\n\nImport anyway?';
+    let yes = false;
+    try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
+    if (!yes) {
+      return { ok: false, message: 'Nothing was imported. ' + strays.map(x => '“' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + st_apLabel(x.sheetAp)
+        + ', holds every ' + st_apLabel(x.ap) + ' row in the import (' + st_rows(x.rows) + ', ' + st_usd(x.cents) + ')').join('; ')
+        + ', and you chose not to let ' + (strays.length === 1 ? 'them' : 'those') + ' replace ' + st_list(strays.map(x => 'the ' + st_apLabel(x.ap) + ' pull'))
+        + '. If they are misfiled, move them to the right sheet, or correct their Budget, and import again.' };
+    }
+  }
+
+  const same = [];
   for (const k of keys) {
-    if (st.pulls.current[k]) st.pulls.previous[k] = st.pulls.current[k];
+    // an identical pull leaves previous as it was: it is still the one the new pull's What changed compares with
+    if (k !== 'unidentified' && st.pulls.current[k] && st_sameRows(st.pulls.current[k], parsed.pulls[k])) same.push(k);
+    else if (st.pulls.current[k]) st.pulls.previous[k] = st.pulls.current[k];
     st.pulls.current[k] = st_clone(parsed.pulls[k]);
   }
   // The unidentified rows are the import's, not an appropriation's: an import that holds none replaces the last one's
@@ -4003,24 +4488,40 @@ SP.applyImport = function applyImport(parsed) {
     st.pulls.previous.unidentified = st.pulls.current.unidentified;
     delete st.pulls.current.unidentified;
   }
-  // the settings a person chose stay; only Data through follows the new pull (CONTRACT §4.1)
+  // The settings a person chose stay; only Data through follows the new pull (CONTRACT §4.1). An import that placed no
+  // row in any appropriation brings no pull, so it leaves Data through where the person set it (review IMP-12).
+  const aps = SP.APS.filter(a => keys.includes(a.id)).map(a => a.id);
   const def = SP.defaultSettings(importedAt);
   const first = !st_isObj(st.settings);
   const was = first ? null : st.settings.asOf;
-  st.settings = first ? def : Object.assign({}, st.settings, { asOf: def.asOf });
-  const aps = SP.APS.filter(a => keys.includes(a.id)).map(a => a.id);
+  const moveAsOf = first || aps.length > 0;
+  st.settings = first ? def : moveAsOf ? Object.assign({}, st.settings, { asOf: def.asOf }) : st.settings;
   st.history.push({ importedAt, aps, totals: st_totals(st_pick(st.pulls.current, aps), st.settings) });
   st.lastImport = { report: st_clone(report) };
   st_changed();
 
-  // what the person needs to know, in the order they need it
+  // what the person needs to know, in the order they need it. A refused file, rows that count nowhere and dates that could
+  // not be read used to reach the Import report only, while the message line read as a clean success (review IMP-4, IMP-9).
   const said = [];
+  let warn = false;
   if (aps.length) {
     said.push('Imported ' + st_list(aps.map(ap => st_apLabel(ap) + ' (' + st_rows(st.pulls.current[ap].rows.length) + ')')) + '.');
   } else said.push('No row in this import could be placed in an appropriation.');
-  const replaced = aps.filter(ap => before[ap]);
+  const refused = (Array.isArray(report.refusedFiles) ? report.refusedFiles : []).filter(st_isObj);
+  for (const f of refused) {
+    warn = true;
+    said.push('“' + f.file + '” was refused, so nothing in it was imported: ' + String(f.why).replace(/\.\s*$/, '') + '.');
+  }
+  for (const x of strays) {
+    warn = true;
+    said.push('Check: every ' + st_apLabel(x.ap) + ' row came from “' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + st_apLabel(x.sheetAp)
+      + ' (' + st_rows(x.rows) + ', ' + st_usd(x.cents) + '), and ' + (x.rows === 1 ? 'it is' : 'they are') + ' now the whole ' + st_apLabel(x.ap) + ' pull.');
+  }
+  const replaced = aps.filter(ap => before[ap] && !same.includes(ap));
   if (replaced.length) said.push('The ' + st_list(replaced.map(st_apLabel)) + ' pull' + (replaced.length === 1 ? ' it replaces is' : 's it replaces are')
     + ' kept for What changed.');
+  if (same.length) said.push('The ' + st_list(same.map(st_apLabel)) + ' pull' + (same.length === 1 ? ' is' : 's are') + ' the same as the one on screen, '
+    + 'row for row, so the earlier pull What changed compares with is kept.');
   const kept = SP.APS.filter(a => before[a.id] && !aps.includes(a.id));
   if (kept.length) {
     const byDay = new Map();
@@ -4031,18 +4532,70 @@ SP.applyImport = function applyImport(parsed) {
     }
     said.push([...byDay].map(([d, l]) => st_list(l) + ' keep' + (l.length === 1 ? 's its pull' : ' their pulls') + ' of ' + d).join('; ') + '.');
   }
+  const unread = aps.map(ap => [ap, st.pulls.current[ap].rows.filter(r => r.bad && r.bad.length).length]).filter(([, n]) => n);
+  if (unread.length) {
+    const n = unread.reduce((a, [, k]) => a + k, 0);
+    said.push(st_list(unread.map(([ap, k]) => SP.fmtInt(k) + ' ' + st_apLabel(ap))) + ' row' + (n === 1 ? '' : 's')
+      + ' could not be read (FY or Amount): ' + (n === 1 ? 'it is' : 'they are') + ' kept and counted nowhere (see the Import report).');
+  }
+  const db = (Array.isArray(report.dateUnreadable) ? report.dateUnreadable : []).filter(st_isObj);
+  const dDate = db.filter(d => d.column === 'Date').length, dMonth = db.filter(d => d.column === 'Month').length;
+  if (dDate) said.push(st_rows(dDate) + ' ' + (dDate === 1 ? 'has a Date' : 'have a Date') + ' that could not be read: ' + (dDate === 1 ? 'it is' : 'they are')
+    + ' in the No date column (see the Import report for the dates it reads).');
+  if (dMonth) said.push(SP.fmtInt(dMonth) + ' Month value' + (dMonth === 1 ? '' : 's') + ' could not be read (see the Import report).');
   const un = keys.includes('unidentified') ? parsed.pulls.unidentified.rows.length : 0;
   if (un) said.push(st_rows(un) + ' whose appropriation was not identified ' + (un === 1 ? 'is' : 'are') + ' kept apart and counted nowhere (see the Import report).');
-  const lab = SP.asOfLabel ? SP.asOfLabel(def.asOf) : def.asOf;
-  said.push('Data through ' + (first ? 'set' : 'reset') + ' to ' + lab + ', the last full month before this import'
-    + (!first && was && was !== def.asOf ? ' (it was ' + (SP.asOfLabel ? SP.asOfLabel(was) : was) + ')' : '') + '; change it at the top if the pull runs later.');
-  return { message: said.join(' ') };
+  const lab = v => (SP.asOfLabel ? SP.asOfLabel(v) : v);
+  if (moveAsOf) {
+    said.push('Data through ' + (first ? 'set' : 'reset') + ' to ' + lab(def.asOf) + ', the last full month before this import'
+      + (!first && was && was !== def.asOf ? ' (it was ' + lab(was) + ')' : '') + '; change it at the top if the pull runs later.');
+  } else said.push('Data through stays ' + lab(was) + ': no pull came in to move it.');
+  return { ok: true, warn, message: said.join(' ') };
 };
 function st_pick(current, aps) {
   const o = {};
   for (const ap of aps) o[ap] = current[ap];
   return o;
 }
+
+// TAKING A SAVED PLAN INTO THIS PAGE. Each copy of the tool holds its own data, so a plan could not reach a new or fixed
+// copy: Import refused the .html as a "truncated" workbook, and re-importing the tool's own Excel export lost the
+// Authorized entries, the special CCaRs, goal edits, budget overrides, the earlier pulls, the history and the unidentified
+// rows (review IMP-7). The whole state is read from the file, checked exactly as an opening checks it, and becomes this
+// page's, after a question when the page holds a plan or unsaved work. Every derived field is worked out again by THIS
+// copy's rules (CONTRACT §3). This page's own file is not touched: Save writes it, through the same checks as ever.
+//   text  the saved plan's HTML;  name  its file name, for the messages
+SP.takePlan = function takePlan(text, name) {
+  const fname = String(name || 'that file');
+  const f = st_readFile(text);
+  if (f.why) return { ok: false, message: 'Nothing was taken: “' + fname + '” ' + f.why + '.' };
+  if (!f.state) return { ok: false, message: 'Nothing was taken: “' + fname + '” is an SFCB Spend Plan file with no plan saved in it.' };
+  const why = st_check(f.state);
+  if (why) return { ok: false, message: 'Nothing was taken from “' + fname + '”: ' + why + '.' };
+  const inc = f.state;
+  const aps = SP.APS.filter(a => inc.pulls.current[a.id]).map(a => a.label);
+  if (!aps.length) return { ok: false, message: 'Nothing was taken: the plan in “' + fname + '” holds no pull.' };
+  const st = SP.state;
+  const mine = SP.APS.filter(a => st.pulls.current[a.id]).map(a => a.label);
+  const saved = inc.savedAt ? ', saved ' + st_when(inc.savedAt) : '';
+  if (mine.length || st_dirty) {
+    const q = 'This page holds ' + (mine.length ? 'a plan (' + st_list(mine) + ')' : 'work') + (st_dirty ? ' with unsaved changes' : '') + '.\n\n'
+      + 'Taking the plan in “' + fname + '” (' + st_list(aps) + saved + ') replaces it on this page: its pulls, earlier pulls, import '
+      + 'history, settings and last import report. This page’s own file is not changed until you Save.\n\nTake it?';
+    let yes = false;
+    try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
+    if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s plan, and “' + fname + '” was not read into it.' };
+  }
+  const next = st_clone(inc);
+  if (!Array.isArray(next.history)) next.history = [];
+  if (next.lastImport === undefined) next.lastImport = null;
+  // the save time stays this page's: it is what this page's own file holds, and what Save checks that file against
+  next.savedAt = st.savedAt === undefined ? null : st.savedAt;
+  SP.state = next;
+  st_changed();
+  return { ok: true, message: 'Took the plan in “' + fname + '” (' + st_list(aps) + saved + '): its pulls, earlier pulls, import history, '
+    + 'settings and last import report. Its figures are worked out by this copy of the tool. Save to keep it in this page’s file.' };
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // SETTINGS (saved in the file, so a change is unsaved work)
@@ -4103,9 +4656,20 @@ function st_saved(now, gen, h) {
   SP.state.savedAt = now;
   st_base = now; st_baseWhy = '';
   if (h) st_handle = h;
-  if (gen === st_gen) st_dirty = false;   // an edit made while the file was being written is still unsaved
+  if (gen === st_gen) { st_dirty = false; st_dlOnly = false; }   // an edit made while the file was being written is still unsaved
   st_fire();
 }
+// A Save that could only download: the work is in the download, not in this page's own file, until someone puts the
+// download in its place. Marked clean, the page read "Saved" and let the tab close without a question while the file
+// it was opened from still lacked the work (review S8). It stays unsaved, and says it was downloaded.
+function st_downloaded(now, gen) {
+  SP.state.savedAt = now;
+  st_base = now; st_baseWhy = '';
+  if (gen === st_gen) st_dlOnly = true;
+  st_fire();
+}
+// 'saved' | 'unsaved' | 'downloaded' (unsaved, but the last Save downloaded every change): what the top bar says
+SP.saveStatus = function saveStatus() { return !st_dirty ? 'saved' : st_dlOnly ? 'downloaded' : 'unsaved'; };
 
 SP.saveFile = async function saveFile() {
   if (st_busy) return { ok: false, message: 'A save is already running; nothing else was written.' };
@@ -4121,9 +4685,10 @@ async function st_saveFile() {
     const now = new Date().toISOString(), gen = st_gen;
     const html = st_htmlFor(Object.assign({}, SP.state, { savedAt: now }));
     const got = SP.download(name, html, 'text/html');
-    st_saved(now, gen, null);
+    st_downloaded(now, gen);
     return { ok: true, message: 'This browser cannot write to the file directly, so the plan was downloaded as “' + got + '”. '
-      + 'The shared copy is not updated until you put the download in its place (replace “' + name + '” with it).' };
+      + 'The shared copy is not updated until you put the download in its place (replace “' + name + '” with it). '
+      + 'Until then this page counts the work as unsaved, and asks before it is closed.' };
   }
   let h = st_handle, picked = false;
   if (!h) {
@@ -4157,20 +4722,49 @@ async function st_saveFile() {
   const fs = f.state, fsAt = fs && typeof fs.savedAt === 'string' ? fs.savedAt : null;
   // the data this page refused on opening is still there (whatever its save time says, even none): never written over unasked
   const refusedHere = st_base === ST_REFUSED && !!fs && st_check(fs) !== '';
-  if (fs && (refusedHere || (fsAt !== null && fsAt !== st_base))) {
-    let q;
+  // A FILE OTHER THAN THIS PAGE'S OWN, picked in the window that asked for this one. It is said in the question, never
+  // left to a save time: an older plan of another team's read "saved … after this page was opened — by someone else, or in
+  // another window", and OK wrote this page over it and remembered it for every later Save (review S1). A remembered file
+  // was picked and confirmed already, and a page whose address names no file has nothing to compare it with.
+  const own = st_pageNameKnown();
+  const other = picked && !!own && !st_sameName(fname, own);
+  const timed = !!fs && fsAt !== null && fsAt !== st_base;
+  if (refusedHere || timed || other) {
+    const said = [];
+    if (other) said.push('You picked “' + fname + '”, not “' + own + '”, the file this page was opened from.');
+    let after = false;
     if (refusedHere) {
-      q = 'This page opened empty because the data saved in “' + fname + '” was not opened (' + (st_baseWhy || st_check(fs)) + ').\n\nSaving now writes over '
-        + 'that data' + (fsAt ? ', saved ' + st_when(fsAt) : '') + ', and it is lost. Write over it?';
+      said.push('This page opened empty because the data saved in “' + fname + '” was not opened (' + (st_baseWhy || st_check(fs)) + ').\n\nSaving now writes over '
+        + 'that data' + (fsAt ? ', saved ' + st_when(fsAt) : '') + ', and it is lost. Write over it?');
+    } else if (timed) {
+      // which came first is worked out, never assumed: the question used to call every other save time "after"
+      const mine = typeof st_base === 'string' ? st_base : null;
+      const ref = mine || st_openedAt;
+      after = !!ref && Date.parse(fsAt) > Date.parse(ref);
+      const [tf, tr] = ref ? st_whenPair(fsAt, ref) : [st_when(fsAt), ''];
+      const who = other ? '' : after ? ' — by someone else, or in another window' : '';
+      if (mine) {
+        said.push('“' + fname + '” holds a plan saved ' + tf + (after ? ', after this page last opened or saved its plan (' + tr + ')' + who + '.'
+          : ', before the plan this page opened or last saved (' + tr + ')' + (other ? '.' : ': an older copy, or another plan saved under this name.')));
+      } else {
+        said.push('“' + fname + '” holds a plan saved ' + tf + (after ? ', after this page was opened (' + tr + ')' + who + '.'
+          : (ref ? ', before this page was opened (' + tr + ')' : '') + '. This page opened with no saved plan, so that plan is not the one on screen.'));
+      }
+      said.push('\nSaving now writes this page’s plan over it, and the plan saved in it is lost. Write over it?');
+    } else if (!fs) {
+      said.push('It holds no saved plan. Save this page’s plan into “' + fname + '” instead? This page then saves to “' + fname + '” until it is closed.');
     } else {
-      q = '“' + fname + '” was saved ' + st_when(fsAt) + (st_base && st_base !== ST_REFUSED ? ', after this page last opened or saved it (' + st_when(st_base) + ')'
-        : ', after this page was opened') + ' — by someone else, or in another window.\n\nSaving now writes over that save, and whatever it added is lost. Write over it?';
+      said.push('It holds the same save as this page (' + st_when(fsAt) + '). Save this page’s plan into “' + fname + '” instead? This page then saves to “'
+        + fname + '” until it is closed.');
     }
-    if (!window.confirm(q)) {
+    if (!window.confirm(said.join('\n'))) {
       return { ok: false, message: refusedHere
         ? 'Not saved: you chose not to write over the data in “' + fname + '” that this page could not open. Nothing was written. To keep this work, use Save a copy…'
-        : 'Not saved: “' + fname + '” was saved ' + st_when(fsAt) + ' by someone else, and you chose not to write over it. '
-          + 'Nothing was written. To keep both, use Save a copy…; to see theirs, open the file.' };
+        : other
+          ? 'Not saved: you chose not to write to “' + fname + '”, which is not “' + own + '”, the file this page was opened from. Nothing was written. '
+            + 'Save again and pick “' + own + '”, or use Save a copy….'
+          : 'Not saved: “' + fname + '” holds a plan saved ' + st_when(fsAt) + (after ? ' by someone else' : '') + ', and you chose not to write over it. '
+            + 'Nothing was written. To keep both, use Save a copy…; to see ' + (after ? 'theirs' : 'it') + ', open the file.' };
     }
   }
   if (!(await st_permit(h))) return { ok: false, message: 'Not saved: writing to “' + fname + '” was not allowed. Nothing was written.' };
@@ -4179,7 +4773,9 @@ async function st_saveFile() {
   try { await st_write(h, html); }
   catch (e) { return { ok: false, message: 'Not saved: “' + fname + '” could not be written (' + st_err(e) + '). Use Save a copy… to keep the work.' }; }
   st_saved(now, gen, h);
-  return { ok: true, message: 'Saved to “' + fname + '” at ' + st_when(now).slice(11) + '.' };
+  const own2 = st_pageNameKnown();
+  return { ok: true, message: 'Saved to “' + fname + '” at ' + st_when(now).slice(11) + '.'
+    + (own2 && !st_sameName(fname, own2) ? ' This page saves there until it is closed; “' + own2 + '”, the file it was opened from, does not have this work.' : '') };
 }
 
 SP.saveCopy = async function saveCopy() {
@@ -4259,6 +4855,8 @@ const ui = {
   localView: null,          // only when the store is missing: the switches still work for the session
   reg: null,                // this draw's registry: what each data-id / data-i / data-s points at
   els: null,
+  focusTo: null,            // the data-fkey the keyboard goes to when its own control is gone after the next draw
+  asOfHint: false,          // the message line holds the note about a Data through still being typed
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -4274,6 +4872,19 @@ function ui_day(iso) {
   return d.getFullYear() + '-' + ui_pad(d.getMonth() + 1) + '-' + ui_pad(d.getDate());
 }
 function ui_today() { return ui_day(new Date().toISOString()); }
+// this computer's 'YYYY-MM-DD HH:MM', with the seconds when asked
+function ui_when(iso, sec) {
+  const d = new Date(iso);
+  if (!iso || isNaN(d.getTime())) return ui_day(iso);
+  return ui_day(iso) + ' ' + ui_pad(d.getHours()) + ':' + ui_pad(d.getMinutes()) + (sec ? ':' + ui_pad(d.getSeconds()) : '');
+}
+// two imports named so they can be told apart: by day, else by time, else to the second ("pull of 2026-11-09 → pull of
+// 2026-11-09" said nothing when both came in on one day, review S11)
+function ui_pullPair(a, b) {
+  if (ui_day(a) !== ui_day(b)) return [ui_day(a), ui_day(b)];
+  if (ui_when(a) !== ui_when(b)) return [ui_when(a), ui_when(b)];
+  return [ui_when(a, true), ui_when(b, true)];
+}
 function ui_fn(name) { return typeof SP[name] === 'function'; }
 // a control whose code another builder has not written yet says so in the message line: never a click that does nothing
 function ui_need(name, what) {
@@ -4327,6 +4938,12 @@ function ui_say(text, kind) {
   if (!el) return;
   el.textContent = text ? String(text) : '';
   el.className = 'msg' + (text ? ' msg-' + (kind || 'info') : '');
+  // A message stays until the next one, inside the sticky top: a refused import naming its sheets made the top 167 px
+  // of a 768 px window, on every view, with no way to put it away (review S7). Dismiss takes it off; its reason is kept
+  // where it belongs (a refused import in the Import report). The button sits outside the live region, so it is not read
+  // out with every message.
+  if (ui.els.msgx) ui.els.msgx.hidden = !text;
+  ui_layout();
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -4341,7 +4958,7 @@ function ui_m(c, cls) {
 function ui_p(x, cls) { return '<td class="n' + (cls ? ' ' + cls : '') + '">' + (x === null || x === undefined ? '' : ui_e(SP.fmtPct(x))) + '</td>'; }
 function ui_d(x) { return '<td class="n">' + (x === null || x === undefined ? '' : ui_e(SP.fmtDelta(x))) + '</td>'; }
 // a status is always its colour AND its word. A plan cell (a month after the as-of month) is a forecast of the
-// status: its fill and word in italic, as the workbook and the pictures print it (integration ruling: grey words on
+// status: its fill and word in italic, as the workbook and the pictures print it (CONTRACT §8: grey words on
 // the red or green fill could not be read).
 function ui_st(st, plan, cls) {
   if (!st) return '<td class="st' + (cls ? ' ' + cls : '') + '"></td>';
@@ -4549,7 +5166,7 @@ function ui_vAp(M, ap) {
     out.push('<section class="blk-sec" aria-label="' + ui_e(label + ' FY' + b.fy) + '">'
       + '<div class="bar">FY' + ui_e(b.fy) + ' - Spend Plan by PMO / Title / Plan Event / CCaR</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, label + ' FY' + b.fy) + '</div>'
-      + '<div class="tw"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
+      + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + (rows.length ? rows.join('') : '<tr><td colspan="' + ui_ncols(M) + '" class="none">No rows shown.</td></tr>')
       + ui_band(M, b) + '</tbody></table></div>'
       + '<h3 class="nabar">Not Allocated Requirements — ' + ui_e(label) + ' FY' + ui_e(b.fy) + '</h3>' + ui_naTable(M, b.na, false) + '</section>');
@@ -4578,7 +5195,7 @@ function ui_vPmos(M) {
     out.push('<section class="blk-sec" aria-label="' + ui_e(b.apLabel + ' FY' + b.fy) + '">'
       + '<div class="bar bar2">' + ui_e(b.apLabel) + ' - FY' + ui_e(b.fy) + '</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
-      + '<div class="tw"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
+      + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + '<tr class="strip"><td colspan="' + ui_ncols(M) + '">' + strip + '</td></tr>'
       + rows.join('') + ui_band(M, b) + '</tbody></table></div>' + ui_naLines(M, b.na) + '</section>');
   }
@@ -4641,6 +5258,9 @@ function ui_vNa(M) {
 function ui_reportLines(rep) {
   let lines = [];
   try { lines = SP.importReportLines(rep); } catch (e) { lines = ['The report could not be drawn: ' + ((e && e.message) || e)]; }
+  return ui_lines(lines);
+}
+function ui_lines(lines) {
   return '<div class="report">' + lines.map(l => {
     const m = /^( *)/.exec(l), ind = Math.min(6, (m ? m[1].length : 0) / 2);
     return '<div class="rl" style="padding-left:' + (ind * 1.5) + 'em">' + ui_e(l.trim()) + '</div>';
@@ -4654,8 +5274,27 @@ function ui_vReport(M) {
       + (ui.refused.report ? '<h3 class="sub">What that import held</h3>' + ui_reportLines(ui.refused.report) : '') + '</div>');
   }
   const rep = st && st.lastImport && st.lastImport.report;
-  if (rep) out.push('<h3 class="sub">The import the data on screen came from</h3>' + ui_reportLines(rep));
+  // Only the last import's report is kept, but the pulls it did not replace are on screen too: they are listed from their
+  // own rows, so a row the Summary says counts nowhere is always found here (review IMP-2)
+  let kept = [];
+  if (typeof SP.keptPullLines === 'function') {
+    try { kept = SP.keptPullLines(st && st.pulls && st.pulls.current, rep || null); }
+    catch (e) { kept = ['The pulls kept from earlier imports could not be listed: ' + ((e && e.message) || e)]; }
+  }
+  if (rep) out.push('<h3 class="sub">' + (kept.length ? 'The last import' : 'The import the data on screen came from') + '</h3>' + ui_reportLines(rep));
   else if (!ui.refused) out.push('<p class="none">No import report is held in this file.</p>');
+  // the rows no appropriation claims, each named: the Summary sends the reader here for them, and they are in no other
+  // view (review XP-8)
+  let unid = [];
+  if (typeof SP.unidentifiedLines === 'function') {
+    try { unid = SP.unidentifiedLines(st && st.pulls && st.pulls.current); }
+    catch (e) { unid = ['The rows whose appropriation is not identified could not be listed: ' + ((e && e.message) || e)]; }
+  }
+  if (unid.length) out.push('<h3 class="sub">Rows whose appropriation is not identified</h3>' + ui_lines(unid));
+  if (kept.length) {
+    out.push('<h3 class="sub">Pulls on screen from earlier imports</h3><p class="l2">' + (rep ? 'The last import did not replace these, so its report above '
+      + 'does not cover them.' : 'No report is held for them.') + ' What each holds that counts nowhere is listed from its own rows.</p>' + ui_lines(kept));
+  }
   return out.join('');
 }
 
@@ -4679,8 +5318,9 @@ function ui_vChanges(M) {
   if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>'); return out.join(''); }
   for (const ap of aps) {
     const d = D[ap];
-    out.push('<section class="chg" data-ap="' + ui_e(ap) + '"><h3 class="bar">' + ui_e(d.label) + ': pull of ' + ui_e(ui_day(d.importedAt[0]) || 'unknown') + ' → pull of '
-      + ui_e(ui_day(d.importedAt[1]) || 'unknown') + '</h3>');
+    const [w0, w1] = ui_pullPair(d.importedAt[0], d.importedAt[1]);
+    out.push('<section class="chg" data-ap="' + ui_e(ap) + '"><h3 class="bar">' + ui_e(d.label) + ': pull of ' + ui_e(w0 || 'unknown') + ' → pull of '
+      + ui_e(w1 || 'unknown') + '</h3>');
     out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th><th scope="col" class="n">Change ($M)</th></tr></thead><tbody>'
       + ui_dRow('Approved', d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
     const bk = Object.keys(d.byBlock);
@@ -4696,8 +5336,9 @@ function ui_vChanges(M) {
       ? '<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">CCaR</th><th scope="col">From</th><th scope="col">To</th><th scope="col" class="n">$M</th></tr></thead><tbody>'
         + d.pmoMoves.map(c => '<tr><td>' + ui_e(c.label) + '</td><td>' + ui_e(c.from) + '</td><td>' + ui_e(c.to) + '</td>' + ui_m(c.cents) + '</tr>').join('') + '</tbody></table></div>' : ''));
     out.push('<h4 class="sub">Rows by PMO / Title / Plan Event / CCaR</h4>');
-    for (const [kind, words] of [['changed', 'changed amount'], ['new', 'new'], ['gone', 'gone']]) {
-      const list = d.leaves[kind], key = ap + '|' + kind, open = ui.diffOpen.has(key);
+    // words that agree with their count: "Show the 12 changed amount" was one of them (review S11)
+    for (const [kind, one, many] of [['changed', 'row whose amount changed', 'rows whose amount changed'], ['new', 'new row', 'new rows'], ['gone', 'row gone', 'rows gone']]) {
+      const list = d.leaves[kind], key = ap + '|' + kind, open = ui.diffOpen.has(key), words = list.length === 1 ? one : many;
       const R = ui.reg, i = R.diff.length;
       R.diff.push(key);
       out.push('<p class="acts"><button type="button" data-act="diff" data-i="' + i + '" data-fkey="diff:' + ui_e(key) + '" aria-expanded="' + (open ? 'true' : 'false') + '"'
@@ -4788,10 +5429,13 @@ function ui_vSettings(M) {
       + '<th scope="col" class="n">$M</th><th scope="col">Service</th><th scope="col">Lane</th></tr></thead><tbody>'
       + bt.map((b, i) => {
         const ov = b.override || {};
-        const svcSel = '<select data-act="bsvc" data-i="' + i + '" data-fkey="bsvc:' + i + '" aria-label="Service for budget row ' + (i + 1) + '">'
+        // each picker is named by its budget, escaped: "Service for budget row 12" never said which name was being
+        // overridden to someone hearing the page (review S10)
+        const who = '“' + (b.name || '(blank)') + '”';
+        const svcSel = '<select data-act="bsvc" data-i="' + i + '" data-fkey="bsvc:' + i + '" aria-label="' + ui_e('Service for budget ' + who) + '">'
           + '<option value="">By rule: ' + ui_e(b.svcRule) + '</option>'
           + UI_SVC.map((s, k) => '<option value="' + k + '"' + (ov.svc === s ? ' selected' : '') + '>' + ui_e(s) + '</option>').join('') + '</select>';
-        const laneSel = '<select data-act="blane" data-i="' + i + '" data-fkey="blane:' + i + '" aria-label="Lane for budget row ' + (i + 1) + '">'
+        const laneSel = '<select data-act="blane" data-i="' + i + '" data-fkey="blane:' + i + '" aria-label="' + ui_e('Lane for budget ' + who) + '">'
           + '<option value="">By rule: ' + ui_e(SP.LANE_WORDS[b.laneRule] || b.laneRule) + '</option>'
           + UI_LANES.map(([l, w]) => '<option value="' + l + '"' + (ov.lane === l ? ' selected' : '') + '>' + w + '</option>').join('') + '</select>';
         return '<tr' + (b.unknown ? ' class="unknown"' : '') + '><td class="wrap">' + ui_e(b.name || '(blank)')
@@ -4812,7 +5456,11 @@ function ui_vHelp() {
       'Columns are found by their header names, in any order. Rows are placed in O&amp;M, Full Fund, Initial Spares or OPN by their Budget name.',
       'An import replaces the appropriations it holds. The pull it replaces is kept for <strong>What changed</strong>; appropriations it does not hold keep theirs.',
       'Each import sets <strong>Data through</strong> to the last full month before the import. Change it in the top bar.',
-      'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.'])
+      'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.',
+      'If every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the only Full Fund row, say), the page asks before '
+      + 'those rows replace that appropriation’s pull: such a row is most likely misfiled.',
+      'To move a plan into a new copy of this tool, import the saved plan’s .html file on its own: the page takes its pulls, earlier pulls, history and settings, '
+      + 'and works every figure out again by its own rules. Save to keep it.'])
     + '<h3 class="sub">Which rows count</h3>' + li([
       'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, and the switches show its service and lane.',
       'The switches drive every figure and every list on every view, the export and the pictures, with two exceptions that cover every service and lane: an entered Authorized, '
@@ -4871,24 +5519,62 @@ function ui_skeleton() {
     + '<span class="savest" id="uiSave" role="status"></span>'
     + '</div>'
     + '<div class="pulls" id="uiPulls"></div>'
-    + '<div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
+    + '<div class="msgrow"><div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
+    + '<button type="button" class="msgx" id="uiMsgX" data-act="msgx" data-fkey="msgx" hidden>Dismiss</button></div>'
     + '<nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '</header>'
     + '<div id="uiFilters"></div>'
     + '<main id="uiMain" tabindex="-1"></main>'
-    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv" hidden>';
+    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>';
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
     pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
+    msgx: document.getElementById('uiMsgX'),
   };
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// WHAT THE STICKY TOP COVERS. The CUI line, the top bar, the pulls line, the message line and the view buttons stay at
+// the top of the window, about 135 px at 1366 x 768 and more with a long message. A control the keyboard moves to was
+// scrolled only to the window's edge, under them (or under the bottom CUI line), so the keyboard's place could not be
+// seen (review S5, WCAG 2.2 2.4.11): the page's scroll padding is set to what they cover, measured, because the top
+// grows and shrinks with the message line and the window's width. And a tree opened to CCaR runs 16,000 px with its
+// column headings at the top only, so a figure's month could not be read once scrolled (review S6): a tree that fits
+// its box keeps its headings under the sticky top; one wider than the window scrolls inside a box of its own, under
+// headings that stay at that box's top.
+// ---------------------------------------------------------------------------------------------------------------
+function ui_layout() {
+  const E = ui.els;
+  if (!E || !E.top || !E.main) return;
+  try {
+    const cui = document.querySelector('.cui-top');
+    const topH = Math.ceil((cui ? cui.offsetHeight : 0) + E.top.offsetHeight);
+    let headH = 0;
+    for (const tw of E.main.querySelectorAll('.tw.treew')) {
+      const t = tw.querySelector('table');
+      if (!t) continue;
+      const fit = t.offsetWidth <= tw.clientWidth + 1;
+      tw.classList.toggle('fit', fit);
+      tw.classList.toggle('box', !fit);
+      if (fit && !headH) { const h = t.querySelector('thead'); headH = h ? Math.ceil(h.offsetHeight) : 0; }
+    }
+    const root = document.documentElement.style;
+    root.setProperty('--topH', topH + 'px');
+    root.setProperty('--theadH', headH + 'px');
+  } catch (e) { /* a page that cannot be measured keeps the stylesheet's defaults */ }
+}
+// a new view starts at its top: the old view's scroll offset, cut to the new page's height, opened it mid-page or at its
+// bottom with its title and filters thousands of pixels above the window (review S4)
+function ui_toTop() { try { window.scrollTo(0, 0); } catch (e) { /* nothing to scroll */ } }
+
+// 'saved' | 'unsaved' | 'downloaded': a Save that could only download leaves this page's own file without the work (S8)
 function ui_saveText() {
+  if (ui_fn('saveStatus')) { try { const v = SP.saveStatus(); if (v === 'saved' || v === 'unsaved' || v === 'downloaded') return v; } catch (e) {} }
   let d = false;
   if (ui_fn('isDirty')) { try { d = !!SP.isDirty(); } catch (e) { d = false; } }
-  return d;
+  return d ? 'unsaved' : 'saved';
 }
 function ui_drawTop(M) {
   const E = ui.els, has = ui_hasData(), S = ui_settings();
@@ -4898,9 +5584,9 @@ function ui_drawTop(M) {
   if (document.activeElement !== E.asOf) E.asOf.value = has && S.asOf ? S.asOf : '';
   if (document.activeElement !== E.first) E.first.value = has ? String(Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : 2025)) : '';
   E.asOf.disabled = !has; E.first.disabled = !has;
-  const dirty = ui_saveText();
-  E.save.textContent = dirty ? 'Unsaved changes' : 'Saved';
-  E.save.className = 'savest ' + (dirty ? 'dirty' : 'clean');
+  const st = ui_saveText();
+  E.save.textContent = st === 'saved' ? 'Saved' : st === 'downloaded' ? 'Downloaded, not in the file yet' : 'Unsaved changes';
+  E.save.className = 'savest ' + (st === 'saved' ? 'clean' : 'dirty');
   E.help.setAttribute('aria-pressed', ui.view === 'help' ? 'true' : 'false');
   const P = ui_pulls();
   const bits = SP.APS.filter(a => P[a.id]).map(a => ui_e(a.label) + ' pulled <span class="d">' + ui_e(ui_day(P[a.id].importedAt) || 'date unknown') + '</span>');
@@ -4960,10 +5646,15 @@ function ui_render() {
   try { html = ui_drawMain(M); }
   catch (e) { html = '<p class="err">This view could not be drawn: ' + ui_e((e && e.message) || e) + '</p>'; }
   ui.els.main.innerHTML = html;
-  // the keyboard goes back to the control it was on; if that control is gone, to the view itself, never to the top
+  ui_layout();
+  // the keyboard goes back to the control it was on; if that control is gone, to the one the action named (ui.focusTo),
+  // else to the view itself, never to the top
+  const to = ui.focusTo;
+  ui.focusTo = null;
+  const byKey = k => [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === k && !x.disabled && !x.hidden);
   if (fk) {
-    const el = [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === fk);
-    if (el && !el.disabled) { if (el !== document.activeElement) el.focus({ preventScroll: true }); }
+    const el = byKey(fk) || (to ? byKey(to) : null);
+    if (el) { if (el !== document.activeElement) el.focus({ preventScroll: true }); }
     else if (inMain) ui.els.main.focus({ preventScroll: true });
   }
 }
@@ -4998,6 +5689,27 @@ async function ui_import(fileList) {
   if (!files.length) return;
   await ui_busy('the import', async () => {
     ui_say('Reading ' + files.map(f => '“' + f.name + '”').join(', ') + '…', 'info');
+    // A SAVED PLAN is taken whole, on its own, never mixed with pulls: it is how a plan reaches a new copy of the tool
+    // (review IMP-7). Read as a pull it was refused as a "truncated" workbook.
+    const plans = files.filter(f => /\.html?$/i.test(String(f.name)));
+    if (plans.length) {
+      if (files.length > 1) {
+        ui_say('Nothing was imported: a saved plan (' + plans.map(f => '“' + f.name + '”').join(', ') + ') is taken on its own, never with pulls '
+          + 'or another plan. Import it by itself.', 'err');
+        return;
+      }
+      if (!ui_need('takePlan', 'Taking a saved plan')) return;
+      const text = new TextDecoder('utf-8').decode(await files[0].arrayBuffer());
+      const r = SP.takePlan(text, files[0].name);
+      if (r && r.ok) {
+        ui.refused = null;
+        ui_invalidate();
+        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'summary';
+      }
+      ui_say((r && r.message) || 'The plan was not taken.', r && r.ok ? 'ok' : 'err');
+      ui_render();
+      return;
+    }
     if (!ui_need('parseFiles', 'Import')) return;
     const items = [];
     for (const f of files) items.push({ name: f.name, data: await f.arrayBuffer() });
@@ -5012,10 +5724,18 @@ async function ui_import(fileList) {
     }
     if (!ui_need('applyImport', 'Import')) return;
     const r = await SP.applyImport(parsed);
+    if (r && r.ok === false) {
+      // the person declined the import's question (rows that look misfiled): nothing changed, as with a refusal
+      ui.refused = { message: r.message, report: parsed.report || null, at: new Date().toISOString() };
+      ui_say(r.message, 'err');
+      ui_render();
+      return;
+    }
     ui.refused = null;
     ui_invalidate();
     if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'summary';
-    ui_say((r && r.message) || 'Imported.', 'ok');
+    // an import that refused a file or placed rows that look misfiled is not a plain success, and does not look like one
+    ui_say((r && r.message) || 'Imported.', r && r.warn ? 'warn' : 'ok');
     ui_render();
   });
   if (ui.els && ui.els.file) ui.els.file.value = '';   // the same file can be chosen again after a fix
@@ -5032,11 +5752,46 @@ function ui_setSettings(patch, said, defer) {
   return true;
 }
 
+// DATA THROUGH is a month from Jan-1990 to Dec-2100, the box's own min and max. A browser's month box fires a change on
+// every key of a year being typed (0002-10, 0020-10, 0202-10, 2025-10), so each partial year rebuilt every figure, marked
+// the file unsaved, and was what stayed if the box was left early: "202" and Tab set the execution year to FY203 and
+// blanked every goal (review S3). A month outside the range is never taken. While the box still has the keyboard it may
+// be a year half typed, so it is only noted on the message line; when the box is left (ui_asOfLeft), whatever it holds that was not taken
+// is put back to the month the figures use, and the reason is said in the box's own words (review S12: a cleared box
+// stayed blank while the figures went on using the old month, and the message named a YYYY-MM form the box never shows).
+const UI_ASOF_MIN = '1990-01', UI_ASOF_MAX = '2100-12';
+function ui_asOfOk(v) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(v) && v >= UI_ASOF_MIN && v <= UI_ASOF_MAX; }
 function ui_asOfChanged() {
   const v = String(ui.els.asOf.value || '').trim();
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(v)) { ui_say('Data through must be a month, written YYYY-MM. It was not changed.', 'err'); ui_drawTop(ui_model()); return; }
-  if (v === ui_settings().asOf) return;
+  const cur = ui_settings().asOf;
+  if (!ui_asOfOk(v)) {
+    if (document.activeElement !== ui.els.asOf) { ui_asOfRefuse(v); return; }
+    // still being typed (Tab inside the box moves between its month, its year and its calendar button): said, not taken
+    ui.asOfHint = true;
+    ui_say('Data through needs a month and a year from 1990 to 2100; until it has one, the figures use ' + (cur ? SP.asOfLabel(cur) : 'the month they had') + '.', 'info');
+    return;
+  }
+  if (v === cur) {
+    // typed back to the month in use: the note about a half-typed year no longer applies
+    if (ui.asOfHint) { ui.asOfHint = false; ui_say(''); }
+    return;
+  }
+  ui.asOfHint = false;
   ui_setSettings({ asOf: v }, 'Data through set to ' + SP.asOfLabel(v) + '; the execution year is FY' + SP.execYear(v) + '.');
+}
+function ui_asOfRefuse(v) {
+  const cur = ui_settings().asOf;
+  ui.asOfHint = false;
+  ui.els.asOf.value = ui_hasData() && cur ? cur : '';
+  ui_say('Data through must be a month and year from January 1990 to December 2100' + (v ? '' : '; the box was left empty')
+    + '. It was not changed: it stays ' + (cur ? SP.asOfLabel(cur) : 'as it was') + '.', 'err');
+}
+function ui_asOfLeft() {
+  const v = String(ui.els.asOf.value || '').trim();
+  if (!ui_hasData()) return;
+  if (v === ui_settings().asOf) { if (ui.asOfHint) { ui.asOfHint = false; ui_say(''); } return; }
+  if (!ui_asOfOk(v)) ui_asOfRefuse(v);
+  else ui_asOfChanged();     // a month typed in full and left without a change event (some browsers): taken now
 }
 function ui_firstChanged() {
   const raw = String(ui.els.first.value || '').trim();
@@ -5066,7 +5821,12 @@ function ui_goalChanged(el) {
     }
     val = Number((n / 100).toPrecision(12));   // 8.33 -> 0.0833 exactly as typed, not 0.08330000000000001
   }
-  if (goals[k][i] === val) return;
+  if (goals[k][i] === val) {
+    // said, so a refusal of an earlier value does not stay on the message line as if it were about this one (review S11)
+    el.value = ui_pctText(val);
+    ui_say('Goal unchanged: ' + (val === null ? 'that cell is blank (no goal)' : 'it is already ' + ui_pctText(val) + '%') + '.', 'info');
+    return;
+  }
   goals[k][i] = val;
   ui_setSettings({ goals }, 'Goal changed. The statuses are worked out again.', true);
 }
@@ -5084,9 +5844,12 @@ function ui_authChanged(el) {
     ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' cleared; Approved is shown in its place.', true);
     return;
   }
-  if (au[key] === r.cents) return;
+  // $0.00M, never "$-M": fmtM's lone dash is a table cell's zero, and inside a sentence it reads as a figure left out; a
+  // negative Authorized (typed with a minus or in parentheses) is taken, as parseAmount reads it, and said to be one (S11)
+  const said = '$' + SP.fmtMText(r.cents) + 'M' + (r.cents < 0 ? ', a negative amount' : '');
+  if (au[key] === r.cents) { ui_say('Authorized for ' + name + ' unchanged: it is already ' + said + '.', 'info'); return; }
   au[key] = r.cents;
-  ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' set to $' + SP.fmtM(r.cents) + 'M' + (r.rounded ? ' (rounded to the cent)' : '') + '.', true);
+  ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' set to ' + said + (r.rounded ? ' (rounded to the cent)' : '') + '.', true);
 }
 function ui_specAdd() {
   const inp = document.getElementById('uiSpecNew');
@@ -5150,12 +5913,26 @@ function ui_onClick(ev) {
   if (!t || !ui.els.app.contains(t) || t.tagName === 'SELECT' || t.tagName === 'INPUT') return;
   const act = t.getAttribute('data-act');
   switch (act) {
-    case 'view': ui.view = t.getAttribute('data-v'); ui_render(); break;
+    case 'view': {
+      const v = t.getAttribute('data-v'), moved = v !== ui.view;
+      ui.view = v;
+      ui_render();
+      if (moved) ui_toTop();
+      break;
+    }
     case 'help':
       if (ui.view === 'help') ui.view = ui.back || 'summary';
       else { ui.back = ui.view; ui.view = 'help'; }
       ui_render();
+      ui_toTop();
       break;
+    case 'msgx': {
+      ui_say('');
+      // the button is gone: the keyboard goes to the view it was reading, never back to the top of the page
+      const at = ui.els.nav.querySelector('[aria-pressed="true"]') || (ui.view === 'help' ? ui.els.help : null);
+      (at || ui.els.main).focus({ preventScroll: true });
+      break;
+    }
     case 'import':
       if (!ui_fn('applyImport')) { ui_need('applyImport', 'Import'); break; }
       ui.els.file.click();
@@ -5189,6 +5966,10 @@ function ui_onClick(ev) {
       const s = ui.reg.special[Number(t.getAttribute('data-i'))];
       if (s === undefined) break;
       const cur = (Array.isArray(ui_settings().special) ? ui_settings().special : []).filter(x => x !== s);
+      // the Remove that was pressed is gone, or now names the next CCaR: the keyboard goes to the Remove in its place,
+      // else the last one, else the box that adds one (review S10; it used to drop to the top of the view, WCAG 2.4.3)
+      const i = Number(t.getAttribute('data-i'));
+      ui.focusTo = cur.length ? 'specdel:' + Math.min(i, cur.length - 1) : 'specnew';
       ui_setSettings({ special: cur }, '“' + s + '” is no longer a special CCaR.');
       break;
     }
@@ -5258,7 +6039,11 @@ function ui_boot() {
   app.addEventListener('click', ui_onClick);
   app.addEventListener('change', ui_onChange);
   app.addEventListener('keydown', ui_onKey);
+  app.addEventListener('focusout', ev => { if (ui.els && ev.target === ui.els.asOf) ui_asOfLeft(); });
   if (ui_fn('onStateChange')) { try { SP.onStateChange(ui_stateChanged); } catch (e) {} }
+  // the top's height moves with the window's width (its bars wrap) and with the message line: measured again each time
+  window.addEventListener('resize', ui_layout);
+  if (typeof ResizeObserver === 'function') { try { new ResizeObserver(() => ui_layout()).observe(ui.els.top); } catch (e) {} }
   ui_render();
   if (r && r.message) ui_say(r.message, r.ok === false ? 'err' : 'info');
 }

@@ -41,6 +41,8 @@ const ui = {
   localView: null,          // only when the store is missing: the switches still work for the session
   reg: null,                // this draw's registry: what each data-id / data-i / data-s points at
   els: null,
+  focusTo: null,            // the data-fkey the keyboard goes to when its own control is gone after the next draw
+  asOfHint: false,          // the message line holds the note about a Data through still being typed
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -56,6 +58,19 @@ function ui_day(iso) {
   return d.getFullYear() + '-' + ui_pad(d.getMonth() + 1) + '-' + ui_pad(d.getDate());
 }
 function ui_today() { return ui_day(new Date().toISOString()); }
+// this computer's 'YYYY-MM-DD HH:MM', with the seconds when asked
+function ui_when(iso, sec) {
+  const d = new Date(iso);
+  if (!iso || isNaN(d.getTime())) return ui_day(iso);
+  return ui_day(iso) + ' ' + ui_pad(d.getHours()) + ':' + ui_pad(d.getMinutes()) + (sec ? ':' + ui_pad(d.getSeconds()) : '');
+}
+// two imports named so they can be told apart: by day, else by time, else to the second ("pull of 2026-11-09 → pull of
+// 2026-11-09" said nothing when both came in on one day, review S11)
+function ui_pullPair(a, b) {
+  if (ui_day(a) !== ui_day(b)) return [ui_day(a), ui_day(b)];
+  if (ui_when(a) !== ui_when(b)) return [ui_when(a), ui_when(b)];
+  return [ui_when(a, true), ui_when(b, true)];
+}
 function ui_fn(name) { return typeof SP[name] === 'function'; }
 // a control whose code another builder has not written yet says so in the message line: never a click that does nothing
 function ui_need(name, what) {
@@ -109,6 +124,12 @@ function ui_say(text, kind) {
   if (!el) return;
   el.textContent = text ? String(text) : '';
   el.className = 'msg' + (text ? ' msg-' + (kind || 'info') : '');
+  // A message stays until the next one, inside the sticky top: a refused import naming its sheets made the top 167 px
+  // of a 768 px window, on every view, with no way to put it away (review S7). Dismiss takes it off; its reason is kept
+  // where it belongs (a refused import in the Import report). The button sits outside the live region, so it is not read
+  // out with every message.
+  if (ui.els.msgx) ui.els.msgx.hidden = !text;
+  ui_layout();
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -123,7 +144,7 @@ function ui_m(c, cls) {
 function ui_p(x, cls) { return '<td class="n' + (cls ? ' ' + cls : '') + '">' + (x === null || x === undefined ? '' : ui_e(SP.fmtPct(x))) + '</td>'; }
 function ui_d(x) { return '<td class="n">' + (x === null || x === undefined ? '' : ui_e(SP.fmtDelta(x))) + '</td>'; }
 // a status is always its colour AND its word. A plan cell (a month after the as-of month) is a forecast of the
-// status: its fill and word in italic, as the workbook and the pictures print it (integration ruling: grey words on
+// status: its fill and word in italic, as the workbook and the pictures print it (CONTRACT §8: grey words on
 // the red or green fill could not be read).
 function ui_st(st, plan, cls) {
   if (!st) return '<td class="st' + (cls ? ' ' + cls : '') + '"></td>';
@@ -331,7 +352,7 @@ function ui_vAp(M, ap) {
     out.push('<section class="blk-sec" aria-label="' + ui_e(label + ' FY' + b.fy) + '">'
       + '<div class="bar">FY' + ui_e(b.fy) + ' - Spend Plan by PMO / Title / Plan Event / CCaR</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, label + ' FY' + b.fy) + '</div>'
-      + '<div class="tw"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
+      + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + (rows.length ? rows.join('') : '<tr><td colspan="' + ui_ncols(M) + '" class="none">No rows shown.</td></tr>')
       + ui_band(M, b) + '</tbody></table></div>'
       + '<h3 class="nabar">Not Allocated Requirements — ' + ui_e(label) + ' FY' + ui_e(b.fy) + '</h3>' + ui_naTable(M, b.na, false) + '</section>');
@@ -360,7 +381,7 @@ function ui_vPmos(M) {
     out.push('<section class="blk-sec" aria-label="' + ui_e(b.apLabel + ' FY' + b.fy) + '">'
       + '<div class="bar bar2">' + ui_e(b.apLabel) + ' - FY' + ui_e(b.fy) + '</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
-      + '<div class="tw"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
+      + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + '<tr class="strip"><td colspan="' + ui_ncols(M) + '">' + strip + '</td></tr>'
       + rows.join('') + ui_band(M, b) + '</tbody></table></div>' + ui_naLines(M, b.na) + '</section>');
   }
@@ -423,6 +444,9 @@ function ui_vNa(M) {
 function ui_reportLines(rep) {
   let lines = [];
   try { lines = SP.importReportLines(rep); } catch (e) { lines = ['The report could not be drawn: ' + ((e && e.message) || e)]; }
+  return ui_lines(lines);
+}
+function ui_lines(lines) {
   return '<div class="report">' + lines.map(l => {
     const m = /^( *)/.exec(l), ind = Math.min(6, (m ? m[1].length : 0) / 2);
     return '<div class="rl" style="padding-left:' + (ind * 1.5) + 'em">' + ui_e(l.trim()) + '</div>';
@@ -436,8 +460,27 @@ function ui_vReport(M) {
       + (ui.refused.report ? '<h3 class="sub">What that import held</h3>' + ui_reportLines(ui.refused.report) : '') + '</div>');
   }
   const rep = st && st.lastImport && st.lastImport.report;
-  if (rep) out.push('<h3 class="sub">The import the data on screen came from</h3>' + ui_reportLines(rep));
+  // Only the last import's report is kept, but the pulls it did not replace are on screen too: they are listed from their
+  // own rows, so a row the Summary says counts nowhere is always found here (review IMP-2)
+  let kept = [];
+  if (typeof SP.keptPullLines === 'function') {
+    try { kept = SP.keptPullLines(st && st.pulls && st.pulls.current, rep || null); }
+    catch (e) { kept = ['The pulls kept from earlier imports could not be listed: ' + ((e && e.message) || e)]; }
+  }
+  if (rep) out.push('<h3 class="sub">' + (kept.length ? 'The last import' : 'The import the data on screen came from') + '</h3>' + ui_reportLines(rep));
   else if (!ui.refused) out.push('<p class="none">No import report is held in this file.</p>');
+  // the rows no appropriation claims, each named: the Summary sends the reader here for them, and they are in no other
+  // view (review XP-8)
+  let unid = [];
+  if (typeof SP.unidentifiedLines === 'function') {
+    try { unid = SP.unidentifiedLines(st && st.pulls && st.pulls.current); }
+    catch (e) { unid = ['The rows whose appropriation is not identified could not be listed: ' + ((e && e.message) || e)]; }
+  }
+  if (unid.length) out.push('<h3 class="sub">Rows whose appropriation is not identified</h3>' + ui_lines(unid));
+  if (kept.length) {
+    out.push('<h3 class="sub">Pulls on screen from earlier imports</h3><p class="l2">' + (rep ? 'The last import did not replace these, so its report above '
+      + 'does not cover them.' : 'No report is held for them.') + ' What each holds that counts nowhere is listed from its own rows.</p>' + ui_lines(kept));
+  }
   return out.join('');
 }
 
@@ -461,8 +504,9 @@ function ui_vChanges(M) {
   if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>'); return out.join(''); }
   for (const ap of aps) {
     const d = D[ap];
-    out.push('<section class="chg" data-ap="' + ui_e(ap) + '"><h3 class="bar">' + ui_e(d.label) + ': pull of ' + ui_e(ui_day(d.importedAt[0]) || 'unknown') + ' → pull of '
-      + ui_e(ui_day(d.importedAt[1]) || 'unknown') + '</h3>');
+    const [w0, w1] = ui_pullPair(d.importedAt[0], d.importedAt[1]);
+    out.push('<section class="chg" data-ap="' + ui_e(ap) + '"><h3 class="bar">' + ui_e(d.label) + ': pull of ' + ui_e(w0 || 'unknown') + ' → pull of '
+      + ui_e(w1 || 'unknown') + '</h3>');
     out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th><th scope="col" class="n">Change ($M)</th></tr></thead><tbody>'
       + ui_dRow('Approved', d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
     const bk = Object.keys(d.byBlock);
@@ -478,8 +522,9 @@ function ui_vChanges(M) {
       ? '<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">CCaR</th><th scope="col">From</th><th scope="col">To</th><th scope="col" class="n">$M</th></tr></thead><tbody>'
         + d.pmoMoves.map(c => '<tr><td>' + ui_e(c.label) + '</td><td>' + ui_e(c.from) + '</td><td>' + ui_e(c.to) + '</td>' + ui_m(c.cents) + '</tr>').join('') + '</tbody></table></div>' : ''));
     out.push('<h4 class="sub">Rows by PMO / Title / Plan Event / CCaR</h4>');
-    for (const [kind, words] of [['changed', 'changed amount'], ['new', 'new'], ['gone', 'gone']]) {
-      const list = d.leaves[kind], key = ap + '|' + kind, open = ui.diffOpen.has(key);
+    // words that agree with their count: "Show the 12 changed amount" was one of them (review S11)
+    for (const [kind, one, many] of [['changed', 'row whose amount changed', 'rows whose amount changed'], ['new', 'new row', 'new rows'], ['gone', 'row gone', 'rows gone']]) {
+      const list = d.leaves[kind], key = ap + '|' + kind, open = ui.diffOpen.has(key), words = list.length === 1 ? one : many;
       const R = ui.reg, i = R.diff.length;
       R.diff.push(key);
       out.push('<p class="acts"><button type="button" data-act="diff" data-i="' + i + '" data-fkey="diff:' + ui_e(key) + '" aria-expanded="' + (open ? 'true' : 'false') + '"'
@@ -570,10 +615,13 @@ function ui_vSettings(M) {
       + '<th scope="col" class="n">$M</th><th scope="col">Service</th><th scope="col">Lane</th></tr></thead><tbody>'
       + bt.map((b, i) => {
         const ov = b.override || {};
-        const svcSel = '<select data-act="bsvc" data-i="' + i + '" data-fkey="bsvc:' + i + '" aria-label="Service for budget row ' + (i + 1) + '">'
+        // each picker is named by its budget, escaped: "Service for budget row 12" never said which name was being
+        // overridden to someone hearing the page (review S10)
+        const who = '“' + (b.name || '(blank)') + '”';
+        const svcSel = '<select data-act="bsvc" data-i="' + i + '" data-fkey="bsvc:' + i + '" aria-label="' + ui_e('Service for budget ' + who) + '">'
           + '<option value="">By rule: ' + ui_e(b.svcRule) + '</option>'
           + UI_SVC.map((s, k) => '<option value="' + k + '"' + (ov.svc === s ? ' selected' : '') + '>' + ui_e(s) + '</option>').join('') + '</select>';
-        const laneSel = '<select data-act="blane" data-i="' + i + '" data-fkey="blane:' + i + '" aria-label="Lane for budget row ' + (i + 1) + '">'
+        const laneSel = '<select data-act="blane" data-i="' + i + '" data-fkey="blane:' + i + '" aria-label="' + ui_e('Lane for budget ' + who) + '">'
           + '<option value="">By rule: ' + ui_e(SP.LANE_WORDS[b.laneRule] || b.laneRule) + '</option>'
           + UI_LANES.map(([l, w]) => '<option value="' + l + '"' + (ov.lane === l ? ' selected' : '') + '>' + w + '</option>').join('') + '</select>';
         return '<tr' + (b.unknown ? ' class="unknown"' : '') + '><td class="wrap">' + ui_e(b.name || '(blank)')
@@ -594,7 +642,11 @@ function ui_vHelp() {
       'Columns are found by their header names, in any order. Rows are placed in O&amp;M, Full Fund, Initial Spares or OPN by their Budget name.',
       'An import replaces the appropriations it holds. The pull it replaces is kept for <strong>What changed</strong>; appropriations it does not hold keep theirs.',
       'Each import sets <strong>Data through</strong> to the last full month before the import. Change it in the top bar.',
-      'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.'])
+      'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.',
+      'If every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the only Full Fund row, say), the page asks before '
+      + 'those rows replace that appropriation’s pull: such a row is most likely misfiled.',
+      'To move a plan into a new copy of this tool, import the saved plan’s .html file on its own: the page takes its pulls, earlier pulls, history and settings, '
+      + 'and works every figure out again by its own rules. Save to keep it.'])
     + '<h3 class="sub">Which rows count</h3>' + li([
       'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, and the switches show its service and lane.',
       'The switches drive every figure and every list on every view, the export and the pictures, with two exceptions that cover every service and lane: an entered Authorized, '
@@ -653,24 +705,62 @@ function ui_skeleton() {
     + '<span class="savest" id="uiSave" role="status"></span>'
     + '</div>'
     + '<div class="pulls" id="uiPulls"></div>'
-    + '<div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
+    + '<div class="msgrow"><div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
+    + '<button type="button" class="msgx" id="uiMsgX" data-act="msgx" data-fkey="msgx" hidden>Dismiss</button></div>'
     + '<nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '</header>'
     + '<div id="uiFilters"></div>'
     + '<main id="uiMain" tabindex="-1"></main>'
-    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv" hidden>';
+    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>';
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
     pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
+    msgx: document.getElementById('uiMsgX'),
   };
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// WHAT THE STICKY TOP COVERS. The CUI line, the top bar, the pulls line, the message line and the view buttons stay at
+// the top of the window, about 135 px at 1366 x 768 and more with a long message. A control the keyboard moves to was
+// scrolled only to the window's edge, under them (or under the bottom CUI line), so the keyboard's place could not be
+// seen (review S5, WCAG 2.2 2.4.11): the page's scroll padding is set to what they cover, measured, because the top
+// grows and shrinks with the message line and the window's width. And a tree opened to CCaR runs 16,000 px with its
+// column headings at the top only, so a figure's month could not be read once scrolled (review S6): a tree that fits
+// its box keeps its headings under the sticky top; one wider than the window scrolls inside a box of its own, under
+// headings that stay at that box's top.
+// ---------------------------------------------------------------------------------------------------------------
+function ui_layout() {
+  const E = ui.els;
+  if (!E || !E.top || !E.main) return;
+  try {
+    const cui = document.querySelector('.cui-top');
+    const topH = Math.ceil((cui ? cui.offsetHeight : 0) + E.top.offsetHeight);
+    let headH = 0;
+    for (const tw of E.main.querySelectorAll('.tw.treew')) {
+      const t = tw.querySelector('table');
+      if (!t) continue;
+      const fit = t.offsetWidth <= tw.clientWidth + 1;
+      tw.classList.toggle('fit', fit);
+      tw.classList.toggle('box', !fit);
+      if (fit && !headH) { const h = t.querySelector('thead'); headH = h ? Math.ceil(h.offsetHeight) : 0; }
+    }
+    const root = document.documentElement.style;
+    root.setProperty('--topH', topH + 'px');
+    root.setProperty('--theadH', headH + 'px');
+  } catch (e) { /* a page that cannot be measured keeps the stylesheet's defaults */ }
+}
+// a new view starts at its top: the old view's scroll offset, cut to the new page's height, opened it mid-page or at its
+// bottom with its title and filters thousands of pixels above the window (review S4)
+function ui_toTop() { try { window.scrollTo(0, 0); } catch (e) { /* nothing to scroll */ } }
+
+// 'saved' | 'unsaved' | 'downloaded': a Save that could only download leaves this page's own file without the work (S8)
 function ui_saveText() {
+  if (ui_fn('saveStatus')) { try { const v = SP.saveStatus(); if (v === 'saved' || v === 'unsaved' || v === 'downloaded') return v; } catch (e) {} }
   let d = false;
   if (ui_fn('isDirty')) { try { d = !!SP.isDirty(); } catch (e) { d = false; } }
-  return d;
+  return d ? 'unsaved' : 'saved';
 }
 function ui_drawTop(M) {
   const E = ui.els, has = ui_hasData(), S = ui_settings();
@@ -680,9 +770,9 @@ function ui_drawTop(M) {
   if (document.activeElement !== E.asOf) E.asOf.value = has && S.asOf ? S.asOf : '';
   if (document.activeElement !== E.first) E.first.value = has ? String(Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : 2025)) : '';
   E.asOf.disabled = !has; E.first.disabled = !has;
-  const dirty = ui_saveText();
-  E.save.textContent = dirty ? 'Unsaved changes' : 'Saved';
-  E.save.className = 'savest ' + (dirty ? 'dirty' : 'clean');
+  const st = ui_saveText();
+  E.save.textContent = st === 'saved' ? 'Saved' : st === 'downloaded' ? 'Downloaded, not in the file yet' : 'Unsaved changes';
+  E.save.className = 'savest ' + (st === 'saved' ? 'clean' : 'dirty');
   E.help.setAttribute('aria-pressed', ui.view === 'help' ? 'true' : 'false');
   const P = ui_pulls();
   const bits = SP.APS.filter(a => P[a.id]).map(a => ui_e(a.label) + ' pulled <span class="d">' + ui_e(ui_day(P[a.id].importedAt) || 'date unknown') + '</span>');
@@ -742,10 +832,15 @@ function ui_render() {
   try { html = ui_drawMain(M); }
   catch (e) { html = '<p class="err">This view could not be drawn: ' + ui_e((e && e.message) || e) + '</p>'; }
   ui.els.main.innerHTML = html;
-  // the keyboard goes back to the control it was on; if that control is gone, to the view itself, never to the top
+  ui_layout();
+  // the keyboard goes back to the control it was on; if that control is gone, to the one the action named (ui.focusTo),
+  // else to the view itself, never to the top
+  const to = ui.focusTo;
+  ui.focusTo = null;
+  const byKey = k => [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === k && !x.disabled && !x.hidden);
   if (fk) {
-    const el = [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === fk);
-    if (el && !el.disabled) { if (el !== document.activeElement) el.focus({ preventScroll: true }); }
+    const el = byKey(fk) || (to ? byKey(to) : null);
+    if (el) { if (el !== document.activeElement) el.focus({ preventScroll: true }); }
     else if (inMain) ui.els.main.focus({ preventScroll: true });
   }
 }
@@ -780,6 +875,27 @@ async function ui_import(fileList) {
   if (!files.length) return;
   await ui_busy('the import', async () => {
     ui_say('Reading ' + files.map(f => '“' + f.name + '”').join(', ') + '…', 'info');
+    // A SAVED PLAN is taken whole, on its own, never mixed with pulls: it is how a plan reaches a new copy of the tool
+    // (review IMP-7). Read as a pull it was refused as a "truncated" workbook.
+    const plans = files.filter(f => /\.html?$/i.test(String(f.name)));
+    if (plans.length) {
+      if (files.length > 1) {
+        ui_say('Nothing was imported: a saved plan (' + plans.map(f => '“' + f.name + '”').join(', ') + ') is taken on its own, never with pulls '
+          + 'or another plan. Import it by itself.', 'err');
+        return;
+      }
+      if (!ui_need('takePlan', 'Taking a saved plan')) return;
+      const text = new TextDecoder('utf-8').decode(await files[0].arrayBuffer());
+      const r = SP.takePlan(text, files[0].name);
+      if (r && r.ok) {
+        ui.refused = null;
+        ui_invalidate();
+        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'summary';
+      }
+      ui_say((r && r.message) || 'The plan was not taken.', r && r.ok ? 'ok' : 'err');
+      ui_render();
+      return;
+    }
     if (!ui_need('parseFiles', 'Import')) return;
     const items = [];
     for (const f of files) items.push({ name: f.name, data: await f.arrayBuffer() });
@@ -794,10 +910,18 @@ async function ui_import(fileList) {
     }
     if (!ui_need('applyImport', 'Import')) return;
     const r = await SP.applyImport(parsed);
+    if (r && r.ok === false) {
+      // the person declined the import's question (rows that look misfiled): nothing changed, as with a refusal
+      ui.refused = { message: r.message, report: parsed.report || null, at: new Date().toISOString() };
+      ui_say(r.message, 'err');
+      ui_render();
+      return;
+    }
     ui.refused = null;
     ui_invalidate();
     if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'summary';
-    ui_say((r && r.message) || 'Imported.', 'ok');
+    // an import that refused a file or placed rows that look misfiled is not a plain success, and does not look like one
+    ui_say((r && r.message) || 'Imported.', r && r.warn ? 'warn' : 'ok');
     ui_render();
   });
   if (ui.els && ui.els.file) ui.els.file.value = '';   // the same file can be chosen again after a fix
@@ -814,11 +938,46 @@ function ui_setSettings(patch, said, defer) {
   return true;
 }
 
+// DATA THROUGH is a month from Jan-1990 to Dec-2100, the box's own min and max. A browser's month box fires a change on
+// every key of a year being typed (0002-10, 0020-10, 0202-10, 2025-10), so each partial year rebuilt every figure, marked
+// the file unsaved, and was what stayed if the box was left early: "202" and Tab set the execution year to FY203 and
+// blanked every goal (review S3). A month outside the range is never taken. While the box still has the keyboard it may
+// be a year half typed, so it is only noted on the message line; when the box is left (ui_asOfLeft), whatever it holds that was not taken
+// is put back to the month the figures use, and the reason is said in the box's own words (review S12: a cleared box
+// stayed blank while the figures went on using the old month, and the message named a YYYY-MM form the box never shows).
+const UI_ASOF_MIN = '1990-01', UI_ASOF_MAX = '2100-12';
+function ui_asOfOk(v) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(v) && v >= UI_ASOF_MIN && v <= UI_ASOF_MAX; }
 function ui_asOfChanged() {
   const v = String(ui.els.asOf.value || '').trim();
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(v)) { ui_say('Data through must be a month, written YYYY-MM. It was not changed.', 'err'); ui_drawTop(ui_model()); return; }
-  if (v === ui_settings().asOf) return;
+  const cur = ui_settings().asOf;
+  if (!ui_asOfOk(v)) {
+    if (document.activeElement !== ui.els.asOf) { ui_asOfRefuse(v); return; }
+    // still being typed (Tab inside the box moves between its month, its year and its calendar button): said, not taken
+    ui.asOfHint = true;
+    ui_say('Data through needs a month and a year from 1990 to 2100; until it has one, the figures use ' + (cur ? SP.asOfLabel(cur) : 'the month they had') + '.', 'info');
+    return;
+  }
+  if (v === cur) {
+    // typed back to the month in use: the note about a half-typed year no longer applies
+    if (ui.asOfHint) { ui.asOfHint = false; ui_say(''); }
+    return;
+  }
+  ui.asOfHint = false;
   ui_setSettings({ asOf: v }, 'Data through set to ' + SP.asOfLabel(v) + '; the execution year is FY' + SP.execYear(v) + '.');
+}
+function ui_asOfRefuse(v) {
+  const cur = ui_settings().asOf;
+  ui.asOfHint = false;
+  ui.els.asOf.value = ui_hasData() && cur ? cur : '';
+  ui_say('Data through must be a month and year from January 1990 to December 2100' + (v ? '' : '; the box was left empty')
+    + '. It was not changed: it stays ' + (cur ? SP.asOfLabel(cur) : 'as it was') + '.', 'err');
+}
+function ui_asOfLeft() {
+  const v = String(ui.els.asOf.value || '').trim();
+  if (!ui_hasData()) return;
+  if (v === ui_settings().asOf) { if (ui.asOfHint) { ui.asOfHint = false; ui_say(''); } return; }
+  if (!ui_asOfOk(v)) ui_asOfRefuse(v);
+  else ui_asOfChanged();     // a month typed in full and left without a change event (some browsers): taken now
 }
 function ui_firstChanged() {
   const raw = String(ui.els.first.value || '').trim();
@@ -848,7 +1007,12 @@ function ui_goalChanged(el) {
     }
     val = Number((n / 100).toPrecision(12));   // 8.33 -> 0.0833 exactly as typed, not 0.08330000000000001
   }
-  if (goals[k][i] === val) return;
+  if (goals[k][i] === val) {
+    // said, so a refusal of an earlier value does not stay on the message line as if it were about this one (review S11)
+    el.value = ui_pctText(val);
+    ui_say('Goal unchanged: ' + (val === null ? 'that cell is blank (no goal)' : 'it is already ' + ui_pctText(val) + '%') + '.', 'info');
+    return;
+  }
   goals[k][i] = val;
   ui_setSettings({ goals }, 'Goal changed. The statuses are worked out again.', true);
 }
@@ -866,9 +1030,12 @@ function ui_authChanged(el) {
     ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' cleared; Approved is shown in its place.', true);
     return;
   }
-  if (au[key] === r.cents) return;
+  // $0.00M, never "$-M": fmtM's lone dash is a table cell's zero, and inside a sentence it reads as a figure left out; a
+  // negative Authorized (typed with a minus or in parentheses) is taken, as parseAmount reads it, and said to be one (S11)
+  const said = '$' + SP.fmtMText(r.cents) + 'M' + (r.cents < 0 ? ', a negative amount' : '');
+  if (au[key] === r.cents) { ui_say('Authorized for ' + name + ' unchanged: it is already ' + said + '.', 'info'); return; }
   au[key] = r.cents;
-  ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' set to $' + SP.fmtM(r.cents) + 'M' + (r.rounded ? ' (rounded to the cent)' : '') + '.', true);
+  ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' set to ' + said + (r.rounded ? ' (rounded to the cent)' : '') + '.', true);
 }
 function ui_specAdd() {
   const inp = document.getElementById('uiSpecNew');
@@ -932,12 +1099,26 @@ function ui_onClick(ev) {
   if (!t || !ui.els.app.contains(t) || t.tagName === 'SELECT' || t.tagName === 'INPUT') return;
   const act = t.getAttribute('data-act');
   switch (act) {
-    case 'view': ui.view = t.getAttribute('data-v'); ui_render(); break;
+    case 'view': {
+      const v = t.getAttribute('data-v'), moved = v !== ui.view;
+      ui.view = v;
+      ui_render();
+      if (moved) ui_toTop();
+      break;
+    }
     case 'help':
       if (ui.view === 'help') ui.view = ui.back || 'summary';
       else { ui.back = ui.view; ui.view = 'help'; }
       ui_render();
+      ui_toTop();
       break;
+    case 'msgx': {
+      ui_say('');
+      // the button is gone: the keyboard goes to the view it was reading, never back to the top of the page
+      const at = ui.els.nav.querySelector('[aria-pressed="true"]') || (ui.view === 'help' ? ui.els.help : null);
+      (at || ui.els.main).focus({ preventScroll: true });
+      break;
+    }
     case 'import':
       if (!ui_fn('applyImport')) { ui_need('applyImport', 'Import'); break; }
       ui.els.file.click();
@@ -971,6 +1152,10 @@ function ui_onClick(ev) {
       const s = ui.reg.special[Number(t.getAttribute('data-i'))];
       if (s === undefined) break;
       const cur = (Array.isArray(ui_settings().special) ? ui_settings().special : []).filter(x => x !== s);
+      // the Remove that was pressed is gone, or now names the next CCaR: the keyboard goes to the Remove in its place,
+      // else the last one, else the box that adds one (review S10; it used to drop to the top of the view, WCAG 2.4.3)
+      const i = Number(t.getAttribute('data-i'));
+      ui.focusTo = cur.length ? 'specdel:' + Math.min(i, cur.length - 1) : 'specnew';
       ui_setSettings({ special: cur }, '“' + s + '” is no longer a special CCaR.');
       break;
     }
@@ -1040,7 +1225,11 @@ function ui_boot() {
   app.addEventListener('click', ui_onClick);
   app.addEventListener('change', ui_onChange);
   app.addEventListener('keydown', ui_onKey);
+  app.addEventListener('focusout', ev => { if (ui.els && ev.target === ui.els.asOf) ui_asOfLeft(); });
   if (ui_fn('onStateChange')) { try { SP.onStateChange(ui_stateChanged); } catch (e) {} }
+  // the top's height moves with the window's width (its bars wrap) and with the message line: measured again each time
+  window.addEventListener('resize', ui_layout);
+  if (typeof ResizeObserver === 'function') { try { new ResizeObserver(() => ui_layout()).observe(ui.els.top); } catch (e) {} }
   ui_render();
   if (r && r.message) ui_say(r.message, r.ok === false ? 'err' : 'info');
 }

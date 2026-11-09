@@ -58,6 +58,42 @@ function xr_colIndex(letters) {
 }
 const XR_MAXCOL = 16384;   // XFD: a reference past it is not a worksheet cell, and an array that long is a damaged file
 
+// A FILE WITH NO ZIP DIRECTORY, SAID AS WHAT IT IS. Every such file used to be called "possibly truncated; export it
+// again" -- the wrong advice for an old .xls, a web page some system named .xls, a CSV named .xlsx or a saved plan, none
+// of which a fresh export fixes (review IMP-10). Only a file that starts like a zip and has lost its end is truncated.
+const XR_OLE2 = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+function xr_notZip(u) {
+  const no = 'That file is not an .xlsx workbook: ';
+  const asXlsx = ' Open it in Excel, save it as an Excel Workbook (.xlsx), and import that.';
+  if (u.length >= 8 && XR_OLE2.every((b, i) => u[i] === b)) {
+    return no + 'it is an Excel 97–2003 workbook (.xls), which this tool does not read.' + asXlsx;
+  }
+  if (u.length >= 2 && u[0] === 0x50 && u[1] === 0x4B) {
+    return 'That file is not an .xlsx workbook (no ZIP end-of-directory record). It starts like one, so it was most '
+      + 'likely cut short in a download or a copy; export it again and retry.';
+  }
+  const head = new TextDecoder('utf-8').decode(u.subarray(0, Math.min(u.length, 8192))).replace(/^\uFEFF/, '').replace(/^\s+/, '');
+  if (/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(head)) {
+    return no + 'it is a saved SFCB Spend Plan, not a CCaR pull. To bring that plan into this page, import the plan file on its '
+      + 'own: the page then offers to take its pulls, history and settings.';
+  }
+  if (/^<\?xml[\s\S]{0,4000}urn:schemas-microsoft-com:office:spreadsheet/i.test(head)) {
+    return no + 'it is an Excel 2003 XML Spreadsheet.' + asXlsx;
+  }
+  if (/^<(?:!doctype\s+html|html|head|body|table|meta|style|div)\b/i.test(head)) {
+    return no + 'it is a web page (HTML). Some systems save a table this way and name it .xls.' + asXlsx;
+  }
+  // text: no NUL and nearly every byte printable or a line break
+  let ctl = 0;
+  const n = Math.min(u.length, 8192);
+  for (let i = 0; i < n; i++) { const b = u[i]; if (b === 0) { ctl = n; break; } if (b < 9 || (b > 13 && b < 32)) ctl++; }
+  if (ctl * 50 < n) {
+    return no + 'it is plain text. If it is a CSV export, give it a name ending .csv and import it again.';
+  }
+  return 'That file is not an .xlsx workbook (no ZIP end-of-directory record), and it is not a kind of file this tool '
+    + 'recognises. If it came from a download, it may have been truncated; export it again and retry.';
+}
+
 // EVERY OFFSET BELOW COMES OUT OF THE FILE ITSELF, so a truncated or damaged workbook can point anywhere. Unchecked, a
 // DataView read past the end throws "Offset is outside the bounds of the DataView" -- true, and useless to someone who
 // just wants to know their CCaR pull did not survive the download. Each read is bounded, and each failure says what is
@@ -77,10 +113,7 @@ async function readXlsx(buf) {
   // the same four bytes inside compressed data and reads garbage as a directory.
   let e = -1;
   for (let i = SZ - 22, lo = Math.max(0, SZ - 22 - 65535); i >= lo; i--) { if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; } }
-  if (e < 0) throw new Error(SZ === 0
-    ? 'That file is empty — nothing was read.'
-    : 'That file is not an .xlsx workbook (no ZIP end-of-directory record). If it came from a '
-      + 'download, it may have been truncated; export it again and retry.');
+  if (e < 0) throw new Error(SZ === 0 ? 'That file is empty — nothing was read.' : xr_notZip(u));
   need(e, 22, 'its end-of-directory record runs past the end of the file');
   const cnt = dv.getUint16(e + 10, true), cdOff = dv.getUint32(e + 16, true);
   if (cnt === 0xFFFF || cdOff === 0xFFFFFFFF) throw BAD('it is written in the ZIP64 format, which this reader does not read');
@@ -167,7 +200,7 @@ async function readXlsx(buf) {
     const xml = await get(part);
     // a part named in the rels but absent from the zip is a broken workbook, not a quiet skip
     if (!xml) { sheets.push({ name, state, rows: [], rowNo: [], problem: 'its data (' + part + ') is missing from the file' }); continue; }
-    const rows = [], rowNo = [];
+    const rows = [], rowNo = [], noResult = [];
     // <row …/> carries no cells: Excel writes one for a row that only has a height or a style. Without its own branch the
     // lazy body below would run on into the next row and swallow it.
     for (const rm of xml.matchAll(/<(?:\w+:)?row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/(?:\w+:)?row>)/g)) {
@@ -212,6 +245,17 @@ async function readXlsx(buf) {
             }
           }
         }
+        // A FORMULA SAVED WITHOUT ITS RESULT. Excel always saves a result with a formula: a number, an error (t="e"), or an
+        // empty text (t="str" with <v/>, which v12's own formula columns hold by the thousand and which is rightly blank). A
+        // formula of number type with no value was written by a program that never calculated it (openpyxl writes
+        // <f>…</f><v></v>). Read as blank, an Amount so written counted as $0 and was reported nowhere (review IMP-6). It is
+        // read as its formula's text instead, so an Amount or FY written that way makes its row unreadable and is named,
+        // and the sheet counts every such cell.
+        const fm = v === null && t === 'n' && body ? /<(?:\w+:)?f\b[^>]*?(?:\/>|>([\s\S]*?)<\/(?:\w+:)?f>)/.exec(body) : null;
+        if (fm) {
+          v = '=' + (fm[1] ? txt(fm[1]).trim() : '(a shared formula)');
+          noResult.push(SP.colLetter(ci) + (rno || (rowNo.length ? rowNo[rowNo.length - 1] + 1 : 1)));
+        }
         if (v !== null) { cells[ci] = v; if (ci + 1 > maxc) maxc = ci + 1; }
       }
       const arr = new Array(maxc);
@@ -220,7 +264,7 @@ async function readXlsx(buf) {
       rows.push(arr);
       rowNo.push(rno);
     }
-    sheets.push({ name, state, rows, rowNo });
+    sheets.push({ name, state, rows, rowNo, noResult });
   }
   return { sheets, date1904, esc };
 }

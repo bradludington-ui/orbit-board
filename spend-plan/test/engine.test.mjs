@@ -418,6 +418,28 @@ try {
     C.chk('the model is plain data', JSON.stringify(JSON.parse(JSON.stringify(M))) === JSON.stringify(M));
     // building twice gives the same model (no state kept between builds)
     C.chk('buildModel is repeatable', JSON.stringify(SP.buildModel(store1.current, settingsFor('2026-10', 2025), SP.defaultView())) === JSON.stringify(M));
+
+    // review S2: the switches are this browser's, so "Service not identified" turned off on a plan that has such rows
+    // stays off on a plan that has none. There it has no box (§9) and hides nothing, so nothing may say "filtered", and
+    // a list of what is shown never names it. The plan here is the fixture with every name no rule knows given a service.
+    const sN = settingsFor('2026-10', 2025);
+    for (const b of SP.budgetTable(store1.current, sN)) if (b.unknown) sN.budgets[b.key] = { svc: 'USAF' };
+    const known = SP.buildModel(store1.current, sN, SP.defaultView());
+    C.chk('S2: the plan with every budget given a service has no row without one', !known.present.services.includes('Service not identified')
+      && Object.keys(sN.budgets).length > 0, JSON.stringify(known.present.services));
+    const hid = SP.buildModel(store1.current, sN, viewFor(['Service not identified']));
+    same('S2: the unknown switch off where no row needs it: everything is shown, in words', [hid.shown.all, hid.shown.text, hid.shown.services],
+      [true, 'All services, both lanes', SERVICES.slice(0, 6)]);
+    C.chk('S2: and no note says the figures are filtered', !hid.summary.notes.some(n => /services shown/i.test(n)), hid.summary.notes.join(' / '));
+    C.chk('S2: and every figure is the all-on plan\'s', JSON.stringify(hid.blocks) === JSON.stringify(known.blocks));
+    C.eq('S2: USAF off there: the list names only services with a switch', SP.buildModel(store1.current, sN, viewFor(['USAF'])).shown.text,
+      'Services shown: USAF ANG, USAF AFRC, USMC B (STOVL), USMC C (USMC CV), USN (USN CV); lanes shown: Discretionary, Mandatory');
+    C.eq('S2: every service with a switch off there: none shown, not the one with no switch', SP.buildModel(store1.current, sN, viewFor(SERVICES.slice(0, 6))).shown.text,
+      'Services shown: none; lanes shown: Discretionary, Mandatory');
+    const stillOff = SP.buildModel(store1.current, settingsFor('2026-10', 2025), viewFor(['Service not identified']));
+    C.chk('S2: where such rows exist the same switch still filters, and says so', !stillOff.shown.all
+      && stillOff.shown.text === 'Services shown: USAF, USAF ANG, USAF AFRC, USMC B (STOVL), USMC C (USMC CV), USN (USN CV); lanes shown: Discretionary, Mandatory'
+      && stillOff.summary.total.approved < M.summary.total.approved, stillOff.shown.text);
   }
 
   // ============================================================================================ hand-built rows

@@ -7,6 +7,11 @@
 const IMP_N = SP.RAW_HEADERS.length;                                        // 32
 const IMP_COL = new Map(SP.RAW_HEADERS.map((h, i) => [SP.normKey(h), i]));   // normKey(header) -> stored position
 const IMP_FORMULA_COLS = new Map([['svc (auto)', 'Svc (auto)'], ['inc (auto)', 'Inc (auto)']]);   // v12's formula columns
+// The four columns this tool's own Raw Data sheets append (§8.7). They are worked out again on every load, so a re-imported
+// export reads them as nothing, like v12's formula columns. Kept as extras they came back as "Service (2)" … "Counted (2)"
+// on the next round, and grew every round after (review IMP-7). Only all four together are the tool's: one alone may be a
+// real column of someone's pull, and is kept.
+const IMP_OWN_COLS = ['service', 'lane', 'status', 'counted'];
 const IMP_FY = 0, IMP_MONTH = 1, IMP_CCAR = 2, IMP_TITLE = 3, IMP_BUDGET = 4, IMP_PE = 7, IMP_DATE = 8, IMP_AMT = 9,
   IMP_ALLOC = 10, IMP_PMO = 18;
 const IMP_HDR_ROWS = 15;
@@ -208,7 +213,8 @@ function imp_findHeader(rows, rowNo) {
 // One sheet -> {info, rows:[stored rows with their appropriation]}. acc collects the report's counts across the import.
 function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   const info = { name: sh.name, state: sh.state || 'visible', used: false, why: null, headerRow: null, rows: 0, blank: 0,
-    byAp: {}, extras: [], ignoredCols: [], missingCols: [], disagree: null };
+    byAp: {}, extras: [], ignoredCols: [], ownCols: [], missingCols: [], disagree: null, extraOnly: [],
+    noResult: Array.isArray(sh.noResult) ? sh.noResult.slice() : [] };
   const out = [];
   if (sh.problem) { info.why = sh.problem; return { info, out }; }
   const rows = sh.rows, rowNo = sh.rowNo;
@@ -224,6 +230,9 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   // columns BY HEADER NAME, never by position
   const head = rows[hdr.i];
   const col = new Array(IMP_N).fill(-1), named = new Set(), dup = [], extras = [], seenExtra = new Map();
+  const ignored = new Set();   // columns read as nothing: v12's formula columns, this tool's own derived ones
+  const headKeys = new Set(head.map(h => SP.normKey(imp_text(h))));
+  const ownExport = IMP_OWN_COLS.every(k => headKeys.has(k)), ownSeen = new Set();
   head.forEach((h, j) => {
     const text = imp_text(h);
     if (text === '') return;
@@ -232,7 +241,8 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
       const k = IMP_COL.get(nk);
       if (col[k] >= 0) dup.push({ name: SP.RAW_HEADERS[k], a: col[k], b: j });
       else { col[k] = j; named.add(j); }
-    } else if (IMP_FORMULA_COLS.has(nk)) { info.ignoredCols.push(text); named.add(j); }
+    } else if (IMP_FORMULA_COLS.has(nk)) { info.ignoredCols.push(text); named.add(j); ignored.add(j); }
+    else if (ownExport && IMP_OWN_COLS.includes(nk) && !ownSeen.has(nk)) { ownSeen.add(nk); info.ownCols.push(text); named.add(j); ignored.add(j); }
     else {
       // two columns with one unknown header keep both, the second as "Name (2)", so neither overwrites the other
       const n = (seenExtra.get(nk) || 0) + 1;
@@ -249,6 +259,11 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   }
   info.missingCols = SP.RAW_HEADERS.filter((h, k) => col[k] < 0);
   const isBlankRow = r => { for (let k = 0; k < IMP_N; k++) if (col[k] >= 0 && !imp_isBlank(r[col[k]])) return false; return true; };
+  // A row with nothing in the 32 CCaR columns is skipped (CONTRACT §3), but one with something in another column is not
+  // blank: it was counted as a blank row and its text was found nowhere (review IMP-13). It is still skipped, and it is
+  // listed by row with what it held.
+  const known = new Set(col.filter(j => j >= 0));
+  const extraName = new Map();
   // A value in a column with no header is still data: it is kept as an extra column named by its letter, never dropped.
   const unnamed = new Set();
   for (let i = hdr.i + 1; i < rows.length; i++) {
@@ -259,13 +274,27 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   for (const j of unnamed) extras.push({ name: 'Column ' + SP.colLetter(j), j });
   extras.sort((a, b) => a.j - b.j);
   info.extras = extras.map(e => e.name);
+  for (const e of extras) extraName.set(e.j, e.name);
+  const othersOf = r => {
+    const o = [];
+    for (let j = 0; j < r.length; j++) {
+      if (known.has(j) || ignored.has(j) || imp_isBlank(r[j])) continue;
+      o.push([extraName.get(j) || 'Column ' + SP.colLetter(j), imp_raw(r[j])]);
+    }
+    return o;
+  };
   const sheetAp = imp_apOfSheet(sh.name);
   const csv = kind === 'csv';
   let disN = 0, disC = 0;
   const disBy = {};
   for (let i = hdr.i + 1; i < rows.length; i++) {
     const r = rows[i];
-    if (isBlankRow(r)) { info.blank++; continue; }
+    if (isBlankRow(r)) {
+      const o = othersOf(r);
+      if (o.length) { info.extraOnly.push({ row: rowNo[i], values: o }); acc.extraOnly.push({ file: fileName, sheet: sh.name, row: rowNo[i], values: o }); }
+      else info.blank++;
+      continue;
+    }
     const rn = rowNo[i];
     const c = new Array(IMP_N);
     const bad = [], raw = {};
@@ -343,10 +372,32 @@ function imp_sameBytes(a, b) {
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
 }
+// how many well-formed UTF-8 multi-byte sequences a file holds, and how many bytes are not part of one
+function imp_utf8Count(u) {
+  let valid = 0, invalid = 0;
+  for (let i = 0; i < u.length;) {
+    const b = u[i];
+    if (b < 0x80) { i++; continue; }
+    const n = b >= 0xC2 && b <= 0xDF ? 1 : b >= 0xE0 && b <= 0xEF ? 2 : b >= 0xF0 && b <= 0xF4 ? 3 : 0;
+    let ok = n > 0 && i + n < u.length;
+    for (let k = 1; ok && k <= n; k++) if ((u[i + k] & 0xC0) !== 0x80) ok = false;
+    if (ok) { valid++; i += n + 1; } else { invalid++; i++; }
+  }
+  return { valid, invalid };
+}
 function imp_hash(u) { let h = 0x811c9dc5; for (let i = 0; i < u.length; i++) { h ^= u[i]; h = Math.imul(h, 0x01000193); } return h >>> 0; }
 // a refusal: nothing was imported, and the message says why in words a person can act on
 function imp_refuse(msg, report) { const e = new Error(msg); e.refused = true; e.report = report || null; return e; }
 function imp_where(s) { return imp_q(s.file) + ' › ' + imp_q(s.sheet); }
+// An import's time in this computer's own time, 'YYYY-MM-DD HH:MM'. Printed as stored (UTC) it read
+// '2026-11-09T19:07:23.967Z': a reader in Virginia after 7 pm saw tomorrow's date beside sheet titles dated today
+// (review XP-9). Text that is not a time is printed as it is.
+function imp_localWhen(iso) {
+  const t = typeof iso === 'string' ? Date.parse(iso) : NaN;
+  if (isNaN(t)) return String(iso ?? '');
+  const d = new Date(t), p2 = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+}
 
 // files: [{name, data: ArrayBuffer | typed array | string}] -> {pulls, report}. A name ending .csv is read as CSV, any other
 // as .xlsx. Throws an Error with .refused = true (and .report) when the import as a whole is refused: nothing to change.
@@ -366,9 +417,10 @@ SP.parseFiles = async function parseFiles(files, opts) {
   }
   // trimmedBy is keyed by column headers out of the file, so it has no prototype
   const acc = { conv: { number: 0, blank: 0, text: 0, dollar: 0, paren: 0, subcent: 0, trimmed: 0 }, trimmedBy: Object.create(null),
-    subcent: [], unreadable: [], dateBad: [], alloc: new Map() };
+    subcent: [], unreadable: [], dateBad: [], alloc: new Map(), extraOnly: [] };
   const report = { importedAt, files: [], rowsRead: 0, rowsBlank: 0, byAp: {}, conversions: acc.conv, trimmedBy: acc.trimmedBy,
-    subcent: acc.subcent, unreadable: acc.unreadable, dateUnreadable: acc.dateBad, disagreements: [], alloc: [], notes: [] };
+    subcent: acc.subcent, unreadable: acc.unreadable, dateUnreadable: acc.dateBad, disagreements: [], alloc: [], notes: [],
+    extraOnly: acc.extraOnly, strays: [] };
   const got = [];   // {ap, row, file, sheet, fileIdx}
   for (let fi = 0; fi < files.length; fi++) {
     const f = files[fi] || {};
@@ -381,16 +433,32 @@ SP.parseFiles = async function parseFiles(files, opts) {
     try {
       if (kind === 'csv') {
         let text = typeof f.data === 'string' ? f.data : null;
+        let stray = 0;
         if (text === null) {
           try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes[fi]); }
           catch (e) {
-            // Excel's "CSV (Comma delimited)" is Windows-1252, not UTF-8; read as UTF-8 its accents would become U+FFFD
-            try { text = new TextDecoder('windows-1252').decode(bytes[fi]); fr.notes.push('It is not UTF-8 text; it was read as Windows-1252, the encoding Excel uses for CSV.'); }
-            catch (e2) { text = new TextDecoder('utf-8').decode(bytes[fi]); fr.notes.push('It is not UTF-8 text; characters that could not be read show as \uFFFD.'); }
+            // Excel's "CSV (Comma delimited)" is Windows-1252, not UTF-8; read as UTF-8 its accents would become U+FFFD. But
+            // one stray byte in a UTF-8 file is not a Windows-1252 file: read so, its byte-order mark became "ï»¿" on the FY
+            // header (and the file was refused for having no FY), and every –, ’ and é in it became two or three wrong
+            // characters (review IMP-8). A byte-order mark, or more good UTF-8 sequences than bad bytes, says UTF-8.
+            const u = bytes[fi], cnt = imp_utf8Count(u);
+            const bom = u.length >= 3 && u[0] === 0xEF && u[1] === 0xBB && u[2] === 0xBF;
+            if (bom || cnt.valid > cnt.invalid) { text = new TextDecoder('utf-8').decode(u); stray = cnt.invalid; }
+            else {
+              try { text = new TextDecoder('windows-1252').decode(u); fr.notes.push('It is not UTF-8 text; it was read as Windows-1252, the encoding Excel uses for CSV.'); }
+              catch (e2) { text = new TextDecoder('utf-8').decode(u); fr.notes.push('It is not UTF-8 text; characters that could not be read show as \uFFFD.'); }
+            }
           }
         }
         if (bytes[fi].length === 0) { fr.refused = 'the file is empty'; continue; }
         const rows = SP.readCsv(text);
+        if (stray) {
+          const at = [];
+          rows.forEach((r, i) => { if (r.some(c => c.indexOf('\uFFFD') >= 0)) at.push(i + 1); });
+          fr.notes.push('It is UTF-8 text, but ' + imp_plural(stray, 'byte in it is', 'bytes in it are') + ' not: each such byte '
+            + 'was read as \uFFFD (the character for one that cannot be read), and the rest of the file as written'
+            + (at.length ? ' (row' + (at.length === 1 ? ' ' : 's ') + at.slice(0, 10).join(', ') + (at.length > 10 ? ', …' : '') + ')' : '') + '.');
+        }
         sheets = [{ name: name.replace(/^.*[\\/]/, '').replace(/\.csv$/i, ''), state: 'visible', rows, rowNo: rows.map((r, i) => i + 1) }];
       } else {
         const wb = await SP.readXlsx(bytes[fi]);
@@ -426,8 +494,9 @@ SP.parseFiles = async function parseFiles(files, opts) {
     if (g.ap === 'unidentified') continue;
     if (!srcBy.has(g.ap)) srcBy.set(g.ap, new Map());
     const m = srcBy.get(g.ap), key = g.fileIdx + '\u0000' + g.sheet;
-    const e = m.get(key) || { file: g.file, sheet: g.sheet, n: 0 };
-    e.n++; m.set(key, e);
+    const e = m.get(key) || { file: g.file, sheet: g.sheet, n: 0, cents: 0 };
+    e.n++; if (!g.row.bad) e.cents += g.row.c[IMP_AMT];
+    m.set(key, e);
   }
   const clash = [];
   for (const ap of IMP_AP_IDS) {
@@ -436,9 +505,21 @@ SP.parseFiles = async function parseFiles(files, opts) {
     clash.push(imp_apLabel(ap) + ' rows come from ' + m.size + ' sheets: '
       + [...m.values()].map(e => imp_where(e) + ' holds ' + imp_plural(e.n, imp_apLabel(ap) + ' row')).join('; '));
   }
+  // The advice used to end "or import the files one at a time": taken, the misfiled row became the whole of its
+  // appropriation's pull and replaced that pull without a word (review IMP-1). The row has to move, or its Budget change.
   if (clash.length) throw imp_refuse('Nothing was imported. Each appropriation’s rows must come from one sheet in one import, and '
-    + clash.join('. ') + '. Rows are placed by their Budget name, so a row on the wrong tab shows here as a small count: move it, '
-    + 'or import the files one at a time.', report);
+    + clash.join('. ') + '. Rows are placed by their Budget name, so a row on the wrong tab shows here as a small count: move it '
+    + 'to the sheet of its own appropriation, or correct its Budget, and import again.', report);
+  // AN APPROPRIATION ALL OF WHOSE ROWS SIT ON A SHEET NAMED FOR ANOTHER. The budget still wins (CONTRACT §3), but such rows
+  // are the very shape of a misfiled row, and imported they become the WHOLE of their appropriation's pull: one Full Fund
+  // row on the O&M tab, imported in an O&M-only file, replaced a 40-row Full Fund pull with itself (review IMP-1). They are
+  // recorded here, so the store can ask before they replace a pull and say so after.
+  for (const ap of IMP_AP_IDS) {
+    const m = srcBy.get(ap);
+    if (!m || m.size !== 1) continue;
+    const e = [...m.values()][0], sheetAp = imp_apOfSheet(e.sheet);
+    if (sheetAp && sheetAp !== ap) report.strays.push({ ap, label: imp_apLabel(ap), file: e.file, sheet: e.sheet, sheetAp, rows: e.n, cents: e.cents });
+  }
   // THE PULLS, in the order given: files, then sheets in workbook order, then rows top to bottom
   const pulls = {};
   for (const g of got) {
@@ -488,11 +569,17 @@ SP.importReportLines = function importReportLines(report) {
     if (aps.length) bits[1] += ' (' + aps.join(', ') + ')';
     if (s.blank) bits.push(imp_plural(s.blank, 'blank row') + ' skipped');
     if (s.ignoredCols.length) bits.push(s.ignoredCols.join(' and ') + ' ignored (the old workbook’s formula columns)');
+    if (s.ownCols && s.ownCols.length) bits.push(s.ownCols.join(', ') + ' ignored (this tool’s own columns, worked out again on every load)');
+    const nr = Array.isArray(s.noResult) ? s.noResult : [];
+    if (nr.length) bits.push(imp_plural(nr.length, 'cell holds', 'cells hold') + ' a formula saved without its result ('
+      + nr.slice(0, 10).join(', ') + (nr.length > 10 ? ', …' : '') + '): each is read as its formula’s text, so an Amount or FY '
+      + 'written that way makes its row unreadable; open the file in Excel and save it, so the results are saved, and import it again');
+    if (s.extraOnly && s.extraOnly.length) bits.push(imp_plural(s.extraOnly.length, 'row') + ' skipped with values only outside the CCaR columns');
     if (s.extras.length) bits.push('extra column' + (s.extras.length === 1 ? '' : 's') + ' kept: ' + s.extras.map(imp_q).join(', '));
     if (s.missingCols.length) bits.push('not in this sheet, read as blank: ' + s.missingCols.join(', '));
     return bits.join('; ');
   };
-  L.push('Import of ' + report.importedAt + ': ' + imp_plural(report.files.length, 'file') + '.');
+  L.push('Import of ' + imp_localWhen(report.importedAt) + ' (this computer’s time): ' + imp_plural(report.files.length, 'file') + '.');
   for (const fr of report.files) {
     L.push('File ' + imp_q(fr.name) + ' (' + (fr.kind === 'csv' ? 'CSV' : '.xlsx') + ', ' + imp_plural(fr.bytes, 'byte') + ')'
       + (fr.refused ? ': REFUSED — ' + fr.refused : fr.date1904 ? ': dates use the 1904 date system' : ''));
@@ -503,6 +590,12 @@ SP.importReportLines = function importReportLines(report) {
     }
   }
   L.push('Rows read: ' + SP.fmtInt(report.rowsRead) + '. Blank rows skipped: ' + SP.fmtInt(report.rowsBlank) + '.');
+  const xo = Array.isArray(report.extraOnly) ? report.extraOnly : [];
+  if (xo.length) {
+    L.push('Rows skipped because none of the 32 CCaR columns holds anything, though another column does (their text is here, '
+      + 'and nowhere else): ' + SP.fmtInt(xo.length) + '.');
+    for (const x of xo) L.push('  ' + imp_where(x) + ' row ' + x.row + ': ' + x.values.map(([h, v]) => h + ' ' + imp_q(v)).join(', ') + '.');
+  }
   for (const ap of Object.keys(report.byAp || {})) {
     const b = report.byAp[ap];
     L.push(b.label + ': ' + imp_plural(b.rows, 'row') + ', ' + SP.fmtUsd(b.cents)
@@ -515,6 +608,7 @@ SP.importReportLines = function importReportLines(report) {
   if (cv.dollar) conv.push(imp_plural(cv.dollar, 'amount') + ' written with $ (such as "$0.00")');
   if (cv.paren) conv.push(imp_plural(cv.paren, 'amount') + ' in parentheses, read as negative');
   if (cv.subcent) conv.push(imp_plural(cv.subcent, 'amount') + ' with fractions of a cent, rounded to the cent (half away from zero)');
+  if (cv.blank) conv.push(imp_plural(cv.blank, 'blank amount') + ' read as $0');
   if (cv.trimmed) conv.push(imp_plural(cv.trimmed, 'value') + ' with spaces trimmed from the ends');
   L.push('Conversions: ' + (conv.length ? conv.join('; ') + '.' : 'none.'));
   const tb = Object.keys(report.trimmedBy || {});
@@ -533,8 +627,97 @@ SP.importReportLines = function importReportLines(report) {
   L.push('Budget and sheet name disagree: ' + (dis.length ? '' : 'none.'));
   for (const d of dis) L.push('  ' + imp_where(d) + ' (by its name, ' + imp_apLabel(d.sheetAp) + '): ' + imp_plural(d.rows, 'row')
     + ', ' + SP.fmtUsd(d.cents) + ', placed by Budget as ' + Object.keys(d.byBudget).map(a => imp_apLabel(a) + ' ' + SP.fmtInt(d.byBudget[a])).join(', ') + '.');
+  for (const x of Array.isArray(report.strays) ? report.strays : []) {
+    L.push('Every ' + x.label + ' row in this import sits on a sheet named for ' + imp_apLabel(x.sheetAp) + ': ' + imp_where(x) + ' holds '
+      + imp_plural(x.rows, 'row') + ', ' + SP.fmtUsd(x.cents) + ', placed by Budget as ' + x.label + ', and ' + (x.rows === 1 ? 'it is' : 'they are')
+      + ' the whole ' + x.label + ' pull this import brings. If ' + (x.rows === 1 ? 'it is' : 'they are') + ' misfiled, move '
+      + (x.rows === 1 ? 'it' : 'them') + ' to the ' + x.label + ' sheet, or correct the Budget, and import again.');
+  }
   L.push('Alloc values:');
   for (const a of report.alloc || []) L.push('  ' + (a.text === '' ? '(blank)' : imp_q(a.text)) + ': ' + imp_plural(a.rows, 'row') + ', ' + SP.fmtUsd(a.cents) + '.');
   for (const n of report.notes || []) L.push(n);
+  return L;
+};
+
+// THE ROWS WHOSE APPROPRIATION IS NOT IDENTIFIED, one line each. They are on no raw sheet (§8.7 has one per appropriation),
+// and the Summary's note sends the reader to the Import report for them, which gave only their count and dollars: a reader
+// could not find which rows they were (review XP-8). Each is named by where it was, and by what identifies it.
+//   pulls   the current pulls
+SP.unidentifiedLines = function unidentifiedLines(pulls) {
+  const L = [];
+  const p = pulls && typeof pulls === 'object' ? pulls.unidentified : null;
+  if (!p || typeof p !== 'object' || !Array.isArray(p.rows) || !p.rows.length) return L;
+  const files = Array.isArray(p.files) ? p.files.filter(f => f && typeof f === 'object') : [];
+  // src[0] is the file's place in its IMPORT, not in this pull's file list (which holds only the files these rows came
+  // from), so a row is matched to its file by its sheet's name; two files with a sheet of that name are both named
+  const fileOf = r => {
+    const sh = Array.isArray(r.src) ? String(r.src[1]) : '';
+    const fs = files.length === 1 ? files : files.filter(f => Array.isArray(f.sheets) && f.sheets.map(String).includes(sh));
+    return fs.length === 1 ? String(fs[0].name) : files.length ? 'one of ' + files.map(f => String(f.name)).join(', ') : 'a file not recorded';
+  };
+  const t = (r, k) => { const v = r.c[k]; return v === null || v === undefined ? '' : String(v); };
+  L.push('Rows whose appropriation is not identified (their Budget names none, nor does their sheet), counted nowhere: ' + SP.fmtInt(p.rows.length) + '.');
+  for (const r of p.rows) {
+    if (!r || !Array.isArray(r.c)) continue;
+    const raw = r.raw && typeof r.raw === 'object' ? r.raw : {};
+    const fy = typeof r.c[IMP_FY] === 'number' ? 'FY' + r.c[IMP_FY] : 'FY ' + imp_q(Object.prototype.hasOwnProperty.call(raw, 'FY') ? String(raw.FY) : '') + ' not read';
+    const amt = typeof r.c[IMP_AMT] === 'number' ? SP.fmtUsd(r.c[IMP_AMT]) : 'amount ' + imp_q(Object.prototype.hasOwnProperty.call(raw, 'Amount') ? String(raw.Amount) : '') + ' not read';
+    L.push('  ' + imp_where({ file: fileOf(r), sheet: Array.isArray(r.src) && r.src[1] !== undefined ? String(r.src[1]) : '?' })
+      + ' row ' + (Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?') + ': CCaR ' + imp_q(t(r, IMP_CCAR)) + ', Title ' + imp_q(t(r, IMP_TITLE))
+      + ', Budget ' + imp_q(t(r, IMP_BUDGET)) + ', Plan Event ' + imp_q(t(r, IMP_PE)) + ', ' + fy + ', ' + amt + '.');
+  }
+  return L;
+};
+
+// THE PULLS ON SCREEN THAT THE LAST IMPORT DID NOT BRING. Only the last import's report is kept (CONTRACT §11), but an
+// appropriation it did not replace keeps its pull, and with it any rows that count nowhere. The Summary names those rows
+// and sends the reader to the Import report, which (being the last import's) listed none of them and said "Unreadable
+// rows: none." (review IMP-2). These lines are worked out from the pulls themselves, every row of which keeps its sheet,
+// row number, reasons and raw text, so whatever the report a pull came with, what it holds is listed with it.
+//   pulls   the current pulls; report  the last import's report (or null)
+SP.keptPullLines = function keptPullLines(pulls, report) {
+  const L = [];
+  if (!pulls || typeof pulls !== 'object') return L;
+  const by = report && report.byAp && typeof report.byAp === 'object' && !Array.isArray(report.byAp) ? report.byAp : {};
+  const at = report ? report.importedAt : undefined;
+  for (const ap of IMP_AP_IDS.concat(['unidentified'])) {
+    const p = pulls[ap];
+    if (!p || typeof p !== 'object' || !Array.isArray(p.rows)) continue;
+    // unidentified rows carry no import time of their own: they are the last import's whenever its report counts some
+    if (Object.prototype.hasOwnProperty.call(by, ap) && (ap === 'unidentified' || p.importedAt === at)) continue;
+    const files = Array.isArray(p.files) ? p.files.filter(f => f && typeof f === 'object') : [];
+    const fileOf = r => (files.length === 1 ? String(files[0].name) : files.length ? 'one of ' + files.map(f => String(f.name)).join(', ') : 'a file not recorded');
+    const where = r => imp_where({ file: fileOf(r), sheet: Array.isArray(r.src) && r.src[1] !== undefined ? String(r.src[1]) : '?' })
+      + ' row ' + (Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?');
+    let cents = 0;
+    const bad = [], dates = [];
+    for (const r of p.rows) {
+      if (!r || !Array.isArray(r.c)) continue;
+      const amt = r.c[IMP_AMT];
+      if (Array.isArray(r.bad) && r.bad.length) bad.push(r);
+      else if (typeof amt === 'number') cents += amt;
+      const raw = r.raw && typeof r.raw === 'object' ? r.raw : {};
+      for (const h of ['Month', 'Date']) if (Object.prototype.hasOwnProperty.call(raw, h)) dates.push([r, h, raw[h]]);
+    }
+    const src = files.map(f => (Array.isArray(f.sheets) && f.sheets.length ? f.sheets : ['?']).map(sn => imp_where({ file: String(f.name), sheet: String(sn) })).join(', ')).join(', ');
+    if (ap === 'unidentified') {
+      L.push(imp_apLabel(ap) + ': ' + imp_plural(p.rows.length, 'row') + ', ' + SP.fmtUsd(cents) + (src ? ', from ' + src : '') + ', counted nowhere.');
+    } else {
+      L.push(imp_apLabel(ap) + ': ' + imp_plural(p.rows.length, 'row') + ', ' + SP.fmtUsd(cents)
+        + (bad.length ? ' (plus ' + imp_plural(bad.length, 'unreadable row') + ', counted in no figure)' : '')
+        + ', imported ' + (typeof p.importedAt === 'string' && p.importedAt ? imp_localWhen(p.importedAt) : 'at a time not recorded') + (src ? ', from ' + src : '') + '.');
+    }
+    if (bad.length) {
+      L.push('  Unreadable rows (kept, counted in no figure): ' + SP.fmtInt(bad.length) + '.');
+      for (const r of bad) {
+        const amt = r.c[IMP_AMT];
+        L.push('    ' + where(r) + ': ' + r.bad.map(String).join('; ') + (typeof amt === 'number' ? '; amount ' + SP.fmtUsd(amt) : '') + '.');
+      }
+    }
+    if (dates.length) {
+      L.push('  Dates that could not be read (the row is kept and placed in No date): ' + SP.fmtInt(dates.length) + '.');
+      for (const [r, h, v] of dates) L.push('    ' + where(r) + ': ' + h + ' ' + imp_q(String(v)) + '.');
+    }
+  }
   return L;
 };

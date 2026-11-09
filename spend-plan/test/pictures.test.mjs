@@ -137,6 +137,36 @@ try {
     C.chk(n + ': the table’s right border is whole (it was not cut off)', a.edge > 0.95, a.edge.toFixed(3));
     C.chk(n + ': nothing says it is filtered, because nothing is', a.shown.n === 0, J(a.shown));
   });
+  // review S9: a status cell with no status (no goal, the next-year column, No date) is drawn with no fill but the closed
+  // months' grey, as on the screen and in the workbook. It was v12's FFE699 base fill, a word-less near-yellow beside the
+  // FFD700 of "Within 10". Each such cell is found from the layout, and its middle pixel is read off the drawn canvas.
+  const blankSt = await ev(() => {
+    const out = [];
+    __M.blocks.forEach(b => {
+      const cv = SP.blockCanvas(b, __M), ctx = cv.getContext('2d');
+      const L = pic_layout(document.createElement('canvas').getContext('2d'), b, __M);
+      let y = L.oy + PIC_T.titleH * L.scale;
+      for (const r of L.rows) {
+        if (r.cells[0] && r.cells[0].t === 'OSD Status') {
+          let x = L.ox;
+          r.cells.forEach((c, j) => {
+            const w = L.widths[j] * L.scale;
+            if (j > 0 && !c.t) {
+              const d = ctx.getImageData(Math.round(x + w / 2), Math.round(y + (r.h * L.scale) / 2), 1, 1).data;
+              out.push({ block: b.apLabel + ' FY' + b.fy, j, rgb: [d[0], d[1], d[2]] });
+            }
+            x += w;
+          });
+        }
+        y += r.h * L.scale;
+      }
+    });
+    return out;
+  });
+  const okFill = c => (c[0] === 255 && c[1] === 255 && c[2] === 255) || (c[0] === 242 && c[1] === 242 && c[2] === 242);
+  C.chk('S9: the fixture has status cells with no status to look at', blankSt.length > 0, J(blankSt.length));
+  C.chk('S9: a status cell with no status is white (or the closed grey), never v12’s gold', blankSt.every(x => okFill(x.rgb)),
+    J(blankSt.filter(x => !okFill(x.rgb)).slice(0, 4)));
   // the widest block: the one whose table, unscaled, is widest (the layout is read only to choose it)
   const widest = await ev(() => {
     const ctx = document.createElement('canvas').getContext('2d');
@@ -180,18 +210,44 @@ try {
   const zp = join(tmp.dir, 'pictures.zip');
   writeFileSync(zp, Buffer.from(zip64, 'base64'));
   const zr = JSON.parse(py(['-c', `
-import json, struct, sys, zipfile
+import io, json, struct, sys, zipfile, zlib
+from PIL import Image
 z = zipfile.ZipFile(sys.argv[1])
-out = {'bad': z.testzip(), 'names': z.namelist(), 'png': []}
+out = {'bad': z.testzip(), 'names': z.namelist(), 'png': [], 'phys': []}
 for n in z.namelist():
     b = z.read(n)
     ok = b[:8] == b'\\x89PNG\\r\\n\\x1a\\n' and b[12:16] == b'IHDR'
     out['png'].append([n, ok] + (list(struct.unpack('>II', b[16:24])) if ok else []))
+    # every chunk, its CRC checked, and the pHYs: where it sits, what it says, and the resolution PIL reads from it
+    i, order, crc_ok, phys = 8, [], True, None
+    while i + 8 <= len(b):
+        ln = struct.unpack('>I', b[i:i + 4])[0]; t = b[i + 4:i + 8]; d = b[i + 8:i + 8 + ln]
+        crc_ok = crc_ok and struct.unpack('>I', b[i + 8 + ln:i + 12 + ln])[0] == (zlib.crc32(t + d) & 0xffffffff)
+        order.append(t.decode('latin-1'))
+        if t == b'pHYs': phys = list(struct.unpack('>IIB', d))
+        i += 12 + ln
+    im = Image.open(io.BytesIO(b)); im.load()
+    out['phys'].append({'name': n, 'phys': phys, 'beforeIdat': 'pHYs' in order and order.index('pHYs') < order.index('IDAT'),
+                        'nPhys': order.count('pHYs'), 'crc': crc_ok, 'dpi': [round(x) for x in im.info.get('dpi', (0, 0))], 'size': list(im.size)})
 print(json.dumps(out))
 `, zp]));
   C.chk('the zip opens with Python’s zipfile and every member reads back intact', zr.bad === null, J(zr.bad));
   C.eq('the zip holds one "{Ap} FY{fy}.png" per block, in block order', zr.names, blocks.map(n => n + '.png'));
   C.chk('every PNG in the zip is 2000 x 675', zr.png.length === blocks.length && zr.png.every(p => p[1] === true && p[2] === W && p[3] === H), J(zr.png.slice(0, 3)));
+  // 13.33 x 4.5 in holds only if the PNG says 150 dpi: with no pHYs chunk Office places it at 96 dpi, 20.83 x 7.03 in,
+  // larger than the slide (review XP-7). One pHYs, 5906 px a metre each way (150 dpi), before the image data, every
+  // chunk's CRC right, and the PNG still decodes at 2000 x 675.
+  C.chk('every PNG says 150 dpi (one pHYs of 5906 px/m, before the image data), its chunks intact, and decodes',
+    zr.phys.length === blocks.length && zr.phys.every(x => J(x.phys) === J([5906, 5906, 1]) && x.nPhys === 1 && x.beforeIdat && x.crc
+      && J(x.dpi) === J([150, 150]) && J(x.size) === J([W, H])), J(zr.phys.slice(0, 2)));
+
+  // a PNG that already says its resolution keeps ONE pHYs: given the tool's own PNG again, the bytes come back unchanged
+  const again = await ev(async () => {
+    const u = new Uint8Array(await (await SP.blockPng(__M.blocks[0], __M)).arrayBuffer());
+    const v = pic_withDpi(u);
+    return { same: u.length === v.length && u.every((b, i) => b === v[i]), n: u.length };
+  });
+  C.chk('a PNG that already holds a pHYs keeps one: adding 150 dpi again changes no byte', again.same && again.n > 1000, J(again));
 
   // =========================================================================== the clipboard (§10)
   const copy = await ev(async () => {

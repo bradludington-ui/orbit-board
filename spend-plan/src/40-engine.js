@@ -167,14 +167,24 @@ function eng_view(v) {
   const svcOn = s => !(eng_own(v.svc, s) && !v.svc[s]);
   const laneOn = l => !(eng_own(v.lane, l) && !v.lane[l]);
   const services = ENG_ALL_SVC.filter(svcOn), lanes = ENG_LANES.filter(laneOn);
-  const all = services.length === ENG_ALL_SVC.length && lanes.length === ENG_LANES.length;
+  return { svc: new Set(services), lane: new Set(lanes), svcOn, laneOn };
+}
+// What every product says it shows (§4.3), over the switches that EXIST on this plan: the six services always, and
+// "Service not identified" only when some row would count but for the switches and has no service (§9 draws its box
+// only then). The switches live in this browser, not in the plan, so one turned off on a plan that has such rows stayed
+// off on a plan that has none: there it hides nothing and has no box to turn it back on, yet every sheet, picture and
+// file name said "filtered", and with USAF off the list named a service no box offered (review S2).
+function eng_shown(V, present) {
+  const exist = ENG_ALL_SVC.filter(s => s !== SP.SVC_UNKNOWN || present.svc.has(s));
+  const services = exist.filter(V.svcOn), lanes = ENG_LANES.filter(V.laneOn);
+  const all = services.length === exist.length && lanes.length === ENG_LANES.length;
   let text = 'All services, both lanes';
   if (!all) {
-    const sv = services.length === ENG_ALL_SVC.length ? 'all' : services.length ? services.join(', ') : 'none';
+    const sv = services.length === exist.length ? 'all' : services.length ? services.join(', ') : 'none';
     const ln = lanes.length ? lanes.map(l => SP.LANE_WORDS[l]).join(', ') : 'none';
     text = 'Services shown: ' + sv + '; lanes shown: ' + ln;
   }
-  return { svc: new Set(services), lane: new Set(lanes), shown: { services, lanes, all, text } };
+  return { services, lanes, all, text };
 }
 
 // the calendar of one as-of month: the execution year, the window, the columns and which of them are closed
@@ -540,7 +550,7 @@ SP.buildModel = function buildModel(pulls, settings, view) {
   }
   const model = {
     asOf: S.asOf, asOfLabel: SP.asOfLabel(S.asOf), E: cx.E, firstFY: S.firstFY, window: { start: cx.wstart, end: cx.wend },
-    cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: V.shown, special: S.special,
+    cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: eng_shown(V, present), special: S.special,
     present: { services: ENG_ALL_SVC.filter(s => present.svc.has(s)), lanes: ENG_LANES.filter(l => present.lane.has(l)) },
     blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp,
     summary: { rows: blocks, total: eng_tot(blocks), notes: [] },

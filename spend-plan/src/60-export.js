@@ -27,12 +27,17 @@ const EX_FM = '#,##0.00;(#,##0.00);-';     // $M, negatives in parentheses, zero
 // format, not text, so the cell is still the number (anyone summing the column gets the right total) and the mark shows.
 function ex_markFmt(mark) { return '#,##0.00"' + mark + '";(#,##0.00)"' + mark + '";-"' + mark + '"'; }
 const EX_MARKS = ['†', '‡', '†‡'];
-const EX_FP = '0.00%', EX_FD = '+0.00%;-0.00%;0.00%', EX_FUSD = '#,##0.00';
+const EX_FP = '0.00%', EX_FD = '+0.00%;-0.00%;0.00%', EX_FUSD = '#,##0.00', EX_FYF = '"FY"0';
+// §2: "nothing non-zero reads as zero". #,##0.00 shows a non-zero amount under $5,000 as 0.00 or (0.00), where the screens
+// and the pictures print fmtM's '<0.01' for the same figure (review XP-6). Such a cell keeps its number and takes this
+// format instead, marked as its column is (ex_mc).
+function ex_tinyFmt(mark) { return mark ? '"<0.01' + mark + '";"(<0.01)' + mark + '";-"' + mark + '"' : '"<0.01";"(<0.01)";-'; }
 // A literal '&' in a header is an Excel code; SP.CUI has none, and doubling keeps it so if the marking ever gains one.
 const EX_CUI = String(SP.CUI).replace(/&/g, '&&');
 const EX_HEADER = '&C&"Calibri,Bold"' + EX_CUI;
 const EX_FOOTER = '&C&"Calibri,Bold"' + EX_CUI + '&RPage &P of &N';
 const EX_PAGE = Object.freeze({ orientation: 'landscape', paper: 'letter', fitWidth: 1, fitHeight: 0 });
+const EX_PAGE_DATA = Object.freeze({ orientation: 'landscape', paper: 'letter' });
 const EX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 // A Not Allocated month is split across rows at about this many characters. One cell can hold 32,767 and one row can be
 // 409 points tall (about 30 lines); a no-cap month on the real pull would otherwise be clipped in its row, or cut by the
@@ -55,10 +60,14 @@ const EX_BOX = Object.freeze({ t: ['medium', EX_BOXC], b: ['medium', EX_BOXC], l
 const EXS = (() => {
   const X = {};
   const f = (o) => Object.freeze(o);
-  // titles and lines under them
-  X.title = ex_s(f({ b: true, sz: 16, color: EX_WHITE }), EX_NAVY, null, f({ h: 'center', v: 'center' }));
-  X.sub = ex_s(f({ i: true, sz: 10, color: EX_SUB }), null, null, f({ h: 'left', v: 'top', wrap: true }));
+  // titles and lines under them. v12's sheet title (style 58) is 16 pt bold navy TEXT with no fill: the white-on-navy
+  // look belongs to the block bars and the TOTAL row, and a title drawn as a bar was the plainest difference from v12 on
+  // every sheet (review XP-4). Its subtitles (styles 65, 68) are 11 pt italic grey, centred.
+  X.title = ex_s(f({ b: true, sz: 16, color: EX_NAVY }), null, null, f({ h: 'center', v: 'center' }));
+  X.sub = ex_s(f({ i: true, sz: 11, color: EX_SUB }), null, null, f({ h: 'center', v: 'center', wrap: true }));
   X.shown = ex_s(f({ b: true, sz: 10, color: EX_NAVY }), null, null, f({ h: 'left', v: 'center', indent: 1 }));
+  // the CUI marking inside a slide block's picture range, centred over the block as the picture's own bands are
+  X.cui = ex_s(f({ b: true, sz: 10, color: '000000' }), null, null, f({ h: 'center', v: 'center' }));
   // column headers: light gold, a medium box
   X.head = ex_s(f({ b: true, sz: 11, color: EX_INK }), EX_GOLD, null, f({ h: 'center', v: 'center', wrap: true }), EX_BOX);
   // block bars: the first cell boxes the left, the last the right, every cell the top and bottom (a merge is painted from
@@ -79,8 +88,10 @@ const EXS = (() => {
   const fonts = [f({ b: true, sz: 11, color: EX_NAVY }), f({ b: true, sz: 10, color: EX_INK }), f({ sz: 10, color: EX_INK }), f({ sz: 9, color: EX_INK })];
   const bold = [fonts[0], fonts[1], f({ b: true, sz: 10, color: EX_INK }), f({ b: true, sz: 9, color: EX_INK })];
   const indent = [0, 2, 4, 6];
-  const right = f({ h: 'right' });
-  X.treeLab = fonts.map((fo, k) => ex_s(fo, null, null, f(indent[k] ? { h: 'left', v: 'top', wrap: true, indent: indent[k] } : { h: 'left', v: 'top', wrap: true }), EX_THIN));
+  // v12 centres its money and its outline labels vertically; at the bottom (the default) a figure beside a wrapped label
+  // sat a line or two below it (review XP-5)
+  const right = f({ h: 'right', v: 'center' });
+  X.treeLab = fonts.map((fo, k) => ex_s(fo, null, null, f(indent[k] ? { h: 'left', v: 'center', wrap: true, indent: indent[k] } : { h: 'left', v: 'center', wrap: true }), EX_THIN));
   // [kind][closed 0|1]: a month cell; treeTot[kind]: a Total cell (bold below the Title, as v12 printed them)
   X.treeCell = fonts.map(fo => [ex_s(fo, null, EX_FM, right, EX_THIN), ex_s(fo, EX_CLOSED, EX_FM, right, EX_THIN)]);
   X.treeTot = bold.map(fo => ex_s(fo, null, EX_FM, right, EX_THIN));
@@ -96,18 +107,23 @@ const EXS = (() => {
   X.bandPlan = ex_s(planF, null, EX_FP, center, EX_THIN);
   X.bandStatus = {};
   // a PLAN status keeps its fill and its readable ink, and is italic: grey on the red or green fill measured about
-  // 1.5:1 and could not be read on a slide. Grey stays on the Obligation % plan cells, which have no fill (integration
-  // ruling, the same in the screens and the pictures).
+  // 1.5:1 and could not be read on a slide. Grey stays on the Obligation % plan cells, which have no fill (CONTRACT §8,
+  // where the ruling now stands, review XP-10; the same in the screens and the pictures).
   for (const st of ['green', 'yellow', 'red']) {
     X.bandStatus[st] = [ex_s(f({ b: true, sz: 10, color: EX_STATUS_INK[st] }), EX_STATUS_FILL[st], null, center, EX_THIN),
       ex_s(f({ b: true, i: true, sz: 10, color: EX_STATUS_INK[st] }), EX_STATUS_FILL[st], null, center, EX_THIN)];
   }
-  // no status (no goal, or the No date column): v12's base fill for the row, and no word
-  X.bandStatus.none = [ex_s(bf, EX_GOLD, null, center, EX_THIN), ex_s(planF, EX_GOLD, null, center, EX_THIN)];
+  // No status (no goal, or the No date column) has no fill of its own, only the closed months' grey, as the goal cells
+  // above it and the screens draw it. It was v12's base fill for the row, FFE699, a word-less near-yellow beside the
+  // FFD700 of "Within 10" that read as a status by colour alone; v12 never showed one, because its FY27+ column, the only
+  // one with no goal, was hidden (review S9).
   // the FY tables at the top of the Summary, appropriation and PMO sheets
   const t10 = f({ sz: 10, color: EX_INK }), b10 = f({ b: true, sz: 10, color: EX_INK });
   X.tApLab = ex_s(f({ b: true, sz: 11, color: EX_NAVY }), null, null, f({ h: 'left', v: 'center', wrap: true, indent: 1 }), EX_THIN);
-  X.tFy = ex_s(t10, null, '0', center, EX_THIN);
+  // The FY is a number, shown as v12 wrote it, FY2025, so it still sorts and filters as one (review XP-5). On an
+  // appropriation sheet's own table it is the row's label, as v12's is: 11 pt bold navy.
+  X.tFy = ex_s(t10, null, EX_FYF, center, EX_THIN);
+  X.tFyAp = ex_s(f({ b: true, sz: 11, color: EX_NAVY }), null, EX_FYF, center, EX_THIN);
   X.tM = ex_s(t10, null, EX_FM, right, EX_THIN);
   X.tMMark = Object.fromEntries(EX_MARKS.map(m => [m, ex_s(t10, null, ex_markFmt(m), right, EX_THIN)]));
   X.tPct = ex_s(b10, null, EX_FP, center, EX_THIN);
@@ -118,7 +134,9 @@ const EXS = (() => {
   for (const st of ['green', 'yellow', 'red']) X.tStatus[st] = ex_s(f({ b: true, sz: 10, color: EX_STATUS_INK[st] }), EX_STATUS_FILL[st], null, center, EX_THIN);
   // the TOTAL row: navy, white, bold
   const tw = f({ b: true, sz: 11, color: EX_WHITE });
-  X.totLab = ex_s(tw, EX_NAVY, null, f({ h: 'left', v: 'center', indent: 1 }), EX_THIN);
+  // v12's labels: TOTAL - Sustainment on the Summary left-aligned; Total - All FYs and Total - All centred (review XP-5)
+  X.totLab = ex_s(tw, EX_NAVY, null, f({ h: 'left', v: 'center', wrap: true }), EX_THIN);
+  X.totLabC = ex_s(tw, EX_NAVY, null, f({ h: 'center', v: 'center', wrap: true }), EX_THIN);
   X.totM = ex_s(tw, EX_NAVY, EX_FM, right, EX_THIN);
   X.totMMark = Object.fromEntries(EX_MARKS.map(m => [m, ex_s(tw, EX_NAVY, ex_markFmt(m), right, EX_THIN)]));
   X.totP = ex_s(tw, EX_NAVY, EX_FP, center, EX_THIN);
@@ -135,6 +153,7 @@ const EXS = (() => {
   // list tables (Not Allocated, raw data, settings)
   X.lText = ex_s(t10, null, null, f({ h: 'left', v: 'top', wrap: true }), EX_THIN);
   X.lFy = ex_s(t10, null, '0', f({ h: 'center', v: 'top' }), EX_THIN);
+  X.lFyY = ex_s(t10, null, EX_FYF, f({ h: 'center', v: 'top' }), EX_THIN);
   X.lM = ex_s(t10, null, EX_FM, f({ h: 'right', v: 'top' }), EX_THIN);
   X.lPct = ex_s(t10, null, EX_FP, center, EX_THIN);
   X.rText = ex_s(t10, null, null, null, EX_THIN);
@@ -160,6 +179,19 @@ const EX_CURVES = [['om1', 'O&M, first year'], ['om2', 'O&M, second year or late
 // ---------------------------------------------------------------------------------------------------------------
 // cents -> $M as the cell's number. A missing figure is an empty cell, never 0: "no goal" and "a goal of 0%" differ.
 function ex_M(c) { return typeof c === 'number' && isFinite(c) ? c / 1e8 : null; }
+// a money cell: cents as $M, in style s, or in s's '<0.01' twin when the amount is non-zero and under $5,000 (fmtM's rule)
+const ex_tinyOf = new Map();
+function ex_mc(c, s) {
+  const v = ex_M(c);
+  if (v === null || !s || c === 0 || Math.abs(c) >= 500000) return ex_cell(v, s);
+  let t = ex_tinyOf.get(s);
+  if (!t) {
+    const mark = EX_MARKS.find(m => s.fmt === ex_markFmt(m)) || '';
+    t = Object.freeze(Object.assign({}, s, { fmt: ex_tinyFmt(mark) }));
+    ex_tinyOf.set(s, t);
+  }
+  return ex_cell(v, t);
+}
 function ex_num(x) { return typeof x === 'number' && isFinite(x) ? x : null; }
 function ex_cell(v, s) {
   if (v === null || v === undefined || (typeof v === 'number' && !isFinite(v))) return s ? { s } : null;
@@ -232,7 +264,7 @@ function ex_widthOf(K, c1, c2) { let w = 0; for (let i = c1; i <= c2; i++) w += 
 function ex_title(K, text) { return ex_span(K, text, EXS.title, 0, K.W - 1, { ht: 27.75 }); }
 // an explanatory line: italic grey, wrapped, as tall as its words need
 function ex_subLine(K, text) {
-  return ex_span(K, text, EXS.sub, 0, K.W - 1, { ht: ex_ht(ex_lines(text, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  return ex_span(K, text, EXS.sub, 0, K.W - 1, { ht: ex_ht(ex_lines(text, ex_widthOf(K, 0, K.W - 1), 11), 11) });
 }
 // the line every report sheet carries: what the switches show (§4.3)
 function ex_shownLine(K, M) { return ex_span(K, M.shown.text, EXS.shown, 0, K.W - 1); }
@@ -268,14 +300,15 @@ function ex_blockHead(K, M, first) {
 }
 // one money row: label, Total, each shown column, Total
 function ex_moneyRow(K, label, labS, cols, total, cellS, totS, opts) {
-  const tv = ex_M(total);
-  const cells = [{ v: label, s: labS }, ex_cell(tv, totS)];
-  for (const i of K.dc) cells.push(ex_cell(ex_M(cols[i]), cellS[K.closed[i] ? 1 : 0]));
-  cells.push(ex_cell(tv, totS));
+  const cells = [{ v: label, s: labS }, ex_mc(total, totS)];
+  for (const i of K.dc) cells.push(ex_mc(cols[i], cellS[K.closed[i] ? 1 : 0]));
+  cells.push(ex_mc(total, totS));
   return ex_push(K, cells, opts);
 }
-// The tree, PMO -> Title -> Plan Event -> CCaR. `base` is the outline level of the PMO row: 1 on the appropriation sheets,
-// 0 on a PMO tab (CONTRACT §8.5, §8.6). Plan Event and CCaR rows are hidden, so a sheet opens at PMO and Title.
+// The tree, PMO -> Title -> Plan Event -> CCaR. `base` is the outline level of the PMO row: 0 on every sheet, as v12 had
+// it (CONTRACT §8.5, §8.6), so Excel draws the four outline buttons each bar names and button 4 opens the CCaRs. With the
+// PMO at level 1 the appropriation sheets had five, and their button 4 stopped at Plan Event (review XP-1). Plan Event and
+// CCaR rows are hidden, so a sheet opens at PMO and Title.
 function ex_tree(K, tree, base) {
   for (const n of SP.treeRows(tree, 4)) {
     const k = n.level - 1;
@@ -306,13 +339,13 @@ function ex_band(K, M, b) {
   for (const i of K.dc) g.push(ex_cell(ex_num(b.goalC[i]), EXS.bandP[K.closed[i] ? 1 : 0]));
   g.push(ex_cell(goal, EXS.bandP[0]));
   ex_push(K, g);
-  const sc = (status, plan) => {
-    const set = EXS.bandStatus[status && EXS.bandStatus[status] ? status : 'none'];
-    return ex_cell(status ? ex_statusWord(status) : null, set[plan ? 1 : 0]);
+  const sc = (status, plan, closed) => {
+    if (!status || !EXS.bandStatus[status]) return ex_cell(null, EXS.bandP[closed ? 1 : 0]);
+    return ex_cell(ex_statusWord(status), EXS.bandStatus[status][plan ? 1 : 0]);
   };
-  const s = [{ v: 'OSD Status', s: L }, sc(b.status, false)];
-  for (const i of K.dc) { const x = b.statusC[i] || {}; s.push(sc(x.status, x.kind === 'plan')); }
-  s.push(sc(b.status, false));
+  const s = [{ v: 'OSD Status', s: L }, sc(b.status, false, false)];
+  for (const i of K.dc) { const x = b.statusC[i] || {}; s.push(sc(x.status, x.kind === 'plan', !!K.closed[i])); }
+  s.push(sc(b.status, false, false));
   ex_push(K, s);
 }
 // §5's one line per month, under its bar. A month longer than EX_NA_CHUNK continues on the next row with its label
@@ -346,15 +379,15 @@ function ex_na(K, M, items) {
 // mark: '', '†' or '‡' (SP.authMark); on a TOTAL also '†‡'
 function ex_figCells(r, mark) {
   const st = r.status && EXS.tStatus[r.status] ? r.status : null;
-  return [ex_cell(ex_M(r.approved), EXS.tM), ex_cell(ex_M(r.authorized), EXS.tMMark[mark] || EXS.tM),
-    ex_cell(ex_M(r.obligated), EXS.tM), ex_cell(ex_M(r.unobligated), EXS.tM), ex_cell(ex_num(r.oblPct), EXS.tPct),
+  return [ex_mc(r.approved, EXS.tM), ex_mc(r.authorized, EXS.tMMark[mark] || EXS.tM),
+    ex_mc(r.obligated, EXS.tM), ex_mc(r.unobligated, EXS.tM), ex_cell(ex_num(r.oblPct), EXS.tPct),
     ex_cell(ex_num(r.goal), EXS.tGoal), ex_cell(ex_num(r.delta), EXS.tDelta),
     st ? { v: ex_statusWord(st), s: EXS.tStatus[st] } : { s: EXS.tBlank }];
 }
 // a TOTAL row: the sums and their Obl %; no goal, delta or status (§8.1)
 function ex_totCells(t, mark) {
-  return [ex_cell(ex_M(t.approved), EXS.totM), ex_cell(ex_M(t.authorized), EXS.totMMark[mark] || EXS.totM),
-    ex_cell(ex_M(t.obligated), EXS.totM), ex_cell(ex_M(t.unobligated), EXS.totM), ex_cell(ex_num(t.oblPct), EXS.totP),
+  return [ex_mc(t.approved, EXS.totM), ex_mc(t.authorized, EXS.totMMark[mark] || EXS.totM),
+    ex_mc(t.obligated, EXS.totM), ex_mc(t.unobligated, EXS.totM), ex_cell(ex_num(t.oblPct), EXS.totP),
     { s: EXS.totBlank }, { s: EXS.totBlank }, { s: EXS.totBlank }];
 }
 // rows grouped by appropriation, the label merged down its rows. rows: [{apLabel, fy, figures…, mark}]. -> the last row
@@ -411,16 +444,28 @@ function ex_summary(M) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// §8.2 SLIDE SNAPSHOTS: each block from its bar through OSD Status is the picture region
+// §8.2 SLIDE SNAPSHOTS: each block from the CUI line above its bar through the CUI line under OSD Status is the
+// picture region
 // ---------------------------------------------------------------------------------------------------------------
+// Line 2. It said "Each block is sized for a 13.33 in x 4.5 in slide region", which v12 said and was never so: a block
+// here is about 19 x 3.4 in (5.7 : 1, review XP-3), a 70-wide label column and the money columns. The dashboard's
+// pictures are drawn to that region; a block copied from this sheet is not, and the line says so.
+const EX_SLIDES_HOW = 'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture'
+  + ' or Save pictures. To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line'
+  + ' under OSD Status and use Copy as Picture; it is wider for its height than that region, so size it by its width.';
 function ex_slides(M) {
   const K = ex_blockSheet('Slide Snapshots', M);
   ex_title(K, 'Slide Snapshots - picture-ready blocks for PowerPoint');
-  ex_subLine(K, 'Each block is sized for a 13.33 in x 4.5 in slide region. In the dashboard, Slide blocks > Copy picture or Save'
-    + ' pictures makes the picture; or select a block here from its title through OSD Status and use Copy as Picture.');
+  ex_subLine(K, EX_SLIDES_HOW);
   ex_shownLine(K, M);
   ex_blank(K);
   for (const b of M.blocks) {
+    // The marking and the filter go INSIDE the range line 2 tells people to copy. A range picture takes the cells and
+    // nothing else: the sheet's CUI header and footer, and its line 3, never reach the slide, so a block copied as v12
+    // laid it out was an unmarked CUI picture, and on a filtered workbook one that did not say services were hidden
+    // (review XP-2). The dashboard's own pictures carry both, top and bottom; so does this range.
+    ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+    if (!M.shown.all) ex_shownLine(K, M);
     ex_bar(K, b.apLabel + ' FY' + b.fy + ' - Spend Plan (PMO Summary, slide-ready)', EXS.barSlide, 25.5);
     ex_blockHead(K, M, 'PMO');
     for (const p of b.pmoRows) {
@@ -429,6 +474,7 @@ function ex_slides(M) {
     }
     ex_blank(K);
     ex_band(K, M, b);
+    ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
     ex_na(K, M, b.na);
     ex_blank(K); ex_blank(K);
   }
@@ -445,9 +491,9 @@ function ex_apSheet(M, a, pulls) {
   ex_title(K, 'F-35 Sustainment ' + a.label + ' - Spend Plan & FY Summary (from the CCaR pull imported ' + (when || 'on an unknown date') + ')');
   ex_shownLine(K, M);
   ex_headRow(K, ['FY'].concat(EX_FIG_HEADS), 30);
-  for (const b of a.blocks) ex_push(K, [{ v: b.fy, s: EXS.tFy }].concat(ex_figCells(b, SP.authMark(b, M))));
+  for (const b of a.blocks) ex_push(K, [{ v: b.fy, s: EXS.tFyAp }].concat(ex_figCells(b, SP.authMark(b, M))));
   const am = SP.authMarks(a.blocks, M);
-  const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLab }].concat(ex_totCells(a.total, ex_totMark(am))));
+  const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLabC }].concat(ex_totCells(a.total, ex_totMark(am))));
   K.sh.freeze = 'A' + (tr + 1);
   // ‡ is said under the table it marks: this sheet has no Summary notes beside it (review R3)
   if (am.ddag) ex_markLines(K, { ddag: true });
@@ -455,7 +501,7 @@ function ex_apSheet(M, a, pulls) {
   for (const b of a.blocks) {
     ex_bar(K, 'FY' + b.fy + ' - Spend Plan by PMO / Title / Plan Event / CCaR  (1/2/3/4 in left margin)', EXS.barAp, 21.75);
     ex_blockHead(K, M, 'PMO / Title / Plan Event / CCaR');
-    ex_tree(K, b.tree, 1);
+    ex_tree(K, b.tree, 0);
     ex_blank(K);
     ex_band(K, M, b);
     ex_na(K, M, b.na);
@@ -473,7 +519,7 @@ function ex_pmoSheet(M, p) {
   ex_shownLine(K, M);
   ex_headRow(K, ['Appropriation', 'FY'].concat(EX_FIG_HEADS), 30);
   ex_apFyRows(K, p.rows.map(r => Object.assign({}, r, { mark: '' })));
-  const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLab }, { s: EXS.totBlank }].concat(ex_totCells(p.total, '')));
+  const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLabC }, { s: EXS.totBlank }].concat(ex_totCells(p.total, '')));
   K.sh.freeze = 'A' + (tr + 1);
   ex_span(K, 'Authorized is entered by appropriation and FY; a PMO row shows Approved.', EXS.note, 0, 9);
   ex_blank(K);
@@ -491,6 +537,16 @@ function ex_pmoSheet(M, p) {
   return K.sh;
 }
 
+// v12's PMO tabs run AV, BOP, CDS, MxS, PP, PSM, TSS: Propulsion before Product Support, though a block's PMO rows put
+// PSM first (SP.PMO_ORDER, §4.4). The tabs keep v12's order (review XP-5); any other PMO follows in the model's order (by
+// label, '(no PMO)' last).
+const EX_PMO_TABS = ['AV', 'BOP', 'CDS', 'MxS', 'PP', 'PSM', 'TSS']
+  .map(code => SP.normKey(SP.PMO_ORDER.find(n => n.endsWith('(' + code + ')')) || ''));
+function ex_pmoTabs(pmos) {
+  const rank = p => { const i = EX_PMO_TABS.indexOf(SP.normKey(p.label)); return i < 0 ? EX_PMO_TABS.length : i; };
+  return pmos.map((p, j) => [p, j]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0]);
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // §8.7 THE OTHER SHEETS
 // ---------------------------------------------------------------------------------------------------------------
@@ -503,10 +559,10 @@ function ex_naSheet(M) {
   if (!M.naAll.length) { ex_span(K, 'No Not Allocated items.', EXS.text, 0, K.W - 1); return K.sh; }
   for (const it of M.naAll) {
     const col = M.cols[it.colIndex];
-    ex_push(K, [{ v: it.apLabel, s: EXS.lText }, { v: it.fy, s: EXS.lFy }, { v: col ? col.label : it.col, s: EXS.lText },
+    ex_push(K, [{ v: it.apLabel, s: EXS.lText }, { v: it.fy, s: EXS.lFyY }, { v: col ? col.label : it.col, s: EXS.lText },
       { v: String(it.label ?? ''), s: EXS.lText }, { v: String(it.statusLabel ?? ''), s: EXS.lText },
       { v: (it.ccars || []).join('; '), s: EXS.lText }, { v: (it.pmos || []).join('; '), s: EXS.lText },
-      { v: (it.titles || []).join('; '), s: EXS.lText }, ex_cell(ex_M(it.cents), EXS.lM)]);
+      { v: (it.titles || []).join('; '), s: EXS.lText }, ex_mc(it.cents, EXS.lM)]);
   }
   return K.sh;
 }
@@ -530,7 +586,9 @@ function ex_rawSheet(M, a, p, settings) {
   }
   const heads = SP.RAW_HEADERS.concat(extras, ['Service', 'Lane', 'Status', 'Counted']);
   const widths = EX_RAW_W.concat(extras.map(() => 16), [18, 13.99, 24, 40]);
-  const K = ex_sheet(a.rawSheet, widths, { freeze: 'A2' });
+  // A data sheet prints at full size across pages, as v12's raw tabs had no fit: 36 columns are about 44 in wide, and
+  // fitted to one page wide they printed at 23%, 10 pt text at 2.3 pt (review XP-11). The reports fit one page wide.
+  const K = ex_sheet(a.rawSheet, widths, { freeze: 'A2', page: EX_PAGE_DATA });
   delete K.sh.grid;   // a data sheet keeps its gridlines, as v12's raw tabs did
   ex_push(K, heads.map(t => ({ v: t, s: EXS.rHead })), { ht: 21.75 });
   const svcOn = new Set(M.shown.services), laneOn = new Set(M.shown.lanes);
@@ -581,11 +639,28 @@ function ex_reportSheet(M, pulls, meta) {
     ex_push(K, [{ v: '  Appropriation not identified: ' + SP.fmtInt(un.rows.length) + (un.rows.length === 1 ? ' row' : ' rows')
       + ', counted nowhere.', s: EXS.line }]);
   }
+  // each such row, named: they are on no raw sheet, and the Summary sends the reader here for them (review XP-8)
+  const unl = typeof SP.unidentifiedLines === 'function' ? SP.unidentifiedLines(pulls) : [];
+  if (unl.length) {
+    ex_blank(K);
+    for (const line of unl) ex_push(K, [{ v: line, s: line.startsWith(' ') ? EXS.line : EXS.lineB }]);
+  }
   ex_blank(K);
   const rep = meta && meta.report;
-  if (!rep) { ex_push(K, [{ v: 'No import report is held for the last import.', s: EXS.line }]); return K.sh; }
-  ex_push(K, [{ v: 'The last import:', s: EXS.lineB }]);
-  for (const line of SP.importReportLines(rep)) ex_push(K, [{ v: line, s: EXS.line }]);
+  if (!rep) ex_push(K, [{ v: 'No import report is held for the last import.', s: EXS.line }]);
+  else {
+    ex_push(K, [{ v: 'The last import:', s: EXS.lineB }]);
+    for (const line of SP.importReportLines(rep)) ex_push(K, [{ v: line, s: EXS.line }]);
+  }
+  // the pulls the last import did not replace, listed from their own rows: the Summary's notes count their unreadable
+  // rows, and the last import's report alone said "none" (review IMP-2)
+  const kept = typeof SP.keptPullLines === 'function' ? SP.keptPullLines(pulls, rep || null) : [];
+  if (kept.length) {
+    ex_blank(K);
+    ex_push(K, [{ v: 'Pulls in this workbook from earlier imports (' + (rep ? 'the last import did not replace them' : 'no report is held for them')
+      + '); what each holds that counts nowhere:', s: EXS.lineB }]);
+    for (const line of kept) ex_push(K, [{ v: line, s: EXS.line }]);
+  }
   return K.sh;
 }
 
@@ -603,7 +678,12 @@ function ex_settingsSheet(M, pulls, settings) {
   ex_push(K, [{ v: 'Switches (this browser’s view; every figure counts only what is shown, except an entered Authorized and the Summary’s notes on rows not counted,'
     + ' which cover every service and lane)', s: EXS.h11 }]);
   const shownS = new Set(M.shown.services), shownL = new Set(M.shown.lanes);
-  for (const sv of SP.SERVICES.concat([SP.SVC_UNKNOWN])) kv(sv, shownS.has(sv) ? 'Shown' : 'Hidden');
+  // the seventh switch exists only on a plan with rows that have no service (§9); on any other it hides nothing, and the
+  // line says so rather than "Hidden" for a switch this plan has no box for (review S2)
+  const hasUnknown = Array.isArray(M.present && M.present.services) && M.present.services.includes(SP.SVC_UNKNOWN);
+  for (const sv of SP.SERVICES.concat([SP.SVC_UNKNOWN])) {
+    kv(sv, sv === SP.SVC_UNKNOWN && !hasUnknown ? 'No such rows (no switch)' : shownS.has(sv) ? 'Shown' : 'Hidden');
+  }
   for (const l of ['disc', 'mand']) kv(SP.LANE_WORDS[l] + ' lane', shownL.has(l) ? 'Shown' : 'Hidden');
   kv('In words', M.shown.text);
   ex_blank(K);
@@ -622,7 +702,7 @@ function ex_settingsSheet(M, pulls, settings) {
     auth.sort();
     for (const k of auth) {
       const [ap, fy] = k.split('|'), a = SP.APS.find(x => x.id === ap);
-      ex_push(K, [{ v: (a ? a.label : ap) + ' FY' + fy, s: EXS.lText }, ex_cell(ex_M(s.authorized[k]), EXS.lM)]);
+      ex_push(K, [{ v: (a ? a.label : ap) + ' FY' + fy, s: EXS.lText }, ex_mc(s.authorized[k], EXS.lM)]);
     }
   }
   ex_blank(K);
@@ -637,7 +717,7 @@ function ex_settingsSheet(M, pulls, settings) {
   for (const b of bt) {
     const ov = b.override ? [b.override.svc ? 'Service: ' + b.override.svc : '', b.override.lane ? 'Lane: ' + SP.LANE_WORDS[b.override.lane] : '']
       .filter(Boolean).join('; ') : '';
-    ex_push(K, [{ v: b.name === '' ? '(blank)' : String(b.name), s: EXS.lText }, { v: b.rows, s: EXS.lFy }, ex_cell(ex_M(b.cents), EXS.lM),
+    ex_push(K, [{ v: b.name === '' ? '(blank)' : String(b.name), s: EXS.lText }, { v: b.rows, s: EXS.lFy }, ex_mc(b.cents, EXS.lM),
       { v: b.svc + (b.unknown ? '  (no rule names a service: check this name)' : ''), s: EXS.lText },
       { v: SP.LANE_WORDS[b.lane] || b.lane, s: EXS.lText }, { v: ov, s: EXS.lText }]);
   }
@@ -655,7 +735,7 @@ SP.excelSpec = function excelSpec(model, pulls, settings, meta) {
   pulls = pulls && typeof pulls === 'object' ? pulls : {};
   const sheets = [ex_summary(M), ex_slides(M)];
   for (const a of M.aps) sheets.push(ex_apSheet(M, a, pulls));
-  for (const p of M.pmos) sheets.push(ex_pmoSheet(M, p));
+  for (const p of ex_pmoTabs(M.pmos)) sheets.push(ex_pmoSheet(M, p));
   sheets.push(ex_naSheet(M));
   for (const a of SP.APS) {
     const p = pulls[a.id];
