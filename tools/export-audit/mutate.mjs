@@ -8257,7 +8257,11 @@ const MUTATIONS = [
   { id: 'v209-rv3-save-look-writes-storage', area: '(boot)', what: 'a newer file opened only to look replaces this browser\'s copy in storage, so the person\'s own older file opens that other save (and, in a copy, its office and its Submit)',
     find: "      if(own && (_bootOwnRead || pre)){ try{",
     repl: "      if((_bootOwnRead || pre)){ try{" },
-  { id: 'v209-rv3-save-look-record-left', area: '(boot)', what: 'a newer file opened only to look leaves the record naming the older save, so once the page types, Save writes the newer save over the older file unasked',
+  // v2.15 (integration): EQUIVALENT since v2.14. Its only reachable case is a newer file opened over browser storage holding a save and
+  // no unsaved work; storage is left alone, and LASTKNOWN (set in memory either way) is what Save compares. The record's `file` is read
+  // next only after an edit, and every edit rewrites it from LASTKNOWN (baseMarkDirty) -- "v2.09 third review … looked at, then typed
+  // on" asserts exactly that (the lead's save named, Save asking before it writes over Brad's file). W2 measured it surviving on 8c24ea2.
+  { id: 'v209-rv3-save-look-record-left', area: '(boot)', equivalent: 'browser storage holds a save and no unsaved work, so the record is read again only after an edit, and baseMarkDirty rewrites its file from LASTKNOWN, which this opening sets either way — audit-import.mjs "v2.09 third review … looked at, then typed on" asserts that', what: 'a newer file opened only to look leaves the record naming the older save, so once the page types, Save writes the newer save over the older file unasked',
     find: "      let held=!_bootOwn || (!own && (_bootOwnRead || !!pre));",
     repl: "      let held=!_bootOwn;" },
   // ==== end v2.09 W3 ====
@@ -10407,7 +10411,8 @@ const MUTATIONS = [
     find: "const _bootStray=_bootOwnRead && strayRule((function(){ try{ return JSON.parse(localStorage.getItem(_AP.key)||'null'); }catch(e){ return null; } })(), PUB, _bootBase);",
     repl: "const _bootStray=_bootOwnRead && strayRule((function(){ try{ const o=JSON.parse(localStorage.getItem(_AP.key)||'null'); if(o) delete o.dataPack; return o; }catch(e){ return null; } })(), PUB, Object.assign({}, _bootBase, {blank:true}));" },
   { id: 'v214-int-cyc-erases-refusal', area: "cycApplyAll", what: "a change browser storage refused, then “put every appropriation on a cycle” refused and put back, no longer reads as on screen only: leaving the page asks nothing and the change is lost",
-    find: "      if(res.back) _sideGen=g0;", repl: "      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }" },
+    // v2.15 (integration): retargeted -- the dead `_sideGen=g0` line it rode on is gone (lsMarksBack already does it); the same delete
+    find: "      // v2.15 (integration): lsAll's put-back gives _sideGen back itself (lsMarksBack), so the page sets nothing here", repl: "      W.forEach(function(w){ delete _lsRefused[w[0]]; });" },
   // ---- end INT-B ----
   // ==== end v2.14 integration ====
   // ==== v2.14 review round 1 fixes ====

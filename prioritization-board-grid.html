@@ -2335,7 +2335,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="fydp-help"><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the base year and the next four for the working plan or a locked cycle, one view at a time. <b>📊 Export the workbook</b> prints that plan for every appropriation: a Summary with a chart, then a tab for each appropriation, each service and each PMO, each a roll-up by appropriation and then each appropriation’s block — the requirements in 1-N order under their CCaR record, printed once, and Requirement and Funded (what discretionary and mandatory pay) for each year in $M, with totals at the right and the bottom. The other appropriations are read from their own boards, so every block ties to what that board prints; a year a plan does not hold prints —. Each year’s money is under the PMO that year assigns: a requirement moved to another office is listed under each, for the years that office held it. The service tabs and the PMO tabs each add up to the appropriation tab.</p>
 <p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s; a service no sheet takes is counted on the Summary only, and every sheet of the workbook says so under its table); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="v212-h132s">On the workbook’s service tabs Full Fund’s USMC-B is the STOVL tab’s, whichever board is open, so STOVL carries every appropriation’s F-35B money and the service tabs still add up to each appropriation’s tab.</p>
-<p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
+<p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role. A lock refuses a plan tagged with another cycle; <b>Retag</b> moves every appropriation that has locked the cycle being left and names any that has not. A package, or one appropriation taken from a file, comes in under the cycle this board has for it, with only that cycle’s position.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept. From v2.12 a lock also keeps a copy of the PPBE position its budget authority was read from, and its view reads that copy.</p>
 </section>
 <section data-part="team" data-id="t-ppbe" data-t="Budget authority from the PPBE position">
@@ -12209,6 +12209,13 @@ function apHeldWhy(k){
   return 'this browser holds '+t+' work the saved file does not have, and '
     +(pubsInFile(k)? 'the file’s copy is newer' : 'a newer '+t+' made on this page is not in the file yet (💾 Save writes it there)');
 }
+// v2.15 (integration): WHAT SETTLES IT, after apHeldWhy. Text, not HTML. `nm` names the appropriation, `then` what to do afterwards
+// ("issue it again"). Two copies standing (item 145) are settled by 💾 Save, which asks which goes into the file: opening the
+// appropriation keeps nothing aside there, so "Open X to settle which one stands" sent the reader to a door that does not settle it.
+function apSettleTxt(k, nm, then){
+  if(apClash(k)) return '💾 Save first (it asks which copy goes into the file), then '+then;
+  return 'Open '+nm+' to settle which one stands (its opening keeps this browser’s work aside), then '+then;
+}
 // v2.14 RV2-B (carry-and-held-lost-on-next-write, carry-then-held-misfire): DOES THE COPY OF k THIS PAGE IS ABOUT TO WRITE HOLD BROWSER
 // STORAGE'S COPY AS IT STANDS? Yes where this page's copy was carried from it (cycCarryHas), or where storage's copy is the newer one
 // and is what was read (apStoreOf). Then storage's text is returned, to be remembered beside what is written (apPut); otherwise
@@ -12337,8 +12344,8 @@ function pkgIssue(ap, quiet){
   // written back over both (pkgPut). Where the one passed over is this browser's own unsaved work, either choice loses something:
   // nothing is issued, and that board's own opening settles it (it keeps that work aside).
   if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }
-    if(hd){ setStat('\u26a0 <b>'+esc(PKG_NAMES[ap]||ap)+' was not issued</b> \u2014 '+esc(apHeldWhy(ap))+'. Open '+esc(PKG_NAMES[ap]||ap)
-      +' to settle which one stands (its opening keeps this browser\u2019s work aside), then issue it again. Nothing was changed.'); return; } }
+    if(hd){ setStat('\u26a0 <b>'+esc(PKG_NAMES[ap]||ap)+' was not issued</b> \u2014 '+esc(apHeldWhy(ap))+'. '+esc(apSettleTxt(ap, PKG_NAMES[ap]||ap, 'issue it again'))
+      +'. Nothing was changed.'); return; } }
   const pack=pkgPackOf(ap);
   let st=pkgStoreOf(ap), fresh=false;
   if(!st && pack){
@@ -12456,8 +12463,9 @@ function pkgPushAll(){
         setStat('\u2b06 Pushed '+done.length+' of '+have.length+' baseline'+(have.length===1?'':'s')
           +' \u2014 '+done.join(', ')+'.'
           +(heldNot.length? ' <b>'+esc(heldNot.join(', '))+' '+(heldNot.length===1? 'was' : 'were')+' not issued</b>: '
-            +esc(heldAp.map(function(a){ return apHeldWhy(a); }).join('; '))+'. Open '+(heldNot.length===1? 'it' : 'each')+' to settle which one '
-            +'stands (its opening keeps this browser\u2019s work aside), then issue it.' : '')
+            +esc(heldAp.map(function(a){ return apHeldWhy(a); }).join('; '))+'. '+(heldAp.some(apClash)? '💾 Save first where two copies stand (it asks which goes into the file); open any other to settle which one stands (its opening keeps this browser\u2019s work aside); then issue it.'
+              : 'Open '+(heldNot.length===1? 'it' : 'each')+' to settle which one '
+            +'stands (its opening keeps this browser\u2019s work aside), then issue it.') : '')
           +' If fewer files were saved than were pushed, your browser blocked the '
           +'extra downloads: allow them and push again, or issue the missing ones one at a time. '
           +'<b>Use \ud83d\udcbe Save now</b> so the record of these issues is in the file.');
@@ -12479,8 +12487,8 @@ function pkgSendBack(ap){
   // v2.14 RV1-B (the check of RV1-B's fixes): as pkgIssue -- pkgStoreOf reads the newer of storage's copy and this page's, so where
   // the one passed over is this browser's unsaved work, the return would carry the other copy and leave that work out of it unsaid
   if(ap!==mySlug()){ let hd=false; try{ hd=!!apStoreOf(ap).held; }catch(e){ hd=false; }
-    if(hd){ setStat('\u26a0 <b>'+esc(nm)+' was not sent back</b> \u2014 '+esc(apHeldWhy(ap))+'. Open '+esc(nm)
-      +' to settle which one stands (its opening keeps this browser\u2019s work aside), then send it back. Nothing was changed.'); return; } }
+    if(hd){ setStat('\u26a0 <b>'+esc(nm)+' was not sent back</b> \u2014 '+esc(apHeldWhy(ap))+'. '+esc(apSettleTxt(ap, nm, 'send it back'))
+      +'. Nothing was changed.'); return; } }
   const st=pkgStoreOf(ap);
   if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
   if(destOwnBlock('Sending '+nm+' back')) return;   // v2.00 (U44): the board it goes back to refuses it
@@ -12763,7 +12771,7 @@ function pkgApply(pkg, fname){
   // replace that work unseen: nothing is taken until that board's own opening has settled it (it keeps that work aside).
   if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }
     if(hd){ alert('NOT IMPORTED \u2014 '+apHeldWhy(ap)+', so taking the package now could lose either one.\n\n'
-      +'Open '+nm+' to settle which one stands (its opening keeps this browser\u2019s work aside), then import the package again. Nothing was changed.');
+      +apSettleTxt(ap, nm, 'import the package again')+'. Nothing was changed.');
       return false; }
     // v2.14 RV2-B (finish, stray-carried-saved): NOR OVER BLANK WORK ITS OWN BOARD KEEPS ASIDE (strayHeld), as ⬆ Issue and ⬆ Send back
     // are refused (RV1-C: a writer leaves it alone and says why). The questions below were asked about that blank work (pkgStoreOf
@@ -24386,7 +24394,7 @@ function bandCopyAll(){
   // and dropped the key before storage's work and the file's copy were put on screen, so the file's copy opened on its old ladder and
   // nothing said the ladder never came (measured; RV1-C had measured the same for blank work). Writing either copy would lose the other
   // (RV1-B), so, as for blank work: no ladder held, and open it once, then copy again.
-  const busyWhy=function(t, slug){ return t+' — '+apHeldWhy(slug)+'. Open '+t+' once (its opening keeps that work aside), then copy the ladder again'; };
+  const busyWhy=function(t, slug){ return t+' — '+apHeldWhy(slug)+'. '+(apClash(slug)? apSettleTxt(slug, t, 'copy the ladder again') : 'Open '+t+' once (its opening keeps that work aside), then copy the ladder again'); };
   const busy=to.filter(p=>p.unsaved), go=to.filter(p=>!p.unsaved);
   const busyTxt=busy.map(p=>busyWhy(p.t, p.slug)).join('; ');
   if(!go.length){ setStat('⚠ The ladder was <b>not copied</b>: '+esc([strayTxt, busyTxt].filter(Boolean).join('; '))+'.'); return; }
@@ -26270,7 +26278,7 @@ function cycCarryHas(k){
 // (carried before they were built, `at`; this page's copy and storage's unchanged since), is saved: storage's copy holds nothing the
 // file lacks, and its record says so -- {file: this save, dirty:false}. Left dirty, that board's opening read storage's copy as unsaved
 // work behind the file's newer one and kept it aside -- and on a browser too full to keep it, did not open the file at all, so the
-// appropriation opened off the cycle it had just been saved on. Written straight to storage, as baseSet writes this board's record;
+// appropriation opened off the cycle it had just been saved on. Written through lsSet ({own}, v2.15), as baseSet writes this board’s record;
 // refused, the record is left as it was and that opening keeps the copy aside, which loses nothing.
 // v2.15 W2 (item 143): 💾 SAVE RECORDS EVERY APPROPRIATION IT WROTE, EXACTLY AS THIS BROWSER HELD IT. Only the board on screen was
 // recorded: after a full import landed and was saved, every other appropriation's record still named no file (the import's records,
@@ -26301,8 +26309,8 @@ function apRecordSaved(snap, wrote){
     });
   }catch(e){}
 }
-// ONE RECORD WRITE: appropriation k's stored copy is in the file this save wrote. Written straight to storage, as baseSet writes this
-// board's (W3 routes it, contract §1.3); refused, the record is left as it was, which loses nothing: that board's opening keeps the copy
+// ONE RECORD WRITE: appropriation k's stored copy is in the file this save wrote. Written through lsSet ({own}), as baseSet writes this
+// board's (v2.15 integration: through lsSet, {own}); refused, the record is left as it was, which loses nothing: that board's opening keeps the copy
 // aside, or opens the file's equal copy. False when it was not written (refused, or the plan is held by the hand-over hold).
 function apBaseSaved(k, wrote){
   try{
@@ -26310,8 +26318,9 @@ function apBaseSaved(k, wrote){
     const key=_SLUGMAP[k].key+'.base';
     let b=null; try{ b=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ b=null; }
     if(!b || typeof b!=='object' || Array.isArray(b)) b={};
-    localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false})));
-    return true;
+    // v2.15 (integration, item 144): through lsSet as this page's own state: refused, it is in Save diagnostics, says nothing (the
+    // copy stays recorded unsaved, which loses nothing) and leaves nothing on screen only
+    return lsSet(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false})), 'This browser’s record of the '+((_SLUGMAP[k]&&_SLUGMAP[k].t)||k)+' plan', {own:true});
   }catch(e){ return false; }
 }
 function cycCarrySaved(wrote, at){
@@ -26460,13 +26469,13 @@ function cycApplyAll(key, opt){
   });
   let carried=false;
   if(W.length){
-    const g0=_sideGen, res=lsAll(W);
+    const res=lsAll(W);
     if(!res.ok){
       // put back whole: nothing was changed, so nothing reads unsaved for it
       // v2.14 (INT-11): lsAll's put-back has already given the page back every mark it had before the call (lsMarksBack); deleting
       // the keys' refusals here too erased one the page held BEFORE -- a package storage had refused stayed on screen only, and
       // leaving the page stopped asking (measured: recovery/v214/w3-cyc-erase-probe.mjs)
-      if(res.back) _sideGen=g0;
+      // v2.15 (integration): lsAll's put-back gives _sideGen back itself (lsMarksBack), so the page sets nothing here
       // v2.14 RV1-B (critic/cyc-all-refused-on-file-route-board, cycle-for-all-refused-on-big-board): A BOARD THAT LIVES IN ITS FILE.
       // On the file route (item 141) the other appropriations' plans are on this page (PUBS), read from the board file, because
       // browser storage cannot hold them all -- and this wrote every one of them into storage at once, so choosing the cycle for every
