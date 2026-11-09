@@ -11009,11 +11009,13 @@ const MUTATIONS = [
   // ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
   // v2.15 W1 (items 137, 138, 139, 146). Each proved against its own check (recovery/v215/proofs-W1.json, proved-W1.jsonl).
   { id: 'v215-w1-retag-moves-all-on', area: "cycRetagPlan", what: "the retag moves every appropriation on the cycle being left, locked or not: Initial Spares (reopened) and OPN (never locked) are moved off PB27 with nothing locked",
-    find: "  const move=on.filter(function(r){ return cycCellOf(r.cycles[from]).s==='locked'; });", repl: "  const move=on.slice();" },
+    // v2.15 review RV-C: retargeted -- the locked ones are the candidates now (cand), each then put through cycApplyAll's own decision
+    find: "  const cand=on.filter(function(r){ return cycCellOf(r.cycles[from]).s==='locked'; });", repl: "  const cand=on.slice();" },
   { id: 'v215-w1-retag-reopened-counts', area: "cycRetagPlan", what: "a lock reopened counts as locked: Initial Spares, which reopened PB27, is retagged as if it had kept the lock",
     find: "return cycCellOf(r.cycles[from]).s==='locked'; });", repl: "return cycCellOf(r.cycles[from]).s!=='none'; });" },
   { id: 'v215-w1-retag-own-only', area: "cycRetagGo", what: "the retag moves the board on screen alone, as it did before: Full Fund, which locked PB27, stays on it and the bar reads Mixed",
-    find: "  return cycApplyAll(to, {only:P.move.map(function(r){ return r.k; }), from:from, left:left});", repl: "  return cycApplyAll(to, {only:P.move.filter(function(r){ return r.own; }).map(function(r){ return r.k; }), from:from, left:left});" },
+    // v2.15 review RV-C: retargeted -- every one that has locked it goes to the writer (cand), with the state of those left (st)
+    find: "  return cycApplyAll(to, {only:P.cand.map(function(r){ return r.k; }), from:from, left:left, st:P.st});", repl: "  return cycApplyAll(to, {only:P.cand.filter(function(r){ return r.own; }).map(function(r){ return r.k; }), from:from, left:left, st:P.st});" },
   { id: 'v215-w1-retag-filter-ignored', area: "cycApplyAll", what: "the retag moves every appropriation holding a plan, as putting every appropriation on a cycle does",
     find: "    if(rt && rt.only.indexOf(r.k)<0){", repl: "    if(false){" },
   { id: 'v215-w1-retag-left-unnamed', area: "cycApplyAll", what: "an appropriation on the cycle being left that has not locked it is left without a word",
@@ -11021,7 +11023,8 @@ const MUTATIONS = [
   { id: 'v215-w1-retag-question-every', area: "cycApplyAll", what: "the retag asks \"Put every appropriation on BES28?\", which it does not do",
     find: "  if(!confirm((rt? 'Retag '+sets.length", repl: "  if(!confirm((false? 'Retag '+sets.length" },
   { id: 'v215-w1-retag-label-count', area: "cycRetagLbl", what: "the button does not say how many it moves: \"Retag it as BES28\" over four appropriations on PB27",
-    find: "  return (P.on.length>1? 'Retag '+P.move.length+' of '+P.on.length+' as ' : (one||'Retag as')+' ')+blLbl(P.to);", repl: "  return (one||'Retag as')+' '+blLbl(P.to);" },
+    // v2.15 review RV-C: retargeted -- the count is its own line now, after the button is refused where nothing moves
+    find: "  return 'Retag '+P.move.length+' of '+P.on.length+' as '+blLbl(P.to);", repl: "  return (one||'Retag as')+' '+blLbl(P.to);" },
   { id: 'v215-w1-retag-lead-own-only', area: "cycRetagLead", what: "Retag … as … under Locks by appropriation moves the board on screen alone",
     find: "  cycRetagGo(cycKeyOk(MS.cycle)? MS.cycle : '', O.lead);", repl: "  cycRetagGo('', O.lead);" },
   { id: 'v215-w1-lock-refusal-gone', area: "cycLock", what: "a plan on BES28 is locked as PB27, keeping BES28’s controls under the name PB27, and nothing says so",
@@ -11382,6 +11385,33 @@ const MUTATIONS = [
   // ==== v2.15 review RV-B ====
   // ==== end v2.15 review RV-B ====
   // ==== v2.15 review RV-C ====
+  // The review of item 139: each proved against its own check (recovery/v215/proofs-RV-C.json, proved-RV-C.jsonl).
+  { id: 'v215-rv-c-button-moves-nothing', area: "cycRetagLbl", what: "a retag button is offered where it moves nothing: \"Retag O&M as BES28\" over a board that has not locked PB27, and OK changes nothing",
+    find: "  if(!P.move.length) return '';\n  if(P.on.length<=1 && P.move.length===1)", repl: "  if(P.on.length<=1 && P.move.length===1)" },
+  { id: 'v215-rv-c-why-unsaid', area: "cycRetagWhy", what: "where no retag is offered, nothing says why or what to do",
+    find: "  return 'Nothing to retag as '+blLbl(P.to)+' yet — '+parts.join('; ');", repl: "  return '';" },
+  { id: 'v215-rv-c-offer-button-always', area: "cycRetagOffer", what: "the opening offer and Locks by appropriation draw a retag button that moves nothing",
+    find: "  if(l) return '<button type=\"button\" class=\"'+cls+'\"", repl: "  if(true) return '<button type=\"button\" class=\"'+cls+'\"" },
+  { id: 'v215-rv-c-count-what-locked', area: "cycRetagCount", what: "\"Retag 2 of 2\" counts an appropriation OK then leaves out (unsaved work behind a newer file, or the shared folder), so OK writes one",
+    find: "  P.move=P.cand.filter(function(r){ return actOf(r).act==='set'; });", repl: "  P.move=P.cand.slice();" },
+  { id: 'v215-rv-c-reopened-row-not-locked', area: "cycRetagGo", what: "an appropriation that reopened its lock is told it has not locked it",
+    find: "left[r.k]=(P.st[r.k]==='open'? 'has reopened '", repl: "left[r.k]=(false? 'has reopened '" },
+  { id: 'v215-rv-c-reopened-state-lost', area: "cycRetagCount", what: "a reopened lock is read as never locked, so the button's reason and the line say \"has not locked\"",
+    find: "P.st[r.k]=cycCellOf(r.cycles[P.from]).s==='open'? 'open' : 'none';", repl: "P.st[r.k]='none';" },
+  { id: 'v215-rv-c-leftsay-one-state', area: "cycApplyAll", what: "the question's line reads every appropriation left as never locked, a reopened one and one reopened in another tab alike",
+    find: "own:p.r.own, st:p.st||((rt.st && rt.st[p.r.k])||'none')}", repl: "own:p.r.own, st:'none'}" },
+  { id: 'v215-rv-c-tab-not-reread', area: "cycApplyAll", what: "a lock reopened in another tab while the retag's question was open is retagged as if it held",
+    find: "  if(rt && rt.from) others.forEach(function(p){ if(p.act!=='set') return;", repl: "  if(false) others.forEach(function(p){ if(p.act!=='set') return;" },
+  { id: 'v215-rv-c-tab-reopened-counts', area: "cycApplyAll", what: "read again after the question, a reopened lock counts as locked, so it is retagged",
+    find: "    if(cycCellOf(cs).s!=='locked'){ p.act='leave';", repl: "    if(cycCellOf(cs).s==='none'){ p.act='leave';" },
+  { id: 'v215-rv-c-tab-leave-unsaid', area: "cycApplyAll", what: "an appropriation left because its lock was reopened in another tab is not named in the result",
+    find: "p.why='reopened in another tab while the question was open'; leaves.push(p); }", repl: "p.why='reopened in another tab while the question was open'; }" },
+  { id: 'v215-rv-c-lock-default-pb', area: "blBody", what: "PPBE cycles opens on a plan on BES28 offering \"Lock … as PB27\", which Lock refuses",
+    find: "  if(blYr===null){ if(cycKeyOk(MS.cycle)){", repl: "  if(blYr===null){ if(false){" },
+  { id: 'v215-rv-c-lock-refusal-no-own', area: "cycLock", what: "a refused lock names only the retag route, never locking the cycle the plan is on",
+    find: "(cycKeyOk(MS.cycle)? ' Or choose '+now+' above to lock the cycle the plan is on.' : '')", repl: "''" },
+  { id: 'v215-rv-c-its-board', area: "cycLeftSay", what: "one appropriation left is told \"lock it on its board\"",
+    find: "(L.length===1? 'it'+again+' on its own' :", repl: "(L.length===1? 'it'+again+' on its' :" },
   // ==== end v2.15 review RV-C ====
   // ==== v2.15 review RV-D ====
   // ==== end v2.15 review RV-D ====

@@ -25717,7 +25717,9 @@ function cycLock(){
     setStat('⚠ <b>Not locked</b> — '+app+'’s plan is on '+now+', so it cannot be locked as '+blLbl(key)+': a lock keeps the controls of the '
       +'cycle the plan is on, and they would be '+now+'’s under the name '+blLbl(key)+'. '
       +((typeof SANDBOX!=='undefined' && SANDBOX)? 'This PMO copy reads '+now+', as the portfolio team published it: lock '+now+' here.'
-        : 'Tag this board '+blLbl(key)+' under PPBE cycles (Working plan is tagged), lock, then retag.'));
+        : 'Tag this board '+blLbl(key)+' under PPBE cycles (Working plan is tagged), lock, then retag.'
+          // v2.15 review RV-C (C4): or lock the cycle the plan is on
+          +(cycKeyOk(MS.cycle)? ' Or choose '+now+' above to lock the cycle the plan is on.' : '')));
     return;
   }
   MS.years[MS.cur]=S;
@@ -25799,7 +25801,10 @@ function cycLock(){
     +(MS.cycle===key? ' The working plan is '+(fromTag? 'still tagged '+blLbl(key) : 'now tagged '+blLbl(key)
       +(moves.length? ' ('+moves.length+' budget figure'+(moves.length===1? '' : 's')+' now read from its position)' : ''))
       // v2.15 W1 (item 139): the button moves every appropriation that has locked it, and says how many
-      +' — <button class="qb" onclick="cycRetagNext()">🏷 '+cycRetagLbl(cycRetagPlan(key, blKey(cycNextOf(key).cyc, cycNextOf(key).yr)), 'Retag it as')+'</button> when the next cycle opens, and what you allocate from then on is its delta.' : '')
+      // v2.15 review RV-C (C1): the button only when something moves; else why not
+      +(function(){ const P=cycRetagPlan(key, blKey(cycNextOf(key).cyc, cycNextOf(key).yr)), l=cycRetagLbl(P, 'Retag it as');
+        return l? ' — <button class="qb" onclick="cycRetagNext()">🏷 '+l+'</button> when the next cycle opens, and what you allocate from then on is its delta.'
+          : (cycRetagWhy(P)? ' '+cycRetagWhy(P)+'.' : ''); })() : '')
     +(yet.length? ' <b>Not locked as '+blLbl(key)+' yet:</b> '+yet.map(function(r){ return esc(r.name); }).join(', ')
       +' — each is locked on its own board (the table under PPBE cycles goes to it).' : ''));
 }
@@ -25887,7 +25892,9 @@ function cycOverviewHtml(){
   if(behind.length) h+='<div class="hint cyc-ov-step">⚠ '+behind.map(function(r){ return '<b>'+esc(r.name)+'</b> is '+(r.tag? 'still tagged '+tagTxt(r) : 'not tagged'); }).join('; ')
     +'; '+on.map(function(r){ return esc(r.name); }).join(', ')+(on.length===1? ' is ' : ' are ')+'on <b>'+blLbl(O.lead)+'</b>. '
     // v2.15 W1 (item 139): every appropriation on this board's cycle that has locked it, and the button says how many
-    +'The appropriations follow one calendar'+(behind.some(function(r){ return r.own; })? ' — <button type="button" class="qb" onclick="cycRetagLead()">🏷 '+cycRetagLbl(cycRetagPlan(cycKeyOk(MS.cycle)? MS.cycle : '', O.lead), 'Retag '+esc(appnName(mySlug()))+' as')+'</button>' : '')+'.'
+    // v2.15 review RV-C (C1): the button only when something moves; else why not
+    +'The appropriations follow one calendar'+(function(){ if(!behind.some(function(r){ return r.own; })) return '';
+      const x=cycRetagOffer(cycRetagPlan(cycKeyOk(MS.cycle)? MS.cycle : '', O.lead), 'Retag '+esc(appnName(mySlug()))+' as', 'cycRetagLead()', 'qb'); return x? (/^<button/.test(x)? ' — ' : '. ')+x : ''; })()+'.'
     // v2.13 (item 136): or every appropriation at once, as the PPBE cycle at the top does
     +(sb? '' : ' <span class="cyc-ov-all">'+cycOfferHtml(cycAll())+'</span>')+'</div>';
   return h+'</div>';
@@ -26348,18 +26355,13 @@ function cycCarrySaved(wrote, at){
 // Every other appropriation is left as it is -- one on the cycle being left that has not locked it is named with why, the rest
 // (another cycle, no plan) are left alone -- and the question and the result say "retag" rather than "every appropriation". The
 // writer, the read-again after the question, the one lsAll and the journal lines are this function's own, unchanged.
-function cycApplyAll(key, opt){
-  key=(key==null)? '' : String(key);
-  const rt=(opt && typeof opt==='object' && Array.isArray(opt.only))? opt : null;
-  if(typeof SANDBOX!=='undefined' && SANDBOX){
-    setStat('The PPBE cycle is chosen on the portfolio board: this PMO copy reads '+(MS.cycle? blLbl(MS.cycle) : 'no PPBE cycle')+', as published.');
-    return false;
-  }
-  if(cycBlock('Changing the PPBE cycle')) return false;              // lsSet refuses no other appropriation's key in a view
-  if(key && !cycKeyOk(key)){ setStat('⚠ <b>'+esc(key)+'</b> is not a PPBE cycle. Nothing was changed.'); return false; }
-  if(impMixedBlock('Changing the PPBE cycle')) return false;          // nothing is written into a stopped import's mix
+// v2.15 review RV-C (C2): WHAT cycApplyAll WOULD DO WITH EACH APPROPRIATION, decided before the question, in one place. The retag's
+// button counted the appropriations that had locked the cycle ("Retag 2 of 4") while cycApplyAll then left out one this browser holds
+// unsaved work for behind a newer file, one in the shared folder (moved on its own board) or one whose plan cannot be read -- so the
+// button promised two and OK wrote one. The label (cycRetagPlan) and the writer read this, so the count is what OK writes. Reads only:
+// nothing is written, and the copies it makes are thrown away by a caller that only counts. The rule is cycApplyAll's, unchanged.
+function cycApplyPlanOf(key, rt){
   let fold=false; try{ fold=!!driveStoreOn(); }catch(e){}
-  _cycAllMemo=null;
   const A=cycAll(), plan=[];
   A.rows.forEach(function(r){
     if(r.why){ plan.push({r:r, act:'skip', why:r.why}); return; }       // never read as "holds no plan"
@@ -26396,15 +26398,29 @@ function cycApplyAll(key, opt){
     // v2.14 RV1-B: whether the copy read holds browser storage's copy -- read from it, or this page's carried from it (cycCarryHas)
     plan.push({r:r, act:'set', st:st, base:base, fromFile:fromFile, fromLs:raw0!==null && (!fromFile || cycCarryHas(r.k)), raw0:raw0, base0:base0});
   });
+  return {A:A, plan:plan, fold:fold};
+}
+function cycApplyAll(key, opt){
+  key=(key==null)? '' : String(key);
+  const rt=(opt && typeof opt==='object' && Array.isArray(opt.only))? opt : null;
+  if(typeof SANDBOX!=='undefined' && SANDBOX){
+    setStat('The PPBE cycle is chosen on the portfolio board: this PMO copy reads '+(MS.cycle? blLbl(MS.cycle) : 'no PPBE cycle')+', as published.');
+    return false;
+  }
+  if(cycBlock('Changing the PPBE cycle')) return false;              // lsSet refuses no other appropriation's key in a view
+  if(key && !cycKeyOk(key)){ setStat('⚠ <b>'+esc(key)+'</b> is not a PPBE cycle. Nothing was changed.'); return false; }
+  if(impMixedBlock('Changing the PPBE cycle')) return false;          // nothing is written into a stopped import's mix
+  _cycAllMemo=null;
+  const PL=cycApplyPlanOf(key, rt), A=PL.A, plan=PL.plan;   // v2.15 review RV-C (C2): the one decision, read by the label too
   const sets=plan.filter(function(p){ return p.act==='set'; }), skips=plan.filter(function(p){ return p.act==='skip'; }),
         later=plan.filter(function(p){ return p.act==='later'; }), leaves=plan.filter(function(p){ return p.act==='leave'; });
   const say=function(p){ return p.r.name+(p.r.own? ' (this board)' : ''); };
   // v2.15 W1 (item 139): what a retag leaves on the cycle being left, and the way out -- "Full Fund and Spares have not locked PB27:
   // lock each on its own board, then retag."
+  // v2.15 review RV-C (C1, C3, C5): one reopened, or reopened in another tab while the question was open, is told apart from one never
+  // locked (cycLeftSay, which the button's reason reads too)
   const leftSay=function(html){ if(!leaves.length) return '';
-    const nm=leaves.map(function(p){ return html? '<b>'+esc(p.r.name)+'</b>' : p.r.name; }), f=rt.from? (html? blLbl(rt.from) : blLblTxt(rt.from)) : '';
-    return (nm.length>1? nm.slice(0,-1).join(', ')+' and '+nm[nm.length-1] : nm[0])+' '+(nm.length===1? 'has' : 'have')+' not locked '+f
-      +': lock '+(nm.length===1? 'it on its' : 'each on its own')+' board, then retag.'; };
+    return cycLeftSay(leaves.map(function(p){ return {name:p.r.name, own:p.r.own, st:p.st||((rt.st && rt.st[p.r.k])||'none')}; }), rt.from, html); };
   if(rt && !sets.length){
     setStat('🏷 Nothing was retagged'+(leaves.length? ': '+leftSay(true) : skips.length? ': '+skips.map(function(p){ return '<b>'+esc(p.r.name)+'</b> — '+esc(p.why); }).join('; ')+'.'
       : ' — every appropriation that has locked '+(rt.from? blLbl(rt.from) : 'it')+' is already '+(key? 'on <b>'+blLbl(key)+'</b>' : 'untagged')+'.'));
@@ -26446,9 +26462,17 @@ function cycApplyAll(key, opt){
     let raw1=null, base1=null;
     try{ raw1=localStorage.getItem(_SLUGMAP[p.r.k].key); base1=localStorage.getItem(_SLUGMAP[p.r.k].key+'.base'); }catch(e){ raw1=undefined; }
     if(raw1!==p.raw0 || base1!==p.base0){ p.act='skip'; p.why=p.r.name+' was saved in another tab while the question was open'; skips.push(p); } });
-  for(let i=others.length-1;i>=0;i--) if(others[i].act==='skip') others.splice(i,1);
-  for(let i=sets.length-1;i>=0;i--) if(sets[i].act==='skip') sets.splice(i,1);
-  if(!sets.length){ setStat('🏷 Nothing was changed: '+skips.map(function(p){ return '<b>'+esc(p.r.name)+'</b> — '+esc(p.why); }).join('; ')+'.'); render(); return false; }
+  // v2.15 review RV-C (C3): A RETAG READS THE LOCK AGAIN TOO. The plan and its record were read again, but not the cycle store: a lock
+  // reopened in another tab while the question was open was still retagged, as if it held. Read as its board opens it (cycStoreOf); one
+  // no longer locked is left on the cycle being left, and named.
+  if(rt && rt.from) others.forEach(function(p){ if(p.act!=='set') return;
+    let c=null; try{ c=cycStoreOf(p.r.k).c; }catch(e){ c=null; }
+    const cs=(c && c.cycles && typeof c.cycles==='object')? c.cycles[rt.from] : null;
+    if(cycCellOf(cs).s!=='locked'){ p.act='leave'; p.st='tab'; p.why='reopened in another tab while the question was open'; leaves.push(p); } });
+  for(let i=others.length-1;i>=0;i--) if(others[i].act==='skip' || others[i].act==='leave') others.splice(i,1);
+  for(let i=sets.length-1;i>=0;i--) if(sets[i].act==='skip' || sets[i].act==='leave') sets.splice(i,1);
+  if(!sets.length){ setStat('🏷 Nothing was changed: '+skips.map(function(p){ return '<b>'+esc(p.r.name)+'</b> — '+esc(p.why); }).join('; ')
+    +(leaves.length? (skips.length? '; ' : '')+leftSay(true).replace(/\.$/, '') : '')+'.'); render(); return false; }   // v2.15 review RV-C (C3)
   const now=Date.now(), by=whoAmI()||'unknown', W=[];
   others.forEach(function(p){
     const st=p.st, was=(typeof st.cycle==='string')? st.cycle : '', k=_SLUGMAP[p.r.k].key;
@@ -27567,23 +27591,78 @@ function cycRetagNext(){
 // An untagged board has nothing locked to leave: it is moved alone, as the retag always moved it.
 function cycRetagPlan(from, to){
   const O=cycOverview(), own=O.rows.filter(function(r){ return r.own; })[0];
-  if(!from){ const on=own? [own] : []; return {from:'', to:to, on:on, move:on, left:[]}; }
+  if(!from){ const on=own? [own] : []; return cycRetagCount({from:'', to:to, on:on, cand:on, left:[]}); }
   const on=O.rows.filter(function(r){ return r.held && r.tag===from; });
-  const move=on.filter(function(r){ return cycCellOf(r.cycles[from]).s==='locked'; });
-  return {from:from, to:to, on:on, move:move, left:on.filter(function(r){ return move.indexOf(r)<0; })};
+  const cand=on.filter(function(r){ return cycCellOf(r.cycles[from]).s==='locked'; });
+  return cycRetagCount({from:from, to:to, on:on, cand:cand, left:on.filter(function(r){ return cand.indexOf(r)<0; })});
 }
-// The button's words: how many it moves, of those on the cycle being left ("Retag 2 of 4 as BES28"); one alone keeps its own words.
-// html: blLbl's escaped label, for markup. `one` is the words for a single appropriation ("Retag it as", "Retag O&M as").
+// v2.15 review RV-C (C2): THE COUNT IS WHAT OK WRITES. Each that has locked the cycle (cand) is put through cycApplyAll's own decision
+// (cycApplyPlanOf): move = those it would write; skip (unsaved work behind a newer file, a plan that cannot be read) and later (the
+// shared folder: moved on its own board) are counted apart and named by the question, never in "Retag N".
+function cycRetagCount(P){
+  let plan=[];
+  if(P.cand.length && cycKeyOk(P.to)) try{ plan=cycApplyPlanOf(P.to, {only:P.cand.map(function(r){ return r.k; })}).plan; }catch(e){ plan=[]; }
+  const actOf=function(r){ const x=plan.filter(function(p){ return p.r.k===r.k; })[0]; return x? x : {act:'skip', why:'its saved plan could not be read'}; };
+  P.move=P.cand.filter(function(r){ return actOf(r).act==='set'; });
+  P.skip=P.cand.filter(function(r){ return actOf(r).act==='skip'; }).map(function(r){ return {r:r, why:actOf(r).why}; });
+  P.later=P.cand.filter(function(r){ return actOf(r).act==='later'; });
+  P.st={}; P.left.forEach(function(r){ P.st[r.k]=cycCellOf(r.cycles[P.from]).s==='open'? 'open' : 'none'; });
+  return P;
+}
+// What a retag leaves on the cycle being left, and the way out: "OPN has not locked PB27, and Initial Spares has reopened it: lock each on
+// its own board, then retag." L: [{name, st, own}], st 'none' (never locked), 'open' (reopened), 'tab' (reopened in another tab while
+// the question was open). One alone on screen is told "lock it, then retag".
+function cycLeftSay(L, from, html){
+  if(!L || !L.length) return '';
+  const f=from? (html? blLbl(from) : blLblTxt(from)) : '';
+  const nm=function(a){ const n=a.map(function(x){ return html? '<b>'+esc(x.name)+'</b>' : x.name; }); return n.length>1? n.slice(0,-1).join(', ')+' and '+n[n.length-1] : n[0]; };
+  const g=function(st){ return L.filter(function(x){ return x.st===st; }); };
+  const a=g('none'), b=g('open'), c=g('tab'), parts=[];
+  if(a.length) parts.push(nm(a)+' '+(a.length===1? 'has' : 'have')+' not locked '+f);
+  if(b.length) parts.push(nm(b)+' '+(b.length===1? 'has' : 'have')+' reopened '+(parts.length? 'it' : f));
+  if(c.length) parts.push(nm(c)+' '+(c.length===1? 'had its' : 'had their')+' '+f+' lock reopened in another tab while the question was open');
+  const again=!a.length? ' again' : '';
+  return (parts.length>1? parts.slice(0,-1).join(', ')+', and '+parts[parts.length-1] : parts[0])
+    +': lock '+((L.length===1 && L[0].own)? 'it'+again : (L.length===1? 'it'+again+' on its own' : 'each'+again+' on its own')+' board')+', then retag.';
+}
+// The button's words: how many it moves, of those on the cycle being left ("Retag 2 of 4 as BES28"); exactly one moving, and the only
+// one on that cycle, keeps its own words. html: blLbl's escaped label, for markup. `one` is the words for the board on screen alone
+// ("Retag it as", "Retag O&M as"). v2.15 review RV-C (C1): '' when nothing would move -- the button is never offered then.
 function cycRetagLbl(P, one){
-  return (P.on.length>1? 'Retag '+P.move.length+' of '+P.on.length+' as ' : (one||'Retag as')+' ')+blLbl(P.to);
+  if(!P.move.length) return '';
+  if(P.on.length<=1 && P.move.length===1) return (P.move[0].own? (one||'Retag as') : 'Retag '+esc(P.move[0].name)+' as')+' '+blLbl(P.to);
+  return 'Retag '+P.move.length+' of '+P.on.length+' as '+blLbl(P.to);
+}
+// v2.15 review RV-C (C1): WHY NOTHING WOULD MOVE, said where the button would be. A button that promised a retag and then moved nothing
+// ("Retag O&M as BES28" on a board that had not locked PB27, or had reopened it) is gone: it says what to do instead. The context bar's
+// "Put every appropriation on …" still moves a board that has not locked (item 139: the retag moves only what has locked).
+function cycRetagWhy(P){
+  if(P.move.length) return '';
+  const parts=[];
+  const L=P.left.map(function(r){ return {name:r.name, own:r.own, st:P.st[r.k]||'none'}; });
+  if(L.length) parts.push(cycLeftSay(L, P.from, true).replace(/\.$/, ''));
+  P.skip.forEach(function(x){ parts.push('<b>'+esc(x.r.name)+'</b> — '+esc(x.why)); });
+  if(P.later.length) parts.push('<b>'+esc(P.later.map(function(r){ return r.name; }).join(', '))+'</b>, in the shared folder, '
+    +(P.later.length===1? 'is' : 'are')+' retagged on '+(P.later.length===1? 'its own board' : 'their own boards'));
+  if(!parts.length) return '';
+  return 'Nothing to retag as '+blLbl(P.to)+' yet — '+parts.join('; ');
+}
+// The offer, wherever a retag is offered: the button when something moves, else why not (no period: the caller ends the sentence)
+function cycRetagOffer(P, one, click, cls){
+  const l=cycRetagLbl(P, one);
+  if(l) return '<button type="button" class="'+cls+'" onclick="'+click+'">'+(cls==='qb'? '🏷 ' : '')+l+'</button>';
+  const w=cycRetagWhy(P);
+  return w? '<span class="cyc-retag-why">'+w+'</span>' : '';
 }
 function cycRetagGo(from, to){
   if(cycBlock('Retagging the working plan')) return false;
   if(typeof SANDBOX!=='undefined' && SANDBOX){ setStat('The PPBE cycle is chosen on the portfolio board: this PMO copy reads '+(MS.cycle? blLbl(MS.cycle) : 'no PPBE cycle')+', as published.'); render(); return false; }
   if(!cycKeyOk(to)){ setStat('⚠ <b>'+esc(to)+'</b> is not a PPBE cycle. Nothing was changed.'); return false; }
   const P=cycRetagPlan(from, to), left={};
-  P.left.forEach(function(r){ left[r.k]='has not locked '+blLblTxt(from)+': lock it on its own board, then retag'; });
-  return cycApplyAll(to, {only:P.move.map(function(r){ return r.k; }), from:from, left:left});
+  // v2.15 review RV-C (C1): reopened is told apart from never locked
+  P.left.forEach(function(r){ left[r.k]=(P.st[r.k]==='open'? 'has reopened '+blLblTxt(from)+': lock it again' : 'has not locked '+blLblTxt(from)+': lock it')+' on its own board, then retag'; });
+  // every one that has locked it goes to the writer, so each it then passes over (skip, later) is named by its question
+  return cycApplyAll(to, {only:P.cand.map(function(r){ return r.k; }), from:from, left:left, st:P.st});
 }
 let cycChgOpen=false;
 function toggleCycChg(){ cycChgOpen=!cycChgOpen; render(); }
@@ -27849,7 +27928,9 @@ function blBody(){
   bg.className='modal-bg'+(blOpen?' open':'');
   if(!blOpen){ el.innerHTML=''; return; }
   if(!_apFold && apFoldOn()) apFoldRead();     // v2.15 W4 (item 131): Locks by appropriation reads the folder's copies, once per opening
-  if(blYr===null) blYr=MS.cur;
+  // v2.15 review RV-C (C4): the lock's target starts on the cycle the plan is on -- it started on PB of the year on screen, so a plan on
+  // BES28 opened offering "Lock … as PB27", which Lock refuses
+  if(blYr===null){ if(cycKeyOk(MS.cycle)){ const q=String(MS.cycle).split('|'); blCyc=q[0]; blYr=parseInt(q[1],10)||MS.cur; } else blYr=MS.cur; }
   const keys=blList();
   const money=v=> Math.abs(v||0)<500? '<span class="z">—</span>' : fM(v);
   const fyl=y=>'FY'+(y%100);
@@ -27871,7 +27952,11 @@ function blBody(){
     +PPBE_CYCLES.map(c=>'<option value="'+c+'"'+(wc[0]===c?' selected':'')+'>'+c+'</option>').join('')+'</select>'
     +'<input'+((typeof SANDBOX!=='undefined' && SANDBOX)? ' disabled' : '')+' style="width:64px" value="'+esc(wc[1])+'" title="cycle year" onchange="cycSetWorking(null, this.value)">'
     // v2.15 W1 (item 139): every appropriation on it that has locked it, and the button says how many
-    +((MS.cycle && MS.cycle===MS.cycleRef)? ' <button class="qb" onclick="cycRetagNext()" title="the working plan is still tagged as the cycle it was locked as; every appropriation on it that has locked it moves with it">🏷 '+cycRetagLbl(cycRetagPlan(MS.cycle, blKey(cycNextOf(MS.cycle).cyc, cycNextOf(MS.cycle).yr)))+'</button>' : '')
+    // v2.15 review RV-C (C1): shown whenever the plan is still on the cycle it was locked as -- including after that lock was reopened,
+    // when it moves nothing: then it says why instead
+    +((MS.cycle && MS.cycle===MS.cycleRef)? (function(){ const P=cycRetagPlan(MS.cycle, blKey(cycNextOf(MS.cycle).cyc, cycNextOf(MS.cycle).yr)), l=cycRetagLbl(P);
+      return l? ' <button class="qb" onclick="cycRetagNext()" title="the working plan is still tagged as the cycle it was locked as; every appropriation on it that has locked it moves with it">🏷 '+l+'</button>'
+        : (cycRetagWhy(P)? ' <span class="hint cyc-retag-why">'+cycRetagWhy(P)+'.</span>' : ''); })() : '')
     +'<span style="margin-left:14px">deltas read against</span>'
     +'<select style="font-size:10px;padding:3px 6px" onchange="MS.cycleRef=this.value;save();render()" title="The locked cycle the working plan’s changes are measured from">'
     +'<option value=""'+(MS.cycleRef?'':' selected')+'>(none)</option>'
@@ -42653,7 +42738,8 @@ try{ const O=cycOverview(), me=O.rows.filter(function(r){ return r.own; })[0], A
         // v2.13 (item 136): "the others are on X" only where they are; where they disagree among themselves, the latest in use
         +(A.rows.every(function(r){ return r.own || !r.counts || r.tag===O.lead; })? ', and the other appropriations are on <b>' : ', and the latest cycle in use is <b>')
         +blLbl(O.lead)+'</b>. '
-        +'<button type="button" class="nb lnk" onclick="cycRetagLead()">'+cycRetagLbl(cycRetagPlan(cycKeyOk(MS.cycle)? MS.cycle : '', O.lead), 'Retag '+esc(appnName(mySlug()))+' as')+'</button>. ' : '')
+        // v2.15 review RV-C (C1): the button only when something moves; else why not
+        +(function(){ const x=cycRetagOffer(cycRetagPlan(cycKeyOk(MS.cycle)? MS.cycle : '', O.lead), 'Retag '+esc(appnName(mySlug()))+' as', 'cycRetagLead()', 'nb lnk'); return x? x+'. ' : ''; })() : '')
       +(A.mixed? '<b>The appropriations are on different PPBE cycles</b>: '+cycMixedSay(A)+'. '+cycOfferHtml(A) : '')); } }catch(e){}
 // v2.12 (item 132): a 2026 estimate's alignment healed on opening is said once, after everything opening had to say
 ACE_BOOTED=true;
