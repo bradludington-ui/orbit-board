@@ -20748,6 +20748,103 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== v2.15 integration (the lead) ====
 // ==== end v2.15 integration ====
 // ==== v2.15 review RV-A ====
+// v2.15 review RV-A (A1, A2): kept work on another requirement list is never put back on this page, and a stopped Save whose own
+// save() browser storage refused never writes this page's plan over another tab's copy. FAILS ON dbfc7c4 but where a check says CONTROL.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 review RV-A — kept work on another requirement list is saved as a file, never put back here; a stopped Save leaves another tab’s copy (A1, A2)';
+  try {
+    const { J, XSC, view, keptRaw } = W215;
+    const ids = ev => JSON.parse(ev(`JSON.stringify(DATA.items.map(function(i){ return i.id; }))`));
+    const bOf = ev => JSON.parse(ev(`JSON.stringify({data:DATA.items.map(function(i){ return i.id; }), order:S.order, notes:S.notes||{},
+      custom:(S.custom||[]).map(function(c){ return c.id+':'+(c.event||''); }), alloc:(S.alloc||{}).C||null})`));
+    const cap = ev => w14ev(ev, `(function(){ let cap=null; const _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      const _u=URL.createObjectURL; URL.createObjectURL=function(){ return 'blob:x'; }; try{ keptSaveFile(); }catch(e){} window.Blob=_B; URL.createObjectURL=_u; return cap||''; })()`);
+    // A1. board B in this browser, unsaved: its order changed (C,A,B), a note, an added requirement and an allocation
+    {
+      const Z = w14board({ appn: 'O&M' });
+      Z.ev(`S.order=['C','A','B']; S.notes=S.notes||{}; S.notes.B='B NOTE'; MS.years[MS.cur]=S; save(); reqCreate('PSM',{event:'B ADDED',ask:[5,5,5]}); setAlloc('C','100'); save(); 'ok'`);
+      const zb = bOf(Z.ev);
+      const ls = Object.assign(w14ls(Z.ev), { 'prio27om.base': J({ file: 1700000000123, dirty: true }) });
+      await w14pause(15);
+      const X = w14board({ appn: 'O&M' }, XSC);
+      X.ev(`S.notes=S.notes||{}; S.notes.X1='FILE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+      const FILE = X.ev('buildSavedHtml()');
+      chk(name, 'A1 the fixture', 'board B: its list A,B,C, order C,A,B and the added one, a note, an added requirement, an allocation (a CONTROL)',
+        J([zb.data.filter(i => !/^NEW-/.test(i)), zb.order, zb.notes, zb.custom, zb.alloc && zb.alloc.v]), J([['A', 'B', 'C'], ['C', 'A', 'B', 'NEW-1'], { B: 'B NOTE' }, ['NEW-1:B ADDED'], 100]));
+      const R = boot({ html: FILE, ls });
+      await w14pause(30);
+      const v0 = view(R.ev);
+      chk(name, 'A1 opened', 'the newer file of board A opens on its own list, and B’s plan is kept aside whole (a CONTROL)',
+        J([v0.data, v0.order, keptRaw(R.ev) === ls.prio27om]), J([['X1', 'X2'], ['X1', 'X2'], true]));
+      const h0 = w14statHtml(R.ev);
+      chk(name, 'A1 the offer', 'the opening offers to save the kept work as a file (or discard it), never to put it back on this list',
+        J([/keptSaveFile\(\)/.test(h0), /keptDiscard\(\)/.test(h0), /keptPutBack\(\)/.test(h0), /another requirement list/.test(h0)]), J([true, true, false, true]));
+      w14wire(R.ev, 'true');
+      const ls0 = w14ls(R.ev), sc0 = J(bOf(R.ev));
+      w14ev(R.ev, 'keptPutBack()');
+      await w14pause(10);
+      const ls1 = w14ls(R.ev);
+      chk(name, 'A1 put it back', 'refused, asking nothing: browser storage and the kept slot exactly as they were, the screen unchanged',
+        J([w14q(R.ev).length, J(ls1) === J(ls0), ls1['prio27om.kept'] === ls0['prio27om.kept'], J(bOf(R.ev)) === sc0]), J([0, true, true, true]));
+      chk(name, 'A1 put it back', 'and it says the kept work is another requirement list’s, offering a file of its own',
+        J([/another requirement list/.test(w14stat(R.ev)), /keptSaveFile\(\)/.test(w14statHtml(R.ev))]), J([true, true]));
+      // the file it is saved as opens, in a fresh browser, as board B whole
+      const K = cap(R.ev);
+      chk(name, 'A1 the file', 'save it as a file builds a board file, and the kept work is still kept', J([/id="pubState"/.test(K), keptRaw(R.ev) === ls.prio27om]), J([true, true]));
+      const F = boot({ html: K });
+      await w14pause(20);
+      const fb = bOf(F.ev);
+      chk(name, 'A1 the file', 'opened as its own board it is B whole: B’s list, order C,A,B and the added one, the note, the added requirement, the allocation',
+        J([fb.data.filter(i => !/^NEW-/.test(i)), fb.order, fb.notes, fb.custom, fb.alloc && fb.alloc.v]), J([['A', 'B', 'C'], ['C', 'A', 'B', 'NEW-1'], { B: 'B NOTE' }, ['NEW-1:B ADDED'], 100]));
+    }
+    // A1 CONTROL: kept work on this page's own list is offered back, and put back, as before
+    {
+      const Z = w14board({ appn: 'O&M' });
+      Z.ev(`S.notes=S.notes||{}; S.notes.A='KEPT note'; MS.years[MS.cur]=S; save(); 'ok'`);
+      const ls = Object.assign(w14ls(Z.ev), { 'prio27om.base': J({ file: 1700000000123, dirty: true }) });
+      await w14pause(15);
+      const X = w14board({ appn: 'O&M' });
+      X.ev(`S.notes=S.notes||{}; S.notes.B='FILE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+      const R = boot({ html: X.ev('buildSavedHtml()'), ls });
+      await w14pause(30);
+      const h0 = w14statHtml(R.ev);
+      w14wire(R.ev, 'true');
+      w14ev(R.ev, 'keptPutBack()');
+      await w14pause(10);
+      chk(name, 'A1 control', 'kept work on this board’s own list: offered back, and put back (a CONTROL)',
+        J([/keptPutBack\(\)/.test(h0), ids(R.ev), JSON.parse(R.ev('JSON.stringify(S.notes||{})')).A || '']), J([true, ['A', 'B', 'C'], 'KEPT note']));
+    }
+    // A2. a Save stopped before it writes, whose own save() browser storage refused, leaves another tab's copy standing
+    {
+      const H = W1H;
+      const F1 = H.baseFile('Brad', H.KEY.brad);
+      const P = boot({ html: F1 });
+      H.wire(P.ev, 'Brad', H.KEY.brad);
+      await H.pause(30);
+      // another tab typed a note; its save() put it in browser storage, recorded unsaved
+      P.ev(`(function(){ const st=JSON.parse(JSON.stringify((MS.years[MS.cur]=S, MS))); const y=st.years[st.cur]; y.notes=y.notes||{};
+        y.notes.A='OTHER TAB WORK'; st.ts=Date.now()+50; st.by='Ann';
+        localStorage.setItem('prio27om', JSON.stringify(st)); localStorage.setItem('prio27om.base', JSON.stringify({file:0, folder:{}, dirty:true})); return 'ok'; })()`);
+      const other = P.ev(`localStorage.getItem('prio27om')`);
+      // storage is full: this page's plan as it is fits, the same plan with Save's new save-log entry does not
+      const lim = +P.ev(`JSON.stringify((MS.years[MS.cur]=S, MS)).length`);
+      P.ev(`(function(){ const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){
+        if(k==='prio27om' && String(v).length>${lim}) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return _si.call(this, k, v); }; return 'ok'; })()`);
+      const f = H.disk(P.w, F1); f.failOpen = w14err('NotAllowedError');
+      try { await P.ev('saveInPlaceFile()'); } catch (e) {}
+      await H.pause(50);
+      chk(name, 'A2 the fixture', 'the Save stopped before it wrote: the browser refused write access (a CONTROL)', J([f.writes, /read-only for you/.test(H.status(P.ev))]), J([0, true]));
+      chk(name, 'A2 the other tab', 'browser storage still holds the other tab’s copy, its note and all: this page’s plan was not written over it',
+        J([P.ev(`localStorage.getItem('prio27om')`) === other, /OTHER TAB WORK/.test(P.ev(`localStorage.getItem('prio27om')`) || '')]), J([true, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.15 review RV-A ====
 // ==== v2.15 review RV-B ====
 // ==== end v2.15 review RV-B ====

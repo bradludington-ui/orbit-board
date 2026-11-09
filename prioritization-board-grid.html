@@ -8806,6 +8806,29 @@ function keptWhere(m){ return (m&&m.why)==='folder'? 'the shared folder' : 'the 
 // v2.00 (U19): the count of changes (_saveGen) just after a copy kept at a put-back, saved when it was kept, was put back in its
 // turn; -1 when the last put-back was of anything else. While the count stays there, what is on screen is that copy, unchanged.
 let _putSavedGen=-1;
+// v2.15 review RV-A (A1): DOES THE KEPT COPY CARRY ANOTHER REQUIREMENT LIST THAN THIS PAGE'S? Item 142 keeps another board's unsaved
+// work aside when a newer board file opens with its own list (DATA, a const, is the file's). Put back on this page, that plan stood
+// against this page's list: its order was normalised to this list's ids, its added requirements were drawn on this board, and the
+// swap wrote the screen over the kept slot -- the one whole copy of the other board was gone (measured). It can only be opened as its
+// own board: keptSaveFile writes a board file carrying the kept copy's own list. Compared by the set of requirement ids (dataPackOf
+// writes BASE_ITEMS'); a copy with no list of its own, or a page whose list is the consolidated payload's, is never refused. `st` the
+// kept copy, parsed. Never throws.
+function keptOtherList(st){
+  try{
+    if(_hasData(APPNS[APPN])) return false;
+    if(!st || typeof st!=='object' || !_hasData(st.dataPack)) return false;
+    const ids=a=>(Array.isArray(a)? a : []).map(i=>String(i&&i.id)).sort().join('\u0001');
+    return ids(st.dataPack.items)!==ids(BASE_ITEMS);
+  }catch(e){ return false; }
+}
+function keptOtherListNow(){ try{ const k=keptCopy(); return !!(k && keptOtherList(JSON.parse(k.raw))); }catch(e){ return false; } }
+// What the opening and its notes offer for kept work: put back only where it can be put back on this page.
+function keptOfferHtml(){
+  if(keptOtherListNow()) return 'it belongs to another requirement list, so it is not put back here: '
+    +'<button type="button" class="nb lnk" onclick="keptSaveFile()">save it as a file</button> and open that as its own board, or '
+    +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>';
+  return '<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time)';
+}
 function keptPutBack(){
   // v2.00 (U10): NOT IN A LOCKED VIEW. Putting kept work back replaces the working plan, which a view does not hold: in a view it
   // asked to keep "what is on screen" -- the locked cycle -- aside in its place, wrote the cycle into the kept slot over the kept
@@ -8813,6 +8836,16 @@ function keptPutBack(){
   if(cycBlock('Putting back the work kept aside')) return;
   const k=keptCopy();
   if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
+  // v2.15 review RV-A (A1): KEPT WORK ON ANOTHER REQUIREMENT LIST IS NEVER PUT BACK ON THIS ONE. Refused before anything is asked or
+  // changed: the kept slot, browser storage and the screen stay as they are, and the way to it is a file of its own.
+  { let kst=null; try{ kst=JSON.parse(k.raw); }catch(e){ kst=null; }
+    if(kst && keptOtherList(kst)){
+      setStat('⚠ <b>Not put back.</b> The work kept aside on '+esc(fmtTs(k.meta.t))+' belongs to <b>another requirement list</b> than this board’s, '
+        +'so it cannot be put back on this page. Nothing was changed: it is still kept, and what is on screen is unchanged. '
+        +'<button type="button" class="nb lnk" onclick="keptSaveFile()">Save it as a file</button> and open that file as its own board, or '
+        +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>.');
+      render(); return;
+    } }
   // v2.00 (U2): NOT WHILE A SAVE IS UNDER WAY. A save that lands records the copy it wrote as the one the work on screen
   // came from, over the checkpoint the kept work brings back, so the next Save would write over that copy without asking.
   // Nothing is changed: the kept work stays kept and what is on screen stays as it is, to be put back once the save is done.
@@ -8936,7 +8969,7 @@ function bootOwnMsg(){
 function bootKeptNote(){
   if(!_keptMeta) return '';
   return ' Work this browser kept aside'+(_keptMeta.t? ' on '+esc(fmtTs(_keptMeta.t)) : '')+' is still kept, and is not what is on screen: '
-    +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).';
+    +keptOfferHtml()+'.';   // v2.15 review RV-A (A1)
 }
 // Open the file's version after all (offered when this browser's work could not be kept aside).
 function bootTakeFile(){
@@ -11423,7 +11456,10 @@ async function _saveInPlaceFileRun(o){
     // THE BYTES, AND WHICH SAVE THEY ARE (v1.95, item 47): built once, here, before the write's first
     // wait. `wrote` is the time a later Save will find in the file -- fileTsOf over everything written.
     const html=buildSavedHtml();
-    if(stop) try{ stop.after=localStorage.getItem(_AP.key+'.base'); stop.raw1=localStorage.getItem(_AP.key); }catch(e){}
+    // v2.15 review RV-A (A2): raw1 is what THIS save's save() wrote, and only that. Read whatever storage held, a save() whose write
+    // storage refused left raw1 equal to raw0 -- another tab's copy -- and saveStopBack's `ours` then wrote this page's plan over it.
+    // Taken only when save()'s persist() wrote (no refusal standing) and storage changed from raw0; otherwise left undefined.
+    if(stop) try{ stop.after=localStorage.getItem(_AP.key+'.base'); const r1=localStorage.getItem(_AP.key); if(!_persistFail && r1!==stop.raw0) stop.raw1=r1; }catch(e){}
     const gen=_saveGen, wrote=fileTsOf({appns:PUBS});
     const sideAt=_sideGen;          // v1.97 (item 76): every other list the file carries, as these bytes hold it
     const apSnap=apSavedSnap();     // v2.15 W2 (item 143): every other appropriation these bytes hold exactly as browser storage holds it
@@ -42560,7 +42596,7 @@ if(_bootRestoreErr){
   _bootSaid=true;
   setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
     +'. This browser held work that no saved copy had; it is <b>kept aside</b>, not lost: '
-    +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).');
+    +keptOfferHtml()+'.');   // v2.15 review RV-A (A1): another requirement list's work is offered as a file, never put back here
 } else if(_bootMoved && SANDBOX && !pmoForOf(PUB)){
   // v2.09 review: THE COPY AS IT WAS PUBLISHED, opened in a browser whose work was last saved to the office's own file. It said the
   // file "has been saved since then as well -- by BLL" at the publish time, beside a save state reading Saved: the copy as
