@@ -11046,10 +11046,11 @@ const MUTATIONS = [
     find: "  const tag=own || ((!A.mixed && typeof A.tag==='string' && cycKeyOk(A.tag))? A.tag : '');", repl: "  const tag=own || cycLatest(A.tags);" },
   { id: 'v215-w1-in-no-bar', area: "cycInFor", what: "an untagged appropriation stays untagged although the bar shows one cycle",
     find: "  const tag=own || ((!A.mixed && typeof A.tag==='string' && cycKeyOk(A.tag))? A.tag : '');", repl: "  const tag=own;" },
+  // v2.15 review RV-B: the two below retargeted to `!holds` (B1), the same defect on the new line
   { id: 'v215-w1-in-never-whole', area: "cycInFor", what: "a board holding nothing no longer takes the package whole: its cycle and positions are left behind",
-    find: "  const whole=!has(cur) && !A.unread.length && !A.rows.some(function(r){ return r.counts; });", repl: "  const whole=false;" },
+    find: "  const whole=!holds && !A.unread.length && !A.rows.some(function(r){ return r.counts; });", repl: "  const whole=false;" },
   { id: 'v215-w1-in-always-whole', area: "cycInFor", what: "every package is taken whole again, its tag and every position with it",
-    find: "  const whole=!has(cur) && !A.unread.length && !A.rows.some(function(r){ return r.counts; });", repl: "  const whole=true;" },
+    find: "  const whole=!holds && !A.unread.length && !A.rows.some(function(r){ return r.counts; });", repl: "  const whole=true;" },
   { id: 'v215-w1-in-left-unsaid', area: "cycInSay", what: "the positions not taken are not named",
     find: "  if(T.left.length) out.push(", repl: "  if(false) out.push(" },
   { id: 'v215-w1-in-made-unsaid', area: "cycInSay", what: "the cycle a package was made under is not said when it is taken under another",
@@ -11402,6 +11403,36 @@ const MUTATIONS = [
     find: `if(!_persistFail && r1!==stop.raw0) stop.raw1=r1;`, repl: `stop.raw1=r1;` },
   // ==== end v2.15 review RV-A ====
   // ==== v2.15 review RV-B ====
+  // v2.15 review RV-B (B1): audit-import "v2.15 review RV-B (B1) — a board holding nothing takes a plan for the appropriation on screen whole"
+  { id: 'v215-rv-b-whole-has-plan', area: 'cycInFor', what: 'a package for the appropriation on screen, taken into a board holding nothing, drops its cycle, its reference and every position',
+    find: `const whole=!holds && `, repl: `const whole=!has(cur) && ` },
+  { id: 'v215-rv-b-holds-no-ppbe', area: 'cycInFor', what: 'a plan on screen logging only a PPBE position is read as holding nothing, and a package replaces its positions',
+    find: `|| (cur.ppbe && typeof cur.ppbe==='object' && Object.keys(cur.ppbe).length));`, repl: `|| false);` },
+  // (no mutation on the tag term of `holds`: cycAll already counts a tagged appropriation, so `whole` is false either way -- the
+  // term only restates it, and a mutation dropping it SURVIVED the proof as the identity; recovery/v215/notes-RV-B.md)
+  // v2.15 review RV-B (B2): audit-import "v2.15 review RV-B (B2) — a plan taken under this board’s cycle has its budget worked out under it"
+  { id: 'v215-rv-b-cache-kept', area: 'cycInTake', what: 'a Full Fund package made on PB27, taken under BES28, keeps PB27’s budget: the Spruills print it under BES28’s name',
+    find: `if(made!==I.tag || pkgCanon(pIn)!==pkgCanon(pNow)) cycInBa(out, I.tag, pNow);`, repl: `` },
+  { id: 'v215-rv-b-cache-mark-skipped', area: 'cycInBa', what: 'a year whose budget cannot be worked out here (other services) is worked out against this board’s services instead of marked',
+    find: `if(!same || !T.bm || !w(T.bm.disc) || !w(T.bm.mand)){ T.baStale=key||'(untagged)'; return; }`, repl: `` },
+  { id: 'v215-rv-b-spruills-stale-printed', area: 'spGather', what: 'the Spruills print a marked year’s budget, worked out under another cycle, under this one’s name',
+    find: `if(d.ms!==MS && st.baStale){ block.bud[y]=undefined; block.stale=String(st.baStale); return; }`, repl: `` },
+  { id: 'v215-rv-b-own-mark-kept', area: 'applyBudget', what: 'the appropriation’s own board works the budget out and leaves the mark: the Spruills go on printing — for it',
+    find: `delete S.baStale;           // v2.15 review RV-B (B2): its own board has worked the cache out`, repl: `` },
+  // v2.15 review RV-B (B3): audit-import "v2.15 review RV-B (B3) — a Save that stops after the two-copies question leaves both copies standing"
+  { id: 'v215-rv-b-clash-spent', area: 'pubsClashAsk', what: 'OK at the two-copies question, then a Save that stops, and the next Save writes without asking',
+    find: `// v2.15 review RV-B (B3): the clash stands until the file holds this page's copy`, repl: `delete _tabClash[k]; //` },
+  // v2.15 review RV-B (B4): audit-import "v2.15 review RV-B (B4) — a refused copy storage later took is no clash with another tab"
+  { id: 'v215-rv-b-put-keeps-own', area: 'apPut', what: 'a refused copy that storage later took still counts as this page’s own: another tab’s later save is a false two-copies clash',
+    find: `  else apStoredOk(k);                        // v2.15 review RV-B (B4): storage holds this page's copy now`, repl: `` },
+  { id: 'v215-rv-b-listener-built-on', area: 'tabWrote', what: 'another tab that built on this page’s very copy is read as a second copy',
+    find: `ev.oldValue===JSON.stringify(PUBS[k])) continue;`, repl: `false) continue;` },
+  { id: 'v215-rv-b-import-keeps-own', area: 'importBoards', what: 'a board imported into storage leaves the refused copy’s mark: another tab’s later save is a false clash',
+    find: `take.forEach(function(r){ apStoredOk(r.slug); });`, repl: `` },
+  { id: 'v215-rv-b-cons-keeps-own', area: 'consTakeApply', what: 'an appropriation taken from a consolidated file into storage leaves the refused copy’s mark',
+    find: `pick.forEach(function(k){ if(taken.indexOf(_SLUGMAP[k].t)>=0) apStoredOk(k); });`, repl: `` },
+  { id: 'v215-rv-b-cyc-keeps-own', area: 'cycApplyAll', what: 'the cycle chosen for every appropriation, written whole, leaves the refused copy’s mark: a false clash follows',
+    find: `if(res.ok) others.forEach(function(p){ apStoredOk(p.r.k); });`, repl: `` },
   // ==== end v2.15 review RV-B ====
   // ==== v2.15 review RV-C ====
   // ==== end v2.15 review RV-C ====
