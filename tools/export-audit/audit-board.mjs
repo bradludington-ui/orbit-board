@@ -10267,6 +10267,105 @@ await (async () => {
 // ==== v2.15 review RV-C ====
 // ==== end v2.15 review RV-C ====
 // ==== v2.15 review RV-D ====
+// v2.15 review RV-D (D1): A CLIN REQUEST FIGURE HAS ONE READER (clinFig, through clinAskIn), the import check's own reading. A request
+// held as text -- ['5','7'], ['1,000','$2,000'], both taken by the door -- was read three ways: W4 summed it with +v (so '1,000' read as
+// nothing), clinVec seeded the grid with the text itself and clinSvcTot joined it ('5'+'7' read $57 for $12), so the drill's Allocation
+// line was wrong and Set row from grid wrote $507 into the row allocation. FAILS ON dbfc7c4: the Allocation lines, Set row from grid, the
+// $3,000 request (read as 0), an edited request in text, a stored grid in text, the split and the null request said on opening.
+// CONTROLs: the fixture; a request held as numbers; the door takes a null request.
+await (async () => {
+  const name = 'v2.15 review RV-D — a CLIN request held as text is read as figures everywhere: the drill, Set row from grid, the split (D1)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: [0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mk('A', [500, 500]), mk('B', [5000, 5000]), mk('C', [500, 0]), mk('D', [3000, 0]), mk('G', [400, 0]), mk('N', [100, 0])],
+      disc: [20000, 20000], mand: [0, 0], order: ['A', 'B', 'C', 'D', 'G', 'N'] });
+    B.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'PRIME', B:'PRIME', C:'PRIME', D:'PRIME', G:'PRIME', N:'PRIME'};
+      CLINS.D=[{clin:'0001', desc:'Base', ccar:'', ask:[1, 1]}];
+      S.clinNew={A:[{key:'n1', clin:'0001', desc:'Text', ccar:'', ask:['5','7']}], B:[{key:'n1', clin:'0002', desc:'Commas', ccar:'', ask:['1,000','$2,000']}],
+        C:[{key:'n1', clin:'0003', desc:'Two', ccar:'', ask:['1,000', 0]}, {key:'n2', clin:'0004', desc:'Lines', ccar:'', ask:['$3,000', 0]}],
+        G:[{key:'n1', clin:'0006', desc:'Grid', ccar:'', ask:[9, 9]}], N:[{key:'n1', clin:'0007', desc:'Numbers', ccar:'', ask:[5, 7]}]};
+      S.clinMeta={D:{b0:{ask:['2,000','$500']}}};
+      S.clinAlloc={G:{n1:['5','7']}};
+      applyState(S); save(); render(); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: the door takes every one of these requests', B.ev(`String(inboundCheck(JSON.stringify({clinNew:S.clinNew, clinMeta:S.clinMeta}))||'(accepted)')`), '(accepted)');
+    // the drill, as drawn: each CLIN's Request line and Allocation line
+    const drill = id => JSON.parse(B.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=clinTable(itemById(${J(id)}));
+      return JSON.stringify([[].map.call(d.querySelectorAll('tr.creq td.ct'), function(x){ return x.textContent; }), [].map.call(d.querySelectorAll('tr.calloc td.ct'), function(x){ return x.textContent; })]); })()`));
+    const fm = v => B.ev(`fM(${v})`);
+    chk(name, 'the drill', 'A (5, 7): the Request line and the Allocation line both read $12', J(drill('A')), J([[fm(12)], [fm(12)]]));
+    chk(name, 'the drill', 'B (1,000, $2,000): the Request line and the Allocation line both read $3,000', J(drill('B')), J([[fm(3000)], [fm(3000)]]));
+    chk(name, 'the request', 'clinAskTot and primeReq read B’s $3,000, never 0', B.ev(`JSON.stringify([clinAskTot(clinList('B')[0]), primeReq('B'), primeReq('A')])`), J([3000, 3000, 12]));
+    chk(name, 'the request', 'an edited request held as text (D’s base CLIN) reads $2,500', B.ev(`JSON.stringify([clinList('D')[0].ask, primeReq('D')])`), J([[2000, 500], 2500]));
+    chk(name, 'the grid', 'the grid seeded from a request in text holds numbers', B.ev(`JSON.stringify([S.clinAlloc.A.n1, S.clinAlloc.B.n1])`), J([[5, 7], [1000, 2000]]));
+    chk(name, 'the grid', 'a grid stored in text (from before v2.15) adds as figures: $5 and $7, not 57', B.ev(`JSON.stringify(clinSvcTot('G'))`), J([5, 7]));
+    chk(name, 'the grid', 'and the drill’s Allocation line reads it $12 (Request $18), the grid then held as numbers', J([drill('G'), B.ev(`JSON.stringify(S.clinAlloc.G.n1)`)]), J([[[fm(18)], [fm(12)]], J([5, 7])]));
+    chk(name, 'the split', 'C’s money splits by its two text requests, 1,000 and $3,000: $400 is $100 and $300', B.ev(`JSON.stringify(clinSplit('C', 0, 400).map(function(x){ return x.part; }))`), J([100, 300]));
+    B.ev(`clinToRow('A'); clinToRow('B'); 'ok'`);
+    chk(name, 'Set row from grid', 'writes $12 for A (5 and 7) and $3,000 for B, by service', B.ev(`JSON.stringify([S.alloc.A, S.alloc.B])`), J([{ m: 's', v: [5, 7] }, { m: 's', v: [1000, 2000] }]));
+    chk(name, 'a CONTROL', 'a request held as numbers reads as before', B.ev(`JSON.stringify([primeReq('N'), clinSvcTot('N')])`), J([12, [5, 7]]));
+    // a null request (the door takes it; an older file may carry one): read as none, and opening says nothing of it
+    B.ev(`S.clinNew.N=[{key:'n1', clin:'0007', desc:'Null', ccar:'', ask:null}]; applyState(S); save(); 'ok'`);
+    chk(name, 'a null request', 'CONTROL: the door takes it', B.ev(`String(inboundCheck(JSON.stringify({clinNew:{N:[{key:'n1', clin:'0007', ask:null}]}}))||'(accepted)')`), '(accepted)');
+    const R = boot({ html: B.ev('buildSavedHtml()') });
+    chk(name, 'a null request', 'opening reads it as no request and says nothing of it', J([R.ev(`primeReq('N')`), +R.ev(`(STAT_LOG||[]).filter(function(m){ return /CLIN request/.test(m.html); }).length`)]), J([0, 0]));
+    for (const [w, X] of [['board', B], ['reopened', R]]) if (X.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', X.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 review RV-D (D2): A LINE FILED BY PLACE KEEPS THE REASON IT WAS RECORDED WITH. jrnlPlaceTitle judged the year as it stands now:
+// a line this version filed by place because ids repeated read "Recorded before v2.14" once the repeat was gone, and a genuinely old
+// place line read as filed for a repeat once one appeared. FAILS ON dbfc7c4: both titles. CONTROL: the fixture's place line.
+await (async () => {
+  const name = 'v2.15 review RV-D — a line filed by place says why it was, whatever the year holds now (D2)';
+  try {
+    const J = JSON.stringify;
+    const REP = 'Recorded by its place in the list of added requirements, because an id is on that year’s list more than once. Put back now, it could land on another requirement, so it is not offered.';
+    const OLD = 'Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.';
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Pat'); window.confirm=function(){ return true; }; window.alert=function(){};
+      window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+    const later = () => B.ev(`window.__tk+=61000; 'ok'`);
+    B.ev(`(function(){ reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); })(); 'ok'`);
+    later(); B.ev(`var c=JSON.parse(JSON.stringify(S.custom[1])); c.title='Y twin'; S.custom.push(c); MS.years[MS.cur].custom=S.custom; save(); 'ok'`);
+    later(); B.ev(`S.custom[2].ask[0]=11; save(); 'ok'`);
+    const placeLines = () => JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p[0]==='custom' && typeof e.p[1]==='number'; }).map(function(e){ return e.p; }))`));
+    chk(name, 'the fixture', 'CONTROL: the edit in a year whose ids repeat is filed by place', J(placeLines().some(p => J(p) === J(['custom', 2, 'ask', 0]))), 'true');
+    const titles = () => JSON.parse(B.ev(`(function(){ jrnlOpen=true; render(); jrnlBody(); var r=[].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here' && /place/.test(s.getAttribute('title')||''); }).map(function(s){ return s.getAttribute('title'); }); jrnlOpen=false; render(); return JSON.stringify(r); })()`));
+    // the repeat is mended: the twin taken out. The lines recorded because ids repeated still say so
+    later(); B.ev(`S.custom.splice(2,1); MS.years[MS.cur].custom=S.custom; save(); 'ok'`);
+    const t1 = titles();
+    chk(name, 'the repeat mended', 'the lines this version filed by place still say ids repeated, never “Recorded before v2.14”', J([t1.length > 0, t1.filter(t => t === OLD).length, t1.every(t => t === REP)]), J([true, 0, true]));
+    // a genuinely old place line (v2.13's shape, no reason recorded), then the year's ids repeat again: before v2.14, as it was
+    later(); B.ev(`MS.jrnl.push({t:Date.now(), by:'Old', fy:MS.cur, p:['custom',0,'title'], a:'a', b:'b'}); var c=JSON.parse(JSON.stringify(S.custom[1])); S.custom.push(c); MS.years[MS.cur].custom=S.custom; 'ok'`);
+    const t2 = titles();
+    chk(name, 'an old line', 'a place line recorded before v2.14 says so, though the year now repeats an id', J([t2.filter(t => t === OLD).length, t2.filter(t => t === REP).length === t1.length]), J([1, true]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 review RV-D (D3): THE GUIDE NAMES NO DECK. Its spend-plan paragraph said the deck's chart agrees month by month with the
+// forecast; the deck was removed in v2.05 (item 114). FAILS ON dbfc7c4. CONTROL: the paragraph is there, naming the surfaces that remain.
+await (async () => {
+  const name = 'v2.15 review RV-D — the guide names no deck, removed in v2.05 (D3)';
+  try {
+    const B = boot();
+    const t = B.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=document.getElementById('helpDoc').innerHTML; return d.textContent; })()`);
+    chk(name, 'the guide', 'CONTROL: the spend-plan paragraph is there', /the 1A9A return and the Spend Plan Source agree month by month/.test(t), true);
+    chk(name, 'the guide', 'nothing in it names the deck or its chart', (t.match(/\bdeck\b[^.]{0,40}/gi) || []).join(' | '), '');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.15 review RV-D ====
 
 {
