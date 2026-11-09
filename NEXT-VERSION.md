@@ -780,7 +780,7 @@ RV-D also made audit-inject W3-1's own-file case reach the branch it names, and 
     survived the first run, before the stored-grid check reached it);
   - the review's 54 proved together on the final tree: see `proved-RVALL.jsonl`. 54 of 54 CAUGHT, none by a block that threw.
 - No sweep (Brad's rule of 20 Oct).
-- **The final gate:** <<GATE RESULTS>>
+- **The final gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); every browser check but layout's carried D x8 (savetarget, fileimport, storagefull, pmosave, pmoyears, pointer, keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, csp; standards 0 new findings); all 244 v2.15 mutations and retargets proved together on the final tree, 244 of 244 CAUGHT (`recovery/v215/proved-FINAL.jsonl`); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; trace matrix 77 cells; fuzz seed 890551538; verify-file self-test held; suites 36.4 min).
 
 #### The items as logged
 

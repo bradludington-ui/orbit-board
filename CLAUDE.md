@@ -5222,7 +5222,7 @@ audit-inject, each failing on the commit before it unless a CONTROL; layout S (o
 one retry for Chromium's storage island), toolbar-fits' tagged pass and keys V2. **Mutations:** 193 new (`v215-*`), 60 retargets,
 `v209-rv3-save-look-record-left` marked equivalent; 3,800 targets, each once. The builders' 200 proved together on the merged
 board, 200 of 200 CAUGHT (`recovery/v215/proved-INT.jsonl`); the review's 54 together on the final tree: see
-`proved-RVALL.jsonl`. 54 of 54 CAUGHT, none by a block that threw. **The final gate:** <<GATE RESULTS>> No sweep (Brad's rule of 20 Oct). audit-board,
+`proved-RVALL.jsonl`. 54 of 54 CAUGHT, none by a block that threw. **The final gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); every browser check but layout's carried D x8 (savetarget, fileimport, storagefull, pmosave, pmoyears, pointer, keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, csp; standards 0 new findings); all 244 v2.15 mutations and retargets proved together on the final tree, 244 of 244 CAUGHT (`recovery/v215/proved-FINAL.jsonl`); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; trace matrix 77 cells; fuzz seed 890551538; verify-file self-test held; suites 36.4 min). No sweep (Brad's rule of 20 Oct). audit-board,
 audit-import and audit-recon need `--max-old-space-size=8192`.
 
 ## Colour: one token, one job
