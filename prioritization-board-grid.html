@@ -11986,6 +11986,7 @@ function importBoards(inp){
       return batchImportUndone(W, held, now, take, here, memOk);
     }
     if(W.length) impMixedLift(W.map(function(w){ return w[0]; }));
+    take.forEach(function(r){ apStoredOk(r.slug); });    // v2.15 review RV-B (B4): each plan taken is storage's copy now
     // v2.14 RV2-C: loadCounted and persist, not loadStored -- lsAll has written this board's plan already, so the record's mark is true
     if(applied){ loadCounted(); persist(); render(); }   // v2.02 (E7, U31): an import is a change in this browser's record too
     const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+esc(r.name));
@@ -12123,7 +12124,13 @@ function pkgStrip(store){
 function cycInFor(cur, A){
   const has=function(st){ return !!(st && typeof st==='object' && (st.years || Array.isArray(st.order))); };
   A=A||cycAll();
-  const whole=!has(cur) && !A.unread.length && !A.rows.some(function(r){ return r.counts; });
+  // v2.15 review RV-B (B1): "holding nothing" is read off what the plan holds -- a tag, a requirement, a PPBE position -- never off
+  // whether a plan object is there. For the board on screen `cur` is MS, which always has `years`, so a package (or a file) for the
+  // appropriation on screen, taken into a board holding nothing, dropped its cycle, its deltas reference and every position, while
+  // the same package for another appropriation was taken whole.
+  const holds=has(cur) && !!((typeof cur.cycle==='string' && cur.cycle) || cycHasReqs(cur)
+    || (cur.ppbe && typeof cur.ppbe==='object' && Object.keys(cur.ppbe).length));
+  const whole=!holds && !A.unread.length && !A.rows.some(function(r){ return r.counts; });
   const own=(has(cur) && typeof cur.cycle==='string')? cur.cycle : '';
   const tag=own || ((!A.mixed && typeof A.tag==='string' && cycKeyOk(A.tag))? A.tag : '');
   return {whole:whole, tag:tag, ref:(has(cur) && typeof cur.cycleRef==='string')? cur.cycleRef : '', fromBar:!own && !!tag};
@@ -12142,7 +12149,33 @@ function cycInTake(cur, inc, I){
   // what the package carries for another cycle and this board does not already hold, as it is
   T.left=Object.keys(iP).filter(function(k){ return k!==I.tag && !(Object.prototype.hasOwnProperty.call(cP, k) && pkgCanon(cP[k])===pkgCanon(iP[k])); }).sort();
   out.ppbe=P;
+  // v2.15 review RV-B (B2): THE BUDGET CACHE FOLLOWS THE CYCLE THE PLAN IS TAKEN UNDER. Each year's discSvc / mandSvc in the package was
+  // worked out under the package's own tag and position; kept under this board's, the Spruills printed them under a note naming this
+  // board's cycle (a PB27 budget labelled BES28). Where the tag or the position under it differs, each year's cache is worked out
+  // again (cycInBa); where that cannot be done exactly, the year is marked and the Spruills print --.
+  const pIn=(made && Object.prototype.hasOwnProperty.call(iP, made))? iP[made] : null, pNow=(I.tag && Object.prototype.hasOwnProperty.call(P, I.tag))? P[I.tag] : null;
+  if(made!==I.tag || pkgCanon(pIn)!==pkgCanon(pNow)) cycInBa(out, I.tag, pNow);
   return {st:out, T:T};
+}
+// v2.15 review RV-B (B2): every year's budget cache of an incoming plan worked out again under {key, P} -- baOf, the one reading, on a
+// deep copy of the years (the package's own objects are never changed). baOf reads this board's services (SVC) by name and place, so
+// only a plan whose service list is this board's, at its width, is worked out; any other year is marked (baStale: the cycle it was
+// taken under) and the Spruills print -- for it, said, until that appropriation's own board opens and works the cache out (applyBudget,
+// baApplyTo take the mark off). A year with no budget components (bm) is marked too: its cache is the only base it carries.
+function cycInBa(st, key, P){
+  const Y=(st && st.years && typeof st.years==='object' && !Array.isArray(st.years))? st.years : null; if(!Y) return;
+  const NY=JSON.parse(JSON.stringify(Y)); st.years=NY;
+  const pk=packOfStore(st), svcs=(pk && Array.isArray(pk.services))? pk.services : (Array.isArray(st.svc)? st.svc : null);
+  const n=SVC.length, same=!!(n && svcs && svcs.length===n && svcs.every(function(s, i){ return s===SVC[i]; }));
+  const w=function(v){ return Array.isArray(v) && v.length===n; };
+  const pos={key:key||'', P:(P && typeof P==='object' && !Array.isArray(P))? P : null, lock:''};
+  Object.keys(NY).forEach(function(y){
+    const T=NY[y]; if(!T || typeof T!=='object' || Array.isArray(T)) return;
+    if(T.discSvc===undefined && T.mandSvc===undefined && !T.bm) return;       // no budget here to misname
+    if(!same || !T.bm || !w(T.bm.disc) || !w(T.bm.mand)){ T.baStale=key||'(untagged)'; return; }
+    try{ const r=key? baOf(T, +y, pos) : baOf(T, +y, null); T.discSvc=r.disc; T.mandSvc=r.mand; delete T.baStale; }
+    catch(e){ T.baStale=key||'(untagged)'; }
+  });
 }
 // The sentence, '' when the plan comes in as it was made: "Made under PB27, taken under BES28. Its PB27 and POM28 positions were not
 // taken." html: for the status line (escaped); else for a question.
@@ -12276,6 +12309,7 @@ function apPut(k, st, what, raw, fromPage){
   if(held!==undefined && held!==null && now===held) _cycCarry[k]={ts:+st.ts||0, raw:held, gen:_sideGen};
   else delete _cycCarry[k];
   if(!ok) _pubsOwn[k]=_sideGen;             // on this page alone: apHeldWhy says so of it
+  else apStoredOk(k);                        // v2.15 review RV-B (B4): storage holds this page's copy now
   if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=st;
   return ok;
 }
@@ -13177,6 +13211,7 @@ function consTakeApply(fullSt, txt, fname, pick, all){
   const done=lsAll(W);
   if(!done.ok){ impMemRestore(mem); return fullImportUndone(done, W, txt, fname); }
   impMixedLift(W.map(function(w){ return w[0]; }));
+  pick.forEach(function(k){ if(taken.indexOf(_SLUGMAP[k].t)>=0) apStoredOk(k); });   // v2.15 review RV-B (B4): storage's copy now
   statKeep('\u{1F9E9} Took '+esc(taken.join(', '))+' from \u201c'+esc(fname)+'\u201d'
     +(skipped.length? '; left '+esc(skipped.join(', '))+' as '+(skipped.length===1? 'it was' : 'they were') : '')+'.'+tail
     +(cinSaid.length? ' '+cinSaid.join(' ') : '')+' Reopening\u2026');
@@ -26244,7 +26279,9 @@ function pubsClashAsk(){
     }
     const th=JSON.parse(_tabClash[k].theirs||'null');
     PUBS[k].ts=Math.max(+PUBS[k].ts||0, (th && +th.ts)||0)+1;      // the file's copy is the newer: that board keeps the other tab's aside
-    delete _tabClash[k];
+    // v2.15 review RV-B (B3): the clash stands until the file holds this page's copy -- cycCarrySaved takes it off after the write. Taken
+    // off here, a Save that then stopped (a file it could not read, the download fallback, a Cancel further on) spent the answer, and
+    // the next Save wrote without asking.
   }
   return true;
 }
@@ -26256,6 +26293,8 @@ function tabWrote(ev){
   for(const k in _SLUGMAP){
     if(!Object.prototype.hasOwnProperty.call(_SLUGMAP, k) || k===_AP.slug || ev.key!==_SLUGMAP[k].key) continue;
     if(ev.newValue===null || !(_pubsOwn && _pubsOwn[k]!==undefined)) continue;
+    // v2.15 review RV-B (B4): the other tab wrote over this page's very copy -- it built on it, so there are not two copies
+    try{ if(ev.oldValue!==null && ev.oldValue!==undefined && typeof PUBS!=='undefined' && PUBS && PUBS[k] && ev.oldValue===JSON.stringify(PUBS[k])) continue; }catch(e){}
     const was=_tabClash[k];
     _tabClash[k]={theirs:ev.newValue, t:Date.now()};
     if(!was) statKeep('⚠ <b>'+esc(_SLUGMAP[k].t)+' was saved in another tab of this browser.</b> '+esc(apClashWhy(k).replace(/^this page/, 'This page'))+'.');
@@ -26263,6 +26302,10 @@ function tabWrote(ev){
   try{ if(fdcOpen) fdcSync(true); }catch(e){}
 }
 try{ window.addEventListener('storage', function(ev){ try{ tabWrote(ev); }catch(e){} }); }catch(e){}
+// v2.15 review RV-B (B4): ANOTHER APPROPRIATION'S PLAN WRITTEN TO BROWSER STORAGE, WHOLE: this page's copy is storage's now, so it is no
+// longer one storage refused (_pubsOwn), and nothing another tab writes over it later is two copies (_tabClash). Left set after a refused
+// write was followed by one that landed, another tab's later save raised a false "two copies" clash and 💾 Save asked about it.
+function apStoredOk(k){ try{ delete _pubsOwn[k]; delete _tabClash[k]; }catch(e){} }
 function pubsInFile(k){ try{ return !(_pubsOwn && Object.prototype.hasOwnProperty.call(_pubsOwn, k)); }catch(e){ return true; } }
 // Is this page's copy of `k` still the one carried from browser storage's copy, and storage's copy still that one? It then holds that
 // copy's work and the cycle beside it: the copy passed over holds nothing this page lacks, so it is not "held" (apStoreOf, cycApplyAll).
@@ -26504,6 +26547,7 @@ function cycApplyAll(key, opt){
         _pubsOwn[p.r.k]=_sideGen; });          // v2.14 RV2-B: made on this page, not in the file yet (apHeldWhy)
     }
     others.forEach(function(p){ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.r.k]=p.st; });
+    if(res.ok) others.forEach(function(p){ apStoredOk(p.r.k); });    // v2.15 review RV-B (B4): written whole, storage's copy now
   }
   _cycAllMemo=null;
   let ownKept=true;
@@ -28742,6 +28786,8 @@ function spGather(){
       });
       block.req[y]=tot;
       const dv=(st.discSvc||[]).reduce((x,y2)=>x+y2,0), mv=(st.mandSvc||[]).reduce((x,y2)=>x+y2,0);
+      // v2.15 review RV-B (B2): a cache taken under another cycle and not worked out again prints --, said, never under this one's name
+      if(d.ms!==MS && st.baStale){ block.bud[y]=undefined; block.stale=String(st.baStale); return; }
       block.bud[y]=dv+mv;
     });
     out.push(block);
@@ -29029,6 +29075,10 @@ function spBodyDraw(el){
     if(b.foldWhy) h+='<div class="hint sp-fold-why" style="margin:0 0 3px">⚠ '+esc(b.name)+' is not read here: '+esc(b.foldWhy)
       +'. Its figures are missing, not zero; this browser’s older copy is not used in its place.</div>';
     // v2.15 W4 (item 135): another appropriation's budget is its own board's, as that board last worked it out from its position
+    // v2.15 review RV-B (B2): a year taken from a package whose budget could not be worked out again under this board's cycle
+    if(b.stale && spFund==='board') h+='<div class="hint sp-ba-stale" style="margin:0 0 3px">⚠ '+esc(b.name)+'’s Available Funding is not stated for '
+      +'some years: a package taken under '+(cycKeyOk(b.stale)? blLbl(b.stale) : esc(b.stale))+' carried a budget worked out under another cycle, and it '
+      +'could not be worked out again here. Those years print —, not zero; opening '+esc(b.name)+' works them out.</div>';
     if(b.posTag && spFund==='board') h+='<div class="hint sp-pos-cache" style="margin:0 0 3px">'+esc(b.name)+'’s Available Funding is the budget its own board last worked out '
       +'from its '+blLbl(b.posTag)+' PPBE position. A position changed since without that board open (an appropriation package) reaches '
       +'these figures once '+esc(b.name)+' is opened.</div>';
@@ -30927,6 +30977,7 @@ function applyBudget(){
   const r=baOf(S, MS.cur);
   S.discSvc=r.disc;
   S.mandSvc=r.mand;
+  delete S.baStale;           // v2.15 review RV-B (B2): its own board has worked the cache out
   BA_SRC[+MS.cur]=r;
 }
 // ANOTHER YEAR'S CACHE MADE LIVE without putting the year on screen. Only the cache (discSvc / mandSvc) is written, and
@@ -30948,6 +30999,7 @@ function baApplyTo(st, fy){
   const r=baOf(st, fy), same=function(a,b){ return w(a) && a.every(function(v,i){ return v===b[i]; }); };
   if(!same(st.discSvc, r.disc)) st.discSvc=r.disc;
   if(!same(st.mandSvc, r.mand)) st.mandSvc=r.mand;
+  delete st.baStale;          // v2.15 review RV-B (B2): its own board has worked the cache out
   BA_SRC[+fy]=r;
 }
 // EVERY YEAR, NOT JUST THE ONE ON SCREEN. The Spruills, the live view and other appropriations read a year's stored cache

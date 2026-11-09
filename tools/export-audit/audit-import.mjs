@@ -20750,6 +20750,224 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== v2.15 review RV-A ====
 // ==== end v2.15 review RV-A ====
 // ==== v2.15 review RV-B ====
+// v2.15 review RV-B: four findings of the review round in items 138 and 145, each check failing on dbfc7c4 unless labelled CONTROL.
+// B1: a board holding nothing takes a plan for the appropriation ON SCREEN whole, as it takes one for any other (cycInFor read
+// "holds a plan" off MS having `years`, which it always has). B2: a plan taken under this board's cycle has its budget cache worked out
+// under that cycle, or marked and printed --. B3: a Save that stops after the two-copies question leaves the two copies standing.
+// B4: a refused copy that storage later took is not "this page's own" any more, so another tab's later save is no clash.
+const RVB = (() => {
+  const J = JSON.stringify;
+  const T1 = 1790100000000;
+  const pos = d => ({ v: 2, split: true, lines: {}, val: { USAF: { _all: { 2027: { d, m: 0 } } } } });
+  const year = note => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [], notes: note ? { Q: note } : {} });
+  const made = (ts) => ({ svc: ['USAF', 'ANG'], ts, base: 2027, cur: 2027, cycle: 'PB|2027', cycleRef: 'POM|2027', by: 'Manager',
+    ppbe: { 'PB|2027': pos(222), 'POM|2028': pos(333), 'BES|2028': pos(444) }, years: { 2027: year('FROM THE PACKAGE') } });
+  const wire = X => X.ev(`window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(m){ window.__q.push('ALERT '+m); }; 'ok'`);
+  const read = st => !st ? 'none' : J([st.cycle || '', st.cycleRef || '', Object.keys(st.ppbe || {}).sort(), (((st.years || {})[2027] || {}).notes || {}).Q || '']);
+  const WANT = J(['PB|2027', 'POM|2027', ['BES|2028', 'PB|2027', 'POM|2028'], 'FROM THE PACKAGE']);
+  const stat = X => X.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const lsAllOf = X => JSON.parse(X.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+  // the refused Full Fund copy RV1-B's E2 and E3 build: the ladder copied while storage refuses Full Fund, then (otherTab) another tab of
+  // this browser saving Full Fund, with the storage event the browser fires
+  const refuseFF = `(function(){ const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27ff') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return _si.call(this, k, v); };
+      try{ bandCopyAll(); } finally { Storage.prototype.setItem=_si; } return 'ok'; })()`;
+  const otherTab = `(function(){ const old=localStorage.getItem('prio27ff'), st=JSON.parse(old), y=st.years[st.cur];
+      y.notes=y.notes||{}; y.notes.F='THE OTHER TAB'; st.ts=Date.now()+50; st.by='Ann'; const v=JSON.stringify(st);
+      localStorage.setItem('prio27ff', v); localStorage.setItem('prio27ff.base', JSON.stringify({file:0, folder:{}, dirty:true}));
+      window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', oldValue:old, newValue:v})); return 'ok'; })()`;
+  return { J, T1, pos, year, made, wire, read, WANT, stat, lsAllOf, refuseFF, otherTab };
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 review RV-B (B1) — a board holding nothing takes a plan for the appropriation on screen whole';
+  try {
+    const { J, T1, made, wire, read, WANT, stat } = RVB;
+    // door 1: a package for O&M, the appropriation on screen, on a fresh board
+    { const X = boot(); wire(X);
+      chk(name, 'the fixture', 'CONTROL: a fresh board, nothing tagged and nothing counted', X.ev(`JSON.stringify((function(A){ return [A.tag, A.mixed, A.unread.length, A.rows.filter(function(r){ return r.counts; }).length]; })(cycAll()))`), J([null, false, 0, 0]));
+      chk(name, 'cycInFor', 'the plan on screen (MS) holding nothing is read as holding nothing', X.ev('cycInFor(MS).whole'), true);
+      X.ev(`pkgApply({spmtPkg:PKG_VER, ap:'om', dir:'issue', seq:1, by:'Manager', ts:${T1 + 5000}, ms:${J(made(T1 + 5000))}}, 'om-pkg.json'); 'ok'`);
+      chk(name, 'a package', 'O&M on screen takes its tag, its deltas reference and every position', read(JSON.parse(X.ev('JSON.stringify(MS)'))), WANT);
+      chk(name, 'a package', 'and stores them', read(JSON.parse(X.ev(`localStorage.getItem('prio27om')`))), WANT);
+      chk(name, 'a package', 'and says nothing of the cycle', /Made under|not taken/.test(stat(X)), false); }
+    // CONTROL: the same package for an appropriation not on screen (Initial Spares), taken whole as before
+    { const X = boot(); wire(X);
+      X.ev(`pkgApply({spmtPkg:PKG_VER, ap:'sp', dir:'issue', seq:1, by:'Manager', ts:${T1 + 5000}, ms:${J(made(T1 + 5000))}}, 'sp-pkg.json'); 'ok'`);
+      chk(name, 'another appropriation', 'CONTROL: Initial Spares is taken whole', read(JSON.parse(X.ev(`localStorage.getItem('prio27sp')`))), WANT); }
+    // door 2: ALL from a consolidated file -- O&M (on screen) and Full Fund (not) taken alike
+    { const X = boot(); wire(X);
+      X.ev(`reopenPage=function(){ window.__reop=1; }; consTakeApply(${J({ appns: { om: made(T1 + 5000), ff: made(T1 + 5000) } })}, '', 'consolidated.html', ['om','ff'], true); 'ok'`);
+      chk(name, 'a consolidated file, ALL', 'O&M is taken whole, as Full Fund is',
+        J([read(JSON.parse(X.ev(`localStorage.getItem('prio27om')`))), read(JSON.parse(X.ev(`localStorage.getItem('prio27ff')`)))]), J([WANT, WANT]));
+      chk(name, 'a consolidated file, ALL', 'and says nothing of the cycle', /Made under|not taken/.test(stat(X)), false); }
+    // door 3: several boards at once, the board on screen's own file
+    { const X = boot(); wire(X);
+      const html = X.ev('buildSavedHtml()').replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J({ appns: { om: made(T1 + 5000) } }).replace(/</g, '\\u003c') + b);
+      X.ev(`document.getElementById('shareStat').textContent=''; importBoards({ files:[new File([${J(html)}], 'om-board.html')], value:'x' }); 'ok'`);
+      await W1H.until(() => /Imported|Nothing was imported|Nothing imported/.test(stat(X)));
+      chk(name, 'several boards at once', 'O&M on screen is taken whole', J([read(JSON.parse(X.ev('JSON.stringify(MS)'))), /Made under|not taken/.test(stat(X))]), J([WANT, false])); }
+    // CONTROL: a board on screen that holds a requirement is not "holding nothing"
+    { const X = boot(); seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50])], disc: [150, 60], mand: [20, 10], order: ['A'] }); wire(X);
+      chk(name, 'cycInFor', 'CONTROL: a board holding a requirement is not whole', X.ev('cycInFor(MS).whole'), false); }
+    // a board on screen whose plan holds only a PPBE position, or only a tag, holds something
+    { const X = boot(); wire(X);
+      X.ev(`MS.ppbe={'BES|2028':${J(RVB.pos(1))}}; 'ok'`);
+      chk(name, 'cycInFor', 'a plan on screen logging a PPBE position is not whole (holds on dbfc7c4 too: it guards the new reading)', X.ev('cycInFor(MS).whole'), false);
+      X.ev(`MS.ppbe={}; MS.cycle='BES|2028'; 'ok'`);
+      chk(name, 'cycInFor', 'a plan on screen carrying a tag is not whole (holds on dbfc7c4 too: it guards the new reading)', X.ev('cycInFor(MS).whole'), false); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 review RV-B (B2) — a plan taken under this board’s cycle has its budget worked out under it';
+  try {
+    const { J, pos, lsAllOf } = RVB;
+    const runOne = (svcs) => {
+      const SC = { services: svcs, items: [it('F', 'AV', svcs.map((s, i) => i ? 50 : 100))], disc: svcs.map((s, i) => i ? 60 : 150), mand: svcs.map((s, i) => i ? 10 : 20), order: ['F'] };
+      const prep = (X, tag, P) => X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice();
+        MS.cycle=${J(tag)}; MS.cycleRef=''; MS.ppbe={${J(tag)}:${J(P)}}; baLiveAll(); applyBudget(); save(); 'ok'`);
+      // Full Fund in this browser on BES28 (USAF FY27 discretionary 800); a Full Fund package made on PB27 (222)
+      const F = boot({ appn: 'FULL FUND' }); seed(F.ev, SC); prep(F, 'BES|2028', pos(800));
+      const lsF = lsAllOf(F);
+      const M = boot({ appn: 'FULL FUND' }); seed(M.ev, SC); prep(M, 'PB|2027', pos(222));
+      const pk = JSON.parse(M.ev('JSON.stringify(MS)')); pk.ts = Date.now() + 5000;
+      // O&M on screen on BES28, two services
+      const O = boot({ ls: Object.assign({}, lsF, { prio27appn: 'O&M' }) });
+      seed(O.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50])], disc: [150, 60], mand: [20, 10], order: ['A'] });
+      O.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice();
+        MS.cycle='BES|2028'; MS.ppbe={'BES|2028':${J(pos(900))}}; save(); render(); window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+      const sp = () => JSON.parse(O.ev(`JSON.stringify(spGather().blocks.filter(function(b){ return b.name==='FULL FUND'; }).map(function(b){ return {tag:b.posTag, bud:b.bud[2027]===undefined? 'none' : b.bud[2027], stale:b.stale||''}; })[0])`));
+      const before = sp();
+      O.ev(`pkgApply({spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:${pk.ts}, ms:${J(pk)}}, 'ff-pkg.json'); 'ok'`);
+      const st = JSON.parse(O.ev(`localStorage.getItem('prio27ff')`)), y = st.years[2027];
+      O.ev(`spOpen=true; render(); 'ok'`);
+      const notes = JSON.parse(O.ev(`JSON.stringify([!!document.querySelector('.sp-pos-cache'), (function(n){ return n? n.textContent : ''; })(document.querySelector('.sp-ba-stale'))])`));
+      const FB = boot({ html: O.ev('buildSavedHtml()'), ls: lsAllOf(O), appn: 'FULL FUND' });
+      const own = JSON.parse(FB.ev(`JSON.stringify({tag:MS.cycle, disc:S.discSvc, stale:Object.keys(MS.years||{}).filter(function(k){ return MS.years[k] && MS.years[k].baStale; })})`));
+      return { before, after: sp(), st, y, notes, own, pkY: pk.years[2027] };
+    };
+    // the same services as the board on screen: worked out again under BES28
+    const A = runOne(['USAF', 'ANG']);
+    chk(name, 'the fixture', 'CONTROL: before the take the Spruills read Full Fund’s BES28 budget (800 + 60, and mandatory 0 + 10: the position splits USAF)', J(A.before), J({ tag: 'BES|2028', bud: 870, stale: '' }));
+    chk(name, 'the fixture', 'CONTROL: the package’s own cache was worked out under PB27 (222)', J(A.pkY.discSvc), J([222, 60]));
+    chk(name, 'same services', 'Full Fund is taken under BES28, its cache worked out under BES28’s position', J([A.st.cycle, A.y.discSvc, A.y.mandSvc, !!A.y.baStale]), J(['BES|2028', [800, 60], [0, 10], false]));
+    chk(name, 'same services', 'the Spruills print BES28’s budget under BES28’s name', J(A.after), J({ tag: 'BES|2028', bud: 870, stale: '' }));
+    chk(name, 'same services', 'and it is what Full Fund’s own board works out when it opens', J(A.own), J({ tag: 'BES|2028', disc: A.y.discSvc, stale: [] }));
+    // three services on Full Fund, two on the board on screen: cannot be worked out here, so marked and printed --
+    const B = runOne(['USAF', 'ANG', 'AFRC']);
+    chk(name, 'other services', 'Full Fund’s year is marked, never left as PB27’s figure under BES28', J([B.st.cycle, B.y.baStale || '']), J(['BES|2028', 'BES|2028']));
+    chk(name, 'other services', 'the Spruills print — for it and say why', J([B.after.bud, B.after.stale, /could not be worked out again here/.test(B.notes[1])]), J(['none', 'BES|2028', true]));
+    chk(name, 'other services', 'Full Fund’s own board works it out on opening and takes the mark off (holds on dbfc7c4 too: there was no mark)', J([B.own.tag, B.own.disc[0], B.own.stale]), J(['BES|2028', 800, []]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 review RV-B (B3) — a Save that stops after the two-copies question leaves both copies standing';
+  try {
+    const { J, refuseFF, otherTab } = RVB;
+    const { OLD, ls: LS } = W214.fx();
+    const setup = () => { const R = boot({ html: OLD.html, ls: LS }); W1H.wire(R.ev, 'Brad', W1H.KEY.brad); R.ev(refuseFF); R.ev(otherTab); return R; };
+    const two = q => /has two copies, and only one can go into the file/.test(q);
+    // (a) OK at the question, then the board file cannot be read (syncing): nothing written
+    { const R = setup();
+      chk(name, 'the fixture', 'CONTROL: two copies of Full Fund stand', R.ev(`apClash('ff')`), true);
+      R.ev(`globalThis.__yes=true; globalThis.__q=[]; window.showSaveFilePicker=function(){ const e=new Error('x'); e.name='AbortError'; throw e; }; FH={name:'Board.html', requestPermission:async()=>'granted', getFile:async()=>{ throw new Error('syncing'); }}; 'ok'`);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await w14pause(50);
+      chk(name, 'a Save that stops', 'CONTROL: it asked, and wrote nothing', J([W1H.qs(R.ev).some(two), /Not saved/.test(w14stat(R.ev))]), J([true, true]));
+      chk(name, 'a Save that stops', 'both copies still stand', R.ev(`apClash('ff')`), true);
+      const f = W1H.disk(R.w, OLD.html);
+      R.ev(`globalThis.__q=[]; globalThis.__yes=false; 'ok'`);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await w14pause(50);
+      chk(name, 'the next Save', 'asks again, and Cancel writes nothing', J([W1H.qs(R.ev).some(two), f.writes]), J([true, 0]));
+      R.ev(`globalThis.__q=[]; globalThis.__yes=true; 'ok'`);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      const ff = (W1H.pubOf(f.content).appns || {}).ff || {};
+      chk(name, 'the next Save', 'answered OK it writes this page’s Full Fund, and the two copies are settled',
+        J([f.writes > 0, /THE OTHER TAB/.test(J(ff)), R.ev(`apClash('ff')`)]), J([true, false, false])); }
+    // (b) the download fallback (no Save window in this browser) is no write to the file either
+    { const R = setup();
+      R.ev(`globalThis.__yes=true; globalThis.__q=[]; window.showSaveFilePicker=undefined; publishState=function(){ window.__dl=1; }; 'ok'`);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await w14pause(30);
+      chk(name, 'the download fallback', 'asked, downloaded, and both copies still stand', J([W1H.qs(R.ev).some(two), R.ev('!!window.__dl'), R.ev(`apClash('ff')`)]), J([true, true, true])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 review RV-B (B4) — a refused copy storage later took is no clash with another tab';
+  try {
+    const { J, refuseFF, otherTab } = RVB;
+    const { OLD, ls: LS } = W214.fx();
+    const two = q => /has two copies, and only one can go into the file/.test(q);
+    const after = async (R, label) => {
+      R.ev(otherTab);
+      chk(name, label, 'another tab’s later save is no clash, said nothing of', J([R.ev(`apClash('ff')`), R.ev(`STAT_LOG.some(function(m){ return /saved in another tab/.test(m.html||''); })`)]), J([false, false]));
+      chk(name, label, 'and the file this page builds carries the other tab’s Full Fund',
+        /THE OTHER TAB/.test(J((W1H.pubOf(R.ev('buildSavedHtml()')).appns || {}).ff || {})), true);
+      W1H.disk(R.w, OLD.html);
+      R.ev('globalThis.__yes=false; globalThis.__q=[]; 0');
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await w14pause(40);
+      chk(name, label, '💾 Save asks nothing of two copies', W1H.qs(R.ev).some(two), false);
+    };
+    const start = () => { const R = boot({ html: OLD.html, ls: LS }); W1H.wire(R.ev, 'Brad', W1H.KEY.brad); R.ev(refuseFF); return R; };
+    // (a) the ladder copied again, and this time storage takes it (apPut)
+    { const R = start();
+      chk(name, 'the fixture', 'CONTROL: the first copy was refused and held on this page', R.ev(`_pubsOwn.ff!==undefined`), true);
+      R.ev(`bandSet(0,'n','SECOND LADDER'); globalThis.__q=[]; bandCopyAll(); 'ok'`);
+      chk(name, 'the ladder copied again', 'CONTROL: storage took it', J([/SECOND LADDER/.test(R.ev(`localStorage.getItem('prio27ff')`) || ''), R.ev(`JSON.stringify(PUBS.ff)===localStorage.getItem('prio27ff')`)]), J([true, true]));
+      chk(name, 'the ladder copied again', 'this page’s copy is no longer one storage refused', R.ev(`_pubsOwn.ff===undefined`), true);
+      await after(R, 'the ladder copied again'); }
+    // (b) the cycle chosen for every appropriation, written whole (cycApplyAll)
+    { const R = start();
+      R.ev(`globalThis.__yes=true; window.confirm=function(){ return true; }; cycApplyAll('POM|2029'); 'ok'`);
+      chk(name, 'the cycle chosen for all', 'CONTROL: Full Fund was written to storage with the new tag', (JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)) || {}).cycle, 'POM|2029');
+      chk(name, 'the cycle chosen for all', 'this page’s copy is no longer one storage refused', R.ev(`_pubsOwn.ff===undefined`), true);
+      await after(R, 'the cycle chosen for all'); }
+    // (c) one appropriation taken from a consolidated file (consTakeApply)
+    { const R = start();
+      const ff = JSON.parse(R.ev('JSON.stringify(PUBS.ff)')); ff.ts = Date.now() + 1000; ff.by = 'Lead';
+      R.ev(`window.confirm=function(){ return true; }; reopenPage=function(){ window.__reop=1; }; consTakeApply(${J({ appns: { ff } })}, '', 'consolidated.html', ['ff'], false); 'ok'`);
+      chk(name, 'one appropriation from a consolidated file', 'CONTROL: taken into storage', J([R.ev('!!window.__reop'), (JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)) || {}).by]), J([true, 'Lead']));
+      chk(name, 'one appropriation from a consolidated file', 'this page’s copy is no longer one storage refused', R.ev(`_pubsOwn.ff===undefined`), true); }
+    // (d) several boards at once (importBoards) -- the file's Full Fund older than the other tab's later save, so the newer is that tab's
+    { const R = start();
+      const ff = JSON.parse(R.ev('JSON.stringify(PUBS.ff)')); ff.ts = Date.now() - 1000; ff.by = 'Lead';
+      const html = OLD.html.replace(/<title>[^<]*<\/title>/, m => m.replace(/O&amp;M|O&M/, 'Full Fund'))
+        .replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J({ appns: { ff } }).replace(/</g, '\\u003c') + b);
+      R.ev(`window.confirm=function(){ return true; }; document.getElementById('shareStat').textContent=''; importBoards({ files:[new File([${J(html)}], 'ff-board.html')], value:'x' }); 'ok'`);
+      await W1H.until(() => /Imported|Nothing was imported|Nothing imported/.test(w14stat(R.ev)));
+      chk(name, 'several boards at once', 'CONTROL: Full Fund imported into storage', J([/Imported/.test(w14stat(R.ev)), (JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)) || {}).by]), J([true, 'Lead']));
+      chk(name, 'several boards at once', 'this page’s copy is no longer one storage refused', R.ev(`_pubsOwn.ff===undefined`), true);
+      await after(R, 'several boards at once'); }
+    // (e) the storage listener: another tab that wrote over this page's very copy built on it -- no clash; one that did not is (CONTROL)
+    { const R = boot({ html: OLD.html, ls: LS }); W1H.wire(R.ev, 'Brad', W1H.KEY.brad);
+      const ev2 = old => R.ev(`(function(){ _pubsOwn.ff=_sideGen; delete _tabClash.ff; const mine=JSON.stringify(PUBS.ff), st=JSON.parse(mine); st.ts=Date.now()+50; st.by='Ann';
+        const v=JSON.stringify(st); localStorage.setItem('prio27ff', v);
+        window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', oldValue:${old}, newValue:v})); return String(apClash('ff')); })()`);
+      chk(name, 'the storage listener', 'a tab that wrote over this page’s own copy is no clash', ev2('mine'), 'false');
+      chk(name, 'the storage listener', 'CONTROL: a tab that wrote over another copy is', ev2(`mine.replace('"by"', '"x":1,"by"')`), 'true'); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.15 review RV-B ====
 // ==== v2.15 review RV-C ====
 // ==== end v2.15 review RV-C ====
