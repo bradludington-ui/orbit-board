@@ -26,7 +26,7 @@ expect = {}
 
 def row(**kw):
     r = {h: None for h in H}
-    r.update({'FY': 2026, 'Month': D(2025, 11, 1), 'CCaR No': 'TST-0001', 'Title': 'Test Title A', 'Budget': 'USAF O&M- CAM Discretionary AV',
+    r.update({'FY': 2026, 'Month': D(2025, 11, 1), 'CCaR No': 'TST-0001', 'Title': 'Test Title A', 'Budget': 'USAF O&M- Fixture Line Discretionary AV',
               'Plan Event': 'Test PE A', 'Date': D(2025, 11, 15), 'Amount': 100, 'Alloc': EXEC, 'PMO': 'Air Vehicle (AV)'})
     for k, v in kw.items():
         r[k.replace('_', ' ') if k not in r else k] = v
@@ -119,7 +119,7 @@ raw_tab('FF Raw Data', [
 ])
 raw_tab('__proto__', [row(Budget='USN OPN Ship Alts Discretionary MxS', Amount=2001, PMO='Maintenance Systems (MxS)')], hdr_row=1, extra_cols=())
 raw_tab('Misc', [row(Budget='USAF BOS Discretionary', Amount=3001)], hdr_row=1, extra_cols=())
-raw_tab('Spares Raw Data', [row(Budget='USN APN Spares Initial CONG Discretionary PP', Amount=4001, FY=2024)])
+raw_tab('Spares Raw Data', [row(Budget='USN APN Spares Fixture CONG Discretionary PP', Amount=4001, FY=2024)])
 near = wb.create_sheet('Near miss')
 near.append([('Allocation' if h == 'Alloc' else h) for h in H]); near.append([1] * 32)
 hdronly = wb.create_sheet('Header only')
@@ -139,7 +139,7 @@ wb = openpyxl.Workbook(); wb.remove(wb.active)
 raw_tab('O&M Raw Data', [row(Amount=1), row(Amount=2), row(Amount=3)])
 raw_tab('FF Raw Data', [row(Budget='USAF APN Full Fund SUPT Discretionary AV', Amount=4),
                         row(Budget='USAF APN Full Fund SUPT Discretionary AV', Amount=5),
-                        row(Budget='USAF O&M- CAM Discretionary AV', Amount=6)])
+                        row(Budget='USAF O&M- Fixture Line Discretionary AV', Amount=6)])
 wb.save(os.path.join(OUT, 'clash.xlsx'))
 # clash-a.xlsx: O&M rows in another file (with clash-b.csv, written by the test, O&M arrives from two files)
 wb = openpyxl.Workbook(); wb.active.title = 'O&M Raw Data'

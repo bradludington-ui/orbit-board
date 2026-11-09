@@ -41,6 +41,39 @@ SP.STATUS_LEGEND = Object.freeze([
 SP.STATUS_LEGEND_TEXT = 'Green — at or above the OSD goal; Yellow — within 10 points of it; Red — more than 10 points behind.';
 SP.statusWord = function statusWord(status) { return eng_own(SP.STATUS_WORDS, status) ? SP.STATUS_WORDS[status] : ''; };
 
+// §4.5 and §4.3: the mark beside an Authorized figure, and what it means. An entered Authorized is typed for an
+// appropriation and FY as a whole, so no switch can reach it; printed unmarked beside an Approved the switches have cut,
+// it read on the real pull as a gap of over a billion dollars that was only the switch (review R3). The mark sits beside the figure,
+// on every product, because a note three screens down is not where a reader looks.
+SP.AUTH_MARK_TEXT = Object.freeze({
+  '†': 'Authorized was not entered for this row; Approved is shown in its place.',
+  '‡': 'Authorized as entered, for the appropriation and FY as a whole: it covers every service and lane, while the switches show only some.',
+});
+// '†' not entered (Approved stands in); '‡' entered while some switch is off; '' entered with everything shown
+SP.authMark = function authMark(row, model) {
+  if (!row) return '';
+  if (!row.authorizedEntered) return '†';
+  return model && model.shown && !model.shown.all ? '‡' : '';
+};
+// the marks a TOTAL over these rows carries: it adds whatever its rows are, so it carries each of their marks
+SP.authMarks = function authMarks(rows, model) {
+  const m = (rows || []).map(r => SP.authMark(r, model));
+  return { dag: m.includes('†'), ddag: m.includes('‡') };
+};
+
+// §8's "Obligation %  (Approved X.XXM; …)" and the PMO strip: $M inside a sentence. The screen wrote it with fmtM,
+// the workbook as v12's TEXT(x,"#,##0.00") and the picture with fmtM but 0.00 for zero, so one block's label read
+// "Approved -M", "Approved 0.00M" and "-1,234.57M" against "(1,234.57)M" across the three (review R7). One wording now:
+// fmtM's, so a negative is in parentheses as in every cell beside it and nothing non-zero reads as zero (§2), with zero
+// written 0.00, because a lone dash inside a sentence reads as a figure left out.
+SP.fmtMText = function fmtMText(cents) {
+  return typeof cents === 'number' && isFinite(cents) && Math.round(cents) === 0 ? '0.00' : SP.fmtM(cents);
+};
+SP.oblLabel = function oblLabel(block, model) {
+  const c = model && Array.isArray(model.cols) ? model.cols[model.asOfIndex] : null;
+  return 'Obligation %  (Approved ' + SP.fmtMText(block && block.approved) + 'M; actual through ' + (c ? c.label : '') + ', plan after)';
+};
+
 // §4.5. The 1e-12 lets a ratio that is the goal exactly, but arrived at through a division, count as on the goal.
 SP.statusOf = function statusOf(pct, goal) {
   if (typeof pct !== 'number' || typeof goal !== 'number' || !isFinite(pct) || !isFinite(goal)) return null;
@@ -191,7 +224,7 @@ function eng_txt(v) { return v === null || v === undefined ? '' : String(v); }
 // ---------------------------------------------------------------------------------------------------------------
 function eng_figures(rows, ap, fy, cx, S, auth) {
   const cols = eng_zeros(), exec = eng_zeros();
-  let approved = 0, unprog = 0, obligated = 0, after = 0, afterRows = 0;
+  let approved = 0, unprog = 0, obligated = 0, after = 0, afterRows = 0, noDate = 0, noDateRows = 0;
   for (const r of rows) {
     const c = r.cents;
     cols[r.col] += c; approved += c;
@@ -200,6 +233,9 @@ function eng_figures(rows, ap, fy, cx, S, auth) {
       // obligated is the status, whatever the date (Brad, 28 Oct, item 133); a date after the as-of month is only said
       obligated += c; exec[r.col] += c;
       if (r.col !== ENG_NODATE && r.d.date >= cx.asOfNext) { after += c; afterRows++; }
+      // and so is a date that is blank or could not be read: it is obligated, but no month's actual Obligation % can
+      // hold it, so the headline stood above the as-of column with nothing saying why (review R5)
+      if (r.col === ENG_NODATE) { noDate += c; noDateRows++; }
     }
   }
   const cum = new Array(ENG_NC);
@@ -231,7 +267,8 @@ function eng_figures(rows, ap, fy, cx, S, auth) {
   const authorized = auth.entered ? auth.cents : approved;
   return { key: ap + '|' + fy, ap, apLabel: ENG_AP_LABEL[ap], fy, n, curve, approved, unprog, obligated,
     unobligated: approved - obligated, authorized, authorizedEntered: auth.entered, oblPct, goal, delta,
-    status: SP.statusOf(oblPct, goal), execAfterAsOf: after, execAfterAsOfRows: afterRows, nRows: rows.length,
+    status: SP.statusOf(oblPct, goal), execAfterAsOf: after, execAfterAsOfRows: afterRows, execNoDate: noDate,
+    execNoDateRows: noDateRows, nRows: rows.length,
     cols, cum, obl, goalC, statusC };
 }
 
@@ -492,27 +529,45 @@ SP.buildModel = function buildModel(pulls, settings, view) {
     pmos.push({ pmo: pk, key: pk, label, code: SP.pmoCode(label), blocks: pbs,
       rows: pbs.map(pb => ({ ap: pb.ap, apLabel: pb.apLabel, fy: pb.fy, key: pb.key, approved: pb.approved,
         authorized: pb.authorized, obligated: pb.obligated, unobligated: pb.unobligated, unprog: pb.unprog, oblPct: pb.oblPct,
-        goal: pb.goal, delta: pb.delta, status: pb.status, execAfterAsOf: pb.execAfterAsOf })),
+        goal: pb.goal, delta: pb.delta, status: pb.status, execAfterAsOf: pb.execAfterAsOf, execNoDate: pb.execNoDate })),
       total: eng_tot(pbs, true) });
   }
   pmos.sort(eng_pmoSort);
-  const execAfter = { cents: 0, rows: 0 };
-  for (const b of blocks) { execAfter.cents += b.execAfterAsOf; execAfter.rows += b.execAfterAsOfRows; }
+  const execAfter = { cents: 0, rows: 0 }, execNoDate = { cents: 0, rows: 0 };
+  for (const b of blocks) {
+    execAfter.cents += b.execAfterAsOf; execAfter.rows += b.execAfterAsOfRows;
+    execNoDate.cents += b.execNoDate; execNoDate.rows += b.execNoDateRows;
+  }
   const model = {
     asOf: S.asOf, asOfLabel: SP.asOfLabel(S.asOf), E: cx.E, firstFY: S.firstFY, window: { start: cx.wstart, end: cx.wend },
     cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: V.shown, special: S.special,
     present: { services: ENG_ALL_SVC.filter(s => present.svc.has(s)), lanes: ENG_LANES.filter(l => present.lane.has(l)) },
-    blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, rowsByAp,
+    blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp,
     summary: { rows: blocks, total: eng_tot(blocks), notes: [] },
   };
   model.summary.notes = eng_notes(model);
   return model;
 };
 
-// §4.6 the Summary's notes, each only when it has something to say
+// §4.6 the Summary's notes, each only when it has something to say.
+// Under a switch, a note must not claim more than is true (§4.3: "each product states what it shows when not
+// everything is shown"). Two things here do not follow the switches, by their own rules: an entered Authorized (§4.5,
+// typed for an appropriation and FY as a whole) and the rows not counted (each is named by the FIRST §4.3 condition it
+// fails, and the switches come last). "Every figure counts only these" stood beside both, and with USAF off the
+// before-FY2025 note on the real pull still counted every dollar of USAF's FY2024 money (review R3). So the claim names its exceptions, and
+// each of those notes says it covers every service and lane.
 function eng_notes(M) {
   const notes = [];
-  if (!M.shown.all) notes.push(M.shown.text + '. Every figure counts only these.');
+  const filtered = !M.shown.all;
+  const every = filtered ? ' This counts every service and lane, whatever the switches show.' : '';
+  const authAll = filtered ? M.blocks.filter(b => b.authorizedEntered) : [];
+  const bf = M.excluded.beforeFirst, ui = M.excluded.unidentified, ur = M.excluded.unreadable.rows;
+  if (filtered) {
+    const ex = [];
+    if (authAll.length) ex.push('an entered Authorized (marked ‡)');
+    if (bf.rows || ui.rows || ur) ex.push('the notes below on rows not counted');
+    notes.push(M.shown.text + '. Every figure counts only these' + (ex.length ? ', except ' + ex.join(' and ') + ', which cover every service and lane' : '') + '.');
+  }
   const up = M.blocks.filter(b => b.unprog !== 0);
   if (up.length) notes.push('Unprogrammed money is counted in Approved: ' + up.map(b => eng_fyName(b) + ' ' + eng_dollars(b.unprog)).join('; ') + '.');
   const noAuth = M.blocks.filter(b => !b.authorizedEntered);
@@ -520,20 +575,28 @@ function eng_notes(M) {
     notes.push('Authorized was not entered for ' + (noAuth.length === M.blocks.length ? 'any block'
       : noAuth.map(eng_fyName).join(', ')) + '; Approved is shown in its place (marked †).');
   }
-  const bf = M.excluded.beforeFirst;
+  if (authAll.length) {
+    notes.push('Authorized is entered for an appropriation and FY as a whole, so it counts every service and lane: '
+      + authAll.map(eng_fyName).join(', ') + ' ' + (authAll.length === 1 ? 'shows its' : 'show their') + ' entered Authorized (marked ‡) beside an Approved,'
+      + ' Obligated and Unobligated that count only the services and lanes shown, and the totals add ' + (authAll.length === 1 ? 'it' : 'them') + ' in.');
+  }
   if (bf.rows) {
     const fys = Object.keys(bf.byFy).sort();
     notes.push('Money before FY' + M.firstFY + ' is not shown: ' + fys.map(k => 'FY' + k + ' ' + eng_dollars(bf.byFy[k])
-      + ' (' + eng_rowsWord(bf.rowsByFy[k]) + ')').join('; ') + '.');
+      + ' (' + eng_rowsWord(bf.rowsByFy[k]) + ')').join('; ') + '.' + every);
   }
-  const ui = M.excluded.unidentified;
   if (ui.rows) notes.push(eng_rowsWord(ui.rows) + ' (' + eng_dollars(ui.cents) + ') carry a Budget name that names no appropriation, on a sheet whose name does not name one either; '
-    + (ui.rows === 1 ? 'it is' : 'they are') + ' counted nowhere. See the Import report.');
-  const ur = M.excluded.unreadable.rows;
-  if (ur) notes.push(eng_rowsWord(ur) + ' could not be read (FY or Amount) and ' + (ur === 1 ? 'is' : 'are') + ' counted nowhere. See the Import report.');
+    + (ui.rows === 1 ? 'it is' : 'they are') + ' counted nowhere. See the Import report.' + every);
+  if (ur) notes.push(eng_rowsWord(ur) + ' could not be read (FY or Amount) and ' + (ur === 1 ? 'is' : 'are') + ' counted nowhere. See the Import report.' + every);
   const ea = M.execAfterAsOf;
   if (ea.rows) notes.push(eng_rowsWord(ea.rows) + ' marked Actual Execution (' + eng_dollars(ea.cents) + ') ' + (ea.rows === 1 ? 'is' : 'are')
     + ' dated after ' + M.asOfLabel + ', the data-through month; ' + (ea.rows === 1 ? 'it is' : 'they are') + ' counted as obligated.');
+  // the other half of why a block's headline Obl % differs from its as-of column: Obligated counts these, and no
+  // month can, because they have no date to be placed by
+  const nd = M.execNoDate;
+  if (nd && nd.rows) notes.push(eng_rowsWord(nd.rows) + ' marked Actual Execution (' + eng_dollars(nd.cents) + ') ' + (nd.rows === 1 ? 'has' : 'have')
+    + ' no readable date; ' + (nd.rows === 1 ? 'it is' : 'they are') + ' counted as obligated (Obligated and the Obl % beside it), but in no month’s actual Obligation %,'
+    + ' so the headline Obl % and the data-through month’s differ by ' + (nd.rows === 1 ? 'it' : 'them') + '.');
   return notes;
 }
 

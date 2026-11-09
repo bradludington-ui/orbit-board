@@ -243,8 +243,8 @@ try {
     C.chk('clash: the message names each sheet and its count, so the misfiled row is found',
       e && has(e.message, '“clash.xlsx” › “O&M Raw Data” holds 3 O&M rows')
       && has(e.message, '“clash.xlsx” › “FF Raw Data” holds 1 O&M row') && has(e.message, 'Nothing was imported'), e && e.message);
-    const csvB = H.join(',') + '\n' + ['2026', '2025-11-01', 'B-1', 'T', 'USAF O&M- CAM Discretionary AV', '', '', 'PE', '2025-11-03', '5', 'Not Allocated'].join(',') + ',,,,,,,,,,,,,,,,,,,,,\n'
-      + ['2026', '2025-11-01', 'B-2', 'T', 'USAF O&M- CAM Discretionary AV', '', '', 'PE', '2025-11-03', '6', 'Not Allocated'].join(',') + ',,,,,,,,,,,,,,,,,,,,,\n';
+    const csvB = H.join(',') + '\n' + ['2026', '2025-11-01', 'B-1', 'T', 'USAF O&M- Fixture Line Discretionary AV', '', '', 'PE', '2025-11-03', '5', 'Not Allocated'].join(',') + ',,,,,,,,,,,,,,,,,,,,,\n'
+      + ['2026', '2025-11-01', 'B-2', 'T', 'USAF O&M- Fixture Line Discretionary AV', '', '', 'PE', '2025-11-03', '6', 'Not Allocated'].join(',') + ',,,,,,,,,,,,,,,,,,,,,\n';
     const e2 = await refusal(SP.parseFiles([{ name: 'clash-a.xlsx', data: ab('clash-a.xlsx') }, { name: 'clash-b.csv', data: csvB }]));
     C.chk('clash: O&M rows from two files refuse the import, naming both',
       e2 && e2.refused && has(e2.message, '“clash-a.xlsx” › “O&M Raw Data” holds 2 O&M rows')
@@ -341,10 +341,10 @@ try {
     const q = s => '"' + String(s).replace(/"/g, '""') + '"';
     const line = vals => H.map(h => (h in vals ? vals[h] : '')).join(',');
     const text = '\uFEFF' + H.join(',') + ',Svc (auto)\r\n'
-      + line({ FY: '2026', Month: '2025-11-01', 'CCaR No': 'CSV-1', Title: q('Title, with comma'), Budget: 'USAF O&M- CAM Discretionary AV',
+      + line({ FY: '2026', Month: '2025-11-01', 'CCaR No': 'CSV-1', Title: q('Title, with comma'), Budget: 'USAF O&M- Fixture Line Discretionary AV',
         'Plan Event': q('PE "quoted"'), Date: '2025-11-30', Amount: '1234.5', Alloc: 'Not Allocated', 'Event Description': q('Line one\nLine two'), PMO: 'Air Vehicle (AV)' }) + ',USAF\r\n'
-      + line({ FY: 'FY26', 'CCaR No': 'CSV-2', Budget: 'USAF O&M- CAM Discretionary AV', Date: '12/31/2025', Amount: '$0.00', Alloc: EXECA() }) + ',\r\n'
-      + line({ FY: '2026', 'CCaR No': 'CSV-3', Budget: 'USAF O&M- CAM Discretionary AV', Date: '', Amount: q('1,234.00'), Alloc: 'Not Allocated' }) + ',\r\n';
+      + line({ FY: 'FY26', 'CCaR No': 'CSV-2', Budget: 'USAF O&M- Fixture Line Discretionary AV', Date: '12/31/2025', Amount: '$0.00', Alloc: EXECA() }) + ',\r\n'
+      + line({ FY: '2026', 'CCaR No': 'CSV-3', Budget: 'USAF O&M- Fixture Line Discretionary AV', Date: '', Amount: q('1,234.00'), Alloc: 'Not Allocated' }) + ',\r\n';
     function EXECA() { return 'Actual Execution is allocated to a Plan Event'; }
     const r = await SP.parseFiles([{ name: 'pull.csv', data: text }]);
     const rows = r.pulls.om.rows;
@@ -359,7 +359,7 @@ try {
     const bomBytes = new Uint8Array([0xEF, 0xBB, 0xBF, ...new TextEncoder().encode(text.slice(1))]);
     const rb = await SP.parseFiles([{ name: 'pull.CSV', data: bomBytes.buffer }]);
     C.eq('csv bytes with a byte-order mark read the same', rb.pulls.om.rows.map(x => x.c), rows.map(x => x.c));
-    const cp = H.join(',') + '\r\n' + line({ FY: '2026', 'CCaR No': 'CP-1', Title: 'Café Line', Budget: 'USAF O&M- CAM Discretionary AV', Amount: '5', Alloc: 'Not Allocated' }) + '\r\n';
+    const cp = H.join(',') + '\r\n' + line({ FY: '2026', 'CCaR No': 'CP-1', Title: 'Café Line', Budget: 'USAF O&M- Fixture Line Discretionary AV', Amount: '5', Alloc: 'Not Allocated' }) + '\r\n';
     const cpBytes = new Uint8Array([...cp].map(ch => ch.charCodeAt(0)));   // every character below 256: Windows-1252 bytes
     const rc = await SP.parseFiles([{ name: 'ansi.csv', data: cpBytes }]);
     C.chk('csv in Windows-1252 is read as such, and the report says so',
@@ -376,12 +376,12 @@ try {
     'OPN Raw Data', 'Staff', 'Topnotch', 'O&M', 'Sheet1'].map(n => SP.apOfRow(mk({ Budget: 'USAF BOS' }), n)), ['om', 'om', 'ff', 'ff', 'ff', 'sp', 'sp', 'opn', null, null, null, null]);
   C.eq('apOfRow: the budget wins over the sheet', SP.apOfRow(mk({ Budget: 'USN APN Full Fund' }), 'Spares Raw Data'), 'ff');
   const SVC = [
-    ['USAF O&M- CAM Discretionary PP', 'USAF', 'disc'], ['USAF O&M - ANG CAM OBBBA Mandatory', 'USAF ANG', 'mand'],
+    ['USAF O&M- Fixture Line Discretionary PP', 'USAF', 'disc'], ['USAF O&M - ANG CAM OBBBA Mandatory', 'USAF ANG', 'mand'],
     ['USAF O&M-ANG CAM Discretionary AV', 'USAF ANG', 'disc'], ['USAF O&M- AFRC CAM Discretionary AV', 'USAF AFRC', 'disc'],
-    ['USAF ANG AFRC Discretionary', 'USAF AFRC', 'disc'], ['USN O&M- 1A9A-USMC CV EN Discretionary PP', 'USMC C (USMC CV)', 'disc'],
-    ['USN APN Full Fund SUPT USMC CV FIXED Discretionary BOP', 'USMC C (USMC CV)', 'disc'], ['USN O&M- 1A9A-USN CV EN Discretionary PP', 'USN (USN CV)', 'disc'],
+    ['USAF ANG AFRC Discretionary', 'USAF AFRC', 'disc'], ['USN O&M- Fixture USMC CV EN Discretionary PP', 'USMC C (USMC CV)', 'disc'],
+    ['USN APN Full Fund SUPT USMC CV FIXED Discretionary BOP', 'USMC C (USMC CV)', 'disc'], ['USN O&M- Fixture USN CV EN Discretionary PP', 'USN (USN CV)', 'disc'],
     ['USN APN Spares Initial STOVL Discretionary AV', 'USMC B (STOVL)', 'disc'], ['USN STOVL USMC CV', 'USMC B (STOVL)', 'disc'],
-    ['USN OPN ALIS Ship Alts Discretionary MxS', 'USN (USN CV)', 'disc'], ['USN APN Spares Initial CONG Discretionary PP', 'USN (USN CV)', 'disc'],
+    ['USN OPN Fixture Ship Line Discretionary MxS', 'USN (USN CV)', 'disc'], ['USN APN Spares Fixture CONG Discretionary PP', 'USN (USN CV)', 'disc'],
     ['USMC  CV  Mandatory', 'USMC C (USMC CV)', 'mand'], ['Misc USN CV Line', 'USN (USN CV)', 'disc'], ['  usaf o&m lower case', 'USAF', 'disc'],
     ['Misc CHANGE Discretionary', SP.SVC_UNKNOWN, 'disc'], ['RANGE Support', SP.SVC_UNKNOWN, 'disc'], ['HANGAR Upkeep', SP.SVC_UNKNOWN, 'disc'],
     ['X USN Y', SP.SVC_UNKNOWN, 'disc'], ['USAFE Line', SP.SVC_UNKNOWN, 'disc'], ['', SP.SVC_UNKNOWN, 'disc'], ['USAF Mandatoryish', 'USAF', 'disc'],
@@ -393,9 +393,9 @@ try {
     ['Unprogrammed - Pending Allocation', 'unprog', 'Unprogrammed'], ['Forecast', 'fcst', 'Forecast'], ['', 'other', '(blank)'], ['Some Status', 'other', 'Some Status']];
   for (const [a, s, l] of ST) C.eq('deriveRow status: ' + JSON.stringify(a), [SP.deriveRow(mk({ Alloc: a }), {}).status, SP.deriveRow(mk({ Alloc: a }), {}).statusLabel], [s, l]);
   {
-    const set = { budgets: { 'misc change discretionary': { svc: 'USAF' }, 'usaf o&m- cam discretionary pp': { lane: 'mand' }, 'bogus line': { svc: 'Bogus', lane: 'x' } } };
+    const set = { budgets: { 'misc change discretionary': { svc: 'USAF' }, 'usaf o&m- fixture line discretionary pp': { lane: 'mand' }, 'bogus line': { svc: 'Bogus', lane: 'x' } } };
     C.eq('an override of the service wins', SP.deriveRow(mk({ Budget: 'Misc  CHANGE Discretionary' }), set).svc, 'USAF');
-    C.eq('an override of the lane wins, the service by rule', [SP.deriveRow(mk({ Budget: 'USAF O&M- CAM Discretionary PP' }), set).lane, SP.deriveRow(mk({ Budget: 'USAF O&M- CAM Discretionary PP' }), set).svc], ['mand', 'USAF']);
+    C.eq('an override of the lane wins, the service by rule', [SP.deriveRow(mk({ Budget: 'USAF O&M- Fixture Line Discretionary PP' }), set).lane, SP.deriveRow(mk({ Budget: 'USAF O&M- Fixture Line Discretionary PP' }), set).svc], ['mand', 'USAF']);
     C.eq('an override naming no service or lane is ignored', [SP.deriveRow(mk({ Budget: 'Bogus Line' }), set).svc, SP.deriveRow(mk({ Budget: 'Bogus Line' }), set).lane], [SP.SVC_UNKNOWN, 'disc']);
     C.eq('a budget named for a built-in finds no override', [SP.deriveRow(mk({ Budget: 'constructor' }), set).svc, SP.deriveRow(mk({ Budget: 'toString' }), { budgets: {} }).svc], [SP.SVC_UNKNOWN, SP.SVC_UNKNOWN]);
     C.eq('deriveRow with no settings at all', SP.deriveRow(mk({ Budget: 'USAF O&M' }), undefined).svc, 'USAF');

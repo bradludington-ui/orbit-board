@@ -259,7 +259,7 @@ def parse_amount(v):
 
 def read_csv_text(text):
     # §3 readCsv: RFC 4180 (quoted fields, doubled quotes, newlines inside quotes) after stripping a byte-order mark
-    if text.startswith('﻿'):
+    if text.startswith('\ufeff'):
         text = text[1:]
     return [list(r) for r in csv.reader(io.StringIO(text, newline=''))]
 

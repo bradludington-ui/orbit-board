@@ -55,16 +55,16 @@ USAF, ANG, AFRC, STOVL, USMCCV, USN, UNK = ('USAF', 'USAF ANG', 'USAF AFRC', 'US
 # What each budget name MEANS, stated by hand from the contract's rules, never by running them: the oracle applies the
 # rules to the text, and the tests compare the two. ap None = no rule names it (the sheet name, or nothing, decides).
 BUDGETS = {
-    'USAF O&M- CAM Discretionary AV': ('om', USAF, 'disc'),
+    'USAF O&M- Fixture Line Discretionary AV': ('om', USAF, 'disc'),
     'USAF O&M- CAM Discretionary Galvor': ('om', USAF, 'disc'),
-    'USN O&M- 1A9A-USN CV LA Discretionary PSM': ('om', USN, 'disc'),
-    'USN O&M- 1A9A-USMC CV LA Discretionary AV': ('om', USMCCV, 'disc'),
-    'USAF O&M - ANG CAM Discretionary PP': ('om', ANG, 'disc'),
-    'USAF O&M - AFRC CAM Discretionary TSS': ('om', AFRC, 'disc'),
-    'USMC STOVL O&M -1A9A LA Discretionary AV': ('om', STOVL, 'disc'),
-    'USAF O&M - ANG CAM OBBBA Mandatory AV': ('om', ANG, 'mand'),
+    'USN O&M- Fixture USN CV LA Discretionary PSM': ('om', USN, 'disc'),
+    'USN O&M- Fixture USMC CV LA Discretionary AV': ('om', USMCCV, 'disc'),
+    'USAF O&M - ANG Fixture Line Discretionary PP': ('om', ANG, 'disc'),
+    'USAF O&M - AFRC Fixture Line Discretionary TSS': ('om', AFRC, 'disc'),
+    'USMC STOVL O&M - Fixture Line Discretionary AV': ('om', STOVL, 'disc'),
+    'USAF O&M - ANG Fixture Line Mandatory AV': ('om', ANG, 'mand'),
     'USAF O&M - AFRC CAM Discretionary Brimlow': ('om', AFRC, 'disc'),          # gen2's new budget name
-    'USAF APAF Full Fund SUPT PES Discretionary AV': ('ff', USAF, 'disc'),
+    'USAF APXX Full Fund Fixture Line Discretionary AV': ('ff', USAF, 'disc'),
     'USAF APAF Full Fund CHANGE ORDER AV': ('ff', USAF, 'disc'),            # "CHANGE" holds ANG; not a word: USAF
     'USN APN Full Fund SUPT USN CV FIXED JPO SUPT Discretionary BOP': ('ff', USN, 'disc'),
     'USN APN Full Fund SUPT USMC CV FIXED JPO SUPT Discretionary CDS': ('ff', USMCCV, 'disc'),
@@ -72,26 +72,26 @@ BUDGETS = {
     'USAF APAF Full Fund ANG SUPT Discretionary MxS': ('ff', ANG, 'disc'),
     'USAF APAF Full Fund AFRC SUPT Discretionary TSS': ('ff', AFRC, 'disc'),
     'USAF APAF Full Fund SUPT PES Mandatory TSS': ('ff', USAF, 'mand'),
-    'USN APN Spares Initial USN CV Discretionary PP': ('sp', USN, 'disc'),
-    'USN APN Spares Initial CONG Discretionary PP': ('sp', USN, 'disc'),     # Navy APN CONG: USN, not v12's USAF
+    'USN APN Spares Fixture USN CV Discretionary PP': ('sp', USN, 'disc'),
+    'USN APN Spares Fixture CONG Discretionary PP': ('sp', USN, 'disc'),     # Navy APN CONG: USN, not v12's USAF
     'USAF APAF Spares Initial Discretionary Kestro': ('sp', USAF, 'disc'),
     'USMC STOVL APN Spares Initial Discretionary Orrin': ('sp', STOVL, 'disc'),
     'USN APN Spares Initial USMC CV Discretionary Hollet': ('sp', USMCCV, 'disc'),
-    'USN OPN ALIS Ship Alts Discretionary MxS': ('opn', USN, 'disc'),        # Navy OPN: USN, not v12's USAF
+    'USN OPN Fixture Ship Line Discretionary MxS': ('opn', USN, 'disc'),        # Navy OPN: USN, not v12's USAF
     'DLA Reimbursable Line X': (None, UNK, 'disc'),                          # no rule knows it; its sheet says Spares
     'Contractor Furnished Line Q': (None, UNK, 'disc'),                      # nothing identifies it
     'Interagency Reimbursable Z': (None, UNK, 'disc'),
 }
 GENERIC = {
-    'om': ['USAF O&M- CAM Discretionary AV', 'USAF O&M- CAM Discretionary Galvor', 'USN O&M- 1A9A-USN CV LA Discretionary PSM',
-           'USN O&M- 1A9A-USMC CV LA Discretionary AV', 'USAF O&M - ANG CAM Discretionary PP',
-           'USAF O&M - AFRC CAM Discretionary TSS', 'USMC STOVL O&M -1A9A LA Discretionary AV'],
-    'ff': ['USAF APAF Full Fund SUPT PES Discretionary AV', 'USN APN Full Fund SUPT USN CV FIXED JPO SUPT Discretionary BOP',
+    'om': ['USAF O&M- Fixture Line Discretionary AV', 'USAF O&M- CAM Discretionary Galvor', 'USN O&M- Fixture USN CV LA Discretionary PSM',
+           'USN O&M- Fixture USMC CV LA Discretionary AV', 'USAF O&M - ANG Fixture Line Discretionary PP',
+           'USAF O&M - AFRC Fixture Line Discretionary TSS', 'USMC STOVL O&M - Fixture Line Discretionary AV'],
+    'ff': ['USAF APXX Full Fund Fixture Line Discretionary AV', 'USN APN Full Fund SUPT USN CV FIXED JPO SUPT Discretionary BOP',
            'USN APN Full Fund SUPT USMC CV FIXED JPO SUPT Discretionary CDS', 'USMC STOVL APN Full Fund SUPT Discretionary PP',
            'USAF APAF Full Fund ANG SUPT Discretionary MxS', 'USAF APAF Full Fund AFRC SUPT Discretionary TSS'],
-    'sp': ['USN APN Spares Initial USN CV Discretionary PP', 'USAF APAF Spares Initial Discretionary Kestro',
+    'sp': ['USN APN Spares Fixture USN CV Discretionary PP', 'USAF APAF Spares Initial Discretionary Kestro',
            'USMC STOVL APN Spares Initial Discretionary Orrin', 'USN APN Spares Initial USMC CV Discretionary Hollet'],
-    'opn': ['USN OPN ALIS Ship Alts Discretionary MxS'],
+    'opn': ['USN OPN Fixture Ship Line Discretionary MxS'],
 }
 EXEC = 'Actual Execution is allocated to a Plan Event'
 NA = 'Not Allocated'
@@ -286,14 +286,14 @@ def build_gen1(seed):
     for _ in range(7):
         g.program('om', 2025)
     # O&M FY2025 also carries a Mandatory line (the contract's example name), so mand-only has more than one block
-    R('om', 2025, 'JSF9501', 'Surge Readiness Funding', 'USAF O&M - ANG CAM OBBBA Mandatory AV', 'AX - Surge Option A',
+    R('om', 2025, 'JSF9501', 'Surge Readiness Funding', 'USAF O&M - ANG Fixture Line Mandatory AV', 'AX - Surge Option A',
       D(2026, 4, 17), 3_250_000_00, EXEC, AV)
-    R('om', 2025, 'JSF9501', 'Surge Readiness Funding', 'USAF O&M - ANG CAM OBBBA Mandatory AV', 'AX - Surge Option A',
+    R('om', 2025, 'JSF9501', 'Surge Readiness Funding', 'USAF O&M - ANG Fixture Line Mandatory AV', 'AX - Surge Option A',
       D(2027, 4, 30), 1_125_000_00, NA, AV)
     for _ in range(14):
         g.program('om', 2026)
     # case and space variants of one title: all on one budget, so no switch can change which spelling is the majority
-    H = ('JSF9301', 'USN O&M- 1A9A-USN CV LA Discretionary PSM', 'MX - Hydraulic Pump Teardown', MXS)
+    H = ('JSF9301', 'USN O&M- Fixture USN CV LA Discretionary PSM', 'MX - Hydraulic Pump Teardown', MXS)
     R('om', 2026, H[0], 'Hydraulic Pump Overhaul', H[1], H[2], D(2025, 12, 12), 412_000_00, EXEC, H[3])
     R('om', 2026, H[0], 'Hydraulic Pump Overhaul', H[1], H[2], D(2026, 2, 26), 233_418_75, EXEC, H[3], fy_cell='FY26')
     R('om', 2026, H[0], 'HYDRAULIC PUMP OVERHAUL', H[1], H[2], D(2026, 3, 31), 96_250_00, EXEC, H[3])
@@ -301,14 +301,14 @@ def build_gen1(seed):
     R('om', 2026, H[0], '  Hydraulic   Pump Overhaul ', H[1], H[2], D(2027, 1, 31), 145_500_00, NA, H[3])
     R('om', 2026, H[0], 'Hydraulic Pump Overhaul', H[1], H[2], D(2027, 5, 31), 870_000_00, NA, H[3])
     # a non-breaking space inside a title: one node with 'Radar Shroud Repair', labelled by the majority
-    Rd = ('JSF9302', 'USMC STOVL O&M -1A9A LA Discretionary AV', 'AX - Shroud Seal Rework', AV)
+    Rd = ('JSF9302', 'USMC STOVL O&M - Fixture Line Discretionary AV', 'AX - Shroud Seal Rework', AV)
     for d, c, a, t in [(D(2025, 11, 20), 515_000_00, EXEC, 'Radar Shroud Repair'),
-                       (D(2026, 6, 30), 205_000_00, EXEC, 'Radar Shroud Repair'),
+                       (D(2026, 6, 30), 205_000_00, EXEC, 'Radar\xa0Shroud Repair'),
                        (D(2027, 2, 28), 640_000_00, NA, 'Radar Shroud Repair'),
                        (D(2027, 8, 31), 380_000_00, NA, 'Radar Shroud Repair')]:
         R('om', 2026, Rd[0], t, Rd[1], Rd[2], d, c, a, Rd[3])
     # a title holding markup characters
-    T = ('CT-90311', 'Ventral <b>&"\' Fairing Study', 'USAF O&M- CAM Discretionary AV', 'CX - Fairing Load Survey', CDS)
+    T = ('CT-90311', 'Ventral <b>&"\' Fairing Study', 'USAF O&M- Fixture Line Discretionary AV', 'CX - Fairing Load Survey', CDS)
     R('om', 2026, T[0], T[1], T[2], T[3], D(2026, 1, 15), 720_000_00, EXEC, T[4])
     R('om', 2026, T[0], T[1], T[2], T[3], D(2026, 9, 3), 88_000_25, EXEC, T[4])
     R('om', 2026, T[0], T[1], T[2], T[3], D(2027, 2, 28), 455_000_00, NA, T[4])
@@ -327,20 +327,20 @@ def build_gen1(seed):
       intent_date='')
     R('om', 2026, L[0], L[1], L[2], 'BX - Status Missing Item', D(2027, 2, 28), 310_000_00, '', L[3])
     R('om', 2026, L[0], L[1], L[2], '', D(2026, 2, 12), 77_000_00, EXEC, L[3])
-    R('om', 2026, '', '', 'USAF O&M- CAM Discretionary AV', 'MX - Unassigned Labor Charge', D(2026, 5, 7), 125_000_00,
+    R('om', 2026, '', '', 'USAF O&M- Fixture Line Discretionary AV', 'MX - Unassigned Labor Charge', D(2026, 5, 7), 125_000_00,
       EXEC, MXS)
     # JSF6654, a special CCaR: its Not Allocated rows are one item per month, labelled by the majority TITLE
     J = ('JSF6654', 'Airframe Annual Readiness Bundle', AV)
-    for i, (b, pe) in enumerate([('USAF O&M- CAM Discretionary AV', 'LX - Readiness Option 1'),
-                                  ('USN O&M- 1A9A-USN CV LA Discretionary PSM', 'LX - Readiness Option 2'),
-                                  ('USN O&M- 1A9A-USN CV LA Discretionary PSM', 'LX - Readiness Option 3')]):
+    for i, (b, pe) in enumerate([('USAF O&M- Fixture Line Discretionary AV', 'LX - Readiness Option 1'),
+                                  ('USN O&M- Fixture USN CV LA Discretionary PSM', 'LX - Readiness Option 2'),
+                                  ('USN O&M- Fixture USN CV LA Discretionary PSM', 'LX - Readiness Option 3')]):
         R('om', 2026, J[0], J[1], b, pe, D(2025, 12, 19), 2_100_000_00 + i * 37_000_00, EXEC, J[2])
         R('om', 2026, J[0], J[1], b, pe, D(2027, 4, 30), 1_400_000_00 + i * 11_000_00, NA, J[2])
-    R('om', 2026, J[0], 'AIRFRAME ANNUAL READINESS BUNDLE', 'USAF O&M- CAM Discretionary AV', 'LX - Readiness Option 1',
+    R('om', 2026, J[0], 'AIRFRAME ANNUAL READINESS BUNDLE', 'USAF O&M- Fixture Line Discretionary AV', 'LX - Readiness Option 1',
       D(2027, 4, 30), 210_000_00, NA, J[2])
     # PP 2000, the other special CCaR, across two budgets and two plan events (the second goes in gen2)
     P = ('PP 2000', 'Propulsion Engine Support Pool', PP)
-    for b in ('USAF O&M - ANG CAM Discretionary PP', 'USAF O&M- CAM Discretionary Galvor'):
+    for b in ('USAF O&M - ANG Fixture Line Discretionary PP', 'USAF O&M- CAM Discretionary Galvor'):
         R('om', 2026, P[0], P[1], b, 'EX - Engine Pool Fixed Fee', D(2025, 11, 26), 4_400_000_00, EXEC, P[2])
         R('om', 2026, P[0], P[1], b, 'EX - Engine Pool Fixed Fee', D(2027, 6, 30), 2_750_000_00, NA, P[2])
         R('om', 2026, P[0], P[1], b, 'EX - Engine Pool Repairables', D(2027, 6, 30), 980_000_00, NA, P[2])
@@ -351,7 +351,7 @@ def build_gen1(seed):
     for _ in range(11):
         g.program('om', 2027)
     # a row in every month of the FY2027 window, one plan event, so each month's list has an item
-    C = ('CT-90401', 'Fleet Readiness Cadence', 'USAF O&M - AFRC CAM Discretionary TSS', 'PX - Cadence Plan', PSM)
+    C = ('CT-90401', 'Fleet Readiness Cadence', 'USAF O&M - AFRC Fixture Line Discretionary TSS', 'PX - Cadence Plan', PSM)
     R('om', 2027, C[0], C[1], C[2], C[3], D(2026, 10, 14), 600_000_00, EXEC, C[4])
     for k, (y, m) in enumerate([(2026, 10), (2026, 11), (2026, 12)] + [(2027, i) for i in range(1, 10)]):
         R('om', 2027, C[0], C[1], C[2], C[3], month_end(y, m), 1_000_000_00 + k * 123_456_78, NA, C[4])
@@ -363,20 +363,20 @@ def build_gen1(seed):
                            ('USAF O&M- CAM Discretionary Galvor', 'PP 2000', D(2027, 3, 31), 3_100_000_00, NA),
                            ('USAF O&M- CAM Discretionary Galvor', ' pp 2000', D(2027, 3, 31), 400_000_00, NA),
                            ('USAF O&M- CAM Discretionary Galvor', 'PP 2000', D(2027, 7, 31), 1_900_000_00, NA),
-                           ('USAF O&M - ANG CAM Discretionary PP', 'PP 2000', D(2027, 3, 31), 860_000_00, NA),
-                           ('USAF O&M - ANG CAM Discretionary PP', 'PP 2000', D(2027, 7, 31), 515_000_00, NA)]:
+                           ('USAF O&M - ANG Fixture Line Discretionary PP', 'PP 2000', D(2027, 3, 31), 860_000_00, NA),
+                           ('USAF O&M - ANG Fixture Line Discretionary PP', 'PP 2000', D(2027, 7, 31), 515_000_00, NA)]:
         R('om', 2027, cc, P[1], b, 'EX - Engine Pool Fixed Fee', d, c, a, P[2])
-    R('om', 2027, 'PP 2000', P[1], 'USAF O&M - ANG CAM Discretionary PP', 'EX - Engine Pool Surge', D(2027, 3, 31),
+    R('om', 2027, 'PP 2000', P[1], 'USAF O&M - ANG Fixture Line Discretionary PP', 'EX - Engine Pool Surge', D(2027, 3, 31),
       260_000_00, NA, P[2])
     # a plan event holding a closing script tag, and one longer than 80 characters (v12 cut them, and lost the money)
-    S = ('JSF9402', 'Simulator Close-out', 'USMC STOVL O&M -1A9A LA Discretionary AV', 'Close-out </script> review', TSS)
+    S = ('JSF9402', 'Simulator Close-out', 'USMC STOVL O&M - Fixture Line Discretionary AV', 'Close-out </script> review', TSS)
     R('om', 2027, S[0], S[1], S[2], S[3], D(2027, 1, 31), 290_000_00, NA, S[4])
     R('om', 2027, S[0], S[1], S[2], S[3], D(2027, 12, 31), 145_000_00, NA, S[4])
     LONG = 'Integrated Logistics Readiness Analysis for Distributed Depot Nodes, Field Teams and Afloat Units - Phase 2'
     assert len(LONG) > 80
-    R('om', 2027, 'JSF9403', 'Afloat Readiness Analysis', 'USN O&M- 1A9A-USN CV LA Discretionary PSM', LONG,
+    R('om', 2027, 'JSF9403', 'Afloat Readiness Analysis', 'USN O&M- Fixture USN CV LA Discretionary PSM', LONG,
       D(2027, 3, 31), 1_750_000_00, NA, PSM)
-    R('om', 2027, 'JSF9403', 'Afloat Readiness Analysis', 'USN O&M- 1A9A-USN CV LA Discretionary PSM', LONG,
+    R('om', 2027, 'JSF9403', 'Afloat Readiness Analysis', 'USN O&M- Fixture USN CV LA Discretionary PSM', LONG,
       D(2027, 7, 31), 925_000_00, NA, PSM)
     # every other status: an Alloc text no rule knows, Forecast, and (in FF) Unprogrammed
     R('om', 2027, 'JSF9404', 'Review Board Holdback', 'USAF O&M- CAM Discretionary Galvor', 'QX - Awaiting Review Item',
@@ -386,36 +386,36 @@ def build_gen1(seed):
     R('om', 2027, 'JSF9404', 'Review Board Holdback', 'USAF O&M- CAM Discretionary Galvor', 'FX - Forecast Buy',
       D(2027, 9, 30), 640_500_00, FCST, BOP)
     # an executed row dated after the as-of month: counted in Obligated, and reported
-    R('om', 2027, 'JSF9405', 'Canopy Seal Refresh', 'USAF O&M- CAM Discretionary AV', 'AX - Canopy Seal Lot 1',
+    R('om', 2027, 'JSF9405', 'Canopy Seal Refresh', 'USAF O&M- Fixture Line Discretionary AV', 'AX - Canopy Seal Lot 1',
       D(2026, 11, 20), 1_850_000_00, EXEC, AV)
-    R('om', 2027, 'JSF9405', 'Canopy Seal Refresh', 'USAF O&M- CAM Discretionary AV', 'AX - Canopy Seal Lot 1',
+    R('om', 2027, 'JSF9405', 'Canopy Seal Refresh', 'USAF O&M- Fixture Line Discretionary AV', 'AX - Canopy Seal Lot 1',
       D(2027, 6, 30), 2_600_000_00, NA, AV)
     # dates written as an Excel serial number, a serial with a time of day, a date cell with a time, and 'Mon-YYYY'
-    R('om', 2027, 'JSF9406', 'Wing Seal Kit', 'USAF O&M - AFRC CAM Discretionary TSS', 'TX - Wing Seal Build',
+    R('om', 2027, 'JSF9406', 'Wing Seal Kit', 'USAF O&M - AFRC Fixture Line Discretionary TSS', 'TX - Wing Seal Build',
       D(2027, 3, 31), 512_000_00, NA, TSS, date_cell=serial1900(D(2027, 3, 31)))
-    R('om', 2027, ' JSF9406 ', '  Wing Seal Kit  ', 'USAF O&M - AFRC CAM Discretionary TSS', 'TX - Wing Seal Build',
+    R('om', 2027, ' JSF9406 ', '  Wing Seal Kit  ', 'USAF O&M - AFRC Fixture Line Discretionary TSS', 'TX - Wing Seal Build',
       D(2027, 1, 15), 287_000_00, NA, TSS, date_cell=serial1900(D(2027, 1, 15)) + 0.75)
-    R('om', 2027, 'JSF9406', 'Wing Seal Kit', 'USAF O&M - AFRC CAM Discretionary TSS', 'TX - Wing Seal Build',
+    R('om', 2027, 'JSF9406', 'Wing Seal Kit', 'USAF O&M - AFRC Fixture Line Discretionary TSS', 'TX - Wing Seal Build',
       D(2027, 7, 15), 199_000_00, NA, TSS, date_cell=dt.datetime(2027, 7, 15, 13, 45))
-    R('om', 2027, 'JSF9406', 'Wing Seal Kit', 'USAF O&M - AFRC CAM Discretionary TSS', 'TX - Wing Seal Build',
+    R('om', 2027, 'JSF9406', 'Wing Seal Kit', 'USAF O&M - AFRC Fixture Line Discretionary TSS', 'TX - Wing Seal Build',
       D(2027, 6, 1), 168_000_00, NA, TSS, date_cell='Jun-2027')
     # a plan event with a leading space on some rows: the same node, the same spelling once trimmed
     for pe, d, c, a in [(' Avionics Bench Spares', D(2026, 10, 9), 351_000_00, EXEC),
                         ('Avionics Bench Spares', D(2027, 2, 28), 612_000_00, NA),
                         (' Avionics Bench Spares', D(2027, 9, 30), 233_000_00, NA)]:
-        R('om', 2027, 'JSF9407', 'Avionics Bench Program', 'USN O&M- 1A9A-USMC CV LA Discretionary AV', pe, d, c, a, MXS)
+        R('om', 2027, 'JSF9407', 'Avionics Bench Program', 'USN O&M- Fixture USMC CV LA Discretionary AV', pe, d, c, a, MXS)
     # one plan event shared by two programmes in two offices: one Not Allocated item naming both
-    R('om', 2027, 'JSF9408', 'Depot Hold Account', 'USN O&M- 1A9A-USN CV LA Discretionary PSM',
+    R('om', 2027, 'JSF9408', 'Depot Hold Account', 'USN O&M- Fixture USN CV LA Discretionary PSM',
       'Hold - Pending Funds Return', D(2027, 9, 30), 2_015_000_00, NA, PSM)
-    R('om', 2027, 'JSF9409', 'Engine Hold Account', 'USMC STOVL O&M -1A9A LA Discretionary AV',
+    R('om', 2027, 'JSF9409', 'Engine Hold Account', 'USMC STOVL O&M - Fixture Line Discretionary AV',
       'Hold - Pending Funds Return', D(2027, 9, 30), 1_104_000_00, NA, PP)
     # a blank PMO (written as spaces: trimmed, it is blank)
-    R('om', 2027, 'CT-90405', 'Unowned Shop Supplies', 'USAF O&M - ANG CAM Discretionary PP', 'SX - Shop Consumables',
+    R('om', 2027, 'CT-90405', 'Unowned Shop Supplies', 'USAF O&M - ANG Fixture Line Discretionary PP', 'SX - Shop Consumables',
       D(2026, 10, 5), 92_500_00, EXEC, '   ')
-    R('om', 2027, 'CT-90405', 'Unowned Shop Supplies', 'USAF O&M - ANG CAM Discretionary PP', 'SX - Shop Consumables',
+    R('om', 2027, 'CT-90405', 'Unowned Shop Supplies', 'USAF O&M - ANG Fixture Line Discretionary PP', 'SX - Shop Consumables',
       D(2027, 4, 30), 310_250_00, NA, '   ')
     # money for a later year (FY2028, n = 0 in "all": no curve, every goal null)
-    R('om', 2028, 'JSF9410', 'Out-year Readiness Placeholder', 'USN O&M- 1A9A-USN CV LA Discretionary PSM',
+    R('om', 2028, 'JSF9410', 'Out-year Readiness Placeholder', 'USN O&M- Fixture USN CV LA Discretionary PSM',
       'PX - Out-year Placeholder', D(2027, 12, 31), 2_400_000_00, NA, PSM)
 
     # ------------------------------------------------------------------------------------------------- Full Fund
@@ -426,9 +426,9 @@ def build_gen1(seed):
         g.program('ff', 2025)
     LONGF = 'FY25 Procurement of Depot Standup Test Equipment for Distributed Repair Cells and Mobile Teams - Lot 3'
     assert len(LONGF) > 80
-    R('ff', 2025, 'JSF9611', 'Depot Standup Equipment', 'USAF APAF Full Fund SUPT PES Discretionary AV', LONGF,
+    R('ff', 2025, 'JSF9611', 'Depot Standup Equipment', 'USAF APXX Full Fund Fixture Line Discretionary AV', LONGF,
       D(2025, 3, 14), 3_300_000_00, EXEC, AV)
-    R('ff', 2025, 'JSF9611', 'Depot Standup Equipment', 'USAF APAF Full Fund SUPT PES Discretionary AV', LONGF,
+    R('ff', 2025, 'JSF9611', 'Depot Standup Equipment', 'USAF APXX Full Fund Fixture Line Discretionary AV', LONGF,
       D(2027, 2, 28), 1_480_000_00, NA, AV)
     for _ in range(11):
         g.program('ff', 2026)
@@ -465,7 +465,7 @@ def build_gen1(seed):
       D(2027, 5, 31), 2_250_000_00, NA, TSS)
     # Unprogrammed, as CCaR shows it, and a Forecast
     for b, c, d in [('USN APN Full Fund SUPT USN CV FIXED JPO SUPT Discretionary BOP', 4_020_000_00, D(2027, 9, 30)),
-                    ('USAF APAF Full Fund SUPT PES Discretionary AV', 1_515_000_00, D(2027, 9, 30)),
+                    ('USAF APXX Full Fund Fixture Line Discretionary AV', 1_515_000_00, D(2027, 9, 30)),
                     ('USMC STOVL APN Full Fund SUPT Discretionary PP', 655_000_00, D(2027, 10, 31))]:
         R('ff', 2026, 'UPL-9XR', 'UPL - Budget Authority Reconciliation Pool', b, 'UPL - Authority Reconciliation', d, c,
           UNPROG, BOP)
@@ -495,9 +495,9 @@ def build_gen1(seed):
         g.program('sp', 2024)
     for _ in range(5):
         g.program('sp', 2025)
-    R('sp', 2025, 'CT-90701', 'Shipboard Spares Package', 'USN APN Spares Initial CONG Discretionary PP',
+    R('sp', 2025, 'CT-90701', 'Shipboard Spares Package', 'USN APN Spares Fixture CONG Discretionary PP',
       'PX - Afloat Package 2', D(2025, 5, 30), 1_620_000_00, EXEC, PP)
-    R('sp', 2025, 'CT-90701', 'Shipboard Spares Package', 'USN APN Spares Initial CONG Discretionary PP',
+    R('sp', 2025, 'CT-90701', 'Shipboard Spares Package', 'USN APN Spares Fixture CONG Discretionary PP',
       'PX - Afloat Package 2', D(2027, 1, 31), 840_000_00, NA, PP)
     for _ in range(5):
         g.program('sp', 2026)
@@ -518,11 +518,11 @@ def build_gen1(seed):
     # ----------------------------------------------------------------------------------------------------- OPN
     g.program('opn', 2024)
     # a block whose rows net to zero: Approved 0, so every percentage is null
-    R('opn', 2025, 'JSF9801', 'Ship Alt Prototype', 'USN OPN ALIS Ship Alts Discretionary MxS', 'NX - Prototype Install',
+    R('opn', 2025, 'JSF9801', 'Ship Alt Prototype', 'USN OPN Fixture Ship Line Discretionary MxS', 'NX - Prototype Install',
       D(2025, 1, 15), 1_234_567, EXEC, MXS)
-    R('opn', 2025, 'JSF9801', 'Ship Alt Prototype', 'USN OPN ALIS Ship Alts Discretionary MxS', 'NX - Prototype Install',
+    R('opn', 2025, 'JSF9801', 'Ship Alt Prototype', 'USN OPN Fixture Ship Line Discretionary MxS', 'NX - Prototype Install',
       D(2025, 6, 30), -1_234_567, EXEC, MXS)
-    R('opn', 2025, 'JSF9801', 'Ship Alt Prototype', 'USN OPN ALIS Ship Alts Discretionary MxS', 'NX - Prototype Install',
+    R('opn', 2025, 'JSF9801', 'Ship Alt Prototype', 'USN OPN Fixture Ship Line Discretionary MxS', 'NX - Prototype Install',
       D(2026, 9, 30), 0, NA, MXS, amount_cell='$0.00')
     for _ in range(4):
         g.program('opn', 2026)
@@ -555,7 +555,7 @@ def build_gen2(g1):
             it['cents'] = it['cents'] * 6 // 10
             it['cents'] -= it['cents'] % 100
             r['cells']['Amount'] = cents_cell(it['cents'])
-    g.row('om', 2027, 'CT-90401', 'Fleet Readiness Cadence', 'USAF O&M - AFRC CAM Discretionary TSS', 'PX - Cadence Plan',
+    g.row('om', 2027, 'CT-90401', 'Fleet Readiness Cadence', 'USAF O&M - AFRC Fixture Line Discretionary TSS', 'PX - Cadence Plan',
           D(2026, 10, 29), 1_250_000_00, EXEC, PSM)
     for d, c, a in [(D(2026, 10, 27), 410_000_00, EXEC), (D(2026, 12, 31), 535_000_00, NA), (D(2027, 4, 30), 905_500_00, NA)]:
         g.row('om', 2027, changes['newCcar'], 'Corrosion Mapping Pilot', changes['newBudget'], 'CX - Corrosion Survey',
@@ -685,7 +685,7 @@ def write_csv(path, rows):
         if i == 25:
             w.writerow([''] * len(RAW_HEADERS))       # a blank line of empty fields
     with open(path, 'w', encoding='utf-8', newline='') as f:
-        f.write('﻿' + buf.getvalue())
+        f.write('\ufeff' + buf.getvalue())
 
 
 def to_shared_strings(files):
