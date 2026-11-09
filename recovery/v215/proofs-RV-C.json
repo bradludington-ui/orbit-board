@@ -1,0 +1,18 @@
+[
+ {"id": "v215-rv-c-button-moves-nothing", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-why-unsaid", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-offer-button-always", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-count-what-locked", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-reopened-row-not-locked", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-reopened-state-lost", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-leftsay-one-state", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-tab-not-reread", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-tab-reopened-counts", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-tab-leave-unsaid", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-lock-default-pb", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-lock-refusal-no-own", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-rv-c-its-board", "caughtBy": "audit-board / v2.15 review RV-C"},
+ {"id": "v215-w1-retag-moves-all-on", "caughtBy": "audit-board / v2.15 W1 — the retag"},
+ {"id": "v215-w1-retag-own-only", "caughtBy": "audit-board / v2.15 W1 — the retag"},
+ {"id": "v215-w1-retag-label-count", "caughtBy": "audit-board / v2.15 W1 — the retag"}
+]

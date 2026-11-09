@@ -5332,8 +5332,11 @@ await (async () => {
   // ---- the Initial Spares board, behind the calendar: its opening says so and offers the retag
   const P = boot({ appn: 'INITIAL SPARES', ls: LS });
   const ps = P.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
-  chk(name, 'opening', 'a board behind the calendar says so when it opens, and offers the retag',
-    J([/Initial Spares is tagged PB27, and the other appropriations are on BES28/.test(ps), !!P.ev(`String(!!document.querySelector('#shareStat button[onclick="cycRetagLead()"]'))`).match(/true/)]), J([true, true]));
+  // v2.15 review RV-C (C1): Initial Spares reopened PB27, so the retag (item 139: only what has locked moves) would move nothing --
+  // no button that promises one; it says why, and to lock it again
+  chk(name, 'opening', 'a board behind the calendar says so when it opens, and says why there is nothing to retag yet',
+    J([/Initial Spares is tagged PB27, and the other appropriations are on BES28/.test(ps), !!P.ev(`String(!!document.querySelector('#shareStat button[onclick="cycRetagLead()"]'))`).match(/true/),
+      /Nothing to retag as BES28 yet — Initial Spares has reopened PB27: lock it again, then retag/.test(ps)]), J([true, false, true]));
   const N = boot({ appn: 'FULL FUND', ls: LS });
   chk(name, 'opening', 'a board on the calendar says nothing of it', /other appropriations are on/.test(N.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), false);
   } catch (e) {
@@ -9979,15 +9982,16 @@ await (async () => {
     const q = A.ev('window.__q[0]||""');
     chk(name, 'the question', 'it names the two it moves and the two it leaves, with why',
       J([/^Retag 2 appropriations as BES28\?/.test(q), /• O&M \(this board\) — PB27 → BES28/.test(q), /• Full Fund — PB27 → BES28/.test(q),
-        /• Initial Spares — PB27, NOT retagged: has not locked PB27: lock it on its own board, then retag/.test(q), /• OPN — PB27, NOT retagged: has not locked PB27/.test(q),
-        /Initial Spares and OPN have not locked PB27: lock each on its own board, then retag\./.test(q)]), J([true, true, true, true, true, true]));
+        /• Initial Spares — PB27, NOT retagged: has reopened PB27: lock it again on its own board, then retag/.test(q), /• OPN — PB27, NOT retagged: has not locked PB27/.test(q),
+        /OPN has not locked PB27, and Initial Spares has reopened it: lock each on its own board, then retag\./.test(q)]), J([true, true, true, true, true, true]));
+    // v2.15 review RV-C: Initial Spares reopened PB27, and is now told apart from OPN, which never locked it (C1)
     chk(name, 'OK', 'O&M and Full Fund are on BES28, each with its journal line; Initial Spares and OPN stay on PB27',
       J([A.ev('MS.cycle'), A.tag('prio27ff'), A.tag('prio27sp'), A.tag('prio27opn'), A.myJl().slice(-1), A.jl('prio27ff'), A.jl('prio27sp'), A.jl('prio27opn')]),
       J(['BES|2028', 'BES|2028', 'PB|2027', 'PB|2027', ['PB|2027>BES|2028'], ['PB|2027>BES|2028'], [], []]));
     chk(name, 'OK', 'the stores it does not move are byte for byte as they were',
       J(KEYS.filter(k => /sp|opn/.test(k)).map(k => A.ev(`localStorage.getItem(${J(k)})`) === JSON.parse(before)[KEYS.indexOf(k)])), J([true, true, true, true, true, true]));
     chk(name, 'OK', 'the line names the two it moved and the way out for the two it did not',
-      J([/O&M, Full Fund are retagged BES28/.test(A.stat()), /Initial Spares and OPN have not locked PB27: lock each on its own board, then retag/.test(A.stat())]), J([true, true]));
+      J([/O&M, Full Fund are retagged BES28/.test(A.stat()), /OPN has not locked PB27, and Initial Spares has reopened it: lock each on its own board, then retag/.test(A.stat())]), J([true, true]));   // v2.15 review RV-C (C1)
     chk(name, 'OK', 'the deltas reference stays the lock (CONTROL: the retag never moved it)', A.ev('MS.cycleRef'), 'PB|2027');
     // ---------------------------------------------------------------- the third button: Retag … as … under Locks by appropriation
     // Initial Spares on BES28 already (the calendar's lead); O&M and Full Fund locked PB27, OPN did not: the lead retag moves the two
@@ -10265,6 +10269,108 @@ await (async () => {
 // ==== v2.15 review RV-B ====
 // ==== end v2.15 review RV-B ====
 // ==== v2.15 review RV-C ====
+// The review of item 139 (the retag and the lock). Every check but those labelled CONTROL fails on dbfc7c4. Every expectation is a literal
+// from the fixture. C1: a retag button never offered when nothing would move (it says why); C2: "Retag N of M" counts what OK writes;
+// C3: a lock reopened in another tab while the question is open is not retagged; C4: PPBE cycles' Lock starts on the plan's own cycle;
+// C5: "lock it on its own board".
+await (async () => {
+  const name = 'v2.15 review RV-C — a retag button only where something moves, its count what OK writes, and the lock’s default the plan’s cycle (item 139)';
+  try {
+    const J = JSON.stringify;
+    const T1 = 1790100000000, T2 = 1790200000000;
+    const year = () => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [] });
+    const store = (tag, by, ts = T1) => ({ ts, base: 2027, cur: 2027, cycle: tag, by, years: { 2027: year() } });
+    const lock = (ap, by, ts = T1) => ({ ts, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap, locked: true, ts: T1, by, first: { ts: T1, by }, unlocks: [], years: {}, proj: {} } } });
+    const reopened = (ap, by) => ({ ts: T2, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap, locked: false, ts: T1, by, unlocks: [{ ts: T2, by, on: false }], years: {}, proj: {} } } });
+    const board = (ls, tag = 'PB|2027') => {
+      const X = boot({ ls });
+      seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50]), it('B', 'AV', [80, 40])], disc: [150, 60], mand: [20, 10], order: ['A', 'B'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice(); MS.cycle=${J(tag)}; save(); render();
+        window.__q=[]; window.__yes=true; window.confirm=function(m){ window.__q.push(String(m)); return window.__yes; }; window.alert=function(){}; 'ok'`);
+      X.tag = k => { const s = JSON.parse(X.ev(`localStorage.getItem(${J(k)})`) || 'null'); return s ? s.cycle : 'none'; };
+      X.stat = () => X.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+      X.btn = sel => X.ev(`(function(){ var b=document.querySelector(${J(sel)}); return b? b.textContent : 'none'; })()`);
+      return X;
+    };
+    // ---------------------------------------------------------------- C1: behind, not locked -- no button, and why
+    { const X = board({ prio27ff: J(store('BES|2028', 'F')) });
+      X.ev(`blOpen=true; render(); 'ok'`);
+      chk(name, 'C1 behind', 'CONTROL: O&M is behind (PB27, never locked), Full Fund on BES28', X.ev(`JSON.stringify(cycOverview().rows.filter(function(r){ return r.held; }).map(function(r){ return [r.k, r.tag, !!r.behind, cycCellOf(r.cycles['PB|2027']).s]; }))`),
+        J([['om', 'PB|2027', true, 'none'], ['ff', 'BES|2028', false, 'none']]));
+      chk(name, 'C1 behind', 'Locks by appropriation offers no retag button, which would move nothing', X.btn('#blBody .cyc-ov-step button[onclick="cycRetagLead()"]'), 'none');
+      chk(name, 'C1 behind', 'it says why instead, and the way out', /Nothing to retag as BES28 yet — O&M has not locked PB27: lock it, then retag\./.test(X.ev(`document.querySelector('#blBody .cyc-ov-step').textContent`)), true);
+      chk(name, 'C1 behind', 'CONTROL: putting every appropriation on BES28 is still offered beside it', /Put every appropriation on BES28/.test(X.ev(`document.querySelector('#blBody .cyc-ov-step').textContent`)), true);
+      X.ev(`window.__q=[]; cycRetagLead(); 'ok'`);
+      chk(name, 'C1 behind', 'the retag itself, reached anyway, moves nothing, asks nothing, and says to lock it (its own board: "lock it, then retag")', J([X.ev('window.__q.length'), X.ev('MS.cycle'), /Nothing was retagged: O&M has not locked PB27: lock it, then retag\./.test(X.stat())]), J([0, 'PB|2027', true]));
+      // the opening offer: the same board opened
+      const ls2 = JSON.parse(X.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+      const O = boot({ ls: ls2 });
+      const msgs = O.ev(`STAT_LOG.map(function(x){ return String(x.html||''); }).join(' ')`);
+      chk(name, 'C1 opening', 'the opening offer names no retag button over a board that has not locked, and says why',
+        J([/onclick="cycRetagLead\(\)"/.test(msgs), /Nothing to retag as BES28 yet — <b>O&amp;M<\/b> has not locked PB27: lock it, then retag/.test(msgs)]), J([false, true])); }
+    // ---------------------------------------------------------------- C1: the lock reopened -- PPBE cycles' button says why
+    { const X = board({});
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); blLock('PB|2027', false); blOpen=true; render(); 'ok'`);
+      chk(name, 'C1 reopened', 'CONTROL: O&M reopened PB27 and is still on it, its deltas read against it', J([X.ev(`cycCellOf(blGet('PB|2027')).s`), X.ev('MS.cycle'), X.ev('MS.cycleRef')]), J(['open', 'PB|2027', 'PB|2027']));
+      chk(name, 'C1 reopened', 'PPBE cycles offers no "Retag as BES28", which would move nothing', X.btn('#blBody button[onclick="cycRetagNext()"]'), 'none');
+      chk(name, 'C1 reopened', 'it says the lock was reopened, and to lock it again', /Nothing to retag as BES28 yet — O&M has reopened PB27: lock it again, then retag\./.test(X.ev(`document.getElementById('blBody').textContent`)), true);
+      X.ev(`window.__q=[]; cycRetagNext(); 'ok'`);
+      chk(name, 'C1 reopened', 'and the retag, reached anyway, says reopened, not "has not locked"', J([X.ev('window.__q.length'), /O&M has reopened PB27: lock it again, then retag\./.test(X.stat())]), J([0, true])); }
+    // ---------------------------------------------------------------- C1: reopened told apart in the question and the line; C5
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')), prio27sp: J(store('PB|2027', 'S')), 'prio27sp-cyc': J(reopened('sp', 'S')), prio27opn: J(store('PB|2027', 'N')) });
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); window.__q=[]; cycRetagNext(); 'ok'`);
+      const q = X.ev('window.__q[0]||""');
+      chk(name, 'C1 the question', 'Initial Spares (reopened) is told apart from OPN (never locked), row by row and in the line',
+        J([/• Initial Spares — PB27, NOT retagged: has reopened PB27: lock it again on its own board, then retag/.test(q), /• OPN — PB27, NOT retagged: has not locked PB27: lock it on its own board, then retag/.test(q),
+          /OPN has not locked PB27, and Initial Spares has reopened it: lock each on its own board, then retag\./.test(q), /OPN has not locked PB27, and Initial Spares has reopened it/.test(X.stat())]), J([true, true, true, true])); }
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')), prio27opn: J(store('PB|2027', 'N')) });
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); window.__q=[]; cycRetagNext(); 'ok'`);
+      chk(name, 'C5', 'one left: "lock it on its own board", not "on its board"', /OPN has not locked PB27: lock it on its own board, then retag\./.test(X.ev('window.__q[0]||""')), true); }
+    // ---------------------------------------------------------------- C2: the count is what OK writes
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')), 'prio27ff.base': J({ file: 1, folder: {}, dirty: true }) });
+      X.ev(`PUBS.ff=${J(store('PB|2027', 'F', T2))}; _cycAllMemo=null; blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'C2 unsaved', 'CONTROL: Full Fund has locked PB27, and this browser holds Full Fund work behind its newer file', J([X.ev(`cycCellOf(cycStoreOf('ff').c.cycles['PB|2027']).s`), X.tag('prio27ff')]), J(['locked', 'PB|2027']));
+      chk(name, 'C2 unsaved', 'the button counts only what OK writes: O&M, not Full Fund', X.btn('#shareStat button[onclick="cycRetagNext()"]'), '🏷 Retag 1 of 2 as BES28');
+      X.ev(`window.__q=[]; cycRetagNext(); 'ok'`);
+      const q = X.ev('window.__q[0]||""');
+      chk(name, 'C2 unsaved', 'CONTROL: the question still names Full Fund and why, and OK writes the one it said',
+        J([/^Retag 1 appropriation as BES28\?/.test(q), /• Full Fund — NOT changed: this browser holds Full Fund work the saved file does not have/.test(q), X.ev('MS.cycle'), X.tag('prio27ff')]),
+        J([true, true, 'BES|2028', 'PB|2027'])); }
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')) });
+      // (PPBE cycles closed: opened, it reads the folder's copies, and Full Fund is "reading the shared folder…" until it answers)
+      X.ev(`driveStoreOn=function(){ return true; }; _apFold=null; _cycAllMemo=null; blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'C2 shared folder', 'working out of the shared folder, Full Fund is moved on its own board, so the button counts O&M alone', X.btn('#shareStat button[onclick="cycRetagNext()"]'), '🏷 Retag 1 of 2 as BES28');
+      X.ev(`window.__q=[]; cycRetagNext(); 'ok'`);
+      chk(name, 'C2 shared folder', 'CONTROL: and OK moves O&M alone, naming Full Fund in the question', J([/^Retag 1 appropriation as BES28\?/.test(X.ev('window.__q[0]||""')), /• Full Fund — PB27: moved on its own board/.test(X.ev('window.__q[0]||""')), X.ev('MS.cycle'), X.tag('prio27ff')]),
+        J([true, true, 'BES|2028', 'PB|2027'])); }
+    // ---------------------------------------------------------------- C3: a lock reopened in another tab while the question is open
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')) });
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      X.ev(`window.confirm=function(m){ localStorage.setItem('prio27ff-cyc', ${J(J(reopened('ff', 'F')))}); return true; }; cycRetagNext(); 'ok'`);
+      chk(name, 'C3', 'Full Fund, its PB27 reopened in another tab while the question was open, is left on PB27; O&M moves',
+        J([X.tag('prio27ff'), X.ev('MS.cycle')]), J(['PB|2027', 'BES|2028']));
+      chk(name, 'C3', 'and the line names it, with the way out', /Full Fund had its PB27 lock reopened in another tab while the question was open: lock it again on its own board, then retag/.test(X.stat()), true);
+      const Y = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')) });
+      Y.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      Y.ev(`window.confirm=function(m){ localStorage.setItem('prio27ff-cyc', ${J(J(lock('ff', 'F', T2)))}); return true; }; cycRetagNext(); 'ok'`);
+      chk(name, 'C3', 'CONTROL: its lock store written again while the question was open, still locked, it moves', J([Y.tag('prio27ff'), Y.ev('MS.cycle')]), J(['BES|2028', 'BES|2028'])); }
+    // ---------------------------------------------------------------- C4: the Lock target starts on the plan's own cycle
+    { const X = board({}, 'BES|2028');
+      X.ev(`blOpen=true; render(); 'ok'`);
+      chk(name, 'C4', 'PPBE cycles opens on a plan on BES28 offering to lock BES28, not PB27', J([X.ev('blCyc'), X.ev('String(blYr)'), X.btn('#blBody button[onclick="cycLock()"]')]), J(['BES', '2028', '🔒 Lock O&M FY27 as BES28']));
+      X.ev(`window.__q=[]; document.querySelector('#blBody button[onclick="cycLock()"]').click(); 'ok'`);
+      chk(name, 'C4', 'and that lock is taken', J([X.ev('window.__q.length'), X.ev(`String(!!(blGet('BES|2028')||{}).locked)`), X.ev('MS.cycle')]), J([1, 'true', 'BES|2028']));
+      const R = board({}, 'BES|2028');
+      R.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'C4', 'PB27 chosen on a plan on BES28 is refused, naming the lock of the cycle the plan is on as a way out',
+        /Tag this board PB27 under PPBE cycles \(Working plan is tagged\), lock, then retag\. Or choose BES28 above to lock the cycle the plan is on\./.test(R.stat()), true);
+      const U = board({}, '');
+      U.ev(`blOpen=true; render(); 'ok'`);
+      chk(name, 'C4', 'CONTROL: an untagged plan opens on PB of the year on screen, as before', J([U.ev('blCyc'), U.ev('String(blYr)')]), J(['PB', '2027'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.15 review RV-C ====
 // ==== v2.15 review RV-D ====
 // v2.15 review RV-D (D1): A CLIN REQUEST FIGURE HAS ONE READER (clinFig, through clinAskIn), the import check's own reading. A request
