@@ -57,7 +57,10 @@
     "fileimport": "node tools/import-file.mjs",
     "fileimport:gtk": "node tools/import-file.mjs --gtk",
     "storagefull": "node tools/storage-full.mjs",
-    "csp": "node tools/csp-check.mjs"
+    "csp": "node tools/csp-check.mjs",
+    "sp:build": "node spend-plan/build.mjs",
+    "sp:check": "node spend-plan/build.mjs --check",
+    "sp:test": "node spend-plan/test/run-all.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"
