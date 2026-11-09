@@ -1,0 +1,18 @@
+[
+ {"id": "v215-rv-d-clinfig-commas", "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"},
+ {"id": "v215-rv-d-clinfig-text-kept", "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"},
+ {"id": "v215-rv-d-edit-text", "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"},
+ {"id": "v215-rv-d-grid-text-kept", "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"},
+ {"id": "v215-rv-d-null-said", "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"},
+ {"id": "v215-rv-d-jrnl-rep-unstamped", "caughtBy": "audit-board / v2.15 review RV-D — a line filed by place"},
+ {"id": "v215-rv-d-jrnl-rep-dropped", "caughtBy": "audit-board / v2.15 review RV-D — a line filed by place"},
+ {"id": "v215-rv-d-jrnl-title-now", "caughtBy": "audit-board / v2.15 review RV-D — a line filed by place"},
+ {"id": "v215-rv-d-guide-deck", "caughtBy": "audit-board / v2.15 review RV-D — the guide names no deck"},
+ {"id": "v215-rv-d-name-own", "caughtBy": "audit-inject"},
+ {"id": "v215-w4-clin-ask-text", "caughtBy": "audit-board / v2.15 W4 — WBS from execution data never proposes"},
+ {"id": "v215-w4-clinask-list-counted", "caughtBy": "audit-board / v2.15 W4 — a CLIN request that is not a list"},
+ {"id": "v215-w4-jrnl-place-title-old", "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"},
+ {"id": "v215-w4-jrnl-place-title-always", "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"},
+ {"id": "v212-rv5-clin-base-ask-unread", "caughtBy": "audit-other / v2.12 RV5 — a board file whose CLIN request is not a list"},
+ {"id": "v209-w1-ask-every-service", "caughtBy": "audit-board / v2.09 — CLIN amounts"}
+]

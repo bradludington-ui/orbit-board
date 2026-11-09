@@ -7647,7 +7647,8 @@ const MUTATIONS = [
   { id: 'v209-w1-drill-blank-opens', area: "row-selection delegate", what: "a click on an empty part of the CLIN drill, or on a copy's dimmed box, slides the RECORD panel over it",
     find: "  if((a && a !== row && row.contains(a)) || t.closest('.clin-detail')){", repl: "  if((a && a !== row && row.contains(a))){" },
   { id: 'v209-w1-ask-every-service', area: "clinSetAsk", what: "a CLIN's request typed for one service is written to every service",
-    find: "  const ask=SVC.map(function(sv,i){ return +c.ask[i]||0; }); ask[j]=now;", repl: "  const ask=SVC.map(function(){ return now; });" },
+    // v2.15 review RV-D: retargeted -- the request is read by clinFig
+    find: "  const ask=SVC.map(function(sv,i){ return clinFig(c.ask[i]); }); ask[j]=now;", repl: "  const ask=SVC.map(function(){ return now; });" },
   { id: 'v209-w1-newclin-grid-zero', area: "clinSetAsk", what: "a new CLIN's allocation stays at $0 when its first request is typed, and reads the whole request short",
     find: "    const g=clinVec(pid,c); if(!was && !(+g[j])) g[j]=now; }", repl: "    }" },
   { id: 'v209-w1-newclin-grid-follows', area: "clinSetAsk", what: "a new CLIN's allocation follows every change to its request, over a figure typed into it",
@@ -9410,7 +9411,8 @@ const MUTATIONS = [
   // ---- v2.12 RV5: the second review's W2 findings (S10, S11, S12/S15, S13, S16, S20) ----
   // S10: a CLIN read as the board writes one, or as nothing; and the door refuses the rest by name
   { id: 'v212-rv5-clin-base-ask-unread', area: "clinList", what: "a board file whose data-pack CLIN requests a number opens blank: every draw throws reading it",
-    find: "            ask:(Array.isArray(m.ask)? m.ask.slice() : clinAskIn(c.ask)),", repl: "            ask:(Array.isArray(m.ask)? m.ask.slice() : (c.ask||[]).slice())," },
+    // v2.15 review RV-D: retargeted -- the edited request is read by clinAskIn too
+    find: "            ask:(Array.isArray(m.ask)? clinAskIn(m.ask) : clinAskIn(c.ask)),", repl: "            ask:(Array.isArray(m.ask)? clinAskIn(m.ask) : (c.ask||[]).slice())," },
   { id: 'v212-rv5-clin-new-ask-unread', area: "clinList", what: "an added CLIN whose request is text is read as that text: the drill's request total is a string",
     find: "    ask:clinAskIn(c.ask), added:true, edited:false}));", repl: "    ask:(c.ask||[]).slice(), added:true, edited:false}));" },
   { id: 'v212-rv5-clin-money-ask-unread', area: "wbsClinMoneyRO", what: "a board file whose added CLIN requests text opens blank: Needs attention's read of the CLIN's money throws on every draw",
@@ -11329,7 +11331,8 @@ const MUTATIONS = [
   { id: 'v215-w4-exw-prime-silent', area: 'exwBody', what: 'WBS from execution data leaves a prime’s row out without a word',
     find: `  if(sc.primeNoClin.length){`, repl: `  if(false){` },
   { id: 'v215-w4-clin-ask-text', area: 'clinAskTot', what: 'a CLIN request of text figures is summed as text: 5 and 7 read 057',
-    find: `c.ask : []).reduce((a,b)=>a+(+b||0),0)`, repl: `c.ask : []).reduce((a,b)=>a+b,0)` },
+    // v2.15 review RV-D: retargeted -- a request's figures are read once, where the list is read (clinAskIn); summed as stored, text joins
+    find: `function clinAskIn(v){ return Array.isArray(v)? Array.from(v, clinFig) : []; }`, repl: `function clinAskIn(v){ return Array.isArray(v)? v.slice() : []; }` },
   // v2.15 W4 (v2.12's question 1): audit-board "v2.15 W4 — a CLIN request that is not a list is said on opening"
   { id: 'v215-w4-clinask-silent', area: 'boot', what: 'a CLIN request that is not a list opens with nothing said',
     find: `try{ if(!window.__fydpFrame) clinAskSay(); }catch(e){}`, repl: `` },
@@ -11338,7 +11341,8 @@ const MUTATIONS = [
   { id: 'v215-w4-clinask-added-missed', area: 'clinAskBadOf', what: 'an added CLIN’s request that is not a list is not named on opening',
     find: `if(ok(c) && bad(c.ask)) out.push(`, repl: `if(false) out.push(` },
   { id: 'v215-w4-clinask-list-counted', area: 'clinAskBadOf', what: 'every CLIN request is said to be not a list, lists included',
-    find: `bad=function(v){ return v!==undefined && !Array.isArray(v); }`, repl: `bad=function(v){ return v!==undefined; }` },
+    // v2.15 review RV-D: retargeted -- a null request is no request, and not said
+    find: `bad=function(v){ return v!==undefined && v!==null && !Array.isArray(v); }`, repl: `bad=function(v){ return v!==undefined; }` },
   // v2.15 W4 (item 135): audit-other "v2.15 W4 — a cost estimate imported again since v2.12 says why it disagrees"
   { id: 'v215-w4-ace-clash-why-gone', area: 'aceClashWhy', what: 'an estimate imported before v2.12 and one imported again since disagree with no word of why',
     find: `(a && b && nw(a)!==nw(b))`, repl: `(false)` },
@@ -11402,6 +11406,30 @@ const MUTATIONS = [
   // ==== v2.15 review RV-C ====
   // ==== end v2.15 review RV-C ====
   // ==== v2.15 review RV-D ====
+  // D1: audit-board "v2.15 review RV-D — a CLIN request held as text is read as figures everywhere"
+  { id: 'v215-rv-d-clinfig-commas', area: 'clinFig', what: 'a CLIN request figure written 1,000 or $2,000 is read as nothing (+v), silently',
+    find: `if(typeof x==='string'){ const n=Number(x.replace(/[$,\\s]/g,'')); return (x.trim() && isFinite(n))? D$(n) : 0; }`, repl: `if(typeof x==='string'){ const n=Number(x); return (x.trim() && isFinite(n))? D$(n) : 0; }` },
+  { id: 'v215-rv-d-clinfig-text-kept', area: 'clinFig', what: 'a CLIN request figure held as text is handed on as that text: sums join strings',
+    find: `const n=Number(x.replace(/[$,\\s]/g,'')); return (x.trim() && isFinite(n))? D$(n) : 0; }`, repl: `const n=Number(x.replace(/[$,\\s]/g,'')); return x; }` },
+  { id: 'v215-rv-d-edit-text', area: 'clinList', what: 'an edited CLIN request held as text is read as text: $2,000 and $500 read as nothing',
+    find: "            ask:(Array.isArray(m.ask)? clinAskIn(m.ask) : clinAskIn(c.ask)),", repl: "            ask:(Array.isArray(m.ask)? m.ask.slice() : clinAskIn(c.ask))," },
+  { id: 'v215-rv-d-grid-text-kept', area: 'clinVec', what: 'a CLIN grid stored in text is summed as text: 5 and 7 read 057',
+    find: `  else if(v.some(x=>typeof x!=='number')){ v=Array.from(v, clinFig); m[c.key]=v; }`, repl: `` },
+  { id: 'v215-rv-d-null-said', area: 'clinAskBadOf', what: 'a null CLIN request, which the import check takes, is said on opening to be not a list',
+    find: `return v!==undefined && v!==null && !Array.isArray(v); }`, repl: `return v!==undefined && !Array.isArray(v); }` },
+  // D2: audit-board "v2.15 review RV-D — a line filed by place says why it was"
+  { id: 'v215-rv-d-jrnl-rep-unstamped', area: 'jrnlWalk', what: 'a line filed by place because ids repeat is not marked so: it reads “before v2.14” once the repeat is mended',
+    find: `      for(let k=from;k<out.length;k++) out[k].rep=1;\n`, repl: `` },
+  { id: 'v215-rv-d-jrnl-rep-dropped', area: 'jrnlCapture', what: 'the journal drops the reason a line was filed by place',
+    find: `    if(d.rep) e.rep=1;`, repl: `` },
+  { id: 'v215-rv-d-jrnl-title-now', area: 'jrnlPlaceTitle', what: 'a place line’s title is judged by the year as it stands now, not as it was recorded',
+    find: `function jrnlPlaceTitle(e){ const rep=!!(e && e.rep);`, repl: `function jrnlPlaceTitle(e){ const rep=jrnlIdsRepeat(((MS.years||{})[e.fy||MS.cur]||{}).custom);` },
+  // D3: audit-board "v2.15 review RV-D — the guide names no deck"
+  { id: 'v215-rv-d-guide-deck', area: 'helpDoc', what: 'the guide still names the deck’s chart, removed in v2.05',
+    find: `the 1A9A return and the Spend Plan Source agree month by month:`, repl: `the 1A9A return, the Spend Plan Source and the deck’s chart agree month by month:` },
+  // W3-1's own-file case: audit-inject "W3-1 the file route’s other sinks"
+  { id: 'v215-rv-d-name-own', area: 'impFileFailSay', what: 'a failed Write into this board’s own file draws the file’s name as markup',
+    find: `but “'+at+'” is this board’s own file`, repl: `but “'+(r.at||'')+'” is this board’s own file` },
   // ==== end v2.15 review RV-D ====
 
 ];

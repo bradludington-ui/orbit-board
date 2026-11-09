@@ -2298,7 +2298,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="v199-h91">A code longer than its limit is refused when typed — CCaR record 12, PID 35, CLIN number 20, CLIN description 140, WBS 40, RCN and EEIC 10, PPBE line codes 12. Nothing changes and the text typed is kept where you typed it (a box opens again holding it, a field keeps it, marked) so it can be corrected. One that arrives in a file or a submittal is kept whole, never cut, and listed under <b>✂ codes longer than their limit</b> and in Pre-flight: CCaR may not match it as it stands.</p>
 </section>
 <section data-part="team" data-id="t-spend" data-t="The spend plan: when the money lands">
-<p>Every spend plan places a requirement’s funded dollars by its award and obligation dates, by one rule, so the forecast, the month sheets, the PMO tabs, CR Cash Needs, the 1A9A return, the Spend Plan Source and the deck’s chart agree month by month:</p>
+<p>Every spend plan places a requirement’s funded dollars by its award and obligation dates, by one rule, so the forecast, the month sheets, the PMO tabs, CR Cash Needs, the 1A9A return and the Spend Plan Source agree month by month:</p>
 <ul><li>An <b>award</b> (an increment) is the whole award, discretionary and mandatory together, taken in date order.</li>
 <li><b>Discretionary works forward from the first award</b>, filling each award in turn; <b>mandatory works backward from the last</b>, so it always awards last. A $300 requirement awarded $100 in each of January, February and March, with $250 discretionary and $50 mandatory, places discretionary $100, $100 and $50, and the $50 mandatory in March.</li>
 <li>Funded dollars the awards do not cover are <b>UNSCHEDULED</b>, in either lane, until they have a date. A single award date places the whole funded amount in its month; no date at all is UNSCHEDULED.</li></ul>
@@ -8147,7 +8147,7 @@ function jrnlAdd(e){
   // rewrote the put-back into an ordinary edit. And a clock set back is not "inside the minute".
   if(!e.f && last && !last.f && last.by===e.by && last.fy===e.fy && e.t>=last.t && (e.t-last.t)<JRNL_JOIN
      && JSON.stringify(last.p)===JSON.stringify(e.p)){
-    last.b=e.b; last.t=e.t;
+    last.b=e.b; last.t=e.t; if(e.rep) last.rep=1;
     // Typed to a value and back again inside the minute: nothing decided, nothing to record.
     if(JSON.stringify(last.a)===JSON.stringify(last.b)) MS.jrnl.pop();
     return;
@@ -8166,6 +8166,16 @@ function jrnlWalk(a, b, path, out){
       const ids=[]; a.concat(b).forEach(function(x){ if(ids.indexOf(x.id)<0) ids.push(x.id); });
       const of=function(L, id){ return L.filter(function(x){ return x.id===id; })[0]; };
       ids.forEach(function(id){ jrnlWalk(of(a, id), of(b, id), path.concat(id), out); });
+      return;
+    }
+    // v2.15 review RV-D (D2): A LINE FILED BY PLACE BECAUSE IDS REPEAT SAYS SO FOR GOOD. The journal's title for it was judged by
+    // the year as it stands now, so a line this version filed by place read "Recorded before v2.14" once the repeat was mended,
+    // and a genuinely old place line read as filed for a repeat once one appeared. Each such line carries the reason it was
+    // recorded with (rep), and jrnlPlaceTitle reads that.
+    if(path.length===2 && path[1]==='custom' && (jrnlIdsRepeat(a) || jrnlIdsRepeat(b))){
+      const from=out.length, n=Math.max(a.length,b.length);
+      for(let i=0;i<n;i++) jrnlWalk(a[i], b[i], path.concat(i), out);
+      for(let k=from;k<out.length;k++) out[k].rep=1;
       return;
     }
     const n=Math.max(a.length,b.length);
@@ -8188,6 +8198,9 @@ function jrnlWalk(a, b, path, out){
 // place (['custom', 1, 'ask', 0]), Put back after a delete above it wrote the value onto the requirement that moved into that place,
 // and Put back of a requirement that was gone made an element with no id, which the next save stored. A list that cannot be read
 // by id -- an id repeated, or an element with no text id -- is walked by place as before (jrnlById), and its lines are not offered.
+// v2.15 review RV-D (D2): an id on the list more than once
+function jrnlIdsRepeat(L){ return Array.isArray(L) && L.some(function(x, i){ return x && typeof x==='object' && typeof x.id==='string' && x.id
+  && L.findIndex(function(y){ return y && typeof y==='object' && y.id===x.id; })!==i; }); }
 function jrnlById(L){ const seen=Object.create(null);
   return L.every(function(x){ if(!x || typeof x!=='object' || typeof x.id!=='string' || !x.id || seen[x.id]) return false; seen[x.id]=1; return true; }); }
 // Two kinds of line about added requirements are not put back: a whole requirement (added or removed: Remove on the row, or an
@@ -8231,7 +8244,9 @@ function jrnlCapture(){
   const t=Date.now(), by=whoAmI()||'unknown';
   out.forEach(d=>{
     const fy=+d.p[0]||MS.cur;
-    jrnlAdd({t:t, by:by, fy:fy, p:d.p.slice(1), a:d.a, b:d.b});
+    const e={t:t, by:by, fy:fy, p:d.p.slice(1), a:d.a, b:d.b};
+    if(d.rep) e.rep=1;   // v2.15 review RV-D (D2): filed by place because the year's ids repeat
+    jrnlAdd(e);
   });
   // WHAT COULD NOT BE RECORDED IS RECORDED AS SUCH (v1.89), one line each, never merged with the line
   // before (f): changes past the per-save limit, and a walk that failed -- which used to drop every
@@ -8354,9 +8369,8 @@ const JRNL_NOT_WHOLE='An added requirement as a whole — added or removed — i
 const JRNL_NOT_PLACE='Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.';
 // v2.15 W4 (item 146): a line filed by place in a year whose added ids repeat -- recorded so by this version, never "before v2.14"
 const JRNL_NOT_PLACE_REP='Recorded by its place in the list of added requirements, because an id is on that year’s list more than once. Put back now, it could land on another requirement, so it is not offered.';
-function jrnlPlaceTitle(e){ const T=(MS.years||{})[e.fy||MS.cur], L=(T && Array.isArray(T.custom))? T.custom : null;
-  const rep=!!L && L.some(function(x, i){ return x && typeof x==='object' && typeof x.id==='string' && x.id
-    && L.findIndex(function(y){ return y && typeof y==='object' && y.id===x.id; })!==i; });
+// v2.15 review RV-D (D2): judged by the reason the line was recorded with (jrnlWalk's rep), never by the year as it stands now
+function jrnlPlaceTitle(e){ const rep=!!(e && e.rep);
   return rep? JRNL_NOT_PLACE_REP : JRNL_NOT_PLACE; }
 // v2.14 RV1-D (d28-writes-false-journal-line): what the journal says of a line an ORBIT older than v2.14 wrote (jrnlOlderLine)
 const JRNL_OLDER='recorded by an ORBIT older than v2.14, which tried to put this change back and could not: nothing changed on the board.';
@@ -16142,8 +16156,8 @@ function setRcnAsg(id,k){
 }
 
 /* THE ONE RULE FOR WHEN A FUNDED DOLLAR LANDS (v1.86; v1.93). Every spend-plan surface -- the forecast
-   panel, the month-by-month sheets, the PMO tabs' spend plan, the CR windows and the 1A9A return, the
-   deck's chart -- places a requirement's money through this, one service at a time, so no two of them
+   panel, the month-by-month sheets, the PMO tabs' spend plan, the CR windows and the 1A9A return (the deck's chart
+   too, until v2.05 removed the deck) -- places a requirement's money through this, one service at a time, so no two of them
    can disagree about which month a dollar is in.
    - AN AWARD IS THE WHOLE AWARD, BOTH LANES (Brad, 1 Oct 2026, item 40). The increments are taken in
      DATE order (never the order typed). DISCRETIONARY WORKS FORWARD FROM THE FIRST AWARD, filling each
@@ -16440,7 +16454,7 @@ function forecast(fundOf, view){
   };
   const mul=function(a, b){ return a? (b? a.map(function(v,i){ return v*b[i]; }) : a) : b; };
   // Every funded dollar is in a month or in UNSCHEDULED, placed by landSvc(): the rule the month
-  // sheets, the PMO tabs, the CR views and the deck's chart use too. `o` is an office's part of the
+  // sheets, the PMO tabs and the CR views use too. `o` is an office's part of the
   // requirement (pmoPartsOf, v1.95: whole dollars, its part of the WHOLE placement); `frac` then only
   // says which services are in the view. TOTAL is what was placed, so it is the months plus UNSCHEDULED.
   const bump=(bag,id,p,frac,o)=>{
@@ -31908,9 +31922,19 @@ function clinGo(id){
   try{ (f || d).scrollIntoView({block:'center'}); }catch(e){}
   try{ if(f) f.focus({preventScroll:true}); }catch(e){}
 }
-// v2.15 W4 (item 135): each figure read as a figure (+v, as clinVec and clinSplit read it): a request held as text figures (['5'], which
-// the import check takes as it takes every amount) was summed as text -- '0'+'5' -- and the drill's request read 05, not $5
-function clinAskTot(c){ return (Array.isArray(c.ask)? c.ask : []).reduce((a,b)=>a+(+b||0),0); }
+// v2.15 W4 (item 135): a request held as text figures (['5'], which the import check takes as it takes every amount) was summed
+// as text -- '0'+'5' -- and the drill's request read 05, not $5.
+// v2.15 review RV-D (D1): W4 read each figure with +v, which reads '1,000' and '$2,000' (both taken by the import check) as
+// nothing, silently, and fixed the total alone: clinVec seeded the grid with the text itself, clinSvcTot joined it ('5'+'7' read
+// $57 for $12) and Set row from grid wrote $507 into the row allocation. A CLIN request figure now has ONE reader, clinFig --
+// the import check's own reading (inAmtWhy), in whole dollars -- applied where the list is read (clinAskIn), so every CLIN
+// clinList hands out asks in numbers and nothing downstream reads text.
+function clinFig(x){
+  if(typeof x==='number') return isFinite(x)? x : 0;
+  if(typeof x==='string'){ const n=Number(x.replace(/[$,\s]/g,'')); return (x.trim() && isFinite(n))? D$(n) : 0; }
+  return 0;
+}
+function clinAskTot(c){ return clinAskIn(c.ask).reduce((a,b)=>a+b,0); }
 
 // ---- the working CLIN list -------------------------------------------------------------------
 // Base lines come from the board data and keep the key 'b<index>' for as long as that data stands.
@@ -31927,13 +31951,16 @@ function clinRm(pid){ if(!S.clinRm) S.clinRm={}; if(!Array.isArray(S.clinRm[pid]
 // row and nothing to say why. So a request that is not a list is read as no request, and a CLIN that is not a CLIN as no CLIN
 // -- as the drill's own lines (clinVec, clinAskTot) already treated an empty one -- and the import check refuses all three
 // by name (inClinsWhy), so a file it takes is a file the board draws.
-function clinAskIn(v){ return Array.isArray(v)? v.slice() : []; }
+// v2.15 review RV-D (D1): each figure read by clinFig, so a request held as text reaches nothing as text
+function clinAskIn(v){ return Array.isArray(v)? Array.from(v, clinFig) : []; }
 // v2.15 W4 (v2.12's question 1, the handoff's recommendation accepted): A CLIN REQUEST THAT IS NOT A LIST IS SAID ON OPENING, once,
 // naming the requirement and the CLIN. Read as no request (clinAskIn) -- or, on an edit, as the CLIN's request in the board data --
 // it opened silently: the drill showed $0 asked where the file held something nobody could see. Nothing is changed: the value stays
 // as saved until the request is typed again. [{fy, id, clin, what}] for every year the plan holds, the board data's CLINs first.
 function clinAskBadOf(){
-  const out=[], bad=function(v){ return v!==undefined && !Array.isArray(v); };
+  // v2.15 review RV-D (null): a null request is read as no request, as undefined is -- the import check takes one (an older file
+  // may carry it, and a refusal would strand that file) and the board reads it as none (clinAskIn) -- so opening says nothing of it
+  const out=[], bad=function(v){ return v!==undefined && v!==null && !Array.isArray(v); };
   const ok=function(x){ return x && typeof x==='object' && !Array.isArray(x); };
   try{
     Object.keys(CLINS||{}).forEach(function(pid){ clinsOf(CLINS[pid]).forEach(function(c, i){
@@ -31969,7 +31996,7 @@ function clinList(pid){
     const key='b'+i, m=meta[key]||{};
     return {key, clin:(m.clin!==undefined? m.clin : c.clin), desc:(m.desc!==undefined? m.desc : c.desc),
             ccar:(m.ccar!==undefined? m.ccar : c.ccar),
-            ask:(Array.isArray(m.ask)? m.ask.slice() : clinAskIn(c.ask)),
+            ask:(Array.isArray(m.ask)? clinAskIn(m.ask) : clinAskIn(c.ask)),   // v2.15 review RV-D (D1): an edited request is read the same way
             added:false, edited:!!(m.clin!==undefined||m.desc!==undefined||m.ccar!==undefined||m.ask)};
   }).filter(c=>c && gone.indexOf(c.key)<0);
   const extra=clinsOf(clinNew(pid)).filter(Boolean).map(c=>({key:c.key, clin:c.clin, desc:c.desc, ccar:c.ccar,
@@ -32039,7 +32066,10 @@ function clinAllocMap(pid){
 function clinVec(pid,c){
   const m=clinAllocMap(pid);
   let v=m[c.key];
-  if(!Array.isArray(v) || v.length!==SVC.length){ v=SVC.map((sv,j)=>c.ask[j]||0); m[c.key]=v; }
+  if(!Array.isArray(v) || v.length!==SVC.length){ v=SVC.map((sv,j)=>clinFig(clinAskIn(c.ask)[j])); m[c.key]=v; }
+  // v2.15 review RV-D (D1): the grid holds numbers. A grid seeded before v2.15 from a request held as text holds that text
+  // ('5', '1,000'), and every sum over it joined strings: it is read once by clinFig and stored as figures.
+  else if(v.some(x=>typeof x!=='number')){ v=Array.from(v, clinFig); m[c.key]=v; }
   return v;
 }
 // THE ONE RULE FOR SPLITTING A PRIME'S MONEY ACROSS ITS CLINs, for one service.
@@ -32056,7 +32086,7 @@ function clinVec(pid,c){
 function clinSplit(pid, i, amt){
   const cl=clinApplies(pid)? clinList(pid) : [];
   if(!cl.length) return [];
-  const per=cl.map(c=>+(clinVec(pid,c)||[])[i]||0);
+  const per=cl.map(c=>clinFig((clinVec(pid,c)||[])[i]));   // v2.15 review RV-D (D1)
   const t=per.reduce((a,b)=>a+b,0);
   if(!(t>0)) return [];
   if(Number.isInteger(amt)){ const a=apportion(amt, per); return cl.map((c,ci)=>({c:c, part:a[ci]})); }
@@ -32068,7 +32098,7 @@ function clinSplit(pid, i, amt){
   });
   return out;
 }
-function clinSvcTot(pid){ const L=clinList(pid); return SVC.map((sv,j)=>L.reduce((a,c)=>a+(clinVec(pid,c)[j]||0),0)); }
+function clinSvcTot(pid){ const L=clinList(pid); return SVC.map((sv,j)=>L.reduce((a,c)=>a+clinFig(clinVec(pid,c)[j]),0)); }   // v2.15 review RV-D (D1)
 // v2.08 (F6, Brad: "lock the drill"): A PMO COPY CANNOT CHANGE A PRIME'S CLINs. No CLIN container travels with a submittal
 // (PMO_FIELDS carries none), so an office's CLIN edits were kept on the copy and never sent, with nothing saying so. Every
 // writer the drill reaches asks here first; the copy also dims the drill's controls (the style beside SANDBOX).
@@ -32148,8 +32178,8 @@ function clinSetAsk(pid,key,j,val){
   const c=clinList(pid).find(x=>x.key===key); if(!c) return;
   const v=parseAmt(val);
   if(amtNo(v, val, 'The CLIN request for '+(SVC[j]||'this service'))) return;
-  const was=+c.ask[j]||0, now=(v===null)? 0 : v;
-  const ask=SVC.map(function(sv,i){ return +c.ask[i]||0; }); ask[j]=now;
+  const was=clinFig(c.ask[j]), now=(v===null)? 0 : v;   // v2.15 review RV-D (D1): read by clinFig, as the list is
+  const ask=SVC.map(function(sv,i){ return clinFig(c.ask[i]); }); ask[j]=now;
   if(c.added){ const row=clinNew(pid).find(x=>x.key===key); if(row) row.ask=ask;
     const g=clinVec(pid,c); if(!was && !(+g[j])) g[j]=now; }
   else { const m=clinMeta(pid); if(!m[key]) m[key]={}; m[key].ask=ask; }
@@ -32196,7 +32226,7 @@ function clinFromRow(pid){
   // v2.09 (item 125): WHOLE DOLLARS. Each service's row figure was spread by hand, row*ask/askJ, and the grid held fractions
   // (33.333333333333336 a CLIN, measured). apportion() hands out whole dollars that add up to the row figure exactly.
   SVC.forEach((sv,j)=>{
-    const w=L.map(c=>+c.ask[j]||0);
+    const w=L.map(c=>clinFig(c.ask[j]));   // v2.15 review RV-D (D1)
     const part=w.some(x=>x>0)? apportion(D$(row[j]||0), w) : L.map(_=>0);
     L.forEach((c,ci)=>{ clinVec(pid,c)[j] = part[ci]; });
   });
@@ -33280,7 +33310,7 @@ function clinTable(it){
   // prime's own requirement value, and the difference. Information only -- nothing here sets the requirement value, and the
   // grid still feeds none of the funding math. (A prime's CLINs asked $510,000 against a $4,109,485 requirement on the test
   // board, and nothing said so.)
-  const rq=SVC.map((sv,j)=>L.reduce((a,c)=>a+(+c.ask[j]||0),0)), rqT=rq.reduce((a,b)=>a+b,0);
+  const rq=SVC.map((sv,j)=>L.reduce((a,c)=>a+clinFig(c.ask[j]),0)), rqT=rq.reduce((a,b)=>a+b,0);
   const rv=SVC.map((sv,j)=>+it.ask[j]||0), rvT=rv.reduce((a,b)=>a+b,0);
   const icell=v=>Math.abs(v)<0.5 ? '<td class="ok">—</td>'
     : '<td class="inf">'+(v>0?'+':'−')+fMc(Math.abs(v))+'</td>';

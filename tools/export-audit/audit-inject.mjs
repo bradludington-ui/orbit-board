@@ -747,9 +747,14 @@ const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding he
       var R=off(); R.html='<p>x</p>';
       impFileFailed(R, {name:${JSON.stringify(P('w3-failed'))}}, {message:${JSON.stringify(P('w3-reason'))}});
       r.failStat=__show('shareStat'); r.failBox=__show('impFileBody');
-      R=off(); R.html='<p>x</p>';
-      impFileFailed(R, {name:fhOwnName()+${JSON.stringify(P('w3-own'))}}, {message:'x'});
-      r.ownStat=__show('shareStat');
+      // v2.15 review RV-D: this board's own file, reached for real. fhOwnName()+payload is not this page's file, so impFileIsOwn was
+      // false and the own-file branch was never drawn: the file this page saves to (FH) carries the planted name instead
+      var fh0=FH; FH={name:${JSON.stringify(P('w3-own'))}};
+      try{ R=off(); R.html='<p>x</p>';
+        impFileFailed(R, {name:${JSON.stringify(P('w3-own'))}}, {message:'x'});
+        r.ownReached=!!(R.rescue && R.rescue.ownFile); r.ownStat=__show('shareStat'); r.ownBox=__show('impFileBody');
+        r.ownSays=/is this board’s own file/.test((document.getElementById('shareStat')||{}).textContent||''); }
+      finally{ FH=fh0; }
       R=off(); R.m=null;
       impFileRaced(R, {name:${JSON.stringify(P('w3-raced'))}}, [${JSON.stringify(P('w3-moved'))}], true);
       r.raced=__show('shareStat');
@@ -775,7 +780,9 @@ const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding he
       return JSON.stringify(r); })()`));
   } catch (e) { chk(W3F, 'the file route’s renderers ran', 'threw: ' + String((e && e.message) || e).slice(0, 120), 'ran'); }
   if (out) {
-    for (const k of ['failStat', 'failBox', 'ownStat', 'raced', 'dl', 'wpause', 'rwas', 'finish', 'noteText']) {
+    // v2.15 review RV-D: CONTROL (the board escapes it on dbfc7c4 too; the check is the own-file branch actually reached)
+    chk(W3F, 'ownStat: the own-file branch is the one drawn (the file this board saves to)', !!out.ownReached && !!out.ownSays, true);
+    for (const k of ['failStat', 'failBox', 'ownStat', 'ownBox', 'raced', 'dl', 'wpause', 'rwas', 'finish', 'noteText']) {
       chk(W3F, k + ': the planted names are drawn', !!out[k].drawn, true);
       chk(W3F, k + ': and drawn as text, never as an element or a handler', !!out[k].live, false);
     }
