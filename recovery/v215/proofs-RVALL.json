@@ -1,0 +1,218 @@
+[
+ {
+  "id": "v215-rv-a-putback-other-list",
+  "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"
+ },
+ {
+  "id": "v215-rv-a-otherlist-never",
+  "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"
+ },
+ {
+  "id": "v215-rv-a-otherlist-any",
+  "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"
+ },
+ {
+  "id": "v215-rv-a-offer-putback",
+  "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"
+ },
+ {
+  "id": "v215-rv-a-file-screen",
+  "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"
+ },
+ {
+  "id": "v215-rv-a-raw1-any",
+  "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"
+ },
+ {
+  "id": "v200-u10-kept-gate-after-question",
+  "caughtBy": "audit-recon / v2.00 (U10) — “↶ work kept aside” pressed in a locked view"
+ },
+ {
+  "id": "v214-rv1-c-stop-after-unset",
+  "caughtBy": "audit-import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v215-rv-b-whole-has-plan",
+  "caughtBy": "import / v2.15 review RV-B (B1)"
+ },
+ {
+  "id": "v215-rv-b-holds-no-ppbe",
+  "caughtBy": "import / v2.15 review RV-B (B1)"
+ },
+ {
+  "id": "v215-w1-in-never-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-always-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-rv-b-cache-kept",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-cache-mark-skipped",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-spruills-stale-printed",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-own-mark-kept",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-clash-spent",
+  "caughtBy": "import / v2.15 review RV-B (B3)"
+ },
+ {
+  "id": "v215-rv-b-put-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-listener-built-on",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-import-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-cons-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-cyc-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-c-button-moves-nothing",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-why-unsaid",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-offer-button-always",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-count-what-locked",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-reopened-row-not-locked",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-reopened-state-lost",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-leftsay-one-state",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-tab-not-reread",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-tab-reopened-counts",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-tab-leave-unsaid",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-lock-default-pb",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-lock-refusal-no-own",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-rv-c-its-board",
+  "caughtBy": "audit-board / v2.15 review RV-C"
+ },
+ {
+  "id": "v215-w1-retag-moves-all-on",
+  "caughtBy": "audit-board / v2.15 W1 — the retag"
+ },
+ {
+  "id": "v215-w1-retag-own-only",
+  "caughtBy": "audit-board / v2.15 W1 — the retag"
+ },
+ {
+  "id": "v215-w1-retag-label-count",
+  "caughtBy": "audit-board / v2.15 W1 — the retag"
+ },
+ {
+  "id": "v215-rv-d-clinfig-commas",
+  "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"
+ },
+ {
+  "id": "v215-rv-d-clinfig-text-kept",
+  "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"
+ },
+ {
+  "id": "v215-rv-d-edit-text",
+  "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"
+ },
+ {
+  "id": "v215-rv-d-grid-text-kept",
+  "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"
+ },
+ {
+  "id": "v215-rv-d-null-said",
+  "caughtBy": "audit-board / v2.15 review RV-D — a CLIN request held as text"
+ },
+ {
+  "id": "v215-rv-d-jrnl-rep-unstamped",
+  "caughtBy": "audit-board / v2.15 review RV-D — a line filed by place"
+ },
+ {
+  "id": "v215-rv-d-jrnl-rep-dropped",
+  "caughtBy": "audit-board / v2.15 review RV-D — a line filed by place"
+ },
+ {
+  "id": "v215-rv-d-jrnl-title-now",
+  "caughtBy": "audit-board / v2.15 review RV-D — a line filed by place"
+ },
+ {
+  "id": "v215-rv-d-guide-deck",
+  "caughtBy": "audit-board / v2.15 review RV-D — the guide names no deck"
+ },
+ {
+  "id": "v215-rv-d-name-own",
+  "caughtBy": "audit-inject"
+ },
+ {
+  "id": "v215-w4-clin-ask-text",
+  "caughtBy": "audit-board / v2.15 W4 — WBS from execution data never proposes"
+ },
+ {
+  "id": "v215-w4-clinask-list-counted",
+  "caughtBy": "audit-board / v2.15 W4 — a CLIN request that is not a list"
+ },
+ {
+  "id": "v215-w4-jrnl-place-title-old",
+  "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"
+ },
+ {
+  "id": "v215-w4-jrnl-place-title-always",
+  "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"
+ },
+ {
+  "id": "v212-rv5-clin-base-ask-unread",
+  "caughtBy": "audit-other / v2.12 RV5 — a board file whose CLIN request is not a list"
+ },
+ {
+  "id": "v209-w1-ask-every-service",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ }
+]

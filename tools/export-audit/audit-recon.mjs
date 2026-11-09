@@ -1390,7 +1390,7 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'panel', 'this year’s requirement line is A, B and Δ', reqRow, '<td class="n">' + fm(expect[cur].tot.ask.a) + '</td><td class="n">' + fm(expect[cur].tot.ask.b) + '</td><td class="n">' + sgn(expect[cur].tot.ask.d) + '</td>');
   chk(name, 'panel', 'the added and the removed are named', /ADDED/.test(panel) && /REMOVED/.test(panel) && new RegExp(title('NEW-1')).test(panel) && new RegExp(title('E')).test(panel), true);
   // ---- B locked too; the working plan moves again; the two locks do not follow it
-  ev(`cycCmpOpen=false; blCyc='BES'; blYr=MS.cur+1; cycLock(); 'ok'`);
+  ev(`cycCmpOpen=false; blCyc='BES'; blYr=MS.cur+1; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} 'ok'`);
   chk(name, 'lock B', 'B is locked over both years', ev(`cycHeld('${keyB}').join(',')`), cur + ',' + (cur + 1));
   const cNew = JSON.parse(ev(`JSON.stringify(itemById('C').ask)`)); cNew[1] += 70000;
   ev(`S.asks['C']=${JSON.stringify(cNew)}; applyState(S); MS.years[MS.cur]=S; var y2=JSON.parse(JSON.stringify(S)); delete y2.pmoOrder; MS.years[MS.cur+2]=y2; save(); 'ok'`);
@@ -1560,7 +1560,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const kA = 'PB|' + cur, kB = 'BES|' + (cur + 1);
   bev(`blCyc='PB'; blYr=${cur}; blNote=''; cycLock(); 'ok'`);
   bev(`setAsk('A',0,'11000000'); switchYear(${cur + 1}); setGrp('MOVE','AV'); switchYear(${cur}); 'ok'`);
-  bev(`blCyc='BES'; blYr=${cur + 1}; blNote=''; cycLock(); 'ok'`);
+  bev(`blCyc='BES'; blYr=${cur + 1}; blNote=''; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} 'ok'`);
   const K = ['ask', 'alloc', 'fund', 'unf'], KL = { ask: 'Requirement', alloc: 'Allocated', fund: 'Funded', unf: 'Unfunded' };
   // each cycle's own PMO roll-up, each year, read from the lock: ask, alloc and fund are its pmo block,
   // unfunded its rows floored per service -- grouped here by each row's own PMO
@@ -7651,7 +7651,7 @@ await (async () => {
         + 'appropriation and ⇊ Import several boards will refuse every file that carries this cycle, on every board of this version.';
       // Lock POM27 (FY27), every question kept and answered `yes`; whether POM27 is there after, and the list it keeps
       const lock = (ev, yes) => JSON.parse(ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return ${yes}; };
-        window.alert=function(){}; blCyc='POM'; blYr=2027; cycLock(); var c=blGet('POM|2027'); return JSON.stringify({qs:qs, made:!!c, rcn:c? c.rcn : null}); })()`));
+        window.alert=function(){}; blCyc='POM'; blYr=2027; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} var c=blGet('POM|2027'); return JSON.stringify({qs:qs, made:!!c, rcn:c? c.rcn : null}); })()`));
       const at = 'the user’s own board whose working plan lists K1 twice, taken whole · ';
       {
         const mk = bootMark();
@@ -11614,6 +11614,39 @@ await (async () => {
 
 // ==== v2.14 integration (the lead) ====
 // ==== end v2.14 integration ====
+
+// ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
+// v2.15 W1 (item 139): LOCK AS A BUILD BEFORE v2.15 LOCKED. Lock now refuses a plan tagged with another cycle (it would keep that cycle's
+// controls under the lock's name). Older fixtures here lock a cycle on a plan tagged with another -- a lock a file still carries -- so this
+// takes it the way v2.14 did: under the lock's key for the moment, with the position of the cycle the plan is on, then the tag put back
+// and the lock's record set as v2.14 wrote it (pos: the plan's tag and its position; from: the plan's tag). Where the plan is untagged or
+// on the lock's own cycle it is cycLock() itself. A function declaration, so every block above the slot can call it (it is hoisted).
+function w1LockAsBefore() {
+  return `(function(){ var K=blKey(blCyc, blYr||MS.cur), t0=(typeof MS.cycle==='string')? MS.cycle : '';
+    if(!t0 || t0===K){ cycLock(); return; }
+    MS.ppbe=MS.ppbe||{}; var P0=MS.ppbe[t0], had=Object.prototype.hasOwnProperty.call(MS.ppbe, K)? MS.ppbe[K] : undefined, c0=blGet(K);
+    if(P0!==undefined) MS.ppbe[K]=P0; else delete MS.ppbe[K];
+    MS.cycle=K; cycLock(); MS.cycle=t0;
+    if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had;
+    var c=blGet(K); baLiveAll(); if(c && c!==c0){ c.pos={key:t0, P:P0? JSON.parse(JSON.stringify(ppNorm(P0))) : null}; c.from=t0; persistCyc(); save(); } })();`;
+}
+// ==== end v2.15 W1 ====
+// ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
+// ==== end v2.15 W2 ====
+// ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
+// ==== end v2.15 W3 ====
+// ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
+// ==== end v2.15 W4 ====
+// ==== v2.15 integration (the lead) ====
+// ==== end v2.15 integration ====
+// ==== v2.15 review RV-A ====
+// ==== end v2.15 review RV-A ====
+// ==== v2.15 review RV-B ====
+// ==== end v2.15 review RV-B ====
+// ==== v2.15 review RV-C ====
+// ==== end v2.15 review RV-C ====
+// ==== v2.15 review RV-D ====
+// ==== end v2.15 review RV-D ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

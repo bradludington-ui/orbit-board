@@ -5168,6 +5168,63 @@ What it leaves for the next change:
   money map current, the defect register (20 known, 55 mutations), the trace matrix, two fuzz seeds, `verify:file --selftest`,
   and `validate:nightly` (every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (fuzz seed 344821819; 33 min of suites, 8 banners + legacy)). audit-board, audit-import and audit-recon need `--max-old-space-size=8192`.
 
+### v2.15 (items 137–139, 142–146; the small fixes): the context bar on one line, a package and a retag that keep the cycle, the requirement list of the copy that opens, two tabs on one appropriation
+
+Brad's go of 3 Nov 2026 (*"Let's push all of these"*, *"Three versions, data loss first"*, *"Accept all recommendations"*, *"Go"*):
+the second of the three versions. Four builders to one contract (`recovery/v215/contract.md`; W1 the PPBE cycle, W2 what opens and
+two tabs, W3 storage writes and Save, W4 the small fixes), the integration, then four reviewers with a skeptic each (14 findings,
+all confirmed) and four fixers, RV-A to RV-D. `NEXT-VERSION.md` › Shipped › v2.15 has every decision; `recovery/v215/notes-*.md`
+each builder's and fixer's record.
+
+What the code carries now:
+- **The context bar is one line above the phone layout.** `fitTop()` steps, each only while the bar still overflows: `tight1`,
+  `cyc1` (`cycFitShort`), `cyc2` (the figure moves to the head of the PPBE cycle's list, ⚠ on the button), `tight3`, and `tight2`
+  (a wrap) only at ≤760 px.
+- **An incoming plan keeps this board's cycle** (`cycInFor`, `cycInTake`, `cycInSay`, `cycInBa` / `baStale`) in `pkgApply`,
+  `consTakeApply` and `importBoards`. **Retag moves every appropriation that locked the cycle**, through `cycApplyAll(to, opt)`;
+  **Lock refuses a plan tagged with another cycle**.
+- **`DATA` follows `_bootPre`**: where the file's newer plan carries another data pack with the same services, the requirement list
+  is the file's, and storage's unsaved work is kept aside before `DATA` is fixed. Kept work on another list is never put back
+  (`keptOtherList`); it is offered as a file.
+- **Save records every appropriation it wrote** (`apSavedSnap`, `apRecordSaved`, `apBaseSaved`, which `cycCarrySaved` shares).
+- **`lsSet(key, val, what, {own, lose, say})`** carries this page's own state: `own` is never captured into an import nor counted
+  as a list the file carries, `lose` makes a refusal "on screen only" (`_lsOnly`), `say` is the caller's sentence. Every write of
+  this page's own state goes through it, records with `{own}`.
+- **`tabWrote`** is the general `storage` listener. A copy storage refused on this page (`_pubsOwn`) that another tab then writes
+  is a clash (`_tabClash`, `apClash`): writers refuse, readers name it not read, Save asks (`pubsClashAsk`), and `apSettleTxt`
+  sends the reader to 💾 Save.
+- **`strayRule` is the one stray rule**; `strayOther` and `_bootStray` both read it (v2.14's "written twice" is closed).
+- **A CLIN request is read through `clinFig` / `clinAskIn`**; a null request is none. **`apFoldRead`** reads another
+  appropriation's folder copy strictly for the Spruills, the PMO drill, the chart of accounts and Locks by appropriation. The
+  five-year workbook says Funded.
+
+What it leaves for the next change:
+- **A fix in one workstream can put another's state on a path it never considered.** Item 142 let a board open on the file's list,
+  so the one kept slot could hold work on another list, and Put back laid it on this one (A1, data loss). When a change moves which
+  copy opens, follow every route that puts a copy back.
+- **Judge "holds nothing" by what a plan holds, never by whether the object exists**: `MS` always has `years`, so a package into an
+  empty board on screen lost its cycle (B1).
+- **`_pubsOwn` is cleared on every write that lands** (`apStoredOk`), or a later tab's save reads as a false clash (B4); **an answer
+  is spent only by the write it allowed**, never by the question (B3).
+- **A retag button is built from what OK writes.** `cycApplyPlanOf` is the one decision; a count worked out beside it counted skips
+  and offered buttons that moved nothing (C1, C2). Anything read before a question is read again after it (C3).
+- **A cache moved to another cycle is worked out again by `baOf` or marked stale**, never carried (B2).
+- **One reader for a figure held as text.** Fixing `clinAskTot` alone left the drill reading $57 for $12 and Set row from grid
+  writing $507 (D1): a rule written in two places is two rules, again.
+- **Stamp a reason when the line is recorded** (`rep`), never judge it later from the year as it stands (D2).
+- **A stop before a Save's write puts back exactly what that Save changed**: `raw1` only when its own `save()` wrote (A2), the
+  writer always (`savetarget` C).
+- **Lock's refusal meets every fixture that locks a second cycle**: such fixtures take the lock as v2.14 did (`OLD_LOCK`,
+  `w1LockAsBefore()`); they stand for locks files already carry.
+
+**Checks.** New blocks in the `v2.15 W1`–`W4` and `v2.15 review RV-A`–`RV-D` slots of audit-board, audit-import, audit-other and
+audit-inject, each failing on the commit before it unless a CONTROL; layout S (one line, both fonts, Mixed with a warning unread,
+one retry for Chromium's storage island), toolbar-fits' tagged pass and keys V2. **Mutations:** 193 new (`v215-*`), 60 retargets,
+`v209-rv3-save-look-record-left` marked equivalent; 3,800 targets, each once. The builders' 200 proved together on the merged
+board, 200 of 200 CAUGHT (`recovery/v215/proved-INT.jsonl`); the review's 54 together on the final tree: see
+`proved-RVALL.jsonl`. 54 of 54 CAUGHT, none by a block that threw. **The final gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); every browser check but layout's carried D x8 (savetarget, fileimport, storagefull, pmosave, pmoyears, pointer, keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, csp; standards 0 new findings); all 244 v2.15 mutations and retargets proved together on the final tree, 244 of 244 CAUGHT (`recovery/v215/proved-FINAL.jsonl`); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; trace matrix 77 cells; fuzz seed 890551538; verify-file self-test held; suites 36.4 min). No sweep (Brad's rule of 20 Oct). audit-board,
+audit-import and audit-recon need `--max-old-space-size=8192`.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

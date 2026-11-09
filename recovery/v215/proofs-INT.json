@@ -1,0 +1,802 @@
+[
+ {
+  "id": "v215-w1-retag-moves-all-on",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-reopened-counts",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-own-only",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-filter-ignored",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-left-unnamed",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-question-every",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-label-count",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-lead-own-only",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-lock-refusal-gone",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-lock-refusal-copy-wayout",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-in-keeps-package-tag",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-takes-package-ref",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-takes-every-position",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-takes-no-position",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-left-counts-same",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-bar-mixed",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-no-bar",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-never-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-always-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-left-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-made-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-pkg-skipped",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-pkg-preview-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-pkg-result-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-cons-skipped",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-cons-preview-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-cons-result-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-batch-skipped",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-batch-result-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-e2-line-unnamed",
+  "caughtBy": "import / v2.15 W1 — E2’s line"
+ },
+ {
+  "id": "v215-w1-fit-no-short",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-no-move",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-wrap-not-shorten",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-not-reset",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-short-keeps-fy",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-short-keeps-words",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-title-short",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-list-missing",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-no-over-mark",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "retag-drops-reference",
+  "caughtBy": "board / PPBE cycles — the deltas against the reference"
+ },
+ {
+  "id": "v203-19-flag-never",
+  "caughtBy": "board / v2.03 — a message that matters stays until it is read"
+ },
+ {
+  "id": "v213-rv-headline-every",
+  "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+ },
+ {
+  "id": "v215-w2-data-storage-first",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-pre-never-follows",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-pre-keep-not-written",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-pre-occupied-taken",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-pre-saved-kept",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-follow-storage-stale",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-take-file-in-place",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened"
+ },
+ {
+  "id": "v215-w2-save-records-own-only",
+  "caughtBy": "audit-import / v2.15 W2 — 💾 Save records"
+ },
+ {
+  "id": "v215-w2-save-records-changed-copy",
+  "caughtBy": "audit-import / v2.15 W2 — 💾 Save records"
+ },
+ {
+  "id": "v215-w2-snap-any-copy",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-carry-guard",
+  "caughtBy": "audit-import / v2.15 W2 — 💾 Save records"
+ },
+ {
+  "id": "v215-w2-clash-pubsfor-silent",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-clash-not-held",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-clash-cycle",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-clash-no-ask",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-clash-ts-not-bumped",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-tab-unmarked",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-tab-unsaid",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one"
+ },
+ {
+  "id": "v215-w2-fdc-no-redraw",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows"
+ },
+ {
+  "id": "v215-w2-fdc-redraw-under-typing",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows"
+ },
+ {
+  "id": "v215-w2-fdc-export-unchecked",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows"
+ },
+ {
+  "id": "v215-w2-fdc-typed-sig-stale",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows"
+ },
+ {
+  "id": "v215-w2-ladder-adopted-early",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "v215-w2-ladder-never-adopted",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "v215-w2-ladder-refusal-loud",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "v215-w2-latch-silent",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "v215-w2-tie-pubsfor",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "v215-w2-tie-apstore",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "v215-w2-tie-fydp",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder"
+ },
+ {
+  "id": "boot-no-keep-aside",
+  "caughtBy": "audit-import / v1.89 — saving never silently overwrites; v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-boot-no-write",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-boot-writes-unread",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv3-save-look-writes-storage",
+  "caughtBy": "audit-import / v2.09 third review — a newer file opened only to look"
+ },
+ {
+  "id": "v210-a-redraw-under-typing",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v214-w2-hold-no-storage-event",
+  "caughtBy": "audit-import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-rv2-b-pubsown-kept-after-save",
+  "caughtBy": "audit-board / v2.14 RV2-B — a refusal for unsaved work behind a newer copy says which copy"
+ },
+ {
+  "id": "v214-rv2-b-carrysaved-drops-entry",
+  "caughtBy": "audit-board / v2.14 RV2-B — a carried plan whose record"
+ },
+ {
+  "id": "v214-w1-stray-any-record",
+  "caughtBy": "audit-import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-stray-over-pack",
+  "caughtBy": "audit-import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-int-stray-unguarded",
+  "caughtBy": "audit-import / v2.14 INT — a full import that lands through browser storage, run from a populated board file; v2.14 INT — import into the program, save it, choose the cycle for every appropriation; v2.14 INT — blank work over a requirement list from another board"
+ },
+ {
+  "id": "v215-w3-own-uncounted",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-seen-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-pmo-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-uipref-direct",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-menugrp-direct",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-kept-not-lost",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-mark-not-lost",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-mark-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-written-over-refused",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-not-remarked",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-mixed-mark-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-capture-key",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-capture-who",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-appn-reopens",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-shell-ignores-plans",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-marksback-drops-dl",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v215-w3-note-unsafe",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-clear-unsafe",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-undone-unsafe",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-stop-leaves-pen",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-stop-no-raw0",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-new-file-claims",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-forget-own-entry",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-array-board",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-none-here-hold-on",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-route-keeps-legacy",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-writer-unkept",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-own-file-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-version-numbers",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-folder-says-file",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-diag-two-prefixes",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-save-menu-no-new",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-save-menu-no-repick",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-name-failed",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-raced",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-download",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-finish",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-wpause",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-rwas",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v209-w3-board-save-keeps-handle",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-rv-save-board-moved-handle-kept",
+  "caughtBy": "audit-import / v2.09 review — a file moved or renamed"
+ },
+ {
+  "id": "v214-rv2-a-aw-not-held",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "guard-not-a-board-writes",
+  "caughtBy": "audit-import / v1.89 — saving never silently overwrites somebody’s work"
+ },
+ {
+  "id": "unsaved-flag-never-set",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "impmixed-not-kept",
+  "caughtBy": "audit-import / v1.95 — after an import that cannot be put back, nothing writes over"
+ },
+ {
+  "id": "menu-grp-not-kept",
+  "caughtBy": "audit-board / v1.96 — a long menu folds"
+ },
+ {
+  "id": "v199-batch-no-mark",
+  "caughtBy": "audit-import / v1.99 — a batch that cannot be put back"
+ },
+ {
+  "id": "v200-u19-putback-refused-no-restore",
+  "caughtBy": "audit-import / v2.00 (U19) — put back after a board-file save"
+ },
+ {
+  "id": "v200-u19-putback-restore-unsaved-only",
+  "caughtBy": "audit-import / v2.00 (U19) — put back after a board-file save"
+ },
+ {
+  "id": "v200-u19-putback-refused-words-swap",
+  "caughtBy": "audit-import / v2.00 (U19) — put back after a board-file save"
+ },
+ {
+  "id": "v214-w2-lift-leaves-copies",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-rv1-a-held-record-written",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v214-rv1-c-stop-no-persist",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-persists-over-tab",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-after-unset",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-w3-dl-no-question",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w2-no-readback",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-readback-length",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-writer-unclaimed",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w4-pull-keeps-nothing-saved",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v215-w3-cancel-keeps-writer",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v214-w1-picked-denied-kept",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-cancel-pen-moved",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-later-unremembered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-rv1-c-stop-later-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-denied-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v215-w3-rec-blocked-own-copy",
+  "caughtBy": "audit-import / v2.14 RV2-C — after a write browser storage refused"
+ },
+ {
+  "id": "v215-w4-fydp-gather-lax",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-apfold-lax",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-spdefs-unread-shown",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-spdefs-older-copy",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-apfold-older-wins",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-apfold-wait-ignored",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-sp-reading-draws",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-sp-no-read",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-sp-no-reread",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-sp-why-silent",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-coa-lists-unread",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-coa-unread-silent",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-coa-no-folder",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-locks-no-fold",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-locks-unread-counted",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-bl-no-read",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-bl-no-reread",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-sp-pos-note-gone",
+  "caughtBy": "audit-other / v2.15 W4 — the Spruills, the chart of accounts"
+ },
+ {
+  "id": "v215-w4-house-title-flush",
+  "caughtBy": "audit-other / v2.15 W4 — every dressed workbook draws its indents"
+ },
+ {
+  "id": "v215-w4-house-subtitle-flush",
+  "caughtBy": "audit-other / v2.15 W4 — every dressed workbook draws its indents"
+ },
+ {
+  "id": "v215-w4-house-colb-flush",
+  "caughtBy": "audit-other / v2.15 W4 — every dressed workbook draws its indents"
+ },
+ {
+  "id": "v215-w4-exw-prime-proposed",
+  "caughtBy": "audit-board / v2.15 W4 — WBS from execution data never proposes"
+ },
+ {
+  "id": "v215-w4-exw-prime-silent",
+  "caughtBy": "audit-board / v2.15 W4 — WBS from execution data never proposes"
+ },
+ {
+  "id": "v215-w4-clin-ask-text",
+  "caughtBy": "audit-board / v2.15 W4 — WBS from execution data never proposes"
+ },
+ {
+  "id": "v215-w4-clinask-silent",
+  "caughtBy": "audit-board / v2.15 W4 — a CLIN request that is not a list"
+ },
+ {
+  "id": "v215-w4-clinask-edited-missed",
+  "caughtBy": "audit-board / v2.15 W4 — a CLIN request that is not a list"
+ },
+ {
+  "id": "v215-w4-clinask-added-missed",
+  "caughtBy": "audit-board / v2.15 W4 — a CLIN request that is not a list"
+ },
+ {
+  "id": "v215-w4-clinask-list-counted",
+  "caughtBy": "audit-board / v2.15 W4 — a CLIN request that is not a list"
+ },
+ {
+  "id": "v215-w4-ace-clash-why-gone",
+  "caughtBy": "audit-other / v2.15 W4 — a cost estimate imported again"
+ },
+ {
+  "id": "v215-w4-ace-clash-why-always",
+  "caughtBy": "audit-other / v2.15 W4 — a cost estimate imported again"
+ },
+ {
+  "id": "v215-w4-ace-clash-file-silent",
+  "caughtBy": "audit-other / v2.15 W4 — a cost estimate imported again"
+ },
+ {
+  "id": "v215-w4-ace-clash-folder-silent",
+  "caughtBy": "audit-other / v2.15 W4 — a cost estimate imported again"
+ },
+ {
+  "id": "v215-w4-si-follow-nothing-only",
+  "caughtBy": "audit-other / v2.15 W4 — the edit box takes a stored SI code"
+ },
+ {
+  "id": "v215-w4-jrnl-twice-said-gone",
+  "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"
+ },
+ {
+  "id": "v215-w4-jrnl-place-title-old",
+  "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"
+ },
+ {
+  "id": "v215-w4-jrnl-place-title-always",
+  "caughtBy": "audit-board / v2.15 W4 — Put back of a line by id"
+ },
+ {
+  "id": "v215-w4-ccar-same-strict",
+  "caughtBy": "audit-board / v2.15 W4 — a whole-year copy whose CCaR record"
+ },
+ {
+  "id": "v215-w4-ccar-same-any",
+  "caughtBy": "audit-board / v2.15 W4 — a whole-year copy whose CCaR record"
+ },
+ {
+  "id": "v215-w4-yrcopysame-strict",
+  "caughtBy": "audit-board / v2.15 W4 — a whole-year copy whose CCaR record"
+ },
+ {
+  "id": "v215-w4-drill-cols-narrow",
+  "caughtBy": "audit-other / v2.15 W4 — the Priority Drill gives every dollar"
+ },
+ {
+  "id": "v215-w4-fydp-head-allocated",
+  "caughtBy": "audit-other / v2.15 W4 — the five-year spend plan calls the lane draw Funded"
+ },
+ {
+  "id": "v215-w4-fydp-panel-allocated",
+  "caughtBy": "audit-other / v2.15 W4 — the five-year spend plan calls the lane draw Funded"
+ },
+ {
+  "id": "v215-w4-guide-fydp-old",
+  "caughtBy": "audit-other / v2.15 W4 — the guide describes the five-year workbook"
+ },
+ {
+  "id": "v204-113-chart-series-swapped",
+  "caughtBy": "audit-other / v2.04 (item 113) — the house style"
+ },
+ {
+  "id": "v207-rv2-yearhas-copied-year",
+  "caughtBy": "audit-import / v2.07 — the review of the Add box: Roll forward"
+ },
+ {
+  "id": "v207-rv2-yearhas-same-number",
+  "caughtBy": "audit-import / v2.07 — the review of the Add box: Roll forward"
+ },
+ {
+  "id": "v207-rv3-copy-rule-other-office",
+  "caughtBy": "audit-import / v2.07 — the review of the Add box: Roll forward"
+ },
+ {
+  "id": "v208-rv-si-follows-gone",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v213-136-other-tag-unread",
+  "caughtBy": "audit-board / v2.13 — one PPBE cycle for every appropriation"
+ },
+ {
+  "id": "v213-136-empty-other-mixed",
+  "caughtBy": "audit-board / v2.13 — one PPBE cycle for every appropriation"
+ },
+ {
+  "id": "v214-int-cyc-erases-refusal",
+  "caughtBy": "board / v2.14 INT — a change refused before “put every appropriation on a cycle”"
+ }
+]

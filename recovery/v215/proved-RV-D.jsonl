@@ -1,0 +1,16 @@
+{"id": "v215-rv-d-clinfig-commas", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-7ce5f098.mjs", "detail": ""}
+{"id": "v215-rv-d-clinfig-text-kept", "verdict": "CAUGHT", "fails": ["8"], "threw": 0, "suite": "_slim-prove-7ce5f098.mjs", "detail": ""}
+{"id": "v215-rv-d-edit-text", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7ce5f098.mjs", "detail": ""}
+{"id": "v215-rv-d-null-said", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7ce5f098.mjs", "detail": ""}
+{"id": "v215-rv-d-jrnl-rep-unstamped", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-3e99577f.mjs", "detail": ""}
+{"id": "v215-rv-d-jrnl-rep-dropped", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-3e99577f.mjs", "detail": ""}
+{"id": "v215-rv-d-jrnl-title-now", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-3e99577f.mjs", "detail": ""}
+{"id": "v215-rv-d-guide-deck", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-4805d817.mjs", "detail": ""}
+{"id": "v215-rv-d-name-own", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "audit-inject.mjs", "detail": ""}
+{"id": "v215-w4-clin-ask-text", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-5ec69ab3.mjs", "detail": ""}
+{"id": "v215-w4-clinask-list-counted", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-dd4f2308.mjs", "detail": ""}
+{"id": "v215-w4-jrnl-place-title-old", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ec00971b.mjs", "detail": ""}
+{"id": "v215-w4-jrnl-place-title-always", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ec00971b.mjs", "detail": ""}
+{"id": "v212-rv5-clin-base-ask-unread", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v209-w1-ask-every-service", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v215-rv-d-grid-text-kept", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7ce5f098.mjs", "detail": ""}

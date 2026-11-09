@@ -1731,10 +1731,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const sm = F.read.Summary || [];
     const cell = ref => { const m = /^'(.+)'!\$([A-Z]+)\$(\d+):\$([A-Z]+)\$(\d+)$/.exec(ref); if (!m) return null; const col = m[2].charCodeAt(0) - 65;
       return { sheet: m[1], col, r0: +m[3] - 1, r1: +m[5] - 1 }; };
-    chk(name, 'FYDP chart', 'two series, Requirement then Allocated, each reading the column its name heads on the Summary, over the five fiscal years',
+    // v2.15 W4: the second series and its column are named Funded since v2.15 (the handoff's decision 18 a); the column it reads is the same
+    chk(name, 'FYDP chart', 'two series, Requirement then Funded, each reading the column its name heads on the Summary, over the five fiscal years',
       J(refs.map(([n, c, v]) => { const C = cell(c), V = cell(v); if (!C || !V) return 'unreadable'; const hdr = sm[V.r0 - 1] || [];
         return [n, V.sheet, String(hdr[V.col] ?? ''), V.r1 - V.r0 + 1, (sm.slice(C.r0, C.r1 + 1).map(r => String((r || [])[C.col] ?? '')).join(',')), sm.slice(V.r0, V.r1 + 1).every(r => typeof (r || [])[V.col] === 'number' || (r || [])[V.col] === '—')]; })),
-      J(['Requirement', 'Allocated'].map(n => { const y = +ev('MS.base||MS.cur'); return [n, 'Summary', n, 5, [0, 1, 2, 3, 4].map(k => 'FY' + ((y + k) % 100)).join(','), true]; })));
+      J(['Requirement', 'Funded'].map(n => { const y = +ev('MS.base||MS.cur'); return [n, 'Summary', n, 5, [0, 1, 2, 3, 4].map(k => 'FY' + ((y + k) % 100)).join(','), true]; })));
     chk(name, 'FYDP print titles', 'the appropriation tab repeats its two heading rows on every page; the Summary, service and PMO tabs, whose tables each have their own, do not',
       J(F.titles.map(t => [F.names[t.sheet], /^'(.+)'!\$(\d+):\$(\d+)$/.test(t.ref) && RegExp.$1 === F.names[t.sheet].replace(/'/g, "''") ? (+RegExp.$3 - +RegExp.$2 + 1) : 'bad ref ' + t.ref])),
       J([[app, 2]]));
@@ -2849,7 +2850,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // the board: its foot as it was (a CONTROL)
     chk(name, 'board', 'the board’s foot is 💾 Save, its ▾ and the save state, as before (a CONTROL)', foot(B.ev),
       J(['saveBtn:saveInPlace()', "uiNav_save:uiGo('save',this)", 'state']));
-    chk(name, 'board', 'its ▾ offers the board’s Save a copy (a CONTROL)', ddSave(B.ev), J(['mRun(publishState)']));
+    // v2.15 W3: and Save as a new file… and Choose another file… (item 146)
+    chk(name, 'board', 'its ▾ offers the board’s Save a copy (a CONTROL)', ddSave(B.ev), J(['mRun(publishState)', 'mRun(fhSaveNew)', 'mRun(fhRepick)']));
     // the copy
     const P = boot({ html: C0 });
     P.ev(`window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; window.prompt=function(){ return null; };
@@ -3201,7 +3203,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'end to end', 'Export writes the five sheets in order, and the bytes hold the box’s own Summary and USAF figures, whole dollars',
       e2e, J({ names: ['Summary', 'USAF', 'STOVL', 'USMC CV', 'USN CV'], sum: true, usaf: true, whole: true }));
     // ---- a locked cycle on screen: it only reads, so it works, and the file says which lock --------------------------------
-    E(B.ev, `blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+    E(B.ev, `blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} cycView('PB|'+MS.cur); 'ok'`);
     chk(name, 'a locked view', 'on PB27 locked the model is the working plan’s, read from the same stores, International figures and all', canon(parse(pageModel(B.ev, { ace: '2025ACE', cyc: 'BES|2028' }))), canon(W1));
     chk(name, 'a locked view', 'and the file is marked with the lock on screen', (parse(exp(B.ev)) || [])[2], 'ORBIT FYDP Disconnects — 2025 ACE vs BES28 — FY27–FY32 [O&M PB27 LOCKED].xlsx');
     E(B.ev, `cycLeave(true); 'ok'`);
@@ -6216,6 +6218,424 @@ await (async () => {
 // ---- RV2-D (round 2, second half: D) ----
 // ---- end RV2-D ----
 // ==== end v2.14 review round 2 fixes ====
+
+// ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
+// v2.15 W1 (item 139): LOCK AS A BUILD BEFORE v2.15 LOCKED. Lock now refuses a plan tagged with another cycle (it would keep that cycle's
+// controls under the lock's name). Older fixtures here lock a cycle on a plan tagged with another -- a lock a file still carries -- so this
+// takes it the way v2.14 did: under the lock's key for the moment, with the position of the cycle the plan is on, then the tag put back
+// and the lock's record set as v2.14 wrote it (pos: the plan's tag and its position; from: the plan's tag). Where the plan is untagged or
+// on the lock's own cycle it is cycLock() itself. A function declaration, so every block above the slot can call it (it is hoisted).
+function w1LockAsBefore() {
+  return `(function(){ var K=blKey(blCyc, blYr||MS.cur), t0=(typeof MS.cycle==='string')? MS.cycle : '';
+    if(!t0 || t0===K){ cycLock(); return; }
+    MS.ppbe=MS.ppbe||{}; var P0=MS.ppbe[t0], had=Object.prototype.hasOwnProperty.call(MS.ppbe, K)? MS.ppbe[K] : undefined, c0=blGet(K);
+    if(P0!==undefined) MS.ppbe[K]=P0; else delete MS.ppbe[K];
+    MS.cycle=K; cycLock(); MS.cycle=t0;
+    if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had;
+    var c=blGet(K); baLiveAll(); if(c && c!==c0){ c.pos={key:t0, P:P0? JSON.parse(JSON.stringify(ppNorm(P0))) : null}; c.from=t0; persistCyc(); save(); } })();`;
+}
+// ==== end v2.15 W1 ====
+// ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
+// v2.15 W2 (item 131): FYDP Disconnects left open while another tab of this browser saves an appropriation. The box was a reading
+// behind -- nothing redrew it -- and Export read storage afresh, so the workbook could carry figures the box on screen did not. Here
+// O&M is on screen with the estimate and its own BES28 position; Full Fund's plan, with a BES28 position of its own, is in browser
+// storage; another tab then saves Full Fund with other controls, and the browser tells this page (the storage event). Every check
+// fails on the slot commit unless it says CONTROL.
+{
+  const name = 'v2.15 W2 — FYDP Disconnects follows another tab’s save, never under a figure being typed, and Export refuses figures that moved (item 131)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const SV6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+    const mk = () => {
+      const B = boot();
+      seed(B.ev, { services: SV6, items: [], disc: SV6.map(() => 0), mand: SV6.map(() => 0), order: [] });
+      E(B.ev, `(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=${J(SV6)}, L=[];
+        ['om','ff','sp'].forEach(function(ap, a){ S6.forEach(function(sv, s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6; }); L.push({ap:ap, pmo:'AV', svc:sv, v:v}); }); });
+        ACEDB.sets={'2025ACE':{label:'2025ACE', ts:2000, years:Y, lines:L, appn:{}, skip:{}}};
+        window.__pos=function(d){ var val={}, lines={}; S6.forEach(function(sv, s){ lines[sv]=[{k:'_all', all:true}]; val[sv]={_all:{}};
+          [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:d+(s+1)*1e6, m:0}; }); }); return {'BES|2028':{v:2, split:true, lines:lines, val:val}}; };
+        MS.ppbe=__pos(130000000); MS.cycle='BES|2028';
+        var ff=JSON.parse(JSON.stringify(MS)); ff.ppbe=__pos(777000000); ff.ts=Date.now();
+        localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(ff));
+        window.__dl=0; URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){ if(/\\.xlsx$/.test(this.download||'')) __dl++; };
+        toggleFdc(); })(); 'ok'`);
+      return B;
+    };
+    // another tab saves Full Fund with other controls, and the browser says so
+    const tab = (B, d) => E(B.ev, `(function(){ var old=localStorage.getItem(_SLUGMAP.ff.key), ff=JSON.parse(old); ff.ppbe=__pos(${d}); ff.ts=Date.now()+10;
+      var v=JSON.stringify(ff); localStorage.setItem(_SLUGMAP.ff.key, v);
+      window.dispatchEvent(new StorageEvent('storage', {key:_SLUGMAP.ff.key, oldValue:old, newValue:v})); return 'ok'; })()`);
+    const body = B => E(B.ev, `document.getElementById('fdcBody').textContent`);
+    const ffCtl = B => E(B.ev, `(function(){ var M=fdcModel(); return JSON.stringify(M? M.sheets[0].rows.filter(function(r){ return r.t==='line'; }).map(function(r){ return r.vals; }) : null); })()`);
+    // 1. NOTHING BEING TYPED: the open box is drawn again with the other tab's figures, and Export writes them
+    {
+      const B = mk();
+      const b0 = body(B), m0 = ffCtl(B);
+      chk(name, '1. the fixture', 'the box is open, drawn, and Full Fund’s controls are in it (a CONTROL)', J([E(B.ev, 'String(fdcOpen)'), /Export to Excel/.test(b0), m0 !== 'null']), J(['true', true, true]));
+      tab(B, 888000000);
+      chk(name, '1. another tab saves', 'the model moved (a CONTROL)', ffCtl(B) !== m0, true);
+      chk(name, '1. another tab saves', 'the box on screen is drawn again with the figures as they are now', body(B) !== b0, true);
+      E(B.ev, 'exportFdc(); 0');
+      chk(name, '1. Export', 'it writes the workbook, the box and it agreeing', E(B.ev, 'String(__dl)'), '1');
+    }
+    // 2. A FIGURE BEING TYPED: nothing is drawn under it; Export refuses, saying the figures moved, and draws the box again; then writes
+    {
+      const B = mk();
+      E(B.ev, `(function(){ var e=document.getElementById('fdcIn_ir_om_2028'); e.focus(); e.value='12'; e.dispatchEvent(new Event('input',{bubbles:true})); return 'ok'; })()`);
+      const b0 = body(B);
+      tab(B, 888000000);
+      chk(name, '2. typing', 'nothing is drawn under the figure being typed: the box and the field stand, the typing kept',
+        J([body(B) === b0, E(B.ev, `(document.activeElement||{}).id||''`), E(B.ev, `document.getElementById('fdcIn_ir_om_2028').value`)]), J([true, 'fdcIn_ir_om_2028', '12']));
+      E(B.ev, `(function(){ document.activeElement.blur(); exportFdc(); return 'ok'; })()`);
+      chk(name, '2. Export behind', 'nothing is downloaded, and the box says the figures moved', J([E(B.ev, 'String(__dl)'), /figures moved since the box was drawn/.test(E(B.ev, `document.getElementById('fdcMsg').textContent`)),
+        /figures moved since the box was drawn/.test(E(B.ev, `document.getElementById('shareStat').textContent`))]), J(['0', true, true]));
+      chk(name, '2. Export behind', 'and the box is drawn again with the figures as they are now (CONTROL on the slot commit: its status line redraws it there)', body(B) !== b0, true);
+      E(B.ev, 'exportFdc(); 0');
+      chk(name, '2. Export behind', 'Export again writes the workbook', E(B.ev, 'String(__dl)'), '1');
+    }
+    // 3. CONTROL: one tab alone -- an International figure typed, then Export straight away, writes the workbook as it always has
+    {
+      const B = mk();
+      E(B.ev, `(function(){ var e=document.getElementById('fdcIn_ir_om_2028'); e.focus(); e.value='12'; e.dispatchEvent(new Event('input',{bubbles:true}));
+        e.blur(); e.dispatchEvent(new Event('change',{bubbles:true})); exportFdc(); return 'ok'; })()`);
+      chk(name, '3. one tab alone', 'a figure typed and Export pressed at once: the workbook is written, the figure in it (a CONTROL)',
+        J([E(B.ev, 'String(__dl)'), E(B.ev, 'String(FDC_INTL.ir.om[2028])')]), J(['1', '12000000']));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.15 W2 ====
+// ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
+// ==== end v2.15 W3 ====
+// ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
+// v2.15 W4 (item 131): THE SPRUILLS, THE CHART OF ACCOUNTS, LOCKS BY APPROPRIATION AND THE FIVE-YEAR PLAN READ ANOTHER APPROPRIATION
+// AS ITS OWN BOARD OPENS IT, STRICTLY. The A-3 fixture's shape: Full Fund's own board writes the shared folder's copy (newer: tagged
+// BES28, with a BES28 position and its requirement A asked at $70M) and this browser's (older: untagged, $30M); O&M is on screen in
+// folder mode with a stand-in folder. Every figure is the fixture's. FAILS ON THE SLOT COMMIT (8c24ea2): the Spruills draws at once
+// and prints this browser's $30M, says nothing of the position its Available Funding came from, and with Full Fund's copy unreadable
+// still prints the older copy; the chart of accounts lists the older copy's $30M, and lists it with the copy unreadable; Locks by
+// appropriation shows Full Fund untagged and never says it could not be read; the five-year plan opens this browser's older copy
+// where the folder's could not be read. The CONTROLs (the fixture, Initial Spares with no copy anywhere) pass there.
+{
+  const name = 'v2.15 W4 — the Spruills, the chart of accounts, Locks by appropriation and the five-year plan read the shared folder strictly (item 131, item 135)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const parse = s => { try { return JSON.parse(s); } catch { return null; } };
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], YRS = [2027, 2028, 2029, 2030, 2031, 2032];
+    const seedIt = ev => { seed(ev, { services: SV, items: [{ id: 'A', grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec A', event: 'EV-A', ccar: 'JSF7', fy26: SV.map(() => 0), ask: [10e6, 0, 0, 0, 0, 20e6], alloc: null }],
+      disc: [1e9, 0, 0, 0, 0, 1e9], mand: SV.map(() => 0), order: ['A'] });
+      E(ev, `BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); 'ok'`); };
+    const posOf = f => { const v = {}; YRS.forEach(y => { v[y] = f(y); }); return { v: 2, split: true, lines: { USN: [{ k: '_all', all: true }] }, val: { USN: { _all: v } } }; };
+    const F = boot({ appn: 'FULL FUND' });
+    seedIt(F.ev);
+    const CUR = +E(F.ev, 'MS.cur');
+    const mk = (ts, extra) => E(F.ev, `(function(){ ${extra || ''} MS.ts=${ts}; MS.dataPack=dataPackOf(); var p=livePayload(); p.ts=${ts}; return JSON.stringify(p); })()`);
+    const oldStore = J((parse(mk(10, `S.asks={A:[10e6,0,0,0,0,20e6]}; MS.cycle=''; MS.ppbe={};`)) || {}).store);
+    const folderTxt = mk(20000, `S.asks={A:[30e6,0,0,0,0,40e6]}; MS.ppbe=${J({ 'BES|2028': posOf(y => ({ d: 50e6 + y, m: 2e6 })) })}; MS.cycle='BES|2028';`);
+    const newerTxt = mk(30000, `S.asks={A:[50e6,0,0,0,0,40e6]};`);
+    const newestTxt = mk(40000, `S.asks={A:[60e6,0,0,0,0,50e6]};`);
+    const FILE = E(F.ev, `driveName(MS.cur, 'ff')`);
+    const folder = () => `(function(){ var files=window.__fold={}; files[${J(FILE)}]=${J(folderTxt)}; return {
+      name:'team', kind:'directory',
+      queryPermission: async function(){ return 'granted'; }, requestPermission: async function(){ return 'granted'; },
+      getFileHandle: async function(n){ if(Object.prototype.hasOwnProperty.call(files, n)) return {name:n, getFile: async function(){
+          if(window.__foldErr){ var x=new Error('the file could not be read'); x.name=window.__foldErr; throw x; }
+          return {text: async function(){ return files[n]; }, lastModified:1}; }};
+        var e=new Error('not found: '+n); e.name='NotFoundError'; throw e; },
+      getDirectoryHandle: async function(){ var e=new Error('nf'); e.name='NotFoundError'; throw e; },
+      values: async function*(){ for(var k of Object.keys(files)) yield {kind:'file', name:k}; } }; })()`;
+    const board = (err) => {
+      const O = boot({ ls: { spmtLive: J({ store: true, mode: 'drive', on: false, folder: 'team' }), prio27ff: oldStore } });
+      seedIt(O.ev);
+      // with Full Fund's copy unreadable, the file also carries Full Fund as a consolidated payload: the shape where an unread
+      // appropriation would otherwise be listed on the chart of accounts as delivered
+      E(O.ev, `_driveDir=${folder()}; ${err ? `window.__foldErr=${J(err)}; APPNS['FULL FUND']={services:${J(SV)}, items:[{id:'A', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Rec A', event:'EV-A', ccar:'JSF7', fy26:[0,0,0,0,0,0], ask:[10e6,0,0,0,0,20e6], alloc:null}], budget:[]};` : ''} window.alert=function(){}; render(); 'ok'`);
+      return O;
+    };
+    const settle = async O => { for (let i = 0; i < 100; i++) { await new Promise(r => setTimeout(r, 10));
+        if (E(O.ev, `typeof _apFold!=='undefined' && !!(_apFold && _apFold.done)`) === true) break; }
+      await new Promise(r => setTimeout(r, 20)); };
+    const ffBlock = O => parse(E(O.ev, `JSON.stringify((function(){ var b=spGather().blocks.filter(function(x){ return x.name==='FULL FUND'; })[0]||{};
+      return {req:(b.req||{})[${CUR}]===undefined? 'unset' : b.req[${CUR}], why:b.foldWhy||'', wait:!!b.foldWait, tag:b.posTag||''}; })())`)) || {};
+    const coa = O => parse(E(O.ev, `(function(){ var ob=buildXlsx, got=null; buildXlsx=function(s){ got=s; return new Uint8Array([1]); };
+      try{ exportCoa(); } finally { window.__coaUndo=function(){ buildXlsx=ob; }; }
+      window.__coaGot=function(){ return got; }; return 'null'; })()`));
+    const coaRead = O => parse(E(O.ev, `(function(){ var s=window.__coaGot(); window.__coaUndo(); if(!s) return 'null';
+      var w=s[0].rows, ff=w.filter(function(r){ return r && r[0] && /^FULL FUND( {2}\\(as delivered\\))?$/.test(String(r[0].v)); })[0];
+      var said=w.filter(function(r){ return r && r[0] && /FULL FUND is not on this chart/.test(String(r[0].v)); }).map(function(r){ return r[0].v; });
+      return JSON.stringify({ff:ff? ff[2].v : null, said:said}); })()`)) || {};
+    chk(name, 'the fixture', 'CONTROL: folder mode is on; this browser’s Full Fund copy is the older one ($30M asked, untagged); the folder’s asks $70M and is tagged BES28',
+      J([E(board('').ev, `driveStoreOn()`), (parse(oldStore) || {}).ts, (parse(folderTxt) || {}).store.cycle]), J([true, 10, 'BES|2028']));
+    // ---- 1. the Spruills, the folder's copy readable and newer --------------------------------------------------------------------
+    const O = board('');
+    E(O.ev, `spFund='board'; toggleSp(); 'ok'`);
+    chk(name, '1 · Spruills, reading', 'until the folder has answered, the panel says it is reading for Full Fund, Initial Spares and OPN, and states no figure',
+      J([/^Reading the shared folder for FULL FUND, INITIAL SPARES and OPN: each is read as its own board opens it, the folder’s copy when that is newer…$/.test(E(O.ev, `document.getElementById('spBody').textContent`)),
+        E(O.ev, `!!document.querySelector('#spBody table')`)]), J([true, false]));
+    await settle(O); E(O.ev, `render(); 'ok'`);
+    const b1 = ffBlock(O);
+    chk(name, '1 · Spruills, answered', 'then Full Fund’s Total Requirements is the folder’s copy’s $70M, never this browser’s older $30M', J([b1.req, b1.why, b1.wait]), J([70e6, '', false]));
+    chk(name, '1 · Spruills, answered', 'and the table is on screen', E(O.ev, `!!document.querySelector('#spBody table')`), true);
+    // item 135: another appropriation's budget is its own board's, as it last worked it out from the position under its tag
+    chk(name, '1 · Spruills, its budget (item 135)', 'Full Fund’s block says its Available Funding is what its own board last worked out from its BES28 position, and is read there once it opens',
+      J([b1.tag, E(O.ev, `(document.querySelector('#spBody .sp-pos-cache')||{}).textContent||''`)]),
+      J(['BES|2028', 'FULL FUND’s Available Funding is the budget its own board last worked out from its BES28 PPBE position. A position changed since without that board open (an appropriation package) reaches these figures once FULL FUND is opened.']));
+    // each opening reads the folder afresh: Full Fund saved there again since, the next opening reads that save
+    E(O.ev, `toggleSp(); window.__fold[${J(FILE)}]=${J(newerTxt)}; toggleSp(); 'ok'`); await settle(O); E(O.ev, `render(); 'ok'`);
+    chk(name, '1 · Spruills, opened again', 'Full Fund saved in the folder again since ($90M): the next opening reads that copy', ffBlock(O).req, 90e6);
+    // ---- 2. the chart of accounts, the same board: it reads the folder afresh (saved there again since the panel read it) ---------
+    E(O.ev, `window.__fold[${J(FILE)}]=${J(newestTxt)}; 'ok'`);
+    coa(O); await settle(O);
+    const c1 = coaRead(O);
+    chk(name, '2 · chart of accounts', 'Full Fund’s requirement on Where we stand is the folder’s newest, $110M, read afresh for the export', J([c1.ff, c1.said]), J([110e6, []]));
+    // ---- 3. Locks by appropriation, the same board ------------------------------------------------------------------------------
+    E(O.ev, `toggleSp(); toggleBl(); 'ok'`);
+    chk(name, '3 · Locks by appropriation, reading', 'until the folder has answered, Full Fund’s working plan reads “reading the shared folder…”',
+      E(O.ev, `(document.querySelector('#blBody tr[data-ap="ff"] .cyc-ov-tag')||{}).textContent||''`), 'reading the shared folder…');
+    await settle(O); E(O.ev, `render(); 'ok'`);
+    chk(name, '3 · Locks by appropriation, answered', 'then Full Fund’s working plan is the folder’s tag, BES28, never this browser’s untagged copy',
+      E(O.ev, `JSON.stringify(cycOverview().rows.filter(function(r){ return r.k==='ff'; }).map(function(r){ return [r.tag, r.held, r.foldWhy||'']; }))`), J([['BES|2028', true, '']]));
+    E(O.ev, `toggleBl(); 'ok'`);
+    // ---- 4. Full Fund's copy in the folder cannot be read at that moment (mid-sync) ---------------------------------------------
+    const D = board('NotReadableError');
+    E(D.ev, `spFund='board'; toggleSp(); 'ok'`); await settle(D); E(D.ev, `render(); 'ok'`);
+    const b4 = ffBlock(D);
+    chk(name, '4 · copy unreadable, Spruills', 'Full Fund states no figure, and the panel names why; this browser’s older $30M is not printed in its place',
+      J([b4.req, /could not be opened \(it may be syncing\)/.test(b4.why),
+        /^⚠ FULL FUND is not read here: the shared folder’s copy could not be opened \(it may be syncing\)\. Its figures are missing, not zero; this browser’s older copy is not used in its place\.$/.test(E(D.ev, `(document.querySelector('#spBody .sp-fold-why')||{}).textContent||''`))]),
+      J(['unset', true, true]));
+    chk(name, '4 · copy unreadable, Spruills', 'CONTROL: Initial Spares, with no copy in the folder and none here, is no copy there: never “not read”',
+      E(D.ev, `JSON.stringify(spGather().blocks.filter(function(x){ return x.name==='INITIAL SPARES'; }).map(function(x){ return [x.foldWhy||'', !!x.foldWait]; }))`), J([['', false]]));
+    coa(D); await settle(D);
+    const c4 = coaRead(D);
+    chk(name, '4 · copy unreadable, chart of accounts', 'Full Fund is not on the chart, and the sheet says why',
+      J([c4.ff, (c4.said || []).length === 1 && /^FULL FUND is not on this chart: the shared folder’s copy could not be opened \(it may be syncing\)\.$/.test(c4.said[0])]), J([null, true]));
+    E(D.ev, `toggleSp(); toggleBl(); 'ok'`); await settle(D);
+    chk(name, '4 · copy unreadable, Locks by appropriation', 'Full Fund’s working plan names the copy that could not be read, and is neither behind nor counted',
+      E(D.ev, `JSON.stringify(cycOverview().rows.filter(function(r){ return r.k==='ff'; }).map(function(r){ return [/could not be opened \\(it may be syncing\\)/.test(r.foldWhy||''), r.held, !!r.behind]; }))`), J([[true, false, false]]));
+    chk(name, '4 · copy unreadable, Locks by appropriation', 'and its cell says so on screen',
+      /^⚠ the shared folder’s copy could not be opened \(it may be syncing\)$/.test(E(D.ev, `(document.querySelector('#blBody tr[data-ap="ff"] .cyc-ov-tag')||{}).textContent||''`)), true);
+    E(D.ev, `toggleBl(); 'ok'`);
+    // ---- 5. the five-year plan: Full Fund's copy unreadable -- its block is refused, never this browser's older copy --------------
+    const g5 = parse(await D.w.eval(`(async function(){ var A=null; fydpGather(fydpData('working'), function(x){ A=x; });
+      for(var i=0;i<100 && !A;i++) await new Promise(function(r){ setTimeout(r, 10); });
+      var a=(A||[]).filter(function(x){ return x.k==='ff'; })[0]||{}; return JSON.stringify({why:a.why||'', D:!!a.D}); })()`)) || {};
+    chk(name, '5 · the five-year plan', 'Full Fund’s block is refused, naming the copy that could not be read; the older copy here is not opened in its place',
+      J([/the shared folder’s copy could not be opened \(it may be syncing\)/.test(g5.why), g5.D]), J([true, false]));
+    const g5b = parse(await O.w.eval(`(async function(){ var A=null; fydpGather(fydpData('working'), function(x){ A=x; });
+      for(var i=0;i<100 && !A;i++) await new Promise(function(r){ setTimeout(r, 10); });
+      var a=(A||[]).filter(function(x){ return x.k==='ff'; })[0]||{}; return JSON.stringify({why:a.why||'', ts:a.ts||0}); })()`)) || {};
+    chk(name, '5 · the five-year plan', 'CONTROL: with the copy readable, the folder’s newest copy is the one its frame opens', J([g5b.why, g5b.ts]), J(['', 40000]));
+    for (const [w, B] of [['readable', O], ['unreadable', D]]) if (B.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// v2.15 W4 (item 131): EVERY DRESSED WORKBOOK DRAWS ITS INDENTS. The house style wrote the title band, the subtitle and column B's text
+// with indent="1" and no horizontal alignment, which Excel and LibreOffice do not draw (v2.10's WB-1 found it in FYDP Disconnects; the
+// house style had it in every dressed workbook). Read out of the bytes four real exports write -- the board workbook, the Priority
+// Drill, the five-year spend plan and the chart of accounts -- every cell style that carries an indent must name left, right or
+// distributed beside it. FAILS ON THE SLOT COMMIT: each of the four carries indented styles with no horizontal. CONTROL: each has
+// indented styles to judge, and what each workbook says is what it said written plain (v2.04 (item 113) holds the values).
+{
+  const name = 'v2.15 W4 — every dressed workbook draws its indents: an indent always has its horizontal alignment beside it (item 131)';
+  try {
+    const J = JSON.stringify;
+    const B = boot();
+    const mkI = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: 'JSF' + id, fy26: ask.map(() => 0), ask, alloc: null });
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mkI('A', 'AV', [900e6, 5e6]), mkI('B', 'PSM', [800e6, 1e6])], disc: [2e9, 1e9], mand: [1e8, 0], order: ['A', 'B'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); 'ok'`);
+    const styles = fn => JSON.parse(B.ev(`(function(){ var ob=buildXlsx, got=null; buildXlsx=function(){ var u=ob.apply(this, arguments); if(u && u.length) got=u; return u; };
+      try{ ${fn}(); } finally { buildXlsx=ob; }
+      if(!got) return 'null';
+      var u=got, dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), o={};
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        o[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+      var x=o['xl/styles.xml']||'', xf=(x.split('<cellXfs')[1]||'').split('</cellXfs>')[0];
+      return JSON.stringify((xf.match(/<alignment[^>]*\\/>/g)||[]).filter(function(a){ return /indent="[1-9]/.test(a); })); })()`));
+    for (const fn of ['exportExcel', 'exportCSV', 'exportFydpPlan', 'exportCoa']) {
+      const al = styles(fn) || [];
+      chk(name, fn, 'CONTROL: the workbook is dressed and carries indented styles to judge', al.length > 0, true);
+      chk(name, fn, 'every indented style names left, right or distributed beside its indent, so Excel draws it',
+        J(al.filter(a => !/horizontal="(left|right|distributed)"/.test(a))), J([]));
+    }
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// v2.15 W4 (the handoff's decision 20): THE PRIORITY DRILL GIVES EVERY DOLLAR FIGURE A COLUMN WIDE ENOUGH TO PRINT IT. The Summary's
+// FUNDED BY PMO AND BAND table runs a column per band, then unbanded and TOTAL, past the ten columns the BY BAND table sized: with the
+// eight standard bands its unbanded and TOTAL figures sat in the narrow % Fund column (8) and one with no width at all, and a
+// funded figure in millions printed ### in a narrow viewer. Every money cell of every tab is held to its column: a width of at least
+// the figure as printed ($ and thousands separators) plus one. FAILS ON THE SLOT COMMIT: the Summary's unbanded and TOTAL figures.
+// CONTROL: the fixture really does put a funded figure of over a billion dollars in the unbanded column.
+{
+  const name = 'v2.15 W4 — the Priority Drill gives every dollar figure a column wide enough to print it (the handoff’s decision 20)';
+  try {
+    const J = JSON.stringify;
+    const B = boot();
+    const mkI = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mkI('A', 'AV', [900e6, 5e6]), mkI('B', 'PSM', [800e6, 1e6])], disc: [2e9, 1e9], mand: [1e8, 0], order: ['A', 'B'] });
+    const sh = captureDrill(B.ev);
+    const MONEY = new Set([12, 13, 14, 15]);
+    const shown = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v)).toLocaleString('en-US');
+    const S0 = sh[0], hdr = S0.rows.findIndex(r => r && r[0] && r[0].v === 'PMO'), ub = hdr < 0 ? -1 : S0.rows[hdr].findIndex(c => c && c.v === 'unbanded');
+    chk(name, 'the fixture', 'CONTROL: the Summary’s PMO × band table carries a funded figure over $1B in its unbanded column, the tenth or later (the BY BAND table sized the tenth for % Fund)',
+      J([ub >= 9, S0.rows.slice(hdr + 1).some(r => r && r[ub] && typeof r[ub].v === 'number' && r[ub].v > 1e9)]), J([true, true]));
+    const short = [];
+    sh.forEach(s => (s.rows || []).forEach((r, ri) => (r || []).forEach((c, ci) => {
+      if (!c || typeof c !== 'object' || typeof c.v !== 'number' || !MONEY.has(c.s)) return;
+      const w = (s.cols || [])[ci], need = shown(c.v).length + 1;
+      if (!(w >= need)) short.push(s.name + ' r' + ri + ' c' + ci + ': ' + shown(c.v) + ' in ' + (w === undefined ? 'no width' : w));
+    })));
+    chk(name, 'every tab', 'every money cell sits in a column at least as wide as its figure as printed, plus one', J(short.slice(0, 6)), J([]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// v2.15 W4 (the handoff's decision 18 a): THE FIVE-YEAR WORKBOOK AND ITS PANEL CALL THE LANE DRAW FUNDED. Its second figure has been
+// discretionary + mandatory drawn since v2.04 -- what a lock stores and every other surface calls Funded -- under the heading
+// Allocated, which everywhere else is the allocation the lanes work from. A heading only: every figure is as it was (the recon suite's
+// five-year blocks hold them to the engine). FAILS ON THE SLOT COMMIT: every heading, the chart and the panel say Allocated.
+{
+  const name = 'v2.15 W4 — the five-year spend plan calls the lane draw Funded, in the workbook and on its panel (the handoff’s decision 18 a)';
+  try {
+    const J = JSON.stringify;
+    const B = boot();
+    const mkI = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: 'JSF' + id, fy26: ask.map(() => 0), ask, alloc: null });
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mkI('A', 'AV', [900, 50]), mkI('B', 'PSM', [800, 10])], disc: [1000, 30], mand: [100, 0], order: ['A', 'B'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); 'ok'`);
+    const sh = JSON.parse(B.ev(`(function(){ var ob=buildXlsx, got=null; buildXlsx=function(s){ got=s; return new Uint8Array([1]); }; try{ fydpSrc='working'; exportFydpPlan(); } finally { buildXlsx=ob; } return JSON.stringify(got); })()`)) || [];
+    const heads = [];
+    sh.forEach(s => (s.rows || []).forEach(r => (r || []).forEach(c => { if (c && typeof c === 'object' && c.s === 2 && (c.v === 'Funded' || c.v === 'Allocated')) heads.push(c.v); })));
+    chk(name, 'workbook', 'every tab’s second figure is headed Funded, and none Allocated',
+      J([heads.filter(v => v === 'Funded').length > 4, heads.filter(v => v === 'Allocated').length]), J([true, 0]));
+    const ch = (sh[0] && sh[0].chart) || {};
+    chk(name, 'workbook', 'the Summary’s chart is Requirement vs Funded, its second series named Funded',
+      J([ch.title && ch.title.replace(/, .*$/, ''), (ch.series || []).map(x => x.name)]), J(['Requirement vs Funded', ['Requirement', 'Funded']]));
+    B.ev(`fydpSrc='working'; fydpOpen=true; render(); 'ok'`);
+    const ph = JSON.parse(B.ev(`JSON.stringify([].map.call(document.querySelectorAll('#fydpBody th.n'), function(t){ return t.textContent; }))`));
+    chk(name, 'panel', 'the panel heads each year’s second column Funded, and none Allocated, and its note says what Funded is',
+      J([ph.filter(v => v === 'Funded').length > 0, ph.filter(v => v === 'Allocated').length, /Funded is what discretionary and mandatory pay/.test(B.ev(`document.getElementById('fydpBody').textContent`))]), J([true, 0, true]));
+    B.ev(`fydpOpen=false; render(); 'ok'`);
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// v2.15 W4 (the handoff's decision 19): THE GUIDE DESCRIBES THE FIVE-YEAR WORKBOOK THE BOARD WRITES. Both its paragraphs described the
+// workbook before v2.04 -- "three summary sheets", "requirement and allocation", a PMO-only tab set -- and the office's section still
+// offered "the slides", removed in v2.05. Read in a booted board, as the guide draws them. FAILS ON THE SLOT COMMIT.
+{
+  const name = 'v2.15 W4 — the guide describes the five-year workbook the board writes (the handoff’s decision 19)';
+  try {
+    const J = JSON.stringify;
+    const B = boot();
+    const grab = id => { const m = new RegExp('data-id="' + id + '"[^>]*>([\\s\\S]*?)</section>').exec(B.ev(`document.getElementById('helpDoc').innerHTML`)); return m ? m[1].replace(/<[^>]+>/g, '') : ''; };
+    const o = grab('o-export'), t = grab('t-fydp');
+    chk(name, 'office part', 'the office’s paragraph names the Summary, the tabs for the appropriation, each service and each office, and Requirement and Funded',
+      J([/a Summary, then a tab for the appropriation, each service and each office/.test(o), /Requirement and Funded for the base year and the next four/.test(o)]), J([true, true]));
+    chk(name, 'office part', 'and no longer offers the slides, removed in v2.05, or “requirement and allocation”', J([/slides/.test(o), /requirement and allocation/i.test(o)]), J([false, false]));
+    chk(name, 'team part', 'the team’s paragraph names the Summary with its chart, a tab for each appropriation, service and PMO, and Funded as what discretionary and mandatory pay',
+      J([/a Summary with a chart, then a tab for each appropriation, each service and each PMO/.test(t), /Requirement and Funded \(what discretionary and mandatory pay\)/.test(t)]), J([true, true]));
+    chk(name, 'team part', 'and no longer the workbook before v2.04: no “three summary sheets”, no “requirement and allocation”',
+      J([/three summary sheets/.test(t), /requirement and allocation/i.test(t)]), J([false, false]));
+    chk(name, 'size', 'CONTROL: the guide stays inside its budget (72 KB, as the v1.86 block holds it)', B.ev(`document.getElementById('helpDoc').innerHTML.length`) < 72000, true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// v2.15 W4 (item 135): TWO COPIES OF ONE ESTIMATE THAT DISAGREE BECAUSE ONE WAS IMPORTED BEFORE v2.12 SAY SO. Decided: aceFingerprint is
+// not changed (a new formula would mark every stored estimate FIGURES CHANGED SINCE IMPORT, and the two imports are different figures).
+// What was missing is the reason. The shared folder's copy (imported by v2.12 or later: it records how its columns were read) and this
+// board's (imported before: none) disagree, and the folder read says why; a file import of the same says it too. CONTROL: two copies
+// both imported by v2.12 or later disagree with no such sentence, and nothing is taken either way. FAILS ON THE SLOT COMMIT: neither
+// message gives the reason.
+{
+  const name = 'v2.15 W4 — a cost estimate imported again since v2.12 says why it disagrees with the copy imported before (item 135)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const YRS = [2027, 2028];
+    const ace = (n, cols) => Object.assign({ label: '2025ACE', ts: 5, years: YRS, appn: { om: { tot: { 2027: n, 2028: n } } }, skip: {},
+      lines: [{ ap: 'om', pmo: 'PSM', svc: 'USAF', v: { 2027: n, 2028: n } }] }, cols ? { cols: { sheet: 'ACE', row: 3, sig: 'S1', map: {} } } : {});
+    const board = (mineCols, theirsCols) => {
+      const O = boot({ ls: { spmtLive: J({ store: true, mode: 'drive', on: false, folder: 'team' }) } });
+      E(O.ev, `(function(){ var m=${J(ace(1000000.4, mineCols))}; m.fp=aceFingerprint(m); m.locked=true; ACEDB.sets={'2025ACE':m}; ACEDB.ts=10;
+        var t=${J(ace(1000000, theirsCols))}; t.fp=aceFingerprint(t); t.locked=true; window.__theirs=t;
+        var files={}; files[driveAceName('2025ACE')]=driveAceBody('2025ACE', t);
+        _driveDir={name:'team', kind:'directory', queryPermission: async function(){ return 'granted'; }, requestPermission: async function(){ return 'granted'; },
+          getFileHandle: async function(n){ if(Object.prototype.hasOwnProperty.call(files, n)) return {name:n, getFile: async function(){ return {text: async function(){ return files[n]; }, lastModified:1}; }};
+            var e=new Error('nf'); e.name='NotFoundError'; throw e; },
+          getDirectoryHandle: async function(){ var e=new Error('nf'); e.name='NotFoundError'; throw e; },
+          values: async function*(){ for(var k of Object.keys(files)) yield {kind:'file', name:k}; } };
+        return 'ok'; })()`);
+      return O;
+    };
+    const WHY = 'One of them was imported before v2.12, which read the file differently (since v2.12 every figure is a whole dollar as it is read, and rows that are not cost lines are left out, each with its reason), so the same file imported again does not match it.';
+    for (const [tag, mine, theirs, want] of [['one before v2.12', false, true, true], ['both since v2.12 (a CONTROL)', true, true, false]]) {
+      const O = board(mine, theirs);
+      const fp0 = E(O.ev, `ACEDB.sets['2025ACE'].fp`);
+      await O.w.eval(`driveAcePull(false)`);
+      const said = E(O.ev, `document.getElementById('shareStat').textContent`);
+      chk(name, 'the shared folder — ' + tag, 'the folder’s copy is reported as different, and nothing is taken',
+        J([/The folder holds a DIFFERENT 2025ACE from the one you have/.test(said), E(O.ev, `ACEDB.sets['2025ACE'].fp`) === fp0]), J([true, true]));
+      chk(name, 'the shared folder — ' + tag, want ? 'and it says why: one was imported before v2.12' : 'with no word of an import before v2.12', said.indexOf(WHY) >= 0, want);
+      const st = J(E(O.ev, `JSON.stringify(importStores({aceDb:{ts:20, sets:{'2025ACE':window.__theirs}}}))`));
+      chk(name, 'a file import — ' + tag, want ? 'a file carrying the same estimate is left alone, and says why' : 'left alone, with no word of an import before v2.12',
+        J([/disagrees with the approved one here and was left alone \(2025ACE\)/.test(st), st.indexOf(WHY) >= 0]), J([true, want]));
+      if (O.errors.length) chk(name, 'jsdom', 'no script errors (' + tag + ')', O.errors.slice(0, 2).join(' | '), '');
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// v2.15 W4 (item 146): THE EDIT BOX TAKES A STORED SI CODE BACK TO THE RULES. "— follows the PMO and prime rules —" was offered only
+// where nothing was stored, so a stored "no SI code" (or a code chosen by hand) could not be given back to the rules from the box --
+// v2.14 W4's own check had to delete it in the page. Picked, nothing is stored (setSi's rule) and the code follows the office: B, in
+// PP, derives EN. FAILS ON THE SLOT COMMIT: the option is not there, so the pick cannot be made. CONTROL: with nothing stored the
+// option is offered and selected, as before.
+{
+  const name = 'v2.15 W4 — the edit box takes a stored SI code, or a stored none, back to the PMO and prime rules (item 146)';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, team: grp, sect: '', custom: false, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const B = boot(); seed(B.ev, { services: ['STOVL', 'USMC-C', 'USN'], items: [itx('A', 'AV', [0, 0, 100]), itx('B', 'PP', [0, 0, 100]), itx('C', 'PP', [0, 0, 100])], disc: [500, 500, 500], mand: [0, 0, 0], order: ['A', 'B', 'C'] });
+    const ev = B.ev;
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); S.si={B:'', C:'OT'}; save(); window.confirm=function(){ return true; }; 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: B and C are in PP, which derives EN; B stores none by hand, C stores OT by hand', ev(`JSON.stringify([siDefault(itemById('B')), siOf(itemById('B')), siOf(itemById('C'))])`), J(['EN', '', 'OT']));
+    const opts = id => JSON.parse(ev(`(function(){ openEdit(${J(id)},'si'); var s=document.getElementById('erSi'); var o=s? [].map.call(s.options, function(x){ return [x.value, x.text]; }) : null; return JSON.stringify(o); })()`));
+    const FOL = ['\u0004', '— follows the PMO and prime rules —'];
+    chk(name, 'nothing stored (a CONTROL)', 'A, with nothing stored, is offered the rules’ option, selected', J([(opts('A') || []).some(o => o[0] === FOL[0] && o[1] === FOL[1]), ev(`document.getElementById('erSi').value`)]), J([true, FOL[0]]));
+    ev(`erClose(); 'ok'`);
+    for (const [id, was] of [['B', ''], ['C', 'OT']]) {
+      const o = opts(id) || [];
+      chk(name, id + ' (stored ' + (was ? was : 'none') + ')', 'the rules’ option is offered beside what is stored', J(o.some(x => x[0] === FOL[0] && x[1] === FOL[1])), 'true');
+      ev(`(function(){ var s=document.getElementById('erSi'); s.value='\\u0004'; s.dispatchEvent(new Event('input')); s.dispatchEvent(new Event('change')); })(); erSave(); 'ok'`);
+      chk(name, id + ' (stored ' + (was ? was : 'none') + ')', 'picked and saved, nothing is stored and the code follows its office: EN', ev(`JSON.stringify([Object.prototype.hasOwnProperty.call(S.si||{}, ${J(id)}), siOf(itemById(${J(id)}))])`), J([false, 'EN']));
+      ev(`if(erOpen) erClose(); 'ok'`);
+    }
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.15 W4 ====
+// ==== v2.15 integration (the lead) ====
+// ==== end v2.15 integration ====
+// ==== v2.15 review RV-A ====
+// ==== end v2.15 review RV-A ====
+// ==== v2.15 review RV-B ====
+// ==== end v2.15 review RV-B ====
+// ==== v2.15 review RV-C ====
+// ==== end v2.15 review RV-C ====
+// ==== v2.15 review RV-D ====
+// ==== end v2.15 review RV-D ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

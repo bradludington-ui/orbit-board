@@ -201,7 +201,7 @@
    "scenario": "the five-year spend plan",
    "anchor": "const name = 'the five-year spend plan'",
    "basis": "agreement",
-   "asserts": "FYDP spend plan (v2.04): every tab read back as blocks of lines -- the appropriation tab, each service tab (its own dollars, only the requirements it carries) and each PMO tab (each year under that year's office), 1-N under its CCaR record printed once, no record last; Requirement and Allocated (d+m) per year against the engine (a second year under aceWithYear), — for a year not held, line totals and TOTAL; the Summary's roll-ups and portfolio by year; the panel's views; a locked plan as locked; the picker on the plan on screen."
+   "asserts": "FYDP spend plan (v2.04): every tab read back as blocks of lines -- the appropriation tab, each service tab (its own dollars, only the requirements it carries) and each PMO tab (each year under that year's office), 1-N under its CCaR record printed once, no record last; Requirement and Funded (d+m; Allocated until v2.15) per year against the engine (a second year under aceWithYear), — for a year not held, line totals and TOTAL; the Summary's roll-ups and portfolio by year; the panel's views; a locked plan as locked; the picker on the plan on screen."
   },
   "re.cmp": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -523,7 +523,7 @@
    "scenario": "v1.95 — the five-year plan files each year under that year’s PMO",
    "anchor": "const name = 'v1.95 — the five-year plan files each year under that year’s PMO'",
    "basis": "agreement",
-   "asserts": "A requirement in AV, then TSS, then AV: each PMO's Requirement and Allocated per year on the Summary equal that year's projection by PMO (read through aceWithYear) and the lock's PMO roll-up, to the dollar; the PMO tabs carry it for the years that office held it, 0 for the others; totals unchanged."
+   "asserts": "A requirement in AV, then TSS, then AV: each PMO's Requirement and Funded per year on the Summary equal that year's projection by PMO (read through aceWithYear) and the lock's PMO roll-up, to the dollar; the PMO tabs carry it for the years that office held it, 0 for the others; totals unchanged."
   },
   "re.cmpPmo": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -1556,7 +1556,7 @@
   "exportFydpPlan": {
    "registry": "money-coverage",
    "money": true,
-   "what": "The five-year spend plan (v2.04): a Summary, a tab per appropriation, per service and per PMO, Requirement and Allocated per year, base year + 4.",
+   "what": "The five-year spend plan (v2.04): a Summary, a tab per appropriation, per service and per PMO, Requirement and Funded (Allocated until v2.15) per year, base year + 4.",
    "cells": {
     "appropriation": {
      "status": "proven",

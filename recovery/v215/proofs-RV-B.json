@@ -1,0 +1,58 @@
+[
+ {
+  "id": "v215-rv-b-whole-has-plan",
+  "caughtBy": "import / v2.15 review RV-B (B1)"
+ },
+ {
+  "id": "v215-rv-b-holds-no-ppbe",
+  "caughtBy": "import / v2.15 review RV-B (B1)"
+ },
+ {
+  "id": "v215-w1-in-never-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-always-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-rv-b-cache-kept",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-cache-mark-skipped",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-spruills-stale-printed",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-own-mark-kept",
+  "caughtBy": "import / v2.15 review RV-B (B2)"
+ },
+ {
+  "id": "v215-rv-b-clash-spent",
+  "caughtBy": "import / v2.15 review RV-B (B3)"
+ },
+ {
+  "id": "v215-rv-b-put-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-listener-built-on",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-import-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-cons-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ },
+ {
+  "id": "v215-rv-b-cyc-keeps-own",
+  "caughtBy": "import / v2.15 review RV-B (B4)"
+ }
+]

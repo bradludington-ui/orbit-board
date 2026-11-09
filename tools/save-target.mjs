@@ -127,6 +127,13 @@ const install = (P, cfg) => P.p.evaluate(cfg => {
   window.showSaveFilePicker = async o => { window.__picks.save.push(o && o.suggestedName);
     if (!cfg.save) throw abort(); await window.__dWrite(cfg.save, ''); return mk(cfg.save); };   // emptied on pick, as Chromium does
 }, cfg);
+// v2.15 W3 (item 146): THE STORAGE SEAM, named as npm run storagefull names it. A tab the browser gives a storage area of its own (the
+// v2.12 pmosave family: Chromium, a file:// page) cannot see what the page before it wrote, and E then failed once in RV1-A's runs for
+// a reason that had nothing to do with the board. Each page E opens reads a mark the page before it wrote, once it has loaded; one
+// that cannot is a harness failure saying so, not a verdict on the board.
+const seam = async (P, key, want, where) => { const got = await P.p.evaluate(k => localStorage.getItem(k), key);
+  if (got !== want) chk('harness · ' + where + ' shares its browser’s storage with the page before it (what follows in this section proves nothing about the board)', false, J({ key, want, got }));
+  return got === want; };
 const save = async (P) => { await P.p.evaluate(() => Promise.resolve(saveInPlace()).catch(() => {})); await P.p.waitForTimeout(800); };
 const stat = P => P.p.evaluate(() => (document.getElementById('shareStat') || {}).textContent || '');
 const picks = P => P.p.evaluate(() => window.__picks);
@@ -245,15 +252,19 @@ try {
   writeFileSync(DISK['ORBIT Live.html'], OLDHTML);
   const O = await page(ctxE, 'ORBIT Live.html', 'E-v2.12', () => true);
   await idbPutToken(O, FNAME, 'ORBIT Live.html');
+  await O.p.evaluate(() => localStorage.setItem('zz-seam-E', 'seeded by the old board'));
   await O.p.close();
   const E = await page(ctxE, 'ORBIT e.html', 'E-blank', () => true);
+  await seam(E, 'zz-seam-E', 'seeded by the old board', 'the blank tab');
   const hasWriter = await E.p.evaluate(() => typeof baseMarkDirty === 'function');
   if (!hasWriter && !FORCE_INT) {
     console.log('  skip E is an integration check: this board has no baseMarkDirty (W4\'s record writer) -- run after integration, or with --int');
   } else {
-    await E.p.evaluate(() => { switchYear(MS.cur + 1); }); await E.p.waitForTimeout(800);
+    await E.p.evaluate(() => { switchYear(MS.cur + 1); localStorage.setItem('zz-seam-E', 'seeded by the blank tab'); }); await E.p.waitForTimeout(800);
     await E.p.close();
     const O3 = await page(ctxE, 'ORBIT Live.html', 'E-v2.12b', m => !/^⚠ HOLD ON/.test(m));
+    await seam(O3, 'zz-seam-E', 'seeded by the blank tab', 'the old board, opened again');
+    await O3.p.evaluate(() => localStorage.removeItem('zz-seam-E'));
     await install(O3, { save: null, open: null });
     const e0 = rd('ORBIT Live.html');
     await save(O3);

@@ -39,7 +39,7 @@
 !recovery/v209/proofs-*.json
 
 # tooling only — the board itself has no dependencies
-node_modules/
+node_modules
 
 # Nightly math-validation reports. Run output, not source -- and a failing report embeds suite
 # output that can quote fixture figures, so it stays out of the repo.

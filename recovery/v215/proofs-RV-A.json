@@ -1,0 +1,10 @@
+[
+ {"id": "v215-rv-a-putback-other-list", "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"},
+ {"id": "v215-rv-a-otherlist-never", "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"},
+ {"id": "v215-rv-a-otherlist-any", "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"},
+ {"id": "v215-rv-a-offer-putback", "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"},
+ {"id": "v215-rv-a-file-screen", "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"},
+ {"id": "v215-rv-a-raw1-any", "caughtBy": "audit-import / v2.15 review RV-A — kept work on another requirement list"},
+ {"id": "v200-u10-kept-gate-after-question", "caughtBy": "audit-recon / v2.00 (U10) — “↶ work kept aside” pressed in a locked view"},
+ {"id": "v214-rv1-c-stop-after-unset", "caughtBy": "audit-import / v2.14 RV1-C — a Save that stops before it writes"}
+]

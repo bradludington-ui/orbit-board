@@ -2482,7 +2482,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   seed(ev, sc);
   ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       localStorage.setItem('prio27who','Brad'); window.confirm=function(){ return true; }; window.alert=function(){};
-      MS.years[MS.cur]=S; MS.base=MS.cur; blCyc='PB'; blYr=MS.cur; cycLock(); blCyc='POM'; blYr=MS.cur; cycLock(); 'ok'`);
+      MS.years[MS.cur]=S; MS.base=MS.cur; blCyc='PB'; blYr=MS.cur; cycLock(); cycSetWorking('POM', MS.cur); blCyc='POM'; blYr=MS.cur; cycLock(); cycSetWorking('PB', MS.cur); 'ok'`);
+  // v2.15 W1 (item 139): the plan is tagged with each cycle before it is locked as it, as Lock now asks (and put back on PB)
   const cur = +ev('MS.cur'), PB = 'PB|' + cur, POM = 'POM|' + cur, LBL = 'PB' + (cur % 100);
   const lines = k => JSON.parse(ev(`JSON.stringify(cycStampLines(blGet(${JSON.stringify(k)})))`));
   const shape = L => L.map(x => x.replace(/^(🔒 locked again|🔒 locked|🔓 reopened) .+? by Brad/u, '$1 <when> by Brad'));
@@ -2879,8 +2880,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const cur = +ev('MS.cur'), keyA = 'PB|' + cur, keyB = 'BES|' + (cur + 1);
   ev(`MS.years[MS.cur]=S; MS.base=MS.cur+1;
       var y1=JSON.parse(JSON.stringify(S)); delete y1.pmoOrder; MS.years[MS.cur+1]=y1;
-      blCyc='PB'; blYr=MS.cur; cycLock(); blCyc='BES'; blYr=MS.cur+1; cycLock();
+      blCyc='PB'; blYr=MS.cur; cycLock(); cycSetWorking('BES', MS.cur+1); blCyc='BES'; blYr=MS.cur+1; cycLock();
       MS.cycleRef='${keyA}'; save(); setAsk('B',0,'123'); 'ok'`);
+  // v2.15 W1 (item 139): the plan is retagged BES before it is locked as BES, as Lock now asks
   const dB = +ev(`(function(){ _cycDeltaCache=null; return cycDelta(MS.cur).rows.B.ask; })()`);
   chk(name, 'board', 'the board holds two locks and reads its deltas against PB', ev(`blList().join(',')`) + ' ' + dB, [keyA, keyB].sort().join(',') + ' 43');
   const full = +ev(`buildSavedHtml().length`);
@@ -3821,10 +3823,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
   // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 8, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 8, Program offices 4, Audit 4, Save’s ▾ 3, Imports & exports 5',
     // v2.05 (item 114): 15 -- the deck, the synopsis and Executive decision removed, and the companion tool a link at the box's foot
     // v2.12 W1: Data 8 -- the Annual Cost Estimate card gains the import report (item 132)
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '8', '4', '4', '1', '5']));
+    // v2.15 W3: Save’s ▾ 3 -- Save as a new file… and Choose another file… beside Save a copy… (item 146)
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '8', '4', '4', '3', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
@@ -3889,7 +3892,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
-       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState'], ['toggleLive', 'toggleDiag', 'clearComputer']]));
+       // v2.15 W3: Save’s ▾ holds Save as a new file… and Choose another file… too (item 146)
+       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState', 'fhSaveNew', 'fhRepick'], ['toggleLive', 'toggleDiag', 'clearComputer']]));
   chk(name, 'contents', 'Setup: Who and where; Appearance holds the five themes and three densities',
     J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt', 'linkSet'], 8]));   // v2.05 (item 114): Linked tool…
   // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup. Every list a
@@ -5328,8 +5332,11 @@ await (async () => {
   // ---- the Initial Spares board, behind the calendar: its opening says so and offers the retag
   const P = boot({ appn: 'INITIAL SPARES', ls: LS });
   const ps = P.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
-  chk(name, 'opening', 'a board behind the calendar says so when it opens, and offers the retag',
-    J([/Initial Spares is tagged PB27, and the other appropriations are on BES28/.test(ps), !!P.ev(`String(!!document.querySelector('#shareStat button[onclick="cycRetagLead()"]'))`).match(/true/)]), J([true, true]));
+  // v2.15 review RV-C (C1): Initial Spares reopened PB27, so the retag (item 139: only what has locked moves) would move nothing --
+  // no button that promises one; it says why, and to lock it again
+  chk(name, 'opening', 'a board behind the calendar says so when it opens, and says why there is nothing to retag yet',
+    J([/Initial Spares is tagged PB27, and the other appropriations are on BES28/.test(ps), !!P.ev(`String(!!document.querySelector('#shareStat button[onclick="cycRetagLead()"]'))`).match(/true/),
+      /Nothing to retag as BES28 yet — Initial Spares has reopened PB27: lock it again, then retag/.test(ps)]), J([true, false, true]));
   const N = boot({ appn: 'FULL FUND', ls: LS });
   chk(name, 'opening', 'a board on the calendar says nothing of it', /other appropriations are on/.test(N.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), false);
   } catch (e) {
@@ -6777,7 +6784,9 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     ev(`fitOpen=false; cycLeave(); 'ok'`);
     chk(name, 'the view', 'left: the working plan reads today’s BES28 again', ev(`S.discSvc[0]`), 850);
     // ---- a lock taken before v2.12 kept no position: its years read as locked (the board's own base), whatever the tag says
-    ev(`blCyc='PB'; blYr=2027; cycLock(); (function(){ var c=blGet('PB|2027'); delete c.pos;
+    // v2.15 W1 (item 139): Lock now refuses a plan tagged with another cycle, so this lock -- as a build before v2.12 left it -- is taken
+    // with the plan on PB27 for the moment, then the tag put back
+    ev(`MS.cycle='PB|2027'; blCyc='PB'; blYr=2027; cycLock(); MS.cycle='BES|2028'; baLiveAll(); (function(){ var c=blGet('PB|2027'); delete c.pos;
       Object.keys(c.years).forEach(function(y){ var st=c.years[y]; st.discSvc=st.bm.disc.map(function(v,i){ return v+(st.bm.adds||[]).filter(function(a){ return a.pool!=='mand'; }).reduce(function(t,a){ return t+(a.vec[i]||0); },0); }); }); persistCyc(); })(); 'ok'`);
     ev(`cycView('PB|2027'); 'ok'`);
     chk(name, 'before v2.12', 'a lock with no position reads its years’ own bases in its view, though the working plan beside it is tagged BES28',
@@ -7064,7 +7073,8 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
       J([/The working plan is now tagged BES28 \(8 budget figures now read from its position\)/.test(ev(`document.getElementById('shareStat').textContent`)),
         /still tagged/.test(ev(`document.getElementById('shareStat').textContent`))]), J([true, false]));
     // CONTROL: a tagged plan's next lock moves nothing, and is asked what it always was
-    const q2 = JSON.parse(ev(`(function(){ var qs=[]; window.confirm=function(x){ qs.push(String(x)); return true; }; blCyc='PB'; blYr=2028; cycLock(); return JSON.stringify(qs); })()`));
+    // v2.15 W1 (item 139): retagged PB28 first, as Lock now asks of a plan on another cycle
+    const q2 = JSON.parse(ev(`(function(){ var qs=[]; cycSetWorking('PB', 2028); window.confirm=function(x){ qs.push(String(x)); return true; }; blCyc='PB'; blYr=2028; cycLock(); return JSON.stringify(qs); })()`));
     chk(name, 'tagged', 'CONTROL: a lock on a tagged plan ends as it always did', (q2[0] || '').split('\n\n').slice(-1)[0], 'The working board is not changed.');
     if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
   } catch (e) {
@@ -7249,7 +7259,9 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     const B = w3Board(), { ev } = B;
     const yr = () => ev(`(function(){ cycView('PB|2027'); fitShow(); var y=(document.querySelector('#fitBody .fityr span')||{}).textContent||''; fitOpen=false; cycLeave(); return y; })()`);
     // the plan tagged BES28, locked as PB27, then the lock made as a build before v2.12 left it (no `pos`; `from` the plan's tag)
-    ev(`cycSetWorking('BES', 2028); blCyc='PB'; blYr=2027; cycLock(); delete blGet('PB|2027').pos; 'ok'`);
+    // v2.15 W1 (item 139): Lock now refuses a plan on another cycle, so the lock is taken with the plan on PB27 for the moment, and its
+    // record then set as that build wrote it: `from` the plan's tag, BES28
+    ev(`cycSetWorking('BES', 2028); MS.cycle='PB|2027'; blCyc='PB'; blYr=2027; cycLock(); MS.cycle='BES|2028'; baLiveAll(); blGet('PB|2027').from='BES|2028'; delete blGet('PB|2027').pos; persistCyc(); 'ok'`);
     chk(name, 'tagged', 'CONTROL: the lock records the tag the plan carried and keeps no position', ev(`JSON.stringify([blGet('PB|2027').from, Object.prototype.hasOwnProperty.call(blGet('PB|2027'), 'pos')])`), J(['BES|2028', false]));
     chk(name, 'tagged', 'each year of its view says the lock was taken before v2.12 with the plan tagged BES28 -- not "The plan is untagged"',
       yr(), 'This lock was taken before v2.12, the plan tagged BES28, and kept no position: every base is the board’s own, as locked.');
@@ -7379,6 +7391,14 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
   const name = 'v2.13 — one PPBE cycle for every appropriation, chosen at the top (item 136)';
   try {
     const J = JSON.stringify;
+    // v2.15 W1 (item 139): Lock now refuses a plan tagged with another cycle, so a lock that read another cycle's position -- one taken
+    // before v2.15, which a file still carries -- is made here as v2.14 made it: taken under the plan's own position, then its record
+    // set to say so ({key: the plan's tag, P: that position}, from: that tag), as cycLock wrote it before the refusal
+    const OLD_LOCK = k => `(function(K){ var t0=MS.cycle, P0=(MS.ppbe||{})[t0], had=Object.prototype.hasOwnProperty.call(MS.ppbe||{}, K)? MS.ppbe[K] : undefined;
+      MS.ppbe=MS.ppbe||{}; if(P0!==undefined) MS.ppbe[K]=P0; else delete MS.ppbe[K]; MS.cycle=K; var p=K.split('|'); blCyc=p[0]; blYr=+p[1]; cycLock();
+      MS.cycle=t0; if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had;
+      var c=blGet(K); c.pos={key:t0, P:P0? JSON.parse(JSON.stringify(ppNorm(P0))) : null}; c.from=t0; persistCyc(); baLiveAll(); save(); render(); })(${JSON.stringify(k)})`;
+
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     // ---------------------------------------------------------------- PART 1: the figure beside the selector
     const B = w3Board(), { ev } = B;
@@ -7427,7 +7447,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     chk(name, 'journal', 'a requirement’s last recorded edit is still its own after a change of cycle', ev(`JSON.stringify((uiLastEdit('A')||{}).p)`), J(['notes', 'A']));
     // ---- the review (F6, F7, F15, F23): a locked view whose lock read another cycle's position; a lock that kept none; a service
     // the position cannot be read for
-    ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=2027; cycLock(); uiCycGo('PB|2027'); 'ok'`);
+    ev(`window.confirm=function(){ return true; }; ${OLD_LOCK('PB|2027')}; uiCycGo('PB|2027'); 'ok'`);
     chk(name, 'locked view', 'PB27 locked while the plan was on BES28: the bar names PB27, the figure names BES28, the cycle it is against',
       ev(`JSON.stringify([document.getElementById('b_cyc').textContent, document.getElementById('cycFit').textContent])`), J(['PB27 (locked) ▾', 'BES28 · FY27 · $541K unallocated · ⚠ $50 over']));
     ev(`uiCycGo(''); cycSetWorking('PB', 2026); blCyc='PB'; blYr=2026; cycLock(); uiCycGo('PB|2026'); 'ok'`);
@@ -7468,7 +7488,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       /O&M: PB27; Full Fund: BES28; Initial Spares: PB27; OPN: not tagged/.test(F.ev(`document.getElementById('b_cyc').title`))]), J(['⚠ Mixed ▾', true]));
     F.ev(`toggleMenu('cyc'); 'ok'`);
     const menu = JSON.parse(F.ev(`JSON.stringify({rows:[].map.call(document.querySelectorAll('#dd_cyc .cycall-row'), function(r){ return r.textContent.replace(/\\s+/g,' ').trim(); }),
-      items:[].map.call(document.querySelectorAll('#dd_cyc button.mi'), function(b){ var c=b.querySelector('.chk').textContent; return [b.textContent.slice(c.length).replace(/\\s+/g,' ').trim(), c]; })})`));
+      items:[].map.call(document.querySelectorAll('#dd_cyc button.mi:not(.cycfit-mi)'), function(b){ var c=b.querySelector('.chk').textContent; return [b.textContent.slice(c.length).replace(/\\s+/g,' ').trim(), c]; })})`));   // v2.15 W1 (item 137): the figure's copy, shown only when the bar has no room for it, is not a choice
     chk(name, 'the menu', 'it lists every appropriation and its cycle, ⚠ beside each not on the latest',
       J(menu.rows), J(['O&M PB27 (this board) ⚠', 'Full Fund BES28', 'Initial Spares PB27 ⚠', 'OPN not tagged ⚠']));
     chk(name, 'the menu', 'it offers the cycles in use or with controls entered, and the next, latest first -- none ticked while they disagree; then the plan on screen',
@@ -7570,7 +7590,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     {
       const V = four();
       // the plan is on BES28 when PB27 is locked, so the lock's position is BES28's: the bar must name the lock, PB27
-      V.ev(`cycSetWorking('BES', 2028); blCyc='PB'; blYr=2027; cycLock(); cycView('PB|2027'); 'ok'`);
+      V.ev(`cycSetWorking('BES', 2028); ${OLD_LOCK('PB|2027')}; cycView('PB|2027'); 'ok'`);       // v2.15 W1: a lock taken before v2.15 (OLD_LOCK)
       const b0 = V.store();
       chk(name, 'locked view', 'refused, nothing written, and the bar names the lock', J([V.ev(`String(cycApplyAll('BES|2028'))`), V.store() === b0, V.ev(`document.getElementById('b_cyc').textContent`)]),
         J(['false', true, 'PB27 (locked) ▾']));
@@ -7899,7 +7919,8 @@ const W3S_FH = `window.__fw={content:'', writes:0};
       D.ev(`publishState(); window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return false; }; 'ok'`);
       const n0 = w3sNav(D), v = w3sPick(D, 'FULL FUND'), qs = JSON.parse(D.ev('JSON.stringify(window.__cq)'));
       chk(name, 'after a downloaded copy', 'switching asks once, naming the downloaded copy as the only one holding the changes',
-        J([D.ev('String(_dlOnly)'), qs.length, /^Your latest changes are in the copy you downloaded, but not in the board file, and browser storage could not keep them\.\n\nSwitching appropriation reopens the page: afterwards only the downloaded copy holds them\./.test(qs[0] || '')]),
+        // v2.15 W3: the question no longer says the downloaded copy holds the changes -- only if the download was kept (item 146)
+        J([D.ev('String(_dlOnly)'), qs.length, /^You downloaded a copy of this board, but your latest changes are not in the board file, and browser storage could not keep them\. The downloaded copy holds them only if the download was kept: check your Downloads folder first\.\n\nSwitching appropriation reopens the page: afterwards only that downloaded copy holds them\./.test(qs[0] || '')]),
         J(['true', 1, true]));
       chk(name, 'after a downloaded copy', 'Cancel: nothing reopened, the box on O&M again, and “nothing changed”',
         J([w3sNav(D) - n0, v, /Not switched — nothing changed\./.test(w3sStat(D))]), J([0, 'O&M', true]));
@@ -8087,7 +8108,8 @@ await (async () => {
     const cells = JSON.parse(B.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here'; }).map(function(s){ return s.getAttribute('title'); }))`));
     const whole = lines(B).filter(e => e.p[0] === 'custom' && e.p.length === 2 && typeof e.p[1] === 'string').length;
     chk(name, '(d) the panel', 'each whole added-requirement line reads “not put back here”, with why on hover',
-      J(cells.filter(t => /^An added requirement as a whole — added or removed — is not put back from the change journal\. To take one out, use Remove on its row’s ⋯ menu; to bring one back, put back an earlier saved copy from History & recovery\.$/.test(t)).length), J(whole));
+      // v2.15 W3: the wording names the menus as they are (item 146: "Delete this added requirement", and earlier copies of the board file)
+      J(cells.filter(t => /^An added requirement as a whole — added or removed — is not put back from the change journal\. To take one out, use Delete this added requirement on its row’s ⋯ menu; to bring one back, open an earlier saved copy of the board file \(or, working out of the shared folder, History & recovery › Earlier copies…\)\.$/.test(t)).length), J(whole));
     chk(name, '(e) the panel', 'and the line filed by place reads it too, with its own reason',
       J(cells.filter(t => /^Recorded before v2\.14 by its place in the list of added requirements\. Put back now, it could land on another requirement, so it is not offered\.$/.test(t)).length), '1');
     B.ev(`jrnlOpen=false; render(); 'ok'`);
@@ -9041,6 +9063,9 @@ await (async () => {
       window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(){};
       URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; ${W3S_FH} 'ok'`);
     await B.ev('saveInPlaceFile()'); await w3sSleep(20);
+    // v2.15 W2 (item 143): that Save now records Initial Spares saved (it wrote it exactly as storage held it); the fixture puts the
+    // record back to unsaved, as an edit there would, so a carry forgotten on a refused record still reads as held (what this guards)
+    B.ev(`localStorage.setItem('prio27sp.base', ${J(J({ file: 0, dirty: true }))}); 'ok'`);
     B.ev(`window.__si2=Storage.prototype.setItem; window.__refuse={'prio27sp':1}; Storage.prototype.setItem=function(k,v){ if(window.__refuse[k]) throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return window.__si2.call(this,k,v); }; 'ok'`);
     const r1 = B.ev(`String(cycApplyAll('PB|2028'))`);
     chk(name, 'the cycle', 'carried, and Initial Spares not read as held (a CONTROL)', J([r1, B.ev(`String(apStoreOf('sp').held)`)]), J(['true', 'false']));
@@ -9906,6 +9931,548 @@ await (async () => {
 })();
 // ---- end RV2-D ----
 // ==== end v2.14 review round 2 fixes ====
+
+// ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
+// Brad, 2 Nov 2026 -- v2.13's question 2: "2a" (item 139); question 3: "No wrapping." (item 137). Every check but those labelled CONTROL
+// fails on the slot commit (8c24ea2). Every expectation is a literal from the fixture.
+// FOUR APPROPRIATIONS ON PB27: O&M (the board on screen) and Full Fund have locked it; Initial Spares locked it and reopened it; OPN never
+// locked it. So the retag must move exactly two, name the other two with the way out, write each one's journal line, and leave the two
+// stores it does not move byte for byte -- and a retag that moved every appropriation on PB27, or only the board on screen, disagrees.
+await (async () => {
+  const name = 'v2.15 W1 — the retag moves every appropriation that has locked the cycle, and Lock refuses a plan on another cycle (item 139)';
+  try {
+    const J = JSON.stringify;
+    const T1 = 1790100000000, T2 = 1790200000000;
+    const year = () => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [] });
+    const store = (tag, by) => ({ ts: T1, base: 2027, cur: 2027, cycle: tag, by, years: { 2027: year() } });
+    const lock = (ap, by) => ({ ts: T1, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap, locked: true, ts: T1, by, first: { ts: T1, by }, unlocks: [], years: {}, proj: {} } } });
+    const reopened = (ap, by) => ({ ts: T2, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap, locked: false, ts: T1, by, unlocks: [{ ts: T2, by, on: false }], years: {}, proj: {} } } });
+    const LS = (spTag = 'PB|2027') => ({ prio27ff: J(store('PB|2027', 'F Lead')), 'prio27ff-cyc': J(lock('ff', 'F Lead')),
+      prio27sp: J(store(spTag, 'S Lead')), 'prio27sp-cyc': J(reopened('sp', 'S Lead')), prio27opn: J(store('PB|2027', 'N Lead')) });
+    const KEYS = ['prio27ff', 'prio27ff-cyc', 'prio27ff.base', 'prio27sp', 'prio27sp-cyc', 'prio27sp.base', 'prio27opn', 'prio27opn-cyc', 'prio27opn.base'];
+    const board = (ls, tag = 'PB|2027') => {
+      const X = boot({ ls });
+      seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50]), it('B', 'AV', [80, 40])], disc: [150, 60], mand: [20, 10], order: ['A', 'B'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice(); MS.cycle=${J(tag)}; save(); render();
+        window.__q=[]; window.__yes=true; window.confirm=function(m){ window.__q.push(String(m)); return window.__yes; }; window.alert=function(){}; 'ok'`);
+      X.store = () => X.ev(`JSON.stringify(${J(KEYS)}.map(function(k){ return localStorage.getItem(k); }))`);
+      X.tag = k => { const s = JSON.parse(X.ev(`localStorage.getItem(${J(k)})`) || 'null'); return s ? s.cycle : 'none'; };
+      X.jl = k => { const s = JSON.parse(X.ev(`localStorage.getItem(${J(k)})`) || 'null'); return ((s && s.jrnl) || []).filter(e => e && e.p && e.p[0] === '(cycle)').map(e => (e.a || '') + '>' + (e.b || '')); };
+      X.stat = () => X.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+      X.myJl = () => JSON.parse(X.ev(`JSON.stringify(MS.jrnl.filter(function(e){ return e.p && e.p[0]==='(cycle)'; }).map(function(e){ return (e.a||'')+'>'+(e.b||''); }))`));
+      return X;
+    };
+    // ---------------------------------------------------------------- the lock, and the button after it
+    const A = board(LS());
+    A.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: O&M locked PB27 and is tagged PB27; Full Fund locked it, Initial Spares reopened it, OPN never locked it -- all four on PB27',
+      A.ev(`JSON.stringify(cycOverview().rows.map(function(r){ return [r.k, r.tag, cycCellOf(r.cycles['PB|2027']).s]; }))`),
+      J([['om', 'PB|2027', 'locked'], ['ff', 'PB|2027', 'locked'], ['sp', 'PB|2027', 'open'], ['opn', 'PB|2027', 'none']]));
+    const lockBtn = A.ev(`(function(){ var b=document.querySelector('#shareStat button[onclick="cycRetagNext()"]'); return b? b.textContent : 'none'; })()`);
+    chk(name, 'after the lock', 'the button the lock offers says how many it moves: 2 of the 4 on PB27', lockBtn, '🏷 Retag 2 of 4 as BES28');
+    A.ev(`blOpen=true; render(); 'ok'`);
+    chk(name, 'PPBE cycles', 'the retag in PPBE cycles says the same', A.ev(`(function(){ var b=document.querySelector('#blBody button[onclick="cycRetagNext()"]'); return b? b.textContent : 'none'; })()`), '🏷 Retag 2 of 4 as BES28');
+    // ---------------------------------------------------------------- Cancel changes nothing
+    const before = A.store(), jl0 = J(A.myJl());
+    A.ev(`window.__yes=false; window.__q=[]; cycRetagNext(); 'ok'`);
+    chk(name, 'Cancel', 'it asks first, and Cancel changes nothing: no store written, the board still on PB27, no journal line',
+      J([A.ev('window.__q.length'), A.store() === before, A.ev('MS.cycle'), J(A.myJl()) === jl0]), J([1, true, 'PB|2027', true]));
+    // ---------------------------------------------------------------- OK: the two move, the two are named
+    A.ev(`window.__yes=true; window.__q=[]; document.getElementById('shareStat').innerHTML=''; cycRetagNext(); 'ok'`);
+    const q = A.ev('window.__q[0]||""');
+    chk(name, 'the question', 'it names the two it moves and the two it leaves, with why',
+      J([/^Retag 2 appropriations as BES28\?/.test(q), /• O&M \(this board\) — PB27 → BES28/.test(q), /• Full Fund — PB27 → BES28/.test(q),
+        /• Initial Spares — PB27, NOT retagged: has reopened PB27: lock it again on its own board, then retag/.test(q), /• OPN — PB27, NOT retagged: has not locked PB27/.test(q),
+        /OPN has not locked PB27, and Initial Spares has reopened it: lock each on its own board, then retag\./.test(q)]), J([true, true, true, true, true, true]));
+    // v2.15 review RV-C: Initial Spares reopened PB27, and is now told apart from OPN, which never locked it (C1)
+    chk(name, 'OK', 'O&M and Full Fund are on BES28, each with its journal line; Initial Spares and OPN stay on PB27',
+      J([A.ev('MS.cycle'), A.tag('prio27ff'), A.tag('prio27sp'), A.tag('prio27opn'), A.myJl().slice(-1), A.jl('prio27ff'), A.jl('prio27sp'), A.jl('prio27opn')]),
+      J(['BES|2028', 'BES|2028', 'PB|2027', 'PB|2027', ['PB|2027>BES|2028'], ['PB|2027>BES|2028'], [], []]));
+    chk(name, 'OK', 'the stores it does not move are byte for byte as they were',
+      J(KEYS.filter(k => /sp|opn/.test(k)).map(k => A.ev(`localStorage.getItem(${J(k)})`) === JSON.parse(before)[KEYS.indexOf(k)])), J([true, true, true, true, true, true]));
+    chk(name, 'OK', 'the line names the two it moved and the way out for the two it did not',
+      J([/O&M, Full Fund are retagged BES28/.test(A.stat()), /OPN has not locked PB27, and Initial Spares has reopened it: lock each on its own board, then retag/.test(A.stat())]), J([true, true]));   // v2.15 review RV-C (C1)
+    chk(name, 'OK', 'the deltas reference stays the lock (CONTROL: the retag never moved it)', A.ev('MS.cycleRef'), 'PB|2027');
+    // ---------------------------------------------------------------- the third button: Retag … as … under Locks by appropriation
+    // Initial Spares on BES28 already (the calendar's lead); O&M and Full Fund locked PB27, OPN did not: the lead retag moves the two
+    const L = board(LS('BES|2028'));
+    L.ev(`blCyc='PB'; blYr=2027; cycLock(); blOpen=true; render(); 'ok'`);
+    const leadBtn = L.ev(`(function(){ var b=document.querySelector('#blBody .cyc-ov-step button[onclick="cycRetagLead()"]'); return b? b.textContent : 'none'; })()`);
+    chk(name, 'Locks by appropriation', 'the retag offered beside the calendar says how many it moves: 2 of the 3 on PB27', leadBtn, '🏷 Retag 2 of 3 as BES28');
+    const lb = L.store();
+    L.ev(`window.__q=[]; cycRetagLead(); 'ok'`);
+    chk(name, 'Locks by appropriation', 'it moves O&M and Full Fund to BES28 and names OPN, which has not locked PB27; OPN and Initial Spares are left as they were',
+      J([L.ev('MS.cycle'), L.tag('prio27ff'), L.tag('prio27opn'), L.tag('prio27sp'), /• OPN — PB27, NOT retagged: has not locked PB27/.test(L.ev('window.__q[0]||""')),
+        L.ev(`localStorage.getItem('prio27opn')`) === JSON.parse(lb)[KEYS.indexOf('prio27opn')], L.ev(`localStorage.getItem('prio27sp')`) === JSON.parse(lb)[KEYS.indexOf('prio27sp')]]),
+      J(['BES|2028', 'BES|2028', 'PB|2027', 'BES|2028', true, true, true]));
+    // the same offer when the board opens behind the others
+    { const L2 = board(LS('BES|2028'));
+      L2.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      const ls2 = JSON.parse(L2.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+      const O = boot({ ls: ls2 });
+      chk(name, 'opening', 'a board behind the others offers the same retag when it opens, with the count',
+        // read off the session's messages: in the harness the shell's own opening line follows it on the status line
+        O.ev(`(function(){ var m=STAT_LOG.map(function(x){ return String(x.html||''); }).join(' '), r=/onclick="cycRetagLead\\(\\)">([^<]*)</.exec(m); return r? r[1] : 'none'; })()`), 'Retag 2 of 3 as BES28'); }
+    // ---------------------------------------------------------------- one appropriation alone keeps its own words
+    { const S1 = board({});
+      S1.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'one appropriation', 'CONTROL: with no other appropriation on PB27 the button keeps its words, and moves this board alone',
+        J([S1.ev(`(function(){ var b=document.querySelector('#shareStat button[onclick="cycRetagNext()"]'); return b? b.textContent : 'none'; })()`),
+          (S1.ev(`cycRetagNext(); MS.cycle`))]), J(['🏷 Retag it as BES28', 'BES|2028'])); }
+    // ---------------------------------------------------------------- Lock refuses a plan tagged with another cycle
+    { const R = board({}, 'BES|2028');
+      R.ev(`window.__q=[]; blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'Lock', 'a plan on BES28 is not locked as PB27: nothing asked, no lock taken, the tag unchanged',
+        J([R.ev('window.__q.length'), R.ev(`String(!!blGet('PB|2027'))`), R.ev('MS.cycle')]), J([0, 'false', 'BES|2028']));
+      chk(name, 'Lock', 'and the line names both and the way out',
+        /Not locked — O&M’s plan is on BES28, so it cannot be locked as PB27: .*Tag this board PB27 under PPBE cycles \(Working plan is tagged\), lock, then retag\./.test(R.stat()), true);
+      const R2 = board({}, 'PB|2027');
+      R2.ev(`window.__q=[]; blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'Lock', 'CONTROL: tagged PB27, it locks PB27 as before', J([R2.ev('window.__q.length'), R2.ev(`String(!!(blGet('PB|2027')||{}).locked)`), R2.ev('MS.cycle')]), J([1, 'true', 'PB|2027']));
+      const U = board({}, '');
+      U.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'Lock', 'CONTROL: an untagged plan is still tagged by its lock', J([U.ev(`String(!!(blGet('PB|2027')||{}).locked)`), U.ev('MS.cycle')]), J(['true', 'PB|2027'])); }
+    // ---------------------------------------------------------------- a PMO copy and a locked view
+    { const P0 = board(LS());
+      P0.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`); P0.ff0 = P0.ev(`localStorage.getItem('prio27ff')`);
+      const html = P0.ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()})`);
+      const P = boot({ html });
+      P.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+      chk(name, 'PMO copy', 'CONTROL: a PMO copy refuses the retag, its cycle unchanged', J([P.ev(`cycRetagNext(); MS.cycle`), /chosen on the portfolio board/.test(P.ev(`document.getElementById('shareStat').textContent`))]), J(['PB|2027', true]));
+      P.ev(`blCyc='BES'; blYr=2028; cycLock(); 'ok'`);
+      chk(name, 'PMO copy', 'a lock of another cycle in a copy is refused: it locks the cycle it was published with',
+        J([P.ev(`String(!!blGet('BES|2028'))`), /This PMO copy reads PB27, as the portfolio team published it: lock PB27 here\./.test(P.ev(`document.getElementById('shareStat').textContent`))]), J(['false', true]));
+      P0.ev(`cycView('PB|2027'); 'ok'`);
+      chk(name, 'locked view', 'CONTROL: a locked view refuses the retag', J([P0.ev(`cycRetagNext(); _cycStash && _cycStash.MS.cycle`), P0.ev(`localStorage.getItem('prio27ff')`) === P0.ff0]), J(['PB|2027', true]));
+      P0.ev(`cycLeave(true); 'ok'`); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// THE CONTEXT BAR'S STEPS (item 137), in jsdom: what the steps draw, and the order fitTop takes them in. jsdom lays nothing out, so the bar's
+// widths are stood in for: the bar is 1,000px of content in 700px until each step takes its share (the labels 100, the short figure 100,
+// the figure leaving 50, the fourth step 50) -- so it takes all four, in order, and stops at the first that fits. The real widths are
+// layout-fits S and toolbar-fits'. The figure is the v2.13 block's: FY27 · $541K unallocated · ⚠ $50 over against BES28.
+await (async () => {
+  const name = 'v2.15 W1 — the context bar gives the PPBE cycle’s figure less room in steps, never wrapping first (item 137)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    ev(`cycApplyAll('BES|2028'); render(); 'ok'`);
+    const fig = () => JSON.parse(ev(`(function(){ var f=document.getElementById('cycFit'); return JSON.stringify({t:f.textContent, l:f.getAttribute('data-l'), s:f.getAttribute('data-s'), title:f.title.split(' — ')[0]}); })()`));
+    chk(name, 'the figure', 'two lengths: the whole sentence, and short -- no "FY27 ·", "unallocated" and "over" as signs', J([fig().l, fig().s]), J(['FY27 · $541K unallocated · ⚠ $50 over', '$541K · ⚠ $50']));
+    chk(name, 'the figure', 'its tooltip leads with the whole sentence', fig().title, 'FY27 · $541K unallocated · ⚠ $50 over');
+    // the stand-in widths, then fitTop
+    ev(`(function(){ var h=document.querySelector('.hdr'), f=document.getElementById('cycFit');
+      Object.defineProperty(h, 'clientWidth', {configurable:true, get:function(){ return window.__cw; }});
+      Object.defineProperty(h, 'scrollWidth', {configurable:true, get:function(){ var w=1000, c=h.classList;
+        if(c.contains('tight1')) w-=100; if(c.contains('cyc1') && f.textContent===f.getAttribute('data-s')) w-=100; if(c.contains('cyc2')) w-=50; if(c.contains('tight3')) w-=50; return w; }}); })(); 'ok'`);
+    const at = cw => JSON.parse(ev(`window.__cw=${cw}; fitTop(); JSON.stringify([document.querySelector('.hdr').className, document.getElementById('cycFit').textContent])`));
+    chk(name, 'the steps', 'room for it all: nothing changes', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
+    chk(name, 'the steps', 'first the labels go, and nothing else', J(at(900)), J(['hdr tight1', 'FY27 · $541K unallocated · ⚠ $50 over']));
+    chk(name, 'the steps', 'then the figure shortens', J(at(800)), J(['hdr tight1 cyc1', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then it leaves the bar for the list', J(at(750)), J(['hdr tight1 cyc1 cyc2', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then the fourth step, and the bar fits on one line -- never wrapped while a step is left', J(at(700)), J(['hdr tight1 cyc1 cyc2 tight3', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(600)), J(['hdr tight1 cyc1 cyc2 tight3 tight2', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'and given room again, it comes back whole', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
+    // moved into the list: the list leads with the whole sentence, opening Fit to the PPBE position; the button carries the over
+    at(750);
+    ev(`toggleMenu('cyc'); 'ok'`);
+    const L = JSON.parse(ev(`(function(){ var b=document.querySelector('#dd_cyc .cycfit-in button.mi'), first=document.querySelector('#dd_cyc button');
+      return JSON.stringify({txt:b? b.textContent.replace(/\\s+/g,' ').trim() : 'none', on:b? b.getAttribute('onclick') : '', first:first===b, fover:document.getElementById('b_cyc').classList.contains('fover'),
+        tip:/⚠ \\$50 over BES28’s controls in FY27\\./.test(document.getElementById('b_cyc').title)}); })()`));
+    chk(name, 'in the list', 'the list leads with the whole sentence, and it opens Fit to the PPBE position',
+      J([L.txt, L.on, L.first]), J(['FY27 · $541K unallocated · ⚠ $50 overopens Fit to the PPBE position', 'mRun(()=>fitShow())', true]));
+    chk(name, 'in the list', 'and the PPBE cycle carries the over: its ⚠ mark, and the figure in its tooltip', J([L.fover, L.tip]), J([true, true]));
+    ev(`fitOpen=false; document.querySelector('#dd_cyc .cycfit-in button.mi').click(); 'ok'`);
+    await new Promise(r => setTimeout(r, 40));
+    chk(name, 'in the list', 'a press on it opens Fit to the PPBE position, and closes the list', J([ev('String(fitOpen)'), ev('String(openMenu)')]), J(['true', 'null']));
+    // nothing over: no mark
+    ev(`fitOpen=false; render(); S.fsrc={}; applyState(S); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    chk(name, 'nothing over', 'with nothing over, the button carries no mark (CONTROL of the mark)', ev(`String(document.getElementById('b_cyc').classList.contains('fover'))`), 'false');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.15 W1 ====
+// ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
+// ==== end v2.15 W2 ====
+// ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
+// ==== end v2.15 W3 ====
+// ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
+// v2.15 W4 (item 135): A PRIME'S WBS IS ITS CLINs'. WBS from execution data proposed a pull row for a prime that names none of its CLINs
+// for the prime's own requirement-level paragraph (S.wbs), which the one rule reads nowhere (wbsStateOf): Write set a paragraph no
+// surface shows and said it had. And A CLIN REQUEST HELD AS TEXT FIGURES (['5', '7'], which the import check takes as it takes every
+// amount) is summed as figures in the drill, as clinVec and clinSplit read it -- it was summed as text, '0'+'5'+'7'. FAILS ON THE SLOT
+// COMMIT: the prime's own row is proposed and written; the request reads '057'. CONTROLs: a row naming the prime's CLIN is still
+// proposed for that CLIN, a requirement that is not a prime still for itself, and a request held as numbers sums as before.
+await (async () => {
+  const name = 'v2.15 W4 — WBS from execution data never proposes a prime’s own paragraph, and a CLIN request of text figures sums as figures (item 135)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ccar, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar, fy26: [0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mk('A', 'JSF1', [500, 0]), mk('B', 'JSF2', [300, 0])], disc: [2000, 100], mand: [0, 0], order: ['A', 'B'] });
+    B.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'PRIME', B:'OGC'}; S.clinNew={A:[{key:'n1', clin:'0001', desc:'Line one', ccar:'', ask:['5','7']}]}; applyState(S); save();
+      var row=function(ccar, w, clin){ var r=[]; for(var i=0;i<26;i++) r.push(''); r[0]=MS.cur; r[2]=ccar; r[3]='Not a record name'; r[23]=w; r[25]=clin; return r; };
+      EXDB={ts:9, all:{}}; EXDB.all[mySlug()]={rows:{}}; EXDB.all[mySlug()].rows[MS.cur]=[row('JSF1','1.2.1 - Organizational',''), row('JSF1','1.3.1 - Depot','0001'), row('JSF2','1.4.1 - Field','')];
+      render(); 'ok'`);
+    const scan = () => JSON.parse(B.ev(`(function(){ var s=execWbsScan(null);
+      return JSON.stringify({props:s.props.map(function(r){ return [r.kind, r.id, r.clin, r.para]; }), prime:(s.primeNoClin||[]).map(function(r){ return [r.id, r.paras]; })}); })()`));
+    const s0 = scan();
+    chk(name, 'the scan', 'CONTROL: the row naming the prime’s CLIN 0001 is proposed for that CLIN, and B’s for B', J(s0.props.filter(p => p[0] === 'clin' || p[1] === 'B')),
+      J([['clin', 'A', '0001', '1.3.1'], ['req', 'B', '', '1.4.1']]));
+    chk(name, 'the scan', 'the prime’s row naming no CLIN is not proposed for the prime’s own paragraph, and is listed apart', J([s0.props.filter(p => p[0] === 'req' && p[1] === 'A').length, s0.prime]),
+      J([0, [['A', ['1.2.1']]]]));
+    B.ev(`exwOpen=true; render(); 'ok'`);
+    chk(name, 'the panel', 'WBS from execution data says the prime’s row names no CLIN and is not written, pointing to the CLIN drill',
+      /^1 prime contract had rows naming no CLIN it holds\. A prime’s WBS is set on its CLINs, so nothing was written: set the paragraph on each CLIN in its 🧾 CLIN drill:· EV-A — 1\.2\.1$/.test(B.ev(`(document.querySelector('#exwBody .exw-prime')||{}).textContent||''`)), true);
+    B.ev(`exwOpen=false; execWbsApply(null); 'ok'`);
+    chk(name, 'written', 'Write sets the CLIN’s paragraph and B’s, and writes nothing on the prime itself', B.ev(`JSON.stringify([(S.wbs||{}).A||null, ((S.clinWbs||{}).A||{}).n1||null, (S.wbs||{}).B||null])`),
+      J([null, [{ w: '1.3.1', v: [] }], [{ w: '1.4.1', v: [] }]]));
+    // the CLIN request held as text figures
+    chk(name, 'the request', 'a CLIN request of text figures sums as figures: 5 + 7 is 12, in the CLIN and in the prime’s request', B.ev(`JSON.stringify([clinAskTot(clinList('A')[0]), primeReq('A')])`), J([12, 12]));
+    chk(name, 'the request', 'CONTROL: and a request held as numbers sums as before', B.ev(`JSON.stringify(clinAskTot({ask:[5,7]}))`), '12');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 W4 (v2.12's question 1, the handoff's recommendation accepted): A CLIN REQUEST THAT IS NOT A LIST IS SAID ON OPENING, ONCE, naming
+// the requirement and the CLIN. It was read as no request and nothing said: the drill showed nothing asked where the file held a figure
+// nobody could see. Here a saved board whose added CLIN's request is the text '5' and whose edited base line's request is a number
+// opens and says so, once, naming both; nothing is changed. FAILS ON THE SLOT COMMIT: nothing is said. CONTROL: a board whose requests
+// are lists says nothing of them.
+await (async () => {
+  const name = 'v2.15 W4 — a CLIN request that is not a list is said on opening, once, naming the requirement and the CLIN (v2.12’s question 1)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: [0, 0], ask, alloc: null });
+    const build = bad => { const X = boot();
+      seed(X.ev, { services: ['USAF', 'ANG'], items: [mk('A', [500, 0]), mk('B', [300, 0])], disc: [2000, 100], mand: [0, 0], order: ['A', 'B'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.ptype={A:'PRIME', B:'PRIME'}; S.clinNew={A:[{key:'n1', clin:'0009', desc:'Added', ccar:'', ask:${bad ? "'5'" : '[5,0]'}}],
+          B:[{key:'n1', clin:'0004', desc:'Other', ccar:'', ask:[3,0]}]};
+        S.clinMeta={B:{n1:{ask:${bad ? '42' : '[42,0]'}}}}; applyState(S); save(); 'ok'`);
+      return X.ev('buildSavedHtml()'); };
+    const said = R => JSON.parse(R.ev(`JSON.stringify((STAT_LOG||[]).map(function(m){ return m.html; }).filter(function(h){ return /CLIN request/.test(h); }))`));
+    const R = boot({ html: build(true) });
+    const L = said(R), t = L.length ? R.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=${J(L[L.length - 1])}; return d.textContent; })()`) : '';
+    chk(name, 'on opening', 'one message says two requests are not a list of figures and are not read', J([L.length >= 1, /⚠ 2 CLIN requests are not a list of figures in this file, and are not read/.test(t)]), J([true, true]));
+    chk(name, 'on opening', 'it names each requirement and CLIN, with its year and how it is held', J([/EV-A CLIN 0009 \(FY\d\d, added\)/.test(t), /EV-B CLIN 0004 \(FY\d\d, as edited\)/.test(t)]), J([true, true]));
+    chk(name, 'on opening', 'once: no CLIN request is named twice in what opening said', J([(t.match(/CLIN 0009/g) || []).length, (t.match(/CLIN 0004/g) || []).length]), J([1, 1]));
+    chk(name, 'nothing changed', 'the requests are kept exactly as saved', R.ev(`JSON.stringify([S.clinNew.A[0].ask, S.clinMeta.B.n1.ask])`), J(['5', 42]));
+    const C = boot({ html: build(false) });
+    chk(name, 'a CONTROL', 'a board whose requests are lists says nothing of them', J(said(C)), J([]));
+    for (const [w, X] of [['bad', R], ['control', C]]) if (X.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', X.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 W4 (item 146): A BY-ID JOURNAL LINE IN A YEAR WHOSE ADDED IDS CAME TO REPEAT. Put back needs exactly one requirement under the id,
+// and refused saying it was "no longer in FY27" -- although the year held it twice. It now says the year holds it more than once, so it
+// could land on the wrong one; and a line filed by place in such a year is titled for that, not "Recorded before v2.14". FAILS ON THE
+// SLOT COMMIT: the refusal says "no longer", and the title is the pre-v2.14 one. CONTROL: a requirement deleted is still "no longer",
+// and a place line in a year whose ids do not repeat keeps the pre-v2.14 title.
+await (async () => {
+  const name = 'v2.15 W4 — Put back of a line by id in a year whose added ids came to repeat says so, never “no longer in FY…” (item 146)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const board = () => { const B = boot();
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+        localStorage.setItem('prio27who','Pat'); window.confirm=function(){ return true; }; window.alert=function(){};
+        window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+      return B; };
+    const later = B => B.ev(`window.__tk+=61000; 'ok'`);
+    const B = board();
+    const Y = B.ev(`(function(){ var a=reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); var b=reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); return b; })()`);
+    later(B); B.ev(`setAsk(${J(Y)}, 0, '250'); 'ok'`);
+    const i = +B.ev(`(function(){ var L=MS.jrnl||[]; for(var k=L.length-1;k>=0;k--) if(L[k].p[0]==='custom' && L[k].p[1]===${J(Y)} && L[k].b===250) return k; return -1; })()`);
+    chk(name, 'the fixture', 'CONTROL: Y’s value change is journalled by its id', B.ev(`JSON.stringify(MS.jrnl[${i}].p)`), J(['custom', Y, 'ask', 0]));
+    // the id comes to repeat (a hand edit, a damaged transfer): the year now holds Y twice
+    later(B); B.ev(`var c=JSON.parse(JSON.stringify(S.custom[1])); c.title='Y twin'; S.custom.push(c); MS.years[MS.cur].custom=S.custom; 'ok'`);
+    const before = B.ev(`JSON.stringify(MS.years[MS.cur].custom)`);
+    B.ev(`jrnlUndo(${i}); 'ok'`);
+    const st = B.ev(`(document.getElementById('shareStat')||{}).textContent`);
+    chk(name, 'ids repeat', 'Put back says FY27 holds two added requirements under Y’s id, so it could land on the wrong one -- not that it is gone',
+      J([new RegExp('Not put back.*FY27 holds 2 added requirements under the id ' + Y + ', so it could land on the wrong one\\. Nothing was changed\\.').test(st), /no longer in FY27/.test(st)]), J([true, false]));
+    chk(name, 'ids repeat', 'and changes nothing', B.ev(`JSON.stringify(MS.years[MS.cur].custom)`) === before, true);
+    // a line filed by place in that year: its hover title says why, for this year
+    later(B); B.ev(`S.custom[2].ask[0]=11; save(); 'ok'`);
+    B.ev(`jrnlOpen=true; render(); jrnlBody(); 'ok'`);
+    const titles = JSON.parse(B.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here' && /place/.test(s.getAttribute('title')); }).map(function(s){ return s.getAttribute('title'); }))`));
+    chk(name, 'the panel', 'a line filed by place in a year whose ids repeat is titled for that, not “Recorded before v2.14”',
+      J(titles), J(['Recorded by its place in the list of added requirements, because an id is on that year’s list more than once. Put back now, it could land on another requirement, so it is not offered.']));
+    B.ev(`jrnlOpen=false; render(); 'ok'`);
+    // CONTROLs: a requirement gone is "no longer"; a place line where the ids are unique keeps the pre-v2.14 title
+    const D = board();
+    const Z = D.ev(`(function(){ var z=reqCreate('AV', {title:'Z', event:'EZ', ask:[300,0,0]}); save(); return z; })()`);
+    later(D); D.ev(`setAsk(${J(Z)}, 0, '333'); 'ok'`);
+    const zi = +D.ev(`(function(){ var L=MS.jrnl||[]; for(var k=L.length-1;k>=0;k--) if(L[k].p[0]==='custom' && L[k].b===333) return k; return -1; })()`);
+    later(D); D.ev(`removeReq(${J(Z)}); 'ok'`); later(D); D.ev(`jrnlUndo(${zi}); 'ok'`);
+    chk(name, 'a CONTROL', 'a requirement deleted is still “no longer in FY27”', /that added requirement is no longer in FY27\. Nothing was changed\./.test(D.ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+    later(D); D.ev(`MS.jrnl.push({t:Date.now(), by:'Old', fy:MS.cur, p:['custom',0,'ask',0], a:1, b:2}); jrnlOpen=true; render(); jrnlBody(); 'ok'`);
+    chk(name, 'a CONTROL', 'a place line in a year whose ids are unique keeps the pre-v2.14 title',
+      D.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here' && /place/.test(s.getAttribute('title')); }).map(function(s){ return s.getAttribute('title'); }))`),
+      J(['Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.']));
+    for (const [w, X] of [['repeat', B], ['control', D]]) if (X.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', X.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 W4 (item 146): A WHOLE-YEAR COPY WHOSE CCaR RECORD IS SET AFTERWARDS, IN EITHER YEAR, IS STILL THE SAME WORK. A box-made requirement
+// has no record yet; FY28 started as a copy of FY27 holds it under the same id with no link, and its record set afterwards in FY28 made
+// the twin rule read two requirements: Roll forward put it into FY28 a second time, and a proposal continuing it was not named as the
+// work FY28 already holds (pmoPriorHere, through yrCopySame). FAILS ON THE SLOT COMMIT: yearHas and pmoPriorHere say FY28 does not hold
+// it, and Roll forward copies it. CONTROL: once FY27 is given a different record too, the two are two requirements, as before.
+await (async () => {
+  const name = 'v2.15 W4 — a whole-year copy whose CCaR record is set afterwards is still the same work to Roll forward and the duplicate walk (item 146)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: 'JSF0', fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    const N = B.ev(`(function(){ var n=reqCreate('PSM', {title:'', event:'Copied buy', ask:[35,0,0]}); save(); render(); return n; })()`);
+    const cur = +B.ev('MS.cur'), nx = cur + 1;
+    B.ev(`switchYear(${nx}); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: FY' + (nx % 100) + ' is started as a copy, holding ' + N + ' under the same id, no record, no link',
+      B.ev(`JSON.stringify((S.custom||[]).filter(function(c){ return c.event==='Copied buy'; }).map(function(c){ return [c.id, ccarOf(c), c.prior||null]; }))`), J([[N, '', null]]));
+    B.ev(`reqApply(${J(N)}, {ccar:'JSF77'}); switchYear(${cur}); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: its record is set in FY' + (nx % 100) + ' afterwards, and FY' + (cur % 100) + '’s has none', B.ev(`JSON.stringify([ccarOf(yrItemOf(MS.years[${nx}], ${J(N)}), MS.years[${nx}]), ccarOf(itemById(${J(N)}))])`), J(['JSF77', '']));
+    // CONTROL: two different records are two requirements
+    B.ev(`reqApply(${J(N)}, {ccar:'JSF88'}); 'ok'`);   // (before anything is rolled: a copy Roll forward made would link them)
+    chk(name, 'a CONTROL', 'given a different record in FY' + (cur % 100) + ', it is not the same work as FY' + (nx % 100) + '’s JSF77',
+      B.ev(`JSON.stringify([yearHas(${J(N)}, ${nx}), pmoPriorHere({fy:${cur}, id:${J(N)}}, ${nx})])`), J([false, '']));
+    B.ev(`reqApply(${J(N)}, {ccar:''}); 'ok'`);
+    chk(name, 'the same work', 'Roll forward’s test: FY' + (nx % 100) + ' already holds it', B.ev(`String(yearHas(${J(N)}, ${nx}))`), 'true');
+    chk(name, 'the same work', 'the duplicate walk (pmoPriorHere, through yrCopySame): a proposal continuing it names what FY' + (nx % 100) + ' holds', B.ev(`pmoPriorHere({fy:${cur}, id:${J(N)}}, ${nx})`), N);
+    const r = B.ev(`(function(){ rollPick={}; rollPick[${J(N)}]=1; rollYrs={}; rollYrs[${nx}]=1; rollApply(); return document.getElementById('shareStat').textContent; })()`);
+    chk(name, 'the same work', 'Roll forward puts nothing in: it is already there, and FY' + (nx % 100) + ' still holds it once',
+      J([/already in FY\d\d — nothing to do/.test(r), +B.ev(`(MS.years[${nx}].custom||[]).filter(function(c){ return c.event==='Copied buy'; }).length`)]), J([true, 1]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.15 W4 ====
+// ==== v2.15 integration (the lead) ====
+// ==== end v2.15 integration ====
+// ==== v2.15 review RV-A ====
+// ==== end v2.15 review RV-A ====
+// ==== v2.15 review RV-B ====
+// ==== end v2.15 review RV-B ====
+// ==== v2.15 review RV-C ====
+// The review of item 139 (the retag and the lock). Every check but those labelled CONTROL fails on dbfc7c4. Every expectation is a literal
+// from the fixture. C1: a retag button never offered when nothing would move (it says why); C2: "Retag N of M" counts what OK writes;
+// C3: a lock reopened in another tab while the question is open is not retagged; C4: PPBE cycles' Lock starts on the plan's own cycle;
+// C5: "lock it on its own board".
+await (async () => {
+  const name = 'v2.15 review RV-C — a retag button only where something moves, its count what OK writes, and the lock’s default the plan’s cycle (item 139)';
+  try {
+    const J = JSON.stringify;
+    const T1 = 1790100000000, T2 = 1790200000000;
+    const year = () => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [] });
+    const store = (tag, by, ts = T1) => ({ ts, base: 2027, cur: 2027, cycle: tag, by, years: { 2027: year() } });
+    const lock = (ap, by, ts = T1) => ({ ts, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap, locked: true, ts: T1, by, first: { ts: T1, by }, unlocks: [], years: {}, proj: {} } } });
+    const reopened = (ap, by) => ({ ts: T2, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap, locked: false, ts: T1, by, unlocks: [{ ts: T2, by, on: false }], years: {}, proj: {} } } });
+    const board = (ls, tag = 'PB|2027') => {
+      const X = boot({ ls });
+      seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50]), it('B', 'AV', [80, 40])], disc: [150, 60], mand: [20, 10], order: ['A', 'B'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice(); MS.cycle=${J(tag)}; save(); render();
+        window.__q=[]; window.__yes=true; window.confirm=function(m){ window.__q.push(String(m)); return window.__yes; }; window.alert=function(){}; 'ok'`);
+      X.tag = k => { const s = JSON.parse(X.ev(`localStorage.getItem(${J(k)})`) || 'null'); return s ? s.cycle : 'none'; };
+      X.stat = () => X.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+      X.btn = sel => X.ev(`(function(){ var b=document.querySelector(${J(sel)}); return b? b.textContent : 'none'; })()`);
+      return X;
+    };
+    // ---------------------------------------------------------------- C1: behind, not locked -- no button, and why
+    { const X = board({ prio27ff: J(store('BES|2028', 'F')) });
+      X.ev(`blOpen=true; render(); 'ok'`);
+      chk(name, 'C1 behind', 'CONTROL: O&M is behind (PB27, never locked), Full Fund on BES28', X.ev(`JSON.stringify(cycOverview().rows.filter(function(r){ return r.held; }).map(function(r){ return [r.k, r.tag, !!r.behind, cycCellOf(r.cycles['PB|2027']).s]; }))`),
+        J([['om', 'PB|2027', true, 'none'], ['ff', 'BES|2028', false, 'none']]));
+      chk(name, 'C1 behind', 'Locks by appropriation offers no retag button, which would move nothing', X.btn('#blBody .cyc-ov-step button[onclick="cycRetagLead()"]'), 'none');
+      chk(name, 'C1 behind', 'it says why instead, and the way out', /Nothing to retag as BES28 yet — O&M has not locked PB27: lock it, then retag\./.test(X.ev(`document.querySelector('#blBody .cyc-ov-step').textContent`)), true);
+      chk(name, 'C1 behind', 'CONTROL: putting every appropriation on BES28 is still offered beside it', /Put every appropriation on BES28/.test(X.ev(`document.querySelector('#blBody .cyc-ov-step').textContent`)), true);
+      X.ev(`window.__q=[]; cycRetagLead(); 'ok'`);
+      chk(name, 'C1 behind', 'the retag itself, reached anyway, moves nothing, asks nothing, and says to lock it (its own board: "lock it, then retag")', J([X.ev('window.__q.length'), X.ev('MS.cycle'), /Nothing was retagged: O&M has not locked PB27: lock it, then retag\./.test(X.stat())]), J([0, 'PB|2027', true]));
+      // the opening offer: the same board opened
+      const ls2 = JSON.parse(X.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+      const O = boot({ ls: ls2 });
+      const msgs = O.ev(`STAT_LOG.map(function(x){ return String(x.html||''); }).join(' ')`);
+      chk(name, 'C1 opening', 'the opening offer names no retag button over a board that has not locked, and says why',
+        J([/onclick="cycRetagLead\(\)"/.test(msgs), /Nothing to retag as BES28 yet — <b>O&amp;M<\/b> has not locked PB27: lock it, then retag/.test(msgs)]), J([false, true])); }
+    // ---------------------------------------------------------------- C1: the lock reopened -- PPBE cycles' button says why
+    { const X = board({});
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); blLock('PB|2027', false); blOpen=true; render(); 'ok'`);
+      chk(name, 'C1 reopened', 'CONTROL: O&M reopened PB27 and is still on it, its deltas read against it', J([X.ev(`cycCellOf(blGet('PB|2027')).s`), X.ev('MS.cycle'), X.ev('MS.cycleRef')]), J(['open', 'PB|2027', 'PB|2027']));
+      chk(name, 'C1 reopened', 'PPBE cycles offers no "Retag as BES28", which would move nothing', X.btn('#blBody button[onclick="cycRetagNext()"]'), 'none');
+      chk(name, 'C1 reopened', 'it says the lock was reopened, and to lock it again', /Nothing to retag as BES28 yet — O&M has reopened PB27: lock it again, then retag\./.test(X.ev(`document.getElementById('blBody').textContent`)), true);
+      X.ev(`window.__q=[]; cycRetagNext(); 'ok'`);
+      chk(name, 'C1 reopened', 'and the retag, reached anyway, says reopened, not "has not locked"', J([X.ev('window.__q.length'), /O&M has reopened PB27: lock it again, then retag\./.test(X.stat())]), J([0, true])); }
+    // ---------------------------------------------------------------- C1: reopened told apart in the question and the line; C5
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')), prio27sp: J(store('PB|2027', 'S')), 'prio27sp-cyc': J(reopened('sp', 'S')), prio27opn: J(store('PB|2027', 'N')) });
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); window.__q=[]; cycRetagNext(); 'ok'`);
+      const q = X.ev('window.__q[0]||""');
+      chk(name, 'C1 the question', 'Initial Spares (reopened) is told apart from OPN (never locked), row by row and in the line',
+        J([/• Initial Spares — PB27, NOT retagged: has reopened PB27: lock it again on its own board, then retag/.test(q), /• OPN — PB27, NOT retagged: has not locked PB27: lock it on its own board, then retag/.test(q),
+          /OPN has not locked PB27, and Initial Spares has reopened it: lock each on its own board, then retag\./.test(q), /OPN has not locked PB27, and Initial Spares has reopened it/.test(X.stat())]), J([true, true, true, true])); }
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')), prio27opn: J(store('PB|2027', 'N')) });
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); window.__q=[]; cycRetagNext(); 'ok'`);
+      chk(name, 'C5', 'one left: "lock it on its own board", not "on its board"', /OPN has not locked PB27: lock it on its own board, then retag\./.test(X.ev('window.__q[0]||""')), true); }
+    // ---------------------------------------------------------------- C2: the count is what OK writes
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')), 'prio27ff.base': J({ file: 1, folder: {}, dirty: true }) });
+      X.ev(`PUBS.ff=${J(store('PB|2027', 'F', T2))}; _cycAllMemo=null; blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'C2 unsaved', 'CONTROL: Full Fund has locked PB27, and this browser holds Full Fund work behind its newer file', J([X.ev(`cycCellOf(cycStoreOf('ff').c.cycles['PB|2027']).s`), X.tag('prio27ff')]), J(['locked', 'PB|2027']));
+      chk(name, 'C2 unsaved', 'the button counts only what OK writes: O&M, not Full Fund', X.btn('#shareStat button[onclick="cycRetagNext()"]'), '🏷 Retag 1 of 2 as BES28');
+      X.ev(`window.__q=[]; cycRetagNext(); 'ok'`);
+      const q = X.ev('window.__q[0]||""');
+      chk(name, 'C2 unsaved', 'CONTROL: the question still names Full Fund and why, and OK writes the one it said',
+        J([/^Retag 1 appropriation as BES28\?/.test(q), /• Full Fund — NOT changed: this browser holds Full Fund work the saved file does not have/.test(q), X.ev('MS.cycle'), X.tag('prio27ff')]),
+        J([true, true, 'BES|2028', 'PB|2027'])); }
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')) });
+      // (PPBE cycles closed: opened, it reads the folder's copies, and Full Fund is "reading the shared folder…" until it answers)
+      X.ev(`driveStoreOn=function(){ return true; }; _apFold=null; _cycAllMemo=null; blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'C2 shared folder', 'working out of the shared folder, Full Fund is moved on its own board, so the button counts O&M alone', X.btn('#shareStat button[onclick="cycRetagNext()"]'), '🏷 Retag 1 of 2 as BES28');
+      X.ev(`window.__q=[]; cycRetagNext(); 'ok'`);
+      chk(name, 'C2 shared folder', 'CONTROL: and OK moves O&M alone, naming Full Fund in the question', J([/^Retag 1 appropriation as BES28\?/.test(X.ev('window.__q[0]||""')), /• Full Fund — PB27: moved on its own board/.test(X.ev('window.__q[0]||""')), X.ev('MS.cycle'), X.tag('prio27ff')]),
+        J([true, true, 'BES|2028', 'PB|2027'])); }
+    // ---------------------------------------------------------------- C3: a lock reopened in another tab while the question is open
+    { const X = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')) });
+      X.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      X.ev(`window.confirm=function(m){ localStorage.setItem('prio27ff-cyc', ${J(J(reopened('ff', 'F')))}); return true; }; cycRetagNext(); 'ok'`);
+      chk(name, 'C3', 'Full Fund, its PB27 reopened in another tab while the question was open, is left on PB27; O&M moves',
+        J([X.tag('prio27ff'), X.ev('MS.cycle')]), J(['PB|2027', 'BES|2028']));
+      chk(name, 'C3', 'and the line names it, with the way out', /Full Fund had its PB27 lock reopened in another tab while the question was open: lock it again on its own board, then retag/.test(X.stat()), true);
+      const Y = board({ prio27ff: J(store('PB|2027', 'F')), 'prio27ff-cyc': J(lock('ff', 'F')) });
+      Y.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      Y.ev(`window.confirm=function(m){ localStorage.setItem('prio27ff-cyc', ${J(J(lock('ff', 'F', T2)))}); return true; }; cycRetagNext(); 'ok'`);
+      chk(name, 'C3', 'CONTROL: its lock store written again while the question was open, still locked, it moves', J([Y.tag('prio27ff'), Y.ev('MS.cycle')]), J(['BES|2028', 'BES|2028'])); }
+    // ---------------------------------------------------------------- C4: the Lock target starts on the plan's own cycle
+    { const X = board({}, 'BES|2028');
+      X.ev(`blOpen=true; render(); 'ok'`);
+      chk(name, 'C4', 'PPBE cycles opens on a plan on BES28 offering to lock BES28, not PB27', J([X.ev('blCyc'), X.ev('String(blYr)'), X.btn('#blBody button[onclick="cycLock()"]')]), J(['BES', '2028', '🔒 Lock O&M FY27 as BES28']));
+      X.ev(`window.__q=[]; document.querySelector('#blBody button[onclick="cycLock()"]').click(); 'ok'`);
+      chk(name, 'C4', 'and that lock is taken', J([X.ev('window.__q.length'), X.ev(`String(!!(blGet('BES|2028')||{}).locked)`), X.ev('MS.cycle')]), J([1, 'true', 'BES|2028']));
+      const R = board({}, 'BES|2028');
+      R.ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+      chk(name, 'C4', 'PB27 chosen on a plan on BES28 is refused, naming the lock of the cycle the plan is on as a way out',
+        /Tag this board PB27 under PPBE cycles \(Working plan is tagged\), lock, then retag\. Or choose BES28 above to lock the cycle the plan is on\./.test(R.stat()), true);
+      const U = board({}, '');
+      U.ev(`blOpen=true; render(); 'ok'`);
+      chk(name, 'C4', 'CONTROL: an untagged plan opens on PB of the year on screen, as before', J([U.ev('blCyc'), U.ev('String(blYr)')]), J(['PB', '2027'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.15 review RV-C ====
+// ==== v2.15 review RV-D ====
+// v2.15 review RV-D (D1): A CLIN REQUEST FIGURE HAS ONE READER (clinFig, through clinAskIn), the import check's own reading. A request
+// held as text -- ['5','7'], ['1,000','$2,000'], both taken by the door -- was read three ways: W4 summed it with +v (so '1,000' read as
+// nothing), clinVec seeded the grid with the text itself and clinSvcTot joined it ('5'+'7' read $57 for $12), so the drill's Allocation
+// line was wrong and Set row from grid wrote $507 into the row allocation. FAILS ON dbfc7c4: the Allocation lines, Set row from grid, the
+// $3,000 request (read as 0), an edited request in text, a stored grid in text, the split and the null request said on opening.
+// CONTROLs: the fixture; a request held as numbers; the door takes a null request.
+await (async () => {
+  const name = 'v2.15 review RV-D — a CLIN request held as text is read as figures everywhere: the drill, Set row from grid, the split (D1)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: [0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mk('A', [500, 500]), mk('B', [5000, 5000]), mk('C', [500, 0]), mk('D', [3000, 0]), mk('G', [400, 0]), mk('N', [100, 0])],
+      disc: [20000, 20000], mand: [0, 0], order: ['A', 'B', 'C', 'D', 'G', 'N'] });
+    B.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'PRIME', B:'PRIME', C:'PRIME', D:'PRIME', G:'PRIME', N:'PRIME'};
+      CLINS.D=[{clin:'0001', desc:'Base', ccar:'', ask:[1, 1]}];
+      S.clinNew={A:[{key:'n1', clin:'0001', desc:'Text', ccar:'', ask:['5','7']}], B:[{key:'n1', clin:'0002', desc:'Commas', ccar:'', ask:['1,000','$2,000']}],
+        C:[{key:'n1', clin:'0003', desc:'Two', ccar:'', ask:['1,000', 0]}, {key:'n2', clin:'0004', desc:'Lines', ccar:'', ask:['$3,000', 0]}],
+        G:[{key:'n1', clin:'0006', desc:'Grid', ccar:'', ask:[9, 9]}], N:[{key:'n1', clin:'0007', desc:'Numbers', ccar:'', ask:[5, 7]}]};
+      S.clinMeta={D:{b0:{ask:['2,000','$500']}}};
+      S.clinAlloc={G:{n1:['5','7']}};
+      applyState(S); save(); render(); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: the door takes every one of these requests', B.ev(`String(inboundCheck(JSON.stringify({clinNew:S.clinNew, clinMeta:S.clinMeta}))||'(accepted)')`), '(accepted)');
+    // the drill, as drawn: each CLIN's Request line and Allocation line
+    const drill = id => JSON.parse(B.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=clinTable(itemById(${J(id)}));
+      return JSON.stringify([[].map.call(d.querySelectorAll('tr.creq td.ct'), function(x){ return x.textContent; }), [].map.call(d.querySelectorAll('tr.calloc td.ct'), function(x){ return x.textContent; })]); })()`));
+    const fm = v => B.ev(`fM(${v})`);
+    chk(name, 'the drill', 'A (5, 7): the Request line and the Allocation line both read $12', J(drill('A')), J([[fm(12)], [fm(12)]]));
+    chk(name, 'the drill', 'B (1,000, $2,000): the Request line and the Allocation line both read $3,000', J(drill('B')), J([[fm(3000)], [fm(3000)]]));
+    chk(name, 'the request', 'clinAskTot and primeReq read B’s $3,000, never 0', B.ev(`JSON.stringify([clinAskTot(clinList('B')[0]), primeReq('B'), primeReq('A')])`), J([3000, 3000, 12]));
+    chk(name, 'the request', 'an edited request held as text (D’s base CLIN) reads $2,500', B.ev(`JSON.stringify([clinList('D')[0].ask, primeReq('D')])`), J([[2000, 500], 2500]));
+    chk(name, 'the grid', 'the grid seeded from a request in text holds numbers', B.ev(`JSON.stringify([S.clinAlloc.A.n1, S.clinAlloc.B.n1])`), J([[5, 7], [1000, 2000]]));
+    chk(name, 'the grid', 'a grid stored in text (from before v2.15) adds as figures: $5 and $7, not 57', B.ev(`JSON.stringify(clinSvcTot('G'))`), J([5, 7]));
+    chk(name, 'the grid', 'and the drill’s Allocation line reads it $12 (Request $18), the grid then held as numbers', J([drill('G'), B.ev(`JSON.stringify(S.clinAlloc.G.n1)`)]), J([[[fm(18)], [fm(12)]], J([5, 7])]));
+    chk(name, 'the split', 'C’s money splits by its two text requests, 1,000 and $3,000: $400 is $100 and $300', B.ev(`JSON.stringify(clinSplit('C', 0, 400).map(function(x){ return x.part; }))`), J([100, 300]));
+    B.ev(`clinToRow('A'); clinToRow('B'); 'ok'`);
+    chk(name, 'Set row from grid', 'writes $12 for A (5 and 7) and $3,000 for B, by service', B.ev(`JSON.stringify([S.alloc.A, S.alloc.B])`), J([{ m: 's', v: [5, 7] }, { m: 's', v: [1000, 2000] }]));
+    chk(name, 'a CONTROL', 'a request held as numbers reads as before', B.ev(`JSON.stringify([primeReq('N'), clinSvcTot('N')])`), J([12, [5, 7]]));
+    // a null request (the door takes it; an older file may carry one): read as none, and opening says nothing of it
+    B.ev(`S.clinNew.N=[{key:'n1', clin:'0007', desc:'Null', ccar:'', ask:null}]; applyState(S); save(); 'ok'`);
+    chk(name, 'a null request', 'CONTROL: the door takes it', B.ev(`String(inboundCheck(JSON.stringify({clinNew:{N:[{key:'n1', clin:'0007', ask:null}]}}))||'(accepted)')`), '(accepted)');
+    const R = boot({ html: B.ev('buildSavedHtml()') });
+    chk(name, 'a null request', 'opening reads it as no request and says nothing of it', J([R.ev(`primeReq('N')`), +R.ev(`(STAT_LOG||[]).filter(function(m){ return /CLIN request/.test(m.html); }).length`)]), J([0, 0]));
+    for (const [w, X] of [['board', B], ['reopened', R]]) if (X.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', X.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 review RV-D (D2): A LINE FILED BY PLACE KEEPS THE REASON IT WAS RECORDED WITH. jrnlPlaceTitle judged the year as it stands now:
+// a line this version filed by place because ids repeated read "Recorded before v2.14" once the repeat was gone, and a genuinely old
+// place line read as filed for a repeat once one appeared. FAILS ON dbfc7c4: both titles. CONTROL: the fixture's place line.
+await (async () => {
+  const name = 'v2.15 review RV-D — a line filed by place says why it was, whatever the year holds now (D2)';
+  try {
+    const J = JSON.stringify;
+    const REP = 'Recorded by its place in the list of added requirements, because an id is on that year’s list more than once. Put back now, it could land on another requirement, so it is not offered.';
+    const OLD = 'Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.';
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Pat'); window.confirm=function(){ return true; }; window.alert=function(){};
+      window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+    const later = () => B.ev(`window.__tk+=61000; 'ok'`);
+    B.ev(`(function(){ reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); })(); 'ok'`);
+    later(); B.ev(`var c=JSON.parse(JSON.stringify(S.custom[1])); c.title='Y twin'; S.custom.push(c); MS.years[MS.cur].custom=S.custom; save(); 'ok'`);
+    later(); B.ev(`S.custom[2].ask[0]=11; save(); 'ok'`);
+    const placeLines = () => JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p[0]==='custom' && typeof e.p[1]==='number'; }).map(function(e){ return e.p; }))`));
+    chk(name, 'the fixture', 'CONTROL: the edit in a year whose ids repeat is filed by place', J(placeLines().some(p => J(p) === J(['custom', 2, 'ask', 0]))), 'true');
+    const titles = () => JSON.parse(B.ev(`(function(){ jrnlOpen=true; render(); jrnlBody(); var r=[].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here' && /place/.test(s.getAttribute('title')||''); }).map(function(s){ return s.getAttribute('title'); }); jrnlOpen=false; render(); return JSON.stringify(r); })()`));
+    // the repeat is mended: the twin taken out. The lines recorded because ids repeated still say so
+    later(); B.ev(`S.custom.splice(2,1); MS.years[MS.cur].custom=S.custom; save(); 'ok'`);
+    const t1 = titles();
+    chk(name, 'the repeat mended', 'the lines this version filed by place still say ids repeated, never “Recorded before v2.14”', J([t1.length > 0, t1.filter(t => t === OLD).length, t1.every(t => t === REP)]), J([true, 0, true]));
+    // a genuinely old place line (v2.13's shape, no reason recorded), then the year's ids repeat again: before v2.14, as it was
+    later(); B.ev(`MS.jrnl.push({t:Date.now(), by:'Old', fy:MS.cur, p:['custom',0,'title'], a:'a', b:'b'}); var c=JSON.parse(JSON.stringify(S.custom[1])); S.custom.push(c); MS.years[MS.cur].custom=S.custom; 'ok'`);
+    const t2 = titles();
+    chk(name, 'an old line', 'a place line recorded before v2.14 says so, though the year now repeats an id', J([t2.filter(t => t === OLD).length, t2.filter(t => t === REP).length === t1.length]), J([1, true]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 review RV-D (D3): THE GUIDE NAMES NO DECK. Its spend-plan paragraph said the deck's chart agrees month by month with the
+// forecast; the deck was removed in v2.05 (item 114). FAILS ON dbfc7c4. CONTROL: the paragraph is there, naming the surfaces that remain.
+await (async () => {
+  const name = 'v2.15 review RV-D — the guide names no deck, removed in v2.05 (D3)';
+  try {
+    const B = boot();
+    const t = B.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=document.getElementById('helpDoc').innerHTML; return d.textContent; })()`);
+    chk(name, 'the guide', 'CONTROL: the spend-plan paragraph is there', /the 1A9A return and the Spend Plan Source agree month by month/.test(t), true);
+    chk(name, 'the guide', 'nothing in it names the deck or its chart', (t.match(/\bdeck\b[^.]{0,40}/gi) || []).join(' | '), '');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.15 review RV-D ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

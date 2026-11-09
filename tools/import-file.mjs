@@ -130,8 +130,10 @@ const open = async (ctx, name, o = {}) => {
   return { p, dialogs, errs };
 };
 const lsOf = p => p.evaluate(() => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); } return o; });
-// what storage holds, by key and length; this browser's writer key aside (the write makes one where storage had none)
-const lens = o => J(Object.keys(o).filter(k => k !== 'prio27writerKey').sort().map(k => [k, o[k].length]));
+// what storage holds, BYTE FOR BYTE; this browser's writer key aside (the write makes one where storage had none).
+// v2.15 W3 (item 146, tests 1): it compared key names and value lengths (lens()) -- a list rewritten at the same length (a figure
+// changed for another of the same width) passed "byte-identical".
+const bytes = o => J(Object.keys(o).filter(k => k !== 'prio27writerKey').sort().map(k => [k, o[k]]));
 const doImport = async (p, name) => { await p.setInputFiles('#fullFile', join(dir, name || SRCN)); await p.waitForFunction(() => /Nothing was imported|Full board imported/.test((document.getElementById('shareStat') || {}).textContent || ''), null, { timeout: 60000 }); await p.waitForTimeout(300); };
 const writeBtn = p => p.$('#impFileGo');
 // Write, pressed as a person presses it. Since W3's lsMarksBack is in (contract C2, C9), a refused import leaves the page as saved as
@@ -161,7 +163,7 @@ console.log('\nA. the refusal offers the file');
   const ctx = await newCtx(); const { p, dialogs } = await open(ctx, PROGN);
   const ls0 = await lsOf(p); await doImport(p);
   chk('A · Brad’s alert no longer appears', !dialogs.some(d => /^alert: Nothing was imported from “ORBIT Live\.html” — browser storage refused/.test(d)), J(dialogs));
-  chk('A · storage byte-identical', lens(await lsOf(p)) === lens(ls0));
+  chk('A · storage byte-identical', bytes(await lsOf(p)) === bytes(ls0));
   const btn = await writeBtn(p);
   chk('A · the box offers Write the imported board into a new file…', !!btn && /Write the imported board into a new file/.test(await btn.textContent()));
   await ctx.close(); }
@@ -218,7 +220,7 @@ console.log('\nD. a failure after the pick; leaving while a write is held');
   await doImport(p); const ls0 = await lsOf(p);
   await goWrite(p);
   await p.waitForFunction(() => /could not be written into/.test((document.getElementById('shareStat') || {}).textContent || ''), null, { timeout: 60000 });
-  chk('D · nothing cleared, no note', lens(await lsOf(p)) === lens(ls0) && !(await p.evaluate(() => localStorage.getItem('prio27impFile'))));
+  chk('D · nothing cleared, no note', bytes(await lsOf(p)) === bytes(ls0) && !(await p.evaluate(() => localStorage.getItem('prio27impFile'))));
   const got = {};
   for (const [re, k] of [[/the imported board \(new version\)/, 'html'], [/the file you imported/, 'inc']]) {
     const dl = p.waitForEvent('download', { timeout: 20000 });
@@ -301,7 +303,7 @@ async function gtk() {
   console.log('  …  the message line: ' + String(await p.textContent('#shareStat')).slice(0, 160));
   chk('gtk · the save window was asked for with user activation', J(await p.evaluate(() => window.__ua)) === '[true]');
   chk('gtk · the source on disk is 0 bytes now (a CONTROL: Chromium emptied it)', statSync(join(dir, SRCN)).size === 0, statSync(join(dir, SRCN)).size);
-  chk('gtk · storage byte-identical, no note', lens(await lsOf(p)) === lens(ls0) && !(await p.evaluate(() => localStorage.getItem('prio27impFile'))));
+  chk('gtk · storage byte-identical, no note', bytes(await lsOf(p)) === bytes(ls0) && !(await p.evaluate(() => localStorage.getItem('prio27impFile'))));
   chk('gtk · no reopening', p.url() === nav0);
   const got = {};
   for (const [re, k] of [[/the imported board \(new version\)/, 'html'], [/the file you imported/, 'inc']]) {
