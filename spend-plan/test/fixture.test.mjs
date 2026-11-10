@@ -14,7 +14,7 @@
 //
 //   node spend-plan/test/fixture.test.mjs
 import { spawnSync } from 'node:child_process';
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -270,6 +270,139 @@ function readCsv(text) {
   return rows;
 }
 
+// ======================================================================================== §14 the BAE report
+// Restated from CONTRACT §14.8 and the real report's shape, never imported from the fixture or the tool.
+const BAE_HEADERS = ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount ($M)', 'Budget Authorized Amount ($M)',
+  'Budget Service', 'APPN AF', 'APPN SFIS', 'BA SFIS', 'BLI SFIS', 'BPAC', 'BSA SFIS', 'Budget Exec Years', 'Budget Flex 01',
+  'Budget Flex 02', 'Budget Flex 03', 'Budget Office', 'DEPT AF', 'DEPT SFIS', 'Limit AF', 'Limit SFIS', 'OBAN', 'PEC',
+  'PEC SFIS', 'RCCC', 'Cost Element', 'Project Description', 'Variant', 'Navy PU'];
+const BAE_FMT = '$#,##0.000,,_);($#,##0.000,,)';
+const AP_ORDER = ['om', 'ff', 'sp', 'opn'];
+const blockOrder = (a, b) => AP_ORDER.indexOf(a.split('|')[0]) - AP_ORDER.indexOf(b.split('|')[0]) || +a.split('|')[1] - +b.split('|')[1];
+const add = (o, k, f, v) => { const t = o[k] = o[k] || { approved: 0, authorized: 0, obligated: 0 }; t[f] += v; return t; };
+
+// What §14.2–14.5 make of the generator's own record of a pull and a report, for given settings: the manifest-side
+// answer the oracle's reading of the FILES is held to. The pull side reuses fromManifest; budgets' PMOs are the
+// generator's hand-stated ones (manifest.bae.budgetPmo and each report row's pmo), never the rule run on the name.
+function baeExpect(pull, bae, budgetPmo, o) {
+  const { first, svcOff = [], lanes = ['disc', 'mand'], auth = {} } = o;
+  const P = fromManifest(pull, o);
+  const E = P.W.E;
+  const data = bae.filter(r => r.kind === 'data');
+  const good = data.filter(r => !r.bad.length);
+  const shown = r => !svcOff.includes(r.svc) && lanes.includes(r.lane);
+  const counting = r => !r.bad.length && r.scope === 'in' && r.fy >= first && shown(r);
+  const covered = new Set(good.filter(r => r.scope === 'in').map(r => r.ap + '|' + r.fy));
+  const blocks = {};
+  for (const [k, pb] of Object.entries(P.blocks)) {
+    const cov = covered.has(k);
+    const rep = data.filter(r => counting(r) && r.ap + '|' + r.fy === k);
+    const planned = pb.approved;
+    const approved = cov ? sum(rep.map(r => r.approved)) : planned;
+    const entered = k in auth;
+    const authorized = entered ? auth[k] : cov ? sum(rep.map(r => r.authorized)) : approved;
+    const tabs = {};
+    for (const r of pb.rows) add(tabs, r.pmo || '(no PMO)', 'approved', 0);           // every PMO with a pull row
+    if (cov) {
+      for (const r of rep) { add(tabs, r.pmo, 'approved', r.approved); add(tabs, r.pmo, 'authorized', r.authorized); }
+      for (const r of pb.rows) if (r.status === 'exec') add(tabs, budgetPmo[r.budget], 'obligated', r.cents);
+    } else {
+      for (const r of pb.rows) {
+        add(tabs, r.pmo || '(no PMO)', 'approved', r.cents); add(tabs, r.pmo || '(no PMO)', 'authorized', r.cents);
+        if (r.status === 'exec') add(tabs, r.pmo || '(no PMO)', 'obligated', r.cents);
+      }
+    }
+    blocks[k] = { covered: cov, planned, approved, approvedSrc: cov ? 'report' : 'plan', authorized,
+      authorizedSrc: entered ? 'entered' : cov ? 'report' : 'approved', authorizedEntered: entered, obligated: pb.obligated,
+      unobligated: approved - pb.obligated, planShort: cov && approved > 0 && 2 * planned < approved, tabs };
+  }
+  const keys = Object.keys(blocks).sort(blockOrder);
+  const nb = {};
+  for (const r of data) if (counting(r) && r.fy <= E && !(r.ap + '|' + r.fy in blocks)) {
+    const t = nb[r.ap + '|' + r.fy] = nb[r.ap + '|' + r.fy] || { approved: 0, authorized: 0, money: false };
+    t.approved += r.approved; t.authorized += r.authorized; t.money = t.money || r.approved !== 0 || r.authorized !== 0;
+  }
+  const reportNames = new Set(data.filter(r => r.name).map(r => normKey(r.name)));
+  const pullNames = new Set(pull.map(r => normKey(r.budget)));
+  const pullOnly = new Set(Object.values(P.blocks).flatMap(b => b.rows).map(r => normKey(r.budget)).filter(n => !reportNames.has(n)));
+  const ins = good.filter(r => r.scope === 'in');
+  const reportOnly = new Set(ins.filter(r => r.fy >= first && r.fy <= E && (r.approved || r.authorized) && !pullNames.has(normKey(r.name))).map(r => normKey(r.name)));
+  const tot = bae.find(r => r.kind === 'total');
+  const diff = tot && { approved: Math.round(tot.approved * 100) - sum(good.map(r => r.approved)),
+    authorized: Math.round(tot.authorized * 100) - sum(good.map(r => r.authorized)) };
+  const why = r => r.bad.length ? 'Could not be read' : r.scope === 'flyaway' ? 'Flyaway (production)'
+    : r.scope === 'noap' ? 'Names no appropriation' : r.fy < first ? 'Before the first FY' : shown(r) ? 'Yes' : 'Switch off';
+  return { P, E, blocks,
+    lists: {
+      rows: { in: ins.length, flyaway: good.filter(r => r.scope === 'flyaway').length, noap: good.filter(r => r.scope === 'noap').length,
+        bad: data.length - good.length },
+      skipped: bae.filter(r => r.kind === 'skip').length,
+      cents: { approved: sum(ins.map(r => r.approved)), authorized: sum(ins.map(r => r.authorized)) },
+      total: diff && { ok: Math.abs(diff.approved) <= 100 && Math.abs(diff.authorized) <= 100, diff },
+      uncovered: keys.filter(k => !blocks[k].covered).map(k => ({ ap: k.split('|')[0], fy: +k.split('|')[1] })),
+      noBlock: Object.keys(nb).sort(blockOrder).filter(k => nb[k].money).map(k => ({ ap: k.split('|')[0], fy: +k.split('|')[1],
+        approved: nb[k].approved, authorized: nb[k].authorized })),
+      planShort: keys.filter(k => blocks[k].planShort).map(k => ({ ap: k.split('|')[0], fy: +k.split('|')[1],
+        planned: blocks[k].planned, approved: blocks[k].approved })),
+      pullOnly: [...pullOnly].sort(), reportOnly: [...reportOnly].sort(),
+      unreadable: data.filter(r => r.bad.length).map(r => ({ rowNo: r.row, name: r.name || '', bad: r.bad })),
+      counted: data.map(r => [r.row, why(r)]) } };
+}
+
+// §14.6 diffBae from the generator's record of the two reports: per (ap, fy), and the budgets new, gone and changed
+function baeDiffExpect(r0, r1) {
+  const side = rows => {
+    const blocks = {}, figs = {}, present = new Set();
+    for (const r of rows) {
+      if (r.kind !== 'data' || !r.name || r.scope !== 'in') continue;
+      const k = normKey(r.name);
+      present.add(k);
+      if (r.bad.length) continue;
+      const b = blocks[r.ap + '|' + r.fy] = blocks[r.ap + '|' + r.fy] || [0, 0];
+      b[0] += r.approved; b[1] += r.authorized;
+      figs[k] = figs[k] || {};
+      const f = figs[k][r.fy] = figs[k][r.fy] || [0, 0];
+      f[0] += r.approved; f[1] += r.authorized;
+    }
+    return { blocks, figs, present };
+  };
+  const a = side(r0), b = side(r1);
+  const byBlock = {};
+  for (const k of [...new Set([...Object.keys(a.blocks), ...Object.keys(b.blocks)])].sort()) {
+    const x = a.blocks[k] || [0, 0], y = b.blocks[k] || [0, 0];
+    byBlock[k] = { approved: [x[0], y[0]], authorized: [x[1], y[1]] };
+  }
+  const tot = (f, i) => sum(Object.values(f || {}).map(v => v[i]));
+  const ent = k => ({ key: k, approved: [tot(a.figs[k], 0), tot(b.figs[k], 0)], authorized: [tot(a.figs[k], 1), tot(b.figs[k], 1)] });
+  return { byBlock,
+    budgetsNew: [...b.present].filter(k => !a.present.has(k)).sort().map(ent),
+    budgetsGone: [...a.present].filter(k => !b.present.has(k)).sort().map(ent),
+    budgetsChanged: [...a.present].filter(k => b.present.has(k) && JSON.stringify(canon(a.figs[k] || {})) !== JSON.stringify(canon(b.figs[k] || {}))).sort().map(ent) };
+}
+
+// the report file as openpyxl reads it on its own: header row, headers, the money cells' formats and texts, the total
+const BAE_SHAPE_PY = `
+import json, sys, openpyxl
+wb = openpyxl.load_workbook(sys.argv[1])
+ws = wb.worksheets[0]
+rows = list(ws.iter_rows())
+hi = next(i for i, r in enumerate(rows[:15]) if any(c.value is not None and 'Budget Name' in str(c.value) for c in r))
+hdr = [c.value for c in rows[hi]]
+col = lambda pre: next(j for j, h in enumerate(hdr) if str(h).strip().startswith(pre))
+ca, cu = col('Budget Approved'), col('Budget Authorized')
+data, last = rows[hi + 1:-1], rows[-1]
+def kind(v): return 'none' if v is None else ('text' if isinstance(v, str) else 'number')
+nums = lambda j: sum(r[j].value for r in data if isinstance(r[j].value, (int, float)) and not isinstance(r[j].value, bool))
+print(json.dumps({'sheets': wb.sheetnames, 'headerRow': hi + 1, 'headers': hdr, 'freeze': ws.freeze_panes,
+  'formats': sorted({r[j].number_format for r in data for j in (ca, cu) if r[j].value is not None}),
+  'texts': [sorted({r[j].value for r in data if isinstance(r[j].value, str)}) for j in (ca, cu)],
+  'zeros': [sum(1 for r in data if r[j].value == '$0.000') for j in (ca, cu)],
+  'kinds': [sorted({type(r[j].value).__name__ for r in data if r[j].value is not None}) for j in (ca, cu)],
+  'lastRow': [kind(last[col(n)].value) for n in ('Budget Name', 'Budget FY', 'Budget Approved', 'Budget Authorized')],
+  'lastIs': last[0].row, 'maxRow': ws.max_row,
+  'totalMinusSum': [last[ca].value - nums(ca), last[cu].value - nums(cu)]}))
+`;
+
 // ===================================================================================================================
 const S = scratchDir('sfcbsp-fixture-');
 try {
@@ -277,7 +410,7 @@ try {
   const man = makeFixture(A);
   makeFixture(B);
   // ---------------------------------------------------------------------------------------------- determinism
-  const files = () => ['pull-all.xlsx', 'pull-om.xlsx', 'pull-ff.csv', 'pull-sp-opn.xlsx', 'gen2/pull-om.xlsx', 'gen2/pull-ff.csv', 'manifest.json'];
+  const files = () => ['pull-all.xlsx', 'pull-om.xlsx', 'pull-ff.csv', 'pull-sp-opn.xlsx', 'gen2/pull-om.xlsx', 'gen2/pull-ff.csv', 'bae.xlsx', 'gen2/bae.xlsx', 'manifest.json'];
   const h = (d, f) => createHash('sha256').update(readFileSync(join(d, f))).digest('hex');
   for (const f of files()) chk('the same seed writes the same bytes: ' + f, h(A, f) === h(B, f));
   chk('about 600 rows', man.gen1.length >= 550 && man.gen1.length <= 700, String(man.gen1.length));
@@ -435,6 +568,192 @@ try {
       ['sp|2025', 'sp|2026', 'sp|2027', 'opn|2026', 'opn|2027'].map(k => ex.all.blocks[k].approved));
   }
 
+  // ======================================================================== §14 the BAE report (CONTRACT §14.8)
+  const BM = man.bae, R1 = BM.gen1, R2 = BM.gen2;
+  const D1 = R1.filter(r => r.kind === 'data'), D2 = R2.filter(r => r.kind === 'data');
+  const rowsG2 = [...man.gen2, ...g1.filter(r => r.tab === 'sp' || r.tab === 'opn')];
+  // ---------------------------------------------------------- the two report files, as openpyxl reads them on its own
+  const shapeOf = (dir, f) => { const r = py(['-c', BAE_SHAPE_PY, join(dir, f)]); return r.status === 0 ? JSON.parse(r.stdout) : (chk('read ' + f, false, r.stderr.slice(-400)), null); };
+  const sh1 = shapeOf(A, 'bae.xlsx'), sh2 = shapeOf(A, 'gen2/bae.xlsx');
+  if (sh1) {
+    eq('bae.xlsx: one sheet, named as the real report\'s is', sh1.sheets, ['Sheet1']);
+    eq('bae.xlsx: the header on row 1', sh1.headerRow, 1);
+    eq('bae.xlsx: the real report\'s 28 headers, in its order', sh1.headers, BAE_HEADERS);
+    eq('bae.xlsx: frozen under the header', sh1.freeze, 'A2');
+    eq('bae.xlsx: every money cell carries the $M display format', sh1.formats, [BAE_FMT]);
+    eq('bae.xlsx: the texts among the amounts are the report\'s zero and the one unreadable figure', sh1.texts, [['$0.000', '$1.250'], ['$0.000']]);
+    chk('bae.xlsx: $0.000 text zeros in both money columns', sh1.zeros[0] >= 1 && sh1.zeros[1] >= 10, JSON.stringify(sh1.zeros));
+    eq('bae.xlsx: amounts are whole-dollar and fractional numbers besides those texts', sh1.kinds, [['float', 'int', 'str'], ['float', 'int', 'str']]);
+    eq('bae.xlsx: the last row is the total row: no name, no FY, two amounts', [sh1.lastRow, sh1.lastIs === sh1.maxRow], [['none', 'none', 'number', 'number'], true]);
+    chk('bae.xlsx: the total row is the sum of every number above it', sh1.totalMinusSum.every(d => Math.abs(d) < 0.005), JSON.stringify(sh1.totalMinusSum));
+  }
+  if (sh2) {
+    const h2 = sh2.headers.map(h => String(h));
+    eq('gen2/bae.xlsx: the header on row 3, under two lines', sh2.headerRow, 3);
+    chk('gen2/bae.xlsx: "Budget FY" in place of "Budget FY Numeric"', h2.includes('Budget FY') && !h2.includes('Budget FY Numeric'));
+    chk('gen2/bae.xlsx: Authorized without its unit, and before Approved', h2.includes('Budget Authorized Amount') &&
+      h2.indexOf('Budget Authorized Amount') < h2.indexOf('Budget Approved Amount ($M)'));
+    chk('gen2/bae.xlsx: a header with a trailing space', h2.includes('Budget Name '));
+    eq('gen2/bae.xlsx: the same 28 columns', h2.map(h => h.trim()).map(h => ({ 'Budget FY': 'Budget FY Numeric', 'Budget Authorized Amount': 'Budget Authorized Amount ($M)' })[h] || h).sort(), [...BAE_HEADERS].sort());
+    chk('gen2/bae.xlsx: the total row is the sum of every number above it, the unreadable rows\' too', sh2.totalMinusSum.every(d => Math.abs(d) < 0.005), JSON.stringify(sh2.totalMinusSum));
+    eq('gen2/bae.xlsx: the total row is last: no name, no FY, two amounts', [sh2.lastIs === sh2.maxRow, sh2.lastRow], [true, ['none', 'none', 'number', 'number']]);
+  }
+
+  // ------------------------------------------- coverage: every case §14.8 lists is really in the report, counted
+  const cnt = (what, n, min = 1) => chk(`the BAE fixture holds ${what} (${n})`, n >= min, String(n));
+  const pullBud = new Set(g1.map(r => r.budget)), repBud = new Set(D1.map(r => r.name));
+  const inGood = D1.filter(r => r.scope === 'in' && !r.bad.length);
+  cnt('rows of budgets the pull uses', D1.filter(r => pullBud.has(r.name)).length, 20);
+  cnt('Flyaway rows', D1.filter(r => r.scope === 'flyaway').length, 3);
+  cnt('a Flyaway name spelt in capitals', D1.filter(r => r.scope === 'flyaway' && /FLYAWAY/.test(r.name)).length);
+  for (const [w, re] of [['Advance Procurement', /Advance Procurement/], ['Modifications', /Modifications/], ['RDT&E', /RDT&E/], ['a squadron', /Squadron/]])
+    cnt('a name that places no appropriation: ' + w, D1.filter(r => r.scope === 'noap' && re.test(r.name)).length);
+  cnt('budgets the pull does not use, with money in FY2025–2027', new Set(inGood.filter(r => !pullBud.has(r.name) && r.fy >= 2025 && r.fy <= 2027 && (r.approved || r.authorized)).map(r => r.name)).size, 3);
+  cnt('a sustainment budget the pull counts and the report lacks', new Set(g1.filter(r => r.ap && !r.bad.length && r.fy >= 2025 &&
+    BM.names[r.budget] && BM.names[r.budget].scope === 'in' && !repBud.has(r.budget)).map(r => r.budget)).size);
+  cnt('a budget the pull counts by its sheet, which no report row can carry', new Set(g1.filter(r => r.ap && !r.bad.length && r.fy >= 2025 && !BM.names[r.budget]).map(r => r.budget)).size);
+  for (const s of [...SERVICES, UNK]) cnt('an in-scope report row of service ' + s, inGood.filter(r => r.svc === s).length);
+  for (const l of ['disc', 'mand']) cnt('an in-scope report row in lane ' + l, inGood.filter(r => r.lane === l).length);
+  cnt('a budget whose PMO code differs from its rows\' PMO column', new Set(g1.filter(r => r.ap && !r.bad.length && r.fy >= 2025 &&
+    BM.budgetPmo[r.budget] !== (r.pmo || '(no PMO)') && inGood.some(x => x.name === r.budget && x.fy === r.fy)).map(r => r.budget)).size);
+  cnt('an in-scope budget with no PMO code', new Set(inGood.filter(r => r.pmo === '(no PMO)').map(r => r.name)).size, 3);
+  cnt('a PMO code in lower case', inGood.filter(r => / mxs$/.test(r.name) && r.pmo === 'Maintenance Systems (MxS)').length);
+  cnt('a budget whose PMO is known only from the pull', inGood.filter(r => r.pmo === 'Sustainment Analytics (SA)').length);
+  const XA = baeExpect(g1, R1, BM.budgetPmo, { asOf: '2026-10', first: 2025 });
+  cnt('blocks the report does not cover', XA.lists.uncovered.length, 2);
+  const only = (ap, fy, pred) => D1.some(r => r.ap === ap && r.fy === fy) && D1.filter(r => r.ap === ap && r.fy === fy).every(pred);
+  chk('the BAE fixture holds a block whose only report rows are Flyaway (Full Fund FY2025)', only('ff', 2025, r => r.scope === 'flyaway'));
+  chk('the BAE fixture holds a block whose only report row cannot be read (Initial Spares FY2025)', only('sp', 2025, r => r.bad.length > 0));
+  cnt('an (ap, fy) with report money and no block (with E = 2028)', baeExpect(g1, R1, BM.budgetPmo, { asOf: '2027-10', first: 2025 }).lists.noBlock.length);
+  cnt('an unreadable amount', D1.filter(r => r.bad.includes('Approved') || r.bad.includes('Authorized')).length);
+  cnt('planShort blocks', XA.lists.planShort.length, 2);
+  cnt('a planShort block with a plan', XA.lists.planShort.filter(p => p.planned > 0).length);
+  cnt('a covered block reading Approved $0 with USAF off', Object.values(baeExpect(g1, R1, BM.budgetPmo, { asOf: '2026-10', first: 2025, svcOff: ['USAF'] }).blocks)
+    .filter(b => b.covered && b.approved === 0 && b.planned !== 0).length);
+  for (const f of ['int', 'cents', 'subcent']) cnt('amounts written as ' + f, D1.filter(r => r.forms.approved === f || r.forms.authorized === f).length, 2);
+  cnt('an Approved written as the text $0.000', D1.filter(r => r.forms.approved === '$0.000').length);
+  cnt('Authorized written as the text $0.000', D1.filter(r => r.forms.authorized === '$0.000').length, 10);
+  cnt('an Authorized above its Approved', inGood.filter(r => r.authorized > r.approved).length);
+  cnt('an Authorized short of its Approved, not zero', inGood.filter(r => r.authorized && r.authorized < r.approved).length);
+  cnt('a non-zero amount under $100,000', inGood.filter(r => [r.approved, r.authorized].some(c => c && Math.abs(c) < 100000_00)).length);
+  cnt('report rows for FY2028 and later', inGood.filter(r => r.fy >= 2028).length, 5);
+  cnt('a total row', R1.filter(r => r.kind === 'total').length);
+  const DX = baeDiffExpect(R1, R2);
+  for (const k of ['budgetsNew', 'budgetsGone', 'budgetsChanged']) cnt('gen2: ' + k, DX[k].length);
+  cnt('gen2: an FY that cannot be read', D2.filter(r => r.bad.includes('FY')).length);
+  cnt('gen2: a row with no Budget Name', D2.filter(r => r.bad.includes('Budget Name')).length);
+  cnt('gen2: a row blank in the four columns the tool reads', R2.filter(r => r.kind === 'skip').length);
+  chk('gen2: the total row differs from the readable rows, by the unreadable rows\' money', (() => {
+    const t = baeExpect(rowsG2, R2, BM.budgetPmo, { asOf: '2026-10', first: 2025 }).lists.total;
+    return t && !t.ok && t.diff.approved === sum(D2.filter(r => r.bad.length).map(r => r.approved || 0)); })());
+
+  // ------------------------------------- the oracle's reading of the files, against the manifest and the plain runs
+  const ENT = { 'om|2026': 39876543210, 'sp|2025': 8000000000 };
+  const plainRun = (dir, name, args) => {
+    const out = join(dir, 'exp', 'plain-' + name + '.json');
+    const r = py([ORACLE, '--files', join(dir, 'pull-all.xlsx'), ...args, '--out', out]);
+    return r.status === 0 ? JSON.parse(readFileSync(out, 'utf8')) : (chk('plain run ' + name, false, r.stderr.slice(-400)), null);
+  };
+  const PLAN = ['n', 'curve', 'goal', 'unprog', 'execAfterAsOf', 'cols', 'cum', 'obl', 'goalC', 'statusC', 'pmos', 'titles', 'pes', 'ccars', 'na'];
+  const TOP = ['asOf', 'E', 'firstFY', 'asOfIndex', 'window', 'special', 'shown', 'showNoDate', 'excluded', 'execAfterAsOf', 'rowsByAp', 'crossChecks'];
+  function compareBae(tag, exp, X, plain) {
+    if (!exp || !plain) return;
+    eq(tag + ': the blocks are the pull\'s (a report adds none)', Object.keys(exp.blocks).sort(), Object.keys(plain.blocks).sort());
+    eq(tag + ': the blocks the manifest makes', Object.keys(exp.blocks).sort(), Object.keys(X.blocks).sort());
+    for (const f of TOP) eq(`${tag}: ${f} is the plain run's`, exp[f], plain[f]);
+    for (const [k, b] of Object.entries(exp.blocks)) {
+      const x = X.blocks[k], p = plain.blocks[k], t = `${tag} ${k}`;
+      if (!x || !p) continue;
+      for (const f of ['covered', 'planned', 'approved', 'approvedSrc', 'authorized', 'authorizedSrc', 'authorizedEntered', 'obligated', 'unobligated', 'planShort'])
+        eq(`${t}: ${f}`, b[f], x[f]);
+      eq(t + ': planned is the plain run\'s Approved', b.planned, p.approved);
+      for (const f of PLAN) eq(`${t}: ${f} stays on the plan`, b[f], p[f]);
+      eq(t + ': the slide figures are the plain run\'s headline', b.slide, { basis: p.approved, oblPct: p.oblPct, goal: p.goal, delta: p.delta, status: p.status });
+      const pct = b.approved ? b.obligated / b.approved : null;
+      chk(t + ': Obl % = obligated / Approved (the report\'s)', close(b.oblPct, pct), String(b.oblPct));
+      chk(t + ': delta', close(b.delta, pct !== null && b.goal !== null ? pct - b.goal : null), String(b.delta));
+      eq(t + ': status on that Obl %', b.status, statusOf(pct, b.goal));
+      eq(t + ': marks', b.marks, { sect: !x.covered, dagger: x.authorizedSrc === 'approved', ddagger: x.authorizedEntered && !exp.shown.all });
+      // §14.4 the PMO rows: budgets' figures on a covered block, rows' on another; the detail stays on the plan
+      const tabs = Object.fromEntries(Object.entries(exp.pmoTabs).filter(([, tb]) => tb[k]).map(([l, tb]) => [l, tb[k]]));
+      eq(t + ': which PMOs have a row', Object.keys(tabs).sort(), Object.keys(x.tabs).sort());
+      for (const [l, tr] of Object.entries(tabs)) {
+        const w = x.tabs[l];
+        if (!w) continue;
+        eq(`${t} PMO ${l}: Approved, Authorized, Obligated, basis`, [tr.approved, tr.authorized, tr.obligated, tr.basis, tr.sect],
+          [w.approved, w.authorized, w.obligated, x.covered ? 'budget' : 'row', !x.covered]);
+        chk(`${t} PMO ${l}: Obl % and status`, close(tr.oblPct, tr.approved ? tr.obligated / tr.approved : null) &&
+          tr.status === statusOf(tr.oblPct, b.goal), JSON.stringify([tr.oblPct, tr.status]));
+        const pd = plain.pmoTabs[l] && plain.pmoTabs[l][k];
+        eq(`${t} PMO ${l}: its detail is the plain run's`, [tr.planned, tr.cols, tr.na, tr.unprog, tr.execAfterAsOf],
+          pd ? [pd.approved, pd.cols, pd.na, pd.unprog, pd.execAfterAsOf] : [0, Object.fromEntries(COLS.map(c => [c, 0])), [], 0, 0]);
+      }
+    }
+    const blocks = Object.values(exp.blocks);
+    const totals = bs => ({ approved: sum(bs.map(b => b.approved)), planned: sum(bs.map(b => b.planned)), authorized: sum(bs.map(b => b.authorized)),
+      obligated: sum(bs.map(b => b.obligated)), unobligated: sum(bs.map(b => b.unobligated)) });
+    const s = totals(blocks);
+    eq(tag + ': the summary adds the blocks', ['approved', 'planned', 'authorized', 'obligated', 'unobligated'].map(f => exp.summary[f]), Object.values(s));
+    eq(tag + ': the summary\'s planned is the plain run\'s Approved', exp.summary.planned, plain.summary.approved);
+    chk(tag + ': the summary\'s Obl % is over the report\'s Approved', close(exp.summary.oblPct, s.approved ? s.obligated / s.approved : null));
+    for (const ap of Object.keys(exp.aps)) eq(`${tag}: the ${ap} total adds its blocks`, ['approved', 'planned', 'authorized', 'obligated', 'unobligated'].map(f => exp.aps[ap][f]),
+      Object.values(totals(blocks.filter(b => b.ap === ap))));
+    for (const f of ['rows', 'skipped', 'cents', 'total', 'uncovered', 'noBlock', 'planShort', 'pullOnly', 'reportOnly', 'unreadable', 'counted'])
+      eq(`${tag}: model.bae.${f}`, exp.bae[f], X.lists[f]);
+  }
+  const BAE_SC = {
+    'bae-all': [{ asOf: '2026-10', first: 2025 }, () => ex.all, R1, g1],
+    'bae-usaf-off': [{ asOf: '2026-10', first: 2025, svcOff: ['USAF'] }, () => ex['usaf-off'], R1, g1],
+    'bae-mand-only': [{ asOf: '2026-10', first: 2025, lanes: ['mand'] }, () => ex['mand-only'], R1, g1],
+    'bae-entered': [{ asOf: '2026-10', first: 2025, auth: ENT }, () => ex.all, R1, g1],
+    'bae-entered-off': [{ asOf: '2026-10', first: 2025, auth: ENT, svcOff: ['USN (USN CV)'] }, () => plainRun(A, 'usn-off', ['--svc-off', 'USN (USN CV)']), R1, g1],
+    'bae-asof-2027-10': [{ asOf: '2027-10', first: 2025 }, () => plainRun(A, 'asof-2027-10', ['--asof', '2027-10']), R1, g1],
+    'bae-gen2': [{ asOf: '2026-10', first: 2025 }, () => ex.gen2, R2, rowsG2] };
+  const exB = {};
+  for (const [s, [o, plain, rep, pull]] of Object.entries(BAE_SC)) {
+    exB[s] = oracle(A, s);
+    compareBae(s, exB[s], baeExpect(pull, rep, BM.budgetPmo, o), plain());
+    if (exB[s]) eq(s + ': the settings it was run with', [exB[s].input.svcOff, exB[s].input.authorized || {}], [o.svcOff || [], o.auth || {}]);
+  }
+  if (exB['bae-all']) {
+    const b = exB['bae-all'].bae;
+    eq('bae-all: the report as read', [b.present, b.file, b.sheet, b.stamp, b.headerRow], [true, 'bae.xlsx', 'Sheet1', null, 1]);
+    // a typed Authorized wins for its block alone, covered or not, and moves nothing else
+    const e = exB['bae-entered'];
+    if (e) for (const [k, x] of Object.entries(exB['bae-all'].blocks)) {
+      const y = e.blocks[k];
+      if (k in ENT) eq('bae-entered ' + k + ': the typed figure, marked as entered', [y.authorized, y.authorizedSrc, y.authorizedEntered, y.approved], [ENT[k], 'entered', true, x.approved]);
+      else eq('bae-entered ' + k + ': unchanged', y, x);
+    }
+    if (e) for (const [l, tb] of Object.entries(exB['bae-all'].pmoTabs)) eq('bae-entered: a typed Authorized is never split to PMOs (' + l + ')', e.pmoTabs[l], tb);
+    const o = exB['bae-entered-off'];
+    if (o) eq('bae-entered-off: ‡ on the typed figures alone, while a switch is off', Object.keys(o.blocks).filter(k => o.blocks[k].marks.ddagger).sort(), Object.keys(ENT).sort());
+  }
+  if (exB['bae-gen2']) {
+    const g = exB['bae-gen2'], ch = BM.gen2Changes;
+    eq('bae-gen2: the later report is the one read', [g.bae.file, g.bae.headerRow, g.bae.skipped], ['bae.xlsx', 3, 1]);
+    eq('bae-gen2: the pull diff is the plain gen2 run\'s', g.diff, ex.gen2 && ex.gen2.diff);
+    eq('bae-gen2: diffBae per (ap, fy)', g.diffBae.byBlock, DX.byBlock);
+    for (const k of ['budgetsNew', 'budgetsGone', 'budgetsChanged']) {
+      eq('bae-gen2: diffBae ' + k, g.diffBae[k].map(e => ({ key: e.key, approved: e.approved, authorized: e.authorized })).sort((a, b) => a.key < b.key ? -1 : 1), DX[k]);
+      const sz = g.diffBae[k].map(e => e.size);
+      chk('bae-gen2: ' + k + ' largest change first', sz.every((v, i) => !i || sz[i - 1] >= v), JSON.stringify(sz));
+    }
+    eq('bae-gen2: the budget gone and the budget new are the generator\'s', [g.diffBae.budgetsGone.map(e => e.key), g.diffBae.budgetsNew.map(e => e.key)],
+      [[normKey(ch.gone)], [normKey(ch.new)]]);
+    chk('bae-gen2: Full Fund FY2025 is covered now', g.blocks['ff|2025'].covered && !exB['bae-all'].blocks['ff|2025'].covered);
+  }
+  {  // §14.1: the report's date from a file name ending _YYYY-MM-DD_HHMMSS (the contract's own example), else none
+    const named = join(S.dir, 'Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000.xlsx');
+    writeFileSync(named, readFileSync(join(A, 'bae.xlsx')));
+    const out = join(S.dir, 'stamp.json');
+    const r = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), named, '--out', out]);
+    const j = r.status === 0 ? JSON.parse(readFileSync(out, 'utf8')) : null;
+    eq('the report\'s date is read from its file name', j && j.bae && [j.bae.stamp, j.bae.file], ['2026-01-31 12:00', 'Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000.xlsx']);
+    eq('…and only the name changed: the same figures as bae-all', j && exB['bae-all'] && JSON.stringify(j.blocks) === JSON.stringify(exB['bae-all'].blocks), true);
+  }
+  if (exB['bae-asof-2027-10']) eq('bae-asof-2027-10: report money with no block, FY2028', exB['bae-asof-2027-10'].bae.noBlock.map(n => n.ap + '|' + n.fy), ['ff|2028', 'sp|2028', 'opn|2028']);
+
   // ---------------------------------------------------------------------------- refusals (§3: nothing changes)
   {
     const r1 = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), join(A, 'pull-all.xlsx'), '--out', join(S.dir, 'r1.json')]);
@@ -444,6 +763,11 @@ try {
     const j2 = existsSync(join(S.dir, 'r2.json')) ? JSON.parse(readFileSync(join(S.dir, 'r2.json'), 'utf8')) : {};
     chk('O&M from two sheets is refused, naming both', r2.status === 3 && /O&M Raw Data/.test(j2.refused || '') && /Report/.test(j2.refused || ''),
       (j2.refused || r2.stderr).slice(0, 300));
+    // §14.1: two report sheets in one import refuse the whole import, naming both
+    const r3 = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), join(A, 'bae.xlsx'), join(A, 'gen2', 'bae.xlsx'), '--out', join(S.dir, 'r3.json')]);
+    const j3 = existsSync(join(S.dir, 'r3.json')) ? JSON.parse(readFileSync(join(S.dir, 'r3.json'), 'utf8')) : {};
+    chk('two BAE reports in one import are refused, naming both', r3.status === 3 && (j3.refused || '').split('bae.xlsx').length === 3,
+      (j3.refused || r3.stderr).slice(0, 300));
   }
 
   // ------------------------------------------------- LibreOffice reads the 1904 file and the shared strings on its own
@@ -472,6 +796,39 @@ try {
       chk('LibreOffice reads every O&M row of ' + f + ' with the dates and titles the manifest states', n >= 200 && !bad.length,
         n + ' rows; ' + bad.slice(0, 5).join('; '));
     }
+    // the BAE reports: LibreOffice shows each money cell through the report's own format, $M to three decimals, so
+    // every figure it prints must be the manifest's dollars over a million (and a text stays the text it is)
+    for (const [f, rows] of [['bae.xlsx', R1], ['gen2/bae.xlsx', R2]]) {
+      const od = join(S.dir, 'lo-' + f.replace(/\W/g, '_'));
+      mkdirSync(od, { recursive: true });
+      spawnSync('soffice', ['-env:UserInstallation=file://' + join(S.dir, 'loprof'), '--headless', '--convert-to',
+        'csv:Text - txt - csv (StarCalc):44,34,76,1', '--outdir', od, join(A, f)], { encoding: 'utf8', timeout: 180000 });
+      const p = join(od, 'bae.csv');
+      if (!existsSync(p)) { chk('LibreOffice converted ' + f, false); continue; }
+      const lines = readCsv(readFileSync(p, 'utf8'));
+      const hdrRow = rows.find(r => r.kind !== 'total').row - 1;          // the row above the first written row
+      const hdr = lines[hdrRow - 1].map(h => h.trim());
+      const ci = pre => hdr.findIndex(h => h.startsWith(pre));
+      const [ia, iu, iname] = [ci('Budget Approved'), ci('Budget Authorized'), ci('Budget Name')];
+      const shownM = s => { const t = s.trim(); const neg = /^\(.*\)$/.test(t); const v = +t.replace(/[()$,]/g, ''); return neg ? -v : v; };
+      const bad = [];
+      let n = 0;
+      for (const r of rows) {
+        const line = lines[r.row - 1] || [];
+        if (r.kind === 'skip') continue;
+        n++;
+        for (const [k, i] of [['approved', ia], ['authorized', iu]]) {
+          const form = r.kind === 'data' ? r.forms[k] : 'total';
+          if (typeof form === 'string' && form.startsWith('$')) { if (line[i] !== form) bad.push(r.row + ' ' + k + ' ' + line[i]); continue; }
+          const cents = r.kind === 'total' ? r[k] * 100 : r[k];
+          if (!(Math.abs(shownM(line[i]) * 1e8 - cents) <= 0.0005e8 + 1)) bad.push(r.row + ' ' + k + ' shows ' + line[i] + ' for ' + cents);
+        }
+        if (r.kind === 'total' && line[iname] !== '') bad.push('the total row has a name: ' + line[iname]);
+      }
+      eq('LibreOffice reads the 28 headers of ' + f, hdr.map(h => h.trim()).length, 28);
+      chk('LibreOffice shows every amount of ' + f + ' as the manifest\'s dollars in $M, the total row included', n >= 100 && !bad.length,
+        n + ' rows; ' + bad.slice(0, 5).join('; '));
+    }
   } else {
     console.log('  (LibreOffice not found: the independent read of the fixture is skipped)');
   }
@@ -487,6 +844,17 @@ try {
       delete all7.input; delete e.input;
       chk('seed 7 layout: the same rows in other layouts give the same values', JSON.stringify(all7) === JSON.stringify(e));
     }
+  }
+  // the BAE report built on another pull: the design holds whatever rows the seed draws
+  {
+    const B7 = man7.bae, g7 = man7.gen1;
+    const r7g2 = [...man7.gen2, ...g7.filter(r => r.tab === 'sp' || r.tab === 'opn')];
+    const a7 = JSON.parse(readFileSync(join(C, 'exp', 'all.json'), 'utf8'));
+    compareBae('seed 7 bae-all', oracle(C, 'bae-all'), baeExpect(g7, B7.gen1, B7.budgetPmo, { asOf: '2026-10', first: 2025 }), a7);
+    compareBae('seed 7 bae-gen2', oracle(C, 'bae-gen2'), baeExpect(r7g2, B7.gen2, B7.budgetPmo, { asOf: '2026-10', first: 2025 }), oracle(C, 'gen2'));
+    const X7 = baeExpect(g7, B7.gen1, B7.budgetPmo, { asOf: '2026-10', first: 2025 });
+    chk('seed 7: still uncovered blocks, planShort blocks and a report-only budget', X7.lists.uncovered.length >= 2 &&
+      X7.lists.planShort.length >= 1 && X7.lists.reportOnly.length >= 3, JSON.stringify([X7.lists.uncovered, X7.lists.planShort.length]));
   }
 } catch (e) {
   chk('the test ran to the end', false, e && e.stack || String(e));

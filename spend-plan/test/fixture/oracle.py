@@ -9,8 +9,10 @@
 #   python3 -I oracle.py --files F1 [F2 ...] [--then G1 G2 ...] --asof YYYY-MM --first YYYY
 #                        [--svc-off NAME ...] [--lanes both|disc|mand] [--special CCAR ...] [--settings S.json]
 #                        --out expected.json [--summary]
-#   python3 -I oracle.py --scenario all|usaf-off|mand-only|disc-only|asof-2026-03|first-2024|gen2|layout
+#   python3 -I oracle.py --scenario all|usaf-off|mand-only|disc-only|asof-2026-03|first-2024|gen2|layout|
+#                        bae-all|bae-usaf-off|bae-mand-only|bae-entered|bae-entered-off|bae-asof-2027-10|bae-gen2
 #                        --fixture DIR --out expected.json
+# A BAE report is one of the --files (or --then): it is known by its headers (§14.1), never by its name.
 #
 # Run it with python3 -I: a pull is untrusted input, and -I keeps a planted module beside a file from being imported.
 # Nothing is executed from a file; openpyxl reads cached values only (data_only) and never evaluates a formula.
@@ -47,7 +49,11 @@
 #   crossChecks {bySvc|byLane|byStatus: {"ap|fy": {key: c}}}   NOT in the tool's model: for this suite's own checks
 #   diff (only with --then) {ap: {byBlock {"ap|fy": {approved [before, after], obligated [before, after]}},
 #             ccarsNew [normKeys], ccarsGone [normKeys], pmoMoves [[ccar normKey, from PMO label, to PMO label]]}}
-#   refusedThen (only when the --then import was refused), input {files, then, svcOff, lanes}
+#   refusedThen (only when the --then import was refused), input {files, then, svcOff, lanes[, authorized]}
+# With a BAE report among the files (§14; CONTRACT §14.8 lists every key), and only then, each block also carries
+#   planned, approvedSrc, covered, authorizedSrc, slide {basis, oblPct, goal, delta, status}, planShort, marks, and its
+#   approved, authorized, unobligated, oblPct, delta and status follow §14.3; pmoTabs follow §14.4 (basis, sect,
+#   planned); aps and summary add planned and marks; "bae" is model.bae; "diffBae" follows a second report.
 # A refused first import writes {"refused": why, "stage": "files"} instead, and exits 3.
 import argparse
 import csv
@@ -55,6 +61,7 @@ import datetime as dt
 import hashlib
 import io
 import json
+import math
 import os
 import re
 import sys
@@ -341,11 +348,19 @@ def parse_files(paths):
     formula = {norm_key(h) for h in FORMULA_COLS}
     rows_out = []                 # every data row, in file order, sheet order, row order (§3 Row order)
     report = {'files': [], 'skippedBlank': 0, 'unreadable': [], 'refusedFiles': []}
+    bae_sheets = []               # §14.1: (file index, path, sheet, its rows, header index, header row)
     for fi, p in enumerate(paths):
         sheets, date1904 = read_file(p)
         frep = {'name': os.path.basename(p), 'sheets': []}
         usable = 0
         for sname, src in sheets:
+            # §14.1: a sheet holding the report's four headers is a BAE report sheet, even when it is a pull sheet too
+            bi, bhrow, _bb = find_bae_header(iter_sheet_rows(src))
+            if bi is not None:
+                usable += 1
+                bae_sheets.append((fi, p, sname, src, bi, bhrow))
+                frep['sheets'].append({'name': sname, 'used': True, 'bae': True, 'headerRow': bi + 1})
+                continue
             it = iter_sheet_rows(src)
             hi, hrow, _buf = find_header(it)
             if hi is None:
@@ -398,7 +413,139 @@ def parse_files(paths):
             parts = ['%s / %s: %d rows' % (os.path.basename(paths[fi]), sh, n) for (fi, sh), n in srcs.items()]
             raise Refused('%s rows come from more than one sheet (%s); one sheet per appropriation per import'
                           % (AP_LABEL[ap], '; '.join(parts)))
-    return {'pulls': pulls, 'report': report}
+    if len(bae_sheets) > 1:
+        raise Refused('more than one BAE report sheet in one import (%s); one report per import'
+                      % '; '.join('%s / %s' % (os.path.basename(s[1]), s[2]) for s in bae_sheets))
+    bae = read_bae(*bae_sheets[0]) if bae_sheets else None
+    return {'pulls': pulls, 'report': report, 'bae': bae}
+
+
+# ------------------------------------------------------------------------------------------- §14.1 the BAE report
+BAE_FIELDS = (('name', ('budget name',)), ('fy', ('budget fy numeric', 'budget fy')),
+              ('approved', ('budget approved amount',)), ('authorized', ('budget authorized amount',)))
+BAE_TINY = 10_000_000          # $100,000 in cents: a report whose every non-zero amount is under it is refused
+
+
+def bae_header_key(v):
+    """§14.1: a header compared by normKey after a trailing unit in parentheses is taken off ('… Amount ($M)')."""
+    s = '' if v is None else str(v)
+    return norm_key(re.sub(r'\([^()]*\)\s*$', '', s.rstrip()))
+
+
+def find_bae_header(rows_iter):
+    """§14.1: the first row within the first 15 holding Budget Name, Budget FY Numeric (or Budget FY), Budget Approved
+    Amount and Budget Authorized Amount. -> (index, row, buffered) or (None, None, buffered)."""
+    buffered = []
+    for i, r in enumerate(rows_iter):
+        buffered.append(r)
+        keys = {bae_header_key(c) for c in r if not is_blank(c)}
+        if all(any(a in keys for a in aliases) for _f, aliases in BAE_FIELDS):
+            return i, r, buffered
+        if i >= 14:
+            break
+    return None, None, buffered
+
+
+def js_round(x):
+    # JavaScript's Math.round: the nearest whole number, ties toward +infinity. x - floor(x) is exact for these doubles.
+    f = math.floor(x)
+    return int(f) + (1 if x - f >= 0.5 else 0)
+
+
+def bae_amount(v):
+    """§14.1 -> (cents | None, how). A number cell is dollars to the cent: Math.round(v*100). A text the §2 parseAmount
+    reads as zero (the report's own '$0.000') is 0, a conversion; any other text cannot be read: its unit cannot be
+    known. READING: a blank amount cell reads as 0, as parseAmount reads a blank (the fixture writes none)."""
+    if v is None:
+        return 0, 'blank'
+    if isinstance(v, bool) or isinstance(v, (dt.datetime, dt.date)):
+        return None, 'bad'
+    if isinstance(v, (int, float)):
+        if v != v or v in (float('inf'), float('-inf')):
+            return None, 'bad'
+        return js_round(v * 100), 'number'
+    if isinstance(v, str):
+        if v.strip() == '':
+            return 0, 'blank'
+        c, _how = parse_amount(v)
+        return (0, 'textZero') if c == 0 else (None, 'text')
+    return None, 'bad'
+
+
+def bae_stamp(fname):
+    """§14.1: the report's date from a file name ending _YYYY-MM-DD_HHMMSS ('…2026-01-31_120000.xlsx' -> '2026-01-31
+    12:00'), else None."""
+    m = re.search(r'_(\d{4}-\d{2}-\d{2})_(\d{2})(\d{2})(\d{2})\.[^.]+$', fname)
+    return '%s %s:%s' % (m.group(1), m.group(2), m.group(3)) if m else None
+
+
+def read_bae(fi, path, sname, src, hi, hrow):
+    """§14.1, one report sheet -> its rows, every one either skipped (blank in all four columns the tool reads), the
+    report's own total row, or a budget row (readable, or unreadable with its reasons)."""
+    cols = {}
+    for f, aliases in BAE_FIELDS:
+        for a in aliases:                          # READING: 'Budget FY Numeric' first, else 'Budget FY'
+            for ci, hv in enumerate(hrow):
+                if not is_blank(hv) and bae_header_key(hv) == a:
+                    cols.setdefault(f, ci)
+            if f in cols:
+                break
+    it = iter_sheet_rows(src)
+    raw, skipped, row_no = [], 0, 0
+    for r in it:
+        row_no += 1
+        if row_no <= hi + 1:
+            continue
+        vals = {f: (r[ci] if ci < len(r) else None) for f, ci in cols.items()}
+        if all(is_blank(v) for v in vals.values()):
+            skipped += 1
+            continue
+        raw.append((row_no, vals))
+    # §14.1 the total row: no Budget Name and no FY, holding amounts, after the last budget row. READING: the first
+    # such row after the last named row; any other row with no Budget Name is unreadable.
+    last_named = max([i for i, (_n, v) in enumerate(raw) if js_string(v['name']).strip() != ''], default=-1)
+    total_i = next((i for i, (_n, v) in enumerate(raw) if i > last_named and is_blank(v['name']) and is_blank(v['fy'])
+                    and not (is_blank(v['approved']) and is_blank(v['authorized']))), None)
+    rows, conv = [], {'approved': 0, 'authorized': 0}
+    total = None
+    for i, (rn, v) in enumerate(raw):
+        a, ah = bae_amount(v['approved'])
+        u, uh = bae_amount(v['authorized'])
+        if i == total_i:
+            total = {'approved': a, 'authorized': u, 'rowNo': rn}
+            continue
+        name = js_string(v['name']).strip()
+        fy = parse_fy(v['fy'])
+        bad = []
+        if name == '':
+            bad.append('Budget Name')
+        if fy is None:
+            bad.append('FY')
+        if a is None:
+            bad.append('Approved')
+        if u is None:
+            bad.append('Authorized')
+        # READING: every '$0.000' read is a conversion, in a row that reads or not (each is a cell read as zero)
+        conv['approved'] += ah == 'textZero'
+        conv['authorized'] += uh == 'textZero'
+        rows.append({'rowNo': rn, 'name': name, 'fy': fy, 'approved': a, 'authorized': u, 'bad': bad})
+    good = [x for x in rows if not x['bad']]
+    if not good:
+        raise Refused('the BAE report %s / %s has no readable row' % (os.path.basename(path), sname))
+    nz = [c for x in good for c in (x['approved'], x['authorized']) if c != 0]
+    # READING: "every non-zero amount" is over the readable rows; a report with none non-zero is not refused by this
+    if nz and all(abs(c) < BAE_TINY for c in nz):
+        raise Refused('every amount in the BAE report %s is under $100,000: it looks exported in $M, not dollars'
+                      % os.path.basename(path))
+    check = None
+    if total is not None and total['approved'] is not None and total['authorized'] is not None:
+        diff = {'approved': total['approved'] - sum(x['approved'] for x in good),
+                'authorized': total['authorized'] - sum(x['authorized'] for x in good)}
+        # §14.1: within $1 each (a sum of floating-point dollars); diff = the total row less the readable rows
+        check = {'ok': abs(diff['approved']) <= 100 and abs(diff['authorized']) <= 100, 'diff': diff}
+    return {'fi': fi, 'file': os.path.basename(path), 'sheet': sname, 'stamp': bae_stamp(os.path.basename(path)),
+            'headerRow': hi + 1, 'headers': [js_string(h) for h in hrow], 'rows': rows, 'skipped': skipped,
+            'conversions': conv, 'total': total, 'totalCheck': check}
 
 
 def type_row(vals, extras, src, date1904):
@@ -709,6 +856,7 @@ def build(state, settings, view):
     out['shown']['all'] = all(view['svc'].get(s, True) for s in exist) and \
         all(view['lane'].get(l, True) for l in ('disc', 'mand'))
     blocks = {}
+    block_rows = {}       # the counted rows of each block (for §14 alone; nothing above reads it)
     excluded = {'beforeFirst': 0, 'beforeFirstRows': 0, 'beforeFirstByFy': {}, 'unidentified': 0,
                 'unidentifiedRows': 0, 'unreadableRows': 0}
     after_c = after_n = 0
@@ -726,6 +874,7 @@ def build(state, settings, view):
             b.update(m.tree(brows))
             b['na'] = m.na_items(brows)
             blocks['%s|%d' % (ap, fy)] = b
+            block_rows['%s|%d' % (ap, fy)] = brows
             for r in brows:
                 pmo_rows.setdefault(r['k']['pmo'], {}).setdefault('%s|%d' % (ap, fy), []).append(r)
                 if r['date'] == '':
@@ -798,6 +947,8 @@ def build(state, settings, view):
                 d[k] = d.get(k, 0) + r['cents']
     out['crossChecks'] = cross
     out['rowsByAp'] = {ap: len(state['current'][ap]) for ap in AP_IDS + ['unidentified'] if ap in state['current']}
+    if (state.get('bae') or {}).get('current'):
+        bae_extend(out, m, derived, block_rows, pmo_rows, state, settings)
     return out
 
 
@@ -852,6 +1003,280 @@ def diff_pulls(prev, cur, settings):
     return res
 
 
+# --------------------------------------------------------------------------------------------- §14.2 a budget row
+def bae_scope(name):
+    """(ap, scope): ap by the §3 Budget rule alone (no sheet name); scope 'flyaway' when the name holds the word
+    Flyaway (READING: in any case, as every other name rule of §3 is), else 'noap' when no appropriation, else 'in'."""
+    ap = ap_of_budget(name) if name else None
+    if re.search(r'\bflyaway\b', name or '', re.I):
+        return ap, 'flyaway'
+    return ap, ('noap' if ap is None else 'in')
+
+
+def pmo_code_index(derived):
+    """§14.2 the PMOs a budget's last word is compared with: SP.PMO_ORDER's, then every PMO in the pull. READING:
+    'every PMO in the pull' is every PMO named on any row of the current pulls of the four appropriations, whatever
+    the switches, the FY or whether the row reads, labelled by its majority spelling (§4.4) and coded by §4.6; so a
+    switch never changes which PMO a budget belongs to. -> [(key, label, code)] in that order of comparison."""
+    known = [norm_key(l) for l in PMO_ORDER]
+    idx = [(norm_key(l), l, pmo_code(l)) for l in PMO_ORDER]
+    by = {}
+    for ap in AP_IDS:
+        for r in derived[ap]:
+            by.setdefault(r['k']['pmo'], []).append(r)
+    others = []
+    for pk, rows in by.items():
+        if pk == '' or pk in known:
+            continue
+        lbl = label_of(sorted(rows, key=lambda r: r['_i']), 'pmo', '(no PMO)')
+        others.append((pmo_sort_key(pk, lbl), pk, lbl))
+    idx += [(pk, lbl, pmo_code(lbl)) for _s, pk, lbl in sorted(others)]
+    return idx, by
+
+
+def budget_pmo(name, idx):
+    """§14.2: the last word of the trimmed name, compared without case against each PMO's code; else (no PMO), key ''."""
+    w = (name or '').strip().split()
+    last = w[-1].lower() if w else None
+    for pk, _lbl, code in idx:
+        if last is not None and code.lower() == last:
+            return pk
+    return ''
+
+
+def bae_derive_rows(bae, settings, idx):
+    out = []
+    for x in bae['rows']:
+        d = dict(x)
+        d['key'] = norm_key(x['name'])
+        d['ap'], d['scope'] = bae_scope(x['name'])
+        d['svc'], d['lane'] = svc_of(x['name'], settings), lane_of(x['name'], settings)
+        d['pmo'] = budget_pmo(x['name'], idx)
+        out.append(d)
+    return out
+
+
+# ---------------------------------------------------------------------------- §14.3–14.5 the model with a report
+def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings):
+    bae = state['bae']['current']
+    first, E = settings['firstFY'], m.E
+    shown_all = out['shown']['all']
+    idx, by_pk = pmo_code_index(derived)
+    rows = bae_derive_rows(bae, settings, idx)
+
+    def counting(x):        # §14.2: readable, in scope, fy >= firstFY, and the switches show its service and lane
+        return not x['bad'] and x['scope'] == 'in' and x['fy'] >= first and m.shown(x)
+    for x in rows:
+        x['counts'] = counting(x)
+    covered = {(x['ap'], x['fy']) for x in rows if not x['bad'] and x['scope'] == 'in'}   # whatever the switches
+    bp_cache = {}
+
+    def bpmo(budget):       # §14.2: every pull row's bpmo, the budget's PMO of its Budget
+        if budget not in bp_cache:
+            bp_cache[budget] = budget_pmo(budget, idx)
+        return bp_cache[budget]
+    blocks = out['blocks']
+    tab_rows = {}            # PMO key -> {block key -> figures}
+    for key, b in blocks.items():
+        ap, fy = b['ap'], b['fy']
+        cov = (ap, fy) in covered
+        rep = [x for x in rows if x['counts'] and x['ap'] == ap and x['fy'] == fy]
+        planned = b['approved']              # §14.3: the sum of the counted rows, what approved was in §4.5
+        approved = sum(x['approved'] for x in rep) if cov else planned
+        entered = key in settings['authorized']
+        if entered:
+            authorized, asrc = settings['authorized'][key], 'entered'
+        elif cov:
+            authorized, asrc = sum(x['authorized'] for x in rep), 'report'
+        else:
+            authorized, asrc = approved, 'approved'
+        obl = b['obligated']
+        pct = (obl / approved) if approved != 0 else None
+        delta = (pct - b['goal']) if (pct is not None and b['goal'] is not None) else None
+        slide = {'basis': planned, 'oblPct': b['oblPct'], 'goal': b['goal'], 'delta': b['delta'], 'status': b['status']}
+        b.update({'planned': planned, 'approved': approved, 'approvedSrc': 'report' if cov else 'plan', 'covered': cov,
+                  'authorized': authorized, 'authorizedSrc': asrc, 'authorizedEntered': entered,
+                  'unobligated': approved - obl, 'oblPct': pct, 'delta': delta, 'status': Model.status_of(pct, b['goal']),
+                  'slide': slide, 'planShort': cov and approved > 0 and 2 * planned < approved,
+                  'marks': {'sect': not cov, 'dagger': asrc == 'approved', 'ddagger': entered and not shown_all}})
+        # §14.4 the PMO rows of this block
+        brows = block_rows[key]
+        by_col = {}
+        for r in brows:
+            by_col.setdefault(r['k']['pmo'], []).append(r)
+        pks = set(by_col)
+        rep_by, obl_by = {}, {}
+        if cov:
+            for x in rep:
+                rep_by.setdefault(x['pmo'], []).append(x)
+            for r in brows:
+                if r['status'] == 'exec':
+                    obl_by[bpmo(r['budget'])] = obl_by.get(bpmo(r['budget']), 0) + r['cents']
+            pks |= set(rep_by) | set(obl_by)
+        for pk in pks:
+            prows = by_col.get(pk, [])
+            f = m.figures(ap, fy, prows)     # the detail below the table: rows by their PMO column, on the plan
+            if cov:
+                pa = sum(x['approved'] for x in rep_by.get(pk, []))
+                pu = sum(x['authorized'] for x in rep_by.get(pk, []))
+                po = obl_by.get(pk, 0)
+                basis = 'budget'
+            else:
+                pa, po, basis = f['approved'], f['obligated'], 'row'
+                pu = pa
+            pp = (po / pa) if pa != 0 else None
+            pd = (pp - b['goal']) if (pp is not None and b['goal'] is not None) else None
+            tab_rows.setdefault(pk, {})[key] = {
+                'approved': pa, 'authorized': pu, 'obligated': po, 'unobligated': pa - po, 'oblPct': pp, 'goal': b['goal'],
+                'delta': pd, 'status': Model.status_of(pp, b['goal']), 'basis': basis, 'sect': not cov,
+                'planned': f['approved'], 'unprog': f['unprog'], 'execAfterAsOf': f['execAfterAsOf'], 'cols': f['cols'],
+                'na': m.na_items(prows)}
+
+    def plabel(pk):          # the tab's label: its counted rows' majority spelling, else the pull's, else the list's
+        if pk in pmo_rows:
+            return label_of(sorted([r for rs in pmo_rows[pk].values() for r in rs], key=lambda r: r['_i']), 'pmo', '(no PMO)')
+        if pk in by_pk:
+            return label_of(sorted(by_pk[pk], key=lambda r: r['_i']), 'pmo', '(no PMO)')
+        return next((l for l in PMO_ORDER if norm_key(l) == pk), '(no PMO)')
+    out['pmoTabs'] = {plabel(pk): t for pk, t in tab_rows.items()}
+    out['pmoCodes'] = {plabel(pk): pmo_code(plabel(pk)) for pk in tab_rows}
+    # §14.3 totals
+    fields = ('approved', 'planned', 'authorized', 'obligated', 'unobligated')
+
+    def total(bs, extra=()):
+        t = {f: sum(b[f] for b in bs) for f in fields + tuple(extra)}
+        t['oblPct'] = (t['obligated'] / t['approved']) if t['approved'] else None
+        t['marks'] = {k: any(b['marks'][k] for b in bs) for k in ('sect', 'dagger', 'ddagger')}
+        return t
+    out['aps'] = {ap: total([b for b in blocks.values() if b['ap'] == ap]) for ap in AP_IDS
+                  if any(b['ap'] == ap for b in blocks.values())}
+    out['summary'] = total(list(blocks.values()), ('unprog',))
+    # §14.5 model.bae
+    good = [x for x in rows if not x['bad']]
+    ins = [x for x in good if x['scope'] == 'in']
+    by_block = {}
+    for x in ins:
+        k = '%s|%d' % (x['ap'], x['fy'])
+        t = by_block.setdefault(k, {'approved': 0, 'authorized': 0})
+        t['approved'] += x['approved']
+        t['authorized'] += x['authorized']
+    ap_rank = {a: i for i, a in enumerate(AP_IDS)}
+    order = sorted(blocks.values(), key=lambda b: (ap_rank[b['ap']], b['fy']))
+    # READING: an (ap, fy) "the report holds counting money for" has a counting row whose Approved or Authorized is not 0
+    nb = {}
+    for x in rows:
+        if x['counts'] and first <= x['fy'] <= E and '%s|%d' % (x['ap'], x['fy']) not in blocks:
+            t = nb.setdefault((x['ap'], x['fy']), {'approved': 0, 'authorized': 0, 'money': False})
+            t['approved'] += x['approved']
+            t['authorized'] += x['authorized']
+            t['money'] = t['money'] or x['approved'] != 0 or x['authorized'] != 0
+    report_keys = {x['key'] for x in rows if x['name']}
+    pull_keys = {norm_key(r['budget']) for ap in AP_IDS + ['unidentified'] for r in derived[ap]}
+    # READING: pullOnly is every budget of a COUNTED pull row (§4.3: the switches apply) with no report row of that
+    # name at all, a name placed by its sheet included (it can have no report row in scope); a Flyaway name is not
+    # sustainment and is left out. reportOnly takes no switches: in-scope readable rows, firstFY..E, money non-zero.
+    pull_only = set()
+    for ap in AP_IDS:
+        for r in derived[ap]:
+            if m.counts(r) and not re.search(r'\bflyaway\b', r['budget'], re.I) and norm_key(r['budget']) not in report_keys:
+                pull_only.add(norm_key(r['budget']))
+    report_only = {x['key'] for x in ins if first <= x['fy'] <= E and (x['approved'] or x['authorized'])
+                   and x['key'] not in pull_keys}
+
+    def why(x):              # §14.6 the BAE Report sheet's Counted; READING: the first that applies, in §4.3's order
+        if x['bad']:
+            return 'Could not be read'
+        if x['scope'] == 'flyaway':
+            return 'Flyaway (production)'
+        if x['scope'] == 'noap':
+            return 'Names no appropriation'
+        if x['fy'] < first:
+            return 'Before the first FY'
+        return 'Yes' if m.shown(x) else 'Switch off'
+    budgets = {}
+    for x in rows:
+        if x['name'] and x['key'] not in budgets:
+            budgets[x['key']] = {'name': x['name'], 'ap': x['ap'], 'scope': x['scope'], 'svc': x['svc'],
+                                 'lane': x['lane'], 'pmo': plabel(x['pmo']) if x['pmo'] else '(no PMO)'}
+    pull_bpmo = {}
+    for ap in AP_IDS:
+        for r in derived[ap]:
+            k = norm_key(r['budget'])
+            if k not in pull_bpmo:
+                pk = bpmo(r['budget'])
+                pull_bpmo[k] = plabel(pk) if pk else '(no PMO)'
+    out['bae'] = {
+        'present': True, 'file': bae['file'], 'sheet': bae['sheet'], 'stamp': bae['stamp'], 'headerRow': bae['headerRow'],
+        'rows': {'in': len(ins), 'flyaway': sum(x['scope'] == 'flyaway' for x in good),
+                 'noap': sum(x['scope'] == 'noap' for x in good), 'bad': len(rows) - len(good)},
+        'skipped': bae['skipped'], 'conversions': bae['conversions'],
+        'cents': {'approved': sum(x['approved'] for x in ins), 'authorized': sum(x['authorized'] for x in ins)},
+        'total': bae['totalCheck'], 'totalRow': bae['total'], 'byBlock': by_block,
+        'uncovered': [{'ap': b['ap'], 'fy': b['fy']} for b in order if not b['covered']],
+        'noBlock': [{'ap': ap, 'fy': fy, 'approved': t['approved'], 'authorized': t['authorized']}
+                    for (ap, fy), t in sorted(nb.items(), key=lambda kv: (ap_rank[kv[0][0]], kv[0][1])) if t['money']],
+        'planShort': [{'ap': b['ap'], 'fy': b['fy'], 'planned': b['planned'], 'approved': b['approved']}
+                      for b in order if b['planShort']],
+        'pullOnly': sorted(pull_only), 'reportOnly': sorted(report_only),
+        'unreadable': [{'rowNo': x['rowNo'], 'name': x['name'], 'bad': x['bad']} for x in rows if x['bad']],
+        'counted': [[x['rowNo'], why(x)] for x in rows],
+        'budgets': budgets, 'pullBudgetPmo': pull_bpmo}
+
+
+def diff_bae(prev, cur, settings):
+    """§14.6 diffBae. byBlock: Approved and Authorized before and after per (ap, fy), over the readable in-scope rows,
+    every FY, no switches. budgetsNew / Gone / Changed by name (normKey). READING, each: a name is present in a report
+    when it has an in-scope row there, readable or not, as a CCaR with only unreadable rows is in its pull (§4.6), so
+    an unreadable row never makes a budget new or gone; a budget changed when any FY's Approved or Authorized moved;
+    each entry carries its totals and every FY either side holds; largest change first, the size being the larger of
+    the FY-by-FY absolute changes in Approved and in Authorized, added up; ties by name."""
+    def side(bae):
+        blocks, figs, present, names = {}, {}, set(), {}
+        for x in bae['rows']:
+            if not x['name']:
+                continue
+            ap, scope = bae_scope(x['name'])
+            if scope != 'in':
+                continue
+            k = norm_key(x['name'])
+            present.add(k)
+            names.setdefault(k, x['name'])
+            if x['bad']:
+                continue
+            bk = '%s|%d' % (ap, x['fy'])
+            t = blocks.setdefault(bk, [0, 0])
+            t[0] += x['approved']
+            t[1] += x['authorized']
+            f = figs.setdefault(k, {}).setdefault(str(x['fy']), [0, 0])
+            f[0] += x['approved']
+            f[1] += x['authorized']
+        return blocks, figs, present, names
+    b0, f0, p0, n0 = side(prev)
+    b1, f1, p1, n1 = side(cur)
+    by_block = {}
+    for k in sorted(set(b0) | set(b1)):
+        x, y = b0.get(k, [0, 0]), b1.get(k, [0, 0])
+        by_block[k] = {'approved': [x[0], y[0]], 'authorized': [x[1], y[1]]}
+
+    def entry(k):
+        a, b = f0.get(k, {}), f1.get(k, {})
+        fys = sorted(set(a) | set(b))
+        by = {fy: {'approved': [a.get(fy, [0, 0])[0], b.get(fy, [0, 0])[0]],
+                   'authorized': [a.get(fy, [0, 0])[1], b.get(fy, [0, 0])[1]]} for fy in fys}
+        size = max(sum(abs(v['approved'][1] - v['approved'][0]) for v in by.values()),
+                   sum(abs(v['authorized'][1] - v['authorized'][0]) for v in by.values()))
+        return {'key': k, 'name': n1.get(k, n0.get(k)), 'size': size,
+                'approved': [sum(v['approved'][0] for v in by.values()), sum(v['approved'][1] for v in by.values())],
+                'authorized': [sum(v['authorized'][0] for v in by.values()), sum(v['authorized'][1] for v in by.values())],
+                'byFy': by}
+
+    def ranked(keys):
+        return sorted((entry(k) for k in keys), key=lambda e: (-e['size'], e['key']))
+    changed = [k for k in p0 & p1 if f0.get(k, {}) != f1.get(k, {})]
+    return {'byBlock': by_block, 'budgetsNew': ranked(p1 - p0), 'budgetsGone': ranked(p0 - p1),
+            'budgetsChanged': ranked(changed)}
+
+
 # -------------------------------------------------------------------------------------------------- state & CLI
 def apply_import(state, parsed):
     """§11 applyImport: each appropriation in the import replaces its current pull; the replaced one is previous.
@@ -860,6 +1285,12 @@ def apply_import(state, parsed):
         if ap in state['current']:
             state['previous'][ap] = state['current'][ap]
         state['current'][ap] = rows
+    # §14.7: a report replaces the current report whole, and the one it replaces becomes previous; it never touches a pull
+    if parsed.get('bae'):
+        b = state.setdefault('bae', {'current': None, 'previous': None})
+        if b['current'] is not None:
+            b['previous'] = b['current']
+        b['current'] = parsed['bae']
 
 
 def make_settings(args):
@@ -900,6 +1331,18 @@ SCENARIOS = {
     'gen2': dict(files=['pull-all.xlsx'], then=['gen2/pull-om.xlsx', 'gen2/pull-ff.csv']),
     # the layout-independence import: the same O&M and FF rows in other layouts, with pull-all's Spares and OPN
     'layout': dict(files=['pull-om.xlsx', 'pull-ff.csv', 'pull-sp-opn.xlsx']),
+    # §14: the BAE report imported with the pull. bae-entered types an Authorized on a covered block (O&M FY2026) and
+    # on one the report does not cover (Initial Spares FY2025); bae-entered-off is the same with a switch off. A
+    # pull's (ap, fy) range is FY2025-2027 for every appropriation, so a report (ap, fy) with money and no block
+    # needs E past 2027: bae-asof-2027-10 (E = 2028).
+    'bae-all': dict(files=['pull-all.xlsx', 'bae.xlsx']),
+    'bae-usaf-off': dict(files=['pull-all.xlsx', 'bae.xlsx'], svc_off=['USAF']),
+    'bae-mand-only': dict(files=['pull-all.xlsx', 'bae.xlsx'], lanes='mand'),
+    'bae-entered': dict(files=['pull-all.xlsx', 'bae.xlsx'], authorized={'om|2026': 39_876_543_210, 'sp|2025': 8_000_000_000}),
+    'bae-entered-off': dict(files=['pull-all.xlsx', 'bae.xlsx'], authorized={'om|2026': 39_876_543_210, 'sp|2025': 8_000_000_000},
+                            svc_off=['USN (USN CV)']),
+    'bae-asof-2027-10': dict(files=['pull-all.xlsx', 'bae.xlsx'], asof='2027-10'),
+    'bae-gen2': dict(files=['pull-all.xlsx', 'bae.xlsx'], then=['gen2/pull-om.xlsx', 'gen2/pull-ff.csv', 'gen2/bae.xlsx']),
 }
 
 
@@ -931,8 +1374,11 @@ def main(argv=None):
     if not args.files:
         raise SystemExit('give --files or --scenario')
     settings = make_settings(args)
+    sc_auth = SCENARIOS[args.scenario].get('authorized') if args.scenario else None
+    if sc_auth:
+        settings['authorized'].update(sc_auth)
     view = make_view(args)
-    state = {'current': {}, 'previous': {}}
+    state = {'current': {}, 'previous': {}, 'bae': {'current': None, 'previous': None}}
     try:
         apply_import(state, parse_files(args.files))
     except Refused as e:
@@ -950,9 +1396,13 @@ def main(argv=None):
         out['diff'] = diff_pulls(state['previous'], state['current'], settings)
         if refused_then:
             out['refusedThen'] = refused_then
+        if state['bae']['current'] and state['bae']['previous']:
+            out['diffBae'] = diff_bae(state['bae']['previous'], state['bae']['current'], settings)
     out['input'] = {'files': [os.path.basename(f) for f in args.files],
                     'then': [os.path.basename(f) for f in (args.then or [])],
                     'svcOff': sorted(args.svc_off or []), 'lanes': args.lanes}
+    if sc_auth:
+        out['input']['authorized'] = sc_auth
     _write(args.out, out)
     if args.summary:
         tot = 0

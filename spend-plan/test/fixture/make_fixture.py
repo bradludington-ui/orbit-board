@@ -13,9 +13,17 @@
 # DIR/pull-sp-opn.xlsx     pull-all's Spares and OPN tabs alone: pull-om.xlsx + pull-ff.csv + this = pull-all.xlsx.
 # DIR/gen2/pull-om.xlsx    the later pull of O&M (changed amounts, a new CCaR on a new budget name, a plan event gone)
 # DIR/gen2/pull-ff.csv     the later pull of FF (a CCaR moved to another PMO, a CCaR gone, changed amounts)
+# DIR/bae.xlsx             the BAE report of budgets (CONTRACT §14), shaped like the real one: one sheet, its 28 headers
+#                          on row 1, Approved and Authorized in DOLLARS shown as $M by a number format, '$0.000' text
+#                          zeros, a total row at the end. Built from its own random stream after the pulls are
+#                          written, so not one pull byte moves. See build_bae for the case each row is there for.
+# DIR/gen2/bae.xlsx        the later report: amounts moved, a budget gone and one new, Full Fund FY2025 covered, and
+#                          an export's other shapes (two lines above the header, 'Budget FY', no unit on Authorized,
+#                          columns reordered, an unreadable FY, a row with no name, a skipped row; the total differs)
 # DIR/manifest.json        what the generator MEANT each row to be (appropriation, FY, cents, date, status, service,
 #                          lane, names), stated from its own tables and never parsed back out of a file. The tests hold
-#                          the oracle's reading of the files against it; the oracle never reads it.
+#                          the oracle's reading of the files against it; the oracle never reads it. Its "bae" part
+#                          does the same for every report row (and the budget's PMO of every name, by hand).
 #
 # Every name and figure is invented. Nothing here comes from a real pull: the budget names are shaped like CCaR's, and
 # the two special CCaRs and the seven PMO names are configuration the contract keeps on purpose.
@@ -27,13 +35,16 @@ import csv
 import datetime as dt
 import io
 import json
+import math
 import os
 import random
 import re
 import zipfile
 
 import openpyxl
+from openpyxl.styles import Alignment, Font
 from openpyxl.utils.datetime import CALENDAR_MAC_1904
+from openpyxl.worksheet.properties import Outline
 
 RAW_HEADERS = ['FY', 'Month', 'CCaR No', 'Title', 'Budget', 'C/L', 'SB', 'Plan Event', 'Date', 'Amount', 'Alloc',
                'Event Description', 'OPR', 'PMT PID#', 'Contracting POC', 'Material Lead', 'PM/TPOC',
@@ -572,6 +583,343 @@ def build_gen2(g1):
     return g, changes
 
 
+# ================================================================================================ the BAE report (§14)
+# The report of budgets beside the pull: each budget's Approved and Authorized by FY, in DOLLARS (the "($M)" in a header
+# describes the display, a number format, not the value). Shaped like the real report: one sheet, the 28 headers below
+# with the header on row 1, a money format that shows $M, '$0.000' written as TEXT where nothing is authorized, styled
+# empty cells, and the report's own total row at the end. Every name and figure is invented.
+#
+# It is drawn from its OWN random stream (seeded from --seed, never the pull's), and only after both pulls are built:
+# not one pull row moves, so every scenario that reads the pulls alone keeps its exact expected output.
+BAE_HEADERS = ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount ($M)', 'Budget Authorized Amount ($M)',
+               'Budget Service', 'APPN AF', 'APPN SFIS', 'BA SFIS', 'BLI SFIS', 'BPAC', 'BSA SFIS', 'Budget Exec Years',
+               'Budget Flex 01', 'Budget Flex 02', 'Budget Flex 03', 'Budget Office', 'DEPT AF', 'DEPT SFIS', 'Limit AF',
+               'Limit SFIS', 'OBAN', 'PEC', 'PEC SFIS', 'RCCC', 'Cost Element', 'Project Description', 'Variant',
+               'Navy PU']
+BAE_NAME, BAE_FY, BAE_APP, BAE_AUTH = BAE_HEADERS[:4]
+BAE_MONEY_FMT = '$#,##0.000,,_);($#,##0.000,,)'       # dollars shown as $M, as the real report shows them
+BAE_HDR_FMT = '#;#;0;@'
+BAE_ZERO = '$0.000'                                     # the report's own zero, written as text
+NOPMO = '(no PMO)'
+# The budget's PMO (§14.2: the last word of the name, against each PMO's code), stated BY HAND for every name the pull
+# uses, never by running the rule: the oracle applies the rule to the text and the tests compare the two.
+BUDGET_PMO = {
+    'USAF O&M- Fixture Line Discretionary AV': AV, 'USAF O&M- CAM Discretionary Galvor': NOPMO,
+    'USN O&M- Fixture USN CV LA Discretionary PSM': PSM, 'USN O&M- Fixture USMC CV LA Discretionary AV': AV,
+    'USAF O&M - ANG Fixture Line Discretionary PP': PP, 'USAF O&M - AFRC Fixture Line Discretionary TSS': TSS,
+    'USMC STOVL O&M - Fixture Line Discretionary AV': AV, 'USAF O&M - ANG Fixture Line Mandatory AV': AV,
+    'USAF O&M - AFRC CAM Discretionary Brimlow': NOPMO,
+    'USAF APXX Full Fund Fixture Line Discretionary AV': AV, 'USAF APAF Full Fund CHANGE ORDER AV': AV,
+    'USN APN Full Fund SUPT USN CV FIXED JPO SUPT Discretionary BOP': BOP,
+    'USN APN Full Fund SUPT USMC CV FIXED JPO SUPT Discretionary CDS': CDS,
+    'USMC STOVL APN Full Fund SUPT Discretionary PP': PP, 'USAF APAF Full Fund ANG SUPT Discretionary MxS': MXS,
+    'USAF APAF Full Fund AFRC SUPT Discretionary TSS': TSS, 'USAF APAF Full Fund SUPT PES Mandatory TSS': TSS,
+    'USN APN Spares Fixture USN CV Discretionary PP': PP, 'USN APN Spares Fixture CONG Discretionary PP': PP,
+    'USAF APAF Spares Initial Discretionary Kestro': NOPMO, 'USMC STOVL APN Spares Initial Discretionary Orrin': NOPMO,
+    'USN APN Spares Initial USMC CV Discretionary Hollet': NOPMO, 'USN OPN Fixture Ship Line Discretionary MxS': MXS,
+    'DLA Reimbursable Line X': NOPMO, 'Contractor Furnished Line Q': NOPMO, 'Interagency Reimbursable Z': NOPMO,
+}
+# Names only the report carries, and what each MEANS by §14.2, stated by hand: (ap, scope, service, lane, budget's PMO).
+# scope 'in' = a sustainment budget; 'flyaway' = Full Fund Flyaway (production); 'noap' = the name places no
+# appropriation (Advance Procurement, Modifications, RDT&E, a squadron).
+BAE_ONLY = {
+    # in scope, money the pull does not plan (reportOnly)
+    'USAF O&M- Fixture Depot Line Discretionary PSM': ('om', 'in', USAF, 'disc', PSM),          # gone in gen2
+    'USAF O&M- Fixture Bench Line Discretionary mxs': ('om', 'in', USAF, 'disc', MXS),          # a code in lower case
+    'USN O&M- Fixture Analytics Line Discretionary SA': ('om', 'in', USN, 'disc', SA),           # a PMO from the pull
+    'DoN O&M Fixture Reimbursable Line Discretionary PSM': ('om', 'in', UNK, 'disc', PSM),       # no service rule
+    'USAF O&M - AFRC Fixture Line Mandatory TSS': ('om', 'in', AFRC, 'mand', TSS),
+    'USMC CV O&M- Fixture Line Discretionary CV': ('om', 'in', USMCCV, 'disc', NOPMO),            # 'CV' is no code
+    'USAF O&M- Fixture Line Discretionary CAM': ('om', 'in', USAF, 'disc', NOPMO),
+    'USMC STOVL APN Full Fund SUPT Mandatory PP': ('ff', 'in', STOVL, 'mand', PP),
+    'USAF APAF Full Fund Fixture Line SUPT': ('ff', 'in', USAF, 'disc', NOPMO),
+    'USN APN Spares Initial': ('sp', 'in', USN, 'disc', NOPMO),
+    'USN OPN Fixture Ship Line Non-PMO': ('opn', 'in', USN, 'disc', NOPMO),
+    'USN O&M- Fixture Corrosion Line Discretionary CDS': ('om', 'in', USN, 'disc', CDS),         # new in gen2
+    # Full Fund Flyaway: aircraft production, out of scope however large (the third spells the word in capitals)
+    'USAF APAF Full Fund Flyaway Lot Discretionary AV': ('ff', 'flyaway', USAF, 'disc', AV),
+    'USMC STOVL APN Full Fund Flyaway Discretionary AV': ('ff', 'flyaway', STOVL, 'disc', AV),
+    'USN APN Full Fund FLYAWAY USN CV Spt Discretionary CDS': ('ff', 'flyaway', USN, 'disc', CDS),
+    # names that place no appropriation
+    'USAF APAF Advance Procurement Fixture Lot Discretionary AV': (None, 'noap', USAF, 'disc', AV),
+    'USAF APAF Modifications Fixture Kit Discretionary AV': (None, 'noap', USAF, 'disc', AV),
+    'USAF RDT&E Fixture Development Discretionary AV': (None, 'noap', USAF, 'disc', AV),
+    'USN RDT&E Fixture Test Line Mandatory CDS': (None, 'noap', USN, 'mand', CDS),
+    'USMC STOVL Squadron VMX-91 Flight Line Discretionary': (None, 'noap', STOVL, 'disc', NOPMO),
+}
+BAE_LACKS = ['USAF APAF Full Fund CHANGE ORDER AV']     # a sustainment budget the pull counts and the report lacks
+BAE_BRIMLOW = 'USAF O&M - AFRC CAM Discretionary Brimlow'     # gen2's new pull budget: in the gen1 report already
+
+
+def bae_meaning(name):
+    """(ap, scope, service, lane, budget's PMO) of a report name, from the hand-stated tables above."""
+    if name in BAE_ONLY:
+        return BAE_ONLY[name]
+    ap, svc, lane = BUDGETS[name]
+    return ap, ('in' if ap else 'noap'), svc, lane, BUDGET_PMO[name]
+
+
+def as_written(v):
+    # openpyxl writes a float as "%.16g" (openpyxl.compat.strings.safe_string), so a float's 17th digit never reaches
+    # the file: the intent must record the value the file holds, or a cent can round the other way on reading
+    return float('%.16g' % v)
+
+
+def js_round(x):
+    # JavaScript's Math.round (§14.1 reads a number cell as Math.round(v*100) cents): ties go up, toward +infinity
+    f = math.floor(x)
+    return int(f) + (1 if x - f >= 0.5 else 0)
+
+
+class BaeGen:
+    def __init__(self, seed):
+        self.rng = random.Random(seed * 101 + 13)
+
+    def money(self, cents, style=None):
+        """-> (the cell, the cents it must read as, how it was written). Cents chosen here are what §14.1's
+        Math.round(v*100) must give back, sub-cent noise included."""
+        rng = self.rng
+        style = style or rng.choices(['int', 'cents', 'subcent'], weights=[74, 16, 10])[0]
+        if style == 'int' or cents == 0:
+            c = cents - cents % 100
+            return c // 100, c, 'int'
+        c = cents if cents % 100 else cents + 37
+        if style == 'cents':
+            v = as_written(c / 100)
+            assert js_round(v * 100) == c
+            return v, c, 'cents'
+        v = as_written((c + rng.choice([0.13, 0.27, 0.38, -0.21, -0.34])) / 100)   # a fraction of a cent, as the report's floats carry
+        assert js_round(v * 100) == c and v * 100 != c
+        return v, c, 'subcent'
+
+    def other_cells(self, name):
+        """The 24 columns the tool keeps but never reads, invented and fixed per name so gen2 repeats them."""
+        ap, scope, svc, lane, _p = bae_meaning(name)
+        r = random.Random('bae-cols|' + name)
+        usaf = svc in (USAF, ANG, AFRC)
+        code = {'om': '7101', 'ff': '7102', 'sp': '7103', 'opn': '7104', None: '7109'}[ap]
+        return {
+            'Budget Service': 'USAF' if usaf else 'DoN', 'APPN AF': code, 'APPN SFIS': code if usaf else None,
+            'BA SFIS': '0%d' % r.randint(1, 6), 'BLI SFIS': '%04d' % r.randint(1000, 9999),
+            'BPAC': ('%02dX%03d' % (r.randint(10, 99), r.randint(100, 999))) if r.random() < .25 else None,
+            'BSA SFIS': ('F%dX%s' % (r.randint(1, 9), r.choice('ABCD'))) if usaf else None,
+            'Budget Exec Years': {'om': 1, 'ff': 3, 'sp': 3, 'opn': 3, None: 2}[ap],
+            'Budget Flex 01': r.choice(['FIXT', 'F&X', 'FXT&R']), 'Budget Flex 02': 'MA' if lane == 'mand' else 'DI',
+            'Budget Flex 03': r.choice(['FXTR', 'FXR', 'FXT-ONLY']), 'Budget Office': r.choice(['FIXTUREOFC', 'FX/OPS', 'FX/SUST']),
+            'DEPT AF': '91' if usaf else None, 'DEPT SFIS': '091', 'Limit AF': '9001' if r.random() < .05 else None,
+            'Limit SFIS': None, 'OBAN': ('%04d' % r.randint(1000, 9999)) if r.random() < .1 else None,
+            'PEC': ('%05dF' % r.randint(10000, 99999)) if usaf else None, 'PEC SFIS': '08%05dF' % r.randint(10000, 99999),
+            'RCCC': ('FXRC%02d' % r.randint(1, 99)) if r.random() < .05 else None,
+            'Cost Element': r.choice(['Sustainment Labor', 'Spares', 'FXE', None, None]),
+            'Project Description': r.choice(['FX Sustainment', 'FXS', 'FxS Fixture', 'FxS Readiness']),
+            'Variant': {USAF: 'CTOL', ANG: 'CTOL', AFRC: 'CTOL', STOVL: 'STOVL', USMCCV: 'CV', USN: 'CV'}.get(svc, 'ALL'),
+            'Navy PU': None if usaf else '%04d' % r.randint(1000, 9999),
+        }
+
+    def row(self, name, fy, app, auth, *, fy_cell='=', app_style=None, bad=()):
+        """One budget row. `app` is cents, or a text written as it is; `auth` is cents, a text, or '=' for the very
+        cell Approved holds. The intent records the cents each cell must be read as (None when it cannot be read)."""
+        cells = self.other_cells(name) if name else {}
+        cells[BAE_NAME] = name
+        cells[BAE_FY] = fy if fy_cell == '=' else fy_cell
+        forms = {}
+        intent = {'kind': 'data', 'name': name, 'fy': None if 'FY' in bad else fy, 'bad': sorted(bad), 'forms': forms}
+        for col, key, val in ((BAE_APP, 'approved', app), (BAE_AUTH, 'authorized', auth)):
+            if val == '=':
+                cells[col], intent[key], forms[key] = cells[BAE_APP], intent['approved'], forms['approved']
+            elif isinstance(val, str):
+                cells[col] = val
+                forms[key] = val
+                # the report's own zero reads as 0; any other text cannot be read (its unit cannot be known)
+                intent[key] = 0 if val == BAE_ZERO else None
+            else:
+                cells[col], intent[key], forms[key] = self.money(val, app_style if key == 'approved' else None)
+        if fy_cell != '=':
+            forms['fy'] = fy_cell
+        if name:
+            ap, scope, svc, lane, pmo = bae_meaning(name)
+            intent.update(ap=ap, scope=scope, svc=svc, lane=lane, pmo=pmo)
+        else:
+            intent.update(ap=None, scope=None, svc=None, lane=None, pmo=None)
+        return {'cells': cells, 'intent': intent}
+
+
+def plan_by_budget(g):
+    """cents per (budget, fy) over the pull's readable rows of an identified appropriation (the generator's own record)."""
+    out = {}
+    for tab in ('om', 'ff', 'sp', 'opn'):
+        for r in g.rows[tab]:
+            it = r['intent']
+            if it['bad'] or it['fy'] is None:
+                continue
+            out[(it['budget'], it['fy'])] = out.get((it['budget'], it['fy']), 0) + it['cents']
+    return out
+
+
+def build_bae(g1, seed):
+    """The gen1 report. What it is built to hold (CONTRACT §14.8), case by case:
+      - every sustainment budget the pull uses, FY2025-2027 where the pull plans it, Approved 1.0-1.3x the plan;
+      - except Full Fund FY2025, which holds ONLY Flyaway rows (a block a Flyaway row must not cover), and Initial
+        Spares FY2025, which holds ONLY an unreadable row (a block an unreadable row must not cover);
+      - OPN FY2026 at 2.6x its plan, and OPN FY2025 (whose plan nets to $0) with money: planShort blocks;
+      - O&M FY2028 money only on USAF budgets, so with USAF off a covered block reads Approved $0;
+      - one sustainment budget the pull counts left out (BAE_LACKS), and gen2's new pull budget already here;
+      - names only the report carries (BAE_ONLY): every service, the unknown one too, both lanes, a PMO code in
+        lower case, a PMO known only from the pull (SA), names whose last word is no code;
+      - out-years 2028-2031 with nothing authorized ('$0.000' text), one with Approved '$0.000' as well;
+      - amounts written as whole dollars, as cents, and with fractions of a cent, a few under $100,000."""
+    b = BaeGen(seed)
+    rng = b.rng
+    plan = plan_by_budget(g1)
+    rows = []
+    sust = sorted(n for n, (ap, _s, _l) in BUDGETS.items() if ap and n not in BAE_LACKS and n != BAE_BRIMLOW)
+    first = {}                            # the first budget met per (ap, fy), for the hand-placed Authorized cases
+    for name in sust:
+        ap = BUDGETS[name][0]
+        for fy in (2025, 2026, 2027):
+            if (name, fy) not in plan or (ap in ('ff', 'sp') and fy == 2025):
+                continue
+            p = plan[(name, fy)]
+            base = p if p >= 1_000_000_00 else rng.randint(3_000_000_00, 9_000_000_00)
+            factor = 2.6 if (ap, fy) == ('opn', 2026) else rng.uniform(1.0, 1.3)
+            a = int(base * factor)
+            n = first.setdefault((ap, fy), 0)
+            first[(ap, fy)] += 1
+            if fy == 2025 and ap == 'om' and n == 0:      # Authorized above Approved, as the real report has now and then
+                a -= a % 100
+                r = b.row(name, fy, a, a + 250_000_00, app_style='int')
+            elif fy == 2025 and ap == 'om' and n == 1:    # Authorized short of Approved in a year already past
+                a -= a % 100
+                r = b.row(name, fy, a, a * 92 // 100, app_style='int')
+            elif fy == 2026 and ap == 'sp' and n == 0:    # an approved year with nothing authorized yet
+                r = b.row(name, fy, a, BAE_ZERO)
+            elif fy < 2027:
+                r = b.row(name, fy, a, '=')
+            elif n % 2 == 0:                              # FY2027: half not authorized at all, half in part
+                r = b.row(name, fy, a, BAE_ZERO)
+            else:
+                a -= a % 100
+                r = b.row(name, fy, a, a * rng.randint(40, 90) // 100, app_style='int')
+            rows.append(r)
+    # out-years: nothing authorized yet. O&M FY2028 money sits on USAF budgets only (fixed figures: with USAF off the
+    # covered O&M FY2028 block reads $0, and with it on, the block's $2.4M plan is not under half the report).
+    for name, c in (('USAF O&M- Fixture Line Discretionary AV', 2_650_000_00), ('USAF O&M- CAM Discretionary Galvor', 1_350_000_00)):
+        rows.append(b.row(name, 2028, c, BAE_ZERO))
+    forced28 = {'USAF APXX Full Fund Fixture Line Discretionary AV', 'USAF APAF Spares Initial Discretionary Kestro',
+                'USN APN Spares Fixture CONG Discretionary PP', 'USN OPN Fixture Ship Line Discretionary MxS'}
+    for name in sust + ['USN APN Spares Fixture CONG Discretionary PP']:
+        ap = BUDGETS[name][0]
+        for fy in (2028, 2029, 2030, 2031):
+            if fy == 2028 and ap == 'om':
+                continue
+            if any(r['intent']['name'] == name and r['intent']['fy'] == fy for r in rows):
+                continue
+            if (fy == 2028 and name in forced28) or rng.random() < .4:
+                rows.append(b.row(name, fy, rng.randint(5_000_000_00, 60_000_000_00), BAE_ZERO))
+    # the report's own zero in Approved too
+    rows = [r for r in rows if not (r['intent']['name'] == 'USAF O&M - ANG Fixture Line Discretionary PP' and r['intent']['fy'] == 2031)]
+    rows.append(b.row('USAF O&M - ANG Fixture Line Discretionary PP', 2031, BAE_ZERO, BAE_ZERO))
+    # budgets only the report carries (fixed figures; a few under $100,000)
+    Z = BAE_ZERO
+    for name, fy, app, auth in [
+            (BAE_BRIMLOW, 2027, 14_250_000_00, 7_125_000_00), (BAE_BRIMLOW, 2029, 9_800_000_00, Z),
+            ('USAF O&M- Fixture Depot Line Discretionary PSM', 2026, 22_400_000_00, '='),
+            ('USAF O&M- Fixture Depot Line Discretionary PSM', 2027, 18_750_000_00, Z),
+            ('USAF O&M- Fixture Bench Line Discretionary mxs', 2026, 48_250_00, '='),
+            ('USN O&M- Fixture Analytics Line Discretionary SA', 2026, 6_125_000_00, '='),
+            ('USN O&M- Fixture Analytics Line Discretionary SA', 2027, 7_300_000_00, 3_650_000_00),
+            ('DoN O&M Fixture Reimbursable Line Discretionary PSM', 2027, 3_480_000_00, Z),
+            ('USAF O&M - AFRC Fixture Line Mandatory TSS', 2026, 11_900_000_00, '='),
+            ('USAF O&M - AFRC Fixture Line Mandatory TSS', 2027, 12_600_000_00, 6_300_000_00),
+            ('USMC CV O&M- Fixture Line Discretionary CV', 2026, 2_975_000_55, '='),
+            ('USAF O&M- Fixture Line Discretionary CAM', 2027, 1_840_000_00, Z),
+            ('USAF O&M- Fixture Line Discretionary CAM', 2030, 2_100_000_00, Z),
+            ('USMC STOVL APN Full Fund SUPT Mandatory PP', 2026, 16_500_000_00, '='),
+            ('USMC STOVL APN Full Fund SUPT Mandatory PP', 2027, 15_250_000_00, Z),
+            ('USAF APAF Full Fund Fixture Line SUPT', 2027, 5_560_000_00, Z),
+            ('USN APN Spares Initial', 2026, 4_410_000_00, '='), ('USN APN Spares Initial', 2027, 3_925_000_00, 41_500_00),
+            ('USN OPN Fixture Ship Line Non-PMO', 2027, 4_200_000_00, Z), ('USN OPN Fixture Ship Line Non-PMO', 2028, 3_100_000_00, Z),
+            # Flyaway: out of scope, and large enough that counting it would show
+            ('USAF APAF Full Fund Flyaway Lot Discretionary AV', 2025, 1_250_000_000_00, '='),
+            ('USAF APAF Full Fund Flyaway Lot Discretionary AV', 2026, 1_410_000_000_00, '='),
+            ('USAF APAF Full Fund Flyaway Lot Discretionary AV', 2027, 1_385_500_000_00, Z),
+            ('USMC STOVL APN Full Fund Flyaway Discretionary AV', 2025, 612_000_000_00, '='),
+            ('USMC STOVL APN Full Fund Flyaway Discretionary AV', 2026, 655_250_000_00, '='),
+            ('USN APN Full Fund FLYAWAY USN CV Spt Discretionary CDS', 2026, 402_000_000_00, '='),
+            ('USN APN Full Fund FLYAWAY USN CV Spt Discretionary CDS', 2027, 388_400_000_00, Z),
+            # names that place no appropriation
+            ('USAF APAF Advance Procurement Fixture Lot Discretionary AV', 2026, 210_000_000_00, '='),
+            ('USAF APAF Advance Procurement Fixture Lot Discretionary AV', 2027, 198_000_000_00, Z),
+            ('USAF APAF Modifications Fixture Kit Discretionary AV', 2025, 45_600_000_00, '='),
+            ('USAF APAF Modifications Fixture Kit Discretionary AV', 2026, 52_100_000_00, '='),
+            ('USAF RDT&E Fixture Development Discretionary AV', 2025, 88_000_000_00, '='),
+            ('USAF RDT&E Fixture Development Discretionary AV', 2026, 91_500_000_00, '='),
+            ('USAF RDT&E Fixture Development Discretionary AV', 2027, 94_250_000_00, Z),
+            ('USAF RDT&E Fixture Development Discretionary AV', 2028, 97_000_000_00, Z),
+            ('USN RDT&E Fixture Test Line Mandatory CDS', 2026, 12_750_000_00, '='),
+            ('USMC STOVL Squadron VMX-91 Flight Line Discretionary', 2026, 3_300_000_00, '='),
+            ('USMC STOVL Squadron VMX-91 Flight Line Discretionary', 2027, 3_450_000_00, Z)]:
+        rows.append(b.row(name, fy, app, auth))
+    # an unreadable amount: a text figure that is not the report's zero, so its unit cannot be known. It is the ONLY
+    # Initial Spares FY2025 row, so that block stays uncovered: an unreadable row covers nothing.
+    rows.append(b.row('USN APN Spares Fixture USN CV Discretionary PP', 2025, '$1.250', BAE_ZERO, bad=('Approved',)))
+    rows.sort(key=lambda r: (r['intent']['name'].lower(), r['intent']['fy']))
+    return b, rows
+
+
+def build_bae_gen2(b, rows1, g2):
+    """The later report: Approved and Authorized moved, a budget gone, one new, Full Fund FY2025 now covered, OPN FY2026
+    no longer short; and the shapes a later export may take: two lines above the header, 'Budget FY' for 'Budget FY
+    Numeric', no unit on Authorized, the columns in another order, an FY that cannot be read and a row with no
+    Budget Name (both with money the total row still counts, so the total check now differs), a row blank in the
+    four columns the tool reads (skipped)."""
+    rows = copy.deepcopy(rows1)
+    plan = plan_by_budget(g2)
+    ch = {'gone': 'USAF O&M- Fixture Depot Line Discretionary PSM', 'new': 'USN O&M- Fixture Corrosion Line Discretionary CDS',
+          'raised': None, 'authorizedNow': [], 'ffCovered': 'USAF APXX Full Fund Fixture Line Discretionary AV',
+          'opnEased': 'USN OPN Fixture Ship Line Discretionary MxS'}
+    rows = [r for r in rows if r['intent']['name'] != ch['gone']]
+    sust27 = [r for r in rows if r['intent']['ap'] == 'om' and r['intent']['fy'] == 2027 and r['intent']['scope'] == 'in'
+              and r['intent']['name'] in BUDGET_PMO and not r['intent']['bad']]
+    up = sust27[0]
+    ch['raised'] = up['intent']['name']
+    a = up['intent']['approved'] + 25_000_000_00
+    a -= a % 100
+    rows[rows.index(up)] = b.row(up['intent']['name'], 2027, a, up['cells'][BAE_AUTH] if up['intent']['authorized'] == 0
+                                 else up['intent']['authorized'], app_style='int')
+    for r in rows:               # the year goes on: what nothing authorized now is half authorized
+        it = r['intent']
+        if it['ap'] == 'om' and it['fy'] == 2027 and it['scope'] == 'in' and it['authorized'] == 0 and not it['bad'] and it['approved']:
+            r['cells'][BAE_AUTH], it['authorized'], it['forms']['authorized'] = b.money(it['approved'] // 2)
+            ch['authorizedNow'].append(it['name'])
+    rows.append(b.row(ch['new'], 2027, 8_500_000_00, '='))
+    p = plan.get((ch['ffCovered'], 2025), 0)
+    rows.append(b.row(ch['ffCovered'], 2025, int(max(p, 1_000_000_00) * 1.1), '='))
+    for r in rows:
+        it = r['intent']
+        if it['name'] == ch['opnEased'] and it['fy'] == 2026:
+            c = int(max(plan.get((ch['opnEased'], 2026), 0), 15_000_000_00) * 1.2)
+            v, c, how = b.money(c, 'int')
+            r['cells'][BAE_APP], it['approved'], it['forms']['approved'] = v, c, how
+            r['cells'][BAE_AUTH], it['authorized'], it['forms']['authorized'] = v, c, how
+    rows.sort(key=lambda r: (r['intent']['name'].lower(), r['intent']['fy']))
+    # three rows of other shapes, among the data
+    badfy = b.row('USAF O&M- Fixture Line Discretionary AV', None, 3_000_000_00, 0, fy_cell='FY-TBD', app_style='int', bad=('FY',))
+    noname = b.row(None, 2027, 1_500_000_00, BAE_ZERO, app_style='int', bad=('Budget Name',))
+    skip = {'cells': {'Navy PU': '9001', 'Budget Office': 'FX/OPS'}, 'intent': {'kind': 'skip'}}
+    rows[10:10] = [badfy]
+    rows[25:25] = [skip]
+    rows[40:40] = [noname]
+    ch['badFyRow'] = 'USAF O&M- Fixture Line Discretionary AV'
+    return rows, ch
+
+
+BAE_GEN2_ORDER = ['Budget Service', 'APPN AF', BAE_NAME, BAE_FY, BAE_AUTH, BAE_APP] + \
+    [h for h in BAE_HEADERS if h not in ('Budget Service', 'APPN AF', BAE_NAME, BAE_FY, BAE_AUTH, BAE_APP)]
+BAE_GEN2_LABELS = {BAE_NAME: 'Budget Name ', BAE_FY: 'Budget FY', BAE_AUTH: 'Budget Authorized Amount'}
+BAE_GEN2_TOP = ['BAE ALL Services - Fixture Report', 'Run 2026-12-01 06:00 - every service']
+
+
 # ----------------------------------------------------------------------------------------------------- writers
 def put_row(ws, rno, order, cells, epoch1904=False, extra=None):
     for ci, h in enumerate(order, start=1):
@@ -754,6 +1102,49 @@ def write_all(path, g, include=('om', 'ff', 'sp', 'opn'), misc=True, notes=True)
     save_deterministic(wb, path, shared=True)
 
 
+def write_bae(path, rows, order=BAE_HEADERS, labels=None, top=()):
+    """The report as its export writes it: lines above the header (none in gen1), the header, every row with all 28
+    cells styled (a blank one is a styled empty cell, as in the real file), and the report's own total row: no Budget
+    Name, no FY, and in the two money columns the sum of every number above it (text is not summed, so a '$0.000' adds
+    nothing). Each row's intent learns the sheet row it was written on; the total row's intent is appended."""
+    labels = labels or {}
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Sheet1'
+    mid = Alignment(vertical='center')
+    for i, t in enumerate(top, start=1):
+        ws.cell(row=i, column=1, value=t)
+    hr = len(top) + 1
+    for ci, h in enumerate(order, start=1):
+        c = ws.cell(row=hr, column=ci, value=labels.get(h, h))
+        c.number_format, c.font, c.alignment = BAE_HDR_FMT, Font(bold=True), Alignment(vertical='center', wrap_text=True)
+    ws.row_dimensions[hr].height = 27.75
+    money = (BAE_APP, BAE_AUTH)
+    tot = {BAE_APP: 0.0, BAE_AUTH: 0.0}
+    rno = hr + 1
+    for r in rows:
+        r['intent']['row'] = rno
+        for ci, h in enumerate(order, start=1):
+            v = r['cells'].get(h)
+            c = ws.cell(row=rno, column=ci, value=v)
+            c.number_format = BAE_MONEY_FMT if h in money else 'General'
+            c.alignment = mid
+            if h in money and isinstance(v, (int, float)) and not isinstance(v, bool):
+                tot[h] += v
+        ws.row_dimensions[rno].height = 27.75
+        rno += 1
+    tot = {h: as_written(v) for h, v in tot.items()}
+    for ci, h in enumerate(order, start=1):
+        c = ws.cell(row=rno, column=ci, value=tot[h] if h in money else None)
+        c.number_format = BAE_MONEY_FMT if h in money else ('0.00' if h in (BAE_FY, 'Budget Exec Years') else 'General')
+        c.alignment = mid
+    ws.row_dimensions[rno].height = 27.75
+    ws.freeze_panes = 'A%d' % (hr + 1)
+    ws.sheet_properties.outlinePr = Outline(summaryBelow=False)
+    save_deterministic(wb, path, shared=True)
+    rows.append({'intent': {'kind': 'total', 'row': rno, 'approved': tot[BAE_APP], 'authorized': tot[BAE_AUTH]}})
+
+
 def main():
     ap = argparse.ArgumentParser(description='Write the synthetic CCaR pulls (CONTRACT §12).')
     ap.add_argument('--out', required=True)
@@ -769,6 +1160,11 @@ def main():
     write_csv(os.path.join(out, 'pull-ff.csv'), g1.rows['ff'])
     write_report(os.path.join(out, 'gen2', 'pull-om.xlsx'), g2.rows['om'], g2.rows['misc'], args.seed)
     write_csv(os.path.join(out, 'gen2', 'pull-ff.csv'), g2.rows['ff'])
+    # the BAE reports come last, from their own random stream: nothing above moves (§14.8)
+    bg, bae1 = build_bae(g1, args.seed)
+    bae2, bae2ch = build_bae_gen2(bg, bae1, g2)
+    write_bae(os.path.join(out, 'bae.xlsx'), bae1)
+    write_bae(os.path.join(out, 'gen2', 'bae.xlsx'), bae2, BAE_GEN2_ORDER, BAE_GEN2_LABELS, BAE_GEN2_TOP)
 
     def intents(g, aps):
         return [r['intent'] for a in aps for r in g.rows[a]]
@@ -782,6 +1178,15 @@ def main():
         'gen1': intents(g1, ('om', 'ff', 'sp', 'opn', 'misc')),
         'gen2': intents(g2, ('om', 'ff', 'misc')),
         'gen2Changes': changes,
+        # The BAE reports: what each row of bae.xlsx and gen2/bae.xlsx was MEANT to be (kind data / skip / total; the
+        # sheet row; the name; FY; the cents each money cell must read as, None when it cannot be read; how each was
+        # written; and what the name means by §14.2: ap, scope, service, lane, the budget's PMO), stated from this
+        # file's own tables. budgetPmo is the budget's PMO of every name the pull uses, by hand.
+        'bae': {'headers': BAE_HEADERS, 'gen2Order': BAE_GEN2_ORDER, 'gen2Labels': BAE_GEN2_LABELS, 'gen2Top': BAE_GEN2_TOP,
+                'moneyFormat': BAE_MONEY_FMT, 'zero': BAE_ZERO, 'lacks': BAE_LACKS, 'budgetPmo': BUDGET_PMO,
+                'names': {n: dict(zip(('ap', 'scope', 'svc', 'lane', 'pmo'), bae_meaning(n)))
+                          for n in sorted(set(BAE_ONLY) | {n for n, b in BUDGETS.items() if b[0]})},
+                'gen1': [r['intent'] for r in bae1], 'gen2': [r['intent'] for r in bae2], 'gen2Changes': bae2ch},
     }
     with open(os.path.join(out, 'manifest.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)

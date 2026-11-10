@@ -27,8 +27,10 @@ const C = checks('store');
 const tmp = scratchDir('sfcbsp-store-');
 const MODS = ['util', 'xlsx-read', 'import', 'engine', 'store'];
 const NOW1 = '2026-11-09T12:00:00.000Z', NOW2 = '2026-12-15T12:00:00.000Z';
-// restated from CONTRACT §11, never read from the tool
-const EMPTY = { v: 1, tool: 'sfcb-spend-plan', savedAt: null, settings: null, pulls: { current: {}, previous: {} }, history: [], lastImport: null };
+// restated from CONTRACT §11, never read from the tool; §14.7 adds bae, the BAE report on screen and the one it replaced,
+// both null with no report (the one expectation of this file that section changes)
+const EMPTY = { v: 1, tool: 'sfcb-spend-plan', savedAt: null, settings: null, pulls: { current: {}, previous: {} }, history: [], lastImport: null,
+  bae: { current: null, previous: null } };
 const NULL_TAG = '<script id="spState" type="application/json">null</script>';
 const J = o => JSON.stringify(o);
 const ab = p => { const b = readFileSync(p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); };
@@ -131,6 +133,71 @@ try {
     t.SP.applyImport(await parse(t, ['pull-ff.csv'], NOW1));
     C.chk('refused (' + what + '): the empty state still takes an import', !!t.SP.state.pulls.current.ff && t.SP.state.history.length === 1);
     t.close();
+  }
+
+  // ================================================================= the BAE reports, on opening and saving (§14.7)
+  {
+    // A file saved before §14 has no bae: it opens as one with no report, the rest exactly as saved, nothing unsaved
+    const old = JSON.parse(J(VALID));
+    delete old.bae;
+    const t0 = loadTool({ modules: MODS, state: old });
+    const r0 = t0.SP.storeInit();
+    C.chk('a file saved before §14 (no bae) opens', r0.ok === true, J(r0));
+    C.eq('… with no report: bae is {current: null, previous: null}', J(t0.SP.state.bae), J({ current: null, previous: null }));
+    C.eq('… and everything else as saved', J(Object.assign({}, t0.SP.state, { bae: undefined })), J(old));
+    C.chk('… with nothing unsaved', t0.SP.isDirty() === false);
+    C.chk('… and says nothing of a report', !/BAE/.test(r0.message), r0.message);
+    t0.close();
+    // a state with reports, as the store writes them (restated from CONTRACT §14.1, never read from the tool)
+    const H = ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount ($M)', 'Budget Authorized Amount ($M)', 'Note'];
+    const BAE1 = { headers: H, cols: H.slice(0, 4), rows: [
+      { c: ['USAF O&M- Synthetic Line Discretionary AV', 2026, 100000000, 90000000], x: { Note: 'a </script> note' }, src: [0, 'Sheet1', 2] },
+      { c: ['', 2026, 5, 5], x: {}, src: [0, 'Sheet1', 3], bad: ['Budget Name is blank'], raw: {} },
+      { c: ['USN APN Full Fund Synthetic Discretionary PP', null, null, 0], x: {}, src: [0, 'Sheet1', 4],
+        bad: ['Budget FY Numeric is blank', 'Budget Approved Amount ($M) “$1.000” is text, not a number'], raw: { 'Budget Approved Amount ($M)': '$1.000' } } ],
+      file: 'Report__BAE_synthetic_2026-01-31_120000.xlsx', sheet: 'Sheet1', stamp: '2026-01-31 12:00',
+      total: { approved: 100000005, authorized: 90000005, rowNo: 5 }, importedAt: NOW1 };
+    const BAE0 = Object.assign(JSON.parse(J(BAE1)), { stamp: null, total: null, importedAt: '2026-10-01T12:00:00.000Z', sameSince: '2026-09-01T12:00:00.000Z' });
+    const WITH = Object.assign(JSON.parse(J(VALID)), { bae: { current: BAE1, previous: BAE0 } });
+    const t1 = loadTool({ modules: MODS, state: WITH });
+    const r1 = t1.SP.storeInit();
+    C.chk('a file with reports opens', r1.ok === true, J(r1));
+    C.eq('… with both reports, deeply equal', J(t1.SP.state), J(WITH));
+    C.chk('… the opening message names the report', /It holds the BAE report “Report__BAE_synthetic_2026-01-31_120000\.xlsx” › “Sheet1” \(dated 2026-01-31 12:00\)\./.test(r1.message), r1.message);
+    const html1 = t1.SP.savedHtml();
+    const t2 = loadTool({ html: html1 });
+    t2.SP.storeInit();
+    C.eq('… saved and reopened, the reports come back deeply equal', J(t2.SP.state.bae), J(WITH.bae));
+    C.eq('… and saved again, the page is the same, byte for byte', t2.SP.savedHtml(), html1);
+    t1.close(); t2.close();
+    // reports of the wrong shape: the page opens empty and says why, as for pulls of the wrong shape
+    const bad = (side, f) => { const s = JSON.parse(J(WITH)); f(s.bae, s); return J(s); };
+    const BADBAE = [
+      ['bae that is not a pair', bad(0, (b, s) => { s.bae = null; }), /BAE reports are not a current and a previous report/],
+      ['bae as a list', bad(0, (b, s) => { s.bae = [BAE1]; }), /BAE reports are not a current and a previous report/],
+      ['bae holding a third report', bad(0, b => { b.older = BAE0; }), /“older”, which is neither the current nor the previous report/],
+      ['a current report that is a list', bad(0, b => { b.current = []; }), /the current BAE report is not a report/],
+      ['no headers', bad(0, b => { delete b.current.headers; }), /current BAE report has no list of column headers/],
+      ['no rows', bad(0, b => { b.previous.rows = 'many'; }), /previous BAE report has no list of rows/],
+      ['a row of 3 values', bad(0, b => { b.current.rows[0].c.pop(); }), /current BAE report, row 1, has 3 values, not 4/],
+      ['an FY written as text', bad(0, b => { b.current.rows[0].c[1] = '2026'; }), /row 1, has an FY that is not a year/],
+      ['an amount with a fraction of a cent', bad(0, b => { b.current.rows[0].c[2] = 1.5; }), /row 1, has an Approved amount that is not whole cents/],
+      ['a readable row with no amount', bad(0, b => { b.current.rows[0].c[3] = null; }), /row 1, is missing its FY or an amount, and does not say why/],
+      ['a Budget Name that is a number', bad(0, b => { b.current.rows[0].c[0] = 7; }), /row 1, has a Budget Name that is not text/],
+      ['columns that are a list', bad(0, b => { b.current.rows[0].x = ['a']; }), /row 1, has columns that are not a list of named values/],
+      ['no file', bad(0, b => { delete b.current.file; }), /current BAE report does not name its file/],
+      ['a total that is not one', bad(0, b => { b.current.total = { approved: 'x', authorized: 1, rowNo: 5 }; }), /current BAE report has a total row that is not one/],
+      ['a date that is a number', bad(0, b => { b.current.stamp = 20260131; }), /current BAE report has a date that is not a date/],
+      ['an import time that is a number', bad(0, b => { b.previous.sameSince = 1; }), /previous BAE report has an import time that is not a time/],
+      ['a last import report whose BAE part is a list', bad(0, (b, s) => { s.lastImport.report.bae = []; }), /BAE report part is not a table/],
+    ];
+    for (const [what, text, re] of BADBAE) {
+      const t = loadTool({ html: withTagText(text.replace(/</g, '\\u003c')) });
+      const r = t.SP.storeInit();
+      C.chk('refused (' + what + '): storeInit says why, and the page opened empty', r.ok === false && re.test(r.message) && /opened empty/.test(r.message), J(r));
+      C.eq('refused (' + what + '): SP.state is the empty state', J(t.SP.state), J(EMPTY));
+      t.close();
+    }
   }
 
   // ============================================================================================ imports (§11)

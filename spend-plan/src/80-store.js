@@ -1,7 +1,8 @@
 // §11 STORE — the state, opening it, saving it, and this browser's switches (CONTRACT §11).
 //
 //   SP.storeInit()            -> {ok, message}   read the state baked into this page; call ONCE, before the UI draws
-//   SP.state                  the state (CONTRACT §11): {v, tool, savedAt, settings, pulls:{current, previous}, history, lastImport}
+//   SP.state                  the state (CONTRACT §11): {v, tool, savedAt, settings, pulls:{current, previous}, history, lastImport,
+//                             bae:{current, previous}} (the BAE reports of budgets, §14.7: each null or a report)
 //   SP.getView() / SP.setView(view)              this browser's switches (localStorage 'sfcbsp.view'), never the file's
 //   SP.applyImport(parsed)    -> {message}       SP.parseFiles's result, put into the state
 //   SP.setSettings(patch)                        merge into settings; marks the file unsaved when anything changed
@@ -29,8 +30,11 @@ const ST_BOOT_NOTE = '<p class="boot-note">Opening the SFCB Spend Plan…</p>';
 // savedAt, so Save cannot treat that file as "the one this page opened with" and write over data it could not read.
 const ST_REFUSED = Object.freeze({ refused: true });
 
+// bae (CONTRACT §14.7): the BAE report on screen and the one it replaced. A report covers every appropriation, so there is
+// one of each, never one per appropriation as the pulls are.
 function st_empty() {
-  return { v: ST_V, tool: ST_TOOL, savedAt: null, settings: null, pulls: { current: {}, previous: {} }, history: [], lastImport: null };
+  return { v: ST_V, tool: ST_TOOL, savedAt: null, settings: null, pulls: { current: {}, previous: {} }, history: [], lastImport: null,
+    bae: { current: null, previous: null } };
 }
 // A deep copy through JSON: what is held in memory is exactly what a reopened file would hold (no undefined, no
 // prototype-less maps, no shared references), so "save, then reopen" can never come back different from the screen.
@@ -202,6 +206,7 @@ function st_checkReport(rep) {
   if (!st_isObj(rep)) return no + 'it is not a report)';
   for (const k of ST_REP_LISTS) if (rep[k] !== undefined && !Array.isArray(rep[k])) return no + 'its ' + k + ' is not a list)';
   for (const k of ['byAp', 'conversions', 'trimmedBy']) if (rep[k] !== undefined && !st_isObj(rep[k])) return no + 'its ' + k + ' is not a table)';
+  if (rep.bae !== undefined && rep.bae !== null && !st_isObj(rep.bae)) return no + 'its BAE report part is not a table)';
   for (const fr of rep.files || []) {
     if (!st_isObj(fr) || !Array.isArray(fr.sheets) || !Array.isArray(fr.notes) || !fr.sheets.every(st_isObj)) return no + 'a file in it is not a file)';
   }
@@ -227,7 +232,60 @@ function st_check(st) {
   if (st.history !== undefined && !(Array.isArray(st.history) && st.history.every(st_isObj))) return 'its import history is not a list of imports';
   if (st.lastImport !== undefined && st.lastImport !== null && !st_isObj(st.lastImport)) return 'its last import report is not a report';
   if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
+  if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
   return '';
+}
+// THE BAE REPORTS (CONTRACT §14.1, §14.7), in the shapes the engine and the screens read. A file saved before §14 has none,
+// which is not a fault (st_baeFill gives it the empty pair); one that has them must hold them whole, or the stoplight
+// tables would take their Approved from half a report.
+function st_checkBaeOne(r, where) {
+  if (!st_isObj(r)) return where + ' is not a report';
+  if (!Array.isArray(r.headers) || !r.headers.every(h => typeof h === 'string')) return where + ' has no list of column headers';
+  if (r.cols !== undefined && !(Array.isArray(r.cols) && r.cols.length === 4 && r.cols.every(h => typeof h === 'string'))) {
+    return where + ' does not say which four columns it read';
+  }
+  if (!Array.isArray(r.rows)) return where + ' has no list of rows';
+  for (let i = 0; i < r.rows.length; i++) {
+    const row = r.rows[i], at = where + ', row ' + (i + 1) + ', ';
+    if (!st_isObj(row) || !Array.isArray(row.c)) return at + 'is not a row';
+    if (row.c.length !== 4) return at + 'has ' + row.c.length + ' values, not 4 (Budget Name, FY, Approved, Authorized)';
+    if (typeof row.c[0] !== 'string') return at + 'has a Budget Name that is not text';
+    if (row.c[1] !== null && !Number.isInteger(row.c[1])) return at + 'has an FY that is not a year';
+    if (row.c[2] !== null && !Number.isSafeInteger(row.c[2])) return at + 'has an Approved amount that is not whole cents';
+    if (row.c[3] !== null && !Number.isSafeInteger(row.c[3])) return at + 'has an Authorized amount that is not whole cents';
+    if (row.bad !== undefined && !Array.isArray(row.bad)) return at + 'has reasons that are not a list';
+    // a row that counts must have what counts: an FY and both amounts (an unreadable one says why it has not)
+    if (!(row.bad && row.bad.length) && (row.c[1] === null || row.c[2] === null || row.c[3] === null)) return at + 'is missing its FY or an amount, and does not say why';
+    if (row.x !== undefined && !st_isObj(row.x)) return at + 'has columns that are not a list of named values';
+    if (row.raw !== undefined && !st_isObj(row.raw)) return at + 'has values as written that are not a list of named values';
+    if (row.src !== undefined && !Array.isArray(row.src)) return at + 'does not say where it came from';
+  }
+  if (typeof r.file !== 'string') return where + ' does not name its file';
+  if (typeof r.sheet !== 'string') return where + ' does not name its sheet';
+  if (r.stamp !== null && r.stamp !== undefined && typeof r.stamp !== 'string') return where + ' has a date that is not a date';
+  if (r.total !== null && r.total !== undefined) {
+    const t = r.total;
+    if (!st_isObj(t) || !Number.isInteger(t.rowNo) || !(t.approved === null || Number.isSafeInteger(t.approved))
+      || !(t.authorized === null || Number.isSafeInteger(t.authorized))) return where + ' has a total row that is not one';
+  }
+  for (const k of ['importedAt', 'sameSince']) if (r[k] !== undefined && r[k] !== null && typeof r[k] !== 'string') return where + ' has an import time that is not a time';
+  return '';
+}
+function st_checkBae(b) {
+  if (!st_isObj(b)) return 'its BAE reports are not a current and a previous report';
+  for (const k of Object.keys(b)) if (k !== 'current' && k !== 'previous') return 'its BAE reports hold “' + k + '”, which is neither the current nor the previous report';
+  for (const side of ['current', 'previous']) {
+    if (b[side] === null || b[side] === undefined) continue;
+    const bad = st_checkBaeOne(b[side], 'the ' + side + ' BAE report');
+    if (bad) return bad;
+  }
+  return '';
+}
+// A state saved before CONTRACT §14 has no bae, and opens as one with no report (§14.7); a side left out is null.
+function st_baeFill(st) {
+  if (!st_isObj(st.bae)) st.bae = { current: null, previous: null };
+  for (const k of ['current', 'previous']) if (st.bae[k] === undefined) st.bae[k] = null;
+  return st;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -324,12 +382,14 @@ SP.storeInit = function storeInit() {
   if (!Array.isArray(st.history)) st.history = [];
   if (st.lastImport === undefined) st.lastImport = null;
   if (st.savedAt === undefined) st.savedAt = null;
+  st_baeFill(st);
   SP.state = st;
   st_base = st.savedAt;
   st_savedSet = st_setJson(st.settings);
   const aps = SP.APS.filter(a => st.pulls.current[a.id]).map(a => a.label);
   return { ok: true, message: (st.savedAt ? 'Opened the plan saved ' + st_when(st.savedAt) : 'Opened the saved plan')
-    + (aps.length ? ' (' + st_list(aps) + ').' : '; it holds no pull yet.') };
+    + (aps.length ? ' (' + st_list(aps) + ').' : '; it holds no pull yet.')
+    + (st.bae.current ? ' It holds the BAE report ' + st_baeName(st.bae.current) + '.' : '') };
 };
 function st_beforeUnload(ev) {
   if (!st_dirty) return undefined;
@@ -405,6 +465,35 @@ function st_readable(p) {
 }
 function st_cents(p) { return st_readable(p).cents; }
 function st_usd(c) { return SP.fmtUsd ? SP.fmtUsd(c) : String(c / 100); }
+// THE BAE REPORT (CONTRACT §14.7). Its readable rows and their Approved and Authorized, over every row whatever its scope,
+// FY or the switches: what the report held, as the history and the shrink question need it. A row counts nowhere when it
+// could not be read (its bad says why), exactly as an unreadable pull row.
+function st_baeReadable(b) {
+  let rows = 0, approved = 0, authorized = 0;
+  for (const r of (b && Array.isArray(b.rows) ? b.rows : [])) {
+    if (!r || !Array.isArray(r.c) || (r.bad && r.bad.length)) continue;
+    if (!Number.isSafeInteger(r.c[2]) || !Number.isSafeInteger(r.c[3])) continue;
+    rows++; approved += r.c[2]; authorized += r.c[3];
+  }
+  return { rows, approved, authorized };
+}
+// a report by name, for messages: “file” › “sheet”, dated by its file name, else by when it was imported
+function st_baeName(b) {
+  const at = typeof b.stamp === 'string' && b.stamp ? 'dated ' + b.stamp
+    : typeof b.importedAt === 'string' && b.importedAt ? 'imported ' + st_when(b.importedAt) : '';
+  return '“' + b.file + '” › “' + b.sheet + '”' + (at ? ' (' + at + ')' : '');
+}
+// The same report, row for row: what each row holds and the report's own total, never its file name or date (a report
+// exported again unchanged is the same report, as a pull imported again is the same pull, review BP-1).
+function st_sameBae(a, b) {
+  if (!st_isObj(a) || !st_isObj(b) || !Array.isArray(a.rows) || !Array.isArray(b.rows) || a.rows.length !== b.rows.length) return false;
+  if (JSON.stringify(a.headers || null) !== JSON.stringify(b.headers || null)) return false;
+  const tot = t => (st_isObj(t) ? JSON.stringify([t.approved, t.authorized, t.raw || null]) : 'null');
+  if (tot(a.total) !== tot(b.total)) return false;
+  const key = r => JSON.stringify([r.c, r.x || {}, r.bad || null, r.raw || null]);
+  for (let i = 0; i < a.rows.length; i++) if (key(a.rows[i]) !== key(b.rows[i])) return false;
+  return true;
+}
 // The same pull, row for row: what each row holds, never where it was read from. A pull imported again (an easy slip in
 // a downloads folder) moved the identical current pull into previous and threw away the one What changed compared with,
 // while the message said "the pull it replaces is kept for What changed" (review IMP-11).
@@ -432,7 +521,9 @@ const ST_SHRINK = 0.5;
 SP.applyImport = function applyImport(parsed) {
   if (!st_isObj(parsed) || !st_isObj(parsed.pulls)) throw new Error('There was nothing to import (the import gave no pulls), so nothing was changed.');
   const keys = Object.keys(parsed.pulls).filter(k => ST_PULL_KEYS.includes(k) && parsed.pulls[k] && Array.isArray(parsed.pulls[k].rows));
-  if (!keys.length) throw new Error('The import held no rows, so nothing was changed.');
+  // a BAE report of budgets (CONTRACT §14.7): it comes in alone or beside pulls, and never touches one
+  const baeIn = st_isObj(parsed.bae) && Array.isArray(parsed.bae.rows) ? parsed.bae : null;
+  if (!keys.length && !baeIn) throw new Error('The import held no rows, so nothing was changed.');
   if (typeof SP.defaultSettings !== 'function') throw new Error('The model is not loaded (SP.defaultSettings is missing), so nothing was imported.');
   const report = st_isObj(parsed.report) ? parsed.report : {};
   const importedAt = typeof report.importedAt === 'string' && report.importedAt ? report.importedAt : new Date().toISOString();
@@ -453,7 +544,16 @@ SP.applyImport = function applyImport(parsed) {
     if (now.rows < was.rows * ST_SHRINK) shrinks.push({ ap: k, was, now, rows: parsed.pulls[k].rows.length });
   }
   const worry = SP.APS.map(a => a.id).filter(ap => strays.some(x => x.ap === ap) || shrinks.some(x => x.ap === ap));
-  if (worry.length) {
+  // A BAE REPORT WITH FEWER THAN HALF THE READABLE ROWS of the one on screen is asked about the same way (CONTRACT §14.7):
+  // it replaces the whole report, every appropriation's Approved and Authorized with it, and a report filtered before it
+  // was exported, or cut short, would quietly take every block it no longer covers back to the CCaR plan.
+  const baeNow = st_isObj(st.bae) && st_isObj(st.bae.current) ? st.bae.current : null;
+  let baeShrink = null;
+  if (baeIn && baeNow) {
+    const was = st_baeReadable(baeNow), now = st_baeReadable(baeIn);
+    if (now.rows < was.rows * ST_SHRINK) baeShrink = { was, now, rows: baeIn.rows.length };
+  }
+  if (worry.length || baeShrink) {
     const para = ap => {
       const x = strays.find(y => y.ap === ap), z = shrinks.find(y => y.ap === ap), cur = before[ap], lab = st_apLabel(ap);
       const bits = [];
@@ -490,7 +590,17 @@ SP.applyImport = function applyImport(parsed) {
     if (shrinkOnly.length) adv.push('If ' + (shrinkOnly.length === 1 ? 'this is not the whole ' + shrinkOnly[0] + ' pull' : 'these are not the whole '
       + st_list(shrinkOnly) + ' pulls') + ' (a file cut short, a pull filtered in CCaR, a misfiled row, or Amounts saved as formulas without their '
       + 'results), press Cancel: nothing is imported, and the ' + (shrinkOnly.length === 1 ? 'pull' : 'pulls') + ' on screen stay.');
-    const q = worry.map(para).join('\n\n') + '\n\n' + adv.join('\n\n') + '\n\nImport anyway?';
+    const paras = worry.map(para);
+    if (baeShrink) {
+      const z = baeShrink, unread = z.rows - z.now.rows;
+      paras.push('This import brings a BAE report of ' + st_rows(z.rows)
+        + (unread ? (z.now.rows ? ', and only ' + SP.fmtInt(z.now.rows) + ' of them can be read' : ', and none of them can be read') : '')
+        + ' (Approved ' + st_usd(z.now.approved) + '). That is fewer than half the ' + SP.fmtInt(z.was.rows) + ' readable rows of the BAE report on '
+        + 'screen. Imported, it replaces that whole report (' + st_baeName(baeNow) + ', Approved ' + st_usd(z.was.approved) + '), for every appropriation.');
+      adv.push('If this is not the whole BAE report (one filtered before it was exported, or cut short), press Cancel: nothing is imported, '
+        + 'and the report on screen stays.');
+    }
+    const q = paras.join('\n\n') + '\n\n' + adv.join('\n\n') + '\n\nImport anyway?';
     let yes = false;
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
     if (!yes) {
@@ -501,11 +611,18 @@ SP.applyImport = function applyImport(parsed) {
         return 'the import’s ' + st_apLabel(ap) + ' pull has ' + SP.fmtInt(z.now.rows) + ' readable row' + (z.now.rows === 1 ? '' : 's') + ' (' + st_usd(z.now.cents)
           + '), fewer than half the ' + SP.fmtInt(z.was.rows) + ' of the one on screen';
       });
+      const targets = worry.map(ap => 'the ' + st_apLabel(ap) + ' pull');
+      if (baeShrink) {
+        why.push('the import’s BAE report has ' + SP.fmtInt(baeShrink.now.rows) + ' readable row' + (baeShrink.now.rows === 1 ? '' : 's') + ' (Approved '
+          + st_usd(baeShrink.now.approved) + '), fewer than half the ' + SP.fmtInt(baeShrink.was.rows) + ' of the one on screen');
+        targets.push('the BAE report');
+      }
       const w = why.join('; ');
-      return { ok: false, message: 'Nothing was imported. ' + w.charAt(0).toUpperCase() + w.slice(1) + ', and you chose not to let ' + (worry.length === 1 ? 'it' : 'those')
-        + ' replace ' + st_list(worry.map(ap => 'the ' + st_apLabel(ap) + ' pull')) + '.'
+      return { ok: false, message: 'Nothing was imported. ' + w.charAt(0).toUpperCase() + w.slice(1) + ', and you chose not to let ' + (targets.length === 1 ? 'it' : 'those')
+        + ' replace ' + st_list(targets) + '.'
         + (strays.length ? ' If rows are misfiled, correct their Budget, or take them out of this file (each appropriation’s pull is imported whole), and import again.' : '')
-        + (shrinkOnly.length ? ' Import the whole ' + st_list(shrinkOnly) + ' pull' + (shrinkOnly.length === 1 ? '' : 's') + ' when you have ' + (shrinkOnly.length === 1 ? 'it' : 'them') + '.' : '') };
+        + (shrinkOnly.length ? ' Import the whole ' + st_list(shrinkOnly) + ' pull' + (shrinkOnly.length === 1 ? '' : 's') + ' when you have ' + (shrinkOnly.length === 1 ? 'it' : 'them') + '.' : '')
+        + (baeShrink ? ' Import the whole BAE report when you have it.' : '') };
     }
   }
 
@@ -529,7 +646,11 @@ SP.applyImport = function applyImport(parsed) {
   // replaced, they go to previous, so the Summary never names rows of a file nothing on screen came from (review R6);
   // either way the message says what became of them.
   let unidSaid = '';
-  if (!keys.includes('unidentified') && unidWas) {
+  if (!keys.length && unidWas) {
+    // AN IMPORT HOLDING ONLY A BAE REPORT touches no pull (CONTRACT §14.7): the rows stay exactly where they are. They
+    // carry their own import's time from now on, because the last import is no longer theirs (§11).
+    if (unidWas.at) unidWas.p.importedAt = unidWas.at;
+  } else if (!keys.includes('unidentified') && unidWas) {
     const stays = !!unidWas.at && SP.APS.some(a => !keys.includes(a.id) && st.pulls.current[a.id] && st.pulls.current[a.id].importedAt === unidWas.at);
     const n = Array.isArray(unidWas.p.rows) ? unidWas.p.rows.length : 0;
     const from = unidWas.at ? 'from the import of ' + st_day(unidWas.at) : 'from an earlier import';
@@ -544,15 +665,34 @@ SP.applyImport = function applyImport(parsed) {
         + ' no longer on screen: every pull that import brought has now been replaced.';
     }
   }
+  // THE BAE REPORT replaces the one on screen whole (it covers every appropriation); the one it replaces becomes previous,
+  // for What changed. One that repeats it row for row leaves previous as it is and records since when its rows have been
+  // on screen, as a pull does (review BP-1).
+  let baeSame = false, baeWas = null;
+  if (baeIn) {
+    st_baeFill(st);
+    const cur = st.bae.current, nw = st_clone(baeIn);
+    nw.importedAt = importedAt;
+    delete nw.sameSince;
+    if (cur && st_sameBae(cur, nw)) {
+      baeSame = true;
+      const since = typeof cur.sameSince === 'string' && cur.sameSince ? cur.sameSince : cur.importedAt;
+      if (typeof since === 'string' && since) nw.sameSince = since;
+    } else if (cur) { st.bae.previous = cur; baeWas = cur; }
+    st.bae.current = nw;
+  }
   // The settings a person chose stay; only Data through follows the new pull (CONTRACT §4.1). An import that placed no
   // row in any appropriation brings no pull, so it leaves Data through where the person set it (review IMP-12).
   const aps = SP.APS.filter(a => keys.includes(a.id)).map(a => a.id);
   const def = SP.defaultSettings(importedAt);
   const first = !st_isObj(st.settings);
   const was = first ? null : st.settings.asOf;
-  const moveAsOf = first || aps.length > 0;
-  st.settings = first ? def : moveAsOf ? Object.assign({}, st.settings, { asOf: def.asOf }) : st.settings;
-  st.history.push({ importedAt, aps, totals: st_totals(st_pick(st.pulls.current, aps), st.settings) });
+  // an import holding only a BAE report leaves Data through alone (CONTRACT §14.7): the month is the pull's
+  const moveAsOf = keys.length > 0 && (first || aps.length > 0);
+  st.settings = moveAsOf ? (first ? def : Object.assign({}, st.settings, { asOf: def.asOf })) : st.settings;
+  const hist = { importedAt, aps, totals: st_totals(st_pick(st.pulls.current, aps), st.settings) };
+  if (baeIn) { const r = st_baeReadable(st.bae.current); hist.bae = { rows: r.rows, approved: r.approved, authorized: r.authorized }; }
+  st.history.push(hist);
   st.lastImport = { report: st_clone(report) };
   st_changed();
 
@@ -564,7 +704,16 @@ SP.applyImport = function applyImport(parsed) {
   let warn = false;
   if (aps.length) {
     said.push('Imported ' + st_list(aps.map(ap => st_apLabel(ap) + ' (' + st_rows(st.pulls.current[ap].rows.length) + ')')) + '.');
-  } else said.push('No row in this import could be placed in an appropriation.');
+  } else if (keys.length) said.push('No row in this import could be placed in an appropriation.');
+  // the report by name and date, and the rows it brings (CONTRACT §14.7)
+  const baeR = baeIn ? st_baeReadable(st.bae.current) : null;
+  const baeRep = st_isObj(report.bae) ? report.bae : {};
+  if (baeIn) {
+    const b = st.bae.current, n = b.rows.length;
+    said.push('Imported the BAE report “' + b.file + '” › “' + b.sheet + '”, ' + (b.stamp ? 'dated ' + b.stamp : 'which has no date in its file name')
+      + ': ' + st_rows(n) + (baeR.rows < n ? ', ' + SP.fmtInt(baeR.rows) + ' of them readable' : '') + ' (Approved ' + st_usd(baeR.approved)
+      + ', Authorized ' + st_usd(baeR.authorized) + ', before Flyaway and the budgets that name no appropriation are left out).');
+  }
   const refused = (Array.isArray(report.refusedFiles) ? report.refusedFiles : []).filter(st_isObj);
   for (const f of refused) {
     warn = true;
@@ -580,6 +729,16 @@ SP.applyImport = function applyImport(parsed) {
     said.push('Check: the ' + st_apLabel(z.ap) + ' pull now has ' + SP.fmtInt(z.now.rows) + ' readable row' + (z.now.rows === 1 ? '' : 's') + ' (' + st_usd(z.now.cents)
       + '), where the pull it replaced had ' + SP.fmtInt(z.was.rows) + ' (' + st_usd(z.was.cents) + ').');
   }
+  if (baeShrink) {
+    warn = true;
+    said.push('Check: the BAE report now has ' + SP.fmtInt(baeShrink.now.rows) + ' readable row' + (baeShrink.now.rows === 1 ? '' : 's') + ' (Approved '
+      + st_usd(baeShrink.now.approved) + '), where the report it replaced had ' + SP.fmtInt(baeShrink.was.rows) + ' (Approved ' + st_usd(baeShrink.was.approved) + ').');
+  }
+  // the report's own total row disagreeing with its rows is a report to check before it is briefed from (CONTRACT §14.1)
+  if (baeIn && st_isObj(baeRep.total) && baeRep.total.ok === false) {
+    warn = true;
+    said.push('Check: the BAE report’s own total row (row ' + baeRep.total.rowNo + ') does not agree with the sum of its readable rows (see the Import report).');
+  }
   const replaced = aps.filter(ap => before[ap] && !same.includes(ap));
   if (replaced.length) said.push('The ' + st_list(replaced.map(st_apLabel)) + ' pull' + (replaced.length === 1 ? ' it replaces is' : 's it replaces are')
     + ' kept for What changed.');
@@ -591,6 +750,10 @@ SP.applyImport = function applyImport(parsed) {
     + ' with the pull before it, and says nothing changed since.');
   if (sameAlone.length) said.push(sameLead(sameAlone) + '; there is no earlier ' + (sameAlone.length === 1 ? 'pull' : 'pull of ' + (sameAlone.length === 2 ? 'either' : 'any'))
     + ' for What changed to compare with yet.');
+  if (baeWas) said.push('The BAE report it replaces, ' + st_baeName(baeWas) + ', is kept for What changed.');
+  if (baeSame) said.push('The BAE report is the same as the one on screen, row for row' + (st.bae.previous
+    ? ', so What changed still compares it with the report before it, and says nothing changed since.'
+    : '; there is no earlier report for What changed to compare with yet.'));
   const kept = SP.APS.filter(a => before[a.id] && !aps.includes(a.id));
   if (kept.length) {
     const byDay = new Map();
@@ -614,6 +777,12 @@ SP.applyImport = function applyImport(parsed) {
     said.push(st_list(unread.map(([ap, k]) => SP.fmtInt(k) + ' ' + st_apLabel(ap))) + ' row' + (n === 1 ? '' : 's')
       + ' could not be read (FY or Amount): ' + (n === 1 ? 'it is' : 'they are') + ' kept and counted nowhere (see the Import report).');
   }
+  const baeBad = baeIn ? st.bae.current.rows.filter(r => r.bad && r.bad.length).length : 0;
+  if (baeBad) {
+    warn = true;
+    said.push(st_rows(baeBad) + ' of the BAE report could not be read (Budget Name, FY or an amount): ' + (baeBad === 1 ? 'it is' : 'they are')
+      + ' kept and counted nowhere (see the Import report).');
+  }
   const db = (Array.isArray(report.dateUnreadable) ? report.dateUnreadable : []).filter(st_isObj);
   const dDate = db.filter(d => d.column === 'Date').length, dMonth = db.filter(d => d.column === 'Month').length;
   if (dDate) said.push(st_rows(dDate) + ' ' + (dDate === 1 ? 'has a Date' : 'have a Date') + ' that could not be read: ' + (dDate === 1 ? 'it is' : 'they are')
@@ -628,7 +797,7 @@ SP.applyImport = function applyImport(parsed) {
   if (moveAsOf) {
     said.push('Data through ' + (first ? 'set' : 'reset') + ' to ' + lab(def.asOf) + ', the last full month before this import'
       + (!first && was && was !== def.asOf ? ' (it was ' + lab(was) + ')' : '') + '; change it at the top if the pull runs later.');
-  } else said.push('Data through stays ' + lab(was) + ': no pull came in to move it.');
+  } else if (was) said.push('Data through stays ' + lab(was) + ': no pull came in to move it.');
   return { ok: true, warn, message: said.join(' ') };
 };
 function st_pick(current, aps) {
@@ -653,13 +822,20 @@ SP.takePlan = function takePlan(text, name) {
   if (why) return { ok: false, message: 'Nothing was taken from “' + fname + '”: ' + why + '.' };
   const inc = f.state;
   const aps = SP.APS.filter(a => inc.pulls.current[a.id]).map(a => a.label);
-  if (!aps.length) return { ok: false, message: 'Nothing was taken: the plan in “' + fname + '” holds no pull.' };
+  // a plan whose only data is a BAE report (CONTRACT §14) is a plan: the report is what it brings
+  const incBae = st_isObj(inc.bae) && st_isObj(inc.bae.current);
+  if (!aps.length && !incBae) return { ok: false, message: 'Nothing was taken: the plan in “' + fname + '” holds no pull.' };
   const st = SP.state;
   const mine = SP.APS.filter(a => st.pulls.current[a.id]).map(a => a.label);
+  const mineBae = st_isObj(st.bae) && st_isObj(st.bae.current);
+  // what each plan holds, in words: its pulls, and its BAE report when it has one (said only then, so a plan without one
+  // reads as it always has)
+  const holds = (l, b) => st_list(l.concat(b ? ['the BAE report'] : []));
   const saved = inc.savedAt ? ', saved ' + st_when(inc.savedAt) : '';
-  if (mine.length || st_dirty) {
-    const q = 'This page holds ' + (mine.length ? 'a plan (' + st_list(mine) + ')' : 'work') + (st_dirty ? ' with unsaved changes' : '') + '.\n\n'
-      + 'Taking the plan in “' + fname + '” (' + st_list(aps) + saved + ') replaces it on this page: its pulls, earlier pulls, import '
+  const andBae = incBae || mineBae ? ', BAE reports' : '';
+  if (mine.length || st_dirty || mineBae) {
+    const q = 'This page holds ' + (mine.length || mineBae ? 'a plan (' + holds(mine, mineBae) + ')' : 'work') + (st_dirty ? ' with unsaved changes' : '') + '.\n\n'
+      + 'Taking the plan in “' + fname + '” (' + holds(aps, incBae) + saved + ') replaces it on this page: its pulls, earlier pulls' + andBae + ', import '
       + 'history, settings and last import report. This page’s own file is not changed until you Save.\n\nTake it?';
     let yes = false;
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
@@ -668,6 +844,7 @@ SP.takePlan = function takePlan(text, name) {
   const next = st_clone(inc);
   if (!Array.isArray(next.history)) next.history = [];
   if (next.lastImport === undefined) next.lastImport = null;
+  st_baeFill(next);   // a plan saved before CONTRACT §14 is taken with no report, as it opens with none
   // the save time stays this page's: it is what this page's own file holds, and what Save checks that file against
   next.savedAt = st.savedAt === undefined ? null : st.savedAt;
   SP.state = next;
@@ -675,8 +852,8 @@ SP.takePlan = function takePlan(text, name) {
   // on screen", or was saved "by someone else", and "is lost" (review SEAM-4). Remembered until this page saves.
   st_taken = { at: typeof inc.savedAt === 'string' && inc.savedAt ? inc.savedAt : null, name: fname };
   st_changed();
-  return { ok: true, message: 'Took the plan in “' + fname + '” (' + st_list(aps) + saved + '): its pulls, earlier pulls, import history, '
-    + 'settings and last import report. Its figures are worked out by this copy of the tool. Save to keep it in this page’s file.' };
+  return { ok: true, message: 'Took the plan in “' + fname + '” (' + holds(aps, incBae) + saved + '): its pulls, earlier pulls' + (incBae ? ', BAE reports' : '')
+    + ', import history, settings and last import report. Its figures are worked out by this copy of the tool. Save to keep it in this page’s file.' };
 };
 
 // ---------------------------------------------------------------------------------------------------------------

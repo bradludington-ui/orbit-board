@@ -1,4 +1,5 @@
-// §3 IMPORT — reading CCaR pulls into typed rows, the import report, and the per-row derived fields (CONTRACT §3).
+// §3 IMPORT — reading CCaR pulls into typed rows, the import report, and the per-row derived fields (CONTRACT §3); and the
+// BAE report of budgets read beside them (§14.1).
 //
 // The rule behind every line here: nothing a pull carries is dropped or changed silently. A value that cannot be read
 // keeps its row (marked bad, counted in no figure, listed in the report with its file, sheet and row); a value that is
@@ -20,6 +21,7 @@ function imp_apLabel(id) { const a = SP.APS.find(x => x.id === id); return a ? a
 function imp_plural(n, one, many) { return SP.fmtInt(n) + ' ' + (n === 1 ? one : (many || one + 's')); }
 function imp_isBlank(v) { return v === null || v === undefined || (typeof v === 'string' && v.trim() === ''); }
 function imp_q(s) { return '“' + s + '”'; }
+function imp_list(w) { return w.length <= 1 ? w.join('') : w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; }
 // a cell as text: numbers as Excel shows them (15 significant digits, so 0.1+0.2 is "0.3"), booleans as TRUE/FALSE
 function imp_text(v) {
   if (v === null || v === undefined) return '';
@@ -243,7 +245,10 @@ function imp_sepHeader(rows, rowNo) {
     for (const [sep, words] of IMP_SEPS) {
       if (line.indexOf(sep) < 0) continue;
       const have = new Set(line.split(sep).map(unq));
+      const haveB = new Set(line.split(sep).map(x => imp_baeKey(x.replace(/^\s*"([\s\S]*)"\s*$/, '$1'))));
       if (SP.REQUIRED.every(h => have.has(SP.normKey(h)))) return { rowNo: rowNo[i], sep: words };
+      // a BAE report's CSV separated so is the same mistake, and gets the same advice
+      if (IMP_BAE_COLS.every(h => h.keys.some(k => haveB.has(k)))) return { rowNo: rowNo[i], sep: words };
     }
   }
   return null;
@@ -412,6 +417,214 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// THE BAE REPORT OF BUDGETS (CONTRACT §14.1): each budget's Approved and Authorized amount by FY, beside the pull. It is
+// read here and kept whole; what a row means (its appropriation, scope, service, lane, PMO) is worked out again on every
+// load by the engine (§14.2), so a rule fix reaches an old report as it reaches an old pull.
+// ---------------------------------------------------------------------------------------------------------------
+// The four columns the tool reads, in the order a stored row's c holds them. The FY may be headed either way; where a
+// sheet has both, Budget FY Numeric is read (it is the number) and Budget FY is kept as written, like any other column.
+const IMP_BAE_COLS = [
+  { keys: ['budget name'], label: 'Budget Name' },
+  { keys: ['budget fy numeric', 'budget fy'], label: 'Budget FY Numeric (or Budget FY)' },
+  { keys: ['budget approved amount'], label: 'Budget Approved Amount' },
+  { keys: ['budget authorized amount'], label: 'Budget Authorized Amount' } ];
+const IMP_BAE_NAME = 0, IMP_BAE_FY = 1, IMP_BAE_APP = 2, IMP_BAE_AUTH = 3;
+// what a file refused for holding no usable sheet is told it might have held instead
+const IMP_BAE_NONE = ', nor a BAE report of budgets (Budget Name, Budget FY Numeric, Budget Approved Amount, Budget Authorized Amount)';
+// $100,000 in cents. Every non-zero amount under it means the figures were exported in $M (the report's own display),
+// and read as the dollars they then claim to be, every block would be understated a millionfold.
+const IMP_BAE_SMALL = 10000000;
+// A header as the report's are compared: a trailing unit in parentheses taken off, then normKey. The report heads its
+// amounts "Budget Approved Amount ($M)" though the cells hold dollars (the $M is the number format's), so the unit says
+// nothing about the value and is not part of the name.
+function imp_baeKey(v) { return SP.normKey(imp_text(v).replace(/\s*\([^()]*\)$/, '')); }
+// the header row: the first row numbered 1–15 holding all four; or the row closest to it (two or more of the four), so a
+// sheet that is nearly a report says which header it lacks
+function imp_baeHeader(rows, rowNo) {
+  let best = null;
+  for (let i = 0; i < rows.length && rowNo[i] <= IMP_HDR_ROWS; i++) {
+    const have = new Set((rows[i] || []).map(imp_baeKey));
+    const missing = IMP_BAE_COLS.filter(h => !h.keys.some(k => have.has(k))).map(h => h.label);
+    if (!missing.length) return { i };
+    if (missing.length <= 2 && (!best || missing.length < best.missing.length)) best = { rowNo: rowNo[i], missing };
+  }
+  return { i: -1, best };
+}
+// A report's amount -> {cents, how}. A number cell holds dollars (the report SHOWS them as $M through its number format),
+// read to the cent as CONTRACT §14.1 says, Math.round(v*100); a fraction of a cent is rounded and reported. Text is a
+// figure whose unit cannot be known, since the $M display is the only text the report would carry, so it is read only
+// when it is zero ("$0.000", the report's own zero, counted as a conversion); any other text makes the row unreadable.
+// A CSV has no number type: there a plain number is how the file writes a number, as for a pull (§3), not text.
+//   how: 'number' | 'subcent' | 'zero' (text read as zero) | 'blank' | 'text' (not zero: unreadable) | 'bad'
+function imp_baeAmt(v, csv) {
+  if (imp_isBlank(v)) return { cents: 0, how: 'blank' };
+  let n = null;
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string' && csv && /^\s*-?\d+(\.\d+)?\s*$/.test(v)) n = Number(v);
+  if (n !== null) {
+    if (!isFinite(n)) return { cents: null, how: 'bad' };
+    const c = Math.round(n * 100);
+    if (!Number.isSafeInteger(c)) return { cents: null, how: 'bad' };
+    // a fraction of a cent, judged on the 15 significant digits Excel shows (n*100 itself carries binary noise)
+    return { cents: c === 0 ? 0 : c, how: SP.parseAmount(n).how === 'subcent' ? 'subcent' : 'number' };
+  }
+  if (typeof v !== 'string') return { cents: null, how: 'bad' };
+  const a = SP.parseAmount(v);
+  if (a.cents === 0) return { cents: 0, how: 'zero' };
+  return { cents: null, how: a.cents === null ? 'bad' : 'text' };
+}
+// the report's date from its file name: "…_2026-01-31_120000.xlsx" -> '2026-01-31 12:00', else null
+SP.baeStampOf = function baeStampOf(fileName) {
+  const base = String(fileName ?? '').replace(/^.*[\\/]/, '').replace(/\.[^.]*$/, '');
+  const m = /_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$/.exec(base);
+  if (!m || !SP.isoDate(m[1], m[2], m[3]) || Number(m[4]) > 23 || Number(m[5]) > 59 || Number(m[6]) > 59) return null;
+  return m[1] + '-' + m[2] + '-' + m[3] + ' ' + m[4] + ':' + m[5];
+};
+
+// One report sheet -> {info, bae, part}: info for the file's sheet list, bae the stored report (CONTRACT §14.1), part the
+// import report's BAE section. hi is the header row's index (imp_baeHeader). info.why is set when the sheet cannot be read
+// as a report at all; the import is then refused, naming it (a report the person meant to bring is never left out quietly).
+function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
+  const rows = sh.rows, rowNo = sh.rowNo, csv = kind === 'csv';
+  const info = { name: sh.name, state: sh.state || 'visible', used: false, bae: true, why: null, headerRow: rowNo[hi], rows: 0, blank: 0,
+    byAp: {}, extras: [], ignoredCols: [], ownCols: [], missingCols: [], disagree: null, extraOnly: [],
+    noResult: Array.isArray(sh.noResult) ? sh.noResult.slice() : [] };
+  const head = rows[hi] || [];
+  // COLUMNS BY HEADER NAME. Two columns that both answer to one of the four (an Approved in dollars beside one in $M, say)
+  // cannot be told apart, and which one holds the money is not something to guess.
+  const at = new Map();   // header key -> the columns headed so
+  head.forEach((h, j) => { const k = imp_baeKey(h); if (k) { if (!at.has(k)) at.set(k, []); at.get(k).push(j); } });
+  const col = [-1, -1, -1, -1], dup = [];
+  IMP_BAE_COLS.forEach((d, n) => {
+    // the first of its keys the sheet has: Budget FY Numeric before Budget FY, which is then kept as a column like any other
+    const k = d.keys.find(x => at.has(x));
+    const js = at.get(k);
+    if (js.length > 1) dup.push({ label: n === IMP_BAE_FY ? (k === 'budget fy' ? 'Budget FY' : 'Budget FY Numeric') : d.label, a: js[0], b: js[1] });
+    col[n] = js[0];
+  });
+  const fyBoth = at.has('budget fy numeric') && at.has('budget fy');
+  if (dup.length) {
+    info.why = dup.map(d => {
+      const ta = imp_text(head[d.a]), tb = imp_text(head[d.b]), la = SP.colLetter(d.a), lb = SP.colLetter(d.b);
+      return ta === tb ? 'two columns are headed ' + imp_q(ta) + ' (' + la + ' and ' + lb + ')'
+        : 'two columns, ' + imp_q(ta) + ' (' + la + ') and ' + imp_q(tb) + ' (' + lb + '), are both the ' + d.label;
+    }).join('; ') + ', so the tool cannot tell which to read';
+    return { info, bae: null, part: null };
+  }
+  const isFour = r => col.every(j => imp_isBlank(r[j]));
+  // EVERY COLUMN IS KEPT, in the file's order, under the file's own header (CONTRACT §14.1): the BAE Report sheet writes
+  // them back. A column with no header that holds something is kept by its letter, and a second column of one header
+  // name as "Name (2)", as the pull keeps its extras, so no value overwrites another.
+  let width = head.length;
+  for (let i = hi + 1; i < rows.length; i++) width = Math.max(width, (rows[i] || []).length);
+  const used = new Set();
+  for (let i = hi + 1; i < rows.length; i++) { const r = rows[i] || []; for (let j = 0; j < r.length; j++) if (!imp_isBlank(r[j])) used.add(j); }
+  const headers = [], nameAt = new Map(), seen = new Map();
+  for (let j = 0; j < width; j++) {
+    let text = imp_text(head[j]);
+    if (text === '' && !used.has(j)) continue;
+    if (text === '') text = 'Column ' + SP.colLetter(j);
+    const nk = SP.normKey(text), n = (seen.get(nk) || 0) + 1;
+    seen.set(nk, n);
+    const name = n === 1 ? text : text + ' (' + n + ')';
+    headers.push(name);
+    nameAt.set(j, name);
+  }
+  const cols = col.map(j => nameAt.get(j));
+  const four = new Set(col);
+  const extrasOf = r => {
+    const x = Object.create(null);   // keyed by headers out of the file: a column headed __proto__ is a column
+    for (let j = 0; j < r.length; j++) if (!four.has(j) && nameAt.has(j) && !imp_isBlank(r[j])) x[nameAt.get(j)] = imp_text(r[j]);
+    return x;
+  };
+  const part = { file: fileName, sheet: sh.name, state: info.state, headerRow: info.headerRow, columns: headers.length, cols: cols.slice(),
+    fyBoth, stamp: SP.baeStampOf(fileName), rowsRead: 0, readable: 0, blank: 0, cents: { approved: 0, authorized: 0 },
+    conversions: { zero: 0, blank: 0, subcent: 0, trimmed: 0 }, subcent: [], unreadable: [], extraOnly: [], total: null,
+    largest: 0, nonZero: 0 };
+  const out = [];
+  let total = null;
+  // THE REPORT'S OWN TOTAL ROW: no Budget Name, no FY, amounts, after the last budget row. It is a sum of the rows and is
+  // never counted; it is checked against them below.
+  let lastNamed = -1;
+  for (let i = hi + 1; i < rows.length; i++) if (!imp_isBlank((rows[i] || [])[col[IMP_BAE_NAME]])) lastNamed = i;
+  for (let i = hi + 1; i < rows.length; i++) {
+    const r = rows[i] || [], rn = rowNo[i];
+    if (isFour(r)) {
+      // blank in all four is skipped and counted; one holding something elsewhere is skipped too, and listed with what it held
+      const o = [];
+      for (let j = 0; j < r.length; j++) if (!four.has(j) && !imp_isBlank(r[j])) o.push([nameAt.get(j) || 'Column ' + SP.colLetter(j), imp_raw(r[j])]);
+      if (o.length) { info.extraOnly.push({ row: rn, values: o }); part.extraOnly.push({ row: rn, values: o }); }
+      else { info.blank++; part.blank++; }
+      continue;
+    }
+    const v = col.map(j => r[j]);
+    if (!total && i > lastNamed && imp_isBlank(v[IMP_BAE_NAME]) && imp_isBlank(v[IMP_BAE_FY])
+      && !(imp_isBlank(v[IMP_BAE_APP]) && imp_isBlank(v[IMP_BAE_AUTH]))) {
+      const a = imp_baeAmt(v[IMP_BAE_APP], csv), u = imp_baeAmt(v[IMP_BAE_AUTH], csv);
+      total = { approved: a.cents, authorized: u.cents, rowNo: rn };
+      const raw = {};
+      if (a.cents === null) raw[cols[IMP_BAE_APP]] = imp_raw(v[IMP_BAE_APP]);
+      if (u.cents === null) raw[cols[IMP_BAE_AUTH]] = imp_raw(v[IMP_BAE_AUTH]);
+      if (Object.keys(raw).length) total.raw = raw;
+      const x = extrasOf(r);
+      if (Object.keys(x).length) total.x = x;
+      continue;
+    }
+    const c = new Array(4), bad = [], raw = {};
+    for (let n = 0; n < 4; n++) if (typeof v[n] === 'string' && v[n] !== v[n].trim()) part.conversions.trimmed++;
+    c[IMP_BAE_NAME] = imp_text(v[IMP_BAE_NAME]);
+    if (c[IMP_BAE_NAME] === '') bad.push(cols[IMP_BAE_NAME] + ' is blank');
+    const fy = SP.readFY(v[IMP_BAE_FY]);
+    if (fy === null) {
+      bad.push(imp_isBlank(v[IMP_BAE_FY]) ? cols[IMP_BAE_FY] + ' is blank' : cols[IMP_BAE_FY] + ' ' + imp_q(imp_raw(v[IMP_BAE_FY])) + ' is not a year');
+      if (!imp_isBlank(v[IMP_BAE_FY])) raw[cols[IMP_BAE_FY]] = imp_raw(v[IMP_BAE_FY]);
+    }
+    c[IMP_BAE_FY] = fy;
+    for (const n of [IMP_BAE_APP, IMP_BAE_AUTH]) {
+      const a = imp_baeAmt(v[n], csv);
+      c[n] = a.cents;
+      if (a.cents === null) {
+        raw[cols[n]] = imp_raw(v[n]);
+        bad.push(cols[n] + ' ' + imp_q(imp_raw(v[n])) + (a.how === 'text'
+          ? ' is text, not a number: its unit cannot be known (the report’s amounts are dollars, shown as $M by their format)'
+          : ' is not an amount'));
+        continue;
+      }
+      if (a.how === 'zero') part.conversions.zero++;
+      else if (a.how === 'blank') part.conversions.blank++;
+      else if (a.how === 'subcent') { part.conversions.subcent++; part.subcent.push({ row: rn, column: cols[n], raw: imp_raw(v[n]), cents: a.cents }); }
+      if (a.cents !== 0) { part.nonZero++; part.largest = Math.max(part.largest, Math.abs(a.cents)); }
+    }
+    for (let j = 0; j < r.length; j++) if (!four.has(j) && typeof r[j] === 'string' && r[j] !== r[j].trim() && r[j].trim() !== '') part.conversions.trimmed++;
+    const stored = { c, x: extrasOf(r), src: [fileIdx, sh.name, rn] };
+    if (bad.length) { stored.bad = bad; stored.raw = raw; }
+    out.push(stored);
+    part.rowsRead++;
+    info.rows++;
+    if (bad.length) {
+      part.unreadable.push({ row: rn, reasons: bad.slice(), name: c[IMP_BAE_NAME], fy, approved: c[IMP_BAE_APP], authorized: c[IMP_BAE_AUTH], raw });
+    } else {
+      part.readable++;
+      part.cents.approved += c[IMP_BAE_APP];
+      part.cents.authorized += c[IMP_BAE_AUTH];
+    }
+  }
+  // THE TOTAL ROW, CHECKED. It is a sum of floating-point dollars, so each figure agrees when it is within $1 of the
+  // readable rows' sum; a figure that could not be read cannot agree.
+  if (total) {
+    const dA = total.approved === null ? null : total.approved - part.cents.approved;
+    const dU = total.authorized === null ? null : total.authorized - part.cents.authorized;
+    part.total = { rowNo: total.rowNo, approved: total.approved, authorized: total.authorized, sumApproved: part.cents.approved,
+      sumAuthorized: part.cents.authorized, diffApproved: dA, diffAuthorized: dU,
+      ok: dA !== null && dU !== null && Math.abs(dA) <= 100 && Math.abs(dU) <= 100 };
+    if (total.raw) part.total.raw = total.raw;
+  }
+  info.used = true;
+  const bae = { headers, cols, rows: out, file: fileName, sheet: sh.name, stamp: part.stamp, total };
+  return { info, bae, part };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // THE IMPORT
 // ---------------------------------------------------------------------------------------------------------------
 function imp_bytes(data) {
@@ -452,8 +665,9 @@ function imp_localWhen(iso) {
   return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
 }
 
-// files: [{name, data: ArrayBuffer | typed array | string}] -> {pulls, report}. A name ending .csv is read as CSV, any other
-// as .xlsx. Throws an Error with .refused = true (and .report) when the import as a whole is refused: nothing to change.
+// files: [{name, data: ArrayBuffer | typed array | string}] -> {pulls, bae, report}. A name ending .csv is read as CSV, any
+// other as .xlsx. bae is the BAE report of budgets the import holds (CONTRACT §14.1), or null. Throws an Error with
+// .refused = true (and .report) when the import as a whole is refused: nothing to change.
 SP.parseFiles = async function parseFiles(files, opts) {
   opts = opts || {};
   if (!Array.isArray(files) || !files.length) throw imp_refuse('No file was given, so nothing was imported.');
@@ -475,6 +689,7 @@ SP.parseFiles = async function parseFiles(files, opts) {
     subcent: acc.subcent, unreadable: acc.unreadable, dateUnreadable: acc.dateBad, disagreements: [], alloc: [], notes: [],
     extraOnly: acc.extraOnly, strays: [] };
   const got = [];   // {ap, row, file, sheet, fileIdx}
+  const baeGot = [];   // the BAE report sheets: {fileIdx, file, sheet, state, why, bae, part}
   for (let fi = 0; fi < files.length; fi++) {
     const f = files[fi] || {};
     const name = String(f.name ?? 'file ' + (fi + 1));
@@ -537,7 +752,19 @@ SP.parseFiles = async function parseFiles(files, opts) {
     } catch (e) { fr.refused = e && e.message ? e.message : String(e); continue; }
     fr.date1904 = date1904;
     for (const sh of sheets) {
+      // A BAE REPORT SHEET is known by its four headers (CONTRACT §14.1), and is one even when it also holds a pull's
+      const bh = sh.problem ? { i: -1 } : imp_baeHeader(sh.rows, sh.rowNo);
+      if (bh.i >= 0) {
+        const b = imp_baeSheet(fi, name, kind, sh, bh.i);
+        fr.sheets.push(b.info);
+        baeGot.push({ fileIdx: fi, file: name, sheet: sh.name, state: b.info.state, why: b.info.why, bae: b.bae, part: b.part });
+        continue;
+      }
       const { info, out } = imp_sheet(fi, name, kind, sh, date1904, acc);
+      // a sheet that is nearly a report says which of the report's headers it lacks, as a nearly-pull sheet does
+      if (!info.used && !info.headerRow && !info.sep && bh.best) {
+        info.why += '; row ' + bh.best.rowNo + ' looks like a BAE report’s header but has no ' + bh.best.missing.map(imp_q).join(' or ');
+      }
       fr.sheets.push(info);
       if (!info.used) continue;
       report.rowsRead += info.rows;
@@ -549,10 +776,38 @@ SP.parseFiles = async function parseFiles(files, opts) {
     // are right, the person had nothing to correct (review F2)
     const sepd = fr.sheets.find(s => s.sep);
     if (!fr.sheets.some(s => s.used)) fr.refused = sepd ? sepd.why : fr.sheets.length
-      ? 'no sheet in it holds CCaR rows under the column headers ' + SP.REQUIRED.join(', ')
+      ? 'no sheet in it holds CCaR rows under the column headers ' + SP.REQUIRED.join(', ') + IMP_BAE_NONE
       : 'it holds no sheets';
   }
   report.alloc = [...acc.alloc.values()].sort((a, b) => b.rows - a.rows || (a.text < b.text ? -1 : a.text > b.text ? 1 : 0));
+  // THE BAE REPORT, judged before anything else is: one report per import, readable, and in dollars. Each refusal refuses
+  // the whole import and changes nothing (CONTRACT §14.1), as a split appropriation does: a report the person meant to
+  // bring is never left out while the rest goes in.
+  const baeOne = baeGot.length === 1 ? baeGot[0] : null;
+  if (baeOne && baeOne.part) report.bae = baeOne.part;
+  if (baeGot.length > 1) {
+    throw imp_refuse('Nothing was imported. The import holds ' + baeGot.length + ' BAE reports of budgets, '
+      + imp_list(baeGot.map(b => imp_where(b) + (b.state === 'visible' ? '' : b.state === 'veryHidden' ? ' (a very hidden sheet)' : ' (a hidden sheet)')))
+      + ', and one import takes one report: it replaces the report on screen whole, so two would leave one of them out. Import the newest '
+      + 'report on its own, or with the pull files.', report);
+  }
+  if (baeOne && baeOne.why) {
+    throw imp_refuse('Nothing was imported. ' + imp_where(baeOne) + ' is a BAE report of budgets, but ' + baeOne.why + '. Rename or delete the '
+      + 'column that is not the report’s own, and import again.', report);
+  }
+  if (baeOne && !baeOne.part.readable) {
+    const p = baeOne.part;
+    throw imp_refuse('Nothing was imported. The BAE report ' + imp_where(baeOne) + ' has no row that can be read: '
+      + (p.rowsRead ? imp_plural(p.rowsRead, 'row is', 'rows are') + ' under its column headers (row ' + p.headerRow + '), and none has a '
+        + 'Budget Name, a year in its FY and an Approved and Authorized amount read as dollars (see the Import report for each row and why)'
+        : 'it has its column headers (row ' + p.headerRow + ') but no budget rows below them') + '.', report);
+  }
+  if (baeOne && baeOne.part.nonZero && baeOne.part.largest < IMP_BAE_SMALL) {
+    throw imp_refuse('Nothing was imported. Every amount in the BAE report ' + imp_where(baeOne) + ' is under $100,000 (the largest is '
+      + SP.fmtUsd(baeOne.part.largest) + '). The report’s cells hold dollars and show them as $M through their number format; figures this '
+      + 'small mean they were exported in $M, and read as dollars every Approved and Authorized would be understated a millionfold. '
+      + 'Export the report again with its amounts as dollars, as the report itself holds them, and import that.', report);
+  }
   if (!report.files.some(fr => fr.sheets.some(s => s.used))) {
     throw imp_refuse('Nothing was imported. ' + report.files.map(fr => imp_q(fr.name) + ' was refused: '
       + String(fr.refused).replace(/\.\s*$/, '') + '.').join(' '), report);
@@ -652,8 +907,11 @@ SP.parseFiles = async function parseFiles(files, opts) {
   report.ignoredSheets = [];
   for (const fr of report.files) for (const s of fr.sheets) if (!s.used) report.ignoredSheets.push({ file: fr.name, sheet: s.name, why: s.why });
   report.refusedFiles = report.files.filter(fr => fr.refused).map(fr => ({ file: fr.name, why: fr.refused }));
-  return { pulls: ordered, report };
+  return { pulls: ordered, bae: baeOne ? baeOne.bae : null, report };
 };
+// the Budget rule of CONTRACT §3, the one the pull places its rows by: the report's rows are placed by the same function
+// (§14.2), never a copy of it, so a budget's pull rows and its report row can never be told apart by appropriation
+SP.apOfBudget = imp_apOfBudget;
 
 // DATES AND MONTHS THAT COULD NOT BE READ, under two headings. A row is placed by its Date (CONTRACT §4.2), never its
 // Month: an unreadable Date puts the row in No date, an unreadable Month moves nothing. Listed together under "the row is
@@ -699,9 +957,31 @@ SP.importReportLines = function importReportLines(report) {
     for (const n of fr.notes) L.push('  ' + n);
     for (const s of fr.sheets) {
       L.push('  Sheet ' + imp_q(s.name) + (s.state !== 'visible' ? ' (' + s.state + ')' : '') + ': '
-        + (s.used ? 'used — ' + hdrNote(s) : 'ignored — ' + s.why) + '.');
+        + (s.bae ? (s.used ? 'the BAE report of budgets — ' + imp_baeNote(s) : 'a BAE report of budgets that cannot be read — ' + s.why)
+          : s.used ? 'used — ' + hdrNote(s) : 'ignored — ' + s.why) + '.');
     }
   }
+  // An import holding only a BAE report has no pull to report on: the pull's lines (rows read, conversions, Alloc values)
+  // would all read none, beside a report that holds rows. Its own section follows instead.
+  const pullSide = !report.bae || (report.files || []).some(fr => (fr.sheets || []).some(s => s && s.used && !s.bae));
+  if (pullSide) imp_pullLines(L, report);
+  imp_baeLines(L, report.bae);
+  for (const n of report.notes || []) L.push(n);
+  return L;
+};
+// a BAE report sheet in the file list: where its header is and what was read below it (the BAE section says the rest)
+function imp_baeNote(s) {
+  const bits = ['header on row ' + s.headerRow, imp_plural(s.rows, 'budget row')];
+  if (s.blank) bits.push(imp_plural(s.blank, 'blank row') + ' skipped');
+  const nr = Array.isArray(s.noResult) ? s.noResult : [];
+  if (nr.length) bits.push(imp_plural(nr.length, 'cell holds', 'cells hold') + ' a formula saved without its result ('
+    + nr.slice(0, 10).join(', ') + (nr.length > 10 ? ', …' : '') + '): each is read as its formula’s text, so an amount written that way '
+    + 'makes its row unreadable; open the file in Excel and save it, so the results are saved, and import it again');
+  if (s.extraOnly && s.extraOnly.length) bits.push(imp_plural(s.extraOnly.length, 'row') + ' skipped with values only outside the four columns read');
+  return bits.join('; ') + ' (see the BAE report section)';
+}
+// the pull's part of the report (CONTRACT §3)
+function imp_pullLines(L, report) {
   L.push('Rows read: ' + SP.fmtInt(report.rowsRead) + '. Blank rows skipped: ' + SP.fmtInt(report.rowsBlank) + '.');
   const xo = Array.isArray(report.extraOnly) ? report.extraOnly : [];
   if (xo.length) {
@@ -750,7 +1030,113 @@ SP.importReportLines = function importReportLines(report) {
   }
   L.push('Alloc values:');
   for (const a of report.alloc || []) L.push('  ' + (a.text === '' ? '(blank)' : imp_q(a.text)) + ': ' + imp_plural(a.rows, 'row') + ', ' + SP.fmtUsd(a.cents) + '.');
-  for (const n of report.notes || []) L.push(n);
+}
+
+// THE BAE REPORT'S PART OF THE IMPORT REPORT (CONTRACT §14.1): the file and sheet, rows read and skipped, every conversion,
+// the unreadable rows in full and the check against the report's own total row. Read from a saved file too, so every value
+// is taken as it may be (a report saved by another version draws, never throws).
+//   b  report.bae (parseFiles' part), or null;  kept  the import time of a report kept from an earlier import (baeKeptLines),
+//   whose blank rows and conversions were not kept and are not said
+function imp_baeLines(L, b, kept) {
+  if (!b || typeof b !== 'object') return;
+  const num = v => (typeof v === 'number' && isFinite(v) ? v : 0);
+  const arr = v => (Array.isArray(v) ? v : []);
+  const usd = v => (typeof v === 'number' && isFinite(v) ? SP.fmtUsd(v) : '—');
+  const signed = v => (typeof v === 'number' && isFinite(v) ? (v > 0 ? '+' : '') + SP.fmtUsd(v) : '—');
+  const at = { file: String(b.file ?? '?'), sheet: String(b.sheet ?? '?') };
+  const cols = arr(b.cols).map(String);
+  const colName = (k, dflt) => (cols[k] !== undefined ? cols[k] : dflt);
+  const bad = arr(b.unreadable), read = num(b.rowsRead);
+  L.push((kept !== undefined ? 'BAE report of budgets on screen, kept from an earlier import (' + (kept ? imp_localWhen(kept) : 'at a time not recorded') + '): '
+    : 'BAE report of budgets: ') + imp_where(at)
+    + (b.state === 'hidden' ? ' (a hidden sheet)' : b.state === 'veryHidden' ? ' (a very hidden sheet)' : '') + ', '
+    + (typeof b.stamp === 'string' && b.stamp ? 'dated ' + b.stamp + ' by its file name'
+      : 'with no date in its file name (it does not end _YYYY-MM-DD_HHMMSS), so it is known by ' + (kept !== undefined ? 'its import’s date' : 'this import’s date'))
+    + (kept !== undefined ? '.' : '; header on row ' + (b.headerRow ?? '?') + '.'));
+  L.push('  Rows read: ' + SP.fmtInt(read) + (bad.length ? ' (' + SP.fmtInt(num(b.readable)) + ' readable, ' + SP.fmtInt(bad.length) + ' unreadable)' : '')
+    + (kept !== undefined ? '.' : '. Blank rows skipped: ' + SP.fmtInt(num(b.blank)) + '.'));
+  const c = b.cents && typeof b.cents === 'object' ? b.cents : {};
+  L.push('  The readable rows hold Approved ' + usd(c.approved) + ' and Authorized ' + usd(c.authorized) + ': every budget in the report, '
+    + 'before Flyaway and the budgets that name no appropriation are left out.');
+  if (cols.length === 4) L.push('  Columns: ' + SP.fmtInt(num(b.columns)) + ', every one kept as the file has it. Read: ' + cols.map(imp_q).join(', ')
+    + ' (amounts as dollars, to the cent).' + (b.fyBoth ? ' The FY is read from Budget FY Numeric; Budget FY is kept as written.' : ''));
+  if (kept === undefined) {
+    const cv = b.conversions && typeof b.conversions === 'object' ? b.conversions : {};
+    const conv = [];
+    if (cv.zero) conv.push(imp_plural(cv.zero, 'amount') + ' written as text that reads as zero (such as "$0.000", the report’s own zero) read as $0');
+    if (cv.blank) conv.push(imp_plural(cv.blank, 'blank amount') + ' read as $0');
+    if (cv.subcent) conv.push(imp_plural(cv.subcent, 'amount') + ' with fractions of a cent, rounded to the cent');
+    if (cv.trimmed) conv.push(imp_plural(cv.trimmed, 'value') + ' with spaces trimmed from the ends');
+    L.push('  Conversions: ' + (conv.length ? conv.join('; ') + '.' : 'none.'));
+    for (const x of arr(b.subcent)) if (x && typeof x === 'object') {
+      L.push('    Rounded: ' + imp_where(at) + ' row ' + x.row + ': ' + String(x.column ?? '') + ' ' + imp_q(String(x.raw ?? '')) + ' read as ' + usd(x.cents) + '.');
+    }
+  }
+  L.push('  Unreadable rows (kept, counted in no figure): ' + (bad.length ? SP.fmtInt(bad.length) + '.' : 'none.'));
+  for (const u of bad) {
+    if (!u || typeof u !== 'object') continue;
+    const raw = u.raw && typeof u.raw === 'object' ? u.raw : {};
+    const val = (k, v, dflt, f) => {
+      const h = colName(k, dflt);
+      return h + ' ' + (Object.prototype.hasOwnProperty.call(raw, h) ? imp_q(String(raw[h])) : f(v));
+    };
+    L.push('    ' + imp_where(at) + ' row ' + u.row + ': ' + arr(u.reasons).map(String).join('; ') + '. The row: '
+      + colName(0, 'Budget Name') + ' ' + imp_q(String(u.name ?? '')) + ', '
+      + val(1, u.fy, 'Budget FY', v => (typeof v === 'number' ? String(v) : 'blank')) + ', '
+      + val(2, u.approved, 'Budget Approved Amount', usd) + ', ' + val(3, u.authorized, 'Budget Authorized Amount', usd) + '.');
+  }
+  const xo = arr(b.extraOnly);
+  if (xo.length) {
+    L.push('  Rows skipped because none of the four columns read holds anything, though another column does (their text is here, '
+      + 'and in no figure): ' + SP.fmtInt(xo.length) + '.');
+    for (const x of xo) if (x && typeof x === 'object') {
+      L.push('    ' + imp_where(at) + ' row ' + x.row + ': ' + arr(x.values).map(p => (Array.isArray(p) ? String(p[0]) + ' ' + imp_q(String(p[1])) : '')).join(', ') + '.');
+    }
+  }
+  const t = b.total && typeof b.total === 'object' ? b.total : null;
+  if (!t) {
+    L.push('  Total row: none found (a row with no Budget Name and no FY that holds amounts, after the last budget row), so the rows '
+      + 'were not checked against the report’s own total.');
+  } else {
+    const fig = (v, k, dflt) => (typeof v === 'number' ? SP.fmtUsd(v)
+      : 'that could not be read (' + imp_q(String(t.raw && typeof t.raw === 'object' ? t.raw[colName(k, dflt)] ?? '' : '')) + ')');
+    L.push('  Total row (row ' + t.rowNo + ', the report’s own, never counted): Approved ' + fig(t.approved, 2, 'Budget Approved Amount')
+      + ', Authorized ' + fig(t.authorized, 3, 'Budget Authorized Amount') + '. The readable rows add up to Approved ' + usd(t.sumApproved)
+      + ' and Authorized ' + usd(t.sumAuthorized) + ': ' + (t.ok ? 'it agrees (within $1 each).'
+        : 'it differs, the total less the rows being ' + signed(t.diffApproved) + ' on Approved and ' + signed(t.diffAuthorized) + ' on Authorized'
+          + (bad.length ? ' (the unreadable rows are not in the rows’ sum)' : '') + '.'));
+  }
+}
+
+// THE BAE REPORT ON SCREEN THAT THE LAST IMPORT DID NOT BRING. Only the last import's report is kept (CONTRACT §11), so after
+// an import of pulls alone the report's own section, and with it its unreadable rows, would be listed nowhere, as the pulls'
+// were before keptPullLines (review IMP-2). These lines are worked out from the stored report, every row of which keeps
+// its sheet, row number, reasons and text as written; the blank rows and conversions were the import's and are not said.
+//   bae     SP.state.bae.current (or null);  report  the last import's report (or null)
+SP.baeKeptLines = function baeKeptLines(bae, report) {
+  const L = [];
+  const b = bae && typeof bae === 'object' && !Array.isArray(bae) && Array.isArray(bae.rows) ? bae : null;
+  if (!b) return L;
+  // the last import's own report: its section is already in that import's report
+  if (report && report.bae && typeof report.bae === 'object' && typeof b.importedAt === 'string' && report.importedAt === b.importedAt) return L;
+  const okNum = v => typeof v === 'number' && Number.isSafeInteger(v);
+  let readable = 0, approved = 0, authorized = 0;
+  const unreadable = [];
+  for (const r of b.rows) {
+    if (!r || !Array.isArray(r.c)) continue;
+    if (Array.isArray(r.bad) && r.bad.length) {
+      unreadable.push({ row: Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?', reasons: r.bad, name: r.c[0], fy: r.c[1],
+        approved: r.c[2], authorized: r.c[3], raw: r.raw && typeof r.raw === 'object' ? r.raw : {} });
+    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; }
+  }
+  const t = b.total && typeof b.total === 'object' ? b.total : null;
+  const dA = t && okNum(t.approved) ? t.approved - approved : null, dU = t && okNum(t.authorized) ? t.authorized - authorized : null;
+  imp_baeLines(L, { file: b.file, sheet: b.sheet, stamp: b.stamp, cols: b.cols, columns: Array.isArray(b.headers) ? b.headers.length : 0,
+    rowsRead: b.rows.length, readable, cents: { approved, authorized }, unreadable,
+    total: t ? { rowNo: t.rowNo, approved: okNum(t.approved) ? t.approved : null, authorized: okNum(t.authorized) ? t.authorized : null,
+      sumApproved: approved, sumAuthorized: authorized, diffApproved: dA, diffAuthorized: dU, raw: t.raw,
+      ok: dA !== null && dU !== null && Math.abs(dA) <= 100 && Math.abs(dU) <= 100 } : null },
+    typeof b.importedAt === 'string' ? b.importedAt : '');
   return L;
 };
 

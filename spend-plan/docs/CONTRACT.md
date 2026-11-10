@@ -1080,4 +1080,41 @@ column, Obligated by the PMO column, Authorized = Approved (`†`); `basis:'row'
 - The oracle computes §14.2–14.5 from the fixture alone, for the scenarios `bae-all`, `bae-usaf-off`, `bae-mand-only`,
   `bae-entered` (a typed Authorized on a covered block, switches off on another run) and `bae-gen2` (with `diffBae`). Every
   existing scenario keeps its exact expected output.
+- **The scenarios**, each importing `pull-all.xlsx` with `bae.xlsx` (a report is known by its headers, never its name), asOf
+  `2026-10`, firstFY 2025, unless said: `bae-all`; `bae-usaf-off` (USAF off); `bae-mand-only`; `bae-entered` (Authorized typed
+  for `om|2026`, covered, and `sp|2025`, not covered: `{"om|2026": 39876543210, "sp|2025": 8000000000}`); `bae-entered-off`
+  (the same, with USN (USN CV) off); `bae-asof-2027-10` (E = 2028: every appropriation's pull ends at FY2027, so only here does
+  the report hold money for an `(ap, fy)` with no block); `bae-gen2` (that import, then `gen2/pull-om.xlsx`, `gen2/pull-ff.csv`
+  and `gen2/bae.xlsx`). `input.authorized` records the typed figures.
+- **What a report adds to expected.json** (only when one is loaded; `c` integer cents, `x` a ratio). Every §12 key stays, and:
+
+```json
+{ "blocks": { "om|2026": { "planned":c, "approved":c, "approvedSrc":"report"|"plan", "covered":bool,
+      "authorized":c, "authorizedSrc":"entered"|"report"|"approved", "authorizedEntered":bool,
+      "unobligated":c, "oblPct":x|null, "delta":x|null, "status":…,          // on the report's Approved (§14.3)
+      "slide":{"basis":c, "oblPct":x|null, "goal":x|null, "delta":x|null, "status":…},   // on the plan, as §12's were
+      "planShort":bool, "marks":{"sect":bool, "dagger":bool, "ddagger":bool},
+      "…": "cols, cum, obl, goalC, statusC, pmos, titles, pes, ccars and na are §12's, on the plan, unchanged" } },
+  "pmoTabs": {"<PMO label>": {"om|2026": {"approved":c, "authorized":c, "obligated":c, "unobligated":c, "oblPct":x|null,
+      "goal":x|null, "delta":x|null, "status":…, "basis":"budget"|"row", "sect":bool,
+      "planned":c, "unprog":c, "execAfterAsOf":c, "cols":{…}, "na":[…]}}},     // the last five: the detail, by the PMO column
+  "aps": {"om": {"approved":c, "planned":c, "authorized":c, "obligated":c, "unobligated":c, "oblPct":x|null, "marks":{…}}},
+  "summary": {"…the same…", "unprog":c},
+  "bae": { "present":true, "file", "sheet", "stamp":"YYYY-MM-DD HH:MM"|null, "headerRow":n,
+      "rows":{"in":n, "flyaway":n, "noap":n, "bad":n}, "skipped":n, "conversions":{"approved":n, "authorized":n},
+      "cents":{"approved":c, "authorized":c}, "byBlock":{"om|2026":{"approved":c, "authorized":c}},
+      "total":{"ok":bool, "diff":{"approved":c, "authorized":c}}|null, "totalRow":{"approved":c, "authorized":c, "rowNo":n}|null,
+      "uncovered":[{"ap","fy"}], "noBlock":[{"ap","fy","approved":c,"authorized":c}], "planShort":[{"ap","fy","planned":c,"approved":c}],
+      "pullOnly":[normKey], "reportOnly":[normKey], "unreadable":[{"rowNo","name","bad":[…]}],
+      "counted":[[rowNo, "Yes"|"<why not, §14.6>"]],
+      "budgets":{"<normKey>":{"name","ap","scope","svc","lane","pmo":"<PMO label>"}}, "pullBudgetPmo":{"<normKey>":"<PMO label>"} },
+  "diffBae": { "byBlock":{"om|2026":{"approved":[before, after], "authorized":[before, after]}},   // bae-gen2 only
+      "budgetsNew"|"budgetsGone"|"budgetsChanged":[{"key", "name", "size":c, "approved":[b, a], "authorized":[b, a],
+      "byFy":{"2026":{"approved":[b, a], "authorized":[b, a]}}}] } }
+```
+
+  - `byBlock`, `cents`, `rows`, `reportOnly` and `diffBae` take no switches; `noBlock`, `planShort`, `pullOnly` and `counted` do.
+  - `total.diff` is the total row less the readable rows. `rowNo` is the sheet's row. Lists keep model order: appropriations
+    as `SP.APS`, then FY. `pullOnly` and `reportOnly` hold sorted `normKey`s. Each `diffBae` list is largest `size` first.
+  - Where §14 leaves a choice, the oracle's reading is marked `READING:` in `oracle.py`.
 - A check must be able to fail (§12), and every new check is shown failing on the code before it.
