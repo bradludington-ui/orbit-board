@@ -307,6 +307,7 @@ All figures are cents, over the counted rows.
   - `execAfterAsOf` is the sum of the `exec` rows dated after the as-of month's last day. It is reported, and is still counted.
 - **`unobligated`** = `approved − obligated`.
 - **`authorized`** = `settings.authorized['ap|fy']` if entered; otherwise `approved`, with `authorizedEntered:false`.
+- **With a BAE report loaded, §14.3 replaces Approved, Authorized and what they feed.**
 - **`oblPct`** = `obligated / approved`, or `null` when approved is 0.
 - **Year of availability** `n = E − fy + 1`.
   - The curve is `om1` (`n=1`) or `om2` (`n≥2`) for O&M, and `p1`, `p2`, `p3` or `p4` (`n≥4`) for the others.
@@ -551,7 +552,7 @@ could not be read. The screens and the pictures draw them the same way. The Obli
 (`SP.oblLabel`) on the screens, every sheet and the pictures. In the workbook a label wider than its column wraps, in a row
 as tall as its lines: right-aligned in the first column, its overflow has no cell to run into and would be cut.
 
-**The Authorized marks.** A figure is marked with a number format, so the cell is still the number: `†` when Authorized was
+**The Authorized marks** (and, with a BAE report loaded, the Approved mark `§`, §14.5). A figure is marked with a number format, so the cell is still the number: `†` when Authorized was
 not entered (Approved stands in), `‡` when it was entered while some switch is off. A TOTAL carries each mark its rows
 carry (`SP.authMarks`), `†‡` when both, on the screen as in the workbook (review SEAM-8). Every sheet and every view that
 prints a mark says what it means under the table it marks (`SP.AUTH_MARK_TEXT`), in a row as tall as its words: Excel
@@ -619,6 +620,8 @@ never fits a row's height to a merged cell (review XP2-1, XP2-4).
 - Summary rows sit above their detail (`outlineAbove`). The sheet opens showing PMO and Title rows.
 
 ### 8.6 PMO tabs: `PMO {code}`, one per PMO with money in any block
+
+(With a BAE report loaded, the table is §14.4's.)
 
 - **Tab order is v12's:** PMO AV, BOP, CDS, MxS, PP, PSM, TSS (Propulsion before Product Support, unlike the PMO rows inside a
   block, §4.4), then any other PMO in the model's order (by label, `(no PMO)` last).
@@ -902,3 +905,179 @@ Import the real `wb.xlsx` into the tool with asOf `2026-04` and firstFY `2024`. 
    be explained by an item of §6, with its dollars. One that is not is a defect, in the tool or in this contract.
 
 Write the result to the scratchpad (`.../scratchpad/wb/v12-proof.md`).
+
+## 14. The BAE report: Approved and Authorized from the budgets (Brad, 10 Nov 2026)
+
+Brad asked on 10 Nov 2026 to pull in a second report beside the CCaR pull: the BAE report of budgets (*Report__BAE_ALL_Services_
+USAF_and_DoN_<date>.xlsx*), which gives each budget's Approved and Authorized amount by FY. His answers, given that day:
+
+1. **Scope.** A block's figures add up the report's **sustainment budgets by name**: every budget whose name places it in O&M,
+   Full Fund, Initial Spares or OPN by the pull's own rule (§3, `SP.apOfBudget`), **except Full Fund Flyaway** (aircraft
+   production). Advance Procurement, Modifications, RDT&E and squadron budgets name no appropriation and are out.
+2. **Approved** in the stoplight tables is **the report's Approved**, not the CCaR plan total.
+3. **Obl %, Unobligated and the status** are measured against **Approved** (now the report's), as v12 measured them.
+4. **PMO rows** take Approved and Authorized from **the budgets whose name ends in that PMO** (`… Discretionary AV`).
+5. **Partial years:** the report's Approved is used on every block it covers, and a block whose CCaR plan is under half of it
+   is **flagged** (the Summary's notes, the Import report), never hidden.
+6. **Slide blocks stay on the plan:** the slide blocks, and the totals band under every tree (§8.3–8.6), keep measuring the
+   CCaR plan by month, as they do now.
+7. **PMO Obligated** is counted **by the budget's PMO** too, so a PMO row's Approved, Authorized, Obligated and Obl % measure
+   the same money.
+8. **A typed Authorized wins** over the report for its block, marked as entered; clearing it goes back to the report's.
+
+The rest of this section is the lead's reading of those answers. Where the sections above say "Approved", read this section
+first: **with no BAE report loaded, nothing in §1–§13 changes**, and every existing check must still pass unchanged.
+
+### 14.1 Reading the report (`30-import.js`)
+
+- **It comes in through the same Import button**, alone or with pull files. A sheet is a **BAE report sheet** when a header row
+  within its first 15 rows holds all of `Budget Name`, `Budget FY Numeric` (or `Budget FY`), `Budget Approved Amount` and
+  `Budget Authorized Amount`, compared by `normKey` after a trailing unit in parentheses is taken off (`Budget Approved Amount
+  ($M)` matches). A sheet that is neither a pull sheet nor a report sheet is ignored as now. A sheet that is both is a report
+  sheet.
+- **One report per import.** Two report sheets in one import (in one file or two) refuse the whole import, naming both, as two
+  sheets of one appropriation do (§3). Nothing changes.
+- **Every column is kept**, in the file's order, as the pull keeps its extras: the raw sheet (§14.6) writes them back.
+- **Amounts are dollars.** The report's cells hold dollars and show them as $M through a number format (`$#,##0.000,,`), so the
+  header's "($M)" describes the display, not the value. A number cell is read as dollars, to the cent (`Math.round(v*100)`).
+  - A text amount that `parseAmount` reads as zero (`$0.000`, the report's own zero) is 0, and counted as a conversion.
+  - Any other text amount makes the row **unreadable** (its unit cannot be known): kept, named in the report, counted nowhere.
+  - **A report whose every non-zero amount is under $100,000** is refused: real budgets of that size would mean the figures were
+    exported in $M, and reading them as dollars would understate every figure a millionfold. The message says so.
+- **FY** is read as the pull's FY is (§3). A row whose FY or either amount cannot be read is unreadable.
+- **The report's own total row** is a row with no Budget Name and no FY that holds amounts, after the last budget row. It is
+  never counted. Its figures are checked against the sum of the readable rows (to within $1 each, since it is a sum of
+  floating-point dollars) and the Import report says *agrees* or by how much it differs. Any other row with no Budget Name is
+  unreadable. Rows blank in all four required columns are skipped and counted.
+- **The report's date** is read from its file name when it ends `_YYYY-MM-DD_HHMMSS` (`…2026-01-31_120000.xlsx` →
+  `2026-01-31 12:00`), else none; the import time is kept too.
+- `SP.parseFiles` returns `{pulls, bae, report}`; `bae` is `null` or
+  `{headers:[...], rows:[{c:[name, fy, approvedCents, authorizedCents], x:{header: value}, src:[fileIndex, sheet, rowNo],
+  bad?:[...]}], file, sheet, stamp:'YYYY-MM-DD HH:MM'|null, total:{approved, authorized, rowNo}|null}`, and the report's
+  `bae` part lists the file and sheet, rows read and skipped, the conversions, the unreadable rows in full and the total check.
+- **A report with no readable row** is refused by name; nothing changes.
+
+### 14.2 What a budget row means (`40-engine.js`, `SP.baeDerive(row, settings)`)
+
+Recomputed on every load, like `deriveRow`, so a rule fix applies to an old report:
+
+- **`ap`** = `SP.apOfBudget(name)` (the §3 Budget rule; no sheet name is ever used for a report row).
+- **`scope`**: `'flyaway'` when the name holds the word `Flyaway`; else `'noap'` when `ap` is null; else `'in'`.
+- **`svc`** and **`lane`**: the budget table's override for that name (`settings.budgets[normKey(name)]`, §3), else
+  `SP.svcRule(name)` and `SP.laneRule(name)`, exactly as for a pull row. So the switches reach the report's figures, and an
+  override set for a budget moves its pull rows and its report row together.
+- **`pmo`** (the **budget's PMO**, `SP.budgetPmo(name, model)`): the last word of the trimmed name, compared without case
+  against each PMO's code (§4.6: the text in a PMO label's parentheses) of `SP.PMO_ORDER` and of every PMO in the pull. A match
+  is that PMO; anything else (`CAM`, `SUPT`, `Initial`, `CV`, `Non-PMO`) is `(no PMO)`.
+- **Counts** when it is readable, `scope:'in'`, `fy >= firstFY`, and the switches show its service and lane (§4.3).
+- Every **pull row** also gets `bpmo`, the budget's PMO of its Budget by the same function, for rule 7.
+
+### 14.3 A block's figures with a report loaded (`40-engine.js`)
+
+`SP.buildModel(pulls, settings, view, bae)`: `bae` is the loaded report (`SP.state.bae.current`) or null/absent. With none,
+the model is exactly §4's (every field below takes its no-report value).
+
+- **Blocks are still the pull's** (§4.6): every `(ap, fy)`, `fy >= firstFY`, with a row in the pull. A report never adds a block.
+- A block is **covered** when the report holds at least one readable `scope:'in'` row for its `ap` and `fy`, whatever the
+  switches.
+- **`planned`** (new) = the sum of the block's counted rows: what `approved` was in §4.5.
+- **`approved`** = covered ? the sum of the block's counting report rows' Approved : `planned`. **`approvedSrc`** = `'report'`
+  or `'plan'`.
+- **`authorized`**: entered (`settings.authorized`) → that, `authorizedSrc:'entered'`; else covered → the sum of the counting
+  report rows' Authorized, `'report'`; else `approved`, `'approved'`. `authorizedEntered` stays (true iff entered).
+- **`obligated`** is unchanged (§4.5). **`unobligated`** = `approved − obligated`. **`oblPct`** = `obligated / approved` (null
+  when approved is 0); `goal`, `delta`, `status` as §4.5, on that `oblPct`.
+- **The slide figures stay on the plan** (rule 6). Every per-column figure is §4.5's with `planned` where it says approved:
+  `obl[c].v` divides by `planned`; and `slide = {basis: planned, oblPct: obligated/planned|null, goal, delta, status}` is
+  what a slide block's and a totals band's **Total column** prints (Obligation %, OSD Goal %, OSD Status). With no report,
+  `slide.oblPct === oblPct` and nothing on a slide moves.
+- **`planShort`** (new, rule 5) = covered and `approved > 0` and `planned < approved / 2`.
+- **Totals** (`aps[].total`, `summary.total`) add `approved`, `planned`, `authorized`, `obligated`, `unobligated`; `oblPct` =
+  obligated / approved.
+
+### 14.4 PMO rows with a report loaded (rules 4 and 7)
+
+For a covered block, a PMO's stoplight row (`pmos[].rows`, the PMO tab's table) is **the budgets' figures for that PMO**:
+
+- `approved` and `authorized` = the counting report rows of that block whose budget's PMO is this PMO;
+- `obligated` = the block's counted `exec` rows whose **`bpmo`** is this PMO (not their PMO column);
+- `unobligated`, `oblPct`, `goal`, `delta`, `status` as for a block; `basis:'budget'`.
+
+For a block the report does not cover (or with no report), the row is §4.6's: Approved = that PMO's planned rows by their PMO
+column, Obligated by the PMO column, Authorized = Approved (`†`); `basis:'row'`.
+
+- A typed Authorized is for the appropriation and FY as a whole and is never split to PMOs: PMO rows of a covered block keep
+  the report's figure, and the PMO tab says so under its table when any such block is shown.
+- **Which PMOs have a row in a block:** every PMO with a pull row in it, and, for a covered block, every PMO with a counting
+  report row or an `exec` row by `bpmo` in it. `(no PMO)` is a PMO like any other. A PMO tab exists for every PMO with a row.
+- The PMO tab's detail below its table (each block's tree and totals band) is unchanged: rows by their PMO column, on the plan.
+  Its strip (§8.6 item 3) prints the stoplight row's figures for that block. With a report loaded, the tab says under its table:
+  *Approved, Authorized and Obligated count the budgets whose name ends in this PMO's code ({code}); the detail below lists
+  rows by their own PMO.*
+
+### 14.5 Marks, labels and notes
+
+- **`§` on Approved** (new): *Approved is the CCaR plan: the BAE report has no figure for this block.* Only with a report loaded,
+  on a block (or a PMO row of a block) the report does not cover. A TOTAL carries it when a row does (`SP.authMarks` grows a
+  third flag, `sect`).
+- **`†`** now reads: *Authorized was neither entered nor in the BAE report; Approved is shown in its place (on a total, for the
+  rows marked †).* (With no report loaded, the old words.) **`‡`** is unchanged: it is only ever on an entered figure. A
+  report figure follows the switches exactly and is never marked.
+- **The Summary's line 2** with a report loaded: `Data through {Mon}-{YYYY} | Approved, Authorized = BAE report of
+  {stamp or import day} (sustainment budgets) | Obligated = CCaR status "Actual Execution" | Unobligated = Approved -
+  Obligated | Delta = Obl% - OSD%`. With none, §8.1's.
+- **`SP.oblLabel`** reads `Obligation %  (CCaR plan X; …)` on a covered block and `Obligation %  (Approved X; …)` otherwise, X
+  being `planned` in both (a slide block measures the plan).
+- **The Summary's notes** add, each only when it applies:
+  - the report: its date, the budgets counted, and those left out by kind (Flyaway, naming no appropriation, unreadable), with
+    the total-row check;
+  - each `planShort` block: *O&M FY2025: the CCaR plan ($12.34M) is 4% of the BAE report's Approved ($345.67M); Obl % is
+    measured against the report's figure.*;
+  - each `(ap, fy)` with `firstFY <= fy <= E` the report holds counting money for and the pull has no block: named with its
+    Approved and Authorized (no block is added: §14.3);
+  - the blocks the report does not cover (`§`).
+  - The note *Unprogrammed money is counted in Approved* reads *in the CCaR plan* on a covered block.
+- `model.bae` (new): `{present, file, stamp, importedAt, rows:{in, flyaway, noap, bad}, cents:{approved, authorized} (in
+  scope, every FY, no switches), total:{ok, diff}|null, uncovered:[{ap, fy}], noBlock:[{ap, fy, approved, authorized}],
+  planShort:[{ap, fy, planned, approved}], pullOnly:[budget names counted in the pull, of an in-scope appropriation, with no
+  report row], reportOnly:[in-scope budget names with non-zero money for firstFY..E and no pull row]}`, names compared by
+  `normKey`.
+
+### 14.6 The products
+
+- **Summary, appropriation sheets, PMO tabs, the screens:** the figures of §14.3–14.4, the marks of §14.5, a line for each mark
+  used. The slide blocks, the trees' totals bands and the pictures are on the plan (only the label word changes).
+- **`BAE Report` sheet** (new, after `OPN Raw Data`): every row of the report in file order, every column as the file has
+  them, amounts in dollars (`#,##0.00`), then *Appropriation*, *Service*, *Lane*, *PMO* and *Counted* (*Yes*, or why not:
+  *Flyaway (production)*, *Names no appropriation*, *Before the first FY*, *Could not be read*, *Switch off*). Freeze row 1.
+- **`Import Report` sheet and view:** a BAE section: file, sheet, stamp, rows read and skipped, conversions, unreadable rows,
+  the total check, rows by scope, in-scope Approved and Authorized by appropriation and FY, the budgets of the pull with no
+  report row, and the report's in-scope budgets with money and no pull row.
+- **`Settings` sheet and view:** the report (file, date, imported), and the Authorized table as *Block, Typed, BAE report,
+  Used*: typing a figure sets the block's override; blank clears it back to the report's.
+- **What changed:** when a report replaced another, a section *BAE report: {old} → {new}* with Approved and Authorized before
+  and after per `(ap, fy)` (in scope, every row, no switches) and the budgets new, gone and changed, largest change first
+  (`SP.diffBae(prev, cur, settings)`).
+
+### 14.7 State and saving (`80-store.js`)
+
+- `SP.state.bae = {current: Bae|null, previous: Bae|null}` (Bae = `parseFiles`' `bae` plus `importedAt`). A file saved before
+  this section has none and opens as `{current:null, previous:null}`; the opening check reads its shape when present.
+- **An import with a report** replaces the current report whole (it covers every appropriation); the replaced one becomes
+  `previous`. One identical row for row keeps `previous` and records `sameSince`, as a pull does. It **asks first** when the new
+  report has fewer than half the readable rows of the one on screen. It never touches a pull, and an import holding only a
+  report leaves `asOf` alone. The history entry records it (`bae:{rows, approved, authorized}`), and What changed's list of
+  imports names it (*BAE report*).
+- The message line names the report, its date and rows counted, and is a warning when rows could not be read.
+
+### 14.8 Tests
+
+- The fixture writes a synthetic `bae.xlsx` (and `gen2/bae.xlsx`) shaped like the real report (its 28 headers, amounts in dollars
+  with the `$#,##0.000,,` format, `$0.000` text zeros, a total row), covering: budgets the fixture's pull uses; Flyaway rows;
+  names that place no appropriation; a budget the pull does not use, with money; a pull budget the report lacks; every
+  service and both lanes; a budget whose PMO code differs from its rows' PMO column; a budget with no PMO code; a block the
+  report does not cover; an `(ap, fy)` with report money and no block; an unreadable amount; a planShort block.
+- The oracle computes §14.2–14.5 from the fixture alone, for the scenarios `bae-all`, `bae-usaf-off`, `bae-mand-only`,
+  `bae-entered` (a typed Authorized on a covered block, switches off on another run) and `bae-gen2` (with `diffBae`). Every
+  existing scenario keeps its exact expected output.
+- A check must be able to fail (§12), and every new check is shown failing on the code before it.
