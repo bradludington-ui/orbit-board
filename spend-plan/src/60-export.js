@@ -5,7 +5,8 @@
 //   SP.excelFileName(model, today)                     -> 'SFCB Spend Plan FY2027 - data through Oct-2026 - 2026-11-09.xlsx'
 //   await SP.exportExcel()                             -> {ok, message, name}: the UI action (build, download, say what)
 //
-//   meta = {report?: the last import's report, today?: 'YYYY-MM-DD' (the date in the file name; this browser's today)}
+//   meta = {report?: the last import's report, today?: 'YYYY-MM-DD' (the date in the file name; this browser's today),
+//           bae?: the BAE report the model was built with (SP.state.bae.current), whose rows the BAE Report sheet prints}
 //
 // Every figure here is READ from the model, never worked out again: the workbook, the screens and the pictures all print
 // SP.buildModel's numbers, so they cannot disagree about a dollar. This module only lays them out, in v12's look.
@@ -23,10 +24,13 @@ const EX_STATUS_FILL = { green: '00B050', yellow: 'FFD700', red: 'C00000' };
 const EX_STATUS_INK = { green: 'FFFFFF', yellow: '000000', red: 'FFFFFF' };
 const EX_FM = '#,##0.00;(#,##0.00);-';     // $M, negatives in parentheses, zero as '-'
 // The same figure marked: † Authorized not entered, so Approved stands in; ‡ Authorized as entered, for the
-// appropriation and FY as a whole, while some switch is off (SP.authMark); a TOTAL carries each mark its rows do. A
-// format, not text, so the cell is still the number (anyone summing the column gets the right total) and the mark shows.
+// appropriation and FY as a whole, while some switch is off or with a BAE report loaded (SP.authMark); a TOTAL carries
+// each mark its rows do. A format, not text, so the cell is still the number (anyone summing the column gets the right
+// total) and the mark shows.
+// § is on an APPROVED figure, with a BAE report loaded only (§14.5, SP.approvedMark): the report has no figure for that
+// block, so its Approved is the CCaR plan while the rows around it are the report's.
 function ex_markFmt(mark) { return '#,##0.00"' + mark + '";(#,##0.00)"' + mark + '";-"' + mark + '"'; }
-const EX_MARKS = ['†', '‡', '†‡'];
+const EX_MARKS = ['†', '‡', '†‡', '§'];
 const EX_FP = '0.00%', EX_FD = '+0.00%;-0.00%;0.00%', EX_FUSD = '#,##0.00', EX_FYF = '"FY"0';
 // §2: "nothing non-zero reads as zero". #,##0.00 shows a non-zero amount under $5,000 as 0.00 or (0.00), where the screens
 // and the pictures print fmtM's '<0.01' for the same figure (review XP-6). Such a cell keeps its number and takes this
@@ -157,6 +161,8 @@ const EXS = (() => {
   X.lFy = ex_s(t10, null, '0', f({ h: 'center', v: 'top' }), EX_THIN);
   X.lFyY = ex_s(t10, null, EX_FYF, f({ h: 'center', v: 'top' }), EX_THIN);
   X.lM = ex_s(t10, null, EX_FM, f({ h: 'right', v: 'top' }), EX_THIN);
+  // the Settings sheet's Used column, marked as the screen marks it (§14.6, review P4-7): a format, as on every FY table
+  X.lMMark = Object.fromEntries(EX_MARKS.map(m => [m, ex_s(t10, null, ex_markFmt(m), f({ h: 'right', v: 'top' }), EX_THIN)]));
   X.lPct = ex_s(t10, null, EX_FP, center, EX_THIN);
   X.rText = ex_s(t10, null, null, null, EX_THIN);
   X.rNum = ex_s(t10, null, '0', null, EX_THIN);
@@ -212,6 +218,13 @@ function ex_localDate(iso) {
   const t = Date.parse(iso);
   return isNaN(t) ? '' : ex_today(new Date(t));
 }
+// an import time -> 'YYYY-MM-DD HH:MM' in this computer's time, as the Import Report writes every import's time
+function ex_localWhen(iso) {
+  const t = typeof iso === 'string' ? Date.parse(iso) : NaN;
+  if (isNaN(t)) return '';
+  const d = new Date(t);
+  return ex_today(d) + ' ' + ex_pad2(d.getHours()) + ':' + ex_pad2(d.getMinutes());
+}
 function ex_rng(r1, c1, r2, c2) { return SP.colLetter(c1) + r1 + ':' + SP.colLetter(c2) + r2; }
 function ex_own(o, k) { return !!o && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k); }
 // How many lines a wrapped text takes in a width of w (Excel's units, one '0' of Calibri 11). Calibri 10 fits about 1.15
@@ -229,6 +242,8 @@ function ex_ht(lines, sz) {
   return Math.min(409, Math.round((lines * (sz || 10) * 1.32 + 3) * 4) / 4);
 }
 function ex_statusWord(st) { return st ? SP.statusWord(st) : ''; }
+// a BAE report of budgets is loaded (§14): only then does any product print a §, the report's words or its sheet
+function ex_hasBae(M) { return !!(M && M.bae && M.bae.present); }
 
 // ---------------------------------------------------------------------------------------------------------------
 // A SHEET UNDER CONSTRUCTION. K.sh is exactly what the writer is given (it refuses any key it does not know, so nothing of
@@ -321,13 +336,16 @@ function ex_tree(K, tree, base) {
   }
 }
 // Monthly Totals, Cumulative Totals, Obligation %, OSD Goal %, OSD Status. The Total columns carry the block's headline:
-// Approved, then its Obl %, goal and status, the figures the Summary row prints (§4.5).
+// Approved, then its Obl %, goal and status, the figures the Summary row prints (§4.5). With a BAE report loaded they
+// carry the CCaR PLAN's headline instead (§14.3, rule 6: a band measures the plan by month, and its months add to the
+// plan, never to a report's Approved), read through SP.plannedOf and SP.slideOf; with none the two are the same figures.
 function ex_band(K, M, b) {
   const L = EXS.bandLab;
-  ex_moneyRow(K, 'Monthly Totals', L, b.cols, b.approved, EXS.bandM, EXS.bandM[0]);
+  const plan = SP.plannedOf(b), sl = SP.slideOf(b);
+  ex_moneyRow(K, 'Monthly Totals', L, b.cols, plan, EXS.bandM, EXS.bandM[0]);
   // Cumulative's Total is the whole block, as v12's was: No date is outside the running sum, never outside the total
-  ex_moneyRow(K, 'Cumulative Totals', L, b.cum, b.approved, EXS.bandM, EXS.bandM[0]);
-  const pct = ex_num(b.oblPct), goal = ex_num(b.goal);
+  ex_moneyRow(K, 'Cumulative Totals', L, b.cum, plan, EXS.bandM, EXS.bandM[0]);
+  const pct = ex_num(sl.oblPct), goal = ex_num(sl.goal);
   // the label in the words the screen and the picture use (SP.oblLabel, review R7)
   // A label longer than its column wraps in a row as tall as its lines: right-aligned in the first column, the overflow
   // has no cell to run into and Excel cuts it. "actual through the 2026-10-05 import" (review BP-3) beside an Approved over
@@ -349,9 +367,9 @@ function ex_band(K, M, b) {
     if (!status || !EXS.bandStatus[status]) return ex_cell(null, EXS.bandP[closed ? 1 : 0]);
     return ex_cell(ex_statusWord(status), EXS.bandStatus[status][plan ? 1 : 0]);
   };
-  const s = [{ v: 'OSD Status', s: L }, sc(b.status, false, false)];
+  const s = [{ v: 'OSD Status', s: L }, sc(sl.status, false, false)];
   for (const i of K.dc) { const x = b.statusC[i] || {}; s.push(sc(x.status, x.kind === 'plan', !!K.closed[i])); }
-  s.push(sc(b.status, false, false));
+  s.push(sc(sl.status, false, false));
   ex_push(K, s);
 }
 // §5's one line per month, under its bar. A month longer than EX_NA_CHUNK continues on the next row with its label
@@ -382,44 +400,48 @@ function ex_na(K, M, items) {
 // THE FY TABLES (Summary, appropriation sheets, PMO tabs)
 // ---------------------------------------------------------------------------------------------------------------
 // the cells after Appropriation/FY: Approved, Authorized, Obligated, Unobligated, Obl %, OSD Goal %, Delta (pp), Status
-// mark: '', '†' or '‡' (SP.authMark); on a TOTAL also '†‡'
-function ex_figCells(r, mark) {
+// mark: '', '†' or '‡' (SP.authMark) on Authorized; on a TOTAL also '†‡'. amark: '' or '§' (SP.approvedMark) on Approved,
+// only ever '§' with a BAE report loaded
+function ex_figCells(r, mark, amark) {
   const st = r.status && EXS.tStatus[r.status] ? r.status : null;
-  return [ex_mc(r.approved, EXS.tM), ex_mc(r.authorized, EXS.tMMark[mark] || EXS.tM),
+  return [ex_mc(r.approved, EXS.tMMark[amark] || EXS.tM), ex_mc(r.authorized, EXS.tMMark[mark] || EXS.tM),
     ex_mc(r.obligated, EXS.tM), ex_mc(r.unobligated, EXS.tM), ex_cell(ex_num(r.oblPct), EXS.tPct),
     // a delta within SP.DELTA_ZERO of zero is written 0, as the screen prints it '0.00%': the format chooses its section by
     // the sign, so a -1e-13 left by a division showed '-0.00%' beside On track (review M5)
     ex_cell(ex_num(r.goal), EXS.tGoal), ex_cell(SP.deltaShown(r.delta), EXS.tDelta),
     st ? { v: ex_statusWord(st), s: EXS.tStatus[st] } : { s: EXS.tBlank }];
 }
-// a TOTAL row: the sums and their Obl %; no goal, delta or status (§8.1)
-function ex_totCells(t, mark) {
-  return [ex_mc(t.approved, EXS.totM), ex_mc(t.authorized, EXS.totMMark[mark] || EXS.totM),
+// a TOTAL row: the sums and their Obl %; no goal, delta or status (§8.1). amark '§' when a row it adds carries it.
+function ex_totCells(t, mark, amark) {
+  return [ex_mc(t.approved, EXS.totMMark[amark] || EXS.totM), ex_mc(t.authorized, EXS.totMMark[mark] || EXS.totM),
     ex_mc(t.obligated, EXS.totM), ex_mc(t.unobligated, EXS.totM), ex_cell(ex_num(t.oblPct), EXS.totP),
     { s: EXS.totBlank }, { s: EXS.totBlank }, { s: EXS.totBlank }];
 }
-// rows grouped by appropriation, the label merged down its rows. rows: [{apLabel, fy, figures…, mark}]. -> the last row
+// rows grouped by appropriation, the label merged down its rows. rows: [{apLabel, fy, figures…, mark, amark}]. -> the
+// last row
 function ex_apFyRows(K, rows) {
   let r0 = 0, prev = null, last = 0;
   rows.forEach((x, j) => {
     const startsGroup = x.apLabel !== prev;
-    const cells = [startsGroup ? { v: x.apLabel, s: EXS.tApLab } : { s: EXS.tApLab }, { v: x.fy, s: EXS.tFy }].concat(ex_figCells(x, x.mark));
+    const cells = [startsGroup ? { v: x.apLabel, s: EXS.tApLab } : { s: EXS.tApLab }, { v: x.fy, s: EXS.tFy }].concat(ex_figCells(x, x.mark, x.amark));
     last = ex_push(K, cells);
     if (startsGroup) { if (prev !== null && last - 1 > r0) K.sh.merges.push(ex_rng(r0, 0, last - 1, 0)); r0 = last; prev = x.apLabel; }
   });
   if (prev !== null && last > r0) K.sh.merges.push(ex_rng(r0, 0, last, 0));
   return last;
 }
-// a TOTAL's mark: each mark its rows carry
+// a TOTAL's mark: each mark its rows carry (on Authorized), and § (on Approved) when a row carries it
 function ex_totMark(am) { return (am.dag ? '†' : '') + (am.ddag ? '‡' : ''); }
-// a line per mark used, saying what it means (SP.AUTH_MARK_TEXT, the words the screen uses). Each row is as tall as its
-// words need across B:D: Excel never fits a row's height to a merged cell, so with no height the row stayed one line and
-// showed "Authorized as entered, for the appropriation and", hiding the half of ‡ that says why (review XP2-1).
-// LibreOffice sizes such a row itself, which is why its PDF never showed it.
-function ex_markLines(K, am) {
-  for (const m of ['†', '‡']) {
-    if (!(m === '†' ? am.dag : am.ddag)) continue;
-    const text = SP.AUTH_MARK_TEXT[m];
+function ex_totAMark(am) { return am.sect ? '§' : ''; }
+// a line per mark used, saying what it means (SP.markText: the words the screen uses, which with a BAE report loaded say
+// what † means then, §14.5). § first, as Approved is the column before Authorized. Each row is as tall as its words need
+// across B:D: Excel never fits a row's height to a merged cell, so with no height the row stayed one line and showed
+// "Authorized as entered, for the appropriation and", hiding the half of ‡ that says why (review XP2-1). LibreOffice
+// sizes such a row itself, which is why its PDF never showed it.
+function ex_markLines(K, am, M) {
+  for (const m of ['§', '†', '‡']) {
+    if (!(m === '§' ? am.sect : m === '†' ? am.dag : am.ddag)) continue;
+    const text = SP.markText(m, M);
     const r = ex_push(K, [{ v: m, s: EXS.lineB }, { v: text, s: EXS.text }, { s: EXS.text }, { s: EXS.text }],
       { ht: ex_ht(ex_lines(text, ex_widthOf(K, 1, 3), 10), 10) });
     K.sh.merges.push(ex_rng(r, 1, r, 3));
@@ -434,20 +456,20 @@ function ex_summary(M) {
   const K = ex_sheet('Summary', [22.059, 7.934, 16.008, 16.008, 16.008, 16.008, 11.027, 13.047, 13.047, 13.047], { freeze: 'A5' });
   const E2 = ex_pad2(((M.E % 100) + 100) % 100), q = Math.ceil(M.asOfIndex / 3);
   ex_title(K, 'F-35 Sustainment Financial Execution - Top-Line Snapshot (FY' + E2 + 'Q' + q + ')');
-  ex_subLine(K, 'Data through ' + M.asOfLabel + ' | Approved = total planned ($M from the CCaR pull) | Authorized = entered, else Approved'
-    + ' | Obligated = CCaR status "Actual Execution" | Unobligated = Approved - Obligated | Delta = Obl% - OSD%');
+  // line 2 in the one wording the screen prints (SP.summaryLine2): §8.1's, or with a BAE report §14.5's
+  ex_subLine(K, SP.summaryLine2(M));
   ex_shownLine(K, M);
   ex_headRow(K, ['Appropriation', 'FY'].concat(EX_FIG_HEADS), 30.75);
-  ex_apFyRows(K, M.summary.rows.map(b => Object.assign({}, b, { mark: SP.authMark(b, M) })));
+  ex_apFyRows(K, M.summary.rows.map(b => Object.assign({}, b, { mark: SP.authMark(b, M), amark: SP.approvedMark(b, M) })));
   const am = SP.authMarks(M.summary.rows, M);
-  ex_push(K, [{ v: 'TOTAL - Sustainment', s: EXS.totLab }, { s: EXS.totBlank }].concat(ex_totCells(M.summary.total, ex_totMark(am))));
+  ex_push(K, [{ v: 'TOTAL - Sustainment', s: EXS.totLab }, { s: EXS.totBlank }].concat(ex_totCells(M.summary.total, ex_totMark(am), ex_totAMark(am))));
   ex_blank(K);
   ex_push(K, [{ v: 'Legend (OSD Status):', s: EXS.h11 }]);
   for (const g of SP.STATUS_LEGEND) {
     const r = ex_push(K, [{ v: g.word, s: EXS.tStatus[g.status] }, { v: g.colour + ' — ' + g.meaning, s: EXS.text }, { s: EXS.text }, { s: EXS.text }]);
     K.sh.merges.push(ex_rng(r, 1, r, 3));
   }
-  ex_markLines(K, am);
+  ex_markLines(K, am, M);
   if (M.summary.notes.length) {
     ex_blank(K);
     ex_push(K, [{ v: 'Notes:', s: EXS.h11 }]);
@@ -471,6 +493,9 @@ function ex_slides(M) {
   ex_title(K, 'Slide Snapshots - picture-ready blocks for PowerPoint');
   ex_subLine(K, EX_SLIDES_HOW);
   ex_shownLine(K, M);
+  // rule 6 with a BAE report loaded: the blocks below add up the plan while the Summary's Approved is the report's. The
+  // Slide blocks view said so and this sheet did not (review P4-6); one sentence, SP.SLIDES_PLAN_NOTE, for both
+  if (ex_hasBae(M)) ex_span(K, SP.SLIDES_PLAN_NOTE, EXS.note, 0, K.W - 1, { ht: ex_ht(ex_lines(SP.SLIDES_PLAN_NOTE, ex_widthOf(K, 0, K.W - 1), 10), 10) });
   ex_blank(K);
   // Printed, each block after the first starts a page. The sheet fits one page wide and pages broke wherever one filled,
   // so a block printed for a meeting came out in two halves, its PMO rows on one page and Obligation % and OSD Status on
@@ -508,17 +533,19 @@ function ex_apSheet(M, a, pulls) {
   const K = ex_blockSheet(a.label, M, { outlineAbove: true });
   const p = pulls && pulls[a.ap];
   const when = ex_localDate(p && p.importedAt);
-  ex_title(K, 'F-35 Sustainment ' + a.label + ' - Spend Plan & FY Summary (from the CCaR pull imported ' + (when || 'on an unknown date') + ')');
+  // the title says where the figures come from (SP.apTitle, the screen's words): with a BAE report loaded, its Approved and
+  // Authorized are the report's wherever it covers a block (§14.3), so "from the CCaR pull" alone would not be true of them
+  ex_title(K, SP.apTitle(a.label, when, M, true));
   ex_shownLine(K, M);
   ex_headRow(K, ['FY'].concat(EX_FIG_HEADS), 30);
-  for (const b of a.blocks) ex_push(K, [{ v: b.fy, s: EXS.tFyAp }].concat(ex_figCells(b, SP.authMark(b, M))));
+  for (const b of a.blocks) ex_push(K, [{ v: b.fy, s: EXS.tFyAp }].concat(ex_figCells(b, SP.authMark(b, M), SP.approvedMark(b, M))));
   const am = SP.authMarks(a.blocks, M);
-  const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLabC }].concat(ex_totCells(a.total, ex_totMark(am))));
+  const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLabC }].concat(ex_totCells(a.total, ex_totMark(am), ex_totAMark(am))));
   K.sh.freeze = 'A' + (tr + 1);
   // each mark is said under the table it marks: this sheet has no Summary notes beside it (review R3). † too: on the
   // normal workbook, nothing entered, every Authorized here carried a † that only the Summary explained, so this sheet
   // printed or sent on its own carried a mark with no key (review XP2-4)
-  ex_markLines(K, am);
+  ex_markLines(K, am, M);
   ex_blank(K);
   for (const b of a.blocks) {
     ex_bar(K, 'FY' + b.fy + ' - Spend Plan by PMO / Title / Plan Event / CCaR  (1/2/3/4 in left margin)', EXS.barAp, 21.75);
@@ -540,16 +567,33 @@ function ex_pmoSheet(M, p) {
   ex_title(K, 'PMO: ' + p.label + ' - Sustainment Spend Plan (Cross-Appropriation Detail)');
   ex_shownLine(K, M);
   ex_headRow(K, ['Appropriation', 'FY'].concat(EX_FIG_HEADS), 30);
-  ex_apFyRows(K, p.rows.map(r => Object.assign({}, r, { mark: '' })));
-  const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLabC }, { s: EXS.totBlank }].concat(ex_totCells(p.total, '')));
-  K.sh.freeze = 'A' + (tr + 1);
-  ex_span(K, 'Authorized is entered by appropriation and FY; a PMO row shows Approved.', EXS.note, 0, 9);
+  const bae = ex_hasBae(M);
+  if (!bae) {
+    // with no BAE report a PMO row never carries a mark: its Authorized is Approved, and the note under the table says so
+    ex_apFyRows(K, p.rows.map(r => Object.assign({}, r, { mark: '' })));
+    const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLabC }, { s: EXS.totBlank }].concat(ex_totCells(p.total, '')));
+    K.sh.freeze = 'A' + (tr + 1);
+    ex_span(K, 'Authorized is entered by appropriation and FY; a PMO row shows Approved.', EXS.note, 0, 9);
+  } else {
+    // §14.4 with a BAE report: a row the report covers is the budgets' figures and carries no mark; a row it does not
+    // cover is §4.6's, its Approved the plan (§) and its Authorized that Approved (†), marked as the screen marks them
+    ex_apFyRows(K, p.rows.map(r => Object.assign({}, r, { mark: SP.authMark(r, M), amark: SP.approvedMark(r, M) })));
+    const am = SP.authMarks(p.rows, M);
+    const tr = ex_push(K, [{ v: 'Total - All', s: EXS.totLabC }, { s: EXS.totBlank }].concat(ex_totCells(p.total, ex_totMark(am), ex_totAMark(am))));
+    K.sh.freeze = 'A' + (tr + 1);
+    ex_markLines(K, am, M);
+    // what the figures count, that a typed Authorized is never split among the PMOs, and, where a row is §4.6's, the
+    // no-report note said of those rows only (SP.pmoTabLines: the screen's lines, word for word and in the same order)
+    const notes = SP.pmoTabLines(p, M);
+    for (const n of notes) ex_span(K, n, EXS.note, 0, 9, { ht: ex_ht(ex_lines(n, ex_widthOf(K, 0, 9), 10), 10) });
+  }
   ex_blank(K);
   for (const b of p.blocks) {
     ex_bar(K, b.apLabel + ' - FY' + b.fy, EXS.barPmo, 21.75);
     ex_blockHead(K, M, 'PMO / Title / Plan Event / CCaR');
-    ex_span(K, b.apLabel + ' FY' + b.fy + ' Summary  |  Approved ' + SP.fmtMText(b.approved) + 'M  |  Authorized ' + SP.fmtMText(b.authorized)
-      + 'M  |  Obligated ' + SP.fmtMText(b.obligated) + 'M  |  Unobligated ' + SP.fmtMText(b.unobligated) + 'M', EXS.strip, 0, K.W - 1, { ht: 21.75 });
+    // the strip is the table's row for this block (§14.4), so it carries that row's marks; none with no report. One
+    // wording with the screen's (SP.pmoStrip), which printed the figures and not the marks (review M4-5, P4-5)
+    ex_span(K, SP.pmoStrip(b, M), EXS.strip, 0, K.W - 1, { ht: 21.75 });
     ex_tree(K, b.tree, 0);
     ex_blank(K);
     ex_band(K, M, b);
@@ -645,16 +689,149 @@ function ex_rawSheet(M, a, p, settings) {
   return K.sh;
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// §14.6 THE BAE REPORT SHEET: every row of the report in file order, every column as the file has it, then what the tool
+// made of each row (CONTRACT §14.6). It is to the report what a raw data sheet is to a pull: the one place every row of
+// it can be found, counted or not, with the reason.
+// ---------------------------------------------------------------------------------------------------------------
+const EX_BAE_TAIL = ['Appropriation', 'Service', 'Lane', 'PMO', 'Counted'];
+// the report's own total row is a row of the report too: written where the file has it, never counted (§14.1)
+const EX_BAE_TOTAL_WHY = 'No: the report’s own total row, never counted (the Import Report checks it against the rows)';
+function ex_baeSheet(M, bae) {
+  if (!bae || !Array.isArray(bae.rows)) {
+    throw new Error('its figures were worked out from a BAE report, but the report itself was not given to the workbook, so its sheet cannot be written.');
+  }
+  const rows = bae.rows;
+  const der = M.bae && Array.isArray(M.bae.derived) ? M.bae.derived : [];
+  // derived[i] is rows[i] as the model read it (SP.buildModel derives the report's rows in file order); a report other
+  // than the model's would put one row's reading beside another row's figures, so it is refused rather than written
+  if (der.length !== rows.length) {
+    throw new Error('the BAE report given to the workbook (' + SP.fmtInt(rows.length) + ' rows) is not the one its figures were worked out from ('
+      + SP.fmtInt(der.length) + ' rows).');
+  }
+  // the four columns read, by the names the report gives them (SP.baeCols: found among its headers when a report saved by
+  // hand or another version does not record them, review I4-7). Without them every row's four values went unwritten; a
+  // name none of the headers has is added after them below, so the four are always written
+  const cols = (typeof SP.baeCols === 'function' ? SP.baeCols(bae) : Array.isArray(bae.cols) ? bae.cols : []).map(h => String(h ?? ''));
+  // every column the file has, in its order (bae.headers); the four read are always among them, and a column a row
+  // holds that the list lacks (a report saved by another version) is added after, so no value goes unwritten
+  const heads = Array.isArray(bae.headers) ? bae.headers.map(h => String(h ?? '')) : [];
+  const seen = new Set(heads);
+  const add = h => { if (!seen.has(h)) { seen.add(h); heads.push(h); } };
+  for (const h of cols) add(h);
+  const tr = bae.total && typeof bae.total === 'object' ? bae.total : null;
+  for (const r of rows.concat(tr ? [tr] : [])) if (r && r.x && typeof r.x === 'object') for (const h of Object.keys(r.x)) add(h);
+  const nh = heads.length;
+  const widths = heads.map(h => { const k = cols.indexOf(h); return k === 0 ? 48 : k === 1 ? 9.95 : k >= 2 ? 18.02 : 14.93; })
+    .concat([16.01, 18.02, 13.99, 32, 30]);
+  const K = ex_sheet('BAE Report', widths, { freeze: 'A2', page: EX_PAGE_DATA });
+  delete K.sh.grid;   // a data sheet keeps its gridlines, as the raw data sheets do
+  ex_push(K, heads.concat(EX_BAE_TAIL).map(t => ({ v: t, s: EXS.rHead })), { ht: 21.75 });
+  // one row's cells across the file's columns. c: [name, fy, approvedCents, authorizedCents] (null where it could not be
+  // read); raw: the text as written for a value that could not be read, red so it is not mistaken for a figure; x: every
+  // other column, the text as the file held it
+  const fileCells = (c, raw, x) => heads.map(h => {
+    const k = cols.indexOf(h);
+    const rawText = raw && typeof raw === 'object' && ex_own(raw, h) ? { v: String(raw[h]), s: EXS.rBad } : null;
+    if (k === 0) { const v = c[0]; return typeof v === 'string' && v !== '' ? { v, s: EXS.rText } : rawText || { s: EXS.rText }; }
+    if (k === 1) return Number.isInteger(c[1]) ? { v: c[1], s: EXS.rNum } : rawText || { s: EXS.rText };
+    if (k === 2 || k === 3) return Number.isSafeInteger(c[k]) ? { v: c[k] / 100, s: EXS.rAmt } : rawText || { s: EXS.rText };
+    const v = x && typeof x === 'object' && ex_own(x, h) ? x[h] : '';
+    return v === '' || v === null || v === undefined ? { s: EXS.rText } : { v: String(v), s: EXS.rText };
+  });
+  const txt = v => (v === '' || v === null || v === undefined ? { s: EXS.rText } : { v: String(v), s: EXS.rText });
+  const tot = () => {
+    const c = ['', null, Number.isSafeInteger(tr.approved) ? tr.approved : null, Number.isSafeInteger(tr.authorized) ? tr.authorized : null];
+    const cells = fileCells(c, tr.raw, tr.x);
+    cells.push(txt(''), txt(''), txt(''), txt(''), txt(EX_BAE_TOTAL_WHY));
+    ex_push(K, cells);
+  };
+  let totDone = !tr;
+  rows.forEach((row, i) => {
+    const d = der[i], rn = d && Number.isInteger(d.rowNo) ? d.rowNo : null;
+    if (!totDone && rn !== null && Number.isInteger(tr.rowNo) && rn > tr.rowNo) { tot(); totDone = true; }
+    const c = row && Array.isArray(row.c) ? row.c : [];
+    const cells = fileCells(c, row && row.raw, row && row.x);
+    cells.push(txt(d.apLabel), txt(d.svc), txt(SP.LANE_WORDS[d.lane] || d.lane), txt(d.pmoLabel), txt(d.why));
+    ex_push(K, cells);
+  });
+  if (!totDone) tot();
+  if (!nh) ex_span(K, 'The BAE report holds no columns.', EXS.text, 0, K.W - 1);
+  return K.sh;
+}
+
+// §14.6 the Import Report's BAE section as the MODEL reads the report: each row by what it is, the sustainment budgets'
+// money by appropriation and FY, the blocks whose CCaR plan is under half the report's Approved (rule 5: flagged, never
+// hidden), the budgets the pull counts with no report row and the report's sustainment budgets with money and no pull
+// row. The import's own part (file, sheet, date, rows read and skipped, conversions, unreadable rows, the total row's
+// check) is SP.importReportLines' and SP.baeKeptLines'. Dollars are exact (SP.fmtUsd), as the import's lines are, so the
+// two can be read against each other. [] with no report. Exported, so a screen can print the same lines.
+SP.baeModelLines = function baeModelLines(M) {
+  const X = M && M.bae && M.bae.present ? M.bae : null;
+  if (!X) return [];
+  const L = [];
+  const rw = n => SP.fmtInt(n) + (n === 1 ? ' row' : ' rows');
+  const apL = ap => { const a = SP.APS.find(x => x.id === ap); return a ? a.label : String(ap); };
+  const q = s => '“' + String(s ?? '') + '”';
+  const r = X.rows || {};
+  // The planShort blocks, the pull's budgets with no report row and the money a covered block's Approved leaves out are
+  // worked out on the blocks as the switches leave them (§14.8), beside lines that cover every service and lane. Said on
+  // each such line when the switches hide something: with USN off the two OPN flags vanished from this sheet and O&M FY2028
+  // took their place, under nothing that said a switch had moved them (review P4-4, §4.3).
+  const sw = M.shown && !M.shown.all ? ', with the switches as they are (' + M.shown.text + ')' : '';
+  L.push('The BAE report of budgets ' + X.of + (X.file ? ' (' + q(X.file) + ')' : '') + ', as the figures read it:');
+  L.push('  Rows by what they are (every FY, whatever the switches show): ' + rw(r.in || 0) + ' of sustainment budgets (their names place '
+    + 'them in O&M, Full Fund, Initial Spares or OPN); counted nowhere, ' + rw(r.flyaway || 0) + ' of Full Fund Flyaway (aircraft production), '
+    + rw(r.noap || 0) + ' naming no appropriation and ' + rw(r.bad || 0) + ' that could not be read.');
+  const bb = X.byBlock && typeof X.byBlock === 'object' ? Object.keys(X.byBlock) : [];
+  L.push('  The sustainment budgets’ Approved and Authorized by appropriation and FY (every FY, every service and lane, whatever the switches show):'
+    + (bb.length ? '' : ' none.'));
+  for (const k of bb) {
+    const v = X.byBlock[k], i = k.indexOf('|');
+    L.push('    ' + apL(k.slice(0, i)) + ' FY' + k.slice(i + 1) + ': Approved ' + SP.fmtUsd(v.approved) + ', Authorized ' + SP.fmtUsd(v.authorized) + '.');
+  }
+  const ps = Array.isArray(X.planShort) ? X.planShort : [];
+  L.push('  Blocks whose CCaR plan is under half the BAE report’s Approved (flagged, never hidden: Obl % is measured against the report’s figure)' + sw + ': '
+    + (ps.length ? SP.fmtInt(ps.length) + '.' : 'none.'));
+  for (const b of ps) {
+    L.push('    ' + apL(b.ap) + ' FY' + b.fy + ': the CCaR plan ' + SP.fmtUsd(b.planned) + ' is ' + SP.planShortPct(b.planned, b.approved)
+      + ' of the report’s Approved ' + SP.fmtUsd(b.approved) + '.');
+  }
+  const po = Array.isArray(X.pullOnlyNames) ? X.pullOnlyNames : [];
+  L.push('  Budgets the CCaR pull counts that have no row in the BAE report' + sw + ': ' + (po.length ? SP.fmtInt(po.length) + '.' : 'none.'));
+  for (const n of po) L.push('    ' + q(n));
+  const ro = Array.isArray(X.reportOnlyNames) ? X.reportOnlyNames : [];
+  L.push('  Sustainment budgets the BAE report holds money for, FY' + M.firstFY + ' to FY' + M.E + ', that no CCaR pull row names (every service and lane, '
+    + 'whatever the switches show): ' + (ro.length ? SP.fmtInt(ro.length) + '.' : 'none.'));
+  for (const n of ro) L.push('    ' + q(n));
+  // review M4-6: money a covered block's plan and Obligated count that its Approved never can (the screen's list, in its order)
+  const off = Array.isArray(X.offReport) ? X.offReport : [];
+  const items = off.flatMap(o => (Array.isArray(o.budgets) ? o.budgets : []).map(t => ({ o, t })));
+  L.push('  Budgets the CCaR pull counts on a block the BAE report covers, which its Approved leaves out (Flyaway (production), a budget that names '
+    + 'no appropriation, or a row with no Budget: the plan and Obligated count them, Approved never can)' + sw + ': ' + (items.length ? SP.fmtInt(items.length) + '.' : 'none.'));
+  for (const { o, t } of items) {
+    L.push('    ' + apL(o.ap) + ' FY' + o.fy + ': ' + (t.name === '' ? '(no Budget, ' + rw(t.rows) + ')' : q(t.name)) + ' (' + (SP.OFF_REPORT_KIND[t.kind] || t.kind)
+      + '): CCaR plan ' + SP.fmtUsd(t.planned) + ', obligated ' + SP.fmtUsd(t.obligated) + '.');
+  }
+  return L;
+};
+
 function ex_reportSheet(M, pulls, meta) {
   const K = ex_sheet('Import Report', [180]);
   ex_title(K, 'Import Report');
-  ex_push(K, [{ v: 'The pulls in this workbook:', s: EXS.lineB }]);
+  ex_push(K, [{ v: ex_hasBae(M) ? 'The pulls and the BAE report of budgets in this workbook:' : 'The pulls in this workbook:', s: EXS.lineB }]);
   for (const a of SP.APS) {
     const p = pulls && pulls[a.id];
     if (!p || !Array.isArray(p.rows)) continue;
     const files = (p.files || []).map(f => '“' + f.name + '”' + (f.sheets && f.sheets.length ? ' › ' + f.sheets.map(s => '“' + s + '”').join(', ') : '')).join('; ');
     ex_push(K, [{ v: '  ' + a.label + ': ' + SP.fmtInt(p.rows.length) + (p.rows.length === 1 ? ' row' : ' rows') + ', imported '
       + (ex_localDate(p.importedAt) || 'on an unknown date') + (files ? ', from ' + files : '') + '.', s: EXS.line }]);
+  }
+  // §14.6 the BAE report of budgets, beside the pulls, when one is loaded
+  const bae = ex_hasBae(M) ? M.bae : null;
+  if (bae) {
+    ex_push(K, [{ v: '  BAE report of budgets: “' + bae.file + '” › “' + bae.sheet + '”, ' + (bae.stamp ? 'dated ' + bae.stamp + ' by its file name'
+      : 'with no date in its file name') + ', imported ' + (ex_localWhen(bae.importedAt) || 'at a time not recorded') + '.', s: EXS.line }]);
   }
   const un = pulls && pulls.unidentified;
   if (un && Array.isArray(un.rows) && un.rows.length) {
@@ -683,6 +860,17 @@ function ex_reportSheet(M, pulls, meta) {
       + '); what each holds that counts nowhere:', s: EXS.lineB }]);
     for (const line of kept) ex_push(K, [{ v: line, s: EXS.line }]);
   }
+  if (bae) {
+    // the report on screen when the last import did not bring it: its own section, from its stored rows (SP.baeKeptLines),
+    // or its unreadable rows and its total row's check would be listed nowhere in this workbook
+    const kb = typeof SP.baeKeptLines === 'function' ? SP.baeKeptLines(meta && meta.bae, rep || null) : [];
+    if (kb.length) {
+      ex_blank(K);
+      for (const line of kb) ex_push(K, [{ v: line, s: EXS.line }]);
+    }
+    ex_blank(K);
+    SP.baeModelLines(M).forEach((line, i) => ex_push(K, [{ v: line, s: i ? EXS.line : EXS.lineB }]));
+  }
   return K.sh;
 }
 
@@ -703,15 +891,66 @@ function ex_noSwitchLine(M, pulls, settings) {
     });
   }
   each(pulls && pulls.unidentified && pulls.unidentified.rows, d => { if (d.svc === SP.SVC_UNKNOWN) unid++; });
-  const n = before + unread + unid;
+  // §14.2: a BAE report's rows have a service by the same rules, and one with none that could count makes the switch
+  // exist (SP.buildModel); with no switch, every such row of the report counts nowhere, and the BAE Report sheet says why
+  const baeRows = ex_hasBae(M) && Array.isArray(M.bae.derived) ? M.bae.derived.filter(d => d.svc === SP.SVC_UNKNOWN).length : 0;
+  const n = before + unread + unid + baeRows;
   if (!n) return 'No such rows (no switch)';
   const rw = k => SP.fmtInt(k) + (k === 1 ? ' row' : ' rows');
   const parts = [];
   if (before) parts.push(rw(before) + ' before the first FY shown (FY' + M.firstFY + ')');
   if (unread) parts.push(rw(unread) + ' that could not be read');
   if (unid) parts.push(rw(unid) + ' whose appropriation was not identified (see the Import Report)');
+  if (baeRows) parts.push(rw(baeRows) + ' of the BAE report (each with its reason in the Counted column of the BAE Report sheet)');
   return 'No switch: no row that counts has no service. ' + (n === 1 ? 'The 1 row' : 'The ' + SP.fmtInt(n) + ' rows') + ' with no service '
     + (n === 1 ? 'counts' : 'count') + ' nowhere: ' + parts.join('; ') + '.';
+}
+// §14.6 the Settings sheet with a BAE report loaded: the report (its file, date and import), then Authorized by block as
+// Block, Typed, BAE report, Used, where Used is the figure every table prints. A typed figure is listed for an
+// appropriation and FY the pull has no block for, too, so nothing typed goes unsaid.
+//   auth: the keys of the typed figures; kv: the sheet's label | value row
+function ex_settingsBae(K, M, s, auth, kv) {
+  const X = M.bae;
+  ex_push(K, [{ v: 'BAE report of budgets (Approved and Authorized come from it wherever it has figures for a block)', s: EXS.h11 }]);
+  kv('File', X.file || '(not recorded)');
+  kv('Sheet', X.sheet || '(not recorded)');
+  kv('Date', X.stamp ? X.stamp + ' (from its file name)' : 'None in its file name: it is known by the day it was imported');
+  kv('Imported', X.importedAt ? (ex_localWhen(X.importedAt) || X.importedAt) + ' (this computer’s time)' : 'At a time not recorded');
+  ex_blank(K);
+  ex_push(K, [{ v: 'Authorized by block ($M): typed, in the BAE report, and the figure used', s: EXS.h11 }]);
+  ex_headRow(K, ['Block', 'Typed', 'BAE report', 'Used']);
+  const apL = ap => { const a = SP.APS.find(x => x.id === ap); return a ? a.label : ap; };
+  const typed = new Set(auth);
+  // Used carries the mark every table prints beside that Authorized (SP.authMark: ‡ typed, † Approved standing in), with a
+  // line for each mark used under the table, as the Settings view draws it. It was a plain figure here under a note that
+  // promised marks, while the screen marked it (review P4-7). No §: the table has no Approved column.
+  const used = { dag: false, ddag: false };
+  for (const b of M.blocks) {
+    const k = b.ap + '|' + b.fy;
+    typed.delete(k);
+    const m = SP.authMark(b, M);
+    if (m === '†') used.dag = true;
+    if (m === '‡') used.ddag = true;
+    ex_push(K, [{ v: b.apLabel + ' FY' + b.fy, s: EXS.lText }, ex_mc(auth.includes(k) ? s.authorized[k] : null, EXS.lM),
+      typeof b.reportAuthorized === 'number' ? ex_mc(b.reportAuthorized, EXS.lM) : { v: 'No figure', s: EXS.lText }, ex_mc(b.authorized, EXS.lMMark[m] || EXS.lM)]);
+  }
+  // typed for an appropriation and FY with no block: kept in the file, used nowhere until the pull has a block for it
+  for (const k of [...typed].sort()) {
+    const [ap, fy] = k.split('|');
+    ex_push(K, [{ v: apL(ap) + ' FY' + fy, s: EXS.lText }, ex_mc(s.authorized[k], EXS.lM), { s: EXS.lText }, { v: 'No block in the pull', s: EXS.lText }]);
+  }
+  for (const [m, on] of [['†', used.dag], ['‡', used.ddag]]) {
+    if (!on) continue;
+    const line = m + ' ' + SP.markText(m, M);
+    ex_span(K, line, EXS.text, 0, 4, { ht: ex_ht(ex_lines(line, ex_widthOf(K, 0, 4), 10), 10) });
+  }
+  // what Used is, in the marks the column above prints: ‡ on every typed figure with a report loaded (§14.5, review I4-4),
+  // † where Approved, the CCaR plan, stands in. It said "marked ‡ when the switches hide some" and "(marked † and §)",
+  // neither of which this column ever printed (review P4-7).
+  const note = 'Used is the typed figure where one is typed (marked ‡: it covers every service and lane, whatever the switches show), else the BAE report’s'
+    + ' (which counts only what the switches show), else Approved, which is then the CCaR plan (marked †). Typing a figure on the Settings view sets it;'
+    + ' clearing it goes back to the BAE report’s.';
+  ex_span(K, note, EXS.text, 0, 4, { ht: ex_ht(ex_lines(note, ex_widthOf(K, 0, 4), 10), 10) });
 }
 function ex_settingsSheet(M, pulls, settings) {
   const s = settings && typeof settings === 'object' ? settings : {};
@@ -723,8 +962,10 @@ function ex_settingsSheet(M, pulls, settings) {
   kv('Execution year', 'FY' + M.E + ': ' + M.window.start + ' up to ' + M.window.end);
   kv('First FY shown', M.firstFY, EXS.line);
   ex_blank(K);
-  // not "every figure": an entered Authorized and the notes on rows not counted cover every service and lane (review R3)
+  // not "every figure": an entered Authorized and the notes on rows not counted cover every service and lane (review R3);
+  // with a BAE report, so do the notes and the Import Report's figures on the report as a whole (§14.5)
   ex_push(K, [{ v: 'Switches (this browser’s view; every figure counts only what is shown, except an entered Authorized and the Summary’s notes on rows not counted,'
+    + (ex_hasBae(M) ? ' and what the Summary’s note and the Import Report say of the BAE report as a whole,' : '')
     + ' which cover every service and lane)', s: EXS.h11 }]);
   const shownS = new Set(M.shown.services), shownL = new Set(M.shown.lanes);
   // the seventh switch exists only on a plan with rows that have no service (§9); on any other it hides nothing, and the
@@ -743,15 +984,19 @@ function ex_settingsSheet(M, pulls, settings) {
     ex_push(K, [{ v: name + ' (' + key + ')', s: EXS.lText }].concat(g.map(x => ex_cell(ex_num(x), EXS.lPct))));
   }
   ex_blank(K);
-  ex_push(K, [{ v: 'Authorized entered ($M)', s: EXS.h11 }]);
   const auth = s.authorized && typeof s.authorized === 'object' ? Object.keys(s.authorized).filter(k => Number.isSafeInteger(s.authorized[k])) : [];
-  if (!auth.length) ex_push(K, [{ v: 'None entered: Approved is shown in its place.', s: EXS.line }]);
+  // with a BAE report the Authorized table is Block, Typed, BAE report, Used (§14.6); with none, §8.7's typed entries
+  if (ex_hasBae(M)) ex_settingsBae(K, M, s, auth, kv);
   else {
-    ex_headRow(K, ['Appropriation | FY', '$M']);
-    auth.sort();
-    for (const k of auth) {
-      const [ap, fy] = k.split('|'), a = SP.APS.find(x => x.id === ap);
-      ex_push(K, [{ v: (a ? a.label : ap) + ' FY' + fy, s: EXS.lText }, ex_mc(s.authorized[k], EXS.lM)]);
+    ex_push(K, [{ v: 'Authorized entered ($M)', s: EXS.h11 }]);
+    if (!auth.length) ex_push(K, [{ v: 'None entered: Approved is shown in its place.', s: EXS.line }]);
+    else {
+      ex_headRow(K, ['Appropriation | FY', '$M']);
+      auth.sort();
+      for (const k of auth) {
+        const [ap, fy] = k.split('|'), a = SP.APS.find(x => x.id === ap);
+        ex_push(K, [{ v: (a ? a.label : ap) + ' FY' + fy, s: EXS.lText }, ex_mc(s.authorized[k], EXS.lM)]);
+      }
     }
   }
   ex_blank(K);
@@ -777,7 +1022,9 @@ function ex_settingsSheet(M, pulls, settings) {
 // THE WORKBOOK
 // ---------------------------------------------------------------------------------------------------------------
 // every sheet of §8, in §8's order: Summary, Slide Snapshots, each appropriation, each PMO, Not Allocated, the raw data
-// of each appropriation with a pull, the Import Report and the Settings
+// of each appropriation with a pull, with a BAE report loaded the BAE Report (§14.6), the Import Report and the Settings.
+// meta.bae is the report the model was built with (SP.state.bae.current): the model holds what each of its rows means,
+// the report holds the rows themselves, and the BAE Report sheet prints the two side by side.
 SP.excelSpec = function excelSpec(model, pulls, settings, meta) {
   const M = model;
   if (!M || !Array.isArray(M.blocks)) throw new Error('The workbook needs a model; there is none to write.');
@@ -790,6 +1037,7 @@ SP.excelSpec = function excelSpec(model, pulls, settings, meta) {
     const p = pulls[a.id];
     if (p && Array.isArray(p.rows)) sheets.push(ex_rawSheet(M, a, p, settings));
   }
+  if (ex_hasBae(M)) sheets.push(ex_baeSheet(M, meta && meta.bae));
   sheets.push(ex_reportSheet(M, pulls, meta || {}));
   sheets.push(ex_settingsSheet(M, pulls, settings));
   return { creator: 'SFCB Spend Plan', sheets };
@@ -819,8 +1067,9 @@ SP.exportExcel = async function exportExcel() {
     let view = null;
     if (typeof SP.getView === 'function') { try { view = SP.getView(); } catch (e) { view = null; } }
     if (!view || typeof view !== 'object') view = SP.defaultView();
-    const model = SP.buildModel(pulls, settings, view);
-    const bytes = await SP.excelBytes(model, pulls, settings, { report: st.lastImport && st.lastImport.report, today });
+    const bae = st && st.bae ? st.bae.current : null;
+    const model = SP.buildModel(pulls, settings, view, bae);
+    const bytes = await SP.excelBytes(model, pulls, settings, { report: st.lastImport && st.lastImport.report, today, bae });
     const name = SP.excelFileName(model, today);
     SP.download(name, bytes, EX_MIME);
     const N = SP.lastXlsxNotes || { sheets: 0, messages: [] };

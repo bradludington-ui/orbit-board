@@ -442,6 +442,42 @@ try {
       && stillOff.summary.total.approved < M.summary.total.approved, stillOff.shown.text);
   }
 
+  // ============================================================================================ §14 with no BAE report
+  // With no BAE report loaded nothing in §1–§13 changes (CONTRACT §14, §14.3): buildModel's fourth argument absent, null,
+  // or anything that is not a report gives the same model to the character; no field §14 adds is on it; and every word
+  // the products read from the engine is §8's. (engine-bae.test.mjs holds the model WITH a report.)
+  {
+    const NO14 = ['planned', 'approvedSrc', 'covered', 'authorizedSrc', 'slide', 'planShort', 'marks', 'reportAuthorized', 'basis', 'sect'];
+    const has14 = o => NO14.filter(k => o && typeof o === 'object' && k in o);
+    for (const sc of SCEN) {
+      const M = models[sc.name], J0 = JSON.stringify(M);
+      const s = settingsFor(sc.asOf, sc.first), v = viewFor(sc.svcOff, sc.lanes);
+      const notReports = [null, undefined, { rows: 'not a list' }, [], 'a report', 0];
+      C.chk(sc.name + ': a fourth argument that is no report gives the no-report model, character for character',
+        notReports.every(x => JSON.stringify(SP.buildModel(sc.store.current, s, v, x)) === J0));
+      const extra = [...M.blocks.map(has14), ...M.pmos.flatMap(p => p.blocks.map(has14).concat(p.rows.map(has14), [has14(p.total)])),
+        ...M.aps.map(a => has14(a.total)), has14(M.summary.total)].flat();
+      C.chk(sc.name + ': no field §14 adds is on the model', !('bae' in M) && extra.length === 0, JSON.stringify([...new Set(extra)]));
+    }
+    const M = models.all;
+    C.eq('§14: line 2 with no report is §8.1’s', SP.summaryLine2(M), 'Data through Oct-2026 | Approved = total planned ($M from the CCaR pull) | Authorized = entered, else Approved'
+      + ' | Obligated = CCaR status "Actual Execution" | Unobligated = Approved - Obligated | Delta = Obl% - OSD%');
+    C.eq('§14: the marks’ words with no report are §8’s', [SP.markText('†', M), SP.markText('‡', M), SP.AUTH_MARK_TEXT['†']],
+      ['Authorized was not entered; Approved is shown in its place (on a total, for the rows marked †).',
+        'Authorized as entered, for the appropriation and FY as a whole: it covers every service and lane, while the switches show only some.',
+        'Authorized was not entered; Approved is shown in its place (on a total, for the rows marked †).']);
+    C.chk('§14: no block, PMO row or total carries § with no report', M.blocks.every(b => SP.approvedMark(b, M) === '')
+      && M.pmos.every(p => p.rows.every(r => SP.approvedMark(r, M) === '')) && SP.authMarks(M.summary.rows, M).sect === false);
+    C.chk('§14: the Obligation % label reads “Approved” and the block’s Approved', M.blocks.every(b => SP.oblLabel(b, M).startsWith('Obligation %  (Approved ' + SP.fmtMText(b.approved) + 'M; ')));
+    C.chk('§14: the slide and the plan are the block’s own figures', M.blocks.every(b => SP.plannedOf(b) === b.approved
+      && JSON.stringify(SP.slideOf(b)) === JSON.stringify({ basis: b.approved, oblPct: b.oblPct, goal: b.goal, delta: b.delta, status: b.status })));
+    C.chk('§14: no PMO tab lines', M.pmos.every(p => SP.pmoTabNotes(p, M).length === 0));
+    // the lines under a PMO tab's table (one source for the screen and the workbook, integration): §8.6's note alone
+    C.chk('§14: under every PMO tab, §8.6’s one note, word for word', M.pmos.every(p => JSON.stringify(SP.pmoTabLines(p, M))
+      === JSON.stringify(['Authorized is entered by appropriation and FY; a PMO row shows Approved.'])));
+    C.chk('§14: no note speaks of a report', !M.summary.notes.some(n => /BAE|CCaR plan|§/.test(n)));
+  }
+
   // ============================================================================================ hand-built rows
   // The few cases the fixture does not reach, on stored rows written here (the shape §3 stores), every value invented.
   {

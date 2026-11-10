@@ -11,12 +11,17 @@
 //   - Save a picture downloads a PNG, Save all pictures a zip with one PNG per block;
 //   - Save writes the page's own file, and that file opens again showing the same Summary, figure for figure, and the
 //     same Data through and First FY.
+//   - with a BAE report of budgets imported beside the pull (CONTRACT §14), through the same file input: the Summary's
+//     figures, its § and † marks and their words, line 2 and the notes are the oracle's (bae-all); the PMO tab says the
+//     same lines under its table as the workbook's PMO sheet; the workbook carries the same Summary, its marks, and a BAE
+//     Report sheet after OPN Raw Data; Save keeps the report and the reopened file shows it; a later import of gen2's
+//     pulls and report makes What changed's BAE section the oracle's diffBae (bae-gen2).
 //
 //   node spend-plan/test/e2e.test.mjs                      the page assembled from the sources (as build.mjs writes it)
 //   E2E_FILE=spend-plan/sfcb-spend-plan.html node …        the built file itself
 import { chromium } from 'playwright-core';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHROME } from '../../tools/chrome.mjs';
@@ -38,6 +43,14 @@ py([join(HERE, 'fixture', 'make_fixture.py'), '--out', FX]);
 const ORA = join(tmp.dir, 'all.json');
 py([join(HERE, 'fixture', 'oracle.py'), '--scenario', 'all', '--fixture', FX, '--out', ORA]);
 const O = JSON.parse(readFileSync(ORA, 'utf8'));
+const oracle = sc => { const f = join(tmp.dir, sc + '.json'); py([join(HERE, 'fixture', 'oracle.py'), '--scenario', sc, '--fixture', FX, '--out', f]); return JSON.parse(readFileSync(f, 'utf8')); };
+const OB = oracle('bae-all'), OG = oracle('bae-gen2');
+// The report is known by its headers, never its name (§14.8), so it is imported under the real report's kind of name,
+// which carries its date (§14.1): the date then reaches line 2, the top bar and What changed's title.
+const BAE1 = join(tmp.dir, 'Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000.xlsx');
+const BAE2 = join(tmp.dir, 'Report__BAE_ALL_Services_USAF_and_DoN_2026-02-28_093000.xlsx');
+copyFileSync(join(FX, 'bae.xlsx'), BAE1);
+copyFileSync(join(FX, 'gen2', 'bae.xlsx'), BAE2);
 
 // the page, as Brad copies it to the share: a file of its own, opened from file://
 const PAGE = join(tmp.dir, 'sfcb-spend-plan.html');
@@ -253,6 +266,206 @@ try {
   C.eq('the reopened Summary is the same, figure for figure', after, before);
   for (const v of VIEWS) { await view(B.p, v); if (v === 'help') await view(B.p, 'help'); }
   C.chk('the reopened page draws every view with no error', !B.errors.length, B.errors.join(' | '));
+
+  // ============================================================================ a BAE report beside the pull (§14)
+  // A fresh page of its own, so the report arrives the way Brad's first one will: in the same import as a pull.
+  const PAGE2 = join(tmp.dir, 'bae-page.html');
+  writeFileSync(PAGE2, process.env.E2E_FILE ? readFileSync(resolve(process.env.E2E_FILE), 'utf8') : pageHtml());
+  const D = await open(PAGE2);
+  await D.p.setInputFiles('#uiFile', [join(FX, 'pull-all.xlsx'), BAE1]);
+  C.chk('BAE: the import with a report lands', await until(D.p, () => !!document.querySelector('#uiMain table.top') && !!(SP.state.bae && SP.state.bae.current)));
+  const mb = await msg(D.p);
+  // §14.7: the message line names the report, its date and its rows, and warns: the fixture's report has a row that
+  // could not be read
+  C.chk('BAE: the message names the report and its date, as a warning', /msg-warn/.test(mb.cls) && /BAE report “Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000\.xlsx”/.test(mb.text)
+    && /2026-01-31 12:00/.test(mb.text), J(mb));
+  await D.p.fill('#uiAsOf', '2026-10'); await D.p.dispatchEvent('#uiAsOf', 'change');
+  await D.p.fill('#uiFirst', '2025'); await D.p.dispatchEvent('#uiFirst', 'change');
+  await until(D.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
+  C.chk('BAE: the top bar names the report and its date', /BAE report “Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000\.xlsx” of 2026-01-31 12:00/.test(await D.p.textContent('#uiTop')));
+
+  // every row of a FY table on screen: its block, the four money cells' cents, Obl %, status word and marks (§14.5)
+  const topRead = p => p.$$eval('#uiMain table.top tr[data-bk]', trs => trs.map(tr => {
+    const tds = [...tr.children].filter(e => e.tagName === 'TD');
+    const money = tds.filter(td => td.hasAttribute('data-c')).slice(0, 4);
+    const after = money.length ? tds[tds.indexOf(money[money.length - 1]) + 1] : null;
+    const st = tr.querySelector('td.st');
+    return { k: tr.getAttribute('data-bk'), c: money.map(td => Number(td.getAttribute('data-c'))), pct: after ? after.textContent.trim() : '',
+      st: st ? st.textContent.trim() : '', sect: !!(money[0] && money[0].querySelector('span.sect')),
+      dag: !!(money[1] && money[1].querySelector('span.dag')), ddag: !!(money[1] && money[1].querySelector('span.ddag')) };
+  }));
+  const WORD = { green: 'On track', yellow: 'Within 10', red: 'Behind' };
+  const pctOk = (t, x) => (x === null ? t === '' : Math.abs(Number(t.replace('%', '')) - x * 100) <= 0.005 + 1e-9);
+  // the words of §14.5, restated from the contract
+  const SECT = 'Approved is the CCaR plan: the BAE report has no figure for this block.';
+  const DAG_BAE = 'Authorized was neither entered nor in the BAE report; Approved is shown in its place (on a total, for the rows marked †).';
+  const AP = { om: 'O&M', ff: 'Full Fund', sp: 'Initial Spares', opn: 'OPN' };
+  const fyName = k => AP[k.split('|')[0]] + ' FY' + k.split('|')[1];
+  function summaryMatches(rows, X, what) {
+    const keys = Object.keys(X.blocks), bad = [];
+    const got = rows.filter(r => r.k !== 'total');
+    if (J(got.map(r => r.k)) !== J(keys)) bad.push('rows ' + J(got.map(r => r.k)) + ' want ' + J(keys));
+    for (const r of got) {
+      const b = X.blocks[r.k];
+      if (!b) continue;
+      if (J(r.c) !== J([b.approved, b.authorized, b.obligated, b.unobligated])) bad.push(r.k + ' ' + J(r.c) + ' want ' + J([b.approved, b.authorized, b.obligated, b.unobligated]));
+      if (!pctOk(r.pct, b.oblPct) || r.st !== (b.status ? WORD[b.status] : '')) bad.push(r.k + ' Obl % / status ' + r.pct + ' ' + r.st);
+      if (r.sect !== b.marks.sect || r.dag !== b.marks.dagger || r.ddag !== b.marks.ddagger) bad.push(r.k + ' marks ' + J([r.sect, r.dag, r.ddag]) + ' want ' + J(b.marks));
+    }
+    const t = rows.find(r => r.k === 'total'), T = X.summary;
+    if (!t) bad.push('no TOTAL');
+    else {
+      if (J(t.c) !== J([T.approved, T.authorized, T.obligated, T.unobligated])) bad.push('TOTAL ' + J(t.c));
+      const any = f => Object.values(X.blocks).some(b => b.marks[f]);
+      if (t.sect !== any('sect') || t.dag !== any('dagger') || t.ddag !== any('ddagger')) bad.push('TOTAL marks ' + J([t.sect, t.dag, t.ddag]));
+    }
+    C.chk(what, !bad.length, bad.slice(0, 5).join('; '));
+  }
+  await view(D.p, 'summary');
+  const SB = await topRead(D.p);
+  summaryMatches(SB, OB, 'BAE: every Summary row and the TOTAL are the oracle’s bae-all: figures, Obl %, status and the § † ‡ marks');
+  C.chk('BAE: the fixture reaches both kinds of block (covered, and § on the plan)', Object.values(OB.blocks).some(b => b.marks.sect)
+    && Object.values(OB.blocks).some(b => b.covered && b.approved !== b.planned));
+  const markNotes = await D.p.$$eval('#uiMain p.mark-note', ps => ps.map(e => e.textContent.trim()));
+  C.eq('BAE: under the Summary, § and † said in §14.5’s words', markNotes, ['§ ' + SECT, '† ' + DAG_BAE]);
+  const l2 = (await D.p.textContent('#uiMain p.l2')).replace(/\s+/g, ' ');
+  C.chk('BAE: line 2 says Approved and Authorized are the BAE report of its date (§14.5)', l2 === 'Data through Oct-2026 | Approved, Authorized = BAE report of 2026-01-31 12:00 (sustainment budgets)'
+    + ' | Obligated = CCaR status “Actual Execution” | Unobligated = Approved - Obligated | Delta = Obl% - OSD%', l2);
+  const notes = await D.p.$$eval('#uiMain ul.notes li', ls => ls.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
+  const unc = OB.bae.uncovered.map(x => fyName(x.ap + '|' + x.fy));
+  C.chk('BAE: a note names every block the report does not cover, as marked §', unc.length > 0
+    && notes.some(n => /^The BAE report has no figure for /.test(n) && unc.every(u => n.includes(u)) && /\(marked §\)/.test(n)), notes.join(' / '));
+  C.chk('BAE: a note flags every block whose CCaR plan is under half the report’s Approved (rule 5)', OB.bae.planShort.length > 0
+    && OB.bae.planShort.every(x => notes.some(n => n.startsWith(fyName(x.ap + '|' + x.fy) + ': the CCaR plan (') && /of the BAE report’s Approved/.test(n)))
+    && notes.filter(n => /: the CCaR plan \(.*\) is \d+% of the BAE report’s Approved/.test(n)).length === OB.bae.planShort.length, notes.join(' / '));
+  C.chk('BAE: the report’s own note says its total row agrees', notes.some(n => /^Approved and Authorized come from the BAE report of 2026-01-31 12:00/.test(n)
+    && /Its total row agrees with the rows read\./.test(n)) === OB.bae.total.ok, notes.join(' / '));
+
+  // the PMO tab: its table, and the lines under it, which the workbook's PMO sheet must print word for word
+  await view(D.p, 'pmos');
+  const pmoOpts = await D.p.$$eval('#uiMain select[data-act=pmo] option', os => os.map(o => ({ v: o.value, t: o.textContent.trim() })));
+  const avOpt = pmoOpts.find(o => o.t === 'Air Vehicle (AV)');
+  let screenPmoNotes = null;
+  if (C.chk('BAE: the PMO tab offers Air Vehicle (AV)', !!avOpt, J(pmoOpts))) {
+    await D.p.selectOption('#uiMain select[data-act=pmo]', avOpt.v);
+    await until(D.p, () => /PMO: Air Vehicle \(AV\)/.test(document.querySelector('#uiMain h2.title').textContent));
+    const tab = OB.pmoTabs['Air Vehicle (AV)'], pr = (await topRead(D.p)).filter(r => r.k !== 'total');
+    const bad = pr.filter(r => !tab[r.k] || J(r.c) !== J([tab[r.k].approved, tab[r.k].authorized, tab[r.k].obligated, tab[r.k].unobligated])
+      || r.sect !== tab[r.k].sect || r.dag !== tab[r.k].sect).map(r => r.k + ' ' + J(r.c) + ' § ' + r.sect);
+    C.chk('BAE: the AV tab’s rows are the oracle’s (the budgets’ figures where covered, § and † where not)', pr.length === Object.keys(tab).length && !bad.length
+      && pr.some(r => tab[r.k].basis === 'budget') && pr.some(r => tab[r.k].basis === 'row'), bad.join('; ') + ' rows ' + pr.length);
+    screenPmoNotes = await D.p.$$eval('#uiMain p.note.pmo-note', ps => ps.map(e => e.textContent.trim()));
+  }
+  C.chk('no script error and no dialog on the BAE views', !D.errors.length && !D.dialogs.length, D.errors.concat(D.dialogs).join(' | '));
+
+  // Export Excel with the report loaded
+  await view(D.p, 'summary');
+  n = D.downloads.length;
+  await D.p.click('[data-act=export]');
+  const xb = await download(D, n, 'BAE: Export Excel');
+  if (xb) {
+    const R = JSON.parse(py([join(HERE, 'export-read.py'), xb.path]));
+    const sh = R.sheets, styles = R.styles, names = sh.map(x => x.name);
+    const fmt = c => (styles[c[2]] || [])[4] || '';
+    const sum = sh.find(x => x.name === 'Summary');
+    if (C.chk('BAE: the workbook has a Summary sheet', !!sum)) {
+      const fyRows = sum.rows.filter(r => r.cells.some(c => c[0] === 1 && typeof c[1] === 'number' && c[1] > 1990));
+      const keys = Object.keys(OB.blocks), bad = [];
+      if (fyRows.length !== keys.length) bad.push(fyRows.length + ' FY rows, want ' + keys.length);
+      fyRows.forEach((r, i) => {
+        const b = OB.blocks[keys[i]], at = col => r.cells.find(c => c[0] === col);
+        if (!b) return;
+        const cents = [2, 3, 4, 5].map(col => (at(col) ? Math.round(at(col)[1] * 1e8) : null));
+        if (J(cents) !== J([b.approved, b.authorized, b.obligated, b.unobligated])) bad.push(keys[i] + ' ' + J(cents));
+        if (/§/.test(fmt(at(2) || [])) !== b.marks.sect || /†/.test(fmt(at(3) || [])) !== b.marks.dagger) bad.push(keys[i] + ' marks ' + fmt(at(2) || []) + ' / ' + fmt(at(3) || []));
+      });
+      C.chk('BAE: the workbook’s Summary rows are the oracle’s, each with its § and † marks', !bad.length, bad.slice(0, 4).join('; '));
+      const texts = sum.rows.flatMap(r => r.cells.filter(c => typeof c[1] === 'string').map(c => c[1]));
+      C.chk('BAE: the workbook says § and † in §14.5’s words, and line 2 names the report', texts.includes(SECT) && texts.includes(DAG_BAE)
+        && texts.some(t => t.startsWith('Data through Oct-2026 | Approved, Authorized = BAE report of 2026-01-31 12:00 (sustainment budgets)')));
+    }
+    const ib = names.indexOf('BAE Report');
+    C.chk('BAE: the workbook has a BAE Report sheet, right after OPN Raw Data', ib > 0 && names[ib - 1] === 'OPN Raw Data', J(names));
+    if (ib > 0) {
+      const head = sh[ib].rows[0].cells.map(c => c[1]);
+      const ci = head.indexOf('Counted');
+      const counted = sh[ib].rows.slice(1).map(r => (r.cells.find(c => c[0] === ci) || [])[1]).filter(v => v !== undefined);
+      const want = OB.bae.counted.map(c => c[1]);
+      C.chk('BAE: its sheet has every report row and the total row, each with Counted', counted.length === want.length + (OB.bae.totalRow ? 1 : 0)
+        && counted.filter(v => v === 'Yes').length === want.filter(v => v === 'Yes').length, counted.length + ' vs ' + want.length);
+    }
+    const avSheet = sh.find(x => x.name === 'PMO AV');
+    if (screenPmoNotes && C.chk('BAE: the workbook has the PMO AV sheet', !!avSheet)) {
+      const sheetLines = avSheet.rows.flatMap(r => r.cells.filter(c => c[0] === 0 && typeof c[1] === 'string').map(c => c[1]));
+      const lines = sheetLines.filter(t => screenPmoNotes.includes(t));
+      // one source for both (SP.pmoTabLines): each line the screen prints under the table is on the sheet, in its order
+      C.eq('BAE: the PMO tab says the lines under its table that the workbook’s PMO sheet says, in the same order', lines, screenPmoNotes);
+      C.chk('BAE: the PMO tab’s lines say what its figures count and narrow §8.6’s note', screenPmoNotes.length === 2
+        && /^Approved, Authorized and Obligated count the budgets whose name ends in this PMO’s code \(AV\)/.test(screenPmoNotes[0])
+        && screenPmoNotes[1] === 'Authorized is entered by appropriation and FY; where the BAE report has no figure for a block, its PMO row shows Approved.', J(screenPmoNotes));
+    }
+  }
+  C.chk('no script error during the BAE export', !D.errors.length, D.errors.join(' | '));
+
+  // Save, and open the saved file: the report is kept with the pull
+  await view(D.p, 'summary');
+  const beforeB = await topRead(D.p);
+  await D.p.evaluate(path => window.__fs.picks.push(path), PAGE2);
+  await D.p.click('[data-act=save]');
+  C.chk('BAE: Save says it saved', await until(D.p, () => /Saved/.test(document.querySelector('#uiSave').textContent) && /msg-ok/.test(document.querySelector('#uiMsg').className)), J(await msg(D.p)));
+  const disk2 = readFileSync(PAGE2, 'utf8');
+  const m2 = /<script id="spState" type="application\/json">([\s\S]*?)<\/script>/.exec(disk2);
+  const st2 = m2 ? JSON.parse(m2[1]) : null;
+  C.chk('BAE: the saved file carries the report, every row, and no previous one', !!(st2 && st2.bae && st2.bae.current && st2.bae.previous === null
+    && st2.bae.current.rows.length === OB.bae.rows.in + OB.bae.rows.flyaway + OB.bae.rows.noap + OB.bae.rows.bad
+    && st2.bae.current.stamp === '2026-01-31 12:00'), st2 && st2.bae && J({ n: st2.bae.current && st2.bae.current.rows.length, prev: st2.bae.previous }));
+  const E2 = await open(PAGE2);
+  await until(E2.p, () => !!document.querySelector('#uiMain table.top'));
+  C.chk('BAE: the saved file opens as Saved', /Saved/.test(await E2.p.textContent('#uiSave')) && !/Unsaved/.test(await E2.p.textContent('#uiSave')));
+  C.eq('BAE: the reopened Summary is the same, figure for figure and mark for mark', await topRead(E2.p), beforeB);
+  await view(E2.p, 'settings');
+  C.chk('BAE: the reopened Settings name the report it holds', /File “Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000\.xlsx”/.test(await E2.p.textContent('#uiMain'))
+    && (await E2.p.$$('#uiMain table.authbae tr[data-bk]')).length === Object.keys(OB.blocks).length);
+  C.chk('BAE: the reopened page has no script error and no dialog', !E2.errors.length && !E2.dialogs.length, E2.errors.concat(E2.dialogs).join(' | '));
+
+  // gen2: a later pull of O&M and Full Fund with a later report (§14.6 What changed, SP.diffBae)
+  await E2.p.setInputFiles('#uiFile', [join(FX, 'gen2', 'pull-om.xlsx'), join(FX, 'gen2', 'pull-ff.csv'), BAE2]);
+  C.chk('BAE: the gen2 import lands, the first report kept as previous', await until(E2.p, () => !!(SP.state.bae && SP.state.bae.previous && SP.state.bae.current
+    && SP.state.bae.current.stamp === '2026-02-28 09:30')), J(await msg(E2.p)));
+  await E2.p.fill('#uiAsOf', '2026-10'); await E2.p.dispatchEvent('#uiAsOf', 'change');
+  await E2.p.fill('#uiFirst', '2025'); await E2.p.dispatchEvent('#uiFirst', 'change');
+  await until(E2.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
+  await view(E2.p, 'summary');
+  summaryMatches(await topRead(E2.p), OG, 'BAE gen2: every Summary row and the TOTAL are the oracle’s bae-gen2');
+  await view(E2.p, 'changes');
+  const sec = await E2.p.$('#uiMain section.chg.bae');
+  if (C.chk('BAE gen2: What changed has a BAE report section', !!sec)) {
+    const title = (await sec.$eval('h3.bar', e => e.textContent)).replace(/\s+/g, ' ');
+    C.chk('BAE gen2: it is titled by both reports’ dates, old → new', /^BAE report: 2026-01-31 12:00 \(“Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000\.xlsx”.*\) → 2026-02-28 09:30 \(/.test(title), title);
+    const by = await sec.$$eval('table.baeby tr[data-bk]', trs => trs.map(tr => ({ k: tr.getAttribute('data-bk'),
+      c: [...tr.querySelectorAll('td[data-c]')].map(td => Number(td.getAttribute('data-c'))) })));
+    const D2 = OG.diffBae.byBlock, dk = Object.keys(D2);
+    const bad = by.filter(r => !D2[r.k] || J([r.c[0], r.c[1], r.c[3], r.c[4]]) !== J([D2[r.k].approved[0], D2[r.k].approved[1], D2[r.k].authorized[0], D2[r.k].authorized[1]])).map(r => r.k);
+    // the oracle writes its keys sorted; the screen lists them in model order (§14.8: appropriations as SP.APS, then FY)
+    const AT = { om: 0, ff: 1, sp: 2, opn: 3 };
+    const inModel = dk.slice().sort((a, b) => AT[a.split('|')[0]] - AT[b.split('|')[0]] || Number(a.split('|')[1]) - Number(b.split('|')[1]));
+    C.chk('BAE gen2: Approved and Authorized before and after, by appropriation and FY, are the oracle’s, in model order', J(by.map(r => r.k)) === J(inModel) && !bad.length,
+      bad.join(', ') + ' ' + J(by.map(r => r.k)));
+    // review I4-3: the budgets with a row that could not be read are listed apart, as the oracle lists them
+    for (const [kind, list] of [['changed', OG.diffBae.budgetsChanged], ['new', OG.diffBae.budgetsNew], ['gone', OG.diffBae.budgetsGone], ['unread', OG.diffBae.budgetsUnread]]) {
+      // found again each time: a Show button redraws the view, and the section found above with it
+      const nShown = await E2.p.$eval('#uiMain section.chg.bae h4[data-list="bae-' + kind + '"]', e => Number(e.getAttribute('data-n'))).catch(() => null);
+      C.chk('BAE gen2: budgets ' + kind + ': the oracle’s count', nShown === list.length && list.length > 0, nShown + ' vs ' + list.length);
+      const btn = await E2.p.$('#uiMain [data-act=diff][data-fkey="diff:bae|' + kind + '"]');
+      if (btn) {
+        await btn.click();
+        await until(E2.p, k => !!document.querySelector('#uiMain table[data-budgets="' + k + '"]'), kind);
+        const shown = await E2.p.$$eval('#uiMain table[data-budgets="' + kind + '"] tbody tr', trs => trs.map(tr => tr.querySelector('td').textContent.trim()));
+        C.eq('BAE gen2: budgets ' + kind + ', largest change first, are the oracle’s', shown, list.map(e => e.name));
+      } else C.chk('BAE gen2: budgets ' + kind + ' has its Show button', false);
+    }
+  }
+  C.chk('BAE gen2: no script error and no dialog', !E2.errors.length && !E2.dialogs.length, E2.errors.concat(E2.dialogs).join(' | '));
 } catch (e) {
   C.chk('the run reached its end', false, (e && e.stack) || String(e));
 } finally {

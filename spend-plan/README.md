@@ -84,13 +84,89 @@ Press **Import CCaR pull…** and pick one or more files.
   hold a whole pull (last month's and this month's export, an old copy kept on a hidden sheet, one pull as `.xlsx` and as
   `.csv`), leave all but the newest out of the import: moving rows across would count them twice.
 
+## The BAE report of budgets
+
+The BAE report (*Report__BAE_ALL_Services_USAF_and_DoN_<date>.xlsx*) gives each budget's Approved and Authorized amount by
+FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets' figures.
+
+- **Importing it.** Press **Import CCaR pull…** and pick the report, on its own or together with pull files. It is known by
+  its column headings (*Budget Name*, *Budget FY Numeric*, *Budget Approved Amount*, *Budget Authorized Amount*), never by
+  its name.
+  - Its amounts are dollars (the report only shows them as $M).
+  - A new report replaces the one on screen whole. The one it replaces is kept for **What changed**.
+  - Importing a report never touches a pull, and a report imported on its own leaves **Data through** where it was.
+  - The top bar names the report and its date (from the end of its file name, `…_2026-01-31_120000.xlsx`). A report whose
+    name carries no date is known by the day you imported it.
+  - The page asks first when the new report has fewer than half the readable rows of the one on screen.
+  - The message says how many of the report's rows count (its sustainment budgets of the First FY or later, in the services
+    and lanes shown) and why the others do not.
+  - Imported before any pull, the report waits for one, and *No data yet* shows its import report: the rows that could not
+    be read and the check against its own total row.
+  - A workbook this tool exported can be imported again: its *BAE Report* sheet is read as the report, and the five columns
+    the tool adds there (Appropriation, Service, Lane, PMO, Counted) are set aside and worked out again.
+- **What it changes.**
+  - **Approved** and **Authorized** in the Summary, the appropriation tables and the PMO tables are the report's, wherever
+    it has figures for that appropriation and FY. Line 2 of the Summary says so, and each appropriation's title names the
+    report beside the pull.
+  - **Obl %**, **Unobligated** and **Status** are measured against that Approved.
+  - The report's figures add up its **sustainment budgets**: every budget whose name places it in O&M, Full Fund, Initial
+    Spares or OPN, except Full Fund **Flyaway** (aircraft production). Advance Procurement, Modifications, RDT&E and squadron
+    budgets name no appropriation and are left out. The switches reach the report's budgets as they reach the pull's rows,
+    and a service or lane you set for a budget in **Settings** moves its report rows too.
+  - **A PMO's row** counts the budgets whose name ends in that PMO's code (`… Discretionary AV`). Its Obligated counts the
+    executed rows of those budgets, so Approved, Authorized, Obligated and Obl % measure the same money. The **(no PMO)** row
+    counts the budgets whose name ends in no PMO's code (`… CAM`, `… SUPT`, `… Initial`), the ones no other PMO counts, and
+    its table says so. The detail under each PMO table still lists rows by their own PMO.
+  - **Money the report can never hold.** The CCaR plan and Obligated count every row of the pull, while the report's Approved
+    counts only its sustainment budgets. A row on a Flyaway budget, on a budget whose name places it in no appropriation (put
+    in a block by the sheet it came on), or with no Budget at all is therefore counted on one side of Obl % only. Nothing is
+    moved, but every such block is named in the Summary's notes, each budget in the Import report, and each PMO whose
+    Obligated holds some says how much under its table.
+- **What it does not change.** The slide blocks, the pictures and the totals band under every tree still measure the CCaR
+  plan by month. Where the report covers a block, their Obligation % row says *CCaR plan* beside the plan's figure, so it is
+  not mistaken for the Summary's Approved; the Slide blocks view and the workbook's Slide Snapshots sheet say so in the same
+  words. A report never adds a block: the blocks are the pull's.
+- **The marks.**
+  - **§** on Approved: the report has no figure for this block, so its Approved is the CCaR plan.
+  - **†** on Authorized: Authorized was neither entered nor in the report, so Approved stands in.
+  - **‡** on Authorized: a figure you typed, used in place of the report's. It is marked whatever the switches show, and it
+    covers every service and lane.
+  - A total carries each mark its rows carry, and every table says under it what each of its marks means. The strip over
+    each block of a PMO table prints that block's row with the same marks, on screen and in the workbook.
+- **Authorized you type wins.** In **Settings**, the Authorized table reads *Block, Typed, BAE report, Used*. A figure typed
+  for a block is used in place of the report's. Clear the box to go back to the report's figure (or to Approved where the
+  report has none). The message names the block. A typed figure is for the appropriation and FY as a whole: a PMO row keeps
+  the report's figure, and the PMO table says so. *Used* carries the mark every table prints beside it (‡ typed, † Approved
+  standing in), on the Settings view and on the workbook's Settings sheet.
+- **What the Summary's notes flag.** The report itself (its date, the budgets counted and those left out by kind, and
+  whether its own total row agrees with its rows), each block the report has no figure for (§), each block whose CCaR plan
+  is under half the report's Approved (flagged, never hidden; a plan just under half is said to be *under 50%*, never 50%),
+  each block whose plan and Obligated count money the report's Approved leaves out (above), and any year the report holds
+  money for that the pull has no rows for.
+- **The Import report** says what the file held (rows read and skipped, conversions, rows that could not be read, the total
+  row check), then how the figures read it: its rows by scope, its sustainment budgets' Approved and Authorized by
+  appropriation and FY, the budgets the pull counts that the report has no row for, the report's budgets with money that
+  no pull row names, and the budgets a block the report covers counts that its Approved leaves out (Flyaway, naming no
+  appropriation, or no Budget), each with its plan and its obligations. Three of those lists are worked out on the blocks as
+  the switches leave them (the flagged blocks, the pull's budgets with no report row, and the money an Approved leaves out):
+  with a switch off, each says so, on screen and in the workbook, and a switch can flag a block or take its flag away.
+- **What changed** compares a report with the one it replaced: Approved and Authorized before and after by appropriation and
+  FY, then the budgets new, gone and changed, largest change first. A budget with a row that could not be read is listed apart,
+  with how many such rows each report holds, so a row that stopped reading never shows as money cut to $0.
+  Each pull's own section on that view compares the two pulls, so its figure is the CCaR plan, and with a report loaded it is
+  named so (*CCaR plan before*, *CCaR plan after*), never Approved, which on the other views is the report's figure wherever the report has one.
+- **The workbook** carries the same figures and marks, and a *BAE Report* sheet lists every row of the report with how it was
+  read.
+- **With no BAE report loaded, nothing changes**: every view, figure and sheet is as described in the rest of this guide.
+
 ## Reading the views
 
 The view buttons sit under the top bar.
 
 - **Summary.** One row per appropriation and FY. Approved, Authorized, Obligated, Unobligated, Obl %, OSD Goal %, Delta and
-  Status. Then the TOTAL, the legend and the notes. The notes name anything left out of the figures. The TOTAL's Authorized
-  carries each mark its rows carry (†, ‡), and a line under the table says what each mark means, as the workbook does.
+  Status. Then the TOTAL, the legend and the notes. The notes name anything left out of the figures. The TOTAL carries each
+  mark its rows carry (†, ‡, and § with a BAE report loaded), and a line under the table says what each mark means, as the
+  workbook does.
 - **Slide blocks.** Each appropriation and FY as a slide block. It shows the PMO rows by month, then Monthly Totals,
   Cumulative Totals, Obligation %, OSD Goal % and OSD Status. Under each block is its Not Allocated list. Each block has
   **Copy picture** and **Save picture**.
@@ -105,7 +181,8 @@ The view buttons sit under the top bar.
   imports, with the rows in it that count nowhere. After a refused import, the refusal comes first, and the report below it
   is headed as the last import *taken*, before the one refused.
 - **What changed.** The last pull against the one before it, for each appropriation imported twice: Approved and
-  Obligated by FY, CCaRs new and gone, CCaRs that moved PMO, and every changed line, largest first. If the newest import
+  Obligated by FY (with a BAE report loaded, that Approved is named the CCaR plan: it is the pull's, not the report's), CCaRs
+  new and gone, CCaRs that moved PMO, and every changed line, largest first. If the newest import
   of an appropriation was the same as the pull before it, row for row, the view says so, and shows the change the earlier
   pull brought.
   - A **line** is every row of one FY, PMO, Title, Plan Event and CCaR, added together. A row added to a line, or taken from
@@ -141,7 +218,8 @@ The filter bar has a box for each service and one for each lane (Discretionary a
 
 - **One set of switches drives everything:** every figure, every list, every view, the export and the pictures. Two
   things cover every service and lane whatever the switches show, and say so: an entered Authorized, which is typed for
-  an appropriation and FY as a whole (marked ‡ while a switch is off), and the Summary's notes on rows not counted.
+  an appropriation and FY as a whole (marked ‡ while a switch is off, and always with a BAE report loaded), and the Summary's
+  notes on rows not counted.
 - When not everything is shown, each view, sheet and picture says what it shows. An export's file name ends in
   `[filtered]`. The Import report and What changed show every row whatever the switches, and say so.
 - The switches belong to this browser, not to the file. Changing them does not mark the file unsaved.
@@ -168,7 +246,9 @@ the message line says nothing is unsaved.
 - **Goals.** The OSD goal curves, one row per kind of money, Prior Yr then Oct to Sep. **Reset to v12's curves** puts back
   v12's values.
 - **Authorized.** Type a figure in $M for any appropriation and FY. A blank box means *not entered*. Then Approved is shown
-  in its place, marked †. A total that adds one in is marked † too.
+  in its place, marked †. A total that adds one in is marked † too. With a BAE report loaded, a blank box uses the report's
+  figure instead, where it has one (see *The BAE report of budgets*).
+- **The BAE report.** With one loaded, Settings names its file, its date and when it was imported.
 - **Special CCaRs.** In the Not Allocated lists, a special CCaR is one item, named by its title. The defaults are
   `PP 2000` and `JSF6654`.
 - **Budgets.** Every budget name, with its rows, dollars, service and lane. You can override the service or the lane of
@@ -186,7 +266,7 @@ example. Your browser puts it in its downloads folder, or asks where to save it,
   sheets print one page wide. The raw data sheets print at full size across pages, as v12's did (fitted to one page
   wide, their 36 columns would print at about a quarter size); print them only when you need them.
 - On **Slide Snapshots**, each block after the first starts a new printed page, so no block is cut in two.
-- Every sheet that marks a figure † or ‡ says, under its table, what the mark means.
+- Every sheet that marks a figure †, ‡ or § says, under its table, what the mark means.
 - On the appropriation sheets and PMO tabs, the four outline buttons at the left open the rows level by level, as in
   v12: 1 PMO, 2 Title, 3 Plan Event, 4 CCaR. The sheets open showing PMO and Title rows.
 
@@ -253,12 +333,15 @@ way is wider for its height than the slide region; size it by its width.
 
 ## The rules
 
-- **Approved** is every counted row, planned and executed.
+- **Approved** is every counted row, planned and executed. With a BAE report loaded, it is the report's Approved wherever the
+  report has figures for the block (see *The BAE report of budgets*).
 - **Obligated** is every row whose CCaR status (Alloc) says *Actual Execution*, whatever its date.
   - Executed rows dated after Data through still count. The Summary's notes name them.
 - **Unobligated** = Approved − Obligated. **Obl %** = Obligated ÷ Approved.
-- **Authorized** is what you enter in Settings. Otherwise it is Approved, marked †. An entered figure is for the
-  appropriation and FY as a whole; while a switch is off it is marked ‡, because it still counts every service and lane.
+- **Authorized** is what you enter in Settings. Otherwise it is the BAE report's, where one is loaded and has a figure for
+  the block; otherwise Approved, marked †. An entered figure is for the appropriation and FY as a whole; while a switch is
+  off it is marked ‡, because it still counts every service and lane. With a BAE report loaded it is marked ‡ always,
+  because it stands in place of the report's figure.
 - **The OSD goal** comes from the curve for the money's year of availability, read at the Data through month.
   - O&M uses its first-year curve in its first year. In its second year and later it is expired, so the goal is 100%.
   - Procurement uses its first-, second-, third- or fourth-year curve.

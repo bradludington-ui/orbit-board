@@ -53,7 +53,8 @@
 # With a BAE report among the files (§14; CONTRACT §14.8 lists every key), and only then, each block also carries
 #   planned, approvedSrc, covered, authorizedSrc, slide {basis, oblPct, goal, delta, status}, planShort, marks, and its
 #   approved, authorized, unobligated, oblPct, delta and status follow §14.3; pmoTabs follow §14.4 (basis, sect,
-#   planned); aps and summary add planned and marks; "bae" is model.bae; "diffBae" follows a second report.
+#   planned, offObligated); aps and summary add planned and marks; "bae" is model.bae (with offReport, review M4-6);
+#   "diffBae" follows a second report.
 # A refused first import writes {"refused": why, "stage": "files"} instead, and exits 3.
 import argparse
 import csv
@@ -1013,6 +1014,18 @@ def bae_scope(name):
     return ap, ('noap' if ap is None else 'in')
 
 
+def off_kind(budget):
+    """Review M4-6: a pull row's Budget the report's Approved can never hold, since no report row of that name counts
+    (§14.2): 'blank' (no Budget: a report row with no name cannot be read), 'flyaway' (the word, as bae_scope reads it),
+    'noap' (the §3 Budget rule places it nowhere; the pull placed it by its sheet), else None."""
+    s = (budget or '').strip()
+    if s == '':
+        return 'blank'
+    if re.search(r'\bflyaway\b', s, re.I):
+        return 'flyaway'
+    return None if ap_of_budget(s) else 'noap'
+
+
 def pmo_code_index(derived):
     """§14.2 the PMOs a budget's last word is compared with: SP.PMO_ORDER's, then every PMO in the pull. READING:
     'every PMO in the pull' is every PMO named on any row of the current pulls of the four appropriations, whatever
@@ -1060,7 +1073,6 @@ def bae_derive_rows(bae, settings, idx):
 def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings):
     bae = state['bae']['current']
     first, E = settings['firstFY'], m.E
-    shown_all = out['shown']['all']
     idx, by_pk = pmo_code_index(derived)
     rows = bae_derive_rows(bae, settings, idx)
 
@@ -1077,6 +1089,7 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings):
         return bp_cache[budget]
     blocks = out['blocks']
     tab_rows = {}            # PMO key -> {block key -> figures}
+    off_list = []            # review M4-6: each covered block's counted pull money on budgets Approved can never hold
     for key, b in blocks.items():
         ap, fy = b['ap'], b['fy']
         cov = (ap, fy) in covered
@@ -1098,21 +1111,40 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings):
                   'authorized': authorized, 'authorizedSrc': asrc, 'authorizedEntered': entered,
                   'unobligated': approved - obl, 'oblPct': pct, 'delta': delta, 'status': Model.status_of(pct, b['goal']),
                   'slide': slide, 'planShort': cov and approved > 0 and 2 * planned < approved,
-                  'marks': {'sect': not cov, 'dagger': asrc == 'approved', 'ddagger': entered and not shown_all}})
+                  # READING (answer 8, review I4-4): with a report, an entered Authorized is marked ‡ whatever the switches
+                  'marks': {'sect': not cov, 'dagger': asrc == 'approved', 'ddagger': entered}})
         # §14.4 the PMO rows of this block
         brows = block_rows[key]
         by_col = {}
         for r in brows:
             by_col.setdefault(r['k']['pmo'], []).append(r)
         pks = set(by_col)
-        rep_by, obl_by = {}, {}
+        rep_by, obl_by, off_by = {}, {}, {}
         if cov:
             for x in rep:
                 rep_by.setdefault(x['pmo'], []).append(x)
             for r in brows:
                 if r['status'] == 'exec':
                     obl_by[bpmo(r['budget'])] = obl_by.get(bpmo(r['budget']), 0) + r['cents']
+                    if off_kind(r['budget']):
+                        off_by[bpmo(r['budget'])] = off_by.get(bpmo(r['budget']), 0) + r['cents']
             pks |= set(rep_by) | set(obl_by)
+            # READING: one entry per budget (normKey; every row with no Budget is one), first spelling, in row order; an
+            # entry whose plan and obligated are both 0 is left out, and a block with none has no entry
+            off = {}
+            for r in brows:
+                kind = off_kind(r['budget'])
+                if kind:
+                    t = off.setdefault(norm_key(r['budget']), {'key': norm_key(r['budget']), 'name': (r['budget'] or '').strip(),
+                                                               'kind': kind, 'rows': 0, 'planned': 0, 'obligated': 0})
+                    t['rows'] += 1
+                    t['planned'] += r['cents']
+                    if r['status'] == 'exec':
+                        t['obligated'] += r['cents']
+            buds = [t for t in off.values() if t['planned'] or t['obligated']]
+            if buds:
+                off_list.append({'ap': ap, 'fy': fy, 'planned': sum(t['planned'] for t in buds),
+                                 'obligated': sum(t['obligated'] for t in buds), 'budgets': buds})
         for pk in pks:
             prows = by_col.get(pk, [])
             f = m.figures(ap, fy, prows)     # the detail below the table: rows by their PMO column, on the plan
@@ -1130,7 +1162,7 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings):
                 'approved': pa, 'authorized': pu, 'obligated': po, 'unobligated': pa - po, 'oblPct': pp, 'goal': b['goal'],
                 'delta': pd, 'status': Model.status_of(pp, b['goal']), 'basis': basis, 'sect': not cov,
                 'planned': f['approved'], 'unprog': f['unprog'], 'execAfterAsOf': f['execAfterAsOf'], 'cols': f['cols'],
-                'na': m.na_items(prows)}
+                'na': m.na_items(prows), 'offObligated': off_by.get(pk, 0)}
 
     def plabel(pk):          # the tab's label: its counted rows' majority spelling, else the pull's, else the list's
         if pk in pmo_rows:
@@ -1218,6 +1250,7 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings):
         'planShort': [{'ap': b['ap'], 'fy': b['fy'], 'planned': b['planned'], 'approved': b['approved']}
                       for b in order if b['planShort']],
         'pullOnly': sorted(pull_only), 'reportOnly': sorted(report_only),
+        'offReport': sorted(off_list, key=lambda o: (ap_rank[o['ap']], o['fy'])),
         'unreadable': [{'rowNo': x['rowNo'], 'name': x['name'], 'bad': x['bad']} for x in rows if x['bad']],
         'counted': [[x['rowNo'], why(x)] for x in rows],
         'budgets': budgets, 'pullBudgetPmo': pull_bpmo}
@@ -1229,9 +1262,12 @@ def diff_bae(prev, cur, settings):
     when it has an in-scope row there, readable or not, as a CCaR with only unreadable rows is in its pull (§4.6), so
     an unreadable row never makes a budget new or gone; a budget changed when any FY's Approved or Authorized moved;
     each entry carries its totals and every FY either side holds; largest change first, the size being the larger of
-    the FY-by-FY absolute changes in Approved and in Authorized, added up; ties by name."""
+    the FY-by-FY absolute changes in Approved and in Authorized, added up; ties by name. A budget with an in-scope row
+    that could not be read, on either side, is in none of those three: it is listed apart in budgetsUnread, with
+    unread [before, after] row counts, when it is in one report only, its figures moved or its count of such rows did,
+    as the pull's lines with such a row are (§4.6, review M1, I4-3); unread counts every such row on each side."""
     def side(bae):
-        blocks, figs, present, names = {}, {}, set(), {}
+        blocks, figs, present, names, unread = {}, {}, set(), {}, {}
         for x in bae['rows']:
             if not x['name']:
                 continue
@@ -1242,6 +1278,7 @@ def diff_bae(prev, cur, settings):
             present.add(k)
             names.setdefault(k, x['name'])
             if x['bad']:
+                unread[k] = unread.get(k, 0) + 1
                 continue
             bk = '%s|%d' % (ap, x['fy'])
             t = blocks.setdefault(bk, [0, 0])
@@ -1250,9 +1287,9 @@ def diff_bae(prev, cur, settings):
             f = figs.setdefault(k, {}).setdefault(str(x['fy']), [0, 0])
             f[0] += x['approved']
             f[1] += x['authorized']
-        return blocks, figs, present, names
-    b0, f0, p0, n0 = side(prev)
-    b1, f1, p1, n1 = side(cur)
+        return blocks, figs, present, names, unread
+    b0, f0, p0, n0, u0 = side(prev)
+    b1, f1, p1, n1, u1 = side(cur)
     by_block = {}
     for k in sorted(set(b0) | set(b1)):
         x, y = b0.get(k, [0, 0]), b1.get(k, [0, 0])
@@ -1270,11 +1307,20 @@ def diff_bae(prev, cur, settings):
                 'authorized': [sum(v['authorized'][0] for v in by.values()), sum(v['authorized'][1] for v in by.values())],
                 'byFy': by}
 
-    def ranked(keys):
-        return sorted((entry(k) for k in keys), key=lambda e: (-e['size'], e['key']))
-    changed = [k for k in p0 & p1 if f0.get(k, {}) != f1.get(k, {})]
-    return {'byBlock': by_block, 'budgetsNew': ranked(p1 - p0), 'budgetsGone': ranked(p0 - p1),
-            'budgetsChanged': ranked(changed)}
+    def ranked(keys, with_unread=False):
+        out = []
+        for k in keys:
+            e = entry(k)
+            if with_unread:
+                e['unread'] = [u0.get(k, 0), u1.get(k, 0)]
+            out.append(e)
+        return sorted(out, key=lambda e: (-e['size'], e['key']))
+    unr = set(u0) | set(u1)
+    changed = [k for k in (p0 & p1) - unr if f0.get(k, {}) != f1.get(k, {})]
+    apart = [k for k in unr if k not in p0 or k not in p1 or u0.get(k, 0) != u1.get(k, 0) or f0.get(k, {}) != f1.get(k, {})]
+    return {'byBlock': by_block, 'unread': [sum(u0.values()), sum(u1.values())],
+            'budgetsNew': ranked(p1 - p0 - unr), 'budgetsGone': ranked(p0 - p1 - unr),
+            'budgetsChanged': ranked(changed), 'budgetsUnread': ranked(apart, True)}
 
 
 # -------------------------------------------------------------------------------------------------- state & CLI

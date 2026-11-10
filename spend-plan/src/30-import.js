@@ -429,6 +429,12 @@ const IMP_BAE_COLS = [
   { keys: ['budget approved amount'], label: 'Budget Approved Amount' },
   { keys: ['budget authorized amount'], label: 'Budget Authorized Amount' } ];
 const IMP_BAE_NAME = 0, IMP_BAE_FY = 1, IMP_BAE_APP = 2, IMP_BAE_AUTH = 3;
+// The five columns this tool's own BAE Report sheet appends (CONTRACT §14.6, 60-export.js EX_BAE_TAIL): what it made of each
+// row, worked out again on every load. Kept as the report's own columns they came back on the next export beside the fresh
+// five, one copy frozen at the switches of the export it came from, so a row read Counted "Yes" in one column and "Switch
+// off" in the next, and grew by five every round; the Import report said every one was kept (review I4-1). As for a raw
+// data sheet's four (IMP_OWN_COLS), only all five together are the tool's: one alone may be a real column of a report.
+const IMP_BAE_OWN = ['appropriation', 'service', 'lane', 'pmo', 'counted'];
 // what a file refused for holding no usable sheet is told it might have held instead
 const IMP_BAE_NONE = ', nor a BAE report of budgets (Budget Name, Budget FY Numeric, Budget Approved Amount, Budget Authorized Amount)';
 // $100,000 in cents. Every non-zero amount under it means the figures were exported in $M (the report's own display),
@@ -481,6 +487,24 @@ SP.baeStampOf = function baeStampOf(fileName) {
   return m[1] + '-' + m[2] + '-' + m[3] + ' ' + m[4] + ':' + m[5];
 };
 
+// The four columns a stored report was read from, by the names its headers give them: its own `cols` when it holds four;
+// else each found among its headers as §14.1 finds it (imp_baeKey, Budget FY Numeric before Budget FY); else §14.1's name for
+// it. A report this tool reads always records `cols`, but §14.1's shape of a stored report does not require it, so one saved
+// by hand or by another version opened without it, and the BAE Report sheet then wrote every row's Budget Name, FY,
+// Approved and Authorized blank beside "Counted: Yes" (review I4-7): what the products read must be found the way the
+// import found it.
+SP.baeCols = function baeCols(bae) {
+  const b = bae && typeof bae === 'object' ? bae : {};
+  if (Array.isArray(b.cols) && b.cols.length === 4 && b.cols.every(h => typeof h === 'string')) return b.cols.slice();
+  const heads = Array.isArray(b.headers) ? b.headers.map(h => String(h ?? '')) : [];
+  const keyed = heads.map(imp_baeKey);
+  const dflt = ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount', 'Budget Authorized Amount'];
+  return IMP_BAE_COLS.map((d, n) => {
+    for (const k of d.keys) { const j = keyed.indexOf(k); if (j >= 0) return heads[j]; }
+    return dflt[n];
+  });
+};
+
 // One report sheet -> {info, bae, part}: info for the file's sheet list, bae the stored report (CONTRACT §14.1), part the
 // import report's BAE section. hi is the header row's index (imp_baeHeader). info.why is set when the sheet cannot be read
 // as a report at all; the import is then refused, naming it (a report the person meant to bring is never left out quietly).
@@ -490,10 +514,17 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
     byAp: {}, extras: [], ignoredCols: [], ownCols: [], missingCols: [], disagree: null, extraOnly: [],
     noResult: Array.isArray(sh.noResult) ? sh.noResult.slice() : [] };
   const head = rows[hi] || [];
+  // THE TOOL'S OWN FIVE are the LAST column of each of those names, when all five are there in the order the export
+  // writes them (IMP_BAE_OWN), as §3 reads a raw data sheet's four: read as nothing, and noted
+  const lastAt = new Map();
+  head.forEach((h, j) => { const nk = SP.normKey(imp_text(h)); if (IMP_BAE_OWN.includes(nk)) lastAt.set(nk, j); });
+  const ownJ = IMP_BAE_OWN.map(k => lastAt.get(k));
+  const own = new Set(ownJ.every((j, i) => j !== undefined && (i === 0 || j > ownJ[i - 1])) ? ownJ : []);
+  info.ownCols = ownJ.filter(j => own.has(j)).map(j => imp_text(head[j]));
   // COLUMNS BY HEADER NAME. Two columns that both answer to one of the four (an Approved in dollars beside one in $M, say)
   // cannot be told apart, and which one holds the money is not something to guess.
   const at = new Map();   // header key -> the columns headed so
-  head.forEach((h, j) => { const k = imp_baeKey(h); if (k) { if (!at.has(k)) at.set(k, []); at.get(k).push(j); } });
+  head.forEach((h, j) => { const k = imp_baeKey(h); if (k && !own.has(j)) { if (!at.has(k)) at.set(k, []); at.get(k).push(j); } });
   const col = [-1, -1, -1, -1], dup = [];
   IMP_BAE_COLS.forEach((d, n) => {
     // the first of its keys the sheet has: Budget FY Numeric before Budget FY, which is then kept as a column like any other
@@ -518,9 +549,10 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
   let width = head.length;
   for (let i = hi + 1; i < rows.length; i++) width = Math.max(width, (rows[i] || []).length);
   const used = new Set();
-  for (let i = hi + 1; i < rows.length; i++) { const r = rows[i] || []; for (let j = 0; j < r.length; j++) if (!imp_isBlank(r[j])) used.add(j); }
+  for (let i = hi + 1; i < rows.length; i++) { const r = rows[i] || []; for (let j = 0; j < r.length; j++) if (!own.has(j) && !imp_isBlank(r[j])) used.add(j); }
   const headers = [], nameAt = new Map(), seen = new Map();
   for (let j = 0; j < width; j++) {
+    if (own.has(j)) continue;
     let text = imp_text(head[j]);
     if (text === '' && !used.has(j)) continue;
     if (text === '') text = 'Column ' + SP.colLetter(j);
@@ -538,6 +570,7 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
     return x;
   };
   const part = { file: fileName, sheet: sh.name, state: info.state, headerRow: info.headerRow, columns: headers.length, cols: cols.slice(),
+    ownCols: info.ownCols.slice(),
     fyBoth, stamp: SP.baeStampOf(fileName), rowsRead: 0, readable: 0, blank: 0, cents: { approved: 0, authorized: 0 },
     conversions: { zero: 0, blank: 0, subcent: 0, trimmed: 0 }, subcent: [], unreadable: [], extraOnly: [], total: null,
     largest: 0, nonZero: 0 };
@@ -552,7 +585,7 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
     if (isFour(r)) {
       // blank in all four is skipped and counted; one holding something elsewhere is skipped too, and listed with what it held
       const o = [];
-      for (let j = 0; j < r.length; j++) if (!four.has(j) && !imp_isBlank(r[j])) o.push([nameAt.get(j) || 'Column ' + SP.colLetter(j), imp_raw(r[j])]);
+      for (let j = 0; j < r.length; j++) if (!four.has(j) && !own.has(j) && !imp_isBlank(r[j])) o.push([nameAt.get(j) || 'Column ' + SP.colLetter(j), imp_raw(r[j])]);
       if (o.length) { info.extraOnly.push({ row: rn, values: o }); part.extraOnly.push({ row: rn, values: o }); }
       else { info.blank++; part.blank++; }
       continue;
@@ -595,7 +628,7 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
       else if (a.how === 'subcent') { part.conversions.subcent++; part.subcent.push({ row: rn, column: cols[n], raw: imp_raw(v[n]), cents: a.cents }); }
       if (a.cents !== 0) { part.nonZero++; part.largest = Math.max(part.largest, Math.abs(a.cents)); }
     }
-    for (let j = 0; j < r.length; j++) if (!four.has(j) && typeof r[j] === 'string' && r[j] !== r[j].trim() && r[j].trim() !== '') part.conversions.trimmed++;
+    for (let j = 0; j < r.length; j++) if (!four.has(j) && !own.has(j) && typeof r[j] === 'string' && r[j] !== r[j].trim() && r[j].trim() !== '') part.conversions.trimmed++;
     const stored = { c, x: extrasOf(r), src: [fileIdx, sh.name, rn] };
     if (bad.length) { stored.bad = bad; stored.raw = raw; }
     out.push(stored);
@@ -973,6 +1006,7 @@ SP.importReportLines = function importReportLines(report) {
 function imp_baeNote(s) {
   const bits = ['header on row ' + s.headerRow, imp_plural(s.rows, 'budget row')];
   if (s.blank) bits.push(imp_plural(s.blank, 'blank row') + ' skipped');
+  if (s.ownCols && s.ownCols.length) bits.push(s.ownCols.join(', ') + ' ignored (this tool’s own columns, the last of each name, worked out again on every load)');
   const nr = Array.isArray(s.noResult) ? s.noResult : [];
   if (nr.length) bits.push(imp_plural(nr.length, 'cell holds', 'cells hold') + ' a formula saved without its result ('
     + nr.slice(0, 10).join(', ') + (nr.length > 10 ? ', …' : '') + '): each is read as its formula’s text, so an amount written that way '
@@ -1058,7 +1092,9 @@ function imp_baeLines(L, b, kept) {
   const c = b.cents && typeof b.cents === 'object' ? b.cents : {};
   L.push('  The readable rows hold Approved ' + usd(c.approved) + ' and Authorized ' + usd(c.authorized) + ': every budget in the report, '
     + 'before Flyaway and the budgets that name no appropriation are left out.');
-  if (cols.length === 4) L.push('  Columns: ' + SP.fmtInt(num(b.columns)) + ', every one kept as the file has it. Read: ' + cols.map(imp_q).join(', ')
+  const ownC = arr(b.ownCols).map(String);
+  if (cols.length === 4) L.push('  Columns: ' + SP.fmtInt(num(b.columns)) + ', every one kept as the file has it'
+    + (ownC.length ? ', besides this tool’s own ' + imp_list(ownC) + ', which are worked out again on every load and not kept' : '') + '. Read: ' + cols.map(imp_q).join(', ')
     + ' (amounts as dollars, to the cent).' + (b.fyBoth ? ' The FY is read from Budget FY Numeric; Budget FY is kept as written.' : ''));
   if (kept === undefined) {
     const cv = b.conversions && typeof b.conversions === 'object' ? b.conversions : {};
@@ -1131,7 +1167,7 @@ SP.baeKeptLines = function baeKeptLines(bae, report) {
   }
   const t = b.total && typeof b.total === 'object' ? b.total : null;
   const dA = t && okNum(t.approved) ? t.approved - approved : null, dU = t && okNum(t.authorized) ? t.authorized - authorized : null;
-  imp_baeLines(L, { file: b.file, sheet: b.sheet, stamp: b.stamp, cols: b.cols, columns: Array.isArray(b.headers) ? b.headers.length : 0,
+  imp_baeLines(L, { file: b.file, sheet: b.sheet, stamp: b.stamp, cols: SP.baeCols(b), columns: Array.isArray(b.headers) ? b.headers.length : 0,
     rowsRead: b.rows.length, readable, cents: { approved, authorized }, unreadable,
     total: t ? { rowNo: t.rowNo, approved: okNum(t.approved) ? t.approved : null, authorized: okNum(t.authorized) ? t.authorized : null,
       sumApproved: approved, sumAuthorized: authorized, diffApproved: dA, diffAuthorized: dU, raw: t.raw,

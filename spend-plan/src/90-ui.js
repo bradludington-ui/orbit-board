@@ -116,11 +116,22 @@ function ui_setView(v) {
   else ui.localView = v;
 }
 function ui_copy(o) { return JSON.parse(JSON.stringify(o === undefined ? null : o)); }
+// THE BAE REPORT OF BUDGETS on screen (CONTRACT §14.7: SP.state.bae.current), or the one it replaced ('previous'), or null.
+// A state with no bae (a file saved before §14, the screens' test stand-in) is a page with no report, and with none
+// nothing on any view changes (§14): every line below that speaks of a report is drawn only when this, or the model's
+// bae, says one is loaded.
+function ui_bae(side) {
+  const st = ui_state();
+  const b = st && st.bae && typeof st.bae === 'object' ? st.bae[side || 'current'] : null;
+  return b && typeof b === 'object' && !Array.isArray(b) && Array.isArray(b.rows) ? b : null;
+}
+// the model was built with a report (§14.5 model.bae)
+function ui_rep(M) { return !!(M && M.bae && M.bae.present); }
 
 // the model, built once per change of data, settings or switches; a view change or a row opened reuses it
 function ui_model() {
   if (ui.model || ui.modelErr || !ui_hasData()) return ui.model;
-  try { ui.model = SP.buildModel(ui_pulls(), ui_settings(), ui_view()); }
+  try { ui.model = SP.buildModel(ui_pulls(), ui_settings(), ui_view(), ui_bae()); }
   catch (e) { ui.modelErr = (e && e.message) || String(e); ui.model = null; }
   return ui.model;
 }
@@ -162,12 +173,30 @@ function ui_st(st, plan, cls) {
   if (plan) return '<td class="st st-' + st + ' plan' + (cls ? ' ' + cls : '') + '">' + w + '</td>';
   return '<td class="st st-' + st + (cls ? ' ' + cls : '') + '">' + w + '</td>';
 }
-// mark: '†' not entered, '‡' entered while some switch is off (SP.authMark), or '' / '†‡' on a TOTAL (SP.authMarks)
-function ui_auth(cents, mark) {
+// A MARK'S WORDS depend on the model (SP.markText): with a BAE report loaded, † is "neither entered nor in the BAE report",
+// ‡ is on every entered figure (review I4-4), and § exists (§14.5). With no report they are SP.AUTH_MARK_TEXT's, word for
+// word, so nothing on a page without one moves.
+function ui_markText(m, M) { return typeof SP.markText === 'function' ? SP.markText(m, M) : SP.AUTH_MARK_TEXT[m] || ''; }
+const UI_MARK_CLASS = { '†': 'dag', '‡': 'ddag', '§': 'sect' };
+function ui_markSpan(m, M) { return '<span class="' + UI_MARK_CLASS[m] + '" title="' + ui_e(ui_markText(m, M)) + '">' + m + '</span>'; }
+// mark: '†' not entered, '‡' entered while some switch is off, or with a BAE report loaded (SP.authMark), or '' / '†‡' on a
+// TOTAL (SP.authMarks)
+function ui_auth(cents, mark, M) {
   const m = String(mark || '');
   return '<td class="n" data-c="' + cents + '">' + ui_e(SP.fmtM(cents))
-    + (m.includes('†') ? '<span class="dag" title="' + ui_e(SP.AUTH_MARK_TEXT['†']) + '">†</span>' : '')
-    + (m.includes('‡') ? '<span class="ddag" title="' + ui_e(SP.AUTH_MARK_TEXT['‡']) + '">‡</span>' : '') + '</td>';
+    + (m.includes('†') ? ui_markSpan('†', M) : '') + (m.includes('‡') ? ui_markSpan('‡', M) : '') + '</td>';
+}
+// §14.5 an APPROVED cell, marked § where the BAE report has no figure for the block and Approved is the CCaR plan. With no
+// mark it is ui_m's cell exactly, so a page with no report draws the very markup it drew before.
+function ui_appr(cents, mark, M) {
+  if (!String(mark || '').includes('§')) return ui_m(cents);
+  return '<td class="n" data-c="' + cents + '">' + ui_e(SP.fmtM(cents)) + ui_markSpan('§', M) + '</td>';
+}
+// the line under a table for each mark it prints (§8, §14.5), § first because Approved comes before Authorized
+function ui_markNotes(am, M) {
+  return (am.sect ? '<p class="note mark-note" data-mark="sect">§ ' + ui_e(ui_markText('§', M)) + '</p>' : '')
+    + (am.dag ? '<p class="note mark-note" data-mark="dag">† ' + ui_e(ui_markText('†', M)) + '</p>' : '')
+    + (am.ddag ? '<p class="note mark-note" data-mark="ddag">‡ ' + ui_e(ui_markText('‡', M)) + '</p>' : '');
 }
 // `every`: what a view the switches do not reach covers instead. Its headline says so: under the bold "Showing only part of
 // the data." the Import report and What changed said in small print that they show every row, and a reader skimming the
@@ -194,23 +223,27 @@ function ui_colsRow(M, labelHtml, cols, total, cls) {
   return '<tr class="' + (cls || '') + '"><th scope="row" class="lab">' + labelHtml + '</th>' + ui_m(total, 'tot')
     + ui_vis(M).map(c => ui_m(cols[c.index], c.closed ? 'cl' : '')).join('') + ui_m(total, 'tot') + '</tr>';
 }
+// THE TOTALS BAND MEASURES THE CCaR PLAN BY MONTH (rule 6, CONTRACT §14.3): its Total column prints the plan and the
+// plan's Obl %, goal and status (SP.plannedOf, SP.slideOf), never the BAE report's Approved beside a month row that adds
+// up to the plan. With no report the two are the block's Approved and headline, exactly as before.
 function ui_band(M, b) {
   const V = ui_vis(M);
   const out = [];
-  out.push(ui_colsRow(M, 'Monthly Totals', b.cols, b.approved, 'band'));
-  // Cumulative's Total cells print Approved, as v12's did (=O53) and as the workbook and the pictures print it: No date
-  // is outside the running sum, never outside the total (integration ruling, so the three products agree)
-  out.push('<tr class="band"><th scope="row" class="lab">Cumulative Totals</th>' + ui_m(b.approved, 'tot')
-    + V.map(c => (c.id === 'nodate' ? '<td></td>' : ui_m(b.cum[c.index], c.closed ? 'cl' : ''))).join('') + ui_m(b.approved, 'tot') + '</tr>');
+  const P = SP.plannedOf(b), sl = SP.slideOf(b);
+  out.push(ui_colsRow(M, 'Monthly Totals', b.cols, P, 'band'));
+  // Cumulative's Total cells print Approved (the plan), as v12's did (=O53) and as the workbook and the pictures print it:
+  // No date is outside the running sum, never outside the total (integration ruling, so the three products agree)
+  out.push('<tr class="band"><th scope="row" class="lab">Cumulative Totals</th>' + ui_m(P, 'tot')
+    + V.map(c => (c.id === 'nodate' ? '<td></td>' : ui_m(b.cum[c.index], c.closed ? 'cl' : ''))).join('') + ui_m(P, 'tot') + '</tr>');
   // the label's words are SP.oblLabel's, the workbook's and the picture's too (review R7); &nbsp; keeps its two spaces
-  out.push('<tr class="band"><th scope="row" class="lab">' + ui_e(SP.oblLabel(b, M)).replace(/ {2}/g, '&nbsp; ') + '</th>' + ui_p(b.oblPct, 'tot')
+  out.push('<tr class="band"><th scope="row" class="lab">' + ui_e(SP.oblLabel(b, M)).replace(/ {2}/g, '&nbsp; ') + '</th>' + ui_p(sl.oblPct, 'tot')
     + V.map(c => { const o = b.obl[c.index] || {}; return ui_p(o.v, (c.closed ? 'cl' : '') + (o.kind === 'plan' ? ' plan' : '')); }).join('')
-    + ui_p(b.oblPct, 'tot') + '</tr>');
-  out.push('<tr class="band"><th scope="row" class="lab">OSD Goal %</th>' + ui_p(b.goal, 'tot')
-    + V.map(c => ui_p(b.goalC[c.index], c.closed ? 'cl' : '')).join('') + ui_p(b.goal, 'tot') + '</tr>');
-  out.push('<tr class="band stband"><th scope="row" class="lab">OSD Status</th>' + ui_st(b.status, false, 'tot')
+    + ui_p(sl.oblPct, 'tot') + '</tr>');
+  out.push('<tr class="band"><th scope="row" class="lab">OSD Goal %</th>' + ui_p(sl.goal, 'tot')
+    + V.map(c => ui_p(b.goalC[c.index], c.closed ? 'cl' : '')).join('') + ui_p(sl.goal, 'tot') + '</tr>');
+  out.push('<tr class="band stband"><th scope="row" class="lab">OSD Status</th>' + ui_st(sl.status, false, 'tot')
     + V.map(c => { const s = b.statusC[c.index] || {}; return ui_st(s.status, s.kind === 'plan', c.closed ? 'cl' : ''); }).join('')
-    + ui_st(b.status, false, 'tot') + '</tr>');
+    + ui_st(sl.status, false, 'tot') + '</tr>');
   return out.join('');
 }
 
@@ -291,8 +324,11 @@ function ui_topTable(rows, opts) {
       const r = rows[k];
       const apCell = !withAp ? '' : !opts.mergeAp ? '<td>' + ui_e(UI_AP_LABEL[r.ap] || r.ap) + '</td>'
         : k === i ? '<th scope="rowgroup" rowspan="' + (j - i + 1) + '" class="apg">' + ui_e(UI_AP_LABEL[r.ap] || r.ap) + '</th>' : '';
-      body.push('<tr data-bk="' + ui_e(SP.blockKey(r.ap, r.fy)) + '">' + apCell + '<td>FY' + ui_e(r.fy) + '</td>' + ui_m(r.approved)
-        + ui_auth(r.authorized, opts.authAlways ? '' : SP.authMark(r, opts.model)) + ui_m(r.obligated) + ui_m(r.unobligated) + ui_p(r.oblPct) + ui_p(r.goal)
+      // § beside an Approved that is the CCaR plan because the BAE report has no figure for that block (§14.5); never
+      // with no report, where every Approved is the plan and no row has an approvedSrc
+      body.push('<tr data-bk="' + ui_e(SP.blockKey(r.ap, r.fy)) + '">' + apCell + '<td>FY' + ui_e(r.fy) + '</td>'
+        + ui_appr(r.approved, opts.authAlways ? '' : SP.approvedMark(r, opts.model), opts.model)
+        + ui_auth(r.authorized, opts.authAlways ? '' : SP.authMark(r, opts.model), opts.model) + ui_m(r.obligated) + ui_m(r.unobligated) + ui_p(r.oblPct) + ui_p(r.goal)
         + ui_d(r.delta) + ui_st(r.status, false) + '</tr>');
     }
     i = j + 1;
@@ -302,14 +338,16 @@ function ui_topTable(rows, opts) {
   // switches do not reach (‡, review R3), and Approved for every row where none was entered (†). It carried only ‡, so
   // with nothing entered thirteen rows read 161.64† above a bare TOTAL that the workbook printed 2,214.43†: one figure,
   // two claims about what it is (review SEAM-8).
-  const am = opts.authAlways ? { dag: false, ddag: false } : SP.authMarks(rows, opts.model);
+  // With a BAE report loaded, its Approved carries § when a row's does: it adds in the CCaR plan of a block the report has
+  // no figure for (§14.5), beside report figures (sect is false on every row with none).
+  const am = opts.authAlways ? { dag: false, ddag: false, sect: false } : SP.authMarks(rows, opts.model);
   body.push('<tr class="total" data-bk="total"><th scope="row"' + (withAp ? ' colspan="2"' : '') + '>' + ui_e(opts.totalLabel) + '</th>'
-    + ui_m(t.approved) + ui_auth(t.authorized, (am.dag ? '†' : '') + (am.ddag ? '‡' : '')) + ui_m(t.obligated) + ui_m(t.unobligated) + ui_p(t.oblPct) + '<td></td><td></td><td></td></tr>');
+    + ui_appr(t.approved, am.sect ? '§' : '', opts.model) + ui_auth(t.authorized, (am.dag ? '†' : '') + (am.ddag ? '‡' : ''), opts.model)
+    + ui_m(t.obligated) + ui_m(t.unobligated) + ui_p(t.oblPct) + '<td></td><td></td><td></td></tr>');
   // each mark used is said under the table, as each workbook sheet says it (review M4): an appropriation view's † had
   // only a tooltip to explain it
   return '<div class="tw"><table class="grid top"><thead><tr class="hd">' + head + '</tr></thead><tbody>' + body.join('') + '</tbody></table></div>'
-    + (am.dag ? '<p class="note mark-note" data-mark="dag">† ' + ui_e(SP.AUTH_MARK_TEXT['†']) + '</p>' : '')
-    + (am.ddag ? '<p class="note mark-note" data-mark="ddag">‡ ' + ui_e(SP.AUTH_MARK_TEXT['‡']) + '</p>' : '');
+    + ui_markNotes(am, opts.model);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -322,9 +360,13 @@ function ui_vSummary(M) {
     + '</tbody></table>';
   const notes = M.summary.notes.length
     ? '<h3 class="sub">Notes</h3><ul class="notes">' + M.summary.notes.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>' : '';
+  // Line 2 with a BAE report loaded is SP.summaryLine2's, the workbook's words (§14.5), with the screen's own quotation
+  // marks; with none it is §8.1's as this view has always drawn it
+  const l2 = ui_rep(M) ? ui_e(SP.summaryLine2(M).replace('"Actual Execution"', '“Actual Execution”'))
+    : 'Data through ' + ui_e(M.asOfLabel) + ' | Approved = total planned ($M from the CCaR pull) | Authorized = entered, else Approved'
+      + ' | Obligated = CCaR status “Actual Execution” | Unobligated = Approved - Obligated | Delta = Obl% - OSD%';
   return '<h2 class="title">F-35 Sustainment Financial Execution - Top-Line Snapshot (FY' + ui_pad(M.E % 100) + 'Q' + ui_quarter(M) + ')</h2>'
-    + '<p class="l2">Data through ' + ui_e(M.asOfLabel) + ' | Approved = total planned ($M from the CCaR pull) | Authorized = entered, else Approved'
-    + ' | Obligated = CCaR status “Actual Execution” | Unobligated = Approved - Obligated | Delta = Obl% - OSD%</p>'
+    + '<p class="l2">' + l2 + '</p>'
     + '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
     + (M.blocks.length ? ui_topTable(M.summary.rows, { model: M, withAp: true, mergeAp: true, total: M.summary.total, totalLabel: 'TOTAL - Sustainment' })
       : '<p class="none">No appropriation and FY has rows to show.</p>')
@@ -338,6 +380,10 @@ function ui_vSlides(M) {
     '<p class="l2">Each block is sized for a 13.33 in x 4.5 in slide region. <strong>Copy picture</strong> puts a block on the clipboard;'
     + ' <strong>Save picture</strong> saves it as a PNG. The picture runs from the block’s title through OSD Status.</p>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
+    // rule 6 (§14.3): with a BAE report loaded the Summary's Approved is the report's, and a block here still adds up the
+    // plan; said once, so a slide's Total is not taken for a figure that disagrees with the Summary. The Slide Snapshots
+    // sheet says it in the same words (SP.SLIDES_PLAN_NOTE, review P4-6)
+    ui_rep(M) ? '<p class="note bae-plan">' + ui_e(SP.SLIDES_PLAN_NOTE) + '</p>' : '',
     '<p class="acts"><button type="button" data-act="zip" data-fkey="zip">Save all pictures (.zip)</button></p>'];
   if (!M.blocks.length) out.push('<p class="none">No appropriation and FY has rows to show.</p>');
   M.blocks.forEach((b, i) => {
@@ -360,8 +406,9 @@ function ui_vAp(M, ap) {
   const A = M.aps.find(a => a.ap === ap);
   const p = ui_pulls()[ap];
   const when = p && p.importedAt ? ui_day(p.importedAt) : '';
-  const out = ['<h2 class="title">F-35 Sustainment ' + ui_e(label) + ' - Spend Plan &amp; FY Summary'
-    + (when ? ' (from the CCaR pull imported ' + ui_e(when) + ')' : '') + '</h2>',
+  // the title in the workbook's words (SP.apTitle): with a BAE report loaded it names the report beside the pull, since
+  // the table under it is the report's figures (review BP4-1, P4-6). A view with no table names no report, as before.
+  const out = ['<h2 class="title">' + ui_e(SP.apTitle(label, when, A ? M : null, false)) + '</h2>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'];
   if (!A) {
     out.push('<p class="none">' + (p ? 'No ' + ui_e(label) + ' rows from FY' + ui_e(M.firstFY) + ' on in the current pull.' : 'No ' + ui_e(label) + ' pull has been imported yet.') + '</p>');
@@ -401,16 +448,24 @@ function ui_vPmos(M) {
       + ' they show it; pick another PMO to see that one.</p>';
   }
   ui.pmoLabel = P.label;
+  // WITH A BAE REPORT LOADED a PMO row of a block the report covers is the budgets' figures (§14.4): its Authorized is the
+  // report's, not Approved, so the rows carry their own marks (§ and † on a block the report has no figure for, nothing on
+  // the budgets') and the words under the table are SP.pmoTabLines', the workbook's, in its order. "A PMO row shows Approved"
+  // is said only of the rows it is true of. With no report the table and its note are §8.6's, unchanged.
+  const rep = ui_rep(M);
+  const notes = SP.pmoTabLines(P, M);
   const out = [pick, '<h2 class="title">PMO: ' + ui_e(P.label) + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
-    ui_topTable(P.rows, { model: M, withAp: true, mergeAp: false, authAlways: true, total: P.total, totalLabel: 'Total - All' }),
-    '<p class="note">Authorized is entered by appropriation and FY; a PMO row shows Approved.</p>'];
+    ui_topTable(P.rows, { model: M, withAp: true, mergeAp: false, authAlways: !rep, total: P.total, totalLabel: 'Total - All' }),
+    notes.map(n => '<p class="note' + (rep ? ' pmo-note' : '') + '">' + ui_e(n) + '</p>').join('')];
   for (const b of P.blocks) {
     const scope = 'pmo|' + P.key + '|' + b.key;
     const rows = [];
     ui_tree(M, scope, b.tree, rows);
-    const strip = ui_e(b.apLabel + ' FY' + b.fy) + ' Summary&nbsp; | &nbsp;Approved ' + ui_e(SP.fmtMText(b.approved)) + 'M&nbsp; | &nbsp;Authorized '
-      + ui_e(SP.fmtMText(b.authorized)) + 'M&nbsp; | &nbsp;Obligated ' + ui_e(SP.fmtMText(b.obligated)) + 'M&nbsp; | &nbsp;Unobligated ' + ui_e(SP.fmtMText(b.unobligated)) + 'M';
+    // the stoplight row's figures for this block, with that row's marks (SP.pmoStripParts, the workbook's strip): with a
+    // report loaded, § and † on a block the report has no figure for, as in the table above; none with no report (M4-5)
+    const sp = SP.pmoStripParts(b, M);
+    const strip = ui_e(sp.head) + sp.parts.map(([w, c, mk]) => '&nbsp; | &nbsp;' + w + ' ' + ui_e(SP.fmtMText(c)) + 'M' + (mk ? ui_markSpan(mk, M) : '')).join('');
     out.push('<section class="blk-sec" aria-label="' + ui_e(b.apLabel + ' FY' + b.fy) + '">'
       + '<div class="bar bar2">' + ui_e(b.apLabel) + ' - FY' + ui_e(b.fy) + '</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
@@ -503,7 +558,10 @@ function ui_lines(lines) {
 }
 function ui_vReport(M) {
   const st = ui_state();
-  const out = ['<h2 class="title">Import report</h2>', M ? ui_shown(M, '', 'it covers every row each file held') : ''];
+  // With a BAE report loaded, three of its lists below are worked out on the blocks as the switches leave them (§14.8) and
+  // say so where they are; the heading says it too, or it claimed every row of a view whose flags a switch had moved (P4-4)
+  const out = ['<h2 class="title">Import report</h2>', M ? ui_shown(M, '', 'it covers every row each file held'
+    + (ui_rep(M) ? ', except the BAE report’s lists that say they are counted with the switches as they are' : '')) : ''];
   if (ui.refused) {
     out.push('<div class="refused" role="note"><p><strong>The last import was refused, so nothing changed.</strong> ' + ui_e(ui.refused.message) + '</p>'
       + (ui.refused.report ? '<h3 class="sub">What that import held</h3>' + ui_reportLines(ui.refused.report) : '') + '</div>');
@@ -536,6 +594,96 @@ function ui_vReport(M) {
       + 'does not cover them' + (ui.refused ? ', and the refused one changed nothing' : '') + '.' : 'No report is held for them.')
       + ' What each holds that counts nowhere is listed from its own rows.</p>' + ui_lines(kept));
   }
+  // A BAE REPORT KEPT OVER A LATER IMPORT of pulls only: the last import's report has no section for it, so its rows,
+  // unreadable ones in full, and its total check are listed from the stored report (SP.baeKeptLines; [] when the last
+  // import brought it, or with none)
+  let baeKept = [];
+  if (typeof SP.baeKeptLines === 'function') {
+    try { baeKept = SP.baeKeptLines(ui_bae(), rep || null); }
+    catch (e) { baeKept = ['The BAE report kept from an earlier import could not be listed: ' + ((e && e.message) || e)]; }
+  }
+  if (baeKept.length) out.push('<h3 class="sub">The BAE report on screen, from an earlier import</h3>' + ui_lines(baeKept));
+  out.push(ui_baeRead(M));
+  return out.join('');
+}
+
+// THE BAE REPORT AS THE FIGURES READ IT (CONTRACT §14.6). The import's own section (above) says what the file held; this
+// says what the rules make of it on this page, which depends on the pull on screen and on the rules, so it is worked out
+// from the model every time: the report's rows by scope, its sustainment budgets' Approved and Authorized by appropriation
+// and FY, each block whose CCaR plan is under half the report's Approved (rule 5: flagged, never hidden), the budgets the
+// pull counts that the report has no row for, and the report's sustainment budgets with money that no pull row names.
+// Drawn only with a report loaded.
+function ui_baeRead(M) {
+  if (!ui_rep(M)) return '';
+  const X = M.bae, r = X.rows;
+  const rows = n => ui_e(ui_rowsN(n));
+  const usd = c => '$' + ui_e(SP.fmtMText(c)) + 'M';
+  const before = X.derived.filter(d => d.why === SP.BAE_COUNTED_WHY.first).length;
+  const off = X.derived.filter(d => d.why === SP.BAE_COUNTED_WHY.off).length;
+  const out = ['<section class="baeread" aria-labelledby="ui-baeread-h"><h3 class="sub" id="ui-baeread-h">The BAE report as the figures read it</h3>',
+    '<p class="l2">A budget row counts in Approved and Authorized when its name places it in O&amp;M, Full Fund, Initial Spares or OPN, it is not Flyaway '
+    + '(production), its FY is FY' + ui_e(M.firstFY) + ' or later, and the switches show its service and lane. A PMO’s row counts the budgets whose name ends in '
+    + 'that PMO’s code, and the (no PMO) row those whose name ends in none.</p>',
+    '<ul class="notes baerows">'
+    + '<li data-scope="in">Sustainment budgets: ' + rows(r.in) + ' (' + ui_e(SP.fmtInt(X.budgetsIn)) + (X.budgetsIn === 1 ? ' budget' : ' budgets') + '), Approved '
+    + usd(X.cents.approved) + ' and Authorized ' + usd(X.cents.authorized) + ' over every FY'
+    + (before ? '; of them, ' + rows(before) + ' before FY' + ui_e(M.firstFY) + ' count nowhere' : '')
+    + (off ? '; ' + rows(off) + ' of a service or lane switched off ' + (off === 1 ? 'is' : 'are') + ' not counted while the switches show what they do' : '') + '.</li>'
+    + '<li data-scope="flyaway">Flyaway (production), counted nowhere: ' + rows(r.flyaway) + '.</li>'
+    + '<li data-scope="noap">Naming no appropriation (Advance Procurement, Modifications, RDT&amp;E, squadron budgets), counted nowhere: ' + rows(r.noap) + '.</li>'
+    + '<li data-scope="bad">Could not be read, counted nowhere: ' + rows(r.bad) + (r.bad ? ' (each is listed in the report’s own section)' : '') + '.</li>'
+    + '</ul>'];
+  // in scope, every FY, no switches (§14.5 byBlock), with where each one stands on this page
+  const blocks = new Map(M.blocks.map(b => [b.key, b]));
+  const keys = Object.keys(X.byBlock);
+  out.push('<h4 class="sub">Sustainment budgets by appropriation and FY, every service and lane</h4>' + (keys.length
+    ? '<div class="tw"><table class="grid baeblocks"><thead><tr class="hd"><th scope="col">Appropriation</th><th scope="col">FY</th><th scope="col" class="n">Approved ($M)</th>'
+      + '<th scope="col" class="n">Authorized ($M)</th><th scope="col">On this page</th></tr></thead><tbody>'
+      + keys.map(k => {
+        const [ap, fy] = k.split('|'), x = X.byBlock[k], b = blocks.get(k);
+        // the flag compares the block's Approved under the switches, not this row's every-service figure: said so when they
+        // differ (review P4-4)
+        const where = b ? 'Its figures fill this block' + (b.planShort ? (M.shown.all ? ' (the CCaR plan is under half of it)'
+          : ' (with the switches as they are, the CCaR plan is under half the block’s Approved)') : '')
+          : Number(fy) < M.firstFY ? 'Before FY' + M.firstFY + ': counted nowhere'
+            : 'The CCaR pull has no rows for it, so no block is shown';
+        return '<tr data-bk="' + ui_e(k) + '"><td>' + ui_e(UI_AP_LABEL[ap] || ap) + '</td><td>FY' + ui_e(fy) + '</td>' + ui_m(x.approved) + ui_m(x.authorized)
+          + '<td class="wrap">' + ui_e(where) + '</td></tr>';
+      }).join('') + '</tbody></table></div>'
+    : '<p class="none">The report holds no sustainment budget that could be read.</p>'));
+  if (X.planShort.length) {
+    // worked out with the switches as they are, as the pull-only list below says of itself (review P4-4): with USN off the
+    // two OPN flags went and O&M FY2028 came, under a heading that said the view covers every row
+    out.push('<h4 class="sub">Blocks whose CCaR plan is under half the BAE report’s Approved</h4>'
+      + (M.shown.all ? '' : '<p class="note">Counted with the switches as they are: a block’s Approved and its CCaR plan count only the services and lanes shown, '
+        + 'so a switch can flag a block here or take its flag away.</p>')
+      + '<ul class="notes planshort">' + X.planShort.map(p =>
+      '<li data-bk="' + ui_e(p.ap + '|' + p.fy) + '">' + ui_e((UI_AP_LABEL[p.ap] || p.ap) + ' FY' + p.fy + ': the CCaR plan is $' + SP.fmtMText(p.planned) + 'M, the report’s Approved $'
+        + SP.fmtMText(p.approved) + 'M. Obl % is measured against the report’s figure; the slide block measures the plan.') + '</li>').join('') + '</ul>');
+  }
+  // a name list as the files spell them
+  const names = (list, cls, none) => list.length
+    ? '<ul class="notes ' + cls + '">' + list.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>' : '<p class="none">' + ui_e(none) + '</p>';
+  out.push('<h4 class="sub" data-n="' + X.pullOnly.length + '">Budgets the CCaR pull counts that have no row in the BAE report: ' + ui_e(SP.fmtInt(X.pullOnly.length)) + '</h4>'
+    + (M.shown.all ? '' : '<p class="note">Counted with the switches as they are: a budget of a service or lane switched off is not listed.</p>')
+    + names(X.pullOnlyNames, 'pullonly', 'None: every budget the pull counts has a row in the report.'));
+  out.push('<h4 class="sub" data-n="' + X.reportOnly.length + '">Sustainment budgets of the BAE report with money for FY' + ui_e(M.firstFY) + ' to FY' + ui_e(M.E)
+    + ' that no CCaR pull row names: ' + ui_e(SP.fmtInt(X.reportOnly.length)) + '</h4>'
+    + names(X.reportOnlyNames, 'reportonly', 'None: every such budget is named on a row of the pull.'));
+  // review M4-6: a covered block's plan and Obligated count every row the pull places in it, while its Approved holds the
+  // report's sustainment budgets alone; the money on a budget that can never be among them is listed, block by block
+  const offRep = Array.isArray(X.offReport) ? X.offReport : [];
+  const offItems = offRep.flatMap(o => o.budgets.map(t => ({ o, t })));
+  out.push('<h4 class="sub" data-n="' + offItems.length + '">Budgets the CCaR pull counts on a block the BAE report covers, which its Approved leaves out: '
+    + ui_e(SP.fmtInt(offItems.length)) + '</h4>'
+    + '<p class="note">Flyaway (production), a budget that names no appropriation (placed by the sheet it came on), and a row with no Budget: '
+    + 'the block’s CCaR plan and Obligated count them, its Approved never can, so Obl % counts their obligations against an Approved without them.</p>'
+    + (M.shown.all ? '' : '<p class="note">Counted with the switches as they are: a row of a service or lane switched off is not listed.</p>')
+    + (offItems.length ? '<ul class="notes offreport">' + offItems.map(({ o, t }) => '<li data-bk="' + ui_e(o.ap + '|' + o.fy) + '" data-kind="' + ui_e(t.kind) + '">'
+      + ui_e((UI_AP_LABEL[o.ap] || o.ap) + ' FY' + o.fy + ': ' + (t.name === '' ? '(no Budget, ' + ui_rowsN(t.rows) + ')' : t.name) + ' ('
+        + (SP.OFF_REPORT_KIND[t.kind] || t.kind) + '): CCaR plan $' + SP.fmtMText(t.planned) + 'M, obligated $' + SP.fmtMText(t.obligated) + 'M.') + '</li>').join('') + '</ul>'
+      : '<p class="none">None: every row the pull counts on a covered block is on a budget the report’s Approved can hold.</p>'));
+  out.push('</section>');
   return out.join('');
 }
 
@@ -576,15 +724,32 @@ function ui_vChanges(M) {
     const when = ui_whens(hist.map(h => h.importedAt));
     out.push('<h3 class="sub">Imports this file holds</h3><ul class="notes">' + hist.map(h => {
       const aps = (Array.isArray(h.aps) ? h.aps : []).map(a => UI_AP_LABEL[a] || a);
+      // an import that brought a BAE report says so (§14.7): one holding only a report placed no pull row, and read as
+      // "no pull (only rows whose appropriation was not identified)" it named rows it never brought
+      if (h.bae && typeof h.bae === 'object') aps.push('BAE report' + (Number.isInteger(h.bae.rows) ? ' (' + SP.fmtInt(h.bae.rows) + ' readable ' + (h.bae.rows === 1 ? 'row' : 'rows') + ')' : ''));
       return '<li>' + ui_e(when(h.importedAt) || 'date unknown') + ': ' + ui_e(aps.length ? aps.join(', ') : 'no pull (only rows whose appropriation was not identified)') + '</li>';
     }).join('') + '</ul>');
   }
+  // the BAE report's section (§14.6) stands beside the pulls' whatever they hold: a report imported twice has a change to
+  // show on a page whose pulls have none; '' with no report
+  const baeSec = ui_baeChanges();
   let D = {};
-  if (!ui_fn('diffPulls')) return out.concat(['<p class="none">What changed is not available yet (SP.diffPulls is missing).</p>']).join('');
+  if (!ui_fn('diffPulls')) return out.concat(['<p class="none">What changed is not available yet (SP.diffPulls is missing).</p>', baeSec]).join('');
   try { D = SP.diffPulls((st && st.pulls && st.pulls.previous) || {}, ui_pulls(), ui_settings()); }
-  catch (e) { return out.concat(['<p class="err">What changed could not be worked out: ' + ui_e((e && e.message) || e) + '</p>']).join(''); }
+  catch (e) { return out.concat(['<p class="err">What changed could not be worked out: ' + ui_e((e && e.message) || e) + '</p>', baeSec]).join(''); }
   const aps = Object.keys(D);
-  if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>'); return out.join(''); }
+  if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>', baeSec); return out.join(''); }
+  // A pull's section compares the pulls themselves (SP.diffPulls: every row, no switches), so its figure is the CCaR plan.
+  // With a BAE report loaded, "Approved" on every other view is the report's (§14.3, answer 2), and headed "Approved" here
+  // the plan read 423.70 for O&M FY2026 beside 520.28 on the Summary and in the BAE section below, one word for two
+  // figures (review P4-2). So with a report it is named what it is, the CCaR plan, as §14.5 names it beside a covered
+  // block's Approved, and the view says why once. With none the plan IS Approved, and the words are as they were.
+  const planW = ui_rep(M) ? 'CCaR plan' : 'Approved';
+  if (ui_rep(M)) {
+    out.push('<p class="note plan">A BAE report is loaded, so Approved on the other views is the BAE report’s (the CCaR plan only on a block the report has'
+      + ' no figure for, marked §). Each pull’s section below compares the two pulls themselves, every row whatever the switches, so its figures are the'
+      + ' CCaR plan, and are named so. What changed in the BAE report is in its own section at the end.</p>');
+  }
   for (const ap of aps) {
     const d = D[ap];
     // A pull imported again, the same row for row, keeps the comparison it had (review IMP-11) and says so: shown as the
@@ -610,9 +775,9 @@ function ui_vChanges(M) {
         + ' the pulls, so none is called new or gone because of them; the lines they belong to are listed apart.</p>');
     }
     out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th><th scope="col" class="n">Change ($M)</th></tr></thead><tbody>'
-      + ui_dRow('Approved', d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
+      + ui_dRow(planW, d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
     const bk = Object.keys(d.byBlock);
-    out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">FY</th><th scope="col" class="n">Approved before</th><th scope="col" class="n">Approved after</th>'
+    out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">FY</th><th scope="col" class="n">' + planW + ' before</th><th scope="col" class="n">' + planW + ' after</th>'
       + '<th scope="col" class="n">Change</th><th scope="col" class="n">Obligated before</th><th scope="col" class="n">Obligated after</th><th scope="col" class="n">Change</th></tr></thead><tbody>'
       + bk.map(k => { const x = d.byBlock[k]; return '<tr data-bk="' + ui_e(k) + '"><th scope="row">FY' + ui_e(x.fy) + '</th>' + ui_m(x.approved[0]) + ui_m(x.approved[1]) + ui_m(x.approved[1] - x.approved[0])
         + ui_m(x.obligated[0]) + ui_m(x.obligated[1]) + ui_m(x.obligated[1] - x.obligated[0]) + '</tr>'; }).join('') + '</tbody></table></div>');
@@ -652,6 +817,98 @@ function ui_vChanges(M) {
     }
     out.push('</section>');
   }
+  out.push(baeSec);
+  return out.join('');
+}
+
+// WHAT CHANGED IN THE BAE REPORT (CONTRACT §14.6, SP.diffBae): the report on screen against the one it replaced, over its
+// sustainment budgets, every FY and every row, whatever the switches: the question is what the new report says, as it is
+// for a pull. A report imported again row for row keeps the comparison it had and says so, as a pull does (review BP-1).
+// '' with no report on screen, so a page without one draws What changed exactly as before.
+function ui_baeChanges() {
+  const cur = ui_bae(), prev = ui_bae('previous');
+  if (!cur) return '';
+  const since = typeof cur.sameSince === 'string' && cur.sameSince ? cur.sameSince : null;
+  const head = t => '<section class="chg bae" data-ap="bae"><h3 class="bar">' + ui_e(t) + '</h3>';
+  if (!prev) {
+    return head('BAE report') + '<p class="none">Only one BAE report so far' + (since ? ' (the newest import brought it again, row for row)' : '')
+      + '. After the next import of a BAE report, this view shows what changed in it.</p></section>';
+  }
+  if (!ui_fn('diffBae')) return head('BAE report') + '<p class="none">What changed in the BAE report is not available yet (SP.diffBae is missing).</p></section>';
+  let D;
+  try { D = SP.diffBae(prev, cur, ui_settings()); }
+  catch (e) { return head('BAE report') + '<p class="err">What changed in the BAE report could not be worked out: ' + ui_e((e && e.message) || e) + '</p></section>'; }
+  // each report named by its date (from its file name), its file and when it came in, the import times told apart as
+  // two pulls' are (review S11)
+  const [i0, i1] = ui_pullPair(prev.importedAt, since || cur.importedAt);
+  const lab = (b, i) => {
+    const st = typeof b.stamp === 'string' && b.stamp ? b.stamp : '', f = String(b.file ?? '');
+    return (st || 'imported ' + (i || 'at a time not recorded')) + ' (“' + f + '”' + (st ? ', imported ' + (i || 'at a time not recorded') : '') + ')';
+  };
+  const out = [head('BAE report: ' + lab(prev, i0) + ' → ' + lab(cur, i1))];
+  if (since) {
+    const [s1, s2] = ui_pullPair(since, cur.importedAt);
+    out.push('<p class="l2 same" data-same="bae"><strong>Nothing changed in the BAE report imported ' + ui_e(s2 || 'later') + ':</strong> it is the same, row for row, as '
+      + 'the report imported ' + ui_e(s1) + '. What follows is what that report changed, against the one before it.</p>');
+  }
+  out.push('<p class="note">Its sustainment budgets are compared, every FY and every row, whatever the switches show; Flyaway and the budgets that name no '
+    + 'appropriation are left out, as they are from every figure. A row that could not be read counts in no figure, but its budget is still in its report, '
+    + 'so it is never called new, gone or changed because of it: a budget with such a row is listed apart.</p>');
+  // rows that could not be read, said where the figures they are missing from are, as for a pull (review M1): the import's
+  // message said so, but it can be dismissed and is not on this view, and a budget whose row stopped reading read as cut
+  // to $0 (review I4-3)
+  const un = Array.isArray(D.unread) ? D.unread : [0, 0];
+  if (un[0] || un[1]) {
+    out.push('<p class="note unread" data-unread="' + ui_e(un[0] + '|' + un[1]) + '">' + ui_e(ui_rowsN(un[1])) + ' of this report’s sustainment budgets and '
+      + ui_e(ui_rowsN(un[0])) + ' of the earlier one’s could not be read (Budget Name, FY or an amount): they count in no figure below (see the Import report). '
+      + 'Their budgets are still in the reports, so none is called new, gone or changed because of them; those budgets are listed apart.</p>');
+  }
+  const bb = Object.values(D.byBlock);
+  const tot = f => [0, 1].map(k => bb.reduce((a, x) => a + x[f][k], 0));
+  out.push('<div class="tw"><table class="grid baetot"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th>'
+    + '<th scope="col" class="n">Change ($M)</th></tr></thead><tbody>' + ui_dRow('Approved', tot('approved')) + ui_dRow('Authorized', tot('authorized')) + '</tbody></table></div>');
+  out.push('<div class="tw"><table class="grid baeby"><thead><tr class="hd"><th scope="col">Appropriation</th><th scope="col">FY</th><th scope="col" class="n">Approved before</th>'
+    + '<th scope="col" class="n">Approved after</th><th scope="col" class="n">Change</th><th scope="col" class="n">Authorized before</th><th scope="col" class="n">Authorized after</th>'
+    + '<th scope="col" class="n">Change</th></tr></thead><tbody>'
+    + Object.keys(D.byBlock).map(k => { const x = D.byBlock[k]; return '<tr data-bk="' + ui_e(k) + '"><td>' + ui_e(UI_AP_LABEL[x.ap] || x.ap) + '</td><th scope="row">FY' + ui_e(x.fy) + '</th>'
+      + ui_m(x.approved[0]) + ui_m(x.approved[1]) + ui_m(x.approved[1] - x.approved[0]) + ui_m(x.authorized[0]) + ui_m(x.authorized[1]) + ui_m(x.authorized[1] - x.authorized[0]) + '</tr>'; }).join('')
+    + '</tbody></table></div>');
+  // a budget's FYs in words: those that moved, for a changed budget; those it holds, for one new or gone
+  const fys = (e, kind) => Object.keys(e.byFy).map(fy => {
+    const f = e.byFy[fy], ma = f.approved[0] !== f.approved[1], mu = f.authorized[0] !== f.authorized[1];
+    if (kind === 'new' || kind === 'gone') { const k = kind === 'new' ? 1 : 0; return 'FY' + fy + ' Approved ' + SP.fmtMText(f.approved[k]) + ', Authorized ' + SP.fmtMText(f.authorized[k]); }
+    if (!ma && !mu) return '';
+    return 'FY' + fy + (ma ? ' Approved ' + SP.fmtMText(f.approved[0]) + ' → ' + SP.fmtMText(f.approved[1]) : '')
+      + (ma && mu ? ',' : '') + (mu ? ' Authorized ' + SP.fmtMText(f.authorized[0]) + ' → ' + SP.fmtMText(f.authorized[1]) : '');
+  }).filter(Boolean).join('; ');
+  // a budget listed apart says first how many of its rows each report could not read: its figures are only the rows that read
+  const what = (e, kind) => {
+    const w = fys(e, kind);
+    if (kind !== 'unread') return w;
+    const u = Array.isArray(e.unread) ? e.unread : [0, 0];
+    return 'Rows that could not be read: ' + SP.fmtInt(u[0]) + ' → ' + SP.fmtInt(u[1]) + (w ? '; the rows that read: ' + w : '');
+  };
+  const kinds = [['changed', D.budgetsChanged, 'changed budget', 'changed budgets'], ['new', D.budgetsNew, 'budget new in this report', 'budgets new in this report'],
+    ['gone', D.budgetsGone, 'budget gone from this report', 'budgets gone from this report'],
+    ['unread', Array.isArray(D.budgetsUnread) ? D.budgetsUnread : [], 'budget with a row that could not be read', 'budgets with a row that could not be read']];
+  for (const [kind, list, one, many] of kinds) {
+    if (kind === 'unread' && !list.length) continue;
+    const key = 'bae|' + kind, open = ui.diffOpen.has(key), R = ui.reg, i = R.diff.length;
+    R.diff.push(key);
+    out.push('<h4 class="sub" data-n="' + list.length + '" data-list="bae-' + kind + '">' + ui_e(many.charAt(0).toUpperCase() + many.slice(1)) + ': ' + ui_e(SP.fmtInt(list.length)) + '</h4>');
+    if (!list.length) continue;
+    out.push('<p class="acts"><button type="button" data-act="diff" data-i="' + i + '" data-fkey="diff:' + ui_e(key) + '" aria-expanded="' + (open ? 'true' : 'false') + '">'
+      + (open ? 'Hide' : 'Show') + ' the ' + ui_e(SP.fmtInt(list.length)) + ' ' + ui_e(list.length === 1 ? one : many) + ' (largest change first)</button></p>');
+    if (open) {
+      out.push('<div class="tw"><table class="grid" data-budgets="' + kind + '"><thead><tr class="hd"><th scope="col">Budget</th><th scope="col" class="n">Approved before</th>'
+        + '<th scope="col" class="n">Approved after</th><th scope="col" class="n">Change</th><th scope="col" class="n">Authorized before</th><th scope="col" class="n">Authorized after</th>'
+        + '<th scope="col" class="n">Change</th><th scope="col">' + (kind === 'changed' ? 'The FYs that changed ($M)' : kind === 'unread' ? 'What changed ($M)' : 'Its FYs ($M)') + '</th></tr></thead><tbody>'
+        + list.map(e => '<tr><td class="wrap">' + ui_e(e.name) + '</td>' + ui_m(e.approved[0]) + ui_m(e.approved[1]) + ui_m(e.approved[1] - e.approved[0])
+          + ui_m(e.authorized[0]) + ui_m(e.authorized[1]) + ui_m(e.authorized[1] - e.authorized[0]) + '<td class="wrap what">' + ui_e(what(e, kind)) + '</td></tr>').join('')
+        + '</tbody></table></div>');
+    }
+  }
+  out.push('</section>');
   return out.join('');
 }
 
@@ -679,13 +936,57 @@ function ui_readM(text) {
 }
 function ui_pctText(x) { return typeof x === 'number' && isFinite(x) ? String(Number((x * 100).toPrecision(12))) : ''; }
 
+// THE BAE REPORT ON SCREEN, for Settings (§14.6): which file, its date, when it came in, and the report it replaced. A
+// report is replaced by importing another (it covers every appropriation, §14.7); there is nothing else to set here.
+function ui_baeAbout() {
+  const b = ui_bae(), p = ui_bae('previous');
+  if (!b) return '';
+  const n = b.rows.length, bad = b.rows.filter(r => r && Array.isArray(r.bad) && r.bad.length).length;
+  const stamp = typeof b.stamp === 'string' && b.stamp ? b.stamp : '';
+  const at = typeof b.importedAt === 'string' && b.importedAt ? b.importedAt : '';
+  const since = typeof b.sameSince === 'string' && b.sameSince ? b.sameSince : '';
+  const pLab = p ? (typeof p.stamp === 'string' && p.stamp ? 'of ' + p.stamp : 'imported ' + (ui_when(p.importedAt) || 'at a time not recorded')) + ' (“' + String(p.file ?? '') + '”)' : '';
+  return '<h3 class="sub">BAE report of budgets</h3><ul class="notes baeabout">'
+    + '<li>File “' + ui_e(String(b.file ?? '')) + '”, sheet “' + ui_e(String(b.sheet ?? '')) + '”.</li>'
+    + '<li>' + (stamp ? 'Dated ' + ui_e(stamp) + ' by its file name.' : 'No date in its file name (it does not end _YYYY-MM-DD_HHMMSS), so it is known by the day it was imported.') + '</li>'
+    + '<li>Imported ' + ui_e(at ? ui_when(at) + ' (this computer’s time)' : 'at a time not recorded') + (since ? '; the same, row for row, as the report imported ' + ui_e(ui_when(since)) : '') + '.</li>'
+    + '<li>' + ui_e(ui_rowsN(n)) + (bad ? ', ' + ui_e(SP.fmtInt(n - bad)) + ' of them readable (the Import report lists the others)' : '') + '.</li>'
+    + (p ? '<li>The report it replaced, ' + ui_e(pLab) + ', is kept for What changed.</li>' : '')
+    + '</ul><p class="note">It fills Approved and Authorized wherever it has figures for a block. To replace it, import a newer BAE report with '
+    + '<strong>Import CCaR pull…</strong>: a report replaces the one on screen whole.</p>';
+}
+// Block, Typed, BAE report, Used (§14.6). Typed is the box; BAE report is what the report holds for the block with the
+// switches as they are (SP's reportAuthorized, there even while a typed figure wins over it), or "no figure" (§); Used
+// is the block's Authorized as every table prints it, with its mark. The box carries the same data-act, index and key as
+// the table with no report, so typing, clearing and the keyboard's place work as they always have.
+function ui_authBae(M, au) {
+  // no § here: the table has no Approved column; a block the report has no figure for says so, and its Used is Approved (†)
+  const marks = { dag: false, ddag: false, sect: false };
+  const body = M.blocks.map((b, i) => {
+    const has = Object.prototype.hasOwnProperty.call(au, b.key) && Number.isSafeInteger(au[b.key]);
+    const name = b.apLabel + ' FY' + b.fy, m = SP.authMark(b, M);
+    if (m === '†') marks.dag = true;
+    if (m === '‡') marks.ddag = true;
+    const src = b.authorizedSrc === 'entered' ? 'typed' : b.authorizedSrc === 'report' ? 'BAE report' : 'Approved';
+    return '<tr data-bk="' + ui_e(b.key) + '"><th scope="row">' + ui_e(name) + '</th>'
+      + '<td><input type="text" inputmode="decimal" class="amt" data-act="auth" data-i="' + i + '" data-fkey="auth:' + i + '" value="'
+      + (has ? ui_e(ui_mText(au[b.key])) : '') + '" placeholder="' + (b.covered ? '(BAE report)' : '(Approved)') + '" aria-label="Authorized for ' + ui_e(name) + ', $M"></td>'
+      + (b.covered ? ui_m(b.reportAuthorized) : '<td class="n nofig">no figure</td>')
+      + ui_auth(b.authorized, m, M).replace('<td class="n"', '<td class="n used" data-src="' + ui_e(src) + '" title="' + ui_e('From ' + (src === 'typed' ? 'the figure typed here' : src === 'BAE report' ? 'the BAE report' : 'Approved, standing in')) + '"')
+      + '</tr>';
+  }).join('');
+  return '<div class="tw"><table class="grid auth authbae"><thead><tr class="hd"><th scope="col">Block</th><th scope="col">Typed ($M)</th>'
+    + '<th scope="col" class="n">BAE report ($M)</th><th scope="col" class="n">Used ($M)</th></tr></thead><tbody>' + body + '</tbody></table></div>'
+    + ui_markNotes(marks, M);
+}
+
 function ui_vSettings(M) {
   const S = ui_settings(), R = ui.reg;
   const g = S.goals && typeof S.goals === 'object' ? S.goals : SP.goalsDefault();
   const out = ['<h2 class="title">Settings (saved in this file)</h2>',
     '<p class="l2">Data through and First FY are in the top bar. The service and lane switches are this browser’s view and are not saved in the file.</p>',
-    M ? ui_shown(M, 'The Approved figures beside Authorized count only these; an Authorized you enter is for the appropriation and FY as a whole, every service and lane;'
-      + ' the budget names list every row.') : ''];
+    M ? ui_shown(M, (ui_rep(M) ? 'The BAE report’s figures beside Authorized, and Approved where the report has none, count only these' : 'The Approved figures beside Authorized count only these')
+      + '; an Authorized you enter is for the appropriation and FY as a whole, every service and lane; the budget names list every row.') : ''];
   // goals
   out.push('<h3 class="sub" id="ui-goals">OSD goal curves (%, by year of availability)</h3>'
     + '<p class="note">Each value is the share of Approved that should be obligated by the end of that column. A blank cell has no goal, so no status.</p>'
@@ -701,14 +1002,24 @@ function ui_vSettings(M) {
   // authorized
   R.auth = M ? M.blocks.map(b => b.key) : [];
   const au = S.authorized && typeof S.authorized === 'object' ? S.authorized : {};
-  out.push('<h3 class="sub">Authorized by appropriation and FY ($M)</h3><p class="note">Leave a box blank to show Approved in its place.</p>');
-  out.push(!M || !M.blocks.length ? '<p class="none">No block to enter Authorized for.</p>'
-    : '<div class="tw"><table class="grid auth"><thead><tr class="hd"><th scope="col">Appropriation</th><th scope="col">FY</th><th scope="col" class="n">Approved ($M)</th>'
-      + '<th scope="col">Authorized ($M)</th></tr></thead><tbody>' + M.blocks.map((b, i) => {
-        const has = Object.prototype.hasOwnProperty.call(au, b.key) && Number.isSafeInteger(au[b.key]);
-        return '<tr><td>' + ui_e(b.apLabel) + '</td><td>FY' + ui_e(b.fy) + '</td>' + ui_m(b.approved) + '<td><input type="text" inputmode="decimal" class="amt" data-act="auth" data-i="' + i
-          + '" data-fkey="auth:' + i + '" value="' + (has ? ui_e(ui_mText(au[b.key])) : '') + '" placeholder="(Approved)" aria-label="Authorized for ' + ui_e(b.apLabel + ' FY' + b.fy) + ', $M"></td></tr>';
-      }).join('') + '</tbody></table></div>');
+  // WITH A BAE REPORT LOADED (§14.6) the table is Block, Typed, BAE report, Used: a typed figure wins over the report's for
+  // its block (rule 8), and a blank box goes back to the report's, or to Approved where the report has no figure. With
+  // none it is the table this view has always drawn.
+  if (ui_rep(M)) {
+    out.push(ui_baeAbout());
+    out.push('<h3 class="sub">Authorized by appropriation and FY ($M)</h3><p class="note">A figure typed here is used for its block in place of the BAE report’s, '
+      + 'and is for the appropriation and FY as a whole. Leave a box blank to use the BAE report’s figure, or Approved where the report has none.</p>');
+    out.push(!M.blocks.length ? '<p class="none">No block to enter Authorized for.</p>' : ui_authBae(M, au));
+  } else {
+    out.push('<h3 class="sub">Authorized by appropriation and FY ($M)</h3><p class="note">Leave a box blank to show Approved in its place.</p>');
+    out.push(!M || !M.blocks.length ? '<p class="none">No block to enter Authorized for.</p>'
+      : '<div class="tw"><table class="grid auth"><thead><tr class="hd"><th scope="col">Appropriation</th><th scope="col">FY</th><th scope="col" class="n">Approved ($M)</th>'
+        + '<th scope="col">Authorized ($M)</th></tr></thead><tbody>' + M.blocks.map((b, i) => {
+          const has = Object.prototype.hasOwnProperty.call(au, b.key) && Number.isSafeInteger(au[b.key]);
+          return '<tr><td>' + ui_e(b.apLabel) + '</td><td>FY' + ui_e(b.fy) + '</td>' + ui_m(b.approved) + '<td><input type="text" inputmode="decimal" class="amt" data-act="auth" data-i="' + i
+            + '" data-fkey="auth:' + i + '" value="' + (has ? ui_e(ui_mText(au[b.key])) : '') + '" placeholder="(Approved)" aria-label="Authorized for ' + ui_e(b.apLabel + ' FY' + b.fy) + ', $M"></td></tr>';
+        }).join('') + '</tbody></table></div>');
+  }
   // special CCaRs
   const sp = Array.isArray(S.special) ? S.special : [];
   R.special = sp.slice();
@@ -723,7 +1034,10 @@ function ui_vSettings(M) {
   try { bt = SP.budgetTable(ui_pulls(), S); } catch (e) { out.push('<p class="err">The budget names could not be read: ' + ui_e((e && e.message) || e) + '</p>'); }
   R.budgets = bt;
   out.push('<h3 class="sub">Budget names: service and lane</h3><p class="note">The rules read each Budget name. Choose a service or lane here only where a rule is wrong; '
-    + '“By rule” takes the choice off again. A name no rule knows is marked.</p>');
+    + '“By rule” takes the choice off again. A name no rule knows is marked.</p>'
+    // §14.2: a budget's report rows go by its override as its pull rows do; the table lists the pull's names only
+    + (ui_rep(M) ? '<p class="note bae-budgets">A choice here moves the budget’s BAE report rows too. A budget only the BAE report names goes by the rules '
+      + '(the Import report lists such budgets).</p>' : ''));
   if (bt.length) {
     out.push('<div class="tw"><table class="grid budgets"><thead><tr class="hd"><th scope="col">Budget name</th><th scope="col">Appropriation</th><th scope="col" class="n">Rows</th>'
       + '<th scope="col" class="n">$M</th><th scope="col">Service</th><th scope="col">Lane</th></tr></thead><tbody>'
@@ -776,14 +1090,30 @@ function ui_vHelp() {
       + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
     + '<h3 class="sub">The figures</h3>' + li([
       '<strong>Columns:</strong> Prior Yr (dated before the execution year), Oct to Sep of the execution year, the next-year column, and No date. Total is the sum of all of them.',
-      '<strong>Approved</strong> is every counted row. <strong>Obligated</strong> is the rows CCaR marks “Actual Execution”, whatever their date. <strong>Unobligated</strong> = Approved − Obligated.',
-      '<strong>Authorized</strong> is what you enter in Settings; where nothing is entered, Approved is shown, marked †. An entered Authorized is for the appropriation and FY '
+      '<strong>Approved</strong> is every counted row (the BAE report’s figure where one is loaded: below). <strong>Obligated</strong> is the rows CCaR marks “Actual Execution”, whatever their date. <strong>Unobligated</strong> = Approved − Obligated.',
+      '<strong>Authorized</strong> is what you enter in Settings; where nothing is entered, it is the BAE report’s where one is loaded (below), else Approved, marked †. An entered Authorized is for the appropriation and FY '
       + 'as a whole, so while a switch is off it is marked ‡: it still counts every service and lane. A total carries each mark its rows carry.',
       '<strong>Data through</strong> is one month for every appropriation. An appropriation whose pull was imported before that month ended (one kept from an '
       + 'earlier import) cannot hold all of it: its Obligation % lines say “actual through the … import” and the Summary’s notes name it.',
       '<strong>Obl %</strong> = Obligated ÷ Approved. The <strong>OSD goal</strong> comes from the curve for the money’s year of availability, at the data-through month.',
       '<strong>Status</strong>: On track (green) at or above the goal; Within 10 (yellow) within 10 points of it; Behind (red) more than 10 points behind.',
       'In the monthly rows, months up to Data through are actual (executed rows dated by then); later months are the plan, shown in italic.'])
+    + '<h3 class="sub">The BAE report of budgets</h3>' + li([
+      'The BAE report (the budgets’ Approved and Authorized by FY) comes in through <strong>Import CCaR pull…</strong>, alone or with the pulls: it is known by '
+      + 'its column headings. Its amounts are read as dollars; a new report replaces the one on screen whole, and <strong>What changed</strong> compares the two.',
+      'Where it has figures for an appropriation and FY, <strong>Approved</strong> and <strong>Authorized</strong> in the Summary and the appropriation and PMO '
+      + 'tables are the report’s, from its sustainment budgets: every budget whose name places it in O&amp;M, Full Fund, Initial Spares or OPN, except Full '
+      + 'Fund Flyaway. Obl %, Unobligated and Status are measured against that Approved. The switches reach the report’s budgets as they reach the pull’s rows.',
+      'A PMO’s row counts the budgets whose name ends in its code (“… Discretionary AV”), and the obligated rows of those budgets; the (no PMO) row counts the budgets '
+      + 'whose name ends in no PMO’s code (“… CAM”, “… SUPT”). The detail below each still lists rows by their own PMO.',
+      'The CCaR plan and Obligated count every row of the pull, Flyaway budgets, budgets that name no appropriation and rows with no Budget included, which the '
+      + 'report’s Approved never holds: each block with such money is named in the Summary’s notes, each budget in the Import report, and a PMO table says how '
+      + 'much of its Obligated it is.',
+      'The slide blocks and the totals band under each tree still measure the CCaR plan by month: their Obligation % says “CCaR plan” where the report covers the block. '
+      + '<strong>What changed</strong> compares the pulls themselves, so a pull’s section there names its figures the CCaR plan, never Approved.',
+      'A block the report has no figure for keeps the CCaR plan as Approved, marked §. A block whose plan is under half the report’s Approved is named in the '
+      + 'Summary’s notes and the Import report. An Authorized typed in Settings wins over the report for its block; clear it to go back to the report’s.',
+      'With no BAE report loaded, nothing on any view changes.'])
     + '<h3 class="sub">Not Allocated</h3>' + li([
       'Every counted row not marked Actual Execution, grouped by column, status and plan event. A special CCaR (Settings) is one item, named by its title.',
       'Unprogrammed, Forecast and other statuses are tagged. Items of $0 are left out. There is no limit on the number of items.'])
@@ -800,14 +1130,36 @@ function ui_vHelp() {
 }
 
 function ui_vNoData() {
+  // a BAE report imported before any pull is held, and says so: its figures fill the pull's blocks, and a report never adds
+  // a block of its own (§14.3), so until a pull comes in there is nothing to draw them in
+  const B = ui_bae();
   return '<section class="nodata" aria-labelledby="ui-nodata-h"><h2 id="ui-nodata-h" class="title">No data yet</h2>'
     + '<p>Import the CCaR pull to see the spend plan. ' + ui_e(UI_NODATA) + '</p>'
+    + (B ? '<p class="baewait">The BAE report “' + ui_e(String(B.file ?? '')) + '” is loaded. Its Approved and Authorized appear once a CCaR pull is '
+      + 'imported: they fill the pull’s appropriation and FY blocks, and the report adds no block of its own.</p>' : '')
     + '<p class="acts"><button type="button" data-act="import" data-fkey="import2">Import CCaR pull…</button>'
     + '<button type="button" data-act="help" data-fkey="help2">Help</button></p>'
     // a first import that was refused is the one time someone is on this page needing the reason in full
     + (ui.refused ? '<div class="refused" role="note"><p><strong>The last import was refused, so nothing changed.</strong> ' + ui_e(ui.refused.message) + '</p>'
       + (ui.refused.report ? ui_reportLines(ui.refused.report) : '') + '</div>' : '')
+    + ui_noDataBaeReport(B)
     + '</section>';
+}
+// THE IMPORT REPORT OF A BAE REPORT HELD BEFORE ANY PULL. The views, the Import report among them, are drawn only once a pull
+// is on screen, yet the import's message sends the reader to "the Import report" for the rows that could not be read and
+// the total-row check: on this page they were listed nowhere (review I4-5, BP4-7). So the report's own lines are drawn here,
+// under the same heading: the last import's report when it brought this report, else the lines kept with it
+// (SP.baeKeptLines). '' with no report.
+function ui_noDataBaeReport(B) {
+  if (!B) return '';
+  const st = ui_state(), rep = st && st.lastImport && st.lastImport.report ? st.lastImport.report : null;
+  let kept = [];
+  if (typeof SP.baeKeptLines === 'function') {
+    try { kept = SP.baeKeptLines(B, rep); }
+    catch (e) { kept = ['The BAE report could not be listed: ' + ((e && e.message) || e)]; }
+  }
+  const body = kept.length ? ui_lines(kept) : rep ? ui_reportLines(rep) : '';
+  return body ? '<div class="baerep"><h3 class="sub">Import report</h3>' + body + '</div>' : '';
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -928,15 +1280,26 @@ function ui_drawTop(M) {
   // taken on Friday and imported on Monday read "pulled Monday", review BP-3)
   // and to the minute where two pulls came in on one day, so the older ones can be told from the newer (review SCR2-11)
   const shown = SP.APS.filter(a => P[a.id]);
-  const when = ui_whens(shown.map(a => P[a.id].importedAt));
+  // the BAE report's import is told apart from the pulls' the same way (§14.7: it can come in alone, on the same day)
+  const B = ui_bae();
+  const when = ui_whens(shown.map(a => P[a.id].importedAt).concat(B ? [B.importedAt] : []));
   const bits = shown.map(a => ui_e(a.label) + ' imported <span class="d" title="' + ui_e(ui_when(P[a.id].importedAt) || 'date unknown') + '">'
     + ui_e(when(P[a.id].importedAt) || 'date unknown') + '</span>');
-  E.pulls.innerHTML = bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.';
+  E.pulls.innerHTML = (bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.') + (B ? ui_baeTop(B, when) : '');
   // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
   if (E.printHead) {
     E.printHead.textContent = has ? 'SFCB Spend Plan' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
       + E.pulls.textContent + (M ? ' · ' + M.shown.text : '') : '';
   }
+}
+// the BAE report in the top bar (§14.7): its file, its date from the file name (the date its figures are of, which is what
+// line 2 says), and the day it came into this page, as each pull's is said
+function ui_baeTop(B, when) {
+  const st = typeof B.stamp === 'string' && B.stamp ? B.stamp : '';
+  const at = typeof B.importedAt === 'string' ? B.importedAt : '';
+  return ' · <span class="baetop">BAE report “' + ui_e(String(B.file ?? '')) + '” ' + (st ? 'of <span class="d">' + ui_e(st) + '</span>, ' : '')
+    + 'imported <span class="d" title="' + ui_e(ui_when(at) || 'date unknown') + '">' + ui_e(when(at) || 'date unknown') + '</span>'
+    + (st ? '' : ' (no date in its file name)') + '</span>';
 }
 function ui_drawNav(has) {
   const E = ui.els;
@@ -1192,10 +1555,16 @@ function ui_authChanged(el) {
   const au = ui_copy(S.authorized && typeof S.authorized === 'object' ? S.authorized : {});
   if (r.err) { ui_say(r.err + ' Authorized was not changed.', 'err'); el.value = Object.prototype.hasOwnProperty.call(au, key) ? ui_mText(au[key]) : ''; return; }
   const [ap, fy] = key.split('|'), name = (UI_AP_LABEL[ap] || ap) + ' FY' + fy;
+  // With a BAE report loaded, what stands in for a typed figure is the report's where it has one for the block (rule 8),
+  // so the message says which, and how much: "Approved is shown in its place" would be untrue there. Whether the report
+  // covers a block, and its figure, do not depend on what is typed, so the model on screen answers both.
+  const M = ui_model(), b = ui_rep(M) ? M.blocks.find(x => x.key === key) : null;
+  const repFig = b && b.covered ? '$' + SP.fmtMText(b.reportAuthorized) + 'M' : '';
   if (r.blank) {
     if (!Object.prototype.hasOwnProperty.call(au, key)) return;
     delete au[key];
-    ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' cleared; Approved is shown in its place.', true);
+    ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' cleared; ' + (repFig ? 'the BAE report’s figure, ' + repFig + ', is used again.'
+      : b ? 'the BAE report has no figure for it, so Approved is shown in its place.' : 'Approved is shown in its place.'), true);
     return;
   }
   // $0.00M, never "$-M": fmtM's lone dash is a table cell's zero, and inside a sentence it reads as a figure left out; a
@@ -1203,7 +1572,8 @@ function ui_authChanged(el) {
   const said = '$' + SP.fmtMText(r.cents) + 'M' + (r.cents < 0 ? ', a negative amount' : '');
   if (au[key] === r.cents) { ui_say('Authorized for ' + name + ' unchanged: it is already ' + said + '.', 'info'); return; }
   au[key] = r.cents;
-  ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' set to ' + said + (r.rounded ? ' (rounded to the cent)' : '') + '.', true);
+  ui_setSettings({ authorized: au }, 'Authorized for ' + name + ' set to ' + said + (r.rounded ? ' (rounded to the cent)' : '')
+    + (repFig ? '; it is used in place of the BAE report’s ' + repFig : '') + '.', true);
 }
 function ui_specAdd() {
   const inp = document.getElementById('uiSpecNew');

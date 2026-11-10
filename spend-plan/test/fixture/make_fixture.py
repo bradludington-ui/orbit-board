@@ -633,7 +633,7 @@ BAE_ONLY = {
     'USAF O&M- Fixture Line Discretionary CAM': ('om', 'in', USAF, 'disc', NOPMO),
     'USMC STOVL APN Full Fund SUPT Mandatory PP': ('ff', 'in', STOVL, 'mand', PP),
     'USAF APAF Full Fund Fixture Line SUPT': ('ff', 'in', USAF, 'disc', NOPMO),
-    'USN APN Spares Initial': ('sp', 'in', USN, 'disc', NOPMO),
+    'USN APN Spares Fixture Pool Initial': ('sp', 'in', USN, 'disc', NOPMO),
     'USN OPN Fixture Ship Line Non-PMO': ('opn', 'in', USN, 'disc', NOPMO),
     'USN O&M- Fixture Corrosion Line Discretionary CDS': ('om', 'in', USN, 'disc', CDS),         # new in gen2
     # Full Fund Flyaway: aircraft production, out of scope however large (the third spells the word in capitals)
@@ -837,7 +837,7 @@ def build_bae(g1, seed):
             ('USMC STOVL APN Full Fund SUPT Mandatory PP', 2026, 16_500_000_00, '='),
             ('USMC STOVL APN Full Fund SUPT Mandatory PP', 2027, 15_250_000_00, Z),
             ('USAF APAF Full Fund Fixture Line SUPT', 2027, 5_560_000_00, Z),
-            ('USN APN Spares Initial', 2026, 4_410_000_00, '='), ('USN APN Spares Initial', 2027, 3_925_000_00, 41_500_00),
+            ('USN APN Spares Fixture Pool Initial', 2026, 4_410_000_00, '='), ('USN APN Spares Fixture Pool Initial', 2027, 3_925_000_00, 41_500_00),
             ('USN OPN Fixture Ship Line Non-PMO', 2027, 4_200_000_00, Z), ('USN OPN Fixture Ship Line Non-PMO', 2028, 3_100_000_00, Z),
             # Flyaway: out of scope, and large enough that counting it would show
             ('USAF APAF Full Fund Flyaway Lot Discretionary AV', 2025, 1_250_000_000_00, '='),

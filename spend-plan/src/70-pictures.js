@@ -87,20 +87,25 @@ function pic_layout(ctx, block, model) {
   }
   rows.push({ kind: 'spacer', cells: [] });
   const band = (label, tot, each) => ({ kind: 'band', cells: [cell(label, 'r', fBandB, PIC.navy), tot].concat(V.map(each), [tot]) });
-  rows.push(band('Monthly Totals', cell(pic_money(block.approved), 'r', fBandB, PIC.navy),
+  // A slide measures the CCaR PLAN by month (CONTRACT §14.3, rule 6): its Total column is the plan and the plan's headline,
+  // never a BAE report's Approved, which its months would not add to. SP.plannedOf and SP.slideOf give them; with no
+  // report they are the block's own Approved and headline, so nothing on a picture moves. Only the label's word does.
+  const plan = SP.plannedOf(block), sl = SP.slideOf(block);
+  rows.push(band('Monthly Totals', cell(pic_money(plan), 'r', fBandB, PIC.navy),
     c => cell(pic_money(block.cols[c.index]), 'r', fBandB, PIC.navy, closedFill(c))));
   // the running sum ends in the last dated column; No date is outside it (§4.5), so its cell stays empty
-  rows.push(band('Cumulative Totals', cell(pic_money(block.approved), 'r', fBandB, PIC.navy),
+  rows.push(band('Cumulative Totals', cell(pic_money(plan), 'r', fBandB, PIC.navy),
     c => cell(c.id === 'nodate' ? '' : pic_money(block.cum[c.index]), 'r', fBandB, PIC.navy, closedFill(c))));
-  // the label in the one wording the screen and the workbook use too (SP.oblLabel: '0.00M', never '-M', review R7)
+  // the label in the one wording the screen and the workbook use too (SP.oblLabel: '0.00M', never '-M', review R7; and
+  // 'CCaR plan' where a BAE report covers the block, §14.5)
   rows.push(band(SP.oblLabel(block, model),
-    cell(pic_pct(block.oblPct), 'c', fBandB, PIC.navy),
+    cell(pic_pct(sl.oblPct), 'c', fBandB, PIC.navy),
     c => {
       const o = block.obl[c.index] || {};
       // a planned percentage is not an obligation: italic and grey, as §8 prints it
       return o.kind === 'plan' ? cell(pic_pct(o.v), 'c', fPlan, PIC.plan, closedFill(c)) : cell(pic_pct(o.v), 'c', fBandB, PIC.navy, closedFill(c));
     }));
-  rows.push(band('OSD Goal %', cell(pic_pct(block.goal), 'c', fBandB, PIC.navy), c => cell(pic_pct(block.goalC[c.index]), 'c', fBandB, PIC.navy, closedFill(c))));
+  rows.push(band('OSD Goal %', cell(pic_pct(sl.goal), 'c', fBandB, PIC.navy), c => cell(pic_pct(block.goalC[c.index]), 'c', fBandB, PIC.navy, closedFill(c))));
   // no status (no goal here, or No date): no fill but the closed months' grey, as the workbook and the screens draw it. A
   // word-less gold cell beside a yellow "Within 10" read as a status by colour alone (review S9)
   const st = (status, plan, c) => {
@@ -110,7 +115,7 @@ function pic_layout(ctx, block, model) {
     if (plan) return cell(word, 'c', fPlan, PIC.statusInk[status], PIC.status[status]);
     return cell(word, 'c', fBandB, PIC.statusInk[status], PIC.status[status]);
   };
-  rows.push(band('OSD Status', st(block.status, false, null), c => { const s = block.statusC[c.index] || {}; return st(s.status, s.kind === 'plan', c); }));
+  rows.push(band('OSD Status', st(sl.status, false, null), c => { const s = block.statusC[c.index] || {}; return st(s.status, s.kind === 'plan', c); }));
 
   // widths: each column as wide as its widest text, the label column up to labelMax (wider labels wrap)
   const widths = new Array(nNum + 1).fill(0);

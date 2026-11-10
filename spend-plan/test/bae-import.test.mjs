@@ -330,7 +330,7 @@ try {
     C.eq('the report is a used sheet, not an ignored one', [p1.report.ignoredSheets.length, p1.report.refusedFiles.length], [0, 0]);
   }
   C.eq('SP.apOfBudget is the pull’s own Budget rule: Spares, Full Fund, OPN, O&M, none',
-    ['USN APN Spares Initial', 'USAF APN Full  Fund SUPT', 'USN OPN Ship Alts', 'USAF O&M- Line', 'USAF RDT&E', 'Staff Office', null].map(x => SP.apOfBudget(x)),
+    ['USN APN Spares Fixture Initial', 'USAF APN Full  Fund SUPT', 'USN OPN Ship Alts', 'USAF O&M- Line', 'USAF RDT&E', 'Staff Office', null].map(x => SP.apOfBudget(x)),
     ['sp', 'ff', 'opn', 'om', null, null, null]);
   // names that two rules match: the order the rules are tried in decides, so a copy of the rule in another order differs here
   C.eq('SP.apOfBudget tries the rules in the pull’s order: Spares, then Full Fund, then OPN, then O&M',
@@ -487,7 +487,12 @@ try {
     C.eq('… leaving Data through alone: an empty page’s settings stay unset', S.state.settings, null);
     C.eq('… with one history entry recording the report', J(S.state.history), J([{ importedAt: T1, aps: [], totals: {},
       bae: { rows: RE.rows.length, approved: RE.sum[0], authorized: RE.sum[1] } }]));
-    C.chk('… the message names the report, its date and its rows', has(r1.message, 'Imported the BAE report “' + RE.name + '” › “Sheet1”, dated 2026-01-31 12:00: 11 rows'), r1.message);
+    // §14.7 the rows COUNTED (review I4-6): 9 sustainment budgets of FY2025 or later (the First FY a first pull will give an
+    // empty page), never the rows read and the whole report's money, which matched nothing a table shows
+    C.chk('… the message names the report, its date and the rows it counts, and why the rest do not', has(r1.message, 'Imported the BAE report “' + RE.name
+      + '” › “Sheet1”, dated 2026-01-31 12:00: 11 rows, 9 of them counted (sustainment budgets of FY2025 or later); not counted: 1 Flyaway (production) and 1 that names no appropriation.')
+      && !has(r1.message, 'Approved $'), r1.message);
+    C.eq('… its count is the rows the model counts', S.buildModel({}, S.defaultSettings(T1), S.getView(), S.state.bae.current).bae.counted.filter(x => x[1] === 'Yes').length, 9);
     C.chk('… and is not a warning: every row was read and the total agrees', r1.warn === false, J(r1));
     C.chk('… and says nothing of a pull or of Data through', !has(r1.message, 'No row in this import') && !has(r1.message, 'Data through'), r1.message);
     C.chk('… the import is unsaved work', S.isDirty() === true);
@@ -532,7 +537,8 @@ try {
       && has(r4.message, 'Check: the BAE report now has 2 readable rows') && has(r4.message, '7 rows of the BAE report could not be read')
       && has(r4.message, 'Check: the BAE report’s own total row (row 11) does not agree'), r4.message);
     C.chk('… it names the report it replaces, kept for What changed', has(r4.message, 'The BAE report it replaces, “' + RE.name + '” › “Sheet1” (dated 2026-01-31 12:00), is kept for What changed.'), r4.message);
-    C.chk('… it names no date the report does not have', has(r4.message, '“' + UE.name + '” › “Sheet1”, which has no date in its file name: 9 rows, 2 of them readable'), r4.message);
+    C.chk('… it names no date the report does not have, and counts the rows that read', has(r4.message, '“' + UE.name
+      + '” › “Sheet1”, which has no date in its file name: 9 rows, 2 of them counted (sustainment budgets of FY2025 or later); not counted: 7 that could not be read.'), r4.message);
     C.chk('… Data through stays where the person put it, and the message says so', has(r4.message, 'Data through stays Mar-2026'), r4.message);
     C.eq('… the history entry records the readable rows', J(S.state.history[S.state.history.length - 1].bae), J({ rows: 2, approved: UE.sum[0], authorized: UE.sum[1] }));
     C.chk('… the pulls kept are said to be kept', has(r4.message, 'O&M keeps its pull of'), r4.message);
@@ -592,6 +598,90 @@ try {
     C.chk('a report with a row that cannot be read imports, as a warning that says so', r.ok === true && r.warn === true
       && has(r.message, '1 row of the BAE report could not be read (Budget Name, FY or an amount): it is kept and counted nowhere') && !has(r.message, 'Check:'), J(r));
     C.eq('… the row is kept in the report, marked', s.SP.state.bae.current.rows.map(x => !!x.bad), [false, true]);
+    s.close();
+  }
+
+  // §14.7 the rows counted follow the switches as the model's do: with USAF off its four USAF sustainment rows are named
+  // as switched off, and the count is the model's (review I4-6)
+  {
+    const s = loadTool({ modules: STORE });
+    const S = s.SP;
+    S.storeInit();
+    const v = S.getView(); v.svc.USAF = false; S.setView(v);
+    const r = S.applyImport(await S.parseFiles(files(RE.name), { now: T1 }));
+    C.chk('USAF off: the message counts the rows the switches show, and names those they hide', has(r.message, ': 11 rows, 5 of them counted (sustainment budgets of FY2025 or later, '
+      + 'in the services and lanes shown); not counted: 1 Flyaway (production), 1 that names no appropriation and 4 in a service or lane switched off.'), r.message);
+    C.eq('USAF off: … the model counts the same rows', S.buildModel({}, S.defaultSettings(T1), S.getView(), S.state.bae.current).bae.counted.filter(x => x[1] === 'Yes').length, 5);
+    S.setSettings(Object.assign(S.defaultSettings(T1), { firstFY: 2026 }));
+    S.setView(S.defaultView());
+    const r2 = S.applyImport(await S.parseFiles(files(RE.name), { now: T2 }));
+    C.chk('First FY 2026: the FY2025 row is named as before it', has(r2.message, ': 11 rows, 8 of them counted (sustainment budgets of FY2026 or later); not counted: 1 Flyaway (production), '
+      + '1 that names no appropriation and 1 before FY2026.'), r2.message);
+    s.close();
+  }
+
+  // =============================================================================================================
+  // THIS TOOL'S OWN WORKBOOK READ BACK (review I4-1), and a stored report with no record of its four columns (review I4-7)
+  // =============================================================================================================
+  {
+    const EXPORT = ['util', 'xlsx-read', 'import', 'engine', 'xlsx-write', 'export', 'store'];
+    const TAIL = ['Appropriation', 'Service', 'Lane', 'PMO', 'Counted'];
+    const s = loadTool({ modules: EXPORT });
+    const S = s.SP;
+    S.storeInit();
+    S.applyImport(await S.parseFiles(files('pull-om.xlsx', RE.name), { now: T1 }));
+    const buf = u8 => u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
+    const book = async (X, st, view) => {
+      const M = X.buildModel(st.pulls.current, st.settings, view || X.getView(), st.bae.current);
+      return X.excelBytes(M, st.pulls.current, st.settings, { report: st.lastImport.report, today: '2026-11-09', bae: st.bae.current });
+    };
+    const sheet = async (u8, name) => ((await S.readXlsx(buf(u8))).sheets.find(x => x.name === name) || { rows: [] }).rows;
+    const x1 = await book(S, S.state);
+    const b1 = await sheet(x1, 'BAE Report');
+    C.eq('export (control): the BAE Report sheet is the file’s columns, then the tool’s five', b1[0], E.h28.concat(TAIL));
+    const rx = await S.parseFiles([{ name: 'SFCB Spend Plan FY2027 - data through Oct-2026 - 2026-11-09.xlsx', data: buf(x1) }], { now: T2 });
+    C.eq('I4-1: the export read back keeps the report’s own columns and not the tool’s five', rx.bae.headers, E.h28);
+    C.chk('I4-1: … no row carries one of the five as a column of the report', rx.bae.rows.every(r => TAIL.every(h => !(h in r.x))) && !('x' in (rx.bae.total || {})),
+      J(rx.bae.rows[0].x));
+    C.eq('I4-1: … the four read are the report’s own', rx.bae.cols, E.h28.slice(0, 4));
+    C.eq('I4-1: … and the import report says the five were ignored', rx.report.bae.ownCols, TAIL);
+    const L = SP.importReportLines(rx.report).join('\n');
+    C.chk('I4-1: … in the sheet’s line and in the BAE section', has(L, '“BAE Report”: the BAE report of budgets — header on row 1; 11 budget rows; Appropriation, Service, Lane, PMO, Counted '
+      + 'ignored (this tool’s own columns, the last of each name, worked out again on every load)')
+      && has(L, 'Columns: 28, every one kept as the file has it, besides this tool’s own Appropriation, Service, Lane, PMO and Counted, which are worked out again on every load and not kept.'), L);
+    const ra = S.applyImport(rx);
+    C.chk('I4-1: … so it is the report on screen, row for row: the report on screen is not pushed out', has(ra.message, 'The BAE report is the same as the one on screen, row for row')
+      && S.state.bae.previous === null && S.state.bae.current.sameSince === T1, ra.message);
+    // the next export, with USAF off: the five are written once, from this page's switches
+    const off = S.getView(); off.svc.USAF = false;
+    const b2 = await sheet(await book(S, S.state, off), 'BAE Report');
+    C.eq('I4-1: the next export writes the five once', b2[0], E.h28.concat(TAIL));
+    const cAt = b2[0].indexOf('Counted'), avAt = b2.findIndex(r => r[0] === RE.rows[0][0]);
+    C.eq('I4-1: … and its Counted is this page’s switches (USAF off), the only Counted there is', [b2[0].filter(h => h === 'Counted').length, avAt > 0 && b2[avAt][cAt]], [1, 'Switch off']);
+    // the five in another order, or one alone, may be a report's own columns: kept
+    const csv = (head, row) => [{ name: 'own.csv', data: head.join(',') + '\n' + row.join(',') + '\n' }];
+    const H4 = ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount', 'Budget Authorized Amount'], R4 = ['USAF O&M- Fixture Line Discretionary AV', '2026', '1000000', '900000'];
+    const o1 = await S.parseFiles(csv(H4.concat(['Service', 'Appropriation', 'Lane', 'PMO', 'Counted']), R4.concat(['a', 'b', 'c', 'd', 'e'])), { now: T3 });
+    const o2 = await S.parseFiles(csv(H4.concat(['Counted']), R4.concat(['e'])), { now: T3 });
+    C.eq('I4-1 (control): the five in another order, or one alone, are kept as the report’s own', [o1.bae.headers.slice(4), o1.bae.rows[0].x.Counted, o2.bae.headers.slice(4)],
+      [['Service', 'Appropriation', 'Lane', 'PMO', 'Counted'], 'e', ['Counted']]);
+
+    // review I4-7: a saved report with no `cols` (§14.1's shape does not require it) opens, and its sheet still writes the four
+    const st = JSON.parse(J(S.state));
+    delete st.bae.current.cols;
+    const t2 = loadTool({ modules: EXPORT, state: st });
+    const o = t2.SP.storeInit();
+    C.chk('I4-7: a saved report with no record of its four columns opens', o.ok === true && !('cols' in t2.SP.state.bae.current), J(o));
+    const b3 = await sheet(await book(t2.SP, t2.SP.state), 'BAE Report');
+    const b4 = await sheet(await book(S, S.state), 'BAE Report');
+    C.eq('I4-7: … and its BAE Report sheet writes every row’s Budget Name, FY, Approved and Authorized, found by their headers', b3, b4);
+    C.chk('I4-7: … the four are there (not blank)', b3.length > 2 && b3.slice(1).every(r => r.slice(0, 4).some(v => v !== null && v !== '')), J(b3[1]));
+    t2.close();
+    C.eq('I4-7: SP.baeCols: the record when it holds four; else found by header (Budget FY Numeric first, a unit set aside); else §14.1’s names', [
+      SP.baeCols({ cols: ['a', 'b', 'c', 'd'], headers: H4 }),
+      SP.baeCols({ headers: ['Note', 'Budget FY', 'Budget Name', 'Budget Authorized Amount ($M)', 'Budget FY Numeric', 'Budget Approved Amount'] }),
+      SP.baeCols({ cols: ['a'], headers: [] }), SP.baeCols(null)],
+      [['a', 'b', 'c', 'd'], ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount', 'Budget Authorized Amount ($M)'], H4, H4]);
     s.close();
   }
 

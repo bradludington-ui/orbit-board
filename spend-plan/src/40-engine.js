@@ -50,17 +50,44 @@ SP.statusWord = function statusWord(status) { return eng_own(SP.STATUS_WORDS, st
 SP.AUTH_MARK_TEXT = Object.freeze({
   '†': 'Authorized was not entered; Approved is shown in its place (on a total, for the rows marked †).',
   '‡': 'Authorized as entered, for the appropriation and FY as a whole: it covers every service and lane, while the switches show only some.',
+  // §14.5: printed only with a BAE report loaded, beside an Approved the report has no figure for
+  '§': 'Approved is the CCaR plan: the BAE report has no figure for this block.',
 });
-// '†' not entered (Approved stands in); '‡' entered while some switch is off; '' entered with everything shown
+// §14.5: with a BAE report loaded an Authorized can also come from the report, so † no longer means only "not entered",
+// and ‡ is on every entered figure, whatever the switches (answer 8: a typed Authorized wins over the report, "marked as
+// entered"; review I4-4). The words a mark carries therefore depend on the model; SP.markText gives the right ones, and
+// with no report they are SP.AUTH_MARK_TEXT's, word for word.
+SP.AUTH_MARK_TEXT_BAE = Object.freeze({
+  '†': 'Authorized was neither entered nor in the BAE report; Approved is shown in its place (on a total, for the rows marked †).',
+  '‡': 'Authorized as entered, for the appropriation and FY as a whole: it is used in place of the BAE report’s figure, where the report has one, '
+    + 'and covers every service and lane, whatever the switches show.',
+  '§': SP.AUTH_MARK_TEXT['§'],
+});
+SP.markText = function markText(mark, model) {
+  const T = model && model.bae && model.bae.present ? SP.AUTH_MARK_TEXT_BAE : SP.AUTH_MARK_TEXT;
+  return eng_own(T, mark) ? T[mark] : '';
+};
+// '†' not entered (Approved stands in); '‡' entered while some switch is off; '' entered with everything shown.
+// With a BAE report loaded (§14.5), an Authorized taken from the report follows the switches exactly, as the rows do, so
+// it carries no mark, and an entered one is '‡' whatever the switches (review I4-4). With none loaded no row has an
+// authorizedSrc, and this reads as it always did.
 SP.authMark = function authMark(row, model) {
   if (!row) return '';
+  if (row.authorizedSrc === 'report') return '';
+  if (row.authorizedSrc === 'entered') return '‡';
   if (!row.authorizedEntered) return '†';
   return model && model.shown && !model.shown.all ? '‡' : '';
+};
+// §14.5 the mark beside an APPROVED figure: '§' on a block (or a PMO row of a block) the BAE report has no figure for, so
+// its Approved is the CCaR plan while the rows around it are the report's. approvedSrc is set only with a report loaded,
+// so with none this is never '§'.
+SP.approvedMark = function approvedMark(row, model) {
+  return row && row.approvedSrc === 'plan' ? '§' : '';
 };
 // the marks a TOTAL over these rows carries: it adds whatever its rows are, so it carries each of their marks
 SP.authMarks = function authMarks(rows, model) {
   const m = (rows || []).map(r => SP.authMark(r, model));
-  return { dag: m.includes('†'), ddag: m.includes('‡') };
+  return { dag: m.includes('†'), ddag: m.includes('‡'), sect: (rows || []).some(r => SP.approvedMark(r, model) === '§') };
 };
 
 // §8's "Obligation %  (Approved X.XXM; …)" and the PMO strip: $M inside a sentence. The screen wrote it with fmtM,
@@ -74,12 +101,52 @@ SP.fmtMText = function fmtMText(cents) {
 // A block whose pull was imported before the data-through month ended cannot hold that whole month: "actual through
 // Oct" over a pull imported on 5 October put a month of actuals on a slide that had five days of them, and read its
 // goal and status at the end of October (review BP-3). Its label names where its actuals stop instead (model.stale).
+// §14.5: the Obligation % row of a slide block and of a totals band measures the CCaR plan by month (rule 6), so X is
+// always the plan (`planned`). Where a BAE report covers the block, its Approved is the report's, so the word is
+// "CCaR plan" and the figure is not read as the Approved two columns away; elsewhere the plan IS Approved.
 SP.oblLabel = function oblLabel(block, model) {
   const c = model && Array.isArray(model.cols) ? model.cols[model.asOfIndex] : null;
   const st = block && model && Array.isArray(model.stale) ? model.stale.find(s => s.ap === block.ap) : null;
-  return 'Obligation %  (Approved ' + SP.fmtMText(block && block.approved) + 'M; actual through '
+  return 'Obligation %  (' + (block && block.covered ? 'CCaR plan ' : 'Approved ') + SP.fmtMText(SP.plannedOf(block)) + 'M; actual through '
     + (st ? 'the ' + st.day + ' import' : c ? c.label : '') + ', plan after)';
 };
+// §14.3 what a block (or a PMO block) measures its slide and its totals band against: the CCaR plan. With a BAE report
+// loaded that is `planned`, beside an `approved` that may be the report's; with none there is only `approved`, which is
+// the plan. The products read these two, never the fields, so they need not ask whether a report is loaded.
+SP.plannedOf = function plannedOf(block) {
+  return block && (typeof block.planned === 'number' ? block.planned : block.approved);
+};
+// {basis, oblPct, goal, delta, status}: what a slide block's and a totals band's Total column prints (§14.3)
+SP.slideOf = function slideOf(block) {
+  if (!block) return null;
+  return block.slide || { basis: block.approved, oblPct: block.oblPct, goal: block.goal, delta: block.delta, status: block.status };
+};
+// §14.5 the Summary's line 2, in the one wording the screen and the workbook print. With no report it is §8.1's.
+SP.summaryLine2 = function summaryLine2(model) {
+  const asOf = model && model.asOfLabel ? model.asOfLabel : '';
+  const tail = ' | Obligated = CCaR status "Actual Execution" | Unobligated = Approved - Obligated | Delta = Obl% - OSD%';
+  if (model && model.bae && model.bae.present) {
+    return 'Data through ' + asOf + ' | Approved, Authorized = BAE report ' + model.bae.of + ' (sustainment budgets)' + tail;
+  }
+  return 'Data through ' + asOf + ' | Approved = total planned ($M from the CCaR pull) | Authorized = entered, else Approved' + tail;
+};
+// §8.3 an appropriation's title, in the one wording the screen and the workbook print. With a BAE report loaded its
+// Approved and Authorized are the report's wherever it covers a block (§14.3), so "from the CCaR pull" alone would not be
+// true of them, and the title names the report too. The workbook named it and the screen did not, so on screen a table
+// headed "from the CCaR pull" disagreed with the pull's own Monthly Totals under it, with nothing to say why (review
+// BP4-1, P4-6). day: the pull's import day, or '' when not known. always: write "(from …)" when the day is not known (the
+// workbook says "on an unknown date"; the screen, with no report, leaves the parenthesis out as it always has).
+SP.apTitle = function apTitle(label, day, model, always) {
+  const rep = !!(model && model.bae && model.bae.present);
+  const base = 'F-35 Sustainment ' + label + ' - Spend Plan & FY Summary';
+  if (!day && !always && !rep) return base;
+  return base + ' (from the CCaR pull imported ' + (day || 'on an unknown date') + (rep ? ' and the BAE report ' + model.bae.of : '') + ')';
+};
+// §14.6 rule 6, said once on the Slide blocks view and on the Slide Snapshots sheet: with a BAE report loaded the Summary's
+// Approved is the report's, and a slide block still adds up the plan. The screen said so and the sheet did not, so a block
+// copied off the sheet beside the Summary read as a figure that disagreed with it (review P4-6).
+SP.SLIDES_PLAN_NOTE = 'The slide blocks measure the CCaR plan by month, as they always have: where the BAE report has figures for a block, '
+  + 'its Approved on the Summary is the report’s, and the block’s Obligation % row says “CCaR plan” beside the plan it measures.';
 
 // §4.5. The 1e-12 lets a ratio that is the goal exactly, but arrived at through a division, count as on the goal.
 SP.statusOf = function statusOf(pct, goal) {
@@ -461,15 +528,225 @@ function eng_localDay(iso) {
 function eng_fyName(b) { return ENG_AP_LABEL[b.ap] + ' FY' + b.fy; }
 function eng_dollars(c) { return '$' + SP.fmtM(c) + 'M'; }
 function eng_rowsWord(n) { return SP.fmtInt(n) + (n === 1 ? ' row' : ' rows'); }
+// '$0.00M' for zero inside a sentence (SP.fmtMText), where '$-M' would read as a figure left out
+function eng_dollarsT(c) { return '$' + SP.fmtMText(c) + 'M'; }
+// 'A', 'A and B', 'A, B and C'
+function eng_and(list) { return list.length > 1 ? list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1] : list.join(''); }
+
+// ---------------------------------------------------------------------------------------------------------------
+// §14 THE BAE REPORT OF BUDGETS: Approved and Authorized by budget and FY, beside the CCaR pull (Brad, 10 Nov 2026).
+// A stored report row is {c:[name, fy, approvedCents, authorizedCents], x, src:[file, sheet, rowNo], bad?} (§14.1). Like a
+// pull row it is derived again on every build (SP.baeDerive), so a rule fixed later reaches a report already saved.
+// ---------------------------------------------------------------------------------------------------------------
+const ENG_BUDGET_COL = SP.RAW_HEADERS.indexOf('Budget');
+// §14.6 the BAE Report sheet's Counted column: 'Yes', or the first reason a row counts nowhere, in §4.3's order
+const ENG_BAE_WHY = Object.freeze({ bad: 'Could not be read', flyaway: 'Flyaway (production)', noap: 'Names no appropriation',
+  first: 'Before the first FY', off: 'Switch off', yes: 'Yes' });
+SP.BAE_COUNTED_WHY = ENG_BAE_WHY;
+// the word Flyaway, in any case, as every name rule of §3 is read: aircraft production, never sustainment (rule 1)
+const ENG_FLYAWAY = /\bflyaway\b/i;
+// A budget's service and lane are the pull's own (§14.2): read through SP.deriveRow on a row holding only that Budget,
+// so the override and the rules a budget's pull rows go by are the very function its report row goes by, never a copy
+// that could drift from it. An override set for a budget then moves its pull rows and its report row together.
+function eng_svcLaneOf(name, settings) {
+  const c = new Array(SP.RAW_HEADERS.length).fill('');
+  c[ENG_BUDGET_COL] = name;
+  const d = SP.deriveRow({ c, x: {} }, settings);
+  return { svc: d.svc, lane: d.lane };
+}
+// §14.2 the PMOs a budget's last word is compared with, in this order: SP.PMO_ORDER's, as the list writes them, then every
+// other PMO named on any row of the four pulls (whatever its FY, whether it reads and whatever the switches show, so no
+// switch can move a budget to another PMO), in §4.4's order, named by the spelling most of its rows use.
+//   allSpell: PMO key -> spellings, over every row of the four pulls in row order (or null). -> [{key, label, code}]
+function eng_pmoIndex(allSpell) {
+  const idx = SP.PMO_ORDER.map(l => ({ key: SP.normKey(l), label: l, code: SP.pmoCode(l) }));
+  const others = [];
+  if (allSpell) for (const [k, sp] of allSpell) if (k !== '' && !ENG_PMO_RANK.has(k)) others.push({ key: k, label: eng_major(sp, ENG_BLANK.pmo) });
+  others.sort(eng_pmoSort);
+  for (const o of others) idx.push({ key: o.key, label: o.label, code: SP.pmoCode(o.label) });
+  return idx;
+}
+// the last word of the trimmed name against each code, without case: the first PMO whose code it is, else '' (no PMO).
+// A name with no word has no PMO, even beside a PMO whose code is empty.
+function eng_budgetPmoKey(name, idx) {
+  const w = String(name ?? '').trim().split(/\s+/);
+  const last = w[w.length - 1].toLowerCase();
+  if (last === '') return '';
+  for (const p of idx) if (String(p.code).toLowerCase() === last) return p.key;
+  return '';
+}
+// §14.2 the budget's PMO, as a PMO KEY (its normKey, as pmos[].pmo and a pull row's k.pmo are), '' for (no PMO). `model`
+// is a model built with a report (its bae.pmoIndex) or such an index itself; with neither, only SP.PMO_ORDER's codes are
+// known, so a budget ending in the code of a PMO only the pull names reads as (no PMO).
+SP.budgetPmo = function budgetPmo(name, model) {
+  const idx = Array.isArray(model) ? model : model && model.bae && Array.isArray(model.bae.pmoIndex) ? model.bae.pmoIndex : eng_pmoIndex(null);
+  return eng_budgetPmoKey(name, idx);
+};
+// §14.2 a report row as the rules read it. `model` is as for SP.budgetPmo. readable: its name, FY and both amounts read
+// (§14.1); a row a saved file damaged (an amount that is not whole cents, say) is unreadable rather than a guess.
+SP.baeDerive = function baeDerive(row, settings, model) {
+  const c = row && Array.isArray(row.c) ? row.c : [];
+  const name = eng_txt(c[0]).trim();
+  const fy = Number.isInteger(c[1]) ? c[1] : null;
+  const approved = Number.isSafeInteger(c[2]) ? c[2] : null, authorized = Number.isSafeInteger(c[3]) ? c[3] : null;
+  const bad = row && Array.isArray(row.bad) && row.bad.length ? row.bad : null;
+  const ap = name !== '' ? SP.apOfBudget(name) : null;           // the §3 Budget rule alone: a report has no sheet to place it
+  const scope = ENG_FLYAWAY.test(name) ? 'flyaway' : ap ? 'in' : 'noap';
+  const sl = eng_svcLaneOf(name, settings);
+  const src = row && Array.isArray(row.src) ? row.src : null;
+  return { name, key: SP.normKey(name), fy, approved, authorized, ap, scope, svc: sl.svc, lane: sl.lane, pmo: SP.budgetPmo(name, model),
+    bad, readable: !bad && name !== '' && fy !== null && approved !== null && authorized !== null,
+    rowNo: src && Number.isInteger(src[2]) ? src[2] : null, src };
+};
+// §14.2 why a report row counts or not: the first reason in §4.3's order, as a key of ENG_BAE_WHY ('bad', 'flyaway', 'noap',
+// 'first', 'off', or 'yes' when it counts). V is eng_view's. The one judgement the model makes of each row and the
+// import's message counts by (SP.baeTally), so the two never count different rows.
+function eng_baeWhyKey(x, firstFY, V) {
+  if (!x.readable) return 'bad';
+  if (x.scope === 'flyaway') return 'flyaway';
+  if (x.scope === 'noap') return 'noap';
+  if (x.fy < firstFY) return 'first';
+  if (!V.svc.has(x.svc) || !V.lane.has(x.lane)) return 'off';
+  return 'yes';
+}
+// §14.7 a report's rows by why each counts or not, under these settings (First FY, the budget table) and switches: what the
+// import's message names. The message gave rows READ and the money of the whole report, Flyaway, RDT&E and the years
+// before First FY included, so its headline Approved matched nothing a stoplight table shows (review I4-6).
+//   -> {rows, yes, bad, flyaway, noap, first, off, firstFY}
+SP.baeTally = function baeTally(bae, settings, view) {
+  const S = eng_settings(settings, false), V = eng_view(view);
+  const t = { rows: 0, yes: 0, bad: 0, flyaway: 0, noap: 0, first: 0, off: 0, firstFY: S.firstFY };
+  const B = eng_baeOf(bae);
+  if (!B) return t;
+  for (const row of B.rows) { t.rows++; t[eng_baeWhyKey(SP.baeDerive(row, settings), S.firstFY, V)]++; }
+  return t;
+};
+// the report a build is given, or null: a value that is not a report (no list of rows) is no report, as a pull that is
+// not one is no pull, so a damaged state never half-applies one
+function eng_baeOf(bae) {
+  return bae && typeof bae === 'object' && !Array.isArray(bae) && Array.isArray(bae.rows) ? bae : null;
+}
+// what a report is called in a sentence: its date from the file name, else the day it was imported, in this computer's time
+SP.baeWhen = function baeWhen(bae) {
+  if (!bae || typeof bae !== 'object') return null;
+  if (typeof bae.stamp === 'string' && bae.stamp) return bae.stamp;
+  return eng_localDay(bae.importedAt) || null;
+};
+function eng_sumOf(list, f) { let s = 0; for (const x of list) s += x[f]; return s; }
+// Unobligated, Obl %, Delta and Status against Approved (rule 3), once Approved (or a PMO row's Obligated) has changed
+function eng_againstApproved(b) {
+  b.unobligated = b.approved - b.obligated;
+  b.oblPct = b.approved !== 0 ? b.obligated / b.approved : null;
+  b.delta = b.oblPct !== null && b.goal !== null ? b.oblPct - b.goal : null;
+  b.status = SP.statusOf(b.oblPct, b.goal);
+}
+// §14.3 a block with a report loaded. b holds §4.5's figures over its counted rows: `planned` keeps their sum, and the
+// slide, the per-column figures and the tree stay on them (rule 6), so they are left as §4.5 worked them out. Approved,
+// Authorized and what they feed are the report's where it covers the block.
+//   rep: the block's counting report rows; cov: covered; auth: {entered, cents}
+function eng_baeBlock(b, rep, cov, auth) {
+  const planned = b.approved;
+  b.planned = planned;
+  b.covered = cov;
+  b.slide = { basis: planned, oblPct: b.oblPct, goal: b.goal, delta: b.delta, status: b.status };
+  b.approved = cov ? eng_sumOf(rep, 'approved') : planned;
+  b.approvedSrc = cov ? 'report' : 'plan';
+  // what the report holds for the block, whether or not a typed figure wins over it (the Settings table shows both)
+  b.reportAuthorized = cov ? eng_sumOf(rep, 'authorized') : null;
+  if (auth.entered) { b.authorized = auth.cents; b.authorizedSrc = 'entered'; }
+  else if (cov) { b.authorized = b.reportAuthorized; b.authorizedSrc = 'report'; }
+  else { b.authorized = b.approved; b.authorizedSrc = 'approved'; }
+  eng_againstApproved(b);
+  b.planShort = cov && b.approved > 0 && 2 * planned < b.approved;
+  // ‡ on every entered figure with a report loaded, whatever the switches (Brad, answer 8: "marked as entered"). Line 2 then
+  // says Authorized is the BAE report's, so an entered figure left unmarked with every switch on read as the report's: a
+  // typed $398.77M printed where the report says $520.28M (review I4-4). With no report, ‡ stays §8's (a switch off).
+  b.marks = { sect: !cov, dagger: b.authorizedSrc === 'approved', ddagger: !!auth.entered };
+}
+// §14.4 a PMO's row in a block with a report loaded. pb holds §4.5's figures over the PMO's rows by their PMO column: the
+// detail its tab lists below the table (tree, columns, Not Allocated, the totals band), and those stay, on the plan.
+// Where the report covers the block, the stoplight figures are the budgets': Approved and Authorized of the counting
+// report rows whose budget's PMO is this PMO, and Obligated of the block's executed rows whose BUDGET names it (bpmo,
+// rule 7), so the four measure the same money. A typed Authorized is for the whole block and is never split: the row
+// keeps the report's. Elsewhere the row is §4.6's, Authorized = Approved (†).
+// §14.3 KEEPS A COVERED BLOCK'S PULL ROWS WHATEVER THEIR BUDGET (planned and Obligated are §4.5's), while its Approved is
+// the report's sustainment budgets alone. So money on a budget the report's Approved can never hold sits on one side of
+// Obl % only: a Flyaway budget (aircraft production, rule 1), one whose name places it in no appropriation (counted here
+// by the sheet it came on), and a row with no Budget at all (the report has no row without a name). It is not a figure to
+// change, but a difference to name: a Full Fund block read Obl % 280%, On track, against an Approved that left out the
+// very production money its Obligated counted, and nothing on any page said why (review M4-6).
+//   -> 'flyaway' | 'noap' | 'blank' | null (null: the report's own rules can count a row of that budget)
+function eng_offKind(budget) {
+  const s = eng_txt(budget).trim();
+  if (s === '') return 'blank';
+  if (ENG_FLYAWAY.test(s)) return 'flyaway';
+  return SP.apOfBudget(s) ? null : 'noap';
+}
+// a covered block's counted pull rows on such budgets, one entry per budget (its first spelling, in row order) with its
+// rows, plan and obligated dollars: {planned, obligated, budgets:[{key, name, kind, rows, planned, obligated}]}, or null
+// when none carries a dollar. Every row with no Budget is one entry (key and name '').
+function eng_offReport(rows, kindOf) {
+  const by = new Map();
+  for (const r of rows) {
+    const kind = kindOf(r.d.budget);
+    if (!kind) continue;
+    const key = SP.normKey(r.d.budget);
+    if (!by.has(key)) by.set(key, { key, name: eng_txt(r.d.budget).trim(), kind, rows: 0, planned: 0, obligated: 0 });
+    const t = by.get(key);
+    t.rows++; t.planned += r.cents;
+    if (r.d.status === 'exec') t.obligated += r.cents;
+  }
+  const budgets = [...by.values()].filter(t => t.planned !== 0 || t.obligated !== 0);
+  return budgets.length ? { planned: eng_sumOf(budgets, 'planned'), obligated: eng_sumOf(budgets, 'obligated'), budgets } : null;
+}
+// how a sentence names such budgets: '1 Flyaway (production) budget and 2 budgets that name no appropriation'; the rows
+// with no Budget are counted as rows, since they are no budget
+const ENG_OFF_WORD = { flyaway: ['Flyaway (production) budget', 'Flyaway (production) budgets'],
+  noap: ['budget that names no appropriation', 'budgets that name no appropriation'], blank: ['row with no Budget', 'rows with no Budget'] };
+SP.OFF_REPORT_KIND = Object.freeze({ flyaway: 'Flyaway (production)', noap: 'Names no appropriation', blank: 'No Budget' });
+function eng_offWords(budgets) {
+  const out = [];
+  for (const k of ['flyaway', 'noap', 'blank']) {
+    const of = budgets.filter(t => t.kind === k), n = k === 'blank' ? eng_sumOf(of, 'rows') : of.length;
+    if (n) out.push(SP.fmtInt(n) + ' ' + ENG_OFF_WORD[k][n === 1 ? 0 : 1]);
+  }
+  return eng_and(out);
+}
+function eng_baePmo(pb, cov, rep, obl) {
+  const planned = pb.approved;
+  pb.planned = planned;
+  pb.covered = cov;
+  pb.slide = { basis: planned, oblPct: pb.oblPct, goal: pb.goal, delta: pb.delta, status: pb.status };
+  if (cov) {
+    pb.approved = eng_sumOf(rep, 'approved');
+    pb.authorized = eng_sumOf(rep, 'authorized');
+    pb.obligated = obl;
+    eng_againstApproved(pb);
+  }
+  pb.approvedSrc = cov ? 'report' : 'plan';
+  pb.authorizedSrc = cov ? 'report' : 'approved';
+  pb.basis = cov ? 'budget' : 'row';
+  pb.sect = !cov;
+  pb.marks = { sect: !cov, dagger: !cov, ddagger: false };
+}
+// a total of blocks or rows (§14.3): planned added up, and each mark any of them carries
+function eng_baeTot(t, list) {
+  t.planned = eng_sumOf(list, 'planned');
+  t.marks = { sect: list.some(b => b.marks.sect), dagger: list.some(b => b.marks.dagger), ddagger: list.some(b => b.marks.ddagger) };
+  return t;
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // THE MODEL (§4.6)
 // ---------------------------------------------------------------------------------------------------------------
-SP.buildModel = function buildModel(pulls, settings, view) {
+// bae: the BAE report on screen (SP.state.bae.current), or null/absent. With none, the model is exactly §4's: not one
+// field §14 adds is set, so every product, test and saved comparison made before §14 reads it unchanged.
+SP.buildModel = function buildModel(pulls, settings, view, bae) {
   const S = eng_settings(settings, true);
   S.specialSet = new Set(S.special);
   const V = eng_view(view);
   const cx = eng_ctx(S);
+  const B = eng_baeOf(bae);
   pulls = pulls && typeof pulls === 'object' ? pulls : {};
   const rowsByAp = {};
   const excluded = { beforeFirst: { cents: 0, rows: 0, byFy: {}, rowsByFy: {} }, unidentified: { cents: 0, rows: 0 },
@@ -478,6 +755,11 @@ SP.buildModel = function buildModel(pulls, settings, view) {
   const blockOf = new Map();            // 'ap|fy' -> {ap, fy}
   const pmoSpell = new Map();           // PMO key -> spellings over every counted row, in row order (its tab's label)
   const present = { svc: new Set(), lane: new Set() };
+  // §14 only (null with no report): every PMO named on any row of the four pulls, as the PMOs a budget's code is read
+  // against and a PMO's name where no counted row gives one; each Budget name of the four pulls (its first spelling);
+  // every Budget name in any pull, unidentified rows' too (what the report holds that no pull row names); and each
+  // Budget name of a counted row (what the pull counts that the report has no row for)
+  const allSpell = B ? new Map() : null, pullBudget = B ? new Map() : null, pullKeys = B ? new Set() : null, countedKeys = B ? new Set() : null;
   let showNoDate = false;
   const ensure = (ap, fy) => {
     const key = ap + '|' + fy;
@@ -492,6 +774,14 @@ SP.buildModel = function buildModel(pulls, settings, view) {
     rowsByAp[ap] = p.rows.length;
     for (const row of p.rows) {
       const d = SP.deriveRow(row, settings);
+      if (B) {
+        let sp = allSpell.get(d.k.pmo);
+        if (!sp) allSpell.set(d.k.pmo, (sp = new Map()));
+        eng_tally(sp, eng_txt(d.pmo));
+        const bk = SP.normKey(d.budget);
+        if (!pullBudget.has(bk)) pullBudget.set(bk, eng_txt(d.budget));
+        pullKeys.add(bk);
+      }
       if (!eng_readable(d)) {
         excluded.unreadable.rows++;
         // a row whose FY reads still names its block: a block does not vanish because its one row's amount is damaged
@@ -513,6 +803,8 @@ SP.buildModel = function buildModel(pulls, settings, view) {
       let sp = pmoSpell.get(d.k.pmo);
       if (!sp) pmoSpell.set(d.k.pmo, (sp = new Map()));
       eng_tally(sp, eng_txt(d.pmo));
+      // a Flyaway budget is aircraft production, never sustainment, so no report row is owed for it (rule 1)
+      if (B && !ENG_FLYAWAY.test(eng_txt(d.budget))) countedKeys.add(SP.normKey(d.budget));
     }
   }
   const un = pulls.unidentified;
@@ -520,10 +812,41 @@ SP.buildModel = function buildModel(pulls, settings, view) {
     rowsByAp.unidentified = un.rows.length;
     for (const row of un.rows) {
       const d = SP.deriveRow(row, settings);
+      if (B) pullKeys.add(SP.normKey(d.budget));
       if (!eng_readable(d)) excluded.unreadable.rows++;
       else { excluded.unidentified.cents += d.cents; excluded.unidentified.rows++; }
     }
   }
+  // §14.2 THE REPORT'S ROWS, each derived and judged once, in file order. A report row counts when it reads, is a
+  // sustainment budget (scope 'in'), is of firstFY or later, and the switches show its service and lane: the switches
+  // reach it as they reach a pull row. So such a row makes its service's switch exist (§9) as a pull row does, or a
+  // switch left off on another plan could hide its money with no box on screen to turn it back on (review S2).
+  let R = null, idx = null;
+  const covered = new Set(), repBy = new Map();   // 'ap|fy' covered whatever the switches; 'ap|fy' -> counting report rows
+  if (B) {
+    idx = eng_pmoIndex(allSpell);
+    R = B.rows.map(row => {
+      const x = SP.baeDerive(row, settings, idx);
+      const why = eng_baeWhyKey(x, S.firstFY, V);
+      x.counts = why === 'yes'; x.why = ENG_BAE_WHY[why];
+      if (why === 'bad' || why === 'flyaway' || why === 'noap') return x;
+      const key = x.ap + '|' + x.fy;
+      covered.add(key);                                 // §14.3: covered whatever the switches show
+      if (why === 'first') return x;
+      present.svc.add(x.svc); present.lane.add(x.lane);
+      if (why === 'off') return x;
+      if (!repBy.has(key)) repBy.set(key, []);
+      repBy.get(key).push(x);
+      return x;
+    });
+  }
+  const shown = eng_shown(V, present);
+  // a pull row's bpmo: the PMO its Budget's name ends in (§14.2), the PMO rule 7 counts its obligated dollars under. One
+  // reading per distinct Budget text, since a pull repeats a few dozen budgets over thousands of rows.
+  const bpCache = new Map();
+  const bpmoOf = name => { const s = eng_txt(name); let k = bpCache.get(s); if (k === undefined) bpCache.set(s, (k = eng_budgetPmoKey(s, idx))); return k; };
+  const okCache = new Map();
+  const offKindOf = name => { const s = eng_txt(name); let k = okCache.get(s); if (k === undefined) okCache.set(s, (k = eng_offKind(s))); return k; };
   // the blocks, appropriation order then FY
   const keys = [...blockOf.keys()].sort((a, b) => {
     const x = blockOf.get(a), y = blockOf.get(b);
@@ -533,7 +856,14 @@ SP.buildModel = function buildModel(pulls, settings, view) {
   for (const key of keys) {
     const { ap, fy } = blockOf.get(key), rows = blockRows.get(key);
     const entered = eng_own(S.authorized, key) && Number.isSafeInteger(S.authorized[key]);
-    const b = eng_block(rows, ap, fy, cx, S, { entered, cents: entered ? S.authorized[key] : 0 });
+    const auth = { entered, cents: entered ? S.authorized[key] : 0 };
+    const b = eng_block(rows, ap, fy, cx, S, auth);
+    const cov = !!B && covered.has(key), rep = cov ? repBy.get(key) || [] : [];
+    if (B) {
+      eng_baeBlock(b, rep, cov, auth);
+      // only where Approved is the report's can the two sides differ (elsewhere Approved IS the plan)
+      b.offReport = cov ? eng_offReport(rows, offKindOf) : null;
+    }
     blocks.push(b);
     // each PMO's own block: the same figures over only its rows, Authorized = Approved (§8.6)
     const byPmo = new Map();
@@ -542,8 +872,23 @@ SP.buildModel = function buildModel(pulls, settings, view) {
       if (!l) byPmo.set(r.d.k.pmo, (l = []));
       l.push(r);
     }
+    // §14.4: in a block the report covers, a PMO has a row also when only a budget naming it counts there, or only
+    // executed rows whose budget names it; such a row's detail (its rows by their own PMO column) is empty
+    // and, of a PMO's Obligated by bpmo, the part on budgets the report's Approved can never hold (eng_offKind)
+    const repPmo = new Map(), oblPmo = new Map(), offPmo = new Map();
+    if (B) for (const r of rows) r.d.bpmo = bpmoOf(r.d.budget);
+    if (cov) {
+      for (const x of rep) { if (!repPmo.has(x.pmo)) repPmo.set(x.pmo, []); repPmo.get(x.pmo).push(x); }
+      for (const r of rows) {
+        if (r.d.status !== 'exec') continue;
+        oblPmo.set(r.d.bpmo, (oblPmo.get(r.d.bpmo) || 0) + r.cents);
+        if (offKindOf(r.d.budget)) offPmo.set(r.d.bpmo, (offPmo.get(r.d.bpmo) || 0) + r.cents);
+      }
+      for (const pk of [...repPmo.keys(), ...oblPmo.keys()]) if (!byPmo.has(pk)) byPmo.set(pk, []);
+    }
     for (const [pk, prs] of byPmo) {
       const pb = eng_block(prs, ap, fy, cx, S, { entered: false, cents: 0 });
+      if (B) { eng_baePmo(pb, cov, repPmo.get(pk) || [], oblPmo.get(pk) || 0); pb.offObligated = offPmo.get(pk) || 0; }
       if (!pmoBlocks.has(pk)) pmoBlocks.set(pk, []);
       pmoBlocks.get(pk).push(pb);
     }
@@ -553,19 +898,32 @@ SP.buildModel = function buildModel(pulls, settings, view) {
   const aps = [];
   for (const ap of ENG_AP_IDS) {
     const list = blocks.filter(b => b.ap === ap);
-    if (list.length) aps.push({ ap, label: ENG_AP_LABEL[ap], blocks: list, total: eng_tot(list) });
+    if (list.length) aps.push({ ap, label: ENG_AP_LABEL[ap], blocks: list, total: B ? eng_baeTot(eng_tot(list), list) : eng_tot(list) });
   }
+  // a PMO's name: the spelling most of its counted rows use. With a report, a PMO with a row only through its budgets is
+  // named as the pull names it on any row, else as SP.PMO_ORDER writes it (§14.4).
+  const pmoLabel = pk => {
+    if (pmoSpell.has(pk)) return eng_major(pmoSpell.get(pk), ENG_BLANK.pmo);
+    if (allSpell && allSpell.has(pk)) return eng_major(allSpell.get(pk), ENG_BLANK.pmo);
+    return SP.PMO_ORDER.find(x => SP.normKey(x) === pk) || ENG_BLANK.pmo;
+  };
   // the PMOs, in PMO order by the label over every counted row; each with its blocks in v12's PMO-tab order
   const tabOrder = (a, b) => ENG_PMO_TAB_ORDER.indexOf(a.ap) - ENG_PMO_TAB_ORDER.indexOf(b.ap) || a.fy - b.fy;
   const pmos = [];
   for (const [pk, pbs] of pmoBlocks) {
-    const label = eng_major(pmoSpell.get(pk) || new Map(), ENG_BLANK.pmo);
+    const label = B ? pmoLabel(pk) : eng_major(pmoSpell.get(pk) || new Map(), ENG_BLANK.pmo);
     pbs.sort(tabOrder);
     pmos.push({ pmo: pk, key: pk, label, code: SP.pmoCode(label), blocks: pbs,
-      rows: pbs.map(pb => ({ ap: pb.ap, apLabel: pb.apLabel, fy: pb.fy, key: pb.key, approved: pb.approved,
-        authorized: pb.authorized, obligated: pb.obligated, unobligated: pb.unobligated, unprog: pb.unprog, oblPct: pb.oblPct,
-        goal: pb.goal, delta: pb.delta, status: pb.status, execAfterAsOf: pb.execAfterAsOf, execNoDate: pb.execNoDate })),
-      total: eng_tot(pbs, true) });
+      rows: pbs.map(pb => {
+        const row = { ap: pb.ap, apLabel: pb.apLabel, fy: pb.fy, key: pb.key, approved: pb.approved,
+          authorized: pb.authorized, obligated: pb.obligated, unobligated: pb.unobligated, unprog: pb.unprog, oblPct: pb.oblPct,
+          goal: pb.goal, delta: pb.delta, status: pb.status, execAfterAsOf: pb.execAfterAsOf, execNoDate: pb.execNoDate };
+        if (B) Object.assign(row, { planned: pb.planned, covered: pb.covered, approvedSrc: pb.approvedSrc, authorizedSrc: pb.authorizedSrc,
+          basis: pb.basis, sect: pb.sect, marks: pb.marks, offObligated: pb.offObligated });
+        return row;
+      }),
+      // with a report, a PMO row's Authorized is the report's where it covers the block, so the total adds Authorized
+      total: B ? eng_baeTot(eng_tot(pbs), pbs) : eng_tot(pbs, true) });
   }
   pmos.sort(eng_pmoSort);
   const execAfter = { cents: 0, rows: 0 }, execNoDate = { cents: 0, rows: 0 };
@@ -584,14 +942,108 @@ SP.buildModel = function buildModel(pulls, settings, view) {
   }
   const model = {
     asOf: S.asOf, asOfLabel: SP.asOfLabel(S.asOf), E: cx.E, firstFY: S.firstFY, window: { start: cx.wstart, end: cx.wend },
-    cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: eng_shown(V, present), special: S.special,
+    cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown, special: S.special,
     present: { services: ENG_ALL_SVC.filter(s => present.svc.has(s)), lanes: ENG_LANES.filter(l => present.lane.has(l)) },
     blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp, stale,
-    summary: { rows: blocks, total: eng_tot(blocks), notes: [] },
+    summary: { rows: blocks, total: B ? eng_baeTot(eng_tot(blocks), blocks) : eng_tot(blocks), notes: [] },
   };
+  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys });
   model.summary.notes = eng_notes(model);
   return model;
 };
+
+// §14.5 model.bae: the report as the model reads it. Its counts and dollars are over every FY and take no switch (the
+// report as a whole); noBlock, planShort and pullOnly follow the switches, as the blocks they speak of do.
+//   K: {S, cx, blocks, pmoLabel, bpmoOf, pullBudget (key -> first spelling, four pulls), pullKeys (every pull row's
+//       budget key, unidentified rows' too), countedKeys (each counted row's budget key, Flyaway left out)}
+function eng_baeModel(B, R, idx, K) {
+  const { S, cx, blocks } = K;
+  const good = R.filter(x => x.readable), ins = good.filter(x => x.scope === 'in');
+  const rank = ap => ENG_AP_IDS.indexOf(ap);
+  const byKey = (a, b) => rank(a.ap) - rank(b.ap) || a.fy - b.fy;
+  // in scope, every FY, no switches: Approved and Authorized per (ap, fy), in model order
+  const bb = new Map();
+  for (const x of ins) {
+    const k = x.ap + '|' + x.fy;
+    if (!bb.has(k)) bb.set(k, { ap: x.ap, fy: x.fy, approved: 0, authorized: 0 });
+    const t = bb.get(k);
+    t.approved += x.approved; t.authorized += x.authorized;
+  }
+  const byBlock = {};
+  for (const t of [...bb.values()].sort(byKey)) byBlock[t.ap + '|' + t.fy] = { approved: t.approved, authorized: t.authorized };
+  // §14.1 the report's own total row, checked against the rows that read: it is a sum of floating-point dollars, so each
+  // figure agrees within $1. A total row whose figure could not be read is not checked (null), and says so.
+  const tr = B.total && typeof B.total === 'object' ? B.total : null;
+  const totalRow = tr ? { approved: Number.isSafeInteger(tr.approved) ? tr.approved : null,
+    authorized: Number.isSafeInteger(tr.authorized) ? tr.authorized : null, rowNo: Number.isInteger(tr.rowNo) ? tr.rowNo : null } : null;
+  let total = null;
+  if (totalRow && totalRow.approved !== null && totalRow.authorized !== null) {
+    const diff = { approved: totalRow.approved - eng_sumOf(good, 'approved'), authorized: totalRow.authorized - eng_sumOf(good, 'authorized') };
+    total = { ok: Math.abs(diff.approved) <= 100 && Math.abs(diff.authorized) <= 100, diff };
+  }
+  // an (ap, fy) the report holds counting money for, from firstFY to the execution year, with no block in the pull:
+  // named, never added as a block (§14.3)
+  const blockKeys = new Set(blocks.map(b => b.key));
+  const nb = new Map();
+  for (const x of R) {
+    if (!x.counts || x.fy > cx.E) continue;
+    const k = x.ap + '|' + x.fy;
+    if (blockKeys.has(k)) continue;
+    if (!nb.has(k)) nb.set(k, { ap: x.ap, fy: x.fy, approved: 0, authorized: 0, money: false });
+    const t = nb.get(k);
+    t.approved += x.approved; t.authorized += x.authorized;
+    if (x.approved !== 0 || x.authorized !== 0) t.money = true;
+  }
+  const noBlock = [...nb.values()].filter(t => t.money).sort(byKey).map(t => ({ ap: t.ap, fy: t.fy, approved: t.approved, authorized: t.authorized }));
+  const reportKeys = new Set(R.filter(x => x.name !== '').map(x => x.key));
+  const pullOnly = [...K.countedKeys].filter(k => !reportKeys.has(k)).sort(eng_cmp);
+  const reportOnly = [...new Set(ins.filter(x => x.fy >= S.firstFY && x.fy <= cx.E && (x.approved !== 0 || x.authorized !== 0) && !K.pullKeys.has(x.key))
+    .map(x => x.key))].sort(eng_cmp);
+  const lbl = pk => (pk ? K.pmoLabel(pk) : ENG_BLANK.pmo);
+  const budgets = {};
+  for (const x of R) {
+    if (x.name === '' || eng_own(budgets, x.key)) continue;
+    budgets[x.key] = { name: x.name, ap: x.ap, scope: x.scope, svc: x.svc, lane: x.lane, pmo: lbl(x.pmo) };
+  }
+  const pullBudgetPmo = {};
+  for (const [k, name] of K.pullBudget) pullBudgetPmo[k] = lbl(K.bpmoOf(name));
+  const when = SP.baeWhen(B);
+  return {
+    present: true, file: eng_txt(B.file), sheet: eng_txt(B.sheet), stamp: typeof B.stamp === 'string' && B.stamp ? B.stamp : null,
+    importedAt: typeof B.importedAt === 'string' ? B.importedAt : null, when, of: when ? 'of ' + when : 'with no date recorded',
+    rows: { in: ins.length, flyaway: good.filter(x => x.scope === 'flyaway').length, noap: good.filter(x => x.scope === 'noap').length,
+      bad: R.length - good.length },
+    budgetsIn: new Set(ins.map(x => x.key)).size,
+    cents: { approved: eng_sumOf(ins, 'approved'), authorized: eng_sumOf(ins, 'authorized') },
+    total, totalRow, byBlock,
+    uncovered: blocks.filter(b => !b.covered).map(b => ({ ap: b.ap, fy: b.fy })),
+    noBlock,
+    planShort: blocks.filter(b => b.planShort).map(b => ({ ap: b.ap, fy: b.fy, planned: b.planned, approved: b.approved })),
+    // each covered block's counted pull money on budgets the report's Approved can never hold (eng_offKind), in model order;
+    // like the blocks it speaks of, it follows the switches
+    offReport: blocks.filter(b => b.offReport).map(b => ({ ap: b.ap, fy: b.fy, planned: b.offReport.planned, obligated: b.offReport.obligated,
+      budgets: b.offReport.budgets.map(t => Object.assign({}, t)) })),
+    // the names as the files spell them, beside the keys: the pull's first spelling, the report's first
+    pullOnly, pullOnlyNames: pullOnly.map(k => K.pullBudget.get(k) || k), reportOnly, reportOnlyNames: reportOnly.map(k => budgets[k] ? budgets[k].name : k),
+    unreadable: R.filter(x => !x.readable).map(x => ({ rowNo: x.rowNo, name: x.name, fields: eng_baeBadFields(x), bad: x.bad ? x.bad.slice() : [] })),
+    counted: R.map(x => [x.rowNo, x.why]),
+    // each report row as §14.2 reads it, in file order: what the BAE Report sheet prints after the file's own columns
+    derived: R.map(x => ({ rowNo: x.rowNo, name: x.name, key: x.key, fy: x.fy, approved: x.approved, authorized: x.authorized, ap: x.ap,
+      apLabel: x.ap ? ENG_AP_LABEL[x.ap] : '', scope: x.scope, svc: x.svc, lane: x.lane, pmo: x.pmo, pmoLabel: lbl(x.pmo),
+      readable: x.readable, counts: x.counts, why: x.why })),
+    budgets, pullBudgetPmo, pmoIndex: idx,
+  };
+}
+// which of the four a row could not read: 'Budget Name', 'FY', 'Approved', 'Authorized'. The import's own words say why
+// (row.bad); these say what, so a list of them can be compared and counted.
+function eng_baeBadFields(x) {
+  const f = [];
+  if (x.name === '') f.push('Budget Name');
+  if (x.fy === null) f.push('FY');
+  if (x.approved === null) f.push('Approved');
+  if (x.authorized === null) f.push('Authorized');
+  return f;
+}
 
 // §4.6 the Summary's notes, each only when it has something to say.
 // Under a switch, a note must not claim more than is true (§4.3: "each product states what it shows when not
@@ -606,11 +1058,14 @@ function eng_notes(M) {
   const every = filtered ? ' This counts every service and lane, whatever the switches show.' : '';
   const authAll = filtered ? M.blocks.filter(b => b.authorizedEntered) : [];
   const bf = M.excluded.beforeFirst, ui = M.excluded.unidentified, ur = M.excluded.unreadable.rows;
+  const X = M.bae && M.bae.present ? M.bae : null;
   if (filtered) {
     const ex = [];
     if (authAll.length) ex.push('an entered Authorized (marked ‡)');
     if (bf.rows || ui.rows || ur) ex.push('the notes below on rows not counted');
-    notes.push(M.shown.text + '. Every figure counts only these' + (ex.length ? ', except ' + ex.join(' and ') + ', which cover every service and lane' : '') + '.');
+    // the report's own totals (§14.5 cents: in scope, every FY, no switches) describe the report, not what is shown
+    if (X) ex.push('the note below on the BAE report as a whole');
+    notes.push(M.shown.text + '. Every figure counts only these' + (ex.length ? ', except ' + eng_and(ex) + ', which cover every service and lane' : '') + '.');
   }
   // a pull kept from an import made before the data-through month ended (review BP-3): Line 2's "Data through" is one
   // month for every row below it, so the rows that cannot reach it are named here, on the Summary, as well as in their
@@ -625,11 +1080,16 @@ function eng_notes(M) {
       + (one ? 'Its Obligation % lines say “actual through the ' + s0.day + ' import”' : 'Their Obligation % lines name the import their actuals stop at')
       + '. Import a newer pull to bring ' + (one ? 'it' : 'them') + ' up to date.');
   }
-  const up = M.blocks.filter(b => b.unprog !== 0);
+  if (X) eng_baeNotes(M, X, notes, every);
+  // Unprogrammed money sits in the CCaR plan; with no report, or on a block the report does not cover, that plan IS
+  // Approved, while on a covered block Approved is the report's and the plan is what the slide measures (§14.5)
+  const up = M.blocks.filter(b => b.unprog !== 0 && !b.covered), upC = M.blocks.filter(b => b.unprog !== 0 && b.covered);
   if (up.length) notes.push('Unprogrammed money is counted in Approved: ' + up.map(b => eng_fyName(b) + ' ' + eng_dollars(b.unprog)).join('; ') + '.');
-  const noAuth = M.blocks.filter(b => !b.authorizedEntered);
+  if (upC.length) notes.push('Unprogrammed money is counted in the CCaR plan: ' + upC.map(b => eng_fyName(b) + ' ' + eng_dollars(b.unprog)).join('; ') + '.');
+  // † : with no report, Authorized not entered; with one, neither entered nor in the report (§14.5)
+  const noAuth = X ? M.blocks.filter(b => b.authorizedSrc === 'approved') : M.blocks.filter(b => !b.authorizedEntered);
   if (noAuth.length) {
-    notes.push('Authorized was not entered for ' + (noAuth.length === M.blocks.length ? 'any block'
+    notes.push('Authorized was ' + (X ? 'neither entered nor in the BAE report' : 'not entered') + ' for ' + (noAuth.length === M.blocks.length ? 'any block'
       : noAuth.map(eng_fyName).join(', ')) + '; Approved is shown in its place (marked †).');
   }
   if (authAll.length) {
@@ -656,6 +1116,111 @@ function eng_notes(M) {
     + ' so the headline Obl % and the data-through month’s differ by ' + (nd.rows === 1 ? 'it' : 'them') + '.');
   return notes;
 }
+// §14.5 the Summary's notes on the BAE report, each only when it applies: the report itself (its date, the budgets in it,
+// those left out by kind, and its total row checked), the blocks it has no figure for (§), each block whose CCaR plan is
+// under half the report's Approved (rule 5: flagged, never hidden), and the report's money for a year the pull has no
+// block for (named, never added as a block).
+//   every: the sentence a note ends with when it counts every service and lane while the switches show only some
+// §14.5 how a planShort block's plan is said against the report's Approved: a whole percent, as §14.5's example rounds
+// it (3.57% is "4%"), except that a block flagged as UNDER half is never said to be 50% of it. A plan from 49.5% up to
+// half rounds to 50, and "is 50% of the BAE report's Approved" stood under "under half" (review P4-9); there it is
+// "under 50%". Flooring instead would break the example. One wording, for the Summary's note and the Import report.
+SP.planShortPct = function planShortPct(planned, approved) {
+  const p = Math.round(100 * planned / approved);
+  return (p >= 50 && 2 * planned < approved ? 'under 50' : String(p)) + '%';
+};
+function eng_baeNotes(M, X, notes, every) {
+  const r = X.rows;
+  const before = X.derived.filter(d => d.why === ENG_BAE_WHY.first).length;
+  const out = [];
+  if (r.flyaway) out.push(SP.fmtInt(r.flyaway) + ' Flyaway (production) ' + (r.flyaway === 1 ? 'row' : 'rows'));
+  if (r.noap) out.push(eng_rowsWord(r.noap) + ' naming no appropriation');
+  if (r.bad) out.push(eng_rowsWord(r.bad) + ' that could not be read');
+  if (before) out.push(eng_rowsWord(before) + ' before FY' + M.firstFY);
+  let check;
+  if (X.total) {
+    check = X.total.ok ? 'Its total row agrees with the rows read.'
+      : 'Its total row differs from the rows read by ' + SP.fmtUsd(X.total.diff.approved) + ' Approved and ' + SP.fmtUsd(X.total.diff.authorized)
+        + ' Authorized; see the Import report.';
+  } else check = X.totalRow ? 'Its total row could not be read, so it was not checked.' : 'It has no total row to check against.';
+  notes.push('Approved and Authorized come from the BAE report ' + X.of + (X.file ? ' (' + X.file + ')' : '') + ' wherever it has figures for a block: it holds '
+    + eng_rowsWord(r.in) + ' of sustainment budgets (' + SP.fmtInt(X.budgetsIn) + (X.budgetsIn === 1 ? ' budget' : ' budgets') + '), '
+    + eng_dollarsT(X.cents.approved) + ' Approved and ' + eng_dollarsT(X.cents.authorized) + ' Authorized over every FY. '
+    + (out.length ? 'Counted nowhere: ' + eng_and(out) + '. ' : '') + check + every);
+  const unc = M.blocks.filter(b => !b.covered);
+  if (unc.length) notes.push('The BAE report has no figure for ' + eng_and(unc.map(eng_fyName)) + ': Approved there is the CCaR plan (marked §).');
+  for (const b of M.blocks.filter(x => x.planShort)) {
+    notes.push(eng_fyName(b) + ': the CCaR plan (' + eng_dollarsT(b.planned) + ') is ' + SP.planShortPct(b.planned, b.approved) + ' of the BAE report’s Approved ('
+      + eng_dollarsT(b.approved) + '); Obl % is measured against the report’s figure.');
+  }
+  // review M4-6: a covered block's plan and Obligated hold money its Approved leaves out by rule; named, never moved (§14.3)
+  for (const o of X.offReport) {
+    const b = { ap: o.ap, fy: o.fy };
+    notes.push(eng_fyName(b) + ': the CCaR plan counts ' + eng_dollarsT(o.planned) + ' on ' + eng_offWords(o.budgets) + ', which the BAE report’s Approved leaves out'
+      + (o.obligated !== 0 ? '; ' + eng_dollarsT(o.obligated) + ' of it is obligated, so Obligated and Obl % count money that Approved does not.'
+        : ', so the plan counts money that Approved does not.') + ' See the Import report.');
+  }
+  if (X.noBlock.length) {
+    const one = X.noBlock.length === 1;
+    notes.push('The BAE report holds money for ' + X.noBlock.map(t => ENG_AP_LABEL[t.ap] + ' FY' + t.fy + ' (' + eng_dollarsT(t.approved) + ' Approved, '
+      + eng_dollarsT(t.authorized) + ' Authorized)').join('; ') + ', which the CCaR pull has no rows for: no block is shown for ' + (one ? 'it' : 'them') + '.');
+  }
+}
+// §14.4 the lines under a PMO tab's table with a BAE report loaded, in the one wording the screen and the workbook print:
+// what its figures count where they are the budgets', and, where a typed Authorized stands on a block the tab shows,
+// that it is never split among PMOs. [] with no report, or for a PMO none of whose rows is on the budgets.
+SP.pmoTabNotes = function pmoTabNotes(pmo, model) {
+  if (!pmo || !model || !model.bae || !model.bae.present) return [];
+  const rows = Array.isArray(pmo.rows) ? pmo.rows : [];
+  const bud = rows.filter(r => r.basis === 'budget');
+  if (!bud.length) return [];
+  // (no PMO) has no code of its own: SP.pmoCode reads 'no PMO' out of its label, and no budget ends in that. Its row counts
+  // the budgets whose last word is NO PMO's code (§14.2: CAM, SUPT, Initial, a Budget left blank), the ones every other
+  // tab leaves, so it says that; filling §14.4's sentence in with its "code" told a reader the opposite of the rule, on
+  // the tab that holds over half the real report's sustainment Approved (review M4-3)
+  const what = pmo.key === '' ? 'whose name does not end in any PMO’s code, which no other PMO’s tab counts'
+    : 'whose name ends in this PMO’s code (' + pmo.code + ')';
+  const out = ['Approved, Authorized and Obligated count the budgets ' + what + '; the detail below lists rows by their own PMO.'];
+  // rule 7 counts a PMO row's Obligated by the budget's PMO, Flyaway and budgets that name no appropriation included, while
+  // its Approved is the sustainment budgets alone; where that leaves money on one side only, the tab says how much (M4-6)
+  const off = bud.filter(r => Number.isSafeInteger(r.offObligated) && r.offObligated !== 0);
+  if (off.length) {
+    out.push('Obligated includes money executed on budgets the BAE report’s Approved leaves out (Flyaway (production), a budget that names no '
+      + 'appropriation, or no Budget at all): ' + off.map(r => eng_fyName(r) + ' ' + eng_dollarsT(r.offObligated)).join('; ')
+      + '. Obl % there counts it against an Approved that does not.');
+  }
+  const typed = bud.filter(r => (model.blocks || []).some(b => b.key === r.key && b.authorizedSrc === 'entered'));
+  if (typed.length) {
+    out.push('Authorized is entered for ' + eng_and(typed.map(eng_fyName)) + ' as a whole and is never split among the PMOs: this tab shows the BAE report’s Authorized for '
+      + (typed.length === 1 ? 'that block' : 'those blocks') + '.');
+  }
+  return out;
+};
+// EVERY LINE UNDER A PMO TAB'S TABLE, in order, for the screen and the workbook alike: they were written apart and said the
+// same thing in two wordings and two orders (integration, §14.4). With no report it is §8.6's one note, word for word. With
+// one, it is SP.pmoTabNotes' lines, then §8.6's note narrowed to the rows it is still true of: a row the report covers
+// shows the budgets' Authorized, so "a PMO row shows Approved" is said only when a row is §4.6's.
+SP.pmoTabLines = function pmoTabLines(pmo, model) {
+  if (!model || !model.bae || !model.bae.present) return ['Authorized is entered by appropriation and FY; a PMO row shows Approved.'];
+  const rows = pmo && Array.isArray(pmo.rows) ? pmo.rows : [];
+  return SP.pmoTabNotes(pmo, model).concat(rows.some(r => r.basis !== 'budget')
+    ? ['Authorized is entered by appropriation and FY; where the BAE report has no figure for a block, its PMO row shows Approved.'] : []);
+};
+// THE STRIP OVER A PMO TAB'S BLOCK (§8.6 item 3), for the screen and the workbook alike: the stoplight row's figures for
+// that block, each with the mark that row carries in the table above (§14.4, §14.5). They were written apart, and only the
+// workbook carried the marks: on screen a block the report has no figure for read "Approved 24.85M | Authorized 24.85M",
+// with nothing to say the first was the plan and the second stood in for it (review M4-5, P4-5). With no report a PMO row
+// carries no mark (its Authorized is Approved, and the note under the table says so), so the strip carries none either.
+//   -> {head: 'Full Fund FY2025 Summary', parts: [[word, cents, mark] x4]}; SP.pmoStrip joins them as the workbook prints
+SP.pmoStripParts = function pmoStripParts(b, model) {
+  const rep = !!(model && model.bae && model.bae.present);
+  return { head: b.apLabel + ' FY' + b.fy + ' Summary', parts: [['Approved', b.approved, rep ? SP.approvedMark(b, model) : ''],
+    ['Authorized', b.authorized, rep ? SP.authMark(b, model) : ''], ['Obligated', b.obligated, ''], ['Unobligated', b.unobligated, '']] };
+};
+SP.pmoStrip = function pmoStrip(b, model) {
+  const s = SP.pmoStripParts(b, model);
+  return s.head + s.parts.map(([w, c, m]) => '  |  ' + w + ' ' + SP.fmtMText(c) + 'M' + m).join('');
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // WHAT CHANGED (§4.6 diffPulls): every row of every FY, with no switches and no first FY, because the question is what the
@@ -795,4 +1360,88 @@ SP.diffPulls = function diffPulls(prevPulls, curPulls, settings) {
       ccarsNew, ccarsGone, pmoMoves, unread: [a.unread, b.unread], leaves: { new: lNew, gone: lGone, changed: lChanged, unread: lUnread } };
   }
   return out;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// WHAT CHANGED IN THE BAE REPORT (§14.6 SP.diffBae): the report that replaced another, against it, over its sustainment
+// budgets (scope 'in'), every FY and every row, with no switches: the question is what the new report says that the old
+// one did not, not what this browser shows. A budget is IN a report when it has an in-scope row there, readable or not,
+// as a CCaR whose rows do not read is still in its pull (§4.6): so a row that turned unreadable never makes a budget
+// gone, and its dollars, like every unreadable row's, count nowhere. A budget changed when any FY's Approved or
+// Authorized moved. Each list is largest change first: the change summed over its FYs, Approved or Authorized,
+// whichever is larger; ties by name (its normKey).
+// A BUDGET WITH A ROW THAT COULD NOT BE READ, on either side, is listed apart (budgetsUnread), as the pull's lines with
+// such a row are (§4.6, review M1), with how many rows each side could not read: listed as changed, a budget whose one
+// Authorized cell turned to "n/a" read "Approved 500.00 → -", cut to $0, though its Approved cell held the same figure
+// in both files, and nothing on the view said a row could not be read (review I4-3). `unread` counts every such row.
+// ---------------------------------------------------------------------------------------------------------------
+function eng_baeSide(bae, settings) {
+  const blocks = new Map(), figs = new Map(), names = new Map(), unread = new Map();
+  let unreadN = 0;
+  for (const row of bae && Array.isArray(bae.rows) ? bae.rows : []) {
+    const x = SP.baeDerive(row, settings);
+    if (x.name === '' || x.scope !== 'in') continue;
+    if (!names.has(x.key)) names.set(x.key, x.name);
+    if (!figs.has(x.key)) figs.set(x.key, new Map());
+    if (!x.readable) { unread.set(x.key, (unread.get(x.key) || 0) + 1); unreadN++; continue; }
+    const bk = x.ap + '|' + x.fy;
+    if (!blocks.has(bk)) blocks.set(bk, { ap: x.ap, fy: x.fy, approved: 0, authorized: 0 });
+    const t = blocks.get(bk);
+    t.approved += x.approved; t.authorized += x.authorized;
+    const f = figs.get(x.key), fk = String(x.fy);
+    if (!f.has(fk)) f.set(fk, [0, 0]);
+    f.get(fk)[0] += x.approved; f.get(fk)[1] += x.authorized;
+  }
+  return { blocks, figs, names, unread, unreadN };
+}
+function eng_baeWho(bae) {
+  const b = bae && typeof bae === 'object' ? bae : {};
+  const when = SP.baeWhen(b);
+  return { file: eng_txt(b.file), stamp: typeof b.stamp === 'string' && b.stamp ? b.stamp : null,
+    importedAt: typeof b.importedAt === 'string' ? b.importedAt : null, when,
+    label: (when || 'no date recorded') + (b.file ? ' (' + eng_txt(b.file) + ')' : '') };
+}
+SP.diffBae = function diffBae(prev, cur, settings) {
+  const a = eng_baeSide(prev, settings), b = eng_baeSide(cur, settings);
+  const rank = ap => ENG_AP_IDS.indexOf(ap);
+  const keys = new Map([...a.blocks.values(), ...b.blocks.values()].map(t => [t.ap + '|' + t.fy, t]));
+  const byBlock = {};
+  for (const [k, t] of [...keys].sort((x, y) => rank(x[1].ap) - rank(y[1].ap) || x[1].fy - y[1].fy)) {
+    const p = a.blocks.get(k) || { approved: 0, authorized: 0 }, q = b.blocks.get(k) || { approved: 0, authorized: 0 };
+    byBlock[k] = { ap: t.ap, fy: t.fy, approved: [p.approved, q.approved], authorized: [p.authorized, q.authorized] };
+  }
+  const entry = k => {
+    const f0 = a.figs.get(k) || new Map(), f1 = b.figs.get(k) || new Map();
+    const fys = [...new Set([...f0.keys(), ...f1.keys()])].sort(eng_cmp);
+    const byFy = {};
+    let da = 0, du = 0;
+    const approved = [0, 0], authorized = [0, 0];
+    for (const fy of fys) {
+      const x = f0.get(fy) || [0, 0], y = f1.get(fy) || [0, 0];
+      byFy[fy] = { approved: [x[0], y[0]], authorized: [x[1], y[1]] };
+      da += Math.abs(y[0] - x[0]); du += Math.abs(y[1] - x[1]);
+      approved[0] += x[0]; approved[1] += y[0]; authorized[0] += x[1]; authorized[1] += y[1];
+    }
+    const e = { key: k, name: b.names.get(k) ?? a.names.get(k), size: Math.max(da, du), approved, authorized, byFy };
+    if (unr(k)) e.unread = [a.unread.get(k) || 0, b.unread.get(k) || 0];
+    return e;
+  };
+  // two budgets' figures are the same when they hold the same FYs with the same two figures in each
+  const same = (f0, f1) => f0.size === f1.size && [...f0].every(([fy, v]) => f1.has(fy) && f1.get(fy)[0] === v[0] && f1.get(fy)[1] === v[1]);
+  const ranked = ks => ks.map(entry).sort((x, y) => y.size - x.size || eng_cmp(x.key, y.key));
+  const unr = k => a.unread.has(k) || b.unread.has(k);
+  const all = [...new Set([...b.names.keys(), ...a.names.keys()])];
+  // listed apart when anything about it differs: in one report only, its figures, or how many of its rows could not be read
+  const differs = k => !a.names.has(k) || !b.names.has(k) || (a.unread.get(k) || 0) !== (b.unread.get(k) || 0)
+    || !same(a.figs.get(k) || new Map(), b.figs.get(k) || new Map());
+  return {
+    from: eng_baeWho(prev), to: eng_baeWho(cur),
+    title: 'BAE report: ' + eng_baeWho(prev).label + ' → ' + eng_baeWho(cur).label,
+    byBlock,
+    unread: [a.unreadN, b.unreadN],
+    budgetsNew: ranked([...b.names.keys()].filter(k => !a.names.has(k) && !unr(k))),
+    budgetsGone: ranked([...a.names.keys()].filter(k => !b.names.has(k) && !unr(k))),
+    budgetsChanged: ranked([...b.names.keys()].filter(k => a.names.has(k) && !unr(k) && !same(a.figs.get(k), b.figs.get(k)))),
+    budgetsUnread: ranked(all.filter(k => unr(k) && differs(k))),
+  };
 };

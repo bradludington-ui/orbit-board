@@ -115,10 +115,12 @@ table.grid{border-collapse:collapse;font-size:12px;background:#fff}
 .grid th.lab{min-width:16em;max-width:30em;font-weight:400;white-space:normal;overflow-wrap:anywhere}
 .grid tr.total th,.grid tr.total td{background:var(--navy);color:#fff;font-weight:700;border-color:var(--navy)}
 .grid th.apg{vertical-align:middle;font-weight:700}
-.dag,.ddag{margin-left:2px;font-weight:700;color:#7a5a00}
+.dag,.ddag,.sect{margin-left:2px;font-weight:700;color:#7a5a00}
 /* on a TOTAL row's navy the dark gold read 1.77:1 and could not be seen: the mark that says the total mixes in an entered,
    every-service Authorized was a smudge (review SCR2-3). The gold of the header rows is about 9.8:1 on the navy. */
-.grid tr.total .dag,.grid tr.total .ddag{color:var(--gold)}
+.grid tr.total .dag,.grid tr.total .ddag,.grid tr.total .sect{color:var(--gold)}
+/* the BAE report (CONTRACT §14): a block it has no figure for, in the Settings table */
+.grid td.nofig{color:#555;font-style:italic}
 
 /* the block tables: v12's outline styles (PMO 11 pt bold navy; Title 10 pt bold; Plan Event 10 pt; CCaR 9 pt) */
 table.blk{font-size:12px}
@@ -136,6 +138,8 @@ main .tg:hover{background:none;text-decoration:underline;color:inherit}
 .blk tr.band:first-of-type th,.blk tr.band:first-of-type td{border-top:2px solid var(--box)}
 .blk tr.spacer td{border:0;height:8px;padding:0}
 .blk tr.strip td{background:var(--strip);font-weight:700;color:#000}
+/* a mark in a PMO block's strip (§14.5, review M4-5) takes the strip's black: the dark gold read about 4.3:1 on its blue */
+.blk tr.strip td .dag,.blk tr.strip td .ddag,.blk tr.strip td .sect{color:inherit}
 .bar{margin:14px 0 0;padding:4px 8px;background:var(--navy);color:#fff;font-weight:700;font-size:14px;overflow-wrap:anywhere}
 .bar.bar2{background:var(--navy2)}
 h3.bar{margin-top:16px}

@@ -705,14 +705,30 @@ SP.applyImport = function applyImport(parsed) {
   if (aps.length) {
     said.push('Imported ' + st_list(aps.map(ap => st_apLabel(ap) + ' (' + st_rows(st.pulls.current[ap].rows.length) + ')')) + '.');
   } else if (keys.length) said.push('No row in this import could be placed in an appropriation.');
-  // the report by name and date, and the rows it brings (CONTRACT §14.7)
-  const baeR = baeIn ? st_baeReadable(st.bae.current) : null;
+  // the report by name and date, and the rows it counts (CONTRACT §14.7): counted as the stoplight tables count them
+  // (SP.baeTally, §14.2: readable, a sustainment budget, of First FY or later, its service and lane shown), the rest by
+  // why. It gave the rows read and the money of every readable row, Flyaway, RDT&E and the years before First FY included,
+  // so its Approved was far larger than any table shows (559 of the real report's 1,158 rows are sustainment budgets) and
+  // matched nothing a reader could check it against (review I4-6). A page with no settings yet counts by the First FY a
+  // first pull will give it.
   const baeRep = st_isObj(report.bae) ? report.bae : {};
   if (baeIn) {
     const b = st.bae.current, n = b.rows.length;
+    let t = null;
+    try { t = typeof SP.baeTally === 'function' ? SP.baeTally(b, st.settings || def, SP.getView()) : null; } catch (e) { t = null; }
+    let counted = '';
+    if (t) {
+      const not = [];
+      if (t.flyaway) not.push(SP.fmtInt(t.flyaway) + ' Flyaway (production)');
+      if (t.noap) not.push(SP.fmtInt(t.noap) + (t.noap === 1 ? ' that names' : ' that name') + ' no appropriation');
+      if (t.first) not.push(SP.fmtInt(t.first) + ' before FY' + t.firstFY);
+      if (t.off) not.push(SP.fmtInt(t.off) + ' in a service or lane switched off');
+      if (t.bad) not.push(SP.fmtInt(t.bad) + ' that could not be read');
+      counted = ', ' + (t.yes === n && n !== 1 ? 'every one' : t.yes === n ? 'it' : SP.fmtInt(t.yes) + ' of them') + ' counted (sustainment budgets of FY' + t.firstFY
+        + ' or later' + (t.off ? ', in the services and lanes shown' : '') + ')' + (not.length ? '; not counted: ' + st_list(not) : '');
+    }
     said.push('Imported the BAE report “' + b.file + '” › “' + b.sheet + '”, ' + (b.stamp ? 'dated ' + b.stamp : 'which has no date in its file name')
-      + ': ' + st_rows(n) + (baeR.rows < n ? ', ' + SP.fmtInt(baeR.rows) + ' of them readable' : '') + ' (Approved ' + st_usd(baeR.approved)
-      + ', Authorized ' + st_usd(baeR.authorized) + ', before Flyaway and the budgets that name no appropriation are left out).');
+      + ': ' + st_rows(n) + counted + '.');
   }
   const refused = (Array.isArray(report.refusedFiles) ? report.refusedFiles : []).filter(st_isObj);
   for (const f of refused) {

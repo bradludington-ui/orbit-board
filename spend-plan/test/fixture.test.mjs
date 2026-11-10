@@ -293,6 +293,10 @@ function baeExpect(pull, bae, budgetPmo, o) {
   const shown = r => !svcOff.includes(r.svc) && lanes.includes(r.lane);
   const counting = r => !r.bad.length && r.scope === 'in' && r.fy >= first && shown(r);
   const covered = new Set(good.filter(r => r.scope === 'in').map(r => r.ap + '|' + r.fy));
+  // review M4-6: a covered block's counted pull money on a budget the report's Approved can never hold (no Budget; the
+  // word Flyaway; a name the §3 Budget rule places nowhere). The rule and the word restated from the contract.
+  const apOfName = n => /spares/i.test(n) ? 'sp' : /full\s*fund/i.test(n) ? 'ff' : /\bopn\b/i.test(n) ? 'opn' : /o&m/i.test(n) ? 'om' : null;
+  const offKind = b => { const n = String(b ?? '').trim(); return n === '' ? 'blank' : /\bflyaway\b/i.test(n) ? 'flyaway' : apOfName(n) ? null : 'noap'; };
   const blocks = {};
   for (const [k, pb] of Object.entries(P.blocks)) {
     const cov = covered.has(k);
@@ -303,9 +307,23 @@ function baeExpect(pull, bae, budgetPmo, o) {
     const authorized = entered ? auth[k] : cov ? sum(rep.map(r => r.authorized)) : approved;
     const tabs = {};
     for (const r of pb.rows) add(tabs, r.pmo || '(no PMO)', 'approved', 0);           // every PMO with a pull row
+    let off = null;
     if (cov) {
       for (const r of rep) { add(tabs, r.pmo, 'approved', r.approved); add(tabs, r.pmo, 'authorized', r.authorized); }
-      for (const r of pb.rows) if (r.status === 'exec') add(tabs, budgetPmo[r.budget], 'obligated', r.cents);
+      for (const r of pb.rows) if (r.status === 'exec') {
+        const t = add(tabs, budgetPmo[r.budget], 'obligated', r.cents);
+        if (offKind(r.budget)) t.offObligated = (t.offObligated || 0) + r.cents;
+      }
+      const by = {};
+      for (const r of pb.rows) {
+        const kind = offKind(r.budget);
+        if (!kind) continue;
+        const e = by[normKey(r.budget)] = by[normKey(r.budget)] || { key: normKey(r.budget), name: String(r.budget ?? '').trim(), kind, rows: 0, planned: 0, obligated: 0 };
+        e.rows++; e.planned += r.cents;
+        if (r.status === 'exec') e.obligated += r.cents;
+      }
+      const bs = Object.values(by).filter(e => e.planned || e.obligated);
+      if (bs.length) off = { planned: sum(bs.map(e => e.planned)), obligated: sum(bs.map(e => e.obligated)), budgets: bs };
     } else {
       for (const r of pb.rows) {
         add(tabs, r.pmo || '(no PMO)', 'approved', r.cents); add(tabs, r.pmo || '(no PMO)', 'authorized', r.cents);
@@ -314,7 +332,7 @@ function baeExpect(pull, bae, budgetPmo, o) {
     }
     blocks[k] = { covered: cov, planned, approved, approvedSrc: cov ? 'report' : 'plan', authorized,
       authorizedSrc: entered ? 'entered' : cov ? 'report' : 'approved', authorizedEntered: entered, obligated: pb.obligated,
-      unobligated: approved - pb.obligated, planShort: cov && approved > 0 && 2 * planned < approved, tabs };
+      unobligated: approved - pb.obligated, planShort: cov && approved > 0 && 2 * planned < approved, tabs, off };
   }
   const keys = Object.keys(blocks).sort(blockOrder);
   const nb = {};
@@ -345,26 +363,29 @@ function baeExpect(pull, bae, budgetPmo, o) {
       planShort: keys.filter(k => blocks[k].planShort).map(k => ({ ap: k.split('|')[0], fy: +k.split('|')[1],
         planned: blocks[k].planned, approved: blocks[k].approved })),
       pullOnly: [...pullOnly].sort(), reportOnly: [...reportOnly].sort(),
+      offReport: keys.filter(k => blocks[k].off).map(k => Object.assign({ ap: k.split('|')[0], fy: +k.split('|')[1] }, blocks[k].off)),
       unreadable: data.filter(r => r.bad.length).map(r => ({ rowNo: r.row, name: r.name || '', bad: r.bad })),
       counted: data.map(r => [r.row, why(r)]) } };
 }
 
-// §14.6 diffBae from the generator's record of the two reports: per (ap, fy), and the budgets new, gone and changed
+// §14.6 diffBae from the generator's record of the two reports: per (ap, fy), and the budgets new, gone and changed; a
+// budget with a row that could not be read, either side, in none of those but apart, when anything about it differs
+// (review I4-3), and every such row counted
 function baeDiffExpect(r0, r1) {
   const side = rows => {
-    const blocks = {}, figs = {}, present = new Set();
+    const blocks = {}, figs = {}, present = new Set(), unread = {};
     for (const r of rows) {
       if (r.kind !== 'data' || !r.name || r.scope !== 'in') continue;
       const k = normKey(r.name);
       present.add(k);
-      if (r.bad.length) continue;
+      if (r.bad.length) { unread[k] = (unread[k] || 0) + 1; continue; }
       const b = blocks[r.ap + '|' + r.fy] = blocks[r.ap + '|' + r.fy] || [0, 0];
       b[0] += r.approved; b[1] += r.authorized;
       figs[k] = figs[k] || {};
       const f = figs[k][r.fy] = figs[k][r.fy] || [0, 0];
       f[0] += r.approved; f[1] += r.authorized;
     }
-    return { blocks, figs, present };
+    return { blocks, figs, present, unread };
   };
   const a = side(r0), b = side(r1);
   const byBlock = {};
@@ -374,10 +395,15 @@ function baeDiffExpect(r0, r1) {
   }
   const tot = (f, i) => sum(Object.values(f || {}).map(v => v[i]));
   const ent = k => ({ key: k, approved: [tot(a.figs[k], 0), tot(b.figs[k], 0)], authorized: [tot(a.figs[k], 1), tot(b.figs[k], 1)] });
-  return { byBlock,
-    budgetsNew: [...b.present].filter(k => !a.present.has(k)).sort().map(ent),
-    budgetsGone: [...a.present].filter(k => !b.present.has(k)).sort().map(ent),
-    budgetsChanged: [...a.present].filter(k => b.present.has(k) && JSON.stringify(canon(a.figs[k] || {})) !== JSON.stringify(canon(b.figs[k] || {}))).sort().map(ent) };
+  const unr = k => k in a.unread || k in b.unread;
+  const moved = k => JSON.stringify(canon(a.figs[k] || {})) !== JSON.stringify(canon(b.figs[k] || {}));
+  const both = [...new Set([...a.present, ...b.present])];
+  return { byBlock, unread: [sum(Object.values(a.unread)), sum(Object.values(b.unread))],
+    budgetsNew: [...b.present].filter(k => !a.present.has(k) && !unr(k)).sort().map(ent),
+    budgetsGone: [...a.present].filter(k => !b.present.has(k) && !unr(k)).sort().map(ent),
+    budgetsChanged: [...a.present].filter(k => b.present.has(k) && !unr(k) && moved(k)).sort().map(ent),
+    budgetsUnread: both.filter(k => unr(k) && (!a.present.has(k) || !b.present.has(k) || (a.unread[k] || 0) !== (b.unread[k] || 0) || moved(k))).sort()
+      .map(k => Object.assign(ent(k), { unread: [a.unread[k] || 0, b.unread[k] || 0] })) };
 }
 
 // the report file as openpyxl reads it on its own: header row, headers, the money cells' formats and texts, the total
@@ -639,7 +665,7 @@ try {
   cnt('report rows for FY2028 and later', inGood.filter(r => r.fy >= 2028).length, 5);
   cnt('a total row', R1.filter(r => r.kind === 'total').length);
   const DX = baeDiffExpect(R1, R2);
-  for (const k of ['budgetsNew', 'budgetsGone', 'budgetsChanged']) cnt('gen2: ' + k, DX[k].length);
+  for (const k of ['budgetsNew', 'budgetsGone', 'budgetsChanged', 'budgetsUnread']) cnt('gen2: ' + k, DX[k].length);
   cnt('gen2: an FY that cannot be read', D2.filter(r => r.bad.includes('FY')).length);
   cnt('gen2: a row with no Budget Name', D2.filter(r => r.bad.includes('Budget Name')).length);
   cnt('gen2: a row blank in the four columns the tool reads', R2.filter(r => r.kind === 'skip').length);
@@ -673,15 +699,16 @@ try {
       chk(t + ': Obl % = obligated / Approved (the report\'s)', close(b.oblPct, pct), String(b.oblPct));
       chk(t + ': delta', close(b.delta, pct !== null && b.goal !== null ? pct - b.goal : null), String(b.delta));
       eq(t + ': status on that Obl %', b.status, statusOf(pct, b.goal));
-      eq(t + ': marks', b.marks, { sect: !x.covered, dagger: x.authorizedSrc === 'approved', ddagger: x.authorizedEntered && !exp.shown.all });
+      // ‡ on every entered figure with a report loaded, whatever the switches (answer 8, review I4-4)
+      eq(t + ': marks', b.marks, { sect: !x.covered, dagger: x.authorizedSrc === 'approved', ddagger: !!x.authorizedEntered });
       // §14.4 the PMO rows: budgets' figures on a covered block, rows' on another; the detail stays on the plan
       const tabs = Object.fromEntries(Object.entries(exp.pmoTabs).filter(([, tb]) => tb[k]).map(([l, tb]) => [l, tb[k]]));
       eq(t + ': which PMOs have a row', Object.keys(tabs).sort(), Object.keys(x.tabs).sort());
       for (const [l, tr] of Object.entries(tabs)) {
         const w = x.tabs[l];
         if (!w) continue;
-        eq(`${t} PMO ${l}: Approved, Authorized, Obligated, basis`, [tr.approved, tr.authorized, tr.obligated, tr.basis, tr.sect],
-          [w.approved, w.authorized, w.obligated, x.covered ? 'budget' : 'row', !x.covered]);
+        eq(`${t} PMO ${l}: Approved, Authorized, Obligated, basis, and the Obligated its Approved leaves out (M4-6)`,
+          [tr.approved, tr.authorized, tr.obligated, tr.basis, tr.sect, tr.offObligated], [w.approved, w.authorized, w.obligated, x.covered ? 'budget' : 'row', !x.covered, w.offObligated || 0]);
         chk(`${t} PMO ${l}: Obl % and status`, close(tr.oblPct, tr.approved ? tr.obligated / tr.approved : null) &&
           tr.status === statusOf(tr.oblPct, b.goal), JSON.stringify([tr.oblPct, tr.status]));
         const pd = plain.pmoTabs[l] && plain.pmoTabs[l][k];
@@ -700,6 +727,9 @@ try {
       Object.values(totals(blocks.filter(b => b.ap === ap))));
     for (const f of ['rows', 'skipped', 'cents', 'total', 'uncovered', 'noBlock', 'planShort', 'pullOnly', 'reportOnly', 'unreadable', 'counted'])
       eq(`${tag}: model.bae.${f}`, exp.bae[f], X.lists[f]);
+    // each block's budgets compared by name: the manifest's row order need not be the files'
+    const byName = l => (l || []).map(o => Object.assign({}, o, { budgets: [...o.budgets].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)) }));
+    eq(`${tag}: model.bae.offReport (review M4-6)`, byName(exp.bae.offReport), byName(X.lists.offReport));
   }
   const BAE_SC = {
     'bae-all': [{ asOf: '2026-10', first: 2025 }, () => ex.all, R1, g1],
@@ -728,14 +758,18 @@ try {
     if (e) for (const [l, tb] of Object.entries(exB['bae-all'].pmoTabs)) eq('bae-entered: a typed Authorized is never split to PMOs (' + l + ')', e.pmoTabs[l], tb);
     const o = exB['bae-entered-off'];
     if (o) eq('bae-entered-off: ‡ on the typed figures alone, while a switch is off', Object.keys(o.blocks).filter(k => o.blocks[k].marks.ddagger).sort(), Object.keys(ENT).sort());
+    if (e) eq('bae-entered: ‡ on the typed figures alone, every switch on too (answer 8: marked as entered, review I4-4)',
+      Object.keys(e.blocks).filter(k => e.blocks[k].marks.ddagger).sort(), Object.keys(ENT).sort());
   }
   if (exB['bae-gen2']) {
     const g = exB['bae-gen2'], ch = BM.gen2Changes;
     eq('bae-gen2: the later report is the one read', [g.bae.file, g.bae.headerRow, g.bae.skipped], ['bae.xlsx', 3, 1]);
     eq('bae-gen2: the pull diff is the plain gen2 run\'s', g.diff, ex.gen2 && ex.gen2.diff);
     eq('bae-gen2: diffBae per (ap, fy)', g.diffBae.byBlock, DX.byBlock);
-    for (const k of ['budgetsNew', 'budgetsGone', 'budgetsChanged']) {
-      eq('bae-gen2: diffBae ' + k, g.diffBae[k].map(e => ({ key: e.key, approved: e.approved, authorized: e.authorized })).sort((a, b) => a.key < b.key ? -1 : 1), DX[k]);
+    eq('bae-gen2: diffBae counts the rows that could not be read, each side', g.diffBae.unread, DX.unread);
+    for (const k of ['budgetsNew', 'budgetsGone', 'budgetsChanged', 'budgetsUnread']) {
+      const pickE = e => Object.assign({ key: e.key, approved: e.approved, authorized: e.authorized }, k === 'budgetsUnread' ? { unread: e.unread } : {});
+      eq('bae-gen2: diffBae ' + k, (g.diffBae[k] || []).map(pickE).sort((a, b) => a.key < b.key ? -1 : 1), DX[k]);
       const sz = g.diffBae[k].map(e => e.size);
       chk('bae-gen2: ' + k + ' largest change first', sz.every((v, i) => !i || sz[i - 1] >= v), JSON.stringify(sz));
     }

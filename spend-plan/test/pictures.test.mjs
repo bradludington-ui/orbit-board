@@ -9,7 +9,11 @@
 //     border whole, for the fixture's widest block and for a block made far wider and taller on purpose;
 //   - a picture made with switches off says what it shows;
 //   - SP.allPicturesZip opens with Python's zipfile, holds '{Ap} FY{fy}.png' for every block, and each is a 2000 x 675 PNG;
-//   - Copy picture puts the PNG on the clipboard where the browser allows it, and where it is refused says so plainly.
+//   - Copy picture puts the PNG on the clipboard where the browser allows it, and where it is refused says so plainly;
+//   - with a BAE report loaded (CONTRACT §14.3, rule 6), every picture is the CCaR plan's: each cell of each block is the
+//     one it is with no report, but for the Obligation % label's word ('CCaR plan' where the report covers the block),
+//     and the band's Total column is the oracle's plan headline (test/fixture/oracle.py, bae-all);
+//   - with no report, every PNG is the one the code before the report drew (commit 0c71592, on main), byte for byte.
 //
 //   node spend-plan/test/pictures.test.mjs
 import { chromium } from 'playwright-core';
@@ -21,12 +25,48 @@ import { CHROME } from '../../tools/chrome.mjs';
 import { pageHtml, checks, scratchDir } from './harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO = join(HERE, '..', '..');
+// the code before the BAE report (CONTRACT §14: with none loaded, nothing changes), on main
+const BEFORE = '0c71592';
 const C = checks('pictures');
 const tmp = scratchDir('sfcbsp-pic-');
 const MODS = ['util', 'xlsx-read', 'import', 'engine', 'xlsx-write', 'pictures'];
 const J = o => JSON.stringify(o);
 // restated from CONTRACT §10 and §2, never read from the tool
 const W = 2000, H = 675, CUI = 'CUI//REL TO US DoW';
+const pad2 = n => String(n).padStart(2, '0');
+const commas = d => d.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+// §2 fmtM and fmtPct, restated: $M to two decimals ('-' for zero, '<0.01' under $5,000, negatives in parentheses), and a
+// percentage to hundredths, half away from zero; a picture prints nothing for a missing percentage
+function fmtM(c) {
+  if (c === 0) return '-';
+  const a = Math.abs(c);
+  let body;
+  if (a < 500000) body = '<0.01';
+  else { let q = Math.floor(a / 1e6); if (a - q * 1e6 >= 500000) q++; body = commas(String(Math.floor(q / 100))) + '.' + pad2(q % 100); }
+  return c < 0 ? '(' + body + ')' : body;
+}
+function pct(x) {
+  if (typeof x !== 'number') return '';
+  const h = Math.round(Number((Math.abs(x) * 10000).toPrecision(12)));
+  return (x < 0 && h ? '-' : '') + commas(String(Math.floor(h / 100))) + '.' + pad2(h % 100) + '%';
+}
+const STATUS_WORD = { green: 'On track', yellow: 'Within 10', red: 'Behind' };
+// The page the sources at BEFORE build, from git, assembled by that commit's own build.mjs in a scratch tree; null when
+// this clone does not hold the commit (the check that needs it then fails, saying so)
+async function pageBefore(dir) {
+  if (spawnSync('git', ['-C', REPO, 'cat-file', '-e', BEFORE + '^{commit}']).status !== 0) return null;
+  const root = join(dir, 'before', 'spend-plan');
+  mkdirSync(join(root, 'src'), { recursive: true });
+  const ls = spawnSync('git', ['-C', REPO, 'ls-tree', '--name-only', BEFORE, 'spend-plan/src/'], { encoding: 'utf8' });
+  for (const f of ['spend-plan/build.mjs'].concat(ls.stdout.split('\n').filter(Boolean))) {
+    const r = spawnSync('git', ['-C', REPO, 'show', BEFORE + ':' + f], { maxBuffer: 1 << 28 });
+    if (r.status !== 0) return null;
+    writeFileSync(join(root, f.replace(/^spend-plan\//, '')), r.stdout);
+  }
+  const { assemble } = await import(pathToFileURL(join(root, 'build.mjs')).href);
+  return assemble({ modules: MODS });
+}
 const FX = join(tmp.dir, 'fx');
 mkdirSync(FX);
 function py(args, input) {
@@ -204,6 +244,93 @@ try {
   });
   C.chk('USAF off: the picture says what it shows', off.a.shown.n > 50 && off.said === off.text && /Services shown/.test(off.text), J({ said: off.said, n: off.a.shown.n }));
   C.chk('USAF off: the table still fits below that line', off.a.table.y0 > 31 && off.a.table.y1 < H - 32 && off.a.edge > 0.95, J(off.a.table));
+
+  // ========================================================================= with a BAE report (§14.3, rule 6)
+  // The fixture's report imported with its pull. A picture measures the CCaR plan by month, so every cell is the cell it
+  // is with no report, but the Obligation % label's word: 'CCaR plan' where the report covers the block (its Approved is
+  // then the report's, and the plan beside it is not that Approved), 'Approved' elsewhere (§14.5). The band's Total
+  // column is the plan's headline, held to the oracle's figures.
+  const XB = (() => {
+    const out = join(tmp.dir, 'exp-bae-all.json');
+    py([join(HERE, 'fixture', 'oracle.py'), '--scenario', 'bae-all', '--fixture', FX, '--out', out]);
+    return JSON.parse(readFileSync(out, 'utf8'));
+  })();
+  const baeB64 = readFileSync(join(FX, 'bae.xlsx')).toString('base64');
+  const lay = await ev(async ([b64p, b64r]) => {
+    const u8 = b64 => { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; };
+    const parsed = await SP.parseFiles([{ name: 'pull-all.xlsx', data: u8(b64p) }, { name: 'bae.xlsx', data: u8(b64r) }], { now: '2026-11-09T12:00:00.000Z' });
+    const bae = Object.assign({}, parsed.bae, { importedAt: '2026-11-09T12:00:00.000Z' });
+    window.__Mb = SP.buildModel(parsed.pulls, SP.defaultSettings('2026-11-09'), SP.defaultView(), bae);
+    const ctx = document.createElement('canvas').getContext('2d');
+    // each row's cells as drawn: text, alignment, font, ink and fill (widths may move with the label's length)
+    const cells = (b, M) => pic_layout(ctx, b, M).rows.map(r => r.cells.map(c => [c.t, c.align, c.font, c.ink, c.fill]));
+    return __Mb.blocks.map((b, i) => ({ key: b.ap + '|' + b.fy, covered: b.covered, withBae: cells(b, __Mb), without: cells(__M.blocks[i], __M),
+      same: __M.blocks[i].ap === b.ap && __M.blocks[i].fy === b.fy }));
+  }, [b64, baeB64]);
+  C.chk('with a report: the same blocks as with none, in the same order', lay.length === blocks.length && lay.every(l => l.same), J(lay.map(l => l.key)));
+  C.chk('with a report: the fixture has blocks the report covers and blocks it does not', lay.some(l => l.covered) && lay.some(l => !l.covered), J(lay.map(l => [l.key, l.covered])));
+  const word = [];
+  for (const l of lay) {
+    const x = XB.blocks[l.key];
+    // with no report, the label reads 'Approved' and the figure is the plan: the only cell that may differ is that word
+    const want = l.without.map(r => r.map(c => (typeof c[0] === 'string' && c[0].startsWith('Obligation %  (Approved ') && x.covered
+      ? [c[0].replace('Obligation %  (Approved ', 'Obligation %  (CCaR plan ')].concat(c.slice(1)) : c)));
+    if (J(l.withBae) !== J(want)) word.push(l.key + (x.covered ? ' (covered)' : ''));
+    // the band's Total column (cell 1 and the last): the plan, its Obl %, goal and status (the oracle's slide figures)
+    const band = Object.fromEntries(l.withBae.filter(r => r.length > 2).map(r => [String(r[0][0]).startsWith('Obligation %') ? 'obl' : r[0][0], r]));
+    const s = x.slide, tot = r => r ? [r[1][0], r[r.length - 1][0]] : null;
+    const got = [tot(band['Monthly Totals']), tot(band['Cumulative Totals']), tot(band.obl), tot(band['OSD Goal %']), tot(band['OSD Status'])];
+    const exp = [[fmtM(s.basis), fmtM(s.basis)], [fmtM(s.basis), fmtM(s.basis)], [pct(s.oblPct), pct(s.oblPct)], [pct(s.goal), pct(s.goal)],
+      [s.status ? STATUS_WORD[s.status] : '', s.status ? STATUS_WORD[s.status] : '']];
+    if (J(got) !== J(exp)) word.push(l.key + ' Total column ' + J(got) + ' want ' + J(exp));
+    // and that plan is not the report's Approved where the report covers the block: the check can tell the two apart
+    if (x.covered && x.planned === x.approved) word.push(l.key + ' is covered but its plan is its Approved, so it proves nothing');
+  }
+  C.chk('with a report: every cell of every picture is the plan’s, as with none, but the label’s word (CCaR plan where covered), and the Total column is the oracle’s plan headline (rule 6)',
+    !word.length, word.slice(0, 4).join('; '));
+  C.chk('with a report: the label word says CCaR plan on every covered block, and Approved on the others', lay.every(l => {
+    const lab = l.withBae.map(r => r[0] && r[0][0]).find(t => typeof t === 'string' && t.startsWith('Obligation %'));
+    return lab && lab.startsWith('Obligation %  (' + (XB.blocks[l.key].covered ? 'CCaR plan ' : 'Approved ') + fmtM(XB.blocks[l.key].slide.basis).replace(/^-$/, '0.00') + 'M;');
+  }), '');
+  // the PNG of a covered block is drawn from that layout: it opens and is a whole picture like every other
+  const covPng = await ev(async () => { const b = __Mb.blocks.find(x => x.covered); return __analyse(await SP.blockPng(b, __Mb), 30); });
+  C.chk('with a report: a covered block’s picture is whole (2000 x 675, its table inside the region)', covPng.w === W && covPng.h === H && covPng.edge > 0.95
+    && covPng.table.y0 > 31 && covPng.table.y1 < H - 32, J(covPng.table));
+
+  // ========================================================================= with no report: as before (§14)
+  // Every block's PNG, with every switch on and with USAF off, drawn by this code and by the code at BEFORE in the same
+  // browser: byte for byte the same, so not a pixel of a picture moved with the report's arrival.
+  {
+    const html = await pageBefore(tmp.dir);
+    if (C.chk('the code before the BAE report is in this clone (commit ' + BEFORE + ', on main); if this fails, run git fetch --unshallow', !!html)) {
+      const OLD = join(tmp.dir, 'pictures-before.html');
+      writeFileSync(OLD, html);
+      const q = await ctx.newPage();
+      const qe = [];
+      q.on('pageerror', e => qe.push(e.message));
+      await q.goto(pathToFileURL(OLD).href);
+      await q.addScriptTag({ content: ANALYSE });
+      const pngs = page => page.evaluate(async b64 => {
+        const bin = atob(b64), u = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+        const parsed = await SP.parseFiles([{ name: 'pull-all.xlsx', data: u.buffer }], { now: '2026-11-09T12:00:00.000Z' });
+        const S = SP.defaultSettings('2026-11-09');
+        const v = SP.defaultView(); v.svc.USAF = false;
+        const out = [];
+        for (const M of [SP.buildModel(parsed.pulls, S, SP.defaultView()), SP.buildModel(parsed.pulls, S, v)]) {
+          for (const b of M.blocks) out.push([b.apLabel + ' FY' + b.fy + (M.shown.all ? '' : ' (USAF off)'), await __b64(await SP.blockPng(b, M))]);
+        }
+        return out;
+      }, b64);
+      const was = await pngs(q), now = await pngs(P.p);
+      C.eq('no report: the code before draws the same blocks', was.map(x => x[0]), now.map(x => x[0]));
+      const moved = now.filter((x, i) => !was[i] || was[i][1] !== x[1]).map(x => x[0]);
+      C.chk('no report: every picture, every switch on and USAF off, is the one the code before the report drew, byte for byte', was.length === now.length && !moved.length,
+        moved.length + ' of ' + now.length + ' differ: ' + moved.slice(0, 4).join(', '));
+      C.eq('no script error in the page the code before builds', qe, []);
+      await q.close();
+    }
+  }
 
   // ========================================================================== every picture in a zip (§10)
   const zip64 = await ev(async () => __b64(await SP.allPicturesZip(__M)));
