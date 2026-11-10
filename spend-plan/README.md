@@ -30,15 +30,27 @@ Press **Import CCaR pull…** and pick one or more files.
   - Columns the tool does not know are kept, and appear in the raw data sheets of the export.
 - **Where rows go.** Each row is placed in O&M, Full Fund, Initial Spares or OPN by its **Budget** name. If the budget
   does not say, the sheet name decides.
-  - If every row of one appropriation sits on a sheet named for another (say, the only Full Fund row is on the O&M tab),
-    the page asks before those rows replace that appropriation's data: such a row is most likely misfiled. **Cancel**
-    changes nothing; move the row to its own tab, or correct its Budget, and import again.
+- **Before an import replaces an appropriation's data, the page may ask.** It asks when:
+  - every row of one appropriation sits on a sheet named for another (say, the only Full Fund row is on the O&M tab, or
+    in a file named `O&M.csv`): such a row is most likely misfiled. A name that also names the rows' own appropriation,
+    such as `FF and OPN pull` for OPN rows, is not asked about;
+  - or the new data has fewer than half the readable rows of the data on screen. A whole CCaR pull does not halve from one
+    week to the next. One that does is a misfiled row (whatever its sheet is called), a file cut short, a pull filtered in
+    CCaR, or a workbook whose Amounts are formulas saved without their results.
+
+  **Cancel** changes nothing. For a misfiled row, correct its Budget, or take it out of the file and import again: its
+  own appropriation's pull is imported whole, from its own file. Giving it a tab of its own in this file does not help:
+  it would still replace that appropriation's whole pull. **OK** imports, and the message line says what to check.
 - **What an import replaces.** Each appropriation in the import replaces that appropriation's data. The data it replaces
   is kept, so **What changed** can compare the two. Appropriations not in the import keep their data, and the top bar says
-  when each was imported. The same pull imported again changes nothing What changed compares.
+  when each was imported. The same pull imported again changes nothing What changed compares: What changed still shows the
+  change the earlier pull brought, and says the newest import changed nothing.
+- **Rows whose appropriation is not identified** stay on screen while any pull from the same import is on screen. Once
+  every pull that import brought has been replaced, they go. The message line says which.
 - **The message line** says what was imported, and also any file that was refused, rows that could not be read, and rows
-  whose Date could not be read (they sit in the **No date** column). A refused file or a misfiled-looking row shows as a
-  warning.
+  whose Date could not be read (they sit in the **No date** column). It shows as a warning when a file was refused, when
+  the page asked before importing, or when rows count nowhere (rows that could not be read, or rows whose appropriation
+  is not identified).
 - **Data through** is reset to the last full month before the import, and the message line says so. Change it if you
   need to. An import that places no row in any appropriation leaves it alone.
 - **Nothing is dropped quietly.** A row whose FY or Amount cannot be read is kept, counted in no figure, and listed in the
@@ -68,7 +80,9 @@ The view buttons sit under the top bar.
 - **Import report.** What the last import read, used, skipped and could not read; then any data on screen from earlier
   imports, with the rows in it that count nowhere.
 - **What changed.** The last pull against the one before it, for each appropriation imported twice: Approved and
-  Obligated by FY, CCaRs new and gone, CCaRs that moved PMO, and every changed line, largest first.
+  Obligated by FY, CCaRs new and gone, CCaRs that moved PMO, and every changed line, largest first. If the newest import
+  of an appropriation was the same as the pull before it, row for row, the view says so, and shows the change the earlier
+  pull brought.
 - **Settings.** See below.
 - **Help.** A short guide inside the page.
 
@@ -156,11 +170,18 @@ way is wider for its height than the slide region; size it by its width.
     message line. The tool reads it and checks it before it writes anything. After that, Save does not ask you to pick
     again while the page is open.
   - If you pick a different file, Save says so and asks first, naming both files, before it writes anything.
+  - Save reads the file again just before it writes, after any question and after the browser's own *Save changes?*
+    prompt. If someone saved it meanwhile, Save asks again, saying so.
   - The top bar says **Saved** or **Unsaved changes**. The browser asks before you close a page with unsaved changes.
-- **Save a copy…** writes a new file under a name you choose. This page keeps saving to its own file.
+- **Save a copy…** writes a new file under a name you choose. This page keeps saving to its own file. A copy you give this
+  page's own file name, before the first Save, may or may not be that file: the page cannot tell, so it still counts the
+  work as unsaved until you Save.
 - **Where the browser cannot write files** (for example Firefox), Save downloads the file instead. The shared copy is not
   updated until you put the download in its place. Until then the top bar says **Downloaded, not in the file yet**, and the
-  browser still asks before you close the page.
+  browser still asks before you close the page. If your downloads folder already holds a file of that name, the browser
+  adds a number (`sfcb-spend-plan (1).html`): put the newest download in place, not the older one.
+- **Where writing is refused** (a setting or policy that blocks editing files), Save and Save a copy… offer to download
+  the plan instead, so the work is not lost.
 
 ### When Save asks a question, or refuses
 
@@ -168,13 +189,23 @@ way is wider for its height than the slide region; size it by its width.
   Write over it?"** Someone saved this file after you opened it.
   - **OK** writes your work over theirs, and their changes are lost.
   - **Cancel** writes nothing. To keep both, use **Save a copy…**, then open their file and compare.
-- **"… before the plan this page opened or last saved …"**: the file holds an older save, such as an older copy put back.
+- **"… before the plan this page opened or last saved …: it is not the file this page last saved, but an older copy of it,
+  or another plan saved under this name, perhaps in another folder."** You may have picked a copy of the same name in
+  another folder (a Downloads folder, say). **Cancel**, then Save again and pick this page's own file.
+- **"… holds no saved plan, but this page opened the plan saved …"**: you picked a file of the same name that holds no plan,
+  so it is not the file this page was opened from (perhaps a copy of the tool in your Downloads folder). **Cancel**, then
+  Save again and pick this page's own file. **OK** writes there instead, and the file you opened does not get the work.
+- **"… was saved again while you were answering."** Someone saved the file while a question, or the browser's prompt, was
+  open. Read the new question: it is about their latest save.
 - **"You picked …, not …, the file this page was opened from."**: you picked another file. **Cancel**, then Save again and
   pick this page's own file. **OK** writes there instead, and this page goes on saving there until it is closed.
 - **"Not saved: … is not an SFCB Spend Plan file"** (or *holds data saved by another tool*, or *could not be read*): you
   picked the wrong file. Nothing was written. Save again and pick this page's own file.
 - **"Not saved: no file was picked."** The file window was closed. Save again.
-- **A file whose saved data cannot be read opens empty** and says why. Saving over it asks first.
+- **A file whose saved data cannot be read opens empty** and says why. Saving over it asks first, and OK replaces the data it
+  could not read with this page's plan. A *different* file whose data cannot be read is never written over.
+- **A file that holds the plan you took** (by importing a saved plan's `.html`), or a copy you saved from this page, is this
+  page's own work: Save writes over it without calling it someone else's.
 
 ## The rules
 

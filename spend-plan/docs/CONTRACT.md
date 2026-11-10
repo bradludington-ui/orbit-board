@@ -606,7 +606,9 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 - **PMOs**: a picker, then §8.6 on screen.
 - **Not Allocated**: the whole `naAll` table, with filters by appropriation, FY and PMO.
 - **Import report**.
-- **What changed** (`diffPulls`), or "Only one pull so far".
+- **What changed** (`diffPulls`), or "Only one pull so far". Each appropriation's section is named by its two pulls; where the
+  current pull repeats an earlier one row for row (`sameSince`), it is named by that earlier pull, and says the newest import
+  changed nothing. Its list of imports names an import that placed no row as such, never as an empty line.
 - **Settings**: the goal table (editable, with *Reset to v12's curves*), Authorized by block ($M, typed through `parseAmount`, and
   blank clears), the special CCaRs, and the budget table with service and lane override selects.
 
@@ -643,15 +645,36 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 ```js
 SP.state = { v:1, tool:'sfcb-spend-plan', savedAt:'ISO'|null, settings, pulls:{current:{om?,ff?,sp?,opn?,unidentified?}, previous:{...}},
              history:[{importedAt, aps:[...], totals:{'om|2026':{approved, obligated}}}], lastImport:{report} }
+// a current pull may also carry sameSince:'ISO' (it repeats that pull, row for row); the unidentified rows carry
+// importedAt once they have been kept over a later import
 ```
 
 - **Import** (`SP.applyImport(parsed)`):
   - each appropriation in the import replaces that appropriation's current pull;
   - the replaced pull becomes `previous[ap]`;
+  - **a pull the same as the current one, row for row,** leaves `previous[ap]` as it is. The new pull is still current (with
+    this import's `importedAt`), and records `sameSince`: the import time of the pull whose rows it repeats. What changed
+    names that pull and says the newest import changed nothing;
   - appropriations not in the import keep theirs and say from when;
+  - **the unidentified rows** are replaced by an import that brings some. An import that brings none leaves them while a pull
+    the import they came with brought is still current (they then carry that import's `importedAt`), and moves them to
+    `previous` once every such pull has been replaced. The message says which;
   - one history entry is added;
-  - `asOf` resets to the new default and says so;
+  - `asOf` resets to the new default and says so (an import that places no row in an appropriation leaves it);
   - the state is marked unsaved.
+- **Before an import replaces anything, it asks** (`window.confirm`), naming the sheet, the rows and dollars, and the pull it
+  would replace, when:
+  - every row of an appropriation sits on one sheet whose name names other appropriations and not its own (the question reads
+    a name as naming O&M by `O&M`, `O & M` or `OM` as a word, Full Fund by `FF` or `Full Fund`, Initial Spares by `Spares`,
+    OPN by `OPN`; a name may name several, and one that names a row's own appropriation is never "named for another"; this
+    is not the placement rule of §3, which is unchanged); or
+  - the new pull has fewer than half the readable rows of the pull on screen it replaces (a misfiled row on a sheet with a
+    neutral name, a file cut short, a filtered pull, Amounts saved as formulas without their results).
+
+  Its advice is to correct the Budget, or to take a misfiled row out of the file (its own appropriation's pull is imported
+  whole), never to give it a sheet of its own. Cancel changes nothing. OK imports, and the message says what to check.
+- **The message line is a warning** (`warn:true`), never a plain success, when a file was refused, the import asked a
+  question, or rows count nowhere (unreadable rows, rows whose appropriation is not identified).
 - **The file is the database.** The state lives in `<script id="spState" type="application/json">`, written as `JSON.stringify`
   with **every `<` written as `<`**. Without that, a plan event containing `</script>` truncates the file.
   `SP.savedHtml()` = the page's own HTML with that tag replaced.
@@ -670,10 +693,24 @@ SP.state = { v:1, tool:'sfcb-spend-plan', savedAt:'ISO'|null, settings, pulls:{c
     before or after the one this page opened with (or, with none, after the page was opened). A picked file whose name is not
     the page's own is said to be another file, naming both, and is written only after the person says so. The handle is
     remembered for the session in memory.
-  - **Save a copy…** uses `showSaveFilePicker` (a new file).
+  - A page that opened a saved plan (or data it refused) is asked before its plan goes into a picked file that holds **no**
+    plan: that is not the file it was opened from, but perhaps a copy of the tool of the same name in another folder.
+  - A file holding a save **this page wrote** elsewhere (Save a copy…, a download) or **the plan this page took** (an
+    imported .html) holds nothing this page lacks: it is not asked about as someone else's save.
+  - The data this page could not read at all on opening (its saved JSON does not parse) is written over only after a
+    question, and only when the file still holds exactly that data; any other unreadable data is refused.
+  - **After a question, or the browser's own write prompt, the file is read again** before it is written. If it changed (a
+    colleague saved meanwhile), the checks start again on what it now holds, saying it was saved again; after three changes
+    Save stops and writes nothing.
+  - **Where writing is refused** (the file window throws, write access is denied, the write fails), Save and Save a copy…
+    offer a download instead, after a question. A download leaves the page unsaved (*Downloaded, not in the file yet*).
+  - **Save a copy…** uses `showSaveFilePicker` (a new file). A copy given the page's own file name, before the first Save, cannot
+    be told from a file of that name elsewhere: the message says so, and the page stays unsaved.
   - Without those APIs, Save downloads the file with its current name. It then says the shared copy is not updated until the
     download is put in its place. The page's own file still lacks the work, so the page stays unsaved (the top bar says it was
     downloaded) and leaving still asks.
+  - A download's message names the name asked for, and allows for the browser adding a number when the downloads folder
+    already holds it (`… (1).html`): the newest download is the one to put in place.
 - **Opening.** The embedded state is loaded and checked: right tool, right `v`, the shapes it reads. A state that fails is not
   used; the page says why and opens empty.
 - **Leaving.** `beforeunload` asks when there are unsaved changes.

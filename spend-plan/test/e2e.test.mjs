@@ -113,7 +113,10 @@ try {
   await A.p.setInputFiles('#uiFile', [join(FX, 'pull-all.xlsx')]);
   C.chk('the import lands (the Summary shows a table)', await until(A.p, () => !!document.querySelector('#uiMain table.top')));
   const m1 = await msg(A.p);
-  C.chk('the import says so in the message line', /msg-ok/.test(m1.cls), J(m1));
+  // the fixture holds rows that count nowhere on purpose (an unreadable Amount, rows no appropriation claims): the message
+  // names them, and reads as a warning, never as a plain success (review F4, DL-2)
+  C.chk('the import says so in the message line, as a warning that names the rows counted nowhere',
+    /msg-warn/.test(m1.cls) && /^Imported O&M/.test(m1.text) && /could not be read \(FY or Amount\)/.test(m1.text) && /appropriation was not identified/.test(m1.text), J(m1));
   C.chk('the save state is Unsaved changes after an import', /Unsaved/.test(await A.p.textContent('#uiSave')));
   // the as-of default follows today's date; the oracle's scenario is 2026-10 and FY2025, so they are set as a person would
   await A.p.fill('#uiAsOf', '2026-10'); await A.p.dispatchEvent('#uiAsOf', 'change');

@@ -100,6 +100,27 @@ function imp_budgetOf(row) {
   if (Array.isArray(row)) return row[IMP_BUDGET];
   return row && row.budget;
 }
+// EVERY APPROPRIATION A SHEET'S NAME MENTIONS, for the misfiled-row question only (never for placing a row: that is
+// imp_apOfSheet, CONTRACT §3). The placement rule reads O&M only from v12's exact tab name and takes the FIRST name it
+// meets, so the question missed an O&M file named "O&M.csv", "om.csv" or "O&M Raw Data (2).csv" (Windows' name for a
+// second download), and asked about a correct OPN pull named "FF and OPN pull.csv", calling it "a sheet named for Full
+// Fund" (review F1, F5). A name that mentions a row's own appropriation is never "named for another".
+function imp_apsNamedBy(name) {
+  const s = String(name ?? '');
+  const out = [];
+  if (/o\s*&\s*m/i.test(s) || /(^|[^a-z])om([^a-z]|$)/i.test(s) || /(^|[^a-z])o and m([^a-z]|$)/i.test(s)) out.push('om');
+  if (/(^|[^a-z])ff([^a-z]|$)/i.test(s) || /full\s*fund/i.test(s)) out.push('ff');
+  if (/spares/i.test(s)) out.push('sp');
+  if (/(^|[^a-z])opn([^a-z]|$)/i.test(s)) out.push('opn');
+  return out;
+}
+SP.apsNamedBy = imp_apsNamedBy;
+// "O&M", or "Full Fund and OPN": what a stray's sheet is named for, in words (a report saved before sheetAps has sheetAp)
+SP.sheetNamedFor = function sheetNamedFor(x) {
+  const ids = x && Array.isArray(x.sheetAps) && x.sheetAps.length ? x.sheetAps : [x && x.sheetAp];
+  const w = ids.map(imp_apLabel);
+  return w.length <= 1 ? w.join('') : w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1];
+};
 // the Budget text decides; the sheet's name only when the Budget names no appropriation
 SP.apOfRow = function apOfRow(row, sheetName) {
   return imp_apOfBudget(imp_budgetOf(row)) || imp_apOfSheet(sheetName);
@@ -517,8 +538,10 @@ SP.parseFiles = async function parseFiles(files, opts) {
   for (const ap of IMP_AP_IDS) {
     const m = srcBy.get(ap);
     if (!m || m.size !== 1) continue;
-    const e = [...m.values()][0], sheetAp = imp_apOfSheet(e.sheet);
-    if (sheetAp && sheetAp !== ap) report.strays.push({ ap, label: imp_apLabel(ap), file: e.file, sheet: e.sheet, sheetAp, rows: e.n, cents: e.cents });
+    const e = [...m.values()][0], named = imp_apsNamedBy(e.sheet);
+    if (named.length && !named.includes(ap)) {
+      report.strays.push({ ap, label: imp_apLabel(ap), file: e.file, sheet: e.sheet, sheetAp: named[0], sheetAps: named, rows: e.n, cents: e.cents });
+    }
   }
   // THE PULLS, in the order given: files, then sheets in workbook order, then rows top to bottom
   const pulls = {};
@@ -628,10 +651,13 @@ SP.importReportLines = function importReportLines(report) {
   for (const d of dis) L.push('  ' + imp_where(d) + ' (by its name, ' + imp_apLabel(d.sheetAp) + '): ' + imp_plural(d.rows, 'row')
     + ', ' + SP.fmtUsd(d.cents) + ', placed by Budget as ' + Object.keys(d.byBudget).map(a => imp_apLabel(a) + ' ' + SP.fmtInt(d.byBudget[a])).join(', ') + '.');
   for (const x of Array.isArray(report.strays) ? report.strays : []) {
-    L.push('Every ' + x.label + ' row in this import sits on a sheet named for ' + imp_apLabel(x.sheetAp) + ': ' + imp_where(x) + ' holds '
+    // The advice used to be "move it to the Full Fund sheet": an O&M file has none, so the person made one, and the row
+    // on its own tab became the whole Full Fund pull with no question at all (review SEAM-2). A lone row of another
+    // appropriation is put right by its Budget, or by leaving it out of this file: it belongs in its own pull, whole.
+    L.push('Every ' + x.label + ' row in this import sits on a sheet named for ' + SP.sheetNamedFor(x) + ': ' + imp_where(x) + ' holds '
       + imp_plural(x.rows, 'row') + ', ' + SP.fmtUsd(x.cents) + ', placed by Budget as ' + x.label + ', and ' + (x.rows === 1 ? 'it is' : 'they are')
-      + ' the whole ' + x.label + ' pull this import brings. If ' + (x.rows === 1 ? 'it is' : 'they are') + ' misfiled, move '
-      + (x.rows === 1 ? 'it' : 'them') + ' to the ' + x.label + ' sheet, or correct the Budget, and import again.');
+      + ' the whole ' + x.label + ' pull this import brings. If ' + (x.rows === 1 ? 'it is' : 'they are') + ' misfiled, correct the Budget, or take '
+      + (x.rows === 1 ? 'it' : 'them') + ' out of this file (the ' + x.label + ' pull is imported whole, from its own file or sheet), and import again.');
   }
   L.push('Alloc values:');
   for (const a of report.alloc || []) L.push('  ' + (a.text === '' ? '(blank)' : imp_q(a.text)) + ': ' + imp_plural(a.rows, 'row') + ', ' + SP.fmtUsd(a.cents) + '.');

@@ -859,6 +859,27 @@ function imp_budgetOf(row) {
   if (Array.isArray(row)) return row[IMP_BUDGET];
   return row && row.budget;
 }
+// EVERY APPROPRIATION A SHEET'S NAME MENTIONS, for the misfiled-row question only (never for placing a row: that is
+// imp_apOfSheet, CONTRACT §3). The placement rule reads O&M only from v12's exact tab name and takes the FIRST name it
+// meets, so the question missed an O&M file named "O&M.csv", "om.csv" or "O&M Raw Data (2).csv" (Windows' name for a
+// second download), and asked about a correct OPN pull named "FF and OPN pull.csv", calling it "a sheet named for Full
+// Fund" (review F1, F5). A name that mentions a row's own appropriation is never "named for another".
+function imp_apsNamedBy(name) {
+  const s = String(name ?? '');
+  const out = [];
+  if (/o\s*&\s*m/i.test(s) || /(^|[^a-z])om([^a-z]|$)/i.test(s) || /(^|[^a-z])o and m([^a-z]|$)/i.test(s)) out.push('om');
+  if (/(^|[^a-z])ff([^a-z]|$)/i.test(s) || /full\s*fund/i.test(s)) out.push('ff');
+  if (/spares/i.test(s)) out.push('sp');
+  if (/(^|[^a-z])opn([^a-z]|$)/i.test(s)) out.push('opn');
+  return out;
+}
+SP.apsNamedBy = imp_apsNamedBy;
+// "O&M", or "Full Fund and OPN": what a stray's sheet is named for, in words (a report saved before sheetAps has sheetAp)
+SP.sheetNamedFor = function sheetNamedFor(x) {
+  const ids = x && Array.isArray(x.sheetAps) && x.sheetAps.length ? x.sheetAps : [x && x.sheetAp];
+  const w = ids.map(imp_apLabel);
+  return w.length <= 1 ? w.join('') : w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1];
+};
 // the Budget text decides; the sheet's name only when the Budget names no appropriation
 SP.apOfRow = function apOfRow(row, sheetName) {
   return imp_apOfBudget(imp_budgetOf(row)) || imp_apOfSheet(sheetName);
@@ -1276,8 +1297,10 @@ SP.parseFiles = async function parseFiles(files, opts) {
   for (const ap of IMP_AP_IDS) {
     const m = srcBy.get(ap);
     if (!m || m.size !== 1) continue;
-    const e = [...m.values()][0], sheetAp = imp_apOfSheet(e.sheet);
-    if (sheetAp && sheetAp !== ap) report.strays.push({ ap, label: imp_apLabel(ap), file: e.file, sheet: e.sheet, sheetAp, rows: e.n, cents: e.cents });
+    const e = [...m.values()][0], named = imp_apsNamedBy(e.sheet);
+    if (named.length && !named.includes(ap)) {
+      report.strays.push({ ap, label: imp_apLabel(ap), file: e.file, sheet: e.sheet, sheetAp: named[0], sheetAps: named, rows: e.n, cents: e.cents });
+    }
   }
   // THE PULLS, in the order given: files, then sheets in workbook order, then rows top to bottom
   const pulls = {};
@@ -1387,10 +1410,13 @@ SP.importReportLines = function importReportLines(report) {
   for (const d of dis) L.push('  ' + imp_where(d) + ' (by its name, ' + imp_apLabel(d.sheetAp) + '): ' + imp_plural(d.rows, 'row')
     + ', ' + SP.fmtUsd(d.cents) + ', placed by Budget as ' + Object.keys(d.byBudget).map(a => imp_apLabel(a) + ' ' + SP.fmtInt(d.byBudget[a])).join(', ') + '.');
   for (const x of Array.isArray(report.strays) ? report.strays : []) {
-    L.push('Every ' + x.label + ' row in this import sits on a sheet named for ' + imp_apLabel(x.sheetAp) + ': ' + imp_where(x) + ' holds '
+    // The advice used to be "move it to the Full Fund sheet": an O&M file has none, so the person made one, and the row
+    // on its own tab became the whole Full Fund pull with no question at all (review SEAM-2). A lone row of another
+    // appropriation is put right by its Budget, or by leaving it out of this file: it belongs in its own pull, whole.
+    L.push('Every ' + x.label + ' row in this import sits on a sheet named for ' + SP.sheetNamedFor(x) + ': ' + imp_where(x) + ' holds '
       + imp_plural(x.rows, 'row') + ', ' + SP.fmtUsd(x.cents) + ', placed by Budget as ' + x.label + ', and ' + (x.rows === 1 ? 'it is' : 'they are')
-      + ' the whole ' + x.label + ' pull this import brings. If ' + (x.rows === 1 ? 'it is' : 'they are') + ' misfiled, move '
-      + (x.rows === 1 ? 'it' : 'them') + ' to the ' + x.label + ' sheet, or correct the Budget, and import again.');
+      + ' the whole ' + x.label + ' pull this import brings. If ' + (x.rows === 1 ? 'it is' : 'they are') + ' misfiled, correct the Budget, or take '
+      + (x.rows === 1 ? 'it' : 'them') + ' out of this file (the ' + x.label + ' pull is imported whole, from its own file or sheet), and import again.');
   }
   L.push('Alloc values:');
   for (const a of report.alloc || []) L.push('  ' + (a.text === '' ? '(blank)' : imp_q(a.text)) + ': ' + imp_plural(a.rows, 'row') + ', ' + SP.fmtUsd(a.cents) + '.');
@@ -4094,6 +4120,12 @@ let st_baseWhy = '';             // why the opened state was refused (ST_REFUSED
 let st_handle = null;            // this page's own file, once picked and checked; remembered for the session only
 let st_openedAt = null;          // when this page was opened: what a file's save time is "before" or "after"
 let st_dlOnly = false;           // the last Save was a download: this page's own file still lacks the work (review S8)
+let st_refusedRaw = null;        // the saved-data text this page opened and could not read at all: Save asks before writing
+                                 // over exactly that, rather than refusing for ever (review DL-6)
+let st_taken = null;             // {at, name}: the save time of the plan this page took from a file (takePlan), until it saves
+// The save times of the files this page wrote that are not its own (Save a copy…, a download), with each file's name. A
+// file holding one of them holds this page's own work: Save never calls it "someone else's" (review SEAM-5, DL-5, BP-7).
+const st_copies = new Map();
 let st_busy = false;
 let st_inited = false;
 let st_cap = null;               // the page as captured at boot: {html, stateAt, stateLen, stateOpen, appAt, appLen, appOpen, boot}
@@ -4327,7 +4359,7 @@ SP.storeInit = function storeInit() {
     st_unloadOn = true;
   }
   SP.state = st_empty();
-  st_dirty = false; st_base = null; st_baseWhy = ''; st_dlOnly = false;
+  st_dirty = false; st_base = null; st_baseWhy = ''; st_dlOnly = false; st_refusedRaw = null; st_taken = null; st_copies.clear();
   st_openedAt = new Date().toISOString();
   const tag = document.getElementById('spState');
   const text = tag ? String(tag.textContent || '').trim() : '';
@@ -4335,9 +4367,9 @@ SP.storeInit = function storeInit() {
   let st;
   try { st = JSON.parse(text); }
   catch (e) {
-    st_base = ST_REFUSED; st_baseWhy = 'its saved data cannot be read';
+    st_base = ST_REFUSED; st_baseWhy = 'its saved data cannot be read: ' + ((e && e.message) || e); st_refusedRaw = text;
     return { ok: false, message: 'The data saved in this file cannot be read (' + ((e && e.message) || e) + '), so the page opened empty. '
-      + 'The file itself is unchanged; Save will not write over data it cannot read.' };
+      + 'The file itself is unchanged; Save asks before writing over it.' };
   }
   if (st === null) return { ok: true, message: '' };
   const why = st_check(st);
@@ -4419,12 +4451,15 @@ function st_totals(pulls, settings) {
   }
   return out;
 }
-// the readable dollars of a pull (unreadable rows count in no figure)
-function st_cents(p) {
-  let c = 0;
-  for (const r of (p && Array.isArray(p.rows) ? p.rows : [])) if (!(r.bad && r.bad.length) && typeof r.c[9] === 'number') c += r.c[9];
-  return c;
+// the readable rows of a pull and their dollars (unreadable rows count in no figure)
+function st_readable(p) {
+  let rows = 0, cents = 0;
+  for (const r of (p && Array.isArray(p.rows) ? p.rows : [])) {
+    if (!(r.bad && r.bad.length) && Array.isArray(r.c) && typeof r.c[9] === 'number') { rows++; cents += r.c[9]; }
+  }
+  return { rows, cents };
 }
+function st_cents(p) { return st_readable(p).cents; }
 function st_usd(c) { return SP.fmtUsd ? SP.fmtUsd(c) : String(c / 100); }
 // The same pull, row for row: what each row holds, never where it was read from. A pull imported again (an easy slip in
 // a downloads folder) moved the identical current pull into previous and threw away the one What changed compared with,
@@ -4436,6 +4471,20 @@ function st_sameRows(a, b) {
   for (let i = 0; i < a.rows.length; i++) if (key(a.rows[i]) !== key(b.rows[i])) return false;
   return true;
 }
+// When the rows whose appropriation is not identified came in: the time a pull carries once it has been kept over a later
+// import, else the last import's (they arrive with an import, which leaves them unstamped, as parseFiles gives them).
+function st_unidAt(st) {
+  const p = st.pulls.current.unidentified;
+  if (p && typeof p.importedAt === 'string' && p.importedAt) return p.importedAt;
+  const rep = st.lastImport && st_isObj(st.lastImport.report) ? st.lastImport.report : null;
+  return rep && typeof rep.importedAt === 'string' ? rep.importedAt : null;
+}
+// A new pull with fewer than half the readable rows of the one on screen. A CCaR pull of a whole appropriation does not
+// halve from one week to the next; one that does is a misfiled row, a file cut short, a pull filtered in CCaR, or Amounts
+// saved as formulas without their results. Each of those replaced a 218-row Full Fund pull, or a whole O&M pull, with a
+// row or with $0, under a message styled as a plain success, whatever the sheet was called (review SEAM-1, SEAM-2, F1,
+// DL-2, F4): the misfiled-row question keyed on the sheet's NAME alone.
+const ST_SHRINK = 0.5;
 SP.applyImport = function applyImport(parsed) {
   if (!st_isObj(parsed) || !st_isObj(parsed.pulls)) throw new Error('There was nothing to import (the import gave no pulls), so nothing was changed.');
   const keys = Object.keys(parsed.pulls).filter(k => ST_PULL_KEYS.includes(k) && parsed.pulls[k] && Array.isArray(parsed.pulls[k].rows));
@@ -4446,47 +4495,110 @@ SP.applyImport = function applyImport(parsed) {
   const st = SP.state;
   const before = {};
   for (const a of SP.APS) if (st.pulls.current[a.id]) before[a.id] = st.pulls.current[a.id];
+  const sheetFor = x => (typeof SP.sheetNamedFor === 'function' ? SP.sheetNamedFor(x) : st_apLabel(x.sheetAp));
 
-  // AN APPROPRIATION WHOSE EVERY ROW SITS ON A SHEET NAMED FOR ANOTHER (parseFiles records them). Its rows become the
-  // whole of its pull, so one Full Fund row misfiled on the O&M tab of an O&M file replaced a 40-row, $40M Full Fund pull
-  // with itself, and nothing said so (review IMP-1). The person is asked first, as Save asks before writing over a file;
-  // declined, nothing changes.
+  // BEFORE ANYTHING IS REPLACED: an appropriation whose every row sits on a sheet named for another (parseFiles records
+  // them: one Full Fund row misfiled on the O&M tab replaced a 40-row Full Fund pull with itself, review IMP-1), and a
+  // pull that would leave fewer than half the readable rows of the one it replaces (ST_SHRINK). The person is asked
+  // first, as Save asks before writing over a file; declined, nothing changes.
   const strays = (Array.isArray(report.strays) ? report.strays : []).filter(x => st_isObj(x) && keys.includes(x.ap));
-  if (strays.length) {
-    const say = x => {
-      const cur = before[x.ap], lab = st_apLabel(x.ap), one = x.rows === 1;
-      return 'Every ' + lab + ' row in this import sits on “' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + st_apLabel(x.sheetAp)
-        + ': ' + st_rows(x.rows) + ', ' + st_usd(x.cents) + ', placed as ' + lab + ' by ' + (one ? 'its' : 'their') + ' Budget name. '
-        + (cur ? 'Imported, ' + (one ? 'it replaces' : 'they replace') + ' the whole current ' + lab + ' pull (' + st_rows(cur.rows.length) + ', '
-            + st_usd(st_cents(cur)) + ', imported ' + st_day(cur.importedAt) + ').'
-          : 'Imported, ' + (one ? 'it becomes' : 'they become') + ' the whole ' + lab + ' pull.');
+  const shrinks = [];
+  for (const k of keys) {
+    if (k === 'unidentified' || !before[k]) continue;
+    const was = st_readable(before[k]), now = st_readable(parsed.pulls[k]);
+    if (now.rows < was.rows * ST_SHRINK) shrinks.push({ ap: k, was, now, rows: parsed.pulls[k].rows.length });
+  }
+  const worry = SP.APS.map(a => a.id).filter(ap => strays.some(x => x.ap === ap) || shrinks.some(x => x.ap === ap));
+  if (worry.length) {
+    const para = ap => {
+      const x = strays.find(y => y.ap === ap), z = shrinks.find(y => y.ap === ap), cur = before[ap], lab = st_apLabel(ap);
+      const bits = [];
+      let n = 0;
+      if (x) {
+        n = x.rows;
+        bits.push('Every ' + lab + ' row in this import sits on “' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + sheetFor(x) + ': '
+          + st_rows(x.rows) + ', ' + st_usd(x.cents) + ', placed as ' + lab + ' by ' + (x.rows === 1 ? 'its' : 'their') + ' Budget name.');
+      }
+      if (z) {
+        n = z.rows;
+        const unread = z.rows - z.now.rows;
+        bits.push('This import brings ' + st_rows(z.rows) + ' of ' + lab
+          + (unread ? (z.now.rows ? ', and only ' + SP.fmtInt(z.now.rows) + ' of them can be read (' + st_usd(z.now.cents) + '): ' + SP.fmtInt(unread)
+              : ', and none of them can be read: ' + (unread === 1 ? 'it' : 'all ' + SP.fmtInt(unread))) + ' could not be read (FY or Amount) and would count nowhere'
+            : ' (' + st_usd(z.now.cents) + ')')
+          + '. That is fewer than half the ' + SP.fmtInt(z.was.rows) + ' readable rows of the ' + lab + ' pull on screen.');
+      }
+      bits.push(cur ? 'Imported, ' + (n === 1 ? 'it replaces' : 'they replace') + ' the whole current ' + lab + ' pull (' + st_rows(cur.rows.length) + ', '
+          + st_usd(st_cents(cur)) + ', imported ' + st_day(cur.importedAt) + ').'
+        : 'Imported, ' + (n === 1 ? 'it becomes' : 'they become') + ' the whole ' + lab + ' pull.');
+      return bits.join(' ');
     };
-    const q = strays.map(say).join('\n\n') + '\n\nIf ' + (strays.length === 1 && strays[0].rows === 1 ? 'that row is' : 'those rows are')
-      + ' misfiled, press Cancel: nothing is imported, and you can move ' + (strays.length === 1 && strays[0].rows === 1 ? 'it' : 'them')
-      + ' to the right sheet (or correct the Budget) and import again.\n\nImport anyway?';
+    const oneStray = strays.length === 1 && strays[0].rows === 1;
+    const adv = [];
+    // The advice used to be "move it to the right sheet": an O&M file has no Full Fund sheet, so the person made one, and
+    // the row on its own tab replaced the whole Full Fund pull with no question (review SEAM-2). A row of another
+    // appropriation is put right by its Budget, or by leaving it out of this file: its own pull is imported whole.
+    if (strays.length) adv.push('If ' + (oneStray ? 'that row is' : 'those rows are') + ' misfiled, press Cancel: nothing is imported. Then correct '
+      + (oneStray ? 'its' : 'their') + ' Budget, or take ' + (oneStray ? 'it' : 'them') + ' out of this file: a row belongs in its own '
+      + 'appropriation’s pull, which is imported whole. Given a sheet of ' + (oneStray ? 'its' : 'their') + ' own in this file, '
+      + (oneStray ? 'it' : 'they') + ' would still replace that whole pull.');
+    const shrinkOnly = shrinks.filter(z => !strays.some(x => x.ap === z.ap)).map(z => st_apLabel(z.ap));
+    if (shrinkOnly.length) adv.push('If ' + (shrinkOnly.length === 1 ? 'this is not the whole ' + shrinkOnly[0] + ' pull' : 'these are not the whole '
+      + st_list(shrinkOnly) + ' pulls') + ' (a file cut short, a pull filtered in CCaR, a misfiled row, or Amounts saved as formulas without their '
+      + 'results), press Cancel: nothing is imported, and the ' + (shrinkOnly.length === 1 ? 'pull' : 'pulls') + ' on screen stay.');
+    const q = worry.map(para).join('\n\n') + '\n\n' + adv.join('\n\n') + '\n\nImport anyway?';
     let yes = false;
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
     if (!yes) {
-      return { ok: false, message: 'Nothing was imported. ' + strays.map(x => '“' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + st_apLabel(x.sheetAp)
-        + ', holds every ' + st_apLabel(x.ap) + ' row in the import (' + st_rows(x.rows) + ', ' + st_usd(x.cents) + ')').join('; ')
-        + ', and you chose not to let ' + (strays.length === 1 ? 'them' : 'those') + ' replace ' + st_list(strays.map(x => 'the ' + st_apLabel(x.ap) + ' pull'))
-        + '. If they are misfiled, move them to the right sheet, or correct their Budget, and import again.' };
+      const why = worry.map(ap => {
+        const x = strays.find(y => y.ap === ap), z = shrinks.find(y => y.ap === ap);
+        if (x) return '“' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + sheetFor(x) + ', holds every ' + st_apLabel(ap) + ' row in the import ('
+          + st_rows(x.rows) + ', ' + st_usd(x.cents) + ')';
+        return 'the import’s ' + st_apLabel(ap) + ' pull has ' + SP.fmtInt(z.now.rows) + ' readable row' + (z.now.rows === 1 ? '' : 's') + ' (' + st_usd(z.now.cents)
+          + '), fewer than half the ' + SP.fmtInt(z.was.rows) + ' of the one on screen';
+      });
+      const w = why.join('; ');
+      return { ok: false, message: 'Nothing was imported. ' + w.charAt(0).toUpperCase() + w.slice(1) + ', and you chose not to let ' + (worry.length === 1 ? 'it' : 'those')
+        + ' replace ' + st_list(worry.map(ap => 'the ' + st_apLabel(ap) + ' pull')) + '.'
+        + (strays.length ? ' If rows are misfiled, correct their Budget, or take them out of this file (each appropriation’s pull is imported whole), and import again.' : '')
+        + (shrinkOnly.length ? ' Import the whole ' + st_list(shrinkOnly) + ' pull' + (shrinkOnly.length === 1 ? '' : 's') + ' when you have ' + (shrinkOnly.length === 1 ? 'it' : 'them') + '.' : '') };
     }
   }
 
+  const unidWas = st.pulls.current.unidentified ? { p: st.pulls.current.unidentified, at: st_unidAt(st) } : null;
   const same = [];
   for (const k of keys) {
-    // an identical pull leaves previous as it was: it is still the one the new pull's What changed compares with
-    if (k !== 'unidentified' && st.pulls.current[k] && st_sameRows(st.pulls.current[k], parsed.pulls[k])) same.push(k);
-    else if (st.pulls.current[k]) st.pulls.previous[k] = st.pulls.current[k];
-    st.pulls.current[k] = st_clone(parsed.pulls[k]);
+    const cur = st.pulls.current[k], nw = st_clone(parsed.pulls[k]);
+    if (k !== 'unidentified' && cur && st_sameRows(cur, nw)) {
+      // An identical pull leaves previous as it was: it is still the one What changed compares with. The new pull is
+      // still THIS import's (its date is today's), and it records since when its rows have been on screen: What changed
+      // went on showing last week's changes under "the last two pulls" as if this week's pull had brought them (review BP-1).
+      same.push(k);
+      const since = typeof cur.sameSince === 'string' && cur.sameSince ? cur.sameSince : cur.importedAt;
+      if (typeof since === 'string' && since) nw.sameSince = since;
+    } else if (cur) st.pulls.previous[k] = cur;
+    st.pulls.current[k] = nw;
   }
-  // The unidentified rows are the import's, not an appropriation's: an import that holds none replaces the last one's
-  // with none. Kept, they outlived it, and the Summary went on naming them and sending the reader to an Import report
-  // (the new import's) that does not list them (review R6).
-  if (!keys.includes('unidentified') && st.pulls.current.unidentified) {
-    st.pulls.previous.unidentified = st.pulls.current.unidentified;
-    delete st.pulls.current.unidentified;
+  // THE ROWS WHOSE APPROPRIATION IS NOT IDENTIFIED stay as long as a pull the same import brought is on screen. They
+  // used to go whenever an import held none: an import of Full Fund alone took away the rows of the very file O&M,
+  // Spares and OPN still came from, and nothing said so (review SEAM-3). Once every pull their import brought has been
+  // replaced, they go to previous, so the Summary never names rows of a file nothing on screen came from (review R6);
+  // either way the message says what became of them.
+  let unidSaid = '';
+  if (!keys.includes('unidentified') && unidWas) {
+    const stays = !!unidWas.at && SP.APS.some(a => !keys.includes(a.id) && st.pulls.current[a.id] && st.pulls.current[a.id].importedAt === unidWas.at);
+    const n = Array.isArray(unidWas.p.rows) ? unidWas.p.rows.length : 0;
+    const from = unidWas.at ? 'from the import of ' + st_day(unidWas.at) : 'from an earlier import';
+    if (stays) {
+      unidWas.p.importedAt = unidWas.at;
+      if (n) unidSaid = 'The ' + st_rows(n) + ' whose appropriation was not identified, ' + from + ', ' + (n === 1 ? 'stays' : 'stay')
+        + ' with the pulls it brought that are still on screen (see the Import report).';
+    } else {
+      st.pulls.previous.unidentified = unidWas.p;
+      delete st.pulls.current.unidentified;
+      if (n) unidSaid = 'The ' + st_rows(n) + ' whose appropriation was not identified, ' + from + ', ' + (n === 1 ? 'is' : 'are')
+        + ' no longer on screen: every pull that import brought has now been replaced.';
+    }
   }
   // The settings a person chose stay; only Data through follows the new pull (CONTRACT §4.1). An import that placed no
   // row in any appropriation brings no pull, so it leaves Data through where the person set it (review IMP-12).
@@ -4502,6 +4614,8 @@ SP.applyImport = function applyImport(parsed) {
 
   // what the person needs to know, in the order they need it. A refused file, rows that count nowhere and dates that could
   // not be read used to reach the Import report only, while the message line read as a clean success (review IMP-4, IMP-9).
+  // Rows that count nowhere make it a warning too: an import whose every Amount was unreadable put an appropriation at $0
+  // in a green message (review F4, DL-2).
   const said = [];
   let warn = false;
   if (aps.length) {
@@ -4514,14 +4628,25 @@ SP.applyImport = function applyImport(parsed) {
   }
   for (const x of strays) {
     warn = true;
-    said.push('Check: every ' + st_apLabel(x.ap) + ' row came from “' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + st_apLabel(x.sheetAp)
+    said.push('Check: every ' + st_apLabel(x.ap) + ' row came from “' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + sheetFor(x)
       + ' (' + st_rows(x.rows) + ', ' + st_usd(x.cents) + '), and ' + (x.rows === 1 ? 'it is' : 'they are') + ' now the whole ' + st_apLabel(x.ap) + ' pull.');
+  }
+  for (const z of shrinks) {
+    warn = true;
+    said.push('Check: the ' + st_apLabel(z.ap) + ' pull now has ' + SP.fmtInt(z.now.rows) + ' readable row' + (z.now.rows === 1 ? '' : 's') + ' (' + st_usd(z.now.cents)
+      + '), where the pull it replaced had ' + SP.fmtInt(z.was.rows) + ' (' + st_usd(z.was.cents) + ').');
   }
   const replaced = aps.filter(ap => before[ap] && !same.includes(ap));
   if (replaced.length) said.push('The ' + st_list(replaced.map(st_apLabel)) + ' pull' + (replaced.length === 1 ? ' it replaces is' : 's it replaces are')
     + ' kept for What changed.');
-  if (same.length) said.push('The ' + st_list(same.map(st_apLabel)) + ' pull' + (same.length === 1 ? ' is' : 's are') + ' the same as the one on screen, '
-    + 'row for row, so the earlier pull What changed compares with is kept.');
+  // "the earlier pull What changed compares with is kept" was said of a pull imported twice into a page that held no
+  // earlier pull at all, and What changed then said "Only one pull so far" (review SEAM-6, F10, SCR2-6, BP-5)
+  const sameWith = same.filter(k => st.pulls.previous[k]), sameAlone = same.filter(k => !st.pulls.previous[k]);
+  const sameLead = ks => 'The ' + st_list(ks.map(st_apLabel)) + ' pull' + (ks.length === 1 ? ' is the same as the one' : 's are the same as the ones') + ' on screen, row for row';
+  if (sameWith.length) said.push(sameLead(sameWith) + ', so What changed still compares ' + (sameWith.length === 1 ? 'it' : 'each')
+    + ' with the pull before it, and says nothing changed since.');
+  if (sameAlone.length) said.push(sameLead(sameAlone) + '; there is no earlier ' + (sameAlone.length === 1 ? 'pull' : 'pull of ' + (sameAlone.length === 2 ? 'either' : 'any'))
+    + ' for What changed to compare with yet.');
   const kept = SP.APS.filter(a => before[a.id] && !aps.includes(a.id));
   if (kept.length) {
     const byDay = new Map();
@@ -4532,8 +4657,10 @@ SP.applyImport = function applyImport(parsed) {
     }
     said.push([...byDay].map(([d, l]) => st_list(l) + ' keep' + (l.length === 1 ? 's its pull' : ' their pulls') + ' of ' + d).join('; ') + '.');
   }
+  if (unidSaid) said.push(unidSaid);
   const unread = aps.map(ap => [ap, st.pulls.current[ap].rows.filter(r => r.bad && r.bad.length).length]).filter(([, n]) => n);
   if (unread.length) {
+    warn = true;
     const n = unread.reduce((a, [, k]) => a + k, 0);
     said.push(st_list(unread.map(([ap, k]) => SP.fmtInt(k) + ' ' + st_apLabel(ap))) + ' row' + (n === 1 ? '' : 's')
       + ' could not be read (FY or Amount): ' + (n === 1 ? 'it is' : 'they are') + ' kept and counted nowhere (see the Import report).');
@@ -4544,7 +4671,10 @@ SP.applyImport = function applyImport(parsed) {
     + ' in the No date column (see the Import report for the dates it reads).');
   if (dMonth) said.push(SP.fmtInt(dMonth) + ' Month value' + (dMonth === 1 ? '' : 's') + ' could not be read (see the Import report).');
   const un = keys.includes('unidentified') ? parsed.pulls.unidentified.rows.length : 0;
-  if (un) said.push(st_rows(un) + ' whose appropriation was not identified ' + (un === 1 ? 'is' : 'are') + ' kept apart and counted nowhere (see the Import report).');
+  if (un) {
+    warn = true;
+    said.push(st_rows(un) + ' whose appropriation was not identified ' + (un === 1 ? 'is' : 'are') + ' kept apart and counted nowhere (see the Import report).');
+  }
   const lab = v => (SP.asOfLabel ? SP.asOfLabel(v) : v);
   if (moveAsOf) {
     said.push('Data through ' + (first ? 'set' : 'reset') + ' to ' + lab(def.asOf) + ', the last full month before this import'
@@ -4592,6 +4722,9 @@ SP.takePlan = function takePlan(text, name) {
   // the save time stays this page's: it is what this page's own file holds, and what Save checks that file against
   next.savedAt = st.savedAt === undefined ? null : st.savedAt;
   SP.state = next;
+  // A file that holds the very plan taken holds nothing this page lacks: Save told the person that plan "is not the one
+  // on screen", or was saved "by someone else", and "is lost" (review SEAM-4). Remembered until this page saves.
+  st_taken = { at: typeof inc.savedAt === 'string' && inc.savedAt ? inc.savedAt : null, name: fname };
   st_changed();
   return { ok: true, message: 'Took the plan in “' + fname + '” (' + st_list(aps) + saved + '): its pulls, earlier pulls, import history, '
     + 'settings and last import report. Its figures are worked out by this copy of the tool. Save to keep it in this page’s file.' };
@@ -4625,17 +4758,19 @@ SP.onStateChange = function onStateChange(fn) {
 // only after the person says so.
 // ---------------------------------------------------------------------------------------------------------------
 const ST_TYPES = name => [{ description: 'SFCB Spend Plan — pick this file: ' + name, accept: { 'text/html': ['.html', '.htm'] } }];
-// the file's text -> {state} (null when it holds none) or {why}: why it must not be written over
+// the file's text -> {state} (null when it holds none) or {why}: why it must not be written over. raw is the saved-data
+// text as written, when there is a place for it: what tells the very data this page could not read from any other.
 function st_readFile(txt) {
   if (typeof txt !== 'string' || !/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(txt)) return { why: 'is not an SFCB Spend Plan file' };
   const m = /<script\b[^>]*\bid=["']?spState["']?[^>]*>([\s\S]*?)<\/script\s*>/i.exec(txt);
   if (!m) return { why: 'is an SFCB Spend Plan page with no place for its data' };
+  const raw = m[1].trim();
   let st;
-  try { st = JSON.parse(m[1].trim() || 'null'); } catch (e) { return { why: 'holds saved data that cannot be read' }; }
-  if (st === null) return { state: null };
-  if (!st_isObj(st)) return { why: 'holds saved data that is not a plan' };
-  if (st.tool !== ST_TOOL) return { why: 'holds data saved by another tool' };
-  return { state: st };
+  try { st = JSON.parse(raw || 'null'); } catch (e) { return { why: 'holds saved data that cannot be read', raw, unreadable: true }; }
+  if (st === null) return { state: null, raw };
+  if (!st_isObj(st)) return { why: 'holds saved data that is not a plan', raw };
+  if (st.tool !== ST_TOOL) return { why: 'holds data saved by another tool', raw };
+  return { state: st, raw };
 }
 function st_abortish(e) { return !!e && (e.name === 'AbortError'); }
 function st_err(e) { return (e && e.message) || String(e); }
@@ -4644,32 +4779,56 @@ async function st_write(h, html) {
   try { await w.write(html); await w.close(); }
   catch (e) { try { await w.abort(); } catch (e2) {} throw e; }
 }
+// -> {ok, asked}: asked when the browser had to put its own question ("Save changes to …?"), which can stay open as long
+// as the person leaves it
 async function st_permit(h) {
-  let p = 'granted';
+  let p = 'granted', asked = false;
   try {
     if (typeof h.queryPermission === 'function') p = await h.queryPermission({ mode: 'readwrite' });
-    if (p !== 'granted' && typeof h.requestPermission === 'function') p = await h.requestPermission({ mode: 'readwrite' });
+    if (p !== 'granted' && typeof h.requestPermission === 'function') { asked = true; p = await h.requestPermission({ mode: 'readwrite' }); }
   } catch (e) { p = 'denied'; }
-  return p === 'granted';
+  return { ok: p === 'granted', asked };
 }
 function st_saved(now, gen, h) {
   SP.state.savedAt = now;
-  st_base = now; st_baseWhy = '';
+  st_base = now; st_baseWhy = ''; st_refusedRaw = null; st_taken = null;
   if (h) st_handle = h;
   if (gen === st_gen) { st_dirty = false; st_dlOnly = false; }   // an edit made while the file was being written is still unsaved
   st_fire();
 }
 // A Save that could only download: the work is in the download, not in this page's own file, until someone puts the
 // download in its place. Marked clean, the page read "Saved" and let the tab close without a question while the file
-// it was opened from still lacked the work (review S8). It stays unsaved, and says it was downloaded.
-function st_downloaded(now, gen) {
+// it was opened from still lacked the work (review S8). It stays unsaved, and says it was downloaded. This page's own
+// file still holds what it held, so Save's check is still made against that (st_base does not move); the download's
+// save time is remembered, so a download put in place reads as this page's own work, never "someone else's".
+function st_downloaded(now, gen, name) {
   SP.state.savedAt = now;
-  st_base = now; st_baseWhy = '';
+  st_copies.set(now, name);
   if (gen === st_gen) st_dlOnly = true;
   st_fire();
 }
 // 'saved' | 'unsaved' | 'downloaded' (unsaved, but the last Save downloaded every change): what the top bar says
 SP.saveStatus = function saveStatus() { return !st_dirty ? 'saved' : st_dlOnly ? 'downloaded' : 'unsaved'; };
+// What a download is called is the browser's to decide: one that already holds the name adds a number ("… (1).html" in
+// Chromium, "…(1).html" in Firefox). The message named the asked-for name, so following it put an OLDER download in place
+// of the shared file (review DL-7).
+function st_dlName(got) {
+  return '“' + got + '” (or, if your downloads folder already holds that name, the newest download with a number added, such as “'
+    + String(got).replace(/(\.html?)$/i, ' (1)$1') + '”)';
+}
+
+// WHERE WRITING IS REFUSED (a policy or site setting that blocks file editing, or a frame where the file windows throw),
+// the work could not be kept at all: Save and Save a copy… each said so and offered nothing, and the settings typed into
+// the page (Authorized, goals, special CCaRs, overrides) live nowhere else (review DL-4). A download is offered instead.
+//   lead  'Not saved' / 'No copy was saved';  reason  why, as a clause;  name  the download's name;  own  the file it replaces
+// -> the name downloaded under, or null when the person declined
+function st_offerDownload(lead, reason, html, name, own) {
+  const q = lead + ': ' + reason + '.\n\nDownload ' + (own ? 'the plan' : 'the copy') + ' instead, so this work is kept? The download is this page '
+    + 'with the work in it' + (own ? '; put it in place of “' + own + '” to keep the work there.' : '.');
+  let yes = false;
+  try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
+  return yes ? SP.download(name, html, 'text/html') : null;
+}
 
 SP.saveFile = async function saveFile() {
   if (st_busy) return { ok: false, message: 'A save is already running; nothing else was written.' };
@@ -4678,15 +4837,26 @@ SP.saveFile = async function saveFile() {
   catch (e) { return { ok: false, message: 'Not saved: ' + st_err(e) + '. Nothing was written.' }; }
   finally { st_busy = false; }
 };
+async function st_readText(h) { return (await h.getFile()).text(); }
 async function st_saveFile() {
   const name = st_pageName();
+  const html0 = () => { const now = new Date().toISOString(); return { now, gen: st_gen, html: st_htmlFor(Object.assign({}, SP.state, { savedAt: now })) }; };
+  // a download in place of a write the browser refused: the page stays unsaved and says it was downloaded
+  const fallback = (reason) => {
+    const w = html0();
+    const got = st_offerDownload('Not saved', reason, w.html, name, name);
+    if (got === null) return null;
+    st_downloaded(w.now, w.gen, got);
+    return { ok: true, message: 'The plan could not be saved to its file: ' + reason + '. It was downloaded instead, as ' + st_dlName(got) + '. The shared '
+      + 'copy is not updated until you put the download in its place (replace “' + name + '” with it). Until then this page counts the work as '
+      + 'unsaved, and asks before it is closed.' };
+  };
   if (typeof window.showOpenFilePicker !== 'function') {
     // no way to write a file in place: the page is downloaded under its own name, and the person puts it in place
-    const now = new Date().toISOString(), gen = st_gen;
-    const html = st_htmlFor(Object.assign({}, SP.state, { savedAt: now }));
-    const got = SP.download(name, html, 'text/html');
-    st_downloaded(now, gen);
-    return { ok: true, message: 'This browser cannot write to the file directly, so the plan was downloaded as “' + got + '”. '
+    const w = html0();
+    const got = SP.download(name, w.html, 'text/html');
+    st_downloaded(w.now, w.gen, got);
+    return { ok: true, message: 'This browser cannot write to the file directly, so the plan was downloaded as ' + st_dlName(got) + '. '
       + 'The shared copy is not updated until you put the download in its place (replace “' + name + '” with it). '
       + 'Until then this page counts the work as unsaved, and asks before it is closed.' };
   }
@@ -4698,84 +4868,142 @@ async function st_saveFile() {
     try { hs = await window.showOpenFilePicker({ multiple: false, types: ST_TYPES(name) }); }
     catch (e) {
       if (st_abortish(e)) return { ok: false, message: 'Not saved: no file was picked. Save again and pick “' + name + '”, the file this page was opened from.' };
-      return { ok: false, message: 'Not saved: the file window could not open (' + st_err(e) + '). Use Save a copy… instead.' };
+      const why = 'the file window could not open (' + st_err(e) + ')';
+      return fallback(why) || { ok: false, message: 'Not saved: ' + why + '. Nothing was written.' };
     }
     h = hs && hs[0];
     if (!h) return { ok: false, message: 'Not saved: no file was picked. Save again and pick “' + name + '”.' };
     picked = true;
   }
   const fname = h.name || name;
-  let txt;
-  try { txt = await (await h.getFile()).text(); }
-  catch (e) {
+  const own = st_pageNameKnown();
+  const other = picked && !!own && !st_sameName(fname, own);
+  const cantRead = e => {
     // a file that cannot be read cannot be checked, so it is never written over; a remembered one that has gone is forgotten
     if (!picked && e && e.name === 'NotFoundError') st_handle = null;
     return { ok: false, message: 'Not saved: “' + fname + '” could not be read (' + st_err(e) + '), so it was not written over. '
       + (e && e.name === 'NotFoundError' ? 'Save again and pick where the file is now.' : 'If it is syncing, try again in a moment, or use Save a copy….') };
-  }
-  const f = st_readFile(txt);
-  if (f.why) {
-    if (!picked) st_handle = null;      // the next Save asks which file, rather than failing here again
-    return { ok: false, message: 'Not saved: “' + fname + '” ' + f.why + ', so it was not written over. Save again and pick “' + name
-      + '”, the file this page was opened from, or use Save a copy….' };
-  }
-  const fs = f.state, fsAt = fs && typeof fs.savedAt === 'string' ? fs.savedAt : null;
-  // the data this page refused on opening is still there (whatever its save time says, even none): never written over unasked
-  const refusedHere = st_base === ST_REFUSED && !!fs && st_check(fs) !== '';
-  // A FILE OTHER THAN THIS PAGE'S OWN, picked in the window that asked for this one. It is said in the question, never
-  // left to a save time: an older plan of another team's read "saved … after this page was opened — by someone else, or in
-  // another window", and OK wrote this page over it and remembered it for every later Save (review S1). A remembered file
-  // was picked and confirmed already, and a page whose address names no file has nothing to compare it with.
-  const own = st_pageNameKnown();
-  const other = picked && !!own && !st_sameName(fname, own);
-  const timed = !!fs && fsAt !== null && fsAt !== st_base;
-  if (refusedHere || timed || other) {
-    const said = [];
-    if (other) said.push('You picked “' + fname + '”, not “' + own + '”, the file this page was opened from.');
-    let after = false;
-    if (refusedHere) {
-      said.push('This page opened empty because the data saved in “' + fname + '” was not opened (' + (st_baseWhy || st_check(fs)) + ').\n\nSaving now writes over '
-        + 'that data' + (fsAt ? ', saved ' + st_when(fsAt) : '') + ', and it is lost. Write over it?');
-    } else if (timed) {
-      // which came first is worked out, never assumed: the question used to call every other save time "after"
-      const mine = typeof st_base === 'string' ? st_base : null;
-      const ref = mine || st_openedAt;
-      after = !!ref && Date.parse(fsAt) > Date.parse(ref);
-      const [tf, tr] = ref ? st_whenPair(fsAt, ref) : [st_when(fsAt), ''];
-      const who = other ? '' : after ? ' — by someone else, or in another window' : '';
-      if (mine) {
-        said.push('“' + fname + '” holds a plan saved ' + tf + (after ? ', after this page last opened or saved its plan (' + tr + ')' + who + '.'
-          : ', before the plan this page opened or last saved (' + tr + ')' + (other ? '.' : ': an older copy, or another plan saved under this name.')));
+  };
+  let txt;
+  try { txt = await st_readText(h); } catch (e) { return cantRead(e); }
+  // THE FILE IS CHECKED, THE PERSON MAY BE ASKED, THE BROWSER MAY ASK FOR WRITE ACCESS, and then the file is read AGAIN:
+  // a colleague's save made while the question or the browser's own prompt was open was written over with no question,
+  // and their page still read "Saved" (review DL-3). If it changed, the checks start again on what it holds now.
+  let permitted = false, changedNote = '', blankOk = false, w = null;
+  for (let round = 0; ; round++) {
+    let waited = false;      // a question or the browser's own prompt was open: the file is read again before writing
+    const f = st_readFile(txt);
+    // the very data this page could not read on opening: written over only after the person says so, as data the page
+    // refused for its shape always was (review DL-6: every Save refused it and sent the person to pick it again)
+    const refusedRaw = !!f.unreadable && st_base === ST_REFUSED && st_refusedRaw !== null && f.raw === String(st_refusedRaw).trim();
+    if (f.why && !refusedRaw) {
+      if (!picked) st_handle = null;      // the next Save asks which file, rather than failing here again
+      const ownName = st_sameName(fname, name);
+      return { ok: false, message: changedNote + 'Not saved: “' + fname + '” ' + f.why + ', so it was not written over. '
+        + (ownName ? 'If it is the file this page was opened from, use Save a copy… to keep this work, and put the copy in its place.'
+          : 'Save again and pick “' + name + '”, the file this page was opened from, or use Save a copy….') };
+    }
+    const fs = refusedRaw ? null : f.state, fsAt = fs && typeof fs.savedAt === 'string' ? fs.savedAt : null;
+    // the data this page refused on opening is still there (whatever its save time says, even none): never written over unasked
+    const refusedHere = refusedRaw || (st_base === ST_REFUSED && !!fs && st_check(fs) !== '');
+    // A FILE OTHER THAN THIS PAGE'S OWN, picked in the window that asked for this one. It is said in the question, never
+    // left to a save time: an older plan of another team's read "saved … after this page was opened — by someone else, or in
+    // another window", and OK wrote this page over it and remembered it for every later Save (review S1). A remembered file
+    // was picked and confirmed already, and a page whose address names no file has nothing to compare it with.
+    // Files this page wrote itself, and the plan it took, are not someone else's saves (review SEAM-4, SEAM-5).
+    const copyName = fsAt !== null && st_copies.has(fsAt) ? st_copies.get(fsAt) : null;
+    const tookIt = fsAt !== null && !!st_taken && st_taken.at === fsAt;
+    const timed = !refusedHere && !!fs && fsAt !== null && fsAt !== st_base && copyName === null && !tookIt;
+    // A PAGE THAT OPENED A SAVED PLAN was not opened from a file that holds none. A copy of the tool of the same name in
+    // another folder (a Downloads folder, say) was written to with no question, the page read "Saved" and let the tab
+    // close, and the shared file it came from never got the work (review DL-1).
+    const blankElse = picked && !refusedHere && !fs && (typeof st_base === 'string' || st_base === ST_REFUSED);
+    if (refusedHere || timed || other || blankElse) {
+      const said = [];
+      if (changedNote) said.push(changedNote.trim());
+      if (other) said.push('You picked “' + fname + '”, not “' + own + '”, the file this page was opened from.');
+      let after = false;
+      if (refusedHere) {
+        said.push('This page opened empty because the data saved in “' + fname + '” was not opened (' + (st_baseWhy || (fs ? st_check(fs) : ''))
+          + ').\n\nSaving now writes over that data' + (fsAt ? ', saved ' + st_when(fsAt) : '') + ', and it is lost. Write over it?');
+      } else if (timed) {
+        // which came first is worked out, never assumed: the question used to call every other save time "after"
+        const mine = typeof st_base === 'string' ? st_base : null;
+        const ref = mine || st_openedAt;
+        after = !!ref && Date.parse(fsAt) > Date.parse(ref);
+        const [tf, tr] = ref ? st_whenPair(fsAt, ref) : [st_when(fsAt), ''];
+        const who = other ? '' : after ? ' — by someone else, or in another window' : '';
+        if (mine) {
+          // "an older copy put back" invited OK; a same-named copy in another folder is the likelier file (review DL-1)
+          said.push('“' + fname + '” holds a plan saved ' + tf + (after ? ', after this page last opened or saved its plan (' + tr + ')' + who + '.'
+            : ', before the plan this page opened or last saved (' + tr + ')' + (other ? '.' : ': it is not the file this page last saved, but an older copy '
+              + 'of it, or another plan saved under this name, perhaps in another folder.')));
+        } else {
+          said.push('“' + fname + '” holds a plan saved ' + tf + (after ? ', after this page was opened (' + tr + ')' + who + '.'
+            : (ref ? ', before this page was opened (' + tr + ')' : '') + '. This page opened with no saved plan, so that plan is not the one on screen.'));
+        }
+        if (st_taken) said.push('(This page took the plan in “' + st_taken.name + '”' + (st_taken.at ? ', saved ' + st_when(st_taken.at) : '') + '; this is another.)');
+        said.push('\nSaving now writes this page’s plan over it, and the plan saved in it is lost. Write over it?');
+      } else if (copyName !== null) {
+        said.push('It holds a copy of this page’s own work, saved ' + st_when(fsAt) + ' as “' + copyName + '”. Save this page’s plan into “' + fname + '” instead? '
+          + 'This page then saves to “' + fname + '” until it is closed.');
+      } else if (tookIt) {
+        said.push('It holds the plan this page took from “' + st_taken.name + '”. Save this page’s plan into “' + fname + '” instead? This page then saves to “'
+          + fname + '” until it is closed.');
+      } else if (!fs) {
+        if (other) said.push('It holds no saved plan. Save this page’s plan into “' + fname + '” instead? This page then saves to “' + fname + '” until it is closed.');
+        else {
+          said.push('“' + fname + '” holds no saved plan, but this page opened ' + (typeof st_base === 'string' ? 'the plan saved ' + st_when(st_base) : 'saved data it could not read')
+            + ', so this is not the file this page was opened from: it may be another copy of the tool with the same name, in another folder (a Downloads '
+            + 'folder, say). Save this page’s plan into it instead? This page then saves to it until it is closed, and the file it was opened from does not get this work.');
+        }
       } else {
-        said.push('“' + fname + '” holds a plan saved ' + tf + (after ? ', after this page was opened (' + tr + ')' + who + '.'
-          : (ref ? ', before this page was opened (' + tr + ')' : '') + '. This page opened with no saved plan, so that plan is not the one on screen.'));
+        said.push('It holds the same save as this page (' + st_when(fsAt) + '). Save this page’s plan into “' + fname + '” instead? This page then saves to “'
+          + fname + '” until it is closed.');
       }
-      said.push('\nSaving now writes this page’s plan over it, and the plan saved in it is lost. Write over it?');
-    } else if (!fs) {
-      said.push('It holds no saved plan. Save this page’s plan into “' + fname + '” instead? This page then saves to “' + fname + '” until it is closed.');
-    } else {
-      said.push('It holds the same save as this page (' + st_when(fsAt) + '). Save this page’s plan into “' + fname + '” instead? This page then saves to “'
-        + fname + '” until it is closed.');
+      if (!window.confirm(said.join('\n'))) {
+        return { ok: false, message: changedNote + (refusedHere
+          ? 'Not saved: you chose not to write over the data in “' + fname + '” that this page could not open. Nothing was written. To keep this work, use Save a copy…'
+          : other
+            ? 'Not saved: you chose not to write to “' + fname + '”, which is not “' + own + '”, the file this page was opened from. Nothing was written. '
+              + 'Save again and pick “' + own + '”, or use Save a copy….'
+            : timed
+              ? 'Not saved: “' + fname + '” holds a plan saved ' + st_when(fsAt) + (after ? ' by someone else' : '') + ', and you chose not to write over it. '
+                + 'Nothing was written. To keep both, use Save a copy…; to see ' + (after ? 'theirs' : 'it') + ', open the file.'
+              : 'Not saved: “' + fname + '” holds no saved plan, so it is not the file this page was opened from, and you chose not to write to it. '
+                + 'Nothing was written. Save again and pick the file this page was opened from, or use Save a copy….') };
+      }
+      blankOk = blankElse;
+      waited = true;
     }
-    if (!window.confirm(said.join('\n'))) {
-      return { ok: false, message: refusedHere
-        ? 'Not saved: you chose not to write over the data in “' + fname + '” that this page could not open. Nothing was written. To keep this work, use Save a copy…'
-        : other
-          ? 'Not saved: you chose not to write to “' + fname + '”, which is not “' + own + '”, the file this page was opened from. Nothing was written. '
-            + 'Save again and pick “' + own + '”, or use Save a copy….'
-          : 'Not saved: “' + fname + '” holds a plan saved ' + st_when(fsAt) + (after ? ' by someone else' : '') + ', and you chose not to write over it. '
-            + 'Nothing was written. To keep both, use Save a copy…; to see ' + (after ? 'theirs' : 'it') + ', open the file.' };
+    if (!permitted) {
+      const pm = await st_permit(h);
+      if (!pm.ok) {
+        const why = 'writing to “' + fname + '” was not allowed';
+        return fallback(why) || { ok: false, message: 'Not saved: ' + why + '. Nothing was written.' };
+      }
+      permitted = true;
+      if (pm.asked) waited = true;
     }
+    w = html0();
+    if (!waited) break;
+    let txt2;
+    try { txt2 = await st_readText(h); } catch (e) { return cantRead(e); }
+    if (txt2 === txt) break;
+    if (round >= 2) return { ok: false, message: 'Not saved: “' + fname + '” kept changing while this page was saving it (someone else is saving it now). '
+      + 'Nothing was written. Try again in a moment, or use Save a copy….' };
+    txt = txt2;
+    changedNote = '“' + fname + '” was saved again while you were answering. ';
   }
-  if (!(await st_permit(h))) return { ok: false, message: 'Not saved: writing to “' + fname + '” was not allowed. Nothing was written.' };
-  const now = new Date().toISOString(), gen = st_gen;
-  const html = st_htmlFor(Object.assign({}, SP.state, { savedAt: now }));
-  try { await st_write(h, html); }
-  catch (e) { return { ok: false, message: 'Not saved: “' + fname + '” could not be written (' + st_err(e) + '). Use Save a copy… to keep the work.' }; }
-  st_saved(now, gen, h);
-  const own2 = st_pageNameKnown();
-  return { ok: true, message: 'Saved to “' + fname + '” at ' + st_when(now).slice(11) + '.'
-    + (own2 && !st_sameName(fname, own2) ? ' This page saves there until it is closed; “' + own2 + '”, the file it was opened from, does not have this work.' : '') };
+  try { await st_write(h, w.html); }
+  catch (e) {
+    const why = '“' + fname + '” could not be written (' + st_err(e) + ')';
+    return fallback(why) || { ok: false, message: 'Not saved: ' + why + '. Use Save a copy… to keep the work.' };
+  }
+  st_saved(w.now, w.gen, h);
+  return { ok: true, message: 'Saved to “' + fname + '” at ' + st_when(w.now).slice(11) + '.'
+    + (own && !st_sameName(fname, own) ? ' This page saves there until it is closed; “' + own + '”, the file it was opened from, does not have this work.'
+      : blankOk ? ' This page saves there until it is closed; the file it was opened from does not have this work.' : '') };
 }
 
 SP.saveCopy = async function saveCopy() {
@@ -4789,9 +5017,17 @@ async function st_saveCopy() {
   const suggested = st_copyName();
   const now = new Date().toISOString(), gen = st_gen;
   const html = st_htmlFor(Object.assign({}, SP.state, { savedAt: now }));
+  const dl = reason => {
+    const got = st_offerDownload('No copy was saved', reason, html, suggested, '');
+    if (got === null) return null;
+    st_copies.set(now, got);
+    return { ok: true, message: 'The copy could not be written to a file: ' + reason + '. It was downloaded instead, as ' + st_dlName(got) + '. This page still saves to “'
+      + st_pageName() + '”.' };
+  };
   if (typeof window.showSaveFilePicker !== 'function') {
     const got = SP.download(suggested, html, 'text/html');
-    return { ok: true, message: 'A copy was downloaded as “' + got + '”. This page still saves to “' + st_pageName() + '”.' };
+    st_copies.set(now, got);
+    return { ok: true, message: 'A copy was downloaded as ' + st_dlName(got) + '. This page still saves to “' + st_pageName() + '”.' };
   }
   let h;
   try {
@@ -4799,15 +5035,30 @@ async function st_saveCopy() {
       types: [{ description: 'SFCB Spend Plan (a new file)', accept: { 'text/html': ['.html', '.htm'] } }] });
   } catch (e) {
     if (st_abortish(e)) return { ok: false, message: 'No copy was saved: no file name was given.' };
-    return { ok: false, message: 'No copy was saved: the file window could not open (' + st_err(e) + ').' };
+    const why = 'the file window could not open (' + st_err(e) + ')';
+    return dl(why) || { ok: false, message: 'No copy was saved: ' + why + '.' };
   }
+  const cname = h.name || suggested;
   try { await st_write(h, html); }
-  catch (e) { return { ok: false, message: 'No copy was saved: “' + (h.name || suggested) + '” could not be written (' + st_err(e) + ').' }; }
+  catch (e) {
+    const why = '“' + cname + '” could not be written (' + st_err(e) + ')';
+    return dl(why) || { ok: false, message: 'No copy was saved: ' + why + '.' };
+  }
+  st_copies.set(now, cname);
   // a copy written over this page's own file IS a save of it; anywhere else, this page's own file still lacks the work
   let own = false;
   if (st_handle && typeof h.isSameEntry === 'function') { try { own = await h.isSameEntry(st_handle); } catch (e) { own = false; } }
-  if (own) { st_saved(now, gen, st_handle); return { ok: true, message: 'Saved to “' + (h.name || suggested) + '” (this page’s own file).' }; }
-  return { ok: true, message: 'Saved a copy as “' + (h.name || suggested) + '”. This page still saves to “' + st_pageName() + '”'
+  if (own) { st_saved(now, gen, st_handle); return { ok: true, message: 'Saved to “' + cname + '” (this page’s own file).' }; }
+  // Before the first Save this page holds no handle to its own file, so a copy given its file's name cannot be told from
+  // a file of that name in another folder. It said "which does not have this work yet" of a file that had it (review
+  // SEAM-5, DL-5, BP-7). It is never taken for the page's own on its name alone (marked saved, the page would let the tab
+  // close while its real file lacked the work): the message says what is known, and Save no longer calls it someone else's.
+  const pn = st_pageNameKnown();
+  if (!st_handle && pn && st_sameName(cname, pn)) {
+    return { ok: true, message: 'Saved a copy as “' + cname + '”, the name of this page’s own file. If it IS that file, it now has this work; '
+      + 'this page cannot tell, so it still counts the work as unsaved. Save, and pick “' + pn + '”, to make sure: it will not ask about this copy.' };
+  }
+  return { ok: true, message: 'Saved a copy as “' + cname + '”. This page still saves to “' + st_pageName() + '”'
     + (st_dirty ? ', which does not have this work yet: use Save for that.' : '.') };
 }
 
@@ -5303,12 +5554,16 @@ function ui_dRow(label, pair) {
 }
 function ui_vChanges(M) {
   const st = ui_state();
-  const out = ['<h2 class="title">What changed between the last two pulls</h2>',
+  const out = ['<h2 class="title">What changed between the last two different pulls</h2>',
     '<p class="l2">Every row of every FY is compared, whatever the switches show and whatever the First FY, because the question is what the new pull holds.</p>', ui_shown(M, 'This view does not depend on them: it compares every row.')];
   const hist = st && Array.isArray(st.history) ? st.history : [];
   if (hist.length) {
-    out.push('<h3 class="sub">Imports this file holds</h3><ul class="notes">' + hist.map(h => '<li>' + ui_e(ui_day(h.importedAt)) + ': '
-      + ui_e((Array.isArray(h.aps) ? h.aps : []).map(a => UI_AP_LABEL[a] || a).join(', ')) + '</li>').join('') + '</ul>');
+    // an import that placed no row in an appropriation (only rows no appropriation claims) read "2026-11-04: " with
+    // nothing after it, as if the list had failed to draw (review SEAM-7)
+    out.push('<h3 class="sub">Imports this file holds</h3><ul class="notes">' + hist.map(h => {
+      const aps = (Array.isArray(h.aps) ? h.aps : []).map(a => UI_AP_LABEL[a] || a);
+      return '<li>' + ui_e(ui_day(h.importedAt)) + ': ' + ui_e(aps.length ? aps.join(', ') : 'no pull (only rows whose appropriation was not identified)') + '</li>';
+    }).join('') + '</ul>');
   }
   let D = {};
   if (!ui_fn('diffPulls')) return out.concat(['<p class="none">What changed is not available yet (SP.diffPulls is missing).</p>']).join('');
@@ -5318,9 +5573,20 @@ function ui_vChanges(M) {
   if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>'); return out.join(''); }
   for (const ap of aps) {
     const d = D[ap];
-    const [w0, w1] = ui_pullPair(d.importedAt[0], d.importedAt[1]);
+    // A pull imported again, the same row for row, keeps the comparison it had (review IMP-11) and says so: shown as the
+    // newest pull, its changes read as this week's when they were last week's (review BP-1). The section is named by the
+    // pull those rows first came in, and the import that brought them again is said under it.
+    const cur = ui_pulls()[ap] || {};
+    const since = typeof cur.sameSince === 'string' && cur.sameSince ? cur.sameSince : null;
+    const [w0, w1] = ui_pullPair(d.importedAt[0], since || d.importedAt[1]);
     out.push('<section class="chg" data-ap="' + ui_e(ap) + '"><h3 class="bar">' + ui_e(d.label) + ': pull of ' + ui_e(w0 || 'unknown') + ' → pull of '
       + ui_e(w1 || 'unknown') + '</h3>');
+    if (since) {
+      const [s1, s2] = ui_pullPair(since, d.importedAt[1]);
+      out.push('<p class="l2 same" data-same="' + ui_e(ap) + '"><strong>Nothing changed in the ' + ui_e(d.label) + ' pull imported ' + ui_e(s2 || 'later')
+        + ':</strong> it is the same, row for row, as the pull of ' + ui_e(s1) + '. What follows is what the pull of ' + ui_e(s1)
+        + ' changed, against the one before it.</p>');
+    }
     out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th><th scope="col" class="n">Change ($M)</th></tr></thead><tbody>'
       + ui_dRow('Approved', d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
     const bk = Object.keys(d.byBlock);
@@ -5457,8 +5723,12 @@ function ui_vHelp() {
       'An import replaces the appropriations it holds. The pull it replaces is kept for <strong>What changed</strong>; appropriations it does not hold keep theirs.',
       'Each import sets <strong>Data through</strong> to the last full month before the import. Change it in the top bar.',
       'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.',
-      'If every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the only Full Fund row, say), the page asks before '
-      + 'those rows replace that appropriation’s pull: such a row is most likely misfiled.',
+      'The page asks before an import replaces a pull when every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the '
+      + 'only Full Fund row, say), or when the new pull would keep fewer than half the readable rows of the one on screen (a misfiled row, a file cut '
+      + 'short, a filtered pull). Cancel changes nothing. A misfiled row is put right by correcting its Budget, or by taking it out of the file: '
+      + 'its own appropriation’s pull is imported whole.',
+      'The same pull imported again keeps what <strong>What changed</strong> compares, and What changed says the newest import changed nothing. '
+      + 'Rows whose appropriation is not identified stay while a pull from the same import is on screen.',
       'To move a plan into a new copy of this tool, import the saved plan’s .html file on its own: the page takes its pulls, earlier pulls, history and settings, '
       + 'and works every figure out again by its own rules. Save to keep it.'])
     + '<h3 class="sub">Which rows count</h3>' + li([

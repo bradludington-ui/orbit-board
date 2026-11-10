@@ -456,7 +456,12 @@ await clean(A, 'a refused import');
 // ------------------------------------------------------------------ a second pull: What changed, against the oracle
 const G = oracle('gen2');
 await P.setInputFiles('#uiFile', [join(FX, 'gen2', 'pull-om.xlsx'), join(FX, 'gen2', 'pull-ff.csv')]);
-await until(P, () => document.querySelector('#uiMsg').classList.contains('msg-ok'));
+// the gen2 fixture carries rows that count nowhere (an unreadable Amount, rows no appropriation claims), so its import is
+// a warning, not a plain success (review F4, DL-2): wait for the import's own words, then hold its class
+C.chk('gen2: the import lands, and its message names the rows that count nowhere as a warning',
+  await until(P, () => /^Imported O&M/.test(document.querySelector('#uiMsg').textContent)
+    && document.querySelector('#uiMsg').classList.contains('msg-warn') && /counted nowhere/.test(document.querySelector('#uiMsg').textContent)),
+  await text(P, '#uiMsg'));
 await P.fill('#uiAsOf', '2026-10');
 await view(P, 'summary');
 await summaryMatches(G, 'summary (gen2)');

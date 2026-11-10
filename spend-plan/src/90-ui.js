@@ -489,12 +489,16 @@ function ui_dRow(label, pair) {
 }
 function ui_vChanges(M) {
   const st = ui_state();
-  const out = ['<h2 class="title">What changed between the last two pulls</h2>',
+  const out = ['<h2 class="title">What changed between the last two different pulls</h2>',
     '<p class="l2">Every row of every FY is compared, whatever the switches show and whatever the First FY, because the question is what the new pull holds.</p>', ui_shown(M, 'This view does not depend on them: it compares every row.')];
   const hist = st && Array.isArray(st.history) ? st.history : [];
   if (hist.length) {
-    out.push('<h3 class="sub">Imports this file holds</h3><ul class="notes">' + hist.map(h => '<li>' + ui_e(ui_day(h.importedAt)) + ': '
-      + ui_e((Array.isArray(h.aps) ? h.aps : []).map(a => UI_AP_LABEL[a] || a).join(', ')) + '</li>').join('') + '</ul>');
+    // an import that placed no row in an appropriation (only rows no appropriation claims) read "2026-11-04: " with
+    // nothing after it, as if the list had failed to draw (review SEAM-7)
+    out.push('<h3 class="sub">Imports this file holds</h3><ul class="notes">' + hist.map(h => {
+      const aps = (Array.isArray(h.aps) ? h.aps : []).map(a => UI_AP_LABEL[a] || a);
+      return '<li>' + ui_e(ui_day(h.importedAt)) + ': ' + ui_e(aps.length ? aps.join(', ') : 'no pull (only rows whose appropriation was not identified)') + '</li>';
+    }).join('') + '</ul>');
   }
   let D = {};
   if (!ui_fn('diffPulls')) return out.concat(['<p class="none">What changed is not available yet (SP.diffPulls is missing).</p>']).join('');
@@ -504,9 +508,20 @@ function ui_vChanges(M) {
   if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>'); return out.join(''); }
   for (const ap of aps) {
     const d = D[ap];
-    const [w0, w1] = ui_pullPair(d.importedAt[0], d.importedAt[1]);
+    // A pull imported again, the same row for row, keeps the comparison it had (review IMP-11) and says so: shown as the
+    // newest pull, its changes read as this week's when they were last week's (review BP-1). The section is named by the
+    // pull those rows first came in, and the import that brought them again is said under it.
+    const cur = ui_pulls()[ap] || {};
+    const since = typeof cur.sameSince === 'string' && cur.sameSince ? cur.sameSince : null;
+    const [w0, w1] = ui_pullPair(d.importedAt[0], since || d.importedAt[1]);
     out.push('<section class="chg" data-ap="' + ui_e(ap) + '"><h3 class="bar">' + ui_e(d.label) + ': pull of ' + ui_e(w0 || 'unknown') + ' → pull of '
       + ui_e(w1 || 'unknown') + '</h3>');
+    if (since) {
+      const [s1, s2] = ui_pullPair(since, d.importedAt[1]);
+      out.push('<p class="l2 same" data-same="' + ui_e(ap) + '"><strong>Nothing changed in the ' + ui_e(d.label) + ' pull imported ' + ui_e(s2 || 'later')
+        + ':</strong> it is the same, row for row, as the pull of ' + ui_e(s1) + '. What follows is what the pull of ' + ui_e(s1)
+        + ' changed, against the one before it.</p>');
+    }
     out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th><th scope="col" class="n">Change ($M)</th></tr></thead><tbody>'
       + ui_dRow('Approved', d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
     const bk = Object.keys(d.byBlock);
@@ -643,8 +658,12 @@ function ui_vHelp() {
       'An import replaces the appropriations it holds. The pull it replaces is kept for <strong>What changed</strong>; appropriations it does not hold keep theirs.',
       'Each import sets <strong>Data through</strong> to the last full month before the import. Change it in the top bar.',
       'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.',
-      'If every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the only Full Fund row, say), the page asks before '
-      + 'those rows replace that appropriation’s pull: such a row is most likely misfiled.',
+      'The page asks before an import replaces a pull when every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the '
+      + 'only Full Fund row, say), or when the new pull would keep fewer than half the readable rows of the one on screen (a misfiled row, a file cut '
+      + 'short, a filtered pull). Cancel changes nothing. A misfiled row is put right by correcting its Budget, or by taking it out of the file: '
+      + 'its own appropriation’s pull is imported whole.',
+      'The same pull imported again keeps what <strong>What changed</strong> compares, and What changed says the newest import changed nothing. '
+      + 'Rows whose appropriation is not identified stay while a pull from the same import is on screen.',
       'To move a plan into a new copy of this tool, import the saved plan’s .html file on its own: the page takes its pulls, earlier pulls, history and settings, '
       + 'and works every figure out again by its own rules. Save to keep it.'])
     + '<h3 class="sub">Which rows count</h3>' + li([
