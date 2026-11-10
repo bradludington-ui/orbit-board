@@ -230,6 +230,24 @@ function imp_findHeader(rows, rowNo) {
   }
   return { i: -1, best };
 }
+// A CSV SEPARATED BY SOMETHING OTHER THAN COMMAS. Read as comma-separated, its whole header row is one cell, so the file
+// was refused for lacking the column headers it has, and the closest-row hint (four headers or fewer missing) never came
+// (review F2). The row's cells are joined back with the commas the reader split them at and tried against each separator.
+// Such a file is refused, never read: a file separated by semicolons may write 1.234,56 for 1,234.56, and a separator
+// guessed wrong would put money in the wrong cell. {rowNo, sep} or null.
+const IMP_SEPS = [['\t', 'tabs'], [';', 'semicolons'], ['|', 'vertical bars']];
+function imp_sepHeader(rows, rowNo) {
+  const unq = s => SP.normKey(s.replace(/^\s*"([\s\S]*)"\s*$/, '$1'));
+  for (let i = 0; i < rows.length && rowNo[i] <= IMP_HDR_ROWS; i++) {
+    const line = (rows[i] || []).map(imp_text).join(',');
+    for (const [sep, words] of IMP_SEPS) {
+      if (line.indexOf(sep) < 0) continue;
+      const have = new Set(line.split(sep).map(unq));
+      if (SP.REQUIRED.every(h => have.has(SP.normKey(h)))) return { rowNo: rowNo[i], sep: words };
+    }
+  }
+  return null;
+}
 
 // One sheet -> {info, rows:[stored rows with their appropriation]}. acc collects the report's counts across the import.
 function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
@@ -241,6 +259,14 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   const rows = sh.rows, rowNo = sh.rowNo;
   const hdr = imp_findHeader(rows, rowNo);
   if (hdr.i < 0) {
+    const sep = kind === 'csv' ? imp_sepHeader(rows, rowNo) : null;
+    if (sep) {
+      info.sep = sep.sep;
+      info.why = 'its column headers are on row ' + sep.rowNo + ', but separated by ' + sep.sep + ', not commas. This tool reads CSV '
+        + 'separated by commas only, and never guesses a separator (one separated by semicolons may write 1.234,56 for 1,234.56). '
+        + 'Save it from Excel as “CSV (Comma delimited)” or as an Excel Workbook (.xlsx), and import that';
+      return { info, out };
+    }
     info.why = 'no row in the first ' + IMP_HDR_ROWS + ' holds all ' + SP.REQUIRED.length + ' required column headers ('
       + SP.REQUIRED.join(', ') + ')';
     if (hdr.best && hdr.best.missing.length <= 4)
@@ -252,8 +278,14 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
   const head = rows[hdr.i];
   const col = new Array(IMP_N).fill(-1), named = new Set(), dup = [], extras = [], seenExtra = new Map();
   const ignored = new Set();   // columns read as nothing: v12's formula columns, this tool's own derived ones
-  const headKeys = new Set(head.map(h => SP.normKey(imp_text(h))));
-  const ownExport = IMP_OWN_COLS.every(k => headKeys.has(k)), ownSeen = new Set();
+  // THE TOOL'S OWN FOUR are the LAST column of each of those names, when all four are there in the order the export writes
+  // them, after every extra (CONTRACT §8.7). The FIRST of each name was taken: a pull's own column named Status sits before
+  // the tool's, so it was ignored as the tool's, and the tool's derived words came back under its name (review F7, XP2-2).
+  const lastAt = new Map();
+  head.forEach((h, j) => { const nk = SP.normKey(imp_text(h)); if (IMP_OWN_COLS.includes(nk)) lastAt.set(nk, j); });
+  const ownJ = IMP_OWN_COLS.map(k => lastAt.get(k));
+  const ownExport = ownJ.every((j, i) => j !== undefined && (i === 0 || j > ownJ[i - 1]));
+  const ownCols = new Set(ownExport ? ownJ : []);
   head.forEach((h, j) => {
     const text = imp_text(h);
     if (text === '') return;
@@ -263,7 +295,7 @@ function imp_sheet(fileIdx, fileName, kind, sh, date1904, acc) {
       if (col[k] >= 0) dup.push({ name: SP.RAW_HEADERS[k], a: col[k], b: j });
       else { col[k] = j; named.add(j); }
     } else if (IMP_FORMULA_COLS.has(nk)) { info.ignoredCols.push(text); named.add(j); ignored.add(j); }
-    else if (ownExport && IMP_OWN_COLS.includes(nk) && !ownSeen.has(nk)) { ownSeen.add(nk); info.ownCols.push(text); named.add(j); ignored.add(j); }
+    else if (ownCols.has(j)) { info.ownCols.push(text); named.add(j); ignored.add(j); }
     else {
       // two columns with one unknown header keep both, the second as "Name (2)", so neither overwrites the other
       const n = (seenExtra.get(nk) || 0) + 1;
@@ -455,6 +487,21 @@ SP.parseFiles = async function parseFiles(files, opts) {
       if (kind === 'csv') {
         let text = typeof f.data === 'string' ? f.data : null;
         let stray = 0;
+        const notCsv = text === null ? SP.notCsvWhy(bytes[fi]) : '';
+        if (notCsv) { fr.refused = notCsv; continue; }
+        const t16 = text === null ? SP.utf16Of(bytes[fi]) : null;
+        if (t16) {
+          // UTF-16 says so with its byte-order mark, or by every other byte of its text being zero: read as UTF-8 or
+          // Windows-1252 it was refused for "no header row" and reported as Windows-1252 (review F2)
+          const nm = t16.enc === 'utf-16le' ? 'UTF-16LE' : 'UTF-16BE';
+          fr.notes.push(t16.bom ? 'It is UTF-16 (Unicode) text, as its byte-order mark says, and was read as ' + nm + '.'
+            : 'It is UTF-16 (Unicode) text with no byte-order mark (every other byte of its text is zero), and was read as ' + nm + '.');
+          try { text = new TextDecoder(t16.enc, { fatal: true }).decode(bytes[fi]); }
+          catch (e) {
+            text = new TextDecoder(t16.enc).decode(bytes[fi]);
+            fr.notes.push('Some of it is not well-formed ' + nm + ': each such character was read as � (the character for one that cannot be read).');
+          }
+        }
         if (text === null) {
           try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes[fi]); }
           catch (e) {
@@ -496,9 +543,12 @@ SP.parseFiles = async function parseFiles(files, opts) {
       report.rowsRead += info.rows;
       report.rowsBlank += info.blank;
       if (info.disagree) report.disagreements.push(Object.assign({ file: name, sheet: sh.name }, info.disagree));
-      for (const o of out) got.push({ ap: o.ap, row: o.row, file: name, sheet: sh.name, fileIdx: fi });
+      for (const o of out) got.push({ ap: o.ap, row: o.row, file: name, sheet: sh.name, fileIdx: fi, state: info.state });
     }
-    if (!fr.sheets.some(s => s.used)) fr.refused = fr.sheets.length
+    // a CSV whose headers are there, separated by tabs or semicolons, is said to be that: pointed at the column names, which
+    // are right, the person had nothing to correct (review F2)
+    const sepd = fr.sheets.find(s => s.sep);
+    if (!fr.sheets.some(s => s.used)) fr.refused = sepd ? sepd.why : fr.sheets.length
       ? 'no sheet in it holds CCaR rows under the column headers ' + SP.REQUIRED.join(', ')
       : 'it holds no sheets';
   }
@@ -515,22 +565,45 @@ SP.parseFiles = async function parseFiles(files, opts) {
     if (g.ap === 'unidentified') continue;
     if (!srcBy.has(g.ap)) srcBy.set(g.ap, new Map());
     const m = srcBy.get(g.ap), key = g.fileIdx + '\u0000' + g.sheet;
-    const e = m.get(key) || { file: g.file, sheet: g.sheet, n: 0, cents: 0 };
+    const e = m.get(key) || { file: g.file, sheet: g.sheet, state: g.state || 'visible', n: 0, cents: 0 };
     e.n++; if (!g.row.bad) e.cents += g.row.c[IMP_AMT];
     m.set(key, e);
   }
+  // WHAT TO DO DEPENDS ON THE COUNTS. A few rows beside a whole pull are misfiled rows: move them, or correct their Budget.
+  // (The advice once ended "or import the files one at a time": taken, the misfiled row became the whole of its
+  // appropriation's pull and replaced that pull without a word, review IMP-1.) But two sources that each hold a whole pull,
+  // or most of one (two months' exports, a combined export picked with a one-appropriation export, one pull as .xlsx and as
+  // .csv, an old copy kept on a hidden sheet), hold no misfiled row: every such import was told to move "the small count"
+  // across, which would count the rows twice (review SCR2-4, F9). And a hidden sheet is said to be hidden: Excel does not
+  // show it, and the message sent the person to a tab they could not see.
   const clash = [];
+  let fewRows = false, wholePulls = false, hidden = false, veryHidden = false;
   for (const ap of IMP_AP_IDS) {
     const m = srcBy.get(ap);
     if (!m || m.size < 2) continue;
+    const es = [...m.values()], most = Math.max(...es.map(e => e.n));
+    // a source holding a tenth of the largest's rows, or fewer, is "a few rows" beside it
+    if (es.some(e => e.n * 10 <= most)) fewRows = true;
+    if (es.filter(e => e.n * 10 > most).length >= 2) wholePulls = true;
+    for (const e of es) { if (e.state !== 'visible') hidden = true; if (e.state === 'veryHidden') veryHidden = true; }
     clash.push(imp_apLabel(ap) + ' rows come from ' + m.size + ' sheets: '
-      + [...m.values()].map(e => imp_where(e) + ' holds ' + imp_plural(e.n, imp_apLabel(ap) + ' row')).join('; '));
+      + es.map(e => imp_where(e) + (e.state === 'visible' ? '' : e.state === 'veryHidden' ? ' (a very hidden sheet)' : ' (a hidden sheet)')
+        + ' holds ' + imp_plural(e.n, imp_apLabel(ap) + ' row')).join('; '));
   }
-  // The advice used to end "or import the files one at a time": taken, the misfiled row became the whole of its
-  // appropriation's pull and replaced that pull without a word (review IMP-1). The row has to move, or its Budget change.
-  if (clash.length) throw imp_refuse('Nothing was imported. Each appropriation’s rows must come from one sheet in one import, and '
-    + clash.join('. ') + '. Rows are placed by their Budget name, so a row on the wrong tab shows here as a small count: move it '
-    + 'to the sheet of its own appropriation, or correct its Budget, and import again.', report);
+  if (clash.length) {
+    const adv = [];
+    if (wholePulls) adv.push('Where two of these each hold a whole pull, or most of one (two exports of one appropriation, a combined '
+      + 'export picked with a one-appropriation export, one pull as .xlsx and as .csv, or an old copy kept on another sheet), leave '
+      + 'all but the newest out of the import (pick only the newer file, or delete the old copy’s sheet): moving rows from one into '
+      + 'the other would count them twice.');
+    if (fewRows) adv.push('Where one holds only a few rows beside the others, each of them is most likely misfiled: rows are placed by '
+      + 'their Budget name, so move it to the sheet of its own appropriation, or correct its Budget, and import again.');
+    if (hidden) adv.push('Excel does not show a hidden sheet: right-click a sheet tab and choose Unhide to see it, and delete it if it '
+      + 'is an old copy' + (veryHidden ? ' (a very hidden sheet is not offered there: it is shown from the Visual Basic editor, '
+      + 'Alt+F11, by setting its Visible property)' : '') + '.');
+    throw imp_refuse('Nothing was imported. Each appropriation’s rows must come from one sheet in one import, and '
+      + clash.join('. ') + '. ' + adv.join(' '), report);
+  }
   // AN APPROPRIATION ALL OF WHOSE ROWS SIT ON A SHEET NAMED FOR ANOTHER. The budget still wins (CONTRACT §3), but such rows
   // are the very shape of a misfiled row, and imported they become the WHOLE of their appropriation's pull: one Full Fund
   // row on the O&M tab, imported in an O&M-only file, replaced a 40-row Full Fund pull with itself (review IMP-1). They are
@@ -582,6 +655,23 @@ SP.parseFiles = async function parseFiles(files, opts) {
   return { pulls: ordered, report };
 };
 
+// DATES AND MONTHS THAT COULD NOT BE READ, under two headings. A row is placed by its Date (CONTRACT §4.2), never its
+// Month: an unreadable Date puts the row in No date, an unreadable Month moves nothing. Listed together under "the row is
+// placed in No date", a row whose Month read "Nov-25" and whose Date read 2026-01-10 was said to sit in No date while its
+// money sat in Jan (review F11). The message line kept the two apart; the report now does too.
+//   L  the lines;  pad  the indent;  dates, months  each item's line, without the indent
+function imp_dateLines(L, pad, dates, months) {
+  if (dates.length) {
+    L.push(pad + 'Dates that could not be read (the row is kept and placed in No date): ' + SP.fmtInt(dates.length) + '.');
+    for (const d of dates) L.push(pad + '  ' + d);
+  }
+  if (months.length) {
+    L.push(pad + 'Month values that could not be read (the row is kept; a row is placed by its Date, never its Month, so this '
+      + 'moves no money): ' + SP.fmtInt(months.length) + '.');
+    for (const d of months) L.push(pad + '  ' + d);
+  }
+}
+
 // The report as plain lines (the Import report view and the workbook's Import Report sheet both print these)
 SP.importReportLines = function importReportLines(report) {
   const L = [];
@@ -592,7 +682,7 @@ SP.importReportLines = function importReportLines(report) {
     if (aps.length) bits[1] += ' (' + aps.join(', ') + ')';
     if (s.blank) bits.push(imp_plural(s.blank, 'blank row') + ' skipped');
     if (s.ignoredCols.length) bits.push(s.ignoredCols.join(' and ') + ' ignored (the old workbook’s formula columns)');
-    if (s.ownCols && s.ownCols.length) bits.push(s.ownCols.join(', ') + ' ignored (this tool’s own columns, worked out again on every load)');
+    if (s.ownCols && s.ownCols.length) bits.push(s.ownCols.join(', ') + ' ignored (this tool’s own columns, the last of each name, worked out again on every load)');
     const nr = Array.isArray(s.noResult) ? s.noResult : [];
     if (nr.length) bits.push(imp_plural(nr.length, 'cell holds', 'cells hold') + ' a formula saved without its result ('
       + nr.slice(0, 10).join(', ') + (nr.length > 10 ? ', …' : '') + '): each is read as its formula’s text, so an Amount or FY '
@@ -641,11 +731,10 @@ SP.importReportLines = function importReportLines(report) {
   L.push('Unreadable rows (kept, counted in no figure): ' + (un.length ? SP.fmtInt(un.length) + '.' : 'none.'));
   for (const u of un) L.push('  ' + imp_where(u) + ' row ' + u.row + ' (' + imp_apLabel(u.ap) + '): ' + u.reasons.join('; ')
     + (u.cents !== null ? '; amount ' + SP.fmtUsd(u.cents) : '') + '.');
-  const db = report.dateUnreadable || [];
-  if (db.length) {
-    L.push('Dates that could not be read (the row is kept and placed in No date): ' + SP.fmtInt(db.length) + '.');
-    for (const d of db) L.push('  ' + imp_where(d) + ' row ' + d.row + ': ' + d.column + ' ' + imp_q(d.raw) + '.');
-  }
+  const db = Array.isArray(report.dateUnreadable) ? report.dateUnreadable : [];
+  // each line names its own column, so a value under the wrong heading can be seen to be there
+  imp_dateLines(L, '', db.filter(d => d && d.column !== 'Month').map(d => imp_where(d) + ' row ' + d.row + ': ' + (d.column || 'Date') + ' ' + imp_q(d.raw) + '.'),
+    db.filter(d => d && d.column === 'Month').map(d => imp_where(d) + ' row ' + d.row + ': Month ' + imp_q(d.raw) + '.'));
   const dis = report.disagreements || [];
   L.push('Budget and sheet name disagree: ' + (dis.length ? '' : 'none.'));
   for (const d of dis) L.push('  ' + imp_where(d) + ' (by its name, ' + imp_apLabel(d.sheetAp) + '): ' + imp_plural(d.rows, 'row')
@@ -740,10 +829,8 @@ SP.keptPullLines = function keptPullLines(pulls, report) {
         L.push('    ' + where(r) + ': ' + r.bad.map(String).join('; ') + (typeof amt === 'number' ? '; amount ' + SP.fmtUsd(amt) : '') + '.');
       }
     }
-    if (dates.length) {
-      L.push('  Dates that could not be read (the row is kept and placed in No date): ' + SP.fmtInt(dates.length) + '.');
-      for (const [r, h, v] of dates) L.push('    ' + where(r) + ': ' + h + ' ' + imp_q(String(v)) + '.');
-    }
+    imp_dateLines(L, '  ', dates.filter(([, h]) => h === 'Date').map(([r, h, v]) => where(r) + ': ' + h + ' ' + imp_q(String(v)) + '.'),
+      dates.filter(([, h]) => h === 'Month').map(([r, h, v]) => where(r) + ': ' + h + ' ' + imp_q(String(v)) + '.'));
   }
   return L;
 };

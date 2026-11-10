@@ -18,6 +18,17 @@
 //           the newest import changed nothing
 //   SEAM-6  "the earlier pull What changed compares with is kept" is never said when there is no earlier pull
 //   SEAM-7  an import that placed no row in an appropriation is not listed as an empty "2026-11-04: "
+//   F2      a UTF-16 CSV, with a byte-order mark or without, is read as UTF-16 and imports as its UTF-8 twin does; a CSV
+//           separated by tabs or semicolons is refused saying so, never "no header row" or "read as Windows-1252"
+//   F3      a file that is not an .xlsx is named for what it is: a workbook LibreOffice encrypted is "encrypted" (an .xls
+//           LibreOffice wrote is still an .xls), a web archive, an XHTML table and a page opening with a comment are web
+//           pages, UTF-16 text is plain text, a ZIP file holding a CSV says so, an .ods is an .ods, an .xlsx named .csv is
+//           not CSV text; a workbook that lost xl/workbook.xml is still damaged
+//   F7/XP2-2 a pull's own column named Status, Service, Lane or Counted survives its export re-imported, and again
+//   F8      after a refused import, the Import report never calls two imports "the last import"
+//   F9/SCR2-4 the one-sheet refusal names a hidden sheet as hidden, and advises leaving one of two whole pulls out, never
+//           moving "the small count" across (which would count the rows twice); a few misfiled rows still get that advice
+//   F11     a Month that cannot be read is listed apart from a Date that cannot be read: only the Date puts a row in No date
 //
 //   node spend-plan/test/import-review2.test.mjs
 //   SFCBSP_PAGE=/path/to/built.html node spend-plan/test/import-review2.test.mjs   (the same checks on a given built page)
@@ -77,10 +88,10 @@ async function block(name, fn) {
 }
 
 // A workbook written by hand, zipped by Python: another writer, so the reader is never checked only against itself.
-function xlsx(file, sheets) {
+function xlsx(file, sheets, states) {
   const py = `
 import json, sys, zipfile
-out, sheets = sys.argv[1], json.loads(sys.argv[2])
+out, sheets, states = sys.argv[1], json.loads(sys.argv[2]), json.loads(sys.argv[3])
 names = list(sheets.keys())
 ct = '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' \\
   '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' \\
@@ -91,7 +102,7 @@ rels = '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schem
   '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
 wb = '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' \\
   'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' + \\
-  ''.join('<sheet name="%s" sheetId="%d" r:id="rId%d"/>' % (n.replace('&', '&amp;'), i + 1, i + 1) for i, n in enumerate(names)) + '</sheets></workbook>'
+  ''.join('<sheet name="%s" sheetId="%d" r:id="rId%d"%s/>' % (n.replace('&', '&amp;'), i + 1, i + 1, (' state="%s"' % states[n]) if n in states else '') for i, n in enumerate(names)) + '</sheets></workbook>'
 wrels = '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + \\
   ''.join('<Relationship Id="rId%d" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet%d.xml"/>' % (i + 1, i + 1) for i in range(len(names))) + '</Relationships>'
 with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
@@ -100,7 +111,7 @@ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
     for i, n in enumerate(names): z.writestr('xl/worksheets/sheet%d.xml' % (i + 1), sheets[n])
 `;
   const out = join(tmp.dir, file);
-  const r = spawnSync('python3', ['-I', '-c', py, out, JSON.stringify(sheets)], { encoding: 'utf8' });
+  const r = spawnSync('python3', ['-I', '-c', py, out, JSON.stringify(sheets), JSON.stringify(states || {})], { encoding: 'utf8' });
   if (r.status !== 0) throw new Error('the workbook writer failed: ' + r.stderr);
   const b = readFileSync(out);
   return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
@@ -364,6 +375,264 @@ try {
     C.eq('SEAM-7: (two imports are listed)', items.length, 2);
     C.chk('SEAM-7: the import that placed no row says so, not an empty "date: "', /^\d{4}-\d{2}-\d{2}: no pull \(only rows whose appropriation was not identified\)$/.test(items[1] || ''), J(items));
     C.chk('SEAM-7 (control): the other names its pull', /: O&M$/.test(items[0] || ''), J(items));
+    T.t.close();
+  });
+
+  // ===================================================================================================================
+  // F2 — a CSV in UTF-16, and a CSV separated by something other than commas
+  // ===================================================================================================================
+  const ab = b => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+  const u16le = (s, bom) => ab(Buffer.from((bom ? '﻿' : '') + s, 'utf16le'));
+  const u16be = (s, bom) => { const b = Buffer.from((bom ? '﻿' : '') + s, 'utf16le'); b.swap16(); return ab(b); };
+  const sepText = (sep, rows) => [HEADERS.join(sep)].concat(rows.map(o => HEADERS.map(h => (o[h] === undefined ? '' : String(o[h]))).join(sep))).join('\r\n') + '\r\n';
+  const refusal = async (T, files, now) => { try { await T.parse(files, now); return null; } catch (e) { return e; } };
+  await block('F2', async () => {
+    const TITLE = 'Café – wing’s line';   // é, an en dash and a curly quote: the characters a wrong decoding turns into others
+    const rows = om(3, 250000).map((o, i) => ({ ...o, Title: i === 0 ? TITLE : o.Title }));
+    const text = csv(rows);
+    const T = boot();
+    const base = await T.parse([['om.csv', ab(Buffer.from(text, 'utf8'))]]);
+    C.eq('F2 (control): the UTF-8 file reads its three rows', base.pulls.om.rows.length, 3);
+    for (const [what, data, enc] of [['UTF-16LE with a byte-order mark', u16le(text, true), 'UTF-16LE'], ['UTF-16BE with a byte-order mark', u16be(text, true), 'UTF-16BE'],
+      ['UTF-16LE with no byte-order mark', u16le(text, false), 'UTF-16LE'], ['UTF-16BE with no byte-order mark', u16be(text, false), 'UTF-16BE']]) {
+      const e = await refusal(T, [['om16.csv', data]]);
+      C.chk('F2: a CSV in ' + what + ' is imported, not refused', !e, e && e.message);
+      if (e) continue;
+      const p = await T.parse([['om16.csv', data]]);
+      C.eq('F2: a CSV in ' + what + ' reads the same rows as its UTF-8 twin', p.pulls.om.rows.map(r => r.c), base.pulls.om.rows.map(r => r.c));
+      C.eq('F2: … its title with é, – and ’ whole', p.pulls.om.rows[0].c[HEADERS.indexOf('Title')], TITLE);
+      const notes = p.report.files[0].notes.join(' ');
+      C.chk('F2: … and the report says it was read as ' + enc + ', never as Windows-1252', notes.includes(enc) && !/Windows-1252/.test(notes), notes);
+    }
+    for (const [what, data, words] of [['tabs', ab(Buffer.from(sepText('\t', rows), 'utf8')), 'tabs'], ['semicolons', ab(Buffer.from(sepText(';', rows), 'utf8')), 'semicolons'],
+      ['tabs, in UTF-16 (Excel’s “Unicode Text”)', u16le(sepText('\t', rows), true), 'tabs']]) {
+      const e = await refusal(T, [['sep.csv', data]]);
+      const m = e ? e.message : '';
+      C.chk('F2: a CSV separated by ' + what + ' is refused, saying its headers are there, separated by ' + words,
+        !!e && e.refused && new RegExp('headers are on row 1, but separated by ' + words + ', not commas').test(m), m);
+      C.chk('F2: … not "no sheet holds the column headers", and not "read as Windows-1252"',
+        !/no sheet in it holds CCaR rows/.test(m) && !/Windows-1252/.test(SP_lines(T, e)), m);
+      C.chk('F2: … and it says what to do: save it as CSV (Comma delimited) or .xlsx', /CSV \(Comma delimited\)/.test(m) && /\.xlsx/.test(m), m);
+    }
+    // control: a comma CSV that lacks a header keeps the closest-row hint, though a value in it holds a tab
+    const noPmo = csv(rows.map(o => ({ ...o, Title: 'tab\there' }))).replace(',PMO,', ',Office,');
+    C.chk('F2 (control): (the header row lost its PMO, and only that)', /,Office,Sub-PMO,/.test(noPmo.split('\n')[0]), noPmo.split('\n')[0]);
+    const e2 = await refusal(T, [['nopmo.csv', ab(Buffer.from(noPmo, 'utf8'))]]);
+    C.chk('F2 (control): a comma CSV with a renamed header still names the missing header, not a separator',
+      !!e2 && /comes closest but has no “PMO”/.test(SP_lines(T, e2)) && !/separated by/.test(e2.message), e2 && e2.message);
+    T.t.close();
+  });
+  function SP_lines(T, e) { return e && e.report ? T.SP.importReportLines(e.report).join('\n') : ''; }
+
+  // ===================================================================================================================
+  // F3 — a file that is not an .xlsx, named for what it is
+  // ===================================================================================================================
+  await block('F3', async () => {
+    const T = boot();
+    const SP = T.SP;
+    // LibreOffice writes the real things: a workbook encrypted with a password, an .xls, an .ods, from one plain workbook
+    const plain = xlsx('f3-plain.xlsx', { Report: sheetOf(om(2, 1000)) });
+    const enc = join(tmp.dir, 'f3-encrypted.xlsx'), xls = join(tmp.dir, 'f3-old.xls'), ods = join(tmp.dir, 'f3-sheet.ods');
+    const py = `
+import sys, time, subprocess, uno
+from com.sun.star.beans import PropertyValue
+src, enc, xls, ods, prof, port = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], int(sys.argv[6])
+proc = subprocess.Popen(['soffice', '-env:UserInstallation=' + prof, '--headless', '--invisible', '--norestore',
+  '--accept=socket,host=127.0.0.1,port=%d;urp;' % port], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+try:
+    local = uno.getComponentContext()
+    res = local.ServiceManager.createInstanceWithContext('com.sun.star.bridge.UnoUrlResolver', local)
+    ctx = None
+    for _ in range(240):
+        try:
+            ctx = res.resolve('uno:socket,host=127.0.0.1,port=%d;urp;StarOffice.ComponentContext' % port); break
+        except Exception:
+            time.sleep(0.25)
+    if ctx is None: sys.exit('LibreOffice did not answer')
+    def pv(n, v):
+        p = PropertyValue(); p.Name = n; p.Value = v; return p
+    desk = ctx.ServiceManager.createInstanceWithContext('com.sun.star.frame.Desktop', ctx)
+    doc = desk.loadComponentFromURL(uno.systemPathToFileUrl(src), '_blank', 0, (pv('Hidden', True),))
+    doc.storeToURL(uno.systemPathToFileUrl(enc), (pv('FilterName', 'Calc MS Excel 2007 XML'), pv('Password', 'invented')))
+    doc.storeToURL(uno.systemPathToFileUrl(xls), (pv('FilterName', 'MS Excel 97'),))
+    doc.storeToURL(uno.systemPathToFileUrl(ods), (pv('FilterName', 'calc8'),))
+    doc.close(True)
+    try: desk.terminate()
+    except Exception: pass
+finally:
+    try: proc.wait(timeout=60)
+    except Exception: proc.kill()
+`;
+    const src = join(tmp.dir, 'f3-plain.xlsx');
+    const r = spawnSync('python3', ['-I', '-c', py, src, enc, xls, ods, 'file://' + join(tmp.dir, 'lo-f3'), String(21000 + (process.pid % 8000))],
+      { encoding: 'utf8', timeout: 180000 });
+    C.chk('F3: (LibreOffice wrote the encrypted workbook, the .xls and the .ods)', r.status === 0, (r.stderr || '') + (r.error ? String(r.error) : ''));
+    const rd = f => { const b = readFileSync(f); return ab(b); };
+    const encB = rd(enc), xlsB = rd(xls), odsB = rd(ods);
+    const encU = new Uint8Array(encB);
+    // the fixture is what it claims: an OLE2 compound file holding EncryptedPackage (as Excel's password, or a label that
+    // encrypts, leaves a workbook), and the .xls an OLE2 file holding none
+    const ole = u => [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1].every((b, i) => u[i] === b);
+    const holds = (u, name) => Buffer.from(u).includes(Buffer.from(name, 'utf16le'));
+    C.chk('F3: (the encrypted workbook is an OLE2 file holding EncryptedPackage)', ole(encU) && holds(encU, 'EncryptedPackage'));
+    C.chk('F3: (the .xls is an OLE2 file holding no EncryptedPackage)', ole(new Uint8Array(xlsB)) && !holds(new Uint8Array(xlsB), 'EncryptedPackage'));
+    const msg = async (name, data) => { const e = await refusal(T, [[name, data]]); return e ? e.message : 'IMPORTED'; };
+    let m = await msg('pull.xlsx', encB);
+    C.chk('F3: an encrypted .xlsx is said to be encrypted, never an old .xls', /encrypted/.test(m) && !/97–2003|\(\.xls\)/.test(m), m);
+    C.chk('F3: … and is told that saving it again keeps the encryption, so the advice does not loop', /keeps the encryption/.test(m) && !/save it as an Excel Workbook/.test(m), m);
+    m = await msg('old.xls', xlsB);
+    C.chk('F3 (control): an .xls LibreOffice wrote is still an Excel 97–2003 workbook', /Excel 97–2003 workbook \(\.xls\)/.test(m) && !/encrypted/.test(m), m);
+    m = await msg('pull.csv', encB);
+    C.chk('F3: an encrypted workbook named .csv is not CSV text, and is encrypted', /not CSV text/.test(m) && /encrypted/.test(m) && !/Windows-1252/.test(m), m);
+    m = await msg('sheet.xlsx', odsB);
+    C.chk('F3: an .ods named .xlsx is an OpenDocument spreadsheet, not a damaged download', /OpenDocument spreadsheet \(\.ods\)/.test(m) && !/damaged|truncated/.test(m), m);
+    const te = s => ab(Buffer.from(s, 'utf8'));
+    const pages = [
+      ['a web archive (MHTML)', te('MIME-Version: 1.0\r\nX-Document-Type: Workbook\r\nContent-Type: multipart/related; boundary="----=_NextPart_01"\r\n\r\n------=_NextPart_01\r\nContent-Type: text/html\r\n\r\n<html><body><table><tr><td>FY</td></tr></table></body></html>\r\n'), /web archive/],
+      ['an XHTML table', te('<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "x">\n<html xmlns="http://www.w3.org/1999/xhtml"><body><table><tr><td>FY</td></tr></table></body></html>'), /web page \(HTML\)/],
+      ['a page opening with a comment', te('<!-- exported by a reporting server -->\n<html><body><table><tr><td>FY</td></tr></table></body></html>'), /web page \(HTML\)/],
+    ];
+    for (const [what, data, re] of pages) {
+      m = await msg('report.xls', data);
+      C.chk('F3: ' + what + ' named .xls is a web page, not plain text to be renamed .csv', re.test(m) && !/plain text|\.csv/.test(m), m);
+    }
+    m = await msg('pull.xlsx', u16le(csv(om(1, 5)), true));
+    C.chk('F3: UTF-16 text named .xlsx is plain text, not a truncated download', /plain text/.test(m) && !/truncated|not a kind of file/.test(m), m);
+    m = await msg('pull.csv', plain);
+    C.chk('F3: an .xlsx named .csv is a ZIP file, not CSV text, and is not read as Windows-1252', /not CSV text/.test(m) && /ZIP file/.test(m) && /\.xlsx/.test(m) && !/Windows-1252|header/.test(m), m);
+    // a ZIP file holding a CSV; and a workbook that lost xl/workbook.xml (its directory whole: it is a damaged workbook)
+    const zpy = `
+import sys, zipfile
+with zipfile.ZipFile(sys.argv[1], 'w') as z: z.writestr('pull.csv', 'FY,Amount\\n2026,5\\n')
+with zipfile.ZipFile(sys.argv[2], 'w') as z:
+    z.writestr('[Content_Types].xml', '<Types/>'); z.writestr('xl/worksheets/sheet1.xml', '<worksheet/>')
+`;
+    const zc = join(tmp.dir, 'f3-zipped.xlsx'), zd = join(tmp.dir, 'f3-damaged.xlsx');
+    const rz = spawnSync('python3', ['-I', '-c', zpy, zc, zd], { encoding: 'utf8' });
+    C.chk('F3: (the two ZIP files were written)', rz.status === 0, rz.stderr);
+    m = await msg('pull.xlsx', rd(zc));
+    C.chk('F3: a ZIP file holding a CSV says it holds “pull.csv”, and to take it out, not to export again', /ZIP file holding “pull\.csv”/.test(m) && /Extract All/.test(m) && !/damaged|export it again/.test(m), m);
+    m = await msg('pull.xlsx', rd(zd));
+    C.chk('F3 (control): a workbook whose parts lost xl/workbook.xml is still said to be damaged', /no workbook part \(xl\/workbook\.xml\)/.test(m) && /damaged/.test(m), m);
+    T.t.close();
+  });
+
+  // ===================================================================================================================
+  // F7, XP2-2 — a pull's own column named Status, Service, Lane or Counted, through an export re-imported
+  // ===================================================================================================================
+  const csvX = (rows, extra) => [HEADERS.concat(extra).join(',')].concat(rows.map(o => HEADERS.concat(extra).map(h => q(o[h])).join(','))).join('\n');
+  await block('F7, XP2-2', async () => {
+    for (const nm of ['Status', 'Service', 'Lane', 'Counted']) {
+      const A = boot();
+      const rows = om(2, 100000).map((o, i) => ({ ...o, [nm]: 'pull’s own ' + nm + ' ' + (i + 1) }));
+      const want = rows.map(o => o[nm]);
+      await A.imp([['om.csv', csvX(rows, [nm])]], T1);
+      C.eq('F7: (the first import keeps the pull’s own “' + nm + '”)', A.SP.state.pulls.current.om.rows.map(r => r.x[nm]), want);
+      let bytes = await A.SP.excelBytes(A.model(), A.SP.state.pulls.current, A.SP.state.settings, { report: A.SP.state.lastImport.report, today: '2026-11-09' });
+      for (const round of [1, 2]) {
+        const B = boot();
+        const p = await B.parse([['export.xlsx', ab(bytes)]], T2);
+        C.eq('F7: re-imported export (round ' + round + '), the pull’s own “' + nm + '” comes back as it was', p.pulls.om.rows.map(r => r.x[nm]), want);
+        C.eq('F7: … one extra column, under its own name, never “' + nm + ' (2)”', p.pulls.om.headers.slice(32), [nm]);
+        const sh = p.report.files[0].sheets.find(s => s.name === 'O&M Raw Data');
+        C.eq('F7: … and the four ignored are the tool’s own', sh && sh.ownCols, ['Service', 'Lane', 'Status', 'Counted']);
+        B.SP.applyImport(p);
+        bytes = await B.SP.excelBytes(B.model(), B.SP.state.pulls.current, B.SP.state.settings, { report: B.SP.state.lastImport.report, today: '2026-11-10' });
+        B.t.close();
+      }
+      A.t.close();
+    }
+    // control: the four in another order are not the tool's: nothing a pull carries is dropped
+    const T = boot();
+    const extra = ['Status', 'Service', 'Counted', 'Lane'];
+    const p = await T.parse([['odd.csv', csvX(om(1, 5).map(o => ({ ...o, Status: 's', Service: 'v', Counted: 'c', Lane: 'l' })), extra)]]);
+    C.eq('F7 (control): Status, Service, Counted, Lane in that order are a pull’s own columns, all kept', p.pulls.om.headers.slice(32), extra);
+    T.t.close();
+  });
+
+  // ===================================================================================================================
+  // F8 — the Import report after a refused import, with pulls kept from earlier imports
+  // ===================================================================================================================
+  await block('F8', async () => {
+    const T = boot();
+    await T.ui([['both.csv', csv(om(2, 100000).concat(ff(2, 100000)))]]);
+    await T.ui([['om.csv', csv(om(3, 200000, 'XB'))]]);
+    let main = T.view('report');
+    let h3 = [...main.querySelectorAll('h3')].map(e => e.textContent.trim());
+    C.chk('F8 (control): with nothing refused, the report held is headed “The last import”', h3.includes('The last import'), J(h3));
+    const m = await T.ui([['bad.csv', 'FY,Amount\n2026,5\n']]);
+    C.chk('F8: (the third import was refused)', /msg-err/.test(m.cls), J(m));
+    main = T.view('report');
+    h3 = [...main.querySelectorAll('h3')].map(e => e.textContent.trim());
+    const l2 = [...main.querySelectorAll('p.l2')].map(e => e.textContent.trim()).join(' ');
+    C.chk('F8: after a refusal, no heading calls the import before it “The last import”', !h3.includes('The last import'), J(h3));
+    C.chk('F8: … it is “the last import taken, before the one refused”', h3.includes('The last import taken, before the one refused'), J(h3));
+    C.chk('F8: … and the kept pulls are said not to be covered by the last import TAKEN, the refused one having changed nothing',
+      /^The last import taken did not replace these/.test(l2) && /the refused one changed nothing/.test(l2), l2);
+    C.chk('F8: (the refused import is still named in its own box)', /The last import was refused, so nothing changed/.test(main.textContent));
+    T.t.close();
+  });
+
+  // ===================================================================================================================
+  // F9, SCR2-4 — one appropriation from two sheets: a hidden sheet, two whole pulls, a few misfiled rows
+  // ===================================================================================================================
+  await block('F9, SCR2-4', async () => {
+    const T = boot();
+    const whole = /leave all but the newest out of the import/, misfiled = /most likely misfiled/;
+    let e = await refusal(T, [['book.xlsx', xlsx('f9-hidden.xlsx', { 'O&M Raw Data': sheetOf(om(3, 1000)), 'Old pull': sheetOf(om(2, 999, 'HO')) }, { 'Old pull': 'hidden' })]]);
+    let m = e ? e.message : '';
+    C.chk('F9: (an old copy of the pull on a hidden sheet is refused)', !!e && e.refused, m);
+    C.chk('F9: the message names the hidden sheet as hidden, as the report does', /“Old pull” \(a hidden sheet\) holds 2 O&M rows/.test(m), m);
+    C.chk('F9: … says how to see it (Unhide)', /Unhide/.test(m), m);
+    C.chk('F9: … and never advises moving its rows onto the O&M tab (they would count twice)', whole.test(m) && !misfiled.test(m) && !/small count/.test(m), m);
+    e = await refusal(T, [['book.xlsx', xlsx('f9-vhidden.xlsx', { 'O&M Raw Data': sheetOf(om(3, 1000)), Kept: sheetOf(om(3, 999, 'HO')) }, { Kept: 'veryHidden' })]]);
+    m = e ? e.message : '';
+    C.chk('F9: a very hidden sheet is named so, and said to be shown from the Visual Basic editor', /“Kept” \(a very hidden sheet\)/.test(m) && /Visual Basic/.test(m), m);
+    // SCR2-4: two whole pulls of one appropriation: two months' exports, and one pull as .xlsx and as .csv
+    for (const [what, files] of [
+      ['two months’ O&M exports', [['om-oct.csv', csv(om(20, 1000))], ['om-nov.csv', csv(om(22, 1100, 'XN'))]]],
+      ['one O&M pull as .xlsx and as .csv', [['om.xlsx', xlsx('f9-same.xlsx', { Report: sheetOf(om(20, 1000)) })], ['om.csv', csv(om(20, 1000))]]]]) {
+      e = await refusal(T, files);
+      m = e ? e.message : '';
+      C.chk('SCR2-4: ' + what + ' are refused, and told to leave one out, not to move a stray row', !!e && whole.test(m) && !misfiled.test(m) && !/small count/.test(m), m);
+    }
+    // control: a few misfiled O&M rows beside a whole O&M pull keep the misfiled-row advice, and only it
+    e = await refusal(T, [['book.xlsx', xlsx('f9-misfiled.xlsx', { 'O&M Raw Data': sheetOf(om(20, 1000)), 'FF Raw Data': sheetOf(ff(20, 500).concat(om(1, 77, 'XM'))) })]]);
+    m = e ? e.message : '';
+    C.chk('F9 (control): one misfiled O&M row beside a whole O&M pull is still most likely misfiled',
+      !!e && misfiled.test(m) && !whole.test(m) && /“FF Raw Data” holds 1 O&M row\b/.test(m) && /“O&M Raw Data” holds 20 O&M rows/.test(m), m);
+    T.t.close();
+  });
+
+  // ===================================================================================================================
+  // F11 — a Month that cannot be read is not a Date that cannot be read
+  // ===================================================================================================================
+  await block('F11', async () => {
+    const T = boot();
+    const rows = [{ ...ROW, 'CCaR No': 'MM1', Budget: 'USAF O&M Discretionary', Month: 'Nov-25', Date: '2026-01-10', Amount: '1000' },
+      { ...ROW, 'CCaR No': 'MM2', Budget: 'USAF O&M Discretionary', Month: '2026-02-01', Date: 'soon', Amount: '2000' }];
+    const p = await T.parse([['om.csv', csv(rows)]], T1);
+    const L = T.SP.importReportLines(p.report);
+    const at = re => L.findIndex(l => re.test(l));
+    const di = at(/^Dates that could not be read/), mi = at(/^Month values that could not be read/);
+    C.chk('F11: the Date that cannot be read is under “Dates … placed in No date”, alone', di >= 0 && /: 1\.$/.test(L[di]) && /row 3: Date “soon”/.test(L[di + 1] || ''), J(L.slice(Math.max(0, di), di + 3)));
+    C.chk('F11: the Month that cannot be read is under its own heading, which says it moves no money',
+      mi >= 0 && /: 1\.$/.test(L[mi]) && /row 2: Month “Nov-25”/.test(L[mi + 1] || '') && /moves no money/.test(L[mi]), J(L.slice(Math.max(0, mi), mi + 3)));
+    // every line under the Dates heading, to the next heading: the Month row (row 2) is none of them, under any label
+    const under = []; for (let i = di + 1; di >= 0 && i < L.length && /^\s/.test(L[i]); i++) under.push(L[i]);
+    C.chk('F11: no Month value is listed as placed in No date', di >= 0 && under.length === 1 && !under.some(l => /row 2:|Month “|“Nov-25”/.test(l)), J(under));
+    // what the model does, which the report must agree with: the Month row's money in Jan, only the Date row's in No date
+    T.SP.applyImport(p);
+    T.SP.setSettings({ asOf: '2026-03' });
+    const M = T.model(), b = M.blocks.find(x => x.ap === 'om' && x.fy === 2026);
+    const col = id => b.cols[M.cols.findIndex(c => c.id === id)];
+    C.eq('F11: (the model: Jan holds the Month row’s $1,000, No date the Date row’s $2,000)', [col(M.cols.find(c => c.label === 'Jan').id), col('nodate')], [100000, 200000]);
+    // the pull kept over a later import says the same, from its own rows
+    await T.imp([['ff.csv', csv(ff(1, 5))]], T2);
+    const K = T.SP.keptPullLines(T.SP.state.pulls.current, T.SP.state.lastImport.report);
+    const kd = K.findIndex(l => /^  Dates that could not be read/.test(l)), km = K.findIndex(l => /^  Month values that could not be read/.test(l));
+    C.chk('F11: a kept pull lists its unreadable Date and its unreadable Month under their own headings',
+      kd >= 0 && km >= 0 && /Date “soon”/.test(K[kd + 1] || '') && /Month “Nov-25”/.test(K[km + 1] || ''), J(K));
     T.t.close();
   });
 } catch (e) {

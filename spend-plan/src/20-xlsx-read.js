@@ -62,17 +62,71 @@ const XR_MAXCOL = 16384;   // XFD: a reference past it is not a worksheet cell, 
 // again" -- the wrong advice for an old .xls, a web page some system named .xls, a CSV named .xlsx or a saved plan, none
 // of which a fresh export fixes (review IMP-10). Only a file that starts like a zip and has lost its end is truncated.
 const XR_OLE2 = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+function xr_isOle2(u) { return u.length >= 8 && XR_OLE2.every((b, i) => u[i] === b); }
+// A STREAM OF AN OLE2 COMPOUND FILE, by name. An .xlsx encrypted with a password, or by a sensitivity label that encrypts
+// (likely for a CUI workbook), is an OLE2 file too, holding EncryptedPackage. Called "an Excel 97–2003 workbook", it sent
+// the person to save it again as .xlsx, which keeps the encryption: advice that loops (review F3). A directory entry is
+// 128 bytes, its name in UTF-16LE, the name's length in bytes (closing zero included) at byte 64, and every entry sits on
+// a 128-byte step from the end of the 512-byte header, whatever the sector size. Bounded by the file: nothing is followed.
+function xr_oleHas(u, name) {
+  const len = (name.length + 1) * 2;
+  outer: for (let p = 512; p + 128 <= u.length; p += 128) {
+    if (u[p + 64] !== len || u[p + 65] !== 0) continue;
+    for (let k = 0; k < name.length; k++) if (u[p + 2 * k] !== name.charCodeAt(k) || u[p + 2 * k + 1] !== 0) continue outer;
+    return true;
+  }
+  return false;
+}
+// what an OLE2 file is, and what to do about it, in words: {what, advice}
+function xr_oleWhat(u) {
+  if (xr_oleHas(u, 'EncryptedPackage')) return {
+    enc: true, what: 'an encrypted Office file (a password, or a sensitivity label that encrypts, protects it), which this tool cannot read',
+    advice: ' Saving it again in Excel keeps the encryption. Import a copy that is not encrypted: export the pull from CCaR again, or, '
+      + 'where you may, remove the password in Excel (File › Info › Protect Workbook › Encrypt with Password) and save it.' };
+  return { what: 'an Excel 97–2003 workbook (.xls), which this tool does not read',
+    advice: ' Open it in Excel, save it as an Excel Workbook (.xlsx), and import that.' };
+}
+// TEXT IN UTF-16. Excel's "Unicode Text" and the "CSV (Unicode)" some reporting servers write are UTF-16, which says so
+// with a byte-order mark (FF FE or FE FF); a writer that leaves the mark out leaves every other byte of English text zero.
+// Read as Windows-1252, the header became "ÿþF\0Y\0…": the file was refused for having no header row, and the report said
+// it had been read as Windows-1252 (review F2). Without the mark, NUL is valid UTF-8, so it was read as UTF-8 and refused
+// with no note at all. No UTF-8 or Windows-1252 CSV holds a NUL byte, let alone every other byte. null when it is neither.
+function xr_utf16Of(u) {
+  if (u.length >= 2 && u[0] === 0xFF && u[1] === 0xFE) return { enc: 'utf-16le', bom: true };
+  if (u.length >= 2 && u[0] === 0xFE && u[1] === 0xFF) return { enc: 'utf-16be', bom: true };
+  const n = Math.min(u.length, 8192) & ~1;
+  if (n < 4) return null;
+  let ze = 0, zo = 0;
+  for (let i = 0; i < n; i += 2) { if (u[i] === 0) ze++; if (u[i + 1] === 0) zo++; }
+  const pairs = n / 2;
+  if (zo * 4 >= pairs && ze * 10 <= zo) return { enc: 'utf-16le', bom: false };
+  if (ze * 4 >= pairs && zo * 10 <= ze) return { enc: 'utf-16be', bom: false };
+  return null;
+}
+SP.utf16Of = xr_utf16Of;
+// A FILE NAMED .csv THAT IS NOT TEXT AT ALL. Read as text, a real .xlsx named .csv became Windows-1252 noise, was refused
+// for having no header row, and the report said it had been read as Windows-1252, with no word that it is a workbook
+// (review F3). '' when the bytes may be text.
+SP.notCsvWhy = function notCsvWhy(u) {
+  const csv = 'it is not CSV text, though its name ends .csv: it is ';
+  if (u.length >= 4 && u[0] === 0x50 && u[1] === 0x4B && (u[2] === 3 || u[2] === 5) && (u[3] === 4 || u[3] === 6)) {
+    return csv + 'a ZIP file, as an Excel Workbook (.xlsx) is. If it is a workbook, give it a name ending .xlsx and import it again';
+  }
+  if (xr_isOle2(u)) { const o = xr_oleWhat(u); return csv + o.what + '.' + o.advice.replace(/\.$/, ''); }
+  return '';
+};
 function xr_notZip(u) {
   const no = 'That file is not an .xlsx workbook: ';
   const asXlsx = ' Open it in Excel, save it as an Excel Workbook (.xlsx), and import that.';
-  if (u.length >= 8 && XR_OLE2.every((b, i) => u[i] === b)) {
-    return no + 'it is an Excel 97–2003 workbook (.xls), which this tool does not read.' + asXlsx;
-  }
+  // an encrypted workbook is a workbook: it is said to be encrypted, never "not an .xlsx"
+  if (xr_isOle2(u)) { const o = xr_oleWhat(u); return (o.enc ? 'That file is ' : no + 'it is ') + o.what + '.' + o.advice; }
   if (u.length >= 2 && u[0] === 0x50 && u[1] === 0x4B) {
     return 'That file is not an .xlsx workbook (no ZIP end-of-directory record). It starts like one, so it was most '
       + 'likely cut short in a download or a copy; export it again and retry.';
   }
-  const head = new TextDecoder('utf-8').decode(u.subarray(0, Math.min(u.length, 8192))).replace(/^\uFEFF/, '').replace(/^\s+/, '');
+  const n = Math.min(u.length, 8192), t16 = xr_utf16Of(u);
+  const raw = t16 ? new TextDecoder(t16.enc).decode(u.subarray(0, n & ~1)) : new TextDecoder('utf-8').decode(u.subarray(0, n));
+  const head = raw.replace(/^﻿/, '').replace(/^\s+/, '');
   if (/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(head)) {
     return no + 'it is a saved SFCB Spend Plan, not a CCaR pull. To bring that plan into this page, import the plan file on its '
       + 'own: the page then offers to take its pulls, history and settings.';
@@ -80,18 +134,45 @@ function xr_notZip(u) {
   if (/^<\?xml[\s\S]{0,4000}urn:schemas-microsoft-com:office:spreadsheet/i.test(head)) {
     return no + 'it is an Excel 2003 XML Spreadsheet.' + asXlsx;
   }
-  if (/^<(?:!doctype\s+html|html|head|body|table|meta|style|div)\b/i.test(head)) {
+  // Excel's and reporting servers' "Single File Web Page" (MHTML) starts with mail headers, not a tag: called "plain text,
+  // rename it .csv", it was refused again for having no header row (review F3)
+  if (/^MIME-Version[ \t]*:/i.test(head) || /^(?:[\w-]+[ \t]*:[^\r\n]*\r?\n)*Content-Type[ \t]*:[ \t]*multipart\/related/i.test(head)) {
+    return no + 'it is a web archive (a Single File Web Page, .mht). Excel and some reporting systems save a table this way and name it .xls.' + asXlsx;
+  }
+  // an XML declaration, comments and a doctype say nothing about what follows: an XHTML table starts "<?xml", a page
+  // some server wrote may start with a comment, and each was called plain text (review F3)
+  const body = head.replace(/^(?:<\?xml[^>]*\?>\s*|<!--[\s\S]*?-->\s*)+/i, '');
+  if (/^<(?:!doctype\s+html|html|head|body|table|meta|style|div)\b/i.test(body)) {
     return no + 'it is a web page (HTML). Some systems save a table this way and name it .xls.' + asXlsx;
   }
-  // text: no NUL and nearly every byte printable or a line break
+  // text: no NUL and nearly every character printable or a line break. UTF-16 is judged on its characters, not its bytes:
+  // every other byte of it is zero, and a UTF-16 CSV named .xlsx was told it "may have been truncated" (review F3).
   let ctl = 0;
-  const n = Math.min(u.length, 8192);
-  for (let i = 0; i < n; i++) { const b = u[i]; if (b === 0) { ctl = n; break; } if (b < 9 || (b > 13 && b < 32)) ctl++; }
-  if (ctl * 50 < n) {
-    return no + 'it is plain text. If it is a CSV export, give it a name ending .csv and import it again.';
+  if (t16) { for (let i = 0; i < head.length; i++) { const c = head.charCodeAt(i); if (c < 9 || (c > 13 && c < 32)) ctl++; } }
+  else for (let i = 0; i < n; i++) { const b = u[i]; if (b === 0) { ctl = n; break; } if (b < 9 || (b > 13 && b < 32)) ctl++; }
+  if (ctl * 50 < (t16 ? Math.max(1, head.length) : n)) {
+    return no + 'it is plain text' + (t16 ? ' (UTF-16)' : '') + '. If it is a CSV export, give it a name ending .csv and import it again.';
   }
   return 'That file is not an .xlsx workbook (no ZIP end-of-directory record), and it is not a kind of file this tool '
     + 'recognises. If it came from a download, it may have been truncated; export it again and retry.';
+}
+// A ZIP FILE THAT HOLDS NO WORKBOOK AT ALL is not a damaged workbook: its directory was read whole. Called "most likely
+// damaged or incompletely downloaded; export it again", a zipped CSV named .xlsx sent the person to export once more a file
+// that was never a workbook (review F3). It is said for what it holds.
+async function xr_zipWhat(entries, get) {
+  const no = 'That file is not an .xlsx workbook: ';
+  let mime = '';
+  try { mime = String((await get('mimetype')) || '').trim(); } catch (e) { mime = ''; }
+  if (/opendocument\.spreadsheet/i.test(mime)) return no + 'it is an OpenDocument spreadsheet (.ods). Open it in Excel or LibreOffice, save it as an Excel Workbook (.xlsx), and import that.';
+  if (entries.has('word/document.xml')) return no + 'it is a Word document (.docx). Export the pull from CCaR as an Excel Workbook (.xlsx) or a CSV, and import that.';
+  if (entries.has('ppt/presentation.xml')) return no + 'it is a PowerPoint presentation (.pptx). Export the pull from CCaR as an Excel Workbook (.xlsx) or a CSV, and import that.';
+  const files = [...entries.keys()].filter(k => k && !k.endsWith('/'));
+  const cut = s => (s.length > 80 ? s.slice(0, 79) + '…' : s);
+  const list = files.slice(0, 5).map(s => '“' + cut(s) + '”').join(', ') + (files.length > 5 ? ' and ' + (files.length - 5) + ' more' : '');
+  const inner = files.some(k => /\.(csv|xlsx)$/i.test(k));
+  return no + 'it is a ZIP file holding ' + (files.length ? list : 'nothing') + ', not a workbook.'
+    + (inner ? ' If the pull is the file inside, take it out of the ZIP file (in Windows: right-click › Extract All) and import that.'
+      : ' Export the pull from CCaR as an Excel Workbook (.xlsx) or a CSV, and import that.');
 }
 
 // EVERY OFFSET BELOW COMES OUT OF THE FILE ITSELF, so a truncated or damaged workbook can point anywhere. Unchecked, a
@@ -166,6 +247,8 @@ async function readXlsx(buf) {
   // says nothing about the file the person picked. An Excel Binary Workbook is a zip too: say what it is and what to do.
   if (!wbx && entries.has('xl/workbook.bin'))
     throw new Error('That file is an Excel Binary Workbook (.xlsb), which this tool does not read — open it in Excel and save it as an Excel Workbook (.xlsx), then import that.');
+  // with no part under xl/ at all it was never a workbook; a workbook that lost xl/workbook.xml but kept the rest is damaged
+  if (!wbx && ![...entries.keys()].some(k => /^xl\//i.test(k))) throw new Error(await xr_zipWhat(entries, get));
   if (!wbx) throw BAD('it contains no workbook part (xl/workbook.xml)');
   if (!rels) throw BAD('its workbook has no relationships part (xl/_rels/workbook.xml.rels)');
   const wbPr = /<(?:\w+:)?workbookPr\b([^>]*)>/.exec(wbx);

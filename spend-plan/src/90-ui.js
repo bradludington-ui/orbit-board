@@ -34,7 +34,8 @@ const ui = {
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
   pmoKey: null,             // the PMO picked on the PMOs view, by its normKey, so a rebuilt model keeps the choice
-  naF: { ap: '', fy: '', pmo: '' },
+  pmoLabel: '',             // its name, for when the switches leave it with no money to name it
+  naF: { ap: '', fy: '', pmo: '', pmoLabel: '' },   // pmoLabel: the chosen PMO's name, for when it has no item to name it
   diffOpen: new Set(),      // 'ap|new' etc.: leaf lists the person asked to see
   refused: null,            // the last import that was refused: {message, report, at}. Nothing changed; it is said
   busy: '',
@@ -43,6 +44,7 @@ const ui = {
   els: null,
   focusTo: null,            // the data-fkey the keyboard goes to when its own control is gone after the next draw
   asOfHint: false,          // the message line holds the note about a Data through still being typed
+  topH: 0,                  // the sticky top's height as last measured: what a top that grows has just covered
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -70,6 +72,14 @@ function ui_pullPair(a, b) {
   if (ui_day(a) !== ui_day(b)) return [ui_day(a), ui_day(b)];
   if (ui_when(a) !== ui_when(b)) return [ui_when(a), ui_when(b)];
   return [ui_when(a, true), ui_when(b, true)];
+}
+// Several imports named so each can be told apart: a day where no other import shares it, else the time, else the time
+// to the second. The top bar said "imported 2026-11-09" for all four appropriations after two imports that day, so it
+// could not say which pulls were the older ones (review SCR2-11); the list of imports read the same (review BP-6).
+function ui_whens(isos) {
+  const xs = [...new Set(isos.filter(x => typeof x === 'string' && x))];
+  const clash = (f, x) => xs.some(y => y !== x && f(y) === f(x));
+  return iso => (!iso ? '' : !clash(ui_day, iso) ? ui_day(iso) : !clash(y => ui_when(y), iso) ? ui_when(iso) : ui_when(iso, true));
 }
 function ui_fn(name) { return typeof SP[name] === 'function'; }
 // a control whose code another builder has not written yet says so in the message line: never a click that does nothing
@@ -159,8 +169,13 @@ function ui_auth(cents, mark) {
     + (m.includes('†') ? '<span class="dag" title="' + ui_e(SP.AUTH_MARK_TEXT['†']) + '">†</span>' : '')
     + (m.includes('‡') ? '<span class="ddag" title="' + ui_e(SP.AUTH_MARK_TEXT['‡']) + '">‡</span>' : '') + '</td>';
 }
-function ui_shown(M, extra) {
+// `every`: what a view the switches do not reach covers instead. Its headline says so: under the bold "Showing only part of
+// the data." the Import report and What changed said in small print that they show every row, and a reader skimming the
+// bold words took a What changed figure to leave out the services switched off (review SCR2-7).
+function ui_shown(M, extra, every) {
   if (M.shown.all) return '';
+  if (every) return '<p class="shown every"><strong>This view shows every row, whatever the switches: ' + ui_e(every) + '.</strong> '
+    + 'The other views show only part of the data (' + ui_e(M.shown.text) + ').</p>';
   return '<p class="shown"><strong>Showing only part of the data.</strong> ' + ui_e(M.shown.text) + '. '
     + ui_e(extra || 'Every figure on this view counts only these.') + '</p>';
 }
@@ -235,7 +250,9 @@ function ui_levelPick(scope, label) {
   const R = ui.reg, i = R.scopes.length;
   R.scopes.push(scope);
   const cur = ui.level.get(scope) || 2;
-  return '<label class="lvl">Expand to <select data-act="lvl" data-s="' + i + '" data-fkey="lvl:' + i + '" aria-label="Expand ' + ui_e(label) + ' to">'
+  // the accessible name starts with the words on screen, then says which block: named "Expand O&M FY2025 to", a person
+  // speaking "click Expand to" reached nothing (WCAG 2.5.3, review SCR2-10)
+  return '<label class="lvl">Expand to <select data-act="lvl" data-s="' + i + '" data-fkey="lvl:' + i + '" aria-label="Expand to (' + ui_e(label) + ')">'
     + UI_LEVELS.map((t, k) => '<option value="' + (k + 1) + '"' + (cur === k + 1 ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>';
 }
 
@@ -369,11 +386,21 @@ function ui_vAp(M, ap) {
 function ui_vPmos(M) {
   if (!M.pmos.length) return '<h2 class="title">PMOs</h2><p class="none">No PMO has rows to show.</p>';
   const R = ui.reg;
-  let P = M.pmos.find(x => x.key === ui.pmoKey);
-  if (!P) { P = M.pmos[0]; ui.pmoKey = P.key; }
-  const pick = '<p class="acts"><label>PMO <select data-act="pmo" data-fkey="pmo">'
-    + M.pmos.map((x, i) => { R.pmos[i] = x.key; return '<option value="' + i + '"' + (x === P ? ' selected' : '') + '>' + ui_e(x.label) + '</option>'; }).join('')
-    + '</select></label></p>';
+  // The PMO picked stays picked while the switches leave it with no money, as the Not Allocated filter does (review
+  // SEAM-10): it was overwritten with the first PMO, so after a switch was turned off and on again another PMO's tab was
+  // on screen. Until one is picked, the first is shown.
+  if (ui.pmoKey === null || ui.pmoKey === undefined) { ui.pmoKey = M.pmos[0].key; ui.pmoLabel = M.pmos[0].label; }
+  const P = M.pmos.find(x => x.key === ui.pmoKey);
+  const opts = M.pmos.map((x, i) => { R.pmos[i] = x.key; return '<option value="' + i + '"' + (x === P ? ' selected' : '') + '>' + ui_e(x.label) + '</option>'; });
+  if (!P) { R.pmos.push(ui.pmoKey); opts.push('<option value="' + (R.pmos.length - 1) + '" selected>' + ui_e(ui.pmoLabel || '(the PMO chosen)') + ' (no money shown)</option>'); }
+  const pick = '<p class="acts"><label>PMO <select data-act="pmo" data-fkey="pmo">' + opts.join('') + '</select></label></p>';
+  if (!P) {
+    return pick + '<h2 class="title">PMO: ' + ui_e(ui.pmoLabel || '(the PMO chosen)') + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>'
+      + '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
+      + '<p class="none lost">' + ui_e(ui.pmoLabel || 'The PMO chosen') + ' has no money that counts with these switches. It stays chosen, so its tab comes back when'
+      + ' they show it; pick another PMO to see that one.</p>';
+  }
+  ui.pmoLabel = P.label;
   const out = [pick, '<h2 class="title">PMO: ' + ui_e(P.label) + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
     ui_topTable(P.rows, { model: M, withAp: true, mergeAp: false, authAlways: true, total: P.total, totalLabel: 'Total - All' }),
@@ -420,30 +447,46 @@ function ui_vNa(M) {
   const fys = [...new Set(pool.map(it => it.fy))].sort((a, b) => a - b);
   // F.pmo is 'k:' + the PMO's key, '' for All: the key of '(no PMO)' is the empty text, which would otherwise read as All
   const pm = [...own.keys()];
+  // A CHOICE IS KEPT while nothing it names is shown. It was set back to All whenever a switch left the chosen PMO (or
+  // appropriation, or FY) with no item, so turning the switch back on showed every PMO's list where the person had been
+  // reading one PMO's, with nothing saying the filter was gone (review SEAM-10). It stays chosen, offered as "(no items
+  // shown)", and the list says so; Clear filters takes it off.
+  const lostAp = F.ap && !aps.some(a => a.id === F.ap), lostFy = F.fy && !fys.includes(Number(F.fy));
+  const lostPmo = F.pmo && !own.has(F.pmo.slice(2));
+  if (lostPmo && !pm.includes(F.pmo.slice(2))) pm.push(F.pmo.slice(2));
   R.naPmos = pm.map(k => 'k:' + k);
-  if (F.ap && !aps.some(a => a.id === F.ap)) F.ap = '';
-  if (F.fy && !fys.includes(Number(F.fy))) F.fy = '';
-  if (F.pmo && !own.has(F.pmo.slice(2))) F.pmo = '';
-  const P = F.pmo ? own.get(F.pmo.slice(2)) : null;
+  R.naPmoLabels = pm.map(k => (own.has(k) ? own.get(k).label : F.pmoLabel || '(the PMO chosen)'));
+  const P = F.pmo ? own.get(F.pmo.slice(2)) || { label: F.pmoLabel || '(the PMO chosen)', items: [] } : null;
   const src = P ? P.items : all;
   const items = src.filter(it => (!F.ap || it.ap === F.ap) && (!F.fy || it.fy === Number(F.fy)));
   let cents = 0;
   for (const it of items) cents += it.cents;
+  const none = ' (no items shown)';
+  const apOpts = aps.slice();
+  if (lostAp) apOpts.push({ id: F.ap, label: (UI_AP_LABEL[F.ap] || F.ap) + none });
+  const fyOpts = fys.slice();
+  if (lostFy) fyOpts.push(Number(F.fy));
   const filt = '<div class="acts filt" role="group" aria-label="Filter the list">'
     + '<label>Appropriation <select data-act="naf" data-f="ap" data-fkey="naf:ap"><option value="">All</option>'
-    + aps.map(a => '<option value="' + a.id + '"' + (F.ap === a.id ? ' selected' : '') + '>' + ui_e(a.label) + '</option>').join('') + '</select></label>'
+    + apOpts.map(a => '<option value="' + ui_e(a.id) + '"' + (F.ap === a.id ? ' selected' : '') + '>' + ui_e(a.label) + '</option>').join('') + '</select></label>'
     + '<label>FY <select data-act="naf" data-f="fy" data-fkey="naf:fy"><option value="">All</option>'
-    + fys.map(y => '<option value="' + ui_e(y) + '"' + (String(F.fy) === String(y) ? ' selected' : '') + '>FY' + ui_e(y) + '</option>').join('') + '</select></label>'
+    + fyOpts.map(y => '<option value="' + ui_e(y) + '"' + (String(F.fy) === String(y) ? ' selected' : '') + '>FY' + ui_e(y) + (lostFy && String(F.fy) === String(y) ? none : '')
+      + '</option>').join('') + '</select></label>'
     + '<label>PMO <select data-act="naf" data-f="pmo" data-fkey="naf:pmo"><option value="">All</option>'
-    + pm.map((k, i) => '<option value="' + i + '"' + (F.pmo === 'k:' + k ? ' selected' : '') + '>' + ui_e(own.get(k).label) + '</option>').join('') + '</select></label>'
+    + pm.map((k, i) => '<option value="' + i + '"' + (F.pmo === 'k:' + k ? ' selected' : '') + '>' + ui_e(R.naPmoLabels[i]) + (own.has(k) ? '' : none) + '</option>').join('')
+    + '</select></label>'
     + '<button type="button" data-act="naclear" data-fkey="naclear">Clear filters</button></div>';
+  const lost = [lostAp ? UI_AP_LABEL[F.ap] || F.ap : '', lostFy ? 'FY' + F.fy : '', lostPmo ? P.label : ''].filter(Boolean);
   return '<h2 class="title">Not Allocated Requirements - every appropriation and FY</h2>'
     + ui_shown(M, 'Only rows those switches show are listed.')
     + '<p class="l2">Rows that count and are not marked Actual Execution, grouped by column, status and plan event (a special CCaR is one item).'
     + ' Largest first within each column; items of $0 are left out.</p>' + filt
     + (P ? '<p class="note">' + ui_e(P.label) + '’s own items, as its PMO tab lists them: where other PMOs share a plan event, only '
       + ui_e(P.label) + '’s rows are counted.</p>' : '')
-    + '<p class="count" aria-live="polite">' + ui_e(SP.fmtInt(items.length)) + ' of ' + ui_e(SP.fmtInt(src.length)) + ' items, $' + ui_e(SP.fmtM(cents)) + 'M</p>'
+    + (lost.length ? '<p class="note lost" data-lost="' + ui_e(lost.join('|')) + '">The filter chosen, ' + ui_e(lost.join(', ')) + ', has no Not Allocated item that counts '
+      + 'with these switches. It stays chosen, so the list comes back when they show it; Clear filters takes it off.</p>' : '')
+    // $0.00M, never "$-M": fmtM's lone dash is a table cell's zero, and in a sentence it reads as a figure left out (S11, review SCR2-8)
+    + '<p class="count" aria-live="polite">' + ui_e(SP.fmtInt(items.length)) + ' of ' + ui_e(SP.fmtInt(src.length)) + ' items, $' + ui_e(SP.fmtMText(cents)) + 'M</p>'
     + ui_naTable(M, items, true);
 }
 
@@ -460,7 +503,7 @@ function ui_lines(lines) {
 }
 function ui_vReport(M) {
   const st = ui_state();
-  const out = ['<h2 class="title">Import report</h2>', M ? ui_shown(M, 'The import report does not depend on them: it covers every row each file held.') : ''];
+  const out = ['<h2 class="title">Import report</h2>', M ? ui_shown(M, '', 'it covers every row each file held') : ''];
   if (ui.refused) {
     out.push('<div class="refused" role="note"><p><strong>The last import was refused, so nothing changed.</strong> ' + ui_e(ui.refused.message) + '</p>'
       + (ui.refused.report ? '<h3 class="sub">What that import held</h3>' + ui_reportLines(ui.refused.report) : '') + '</div>');
@@ -473,7 +516,12 @@ function ui_vReport(M) {
     try { kept = SP.keptPullLines(st && st.pulls && st.pulls.current, rep || null); }
     catch (e) { kept = ['The pulls kept from earlier imports could not be listed: ' + ((e && e.message) || e)]; }
   }
-  if (rep) out.push('<h3 class="sub">' + (kept.length ? 'The last import' : 'The import the data on screen came from') + '</h3>' + ui_reportLines(rep));
+  // After a refusal, "the last import" is the refused one, named so in the box above: the report held is of the one before
+  // it, the last that was taken. Headed "The last import" too, one screen used one phrase for two imports, and "its report
+  // above" could mean either (review F8).
+  const lastTaken = ui.refused ? 'The last import taken' : 'The last import';
+  if (rep) out.push('<h3 class="sub">' + (kept.length ? lastTaken + (ui.refused ? ', before the one refused' : '')
+    : 'The import the data on screen came from') + '</h3>' + ui_reportLines(rep));
   else if (!ui.refused) out.push('<p class="none">No import report is held in this file.</p>');
   // the rows no appropriation claims, each named: the Summary sends the reader here for them, and they are in no other
   // view (review XP-8)
@@ -484,8 +532,9 @@ function ui_vReport(M) {
   }
   if (unid.length) out.push('<h3 class="sub">Rows whose appropriation is not identified</h3>' + ui_lines(unid));
   if (kept.length) {
-    out.push('<h3 class="sub">Pulls on screen from earlier imports</h3><p class="l2">' + (rep ? 'The last import did not replace these, so its report above '
-      + 'does not cover them.' : 'No report is held for them.') + ' What each holds that counts nowhere is listed from its own rows.</p>' + ui_lines(kept));
+    out.push('<h3 class="sub">Pulls on screen from earlier imports</h3><p class="l2">' + (rep ? lastTaken + ' did not replace these, so its report above '
+      + 'does not cover them' + (ui.refused ? ', and the refused one changed nothing' : '') + '.' : 'No report is held for them.')
+      + ' What each holds that counts nowhere is listed from its own rows.</p>' + ui_lines(kept));
   }
   return out.join('');
 }
@@ -493,17 +542,41 @@ function ui_vReport(M) {
 function ui_dRow(label, pair) {
   return '<tr><th scope="row">' + ui_e(label) + '</th>' + ui_m(pair[0]) + ui_m(pair[1]) + ui_m(pair[1] - pair[0]) + '</tr>';
 }
+function ui_rowsN(n) { return SP.fmtInt(n) + (n === 1 ? ' row' : ' rows'); }
+function ui_ymLabel(ym) { return ym ? SP.asOfLabel(ym) : 'No date'; }
+// a line's months in words: "Jun-2026" for one, "Jun-2026 (1.00), Jul-2026 (0.27)" for several
+function ui_yms(list) {
+  return list.length === 1 ? ui_ymLabel(list[0].ym) : list.map(x => ui_ymLabel(x.ym) + ' (' + SP.fmtMText(x.cents) + ')').join(', ');
+}
+// What changed in a line, in words: the amount (its own columns show by how much), the obligated dollars, the money that
+// moved between months, and rows that could not be read on either side (review BP-2, M1)
+function ui_leafWhat(l) {
+  const w = [];
+  if (l.what.includes('amount')) w.push('amount');
+  if (l.what.includes('obligated')) w.push('obligated ' + SP.fmtMText(l.obligated[0]) + ' → ' + SP.fmtMText(l.obligated[1]));
+  if (l.what.includes('dates')) w.push(SP.fmtMText(l.moved.cents) + ' moved from ' + ui_yms(l.moved.from) + ' to ' + ui_yms(l.moved.to));
+  if (l.unread[0] || l.unread[1]) {
+    const u = [];
+    if (l.unread[0]) u.push(ui_rowsN(l.unread[0]) + ' in the earlier pull');
+    if (l.unread[1]) u.push(ui_rowsN(l.unread[1]) + ' in this pull');
+    w.push(u.join(' and ') + ' could not be read (counted in no figure)');
+  }
+  return w.join('; ');
+}
 function ui_vChanges(M) {
   const st = ui_state();
   const out = ['<h2 class="title">What changed between the last two different pulls</h2>',
-    '<p class="l2">Every row of every FY is compared, whatever the switches show and whatever the First FY, because the question is what the new pull holds.</p>', ui_shown(M, 'This view does not depend on them: it compares every row.')];
+    '<p class="l2">Every row of every FY is compared, whatever the switches show and whatever the First FY, because the question is what the new pull holds.'
+    + ' A row that could not be read (FY or Amount) counts in no figure, here as everywhere, but it is still in its pull: its CCaR and its line are not'
+    + ' called new or gone because of it.</p>', ui_shown(M, '', 'it compares every row of the two pulls')];
   const hist = st && Array.isArray(st.history) ? st.history : [];
   if (hist.length) {
     // an import that placed no row in an appropriation (only rows no appropriation claims) read "2026-11-04: " with
-    // nothing after it, as if the list had failed to draw (review SEAM-7)
+    // nothing after it, as if the list had failed to draw (review SEAM-7); two imports on one day read alike (review BP-6)
+    const when = ui_whens(hist.map(h => h.importedAt));
     out.push('<h3 class="sub">Imports this file holds</h3><ul class="notes">' + hist.map(h => {
       const aps = (Array.isArray(h.aps) ? h.aps : []).map(a => UI_AP_LABEL[a] || a);
-      return '<li>' + ui_e(ui_day(h.importedAt)) + ': ' + ui_e(aps.length ? aps.join(', ') : 'no pull (only rows whose appropriation was not identified)') + '</li>';
+      return '<li>' + ui_e(when(h.importedAt) || 'date unknown') + ': ' + ui_e(aps.length ? aps.join(', ') : 'no pull (only rows whose appropriation was not identified)') + '</li>';
     }).join('') + '</ul>');
   }
   let D = {};
@@ -528,6 +601,14 @@ function ui_vChanges(M) {
         + ':</strong> it is the same, row for row, as the pull of ' + ui_e(s1) + '. What follows is what the pull of ' + ui_e(s1)
         + ' changed, against the one before it.</p>');
     }
+    // rows that could not be read, said where the figures they are missing from are (review M1): the import's message
+    // said so too, but it can be dismissed and is not on this view
+    const un = Array.isArray(d.unread) ? d.unread : [0, 0];
+    if (un[0] || un[1]) {
+      out.push('<p class="note unread" data-unread="' + ui_e(un[0] + '|' + un[1]) + '">' + ui_e(ui_rowsN(un[1])) + ' in this pull and ' + ui_e(ui_rowsN(un[0]))
+        + ' in the earlier one could not be read (FY or Amount): they count in no figure below (see the Import report). Their CCaRs and lines are still in'
+        + ' the pulls, so none is called new or gone because of them; the lines they belong to are listed apart.</p>');
+    }
     out.push('<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">All FYs</th><th scope="col" class="n">Before ($M)</th><th scope="col" class="n">After ($M)</th><th scope="col" class="n">Change ($M)</th></tr></thead><tbody>'
       + ui_dRow('Approved', d.totals.approved) + ui_dRow('Obligated', d.totals.obligated) + '</tbody></table></div>');
     const bk = Object.keys(d.byBlock);
@@ -537,24 +618,36 @@ function ui_vChanges(M) {
         + ui_m(x.obligated[0]) + ui_m(x.obligated[1]) + ui_m(x.obligated[1] - x.obligated[0]) + '</tr>'; }).join('') + '</tbody></table></div>');
     const ccTable = (title, list, kind) => '<h4 class="sub" data-n="' + list.length + '" data-list="' + kind + '">' + ui_e(title) + ': ' + ui_e(SP.fmtInt(list.length)) + '</h4>' + (list.length
       ? '<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">CCaR</th><th scope="col">PMO</th><th scope="col" class="n">$M</th></tr></thead><tbody>'
-        + list.map(c => '<tr><td>' + ui_e(c.label) + '</td><td>' + ui_e(c.pmo) + '</td>' + ui_m(c.cents) + '</tr>').join('') + '</tbody></table></div>' : '');
+        + list.map(c => '<tr><td>' + ui_e(c.label) + (c.unread ? ' (' + ui_e(ui_rowsN(c.unread)) + ' that could not be read)' : '') + '</td><td>' + ui_e(c.pmo) + '</td>'
+          + ui_m(c.cents) + '</tr>').join('') + '</tbody></table></div>' : '');
     out.push(ccTable('CCaRs new in this pull', d.ccarsNew, 'new'), ccTable('CCaRs gone from this pull', d.ccarsGone, 'gone'));
     out.push('<h4 class="sub" data-n="' + d.pmoMoves.length + '" data-list="moves">CCaRs that moved to another PMO: ' + ui_e(SP.fmtInt(d.pmoMoves.length)) + '</h4>' + (d.pmoMoves.length
       ? '<div class="tw"><table class="grid"><thead><tr class="hd"><th scope="col">CCaR</th><th scope="col">From</th><th scope="col">To</th><th scope="col" class="n">$M</th></tr></thead><tbody>'
         + d.pmoMoves.map(c => '<tr><td>' + ui_e(c.label) + '</td><td>' + ui_e(c.from) + '</td><td>' + ui_e(c.to) + '</td>' + ui_m(c.cents) + '</tr>').join('') + '</tbody></table></div>' : ''));
-    out.push('<h4 class="sub">Rows by PMO / Title / Plan Event / CCaR</h4>');
+    // LINES, not rows: each is every row of one FY, PMO, Title, Plan Event and CCaR added together, so a row taken from a
+    // line that stays changes the line. Called "rows", a pull that lost four rows read "1 row gone" (review BP-6).
+    out.push('<h4 class="sub">Lines by PMO / Title / Plan Event / CCaR</h4><p class="note lines">A line is every row of one FY, PMO, Title, Plan Event and CCaR, added'
+      + ' together: a row added to a line that was there, or taken from one that stays, changes that line; it is not a new or gone line. A line changes'
+      + ' when its amount changes, when its money becomes obligated (Actual Execution) or stops being, or when its money moves to another month. A row of'
+      + ' $0 changes none of those.</p>');
     // words that agree with their count: "Show the 12 changed amount" was one of them (review S11)
-    for (const [kind, one, many] of [['changed', 'row whose amount changed', 'rows whose amount changed'], ['new', 'new row', 'new rows'], ['gone', 'row gone', 'rows gone']]) {
-      const list = d.leaves[kind], key = ap + '|' + kind, open = ui.diffOpen.has(key), words = list.length === 1 ? one : many;
+    const kinds = [['changed', 'changed line', 'changed lines'], ['new', 'new line', 'new lines'], ['gone', 'line gone', 'lines gone'],
+      ['unread', 'line with a row that could not be read', 'lines with a row that could not be read']];
+    for (const [kind, one, many] of kinds) {
+      const list = (d.leaves && d.leaves[kind]) || [];
+      if (kind === 'unread' && !list.length) continue;
+      const key = ap + '|' + kind, open = ui.diffOpen.has(key), words = list.length === 1 ? one : many;
       const R = ui.reg, i = R.diff.length;
       R.diff.push(key);
       out.push('<p class="acts"><button type="button" data-act="diff" data-i="' + i + '" data-fkey="diff:' + ui_e(key) + '" aria-expanded="' + (open ? 'true' : 'false') + '"'
         + (list.length ? '' : ' disabled') + '>' + (open ? 'Hide' : 'Show') + ' the ' + ui_e(SP.fmtInt(list.length)) + ' ' + ui_e(words) + ' (largest change first)</button></p>');
       if (open && list.length) {
         out.push('<div class="tw"><table class="grid" data-leaves="' + kind + '"><thead><tr class="hd"><th scope="col">FY</th><th scope="col">PMO</th><th scope="col">Title</th><th scope="col">Plan Event</th>'
-          + '<th scope="col">CCaR</th><th scope="col" class="n">Before</th><th scope="col" class="n">After</th><th scope="col" class="n">Change</th></tr></thead><tbody>'
+          + '<th scope="col">CCaR</th><th scope="col" class="n">Before</th><th scope="col" class="n">After</th><th scope="col" class="n">Change</th>'
+          + '<th scope="col" class="n">Obligated before</th><th scope="col" class="n">Obligated after</th><th scope="col">What changed</th></tr></thead><tbody>'
           + list.map(l => '<tr><td>FY' + ui_e(l.fy) + '</td><td class="wrap">' + ui_e(l.pmo) + '</td><td class="wrap">' + ui_e(l.title) + '</td><td class="wrap">' + ui_e(l.pe)
-            + '</td><td>' + ui_e(l.ccar) + '</td>' + ui_m(l.before) + ui_m(l.after) + ui_m(l.change) + '</tr>').join('') + '</tbody></table></div>');
+            + '</td><td>' + ui_e(l.ccar) + '</td>' + ui_m(l.before) + ui_m(l.after) + ui_m(l.change) + ui_m(l.obligated[0]) + ui_m(l.obligated[1])
+            + '<td class="wrap what">' + ui_e(ui_leafWhat(l)) + '</td></tr>').join('') + '</tbody></table></div>');
       }
     }
     out.push('</section>');
@@ -660,9 +753,12 @@ function ui_vHelp() {
     + 'and <strong>Export Excel</strong> writes them as a workbook of values. The file is its own database: <strong>Save</strong> writes the data and the settings into this file.</p>'
     + '<h3 class="sub">Importing</h3>' + li([
       'Each file is a CCaR export laid out like v12’s Raw Data tabs (.xlsx or .csv). Import one file per appropriation, or one file holding all four.',
+      'A .csv may be UTF-8, Windows-1252 or UTF-16 (“Unicode”), and must be separated by commas: one separated by tabs or semicolons is refused, saying so. '
+      + 'A file that is not a workbook (an encrypted one, an old .xls, a web page saved as .xls) is named for what it is.',
       'Columns are found by their header names, in any order. Rows are placed in O&amp;M, Full Fund, Initial Spares or OPN by their Budget name.',
       'An import replaces the appropriations it holds. The pull it replaces is kept for <strong>What changed</strong>; appropriations it does not hold keep theirs.',
-      'Each import sets <strong>Data through</strong> to the last full month before the import. Change it in the top bar.',
+      'Each import that brings a pull sets <strong>Data through</strong> to the last full month before the import; one that places no row in any appropriation '
+      + 'leaves it where it was. Change it in the top bar.',
       'A row whose FY or Amount cannot be read is kept, counted nowhere, and listed in the Import report.',
       'The page asks before an import replaces a pull when every row of one appropriation sits on a sheet named for another (an O&amp;M tab holding the '
       + 'only Full Fund row, say), or when the new pull would keep fewer than half the readable rows of the one on screen (a misfiled row, a file cut '
@@ -674,9 +770,10 @@ function ui_vHelp() {
       + 'and works every figure out again by its own rules. Save to keep it.'])
     + '<h3 class="sub">Which rows count</h3>' + li([
       'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, and the switches show its service and lane.',
-      'The switches drive every figure and every list on every view, the export and the pictures, with two exceptions that cover every service and lane: an entered Authorized, '
-      + 'which is entered for an appropriation and FY as a whole (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, '
-      + 'rows whose appropriation is not identified, rows that could not be read). They are this browser’s view, not saved in the file.'])
+      'The service and lane switches are this browser’s view, not saved in the file. They drive every figure and every list on every view, the export and the '
+      + 'pictures, with two exceptions that cover every service and lane: an entered Authorized, which is entered for an appropriation and FY as a whole and saved '
+      + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, rows whose appropriation is not identified, '
+      + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
     + '<h3 class="sub">The figures</h3>' + li([
       '<strong>Columns:</strong> Prior Yr (dated before the execution year), Oct to Sep of the execution year, the next-year column, and No date. Total is the sum of all of them.',
       '<strong>Approved</strong> is every counted row. <strong>Obligated</strong> is the rows CCaR marks “Actual Execution”, whatever their date. <strong>Unobligated</strong> = Approved − Obligated.',
@@ -736,6 +833,7 @@ function ui_skeleton() {
     + '<button type="button" class="msgx" id="uiMsgX" data-act="msgx" data-fkey="msgx" hidden>Dismiss</button></div>'
     + '<nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '</header>'
+    + '<div class="printhead" id="uiPrintHead" aria-hidden="true"></div>'
     + '<div id="uiFilters"></div>'
     + '<main id="uiMain" tabindex="-1"></main>'
     + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>';
@@ -744,7 +842,7 @@ function ui_skeleton() {
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
     pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
-    msgx: document.getElementById('uiMsgX'),
+    msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
   };
 }
 
@@ -776,7 +874,31 @@ function ui_layout() {
     const root = document.documentElement.style;
     root.setProperty('--topH', topH + 'px');
     root.setProperty('--theadH', headH + 'px');
+    // THE TOP GREW OVER THE KEYBOARD'S PLACE. Scroll padding only steers scrolls still to come: a picker reached with the
+    // keyboard sits just under the top, and the message its own change writes makes the top a line taller, over the very
+    // picker being changed, with nothing to scroll it back (review SCR2-1). The control the top has just covered is
+    // brought back into view, now and again after the frame (the browser's scroll anchoring may move it after this runs).
+    const prev = ui.topH;
+    ui.topH = topH;
+    if (prev && topH > prev) {
+      ui_unhide(prev);
+      const later = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : f => setTimeout(f, 16);
+      later(() => ui_unhide(prev));
+    }
   } catch (e) { /* a page that cannot be measured keeps the stylesheet's defaults */ }
+}
+// the focused control, if the top (now ui.topH tall, before `prev`) covers part of it that was below the top: scrolled
+// into view, which the page's scroll padding puts just under the top. A control scrolled away before the top grew is left
+// where the person scrolled it, and one in the top itself is never covered by it.
+function ui_unhide(prev) {
+  try {
+    const E = ui.els, a = document.activeElement;
+    if (!E || !a || a === document.body || a === document.documentElement || a === E.main || E.top.contains(a)) return;
+    if (a.closest && a.closest('.cui')) return;
+    const r = a.getBoundingClientRect();
+    if (!r.width && !r.height) return;
+    if (r.bottom > prev && r.top < ui.topH && r.top < (window.innerHeight || 0)) a.scrollIntoView({ block: 'nearest' });
+  } catch (e) { /* nothing to scroll */ }
 }
 // a new view starts at its top: the old view's scroll offset, cut to the new page's height, opened it mid-page or at its
 // bottom with its title and filters thousands of pixels above the window (review S4)
@@ -804,8 +926,17 @@ function ui_drawTop(M) {
   const P = ui_pulls();
   // "imported", never "pulled": the date is when the pull came into this page, which is not when CCaR made it (a pull
   // taken on Friday and imported on Monday read "pulled Monday", review BP-3)
-  const bits = SP.APS.filter(a => P[a.id]).map(a => ui_e(a.label) + ' imported <span class="d">' + ui_e(ui_day(P[a.id].importedAt) || 'date unknown') + '</span>');
+  // and to the minute where two pulls came in on one day, so the older ones can be told from the newer (review SCR2-11)
+  const shown = SP.APS.filter(a => P[a.id]);
+  const when = ui_whens(shown.map(a => P[a.id].importedAt));
+  const bits = shown.map(a => ui_e(a.label) + ' imported <span class="d" title="' + ui_e(ui_when(P[a.id].importedAt) || 'date unknown') + '">'
+    + ui_e(when(P[a.id].importedAt) || 'date unknown') + '</span>');
   E.pulls.innerHTML = bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.';
+  // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
+  if (E.printHead) {
+    E.printHead.textContent = has ? 'SFCB Spend Plan' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
+      + E.pulls.textContent + (M ? ' · ' + M.shown.text : '') : '';
+  }
 }
 function ui_drawNav(has) {
   const E = ui.els;
@@ -850,7 +981,7 @@ function ui_render() {
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
-  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pmos: [], naPmos: [], auth: [], special: [], budgets: [], diff: [] };
+  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
   const M = has ? ui_model() : null;
   if (has && ui.modelErr && ui.view !== 'help') ui_say('The figures could not be worked out: ' + ui.modelErr, 'err');
@@ -961,7 +1092,11 @@ function ui_setSettings(patch, said, defer) {
   if (!ui_need('setSettings', 'Changing a setting')) { ui_render(); return false; }
   SP.setSettings(patch);
   ui_invalidate();
-  if (said) ui_say(said, 'ok');
+  // a change that puts the settings back as this file holds them leaves nothing unsaved, and the message says so: "Data
+  // through set to Oct-2026" alone, with the month the file already had, read as a change to save (review SCR2-5)
+  let clean = false;
+  if (ui_fn('isDirty')) { try { clean = !SP.isDirty(); } catch (e) { clean = false; } }
+  if (said) ui_say(said + (clean ? ' The settings are now as this file holds them: nothing is unsaved.' : ''), 'ok');
   if (defer) ui_schedule();
   else ui_render();
   return true;
@@ -1173,7 +1308,7 @@ function ui_onClick(ev) {
     case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b'))); break;
     case 'savepic': ui_picture('save', Number(t.getAttribute('data-b'))); break;
     case 'zip': ui_zip(); break;
-    case 'naclear': ui.naF = { ap: '', fy: '', pmo: '' }; ui_render(); break;
+    case 'naclear': ui.naF = { ap: '', fy: '', pmo: '', pmoLabel: '' }; ui_render(); break;
     case 'diff': {
       const k = ui.reg.diff[Number(t.getAttribute('data-i'))];
       if (k) { if (ui.diffOpen.has(k)) ui.diffOpen.delete(k); else ui.diffOpen.add(k); ui_render(); }
@@ -1227,7 +1362,10 @@ function ui_onChange(ev) {
       if (f === 'ap') ui.naF.ap = t.value;
       else if (f === 'fy') ui.naF.fy = t.value;
       // 'k:' + the PMO's normKey, never its spelling: one PMO is one choice however its rows write it (§4.4)
-      else if (f === 'pmo') ui.naF.pmo = t.value === '' ? '' : (ui.reg.naPmos[Number(t.value)] ?? '');
+      else if (f === 'pmo') {
+        ui.naF.pmo = t.value === '' ? '' : (ui.reg.naPmos[Number(t.value)] ?? '');
+        ui.naF.pmoLabel = t.value === '' ? '' : (ui.reg.naPmoLabels[Number(t.value)] ?? '');
+      }
       ui_render();
       break;
     }

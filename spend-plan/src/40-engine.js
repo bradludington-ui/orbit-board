@@ -299,6 +299,13 @@ function eng_pmoSort(a, b) {
   if (ra === 0) return ENG_PMO_RANK.get(a.key) - ENG_PMO_RANK.get(b.key);
   return eng_cmp(a.label, b.label) || eng_cmp(a.key, b.key);
 }
+// the same PMO order by key alone, for a choice that must not depend on how a pull spells or lists anything: a PMO on
+// SP.PMO_ORDER first, in that order; any other by its normalised name; (no PMO), whose key is '', last
+function eng_pmoKeyCmp(a, b) {
+  const ra = ENG_PMO_RANK.has(a) ? 0 : a === '' ? 2 : 1, rb = ENG_PMO_RANK.has(b) ? 0 : b === '' ? 2 : 1;
+  if (ra !== rb) return ra - rb;
+  return ra === 0 ? ENG_PMO_RANK.get(a) - ENG_PMO_RANK.get(b) : eng_cmp(a, b);
+}
 function eng_sizeSort(a, b) { return b.total - a.total || eng_cmp(a.label, b.label) || eng_cmp(a.key, b.key); }
 function eng_tree(rows) {
   const top = new Map();
@@ -651,48 +658,105 @@ function eng_notes(M) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// WHAT CHANGED (§4.6 diffPulls): every readable row of every FY, with no switches and no first FY, because the question
-// is what the new pull holds that the old one did not, not what this browser happens to be showing.
+// WHAT CHANGED (§4.6 diffPulls): every row of every FY, with no switches and no first FY, because the question is what the
+// new pull holds that the old one did not, not what this browser happens to be showing.
+//
+// A row that cannot be read (its FY or Amount) is counted in no dollar figure here, as everywhere, but it is still IN the
+// pull: its CCaR is there, and so is its line when its FY reads. Dropped from the comparison, a CCaR whose one row turned
+// unreadable read "gone from this pull" with its dollars taken off Approved, while the row sat in the pull (review M1);
+// the other way round it read "new". Such lines are listed apart, with what each side could read.
+//
+// A LINE is every row of one appropriation, FY, PMO, Title, Plan Event and CCaR, added together. It changes when its
+// amount changes, when its money becomes obligated (Actual Execution) or stops being, or when its money moves to another
+// month: a pull in which five rows were obligated and three slipped from Jun to Sep, no amount changed, listed no line at
+// all while Obligated rose and two month columns moved (review BP-2).
 // ---------------------------------------------------------------------------------------------------------------
+function eng_ccarNew() { return { cents: 0, unread: 0, sp: new Map(), usp: new Map(), pmoKeys: new Map(), upmoKeys: new Map(), pmoSp: new Map() }; }
 function eng_diffSide(rows, ap, settings) {
   const blocks = new Map(), ccars = new Map(), leaves = new Map();
+  let unread = 0;
   for (const row of rows || []) {
     const d = SP.deriveRow(row, settings);
-    if (!eng_readable(d)) continue;
+    const ok = eng_readable(d);
+    if (!ok) unread++;
+    // the CCaR is in the pull whether or not its row reads; its dollars, PMO and spelling come from the rows that read,
+    // and from the others only when none reads
+    let c = ccars.get(d.k.ccar);
+    if (!c) ccars.set(d.k.ccar, (c = eng_ccarNew()));
+    eng_tally(ok ? c.sp : c.usp, eng_txt(d.ccar));
+    eng_tally(ok ? c.pmoKeys : c.upmoKeys, d.k.pmo);
+    let ps = c.pmoSp.get(d.k.pmo);
+    if (!ps) c.pmoSp.set(d.k.pmo, (ps = new Map()));
+    eng_tally(ps, eng_txt(d.pmo));
+    if (ok) c.cents += d.cents; else c.unread++;
+    // a row whose FY does not read has no line to belong to: it is counted on its CCaR and in `unread` only
+    if (!Number.isInteger(d.fy)) continue;
+    const parts = [ap, String(d.fy), d.k.pmo, d.k.title, d.k.pe, d.k.ccar];
+    const lk = JSON.stringify(parts);      // grouped by the parts, never by a joined string a '|' in a name could fake
+    let l = leaves.get(lk);
+    if (!l) leaves.set(lk, (l = { parts, fy: d.fy, cents: 0, exec: 0, unread: 0, ym: new Map(), sp: [new Map(), new Map(), new Map(), new Map()] }));
+    [d.pmo, d.title, d.pe, d.ccar].forEach((s, i) => eng_tally(l.sp[i], eng_txt(s)));
+    if (!ok) { l.unread++; continue; }
     const bk = ap + '|' + d.fy;
     let f = blocks.get(bk);
     if (!f) blocks.set(bk, (f = { fy: d.fy, approved: 0, obligated: 0 }));
     f.approved += d.cents;
-    if (d.status === 'exec') f.obligated += d.cents;
-    let c = ccars.get(d.k.ccar);
-    if (!c) ccars.set(d.k.ccar, (c = { cents: 0, sp: new Map(), pmoKeys: new Map(), pmoSp: new Map() }));
-    c.cents += d.cents;
-    eng_tally(c.sp, eng_txt(d.ccar));
-    eng_tally(c.pmoKeys, d.k.pmo);
-    let ps = c.pmoSp.get(d.k.pmo);
-    if (!ps) c.pmoSp.set(d.k.pmo, (ps = new Map()));
-    eng_tally(ps, eng_txt(d.pmo));
-    const parts = [ap, String(d.fy), d.k.pmo, d.k.title, d.k.pe, d.k.ccar];
-    const lk = JSON.stringify(parts);      // grouped by the parts, never by a joined string a '|' in a name could fake
-    let l = leaves.get(lk);
-    if (!l) leaves.set(lk, (l = { parts, fy: d.fy, cents: 0, sp: [new Map(), new Map(), new Map(), new Map()] }));
+    if (d.status === 'exec') { f.obligated += d.cents; l.exec += d.cents; }
     l.cents += d.cents;
-    [d.pmo, d.title, d.pe, d.ccar].forEach((s, i) => eng_tally(l.sp[i], eng_txt(s)));
+    // the month the row is dated in ('' for no date): money that moves between months is a change of its own
+    const ym = /^\d{4}-\d{2}/.test(d.date) ? d.date.slice(0, 7) : '';
+    l.ym.set(ym, (l.ym.get(ym) || 0) + d.cents);
   }
   for (const c of ccars.values()) {
-    // a CCaR's PMO is the one most of its rows carry, named the way most of those rows spell it
+    // a CCaR's PMO is the one most of its rows carry, named the way most of those rows spell it. Where PMOs carry as
+    // many rows, it is the first of them in the PMO order, never the PMO of whichever row the pull lists first: settled
+    // by row order, a CCaR with one AV row and one PSM row "moved to another PMO" when a pull listed the same two rows
+    // the other way round, with no row and no dollar changed (second review M3)
+    const keys = c.pmoKeys.size ? c.pmoKeys : c.upmoKeys;
     let pk = '', n = -1;
-    for (const [k, m] of c.pmoKeys) if (m > n) { n = m; pk = k; }
-    c.pmo = pk; c.pmoLabel = eng_major(c.pmoSp.get(pk), ENG_BLANK.pmo); c.label = eng_major(c.sp, ENG_BLANK.ccar);
+    for (const [k, m] of keys) if (m > n || (m === n && eng_pmoKeyCmp(k, pk) < 0)) { n = m; pk = k; }
+    c.pmo = pk; c.pmoLabel = eng_major(c.pmoSp.get(pk) || new Map(), ENG_BLANK.pmo); c.label = eng_major(c.sp.size ? c.sp : c.usp, ENG_BLANK.ccar);
   }
-  return { blocks, ccars, leaves };
+  return { blocks, ccars, leaves, unread };
 }
-function eng_leafOut(l, before, after) {
+// what moved between months: the months that lost money and the months that gained it, and the dollars that changed
+// month (half of what every month moved, less the change in the line's amount)
+function eng_moved(a, b, change) {
+  // a line in one pull only has nothing to move: it is new or gone, whatever months its rows sit in
+  if (!a || !b) return { cents: 0, from: [], to: [] };
+  const yms = [...new Set([...a.ym.keys(), ...b.ym.keys()])].sort();
+  const from = [], to = [];
+  let abs = 0;
+  for (const ym of yms) {
+    const x = a.ym.get(ym) || 0, y = b.ym.get(ym) || 0;
+    if (x === y) continue;
+    abs += Math.abs(y - x);
+    (y < x ? from : to).push({ ym, cents: Math.abs(y - x) });
+  }
+  const cents = Math.max(0, (abs - Math.abs(change)) / 2);
+  // money that only grew or shrank in place moved nowhere: no month is named for it
+  return cents ? { cents, from, to } : { cents: 0, from: [], to: [] };
+}
+function eng_leafOut(o, l) {
+  const s = l || o;
   const blank = [ENG_BLANK.pmo, ENG_BLANK.title, ENG_BLANK.pe, ENG_BLANK.ccar];
-  const [pmo, title, pe, ccar] = l.sp.map((m, i) => eng_major(m, blank[i]));
-  return { key: l.parts.join('|'), parts: l.parts, ap: l.parts[0], fy: l.fy, pmo, title, pe, ccar, before, after, change: after - before };
+  // a line's names are the spelling most of its rows use, over both pulls' rows
+  const sp = s.sp.map((m, i) => { const t = new Map(m); if (o && l) for (const [k, n] of o.sp[i]) t.set(k, (t.get(k) || 0) + n); return t; });
+  const [pmo, title, pe, ccar] = sp.map((m, i) => eng_major(m, blank[i]));
+  const before = o ? o.cents : 0, after = l ? l.cents : 0, change = after - before;
+  const obligated = [o ? o.exec : 0, l ? l.exec : 0];
+  const moved = eng_moved(o, l, change);
+  const unread = [o ? o.unread : 0, l ? l.unread : 0];
+  const what = [];
+  if (change) what.push('amount');
+  if (obligated[0] !== obligated[1]) what.push('obligated');
+  if (moved.cents) what.push('dates');
+  if (unread[0] !== unread[1]) what.push('unread');
+  return { key: s.parts.join('|'), parts: s.parts, ap: s.parts[0], fy: s.fy, pmo, title, pe, ccar, before, after, change, obligated, moved, unread, what,
+    size: Math.max(Math.abs(change), Math.abs(obligated[1] - obligated[0]), moved.cents) };
 }
-function eng_bigFirst(a, b) { return Math.abs(b.change) - Math.abs(a.change) || eng_cmp(a.key, b.key); }
+// largest change first: the largest of the change in amount, in obligated and in dollars moved between months
+function eng_bigFirst(a, b) { return b.size - a.size || eng_cmp(a.key, b.key); }
 SP.diffPulls = function diffPulls(prevPulls, curPulls, settings) {
   const out = {};
   for (const ap of ENG_AP_IDS) {
@@ -707,7 +771,7 @@ SP.diffPulls = function diffPulls(prevPulls, curPulls, settings) {
       totals.approved[0] += x.approved; totals.approved[1] += y.approved;
       totals.obligated[0] += x.obligated; totals.obligated[1] += y.obligated;
     }
-    const ccarOut = c => ({ key: c.k, label: c.label, cents: c.cents, pmo: c.pmoLabel });
+    const ccarOut = c => ({ key: c.k, label: c.label, cents: c.cents, pmo: c.pmoLabel, unread: c.unread });
     const ccarsNew = [], ccarsGone = [], pmoMoves = [];
     for (const [k, c] of b.ccars) if (!a.ccars.has(k)) ccarsNew.push(ccarOut(Object.assign({ k }, c)));
     for (const [k, c] of a.ccars) if (!b.ccars.has(k)) ccarsGone.push(ccarOut(Object.assign({ k }, c)));
@@ -716,16 +780,19 @@ SP.diffPulls = function diffPulls(prevPulls, curPulls, settings) {
       if (o && o.pmo !== c.pmo) pmoMoves.push({ key: k, label: c.label, from: o.pmoLabel, to: c.pmoLabel, cents: c.cents });
     }
     [ccarsNew, ccarsGone, pmoMoves].forEach(l => l.sort((x, y) => eng_cmp(x.key, y.key)));
-    const lNew = [], lGone = [], lChanged = [];
-    for (const [k, l] of b.leaves) {
-      const o = a.leaves.get(k);
-      if (!o) lNew.push(eng_leafOut(l, 0, l.cents));
-      else if (o.cents !== l.cents) lChanged.push(eng_leafOut(l, o.cents, l.cents));
+    const lNew = [], lGone = [], lChanged = [], lUnread = [];
+    for (const k of new Set([...a.leaves.keys(), ...b.leaves.keys()])) {
+      const o = a.leaves.get(k), l = b.leaves.get(k);
+      const x = eng_leafOut(o, l);
+      // a line with a row that could not be read, on either side, is neither new nor gone because of it
+      if ((o && o.unread) || (l && l.unread)) { if (x.what.length) lUnread.push(x); continue; }
+      if (!o) lNew.push(x);
+      else if (!l) lGone.push(x);
+      else if (x.what.length) lChanged.push(x);
     }
-    for (const [k, l] of a.leaves) if (!b.leaves.has(k)) lGone.push(eng_leafOut(l, l.cents, 0));
-    [lNew, lGone, lChanged].forEach(l => l.sort(eng_bigFirst));
+    [lNew, lGone, lChanged, lUnread].forEach(l => l.sort(eng_bigFirst));
     out[ap] = { ap, label: ENG_AP_LABEL[ap], importedAt: [p0.importedAt || null, p1.importedAt || null], byBlock, totals,
-      ccarsNew, ccarsGone, pmoMoves, leaves: { new: lNew, gone: lGone, changed: lChanged } };
+      ccarsNew, ccarsGone, pmoMoves, unread: [a.unread, b.unread], leaves: { new: lNew, gone: lGone, changed: lChanged, unread: lUnread } };
   }
   return out;
 };

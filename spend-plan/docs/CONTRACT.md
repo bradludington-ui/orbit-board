@@ -130,6 +130,20 @@ Helpers, each on `SP`:
   - Keep ORBIT's credit in a comment.
 - **`SP.readCsv(text)`** reads RFC 4180 text: quoted fields, doubled quotes, and newlines inside quotes (the FF tab has 5 such
   fields). It strips a leading byte-order mark.
+- **A CSV's bytes** are read as UTF-16 (little- or big-endian) when they say so with a byte-order mark, or when, with none,
+  every other byte of the text is zero (`SP.utf16Of`): Excel's *Unicode Text* and a reporting server's *CSV (Unicode)* are
+  UTF-16. Otherwise they are UTF-8, or Windows-1252 (Excel's CSV) when they are not UTF-8: a UTF-8 byte-order mark, or more
+  well-formed UTF-8 sequences than stray bytes, says UTF-8. The report says when it read UTF-16 or Windows-1252 (review F2).
+- **A file that is not what its name says is refused, named for what it is**, with what to do (review IMP-10, F3):
+  - an OLE2 file is an Excel 97–2003 workbook (`.xls`), or, when it holds an `EncryptedPackage` stream, an **encrypted** file
+    (a password, or a sensitivity label that encrypts): saving it again keeps the encryption, so the advice is a copy that
+    is not encrypted;
+  - a web page (HTML, also after an XML declaration or a comment), a web archive (a Single File Web Page, MHTML), an Excel
+    2003 XML Spreadsheet, a saved SFCB Spend Plan, or plain text (UTF-16 too) named `.xlsx` or `.xls`;
+  - a ZIP file with nothing under `xl/` is named by what it holds: an OpenDocument spreadsheet, a Word document, or the files
+    it holds (a zipped CSV: take it out of the ZIP file). One that starts like a zip and has lost its end is cut short; one
+    with parts under `xl/` but no `xl/workbook.xml` is damaged;
+  - a ZIP or OLE2 file named `.csv` is not CSV text (`SP.notCsvWhy`), and is said to be that, never read as Windows-1252.
 
 **`await SP.parseFiles(files)`**, where `files` is `[{name, data: ArrayBuffer | string}]`. A name ending `.csv` is read as CSV;
 anything else as .xlsx. It returns `{pulls, report}`.
@@ -139,6 +153,13 @@ anything else as .xlsx. It returns `{pulls, report}`.
   - A sheet with no such row is listed as *ignored*, with its name and why. The v12 workbook's 14 report tabs land here.
   - Columns are found **by header name**, never by position. A header the tool does not know is kept as an extra column under its
     own name.
+  - **A re-imported export.** This tool's raw data sheets end with its own *Service*, *Lane*, *Status* and *Counted* (§8.7),
+    worked out again on every load. The **last** column of each of those names, when all four are there in that order, is
+    read as nothing and noted; a pull's own column of one of those names, which the export writes before them, is an extra
+    like any other, and comes back with its values (review F7, XP2-2). The four in another order are a pull's own, all kept.
+  - **A CSV separated by tabs, semicolons or vertical bars**, whose headers are otherwise all there, is refused saying so:
+    the tool reads comma-separated CSV only and never guesses a separator (a file separated by semicolons may write
+    `1.234,56` for `1,234.56`). The advice is to save it as *CSV (Comma delimited)* or `.xlsx` (review F2).
   - `Svc (auto)` and `Inc (auto)` are v12's formula columns: they are ignored and noted.
   - A file with no usable sheet at all is refused by name. If no file in the import has a usable sheet, nothing changes.
 - **Rows.** Every row below the header is a data row unless every one of the 32 known columns is blank. Those are skipped and
@@ -146,7 +167,8 @@ anything else as .xlsx. It returns `{pulls, report}`.
   - **FY**: a whole number 1990–2100, or text (`'2026'`, `'FY26'`, `'FY2026'`) read as the year. Anything else is *unreadable*.
   - **Month, Date**: an Excel serial (using `date1904`), a date cell, or text (`YYYY-MM-DD`, `M/D/YYYY`, `D Mon YYYY`, `Mon-YYYY`
     as the first of the month). The result is ISO or `''`. A Date that cannot be read is *unreadable*: the row keeps it as `''`
-    and is placed in the No-date column (§4.2).
+    and is placed in the No-date column (§4.2). A Month that cannot be read is kept as `''` too, and moves nothing: a row is
+    placed by its Date, never its Month. The report lists the two under their own headings (review F11).
   - **Amount**: through `parseAmount`. An amount that cannot be read makes the row *unreadable*.
   - **Text**: trimmed at both ends and otherwise unchanged. The report counts values that had spaces trimmed.
 - **Unreadable rows** (FY or Amount) are kept in the pull with `bad: [reasons]`. They are counted in no figure and listed in the
@@ -169,8 +191,14 @@ anything else as .xlsx. It returns `{pulls, report}`.
   (§5) depend on it, so the oracle uses the same order.
 - **One sheet per appropriation per import.** If one import's rows for an appropriation come from more than one sheet (or file),
   the whole import is refused and nothing changes. The message names each sheet and how many of that appropriation's rows it
-  holds, so a single misfiled row is easy to find. A file given twice (identical bytes) is refused the same way. A sheet holding
-  rows of several appropriations, such as a combined export, is fine as long as no other sheet holds any of them.
+  holds, so a single misfiled row is easy to find, and a hidden sheet as hidden (Excel does not show it). A file given twice
+  (identical bytes) is refused the same way. A sheet holding rows of several appropriations, such as a combined export, is fine
+  as long as no other sheet holds any of them. The advice follows the counts (review SCR2-4, F9):
+  - a sheet holding a tenth of the largest's rows, or fewer, holds a few rows that are most likely misfiled: move each to the
+    sheet of its own appropriation, or correct its Budget;
+  - two sheets each holding more are two whole pulls, or most of one (two exports of one appropriation, a combined export with
+    a one-appropriation export, one pull as `.xlsx` and `.csv`, an old copy on a hidden sheet): leave all but the newest out
+    of the import. Moving rows from one into the other would count them twice, so that is never advised for them.
 - **`report`** lists:
   - each file and each sheet, used or ignored and why;
   - rows read and skipped blank;
@@ -355,10 +383,33 @@ PmoBlock = the Block shape over only that PMO's rows. authorized = approved (§8
 
 - approved and obligated per `(ap, fy)`, before and after;
 - CCaRs new and gone;
-- the PMO of a CCaR that changed;
-- leaf keys (`ap|fy|pmo|title|pe|ccar` in `normKey`s) new, gone and changed, each with dollars, largest change first.
+- the PMO of a CCaR that changed. **A CCaR's PMO** is the PMO most of its rows carry. Where two or more PMOs carry as many
+  rows, it is the first of them in the PMO order of §4.4, by key: `SP.PMO_ORDER` first, then any other PMO by its
+  `normKey` (code-unit order), `(no PMO)` last. It never depends on the order of the rows, so a pull that lists the same
+  rows in another order moves no CCaR (review M3: settled by row order, a CCaR with one AV row and one PSM row "moved"
+  from AV to PSM when its two rows were listed the other way round). It is labelled by the spelling most of those rows
+  use (§4.4). A row added to or taken from a CCaR whose rows sit under more than one PMO can still change which PMO
+  carries most of them, and that is reported as a move;
+- **lines** (leaf keys, `ap|fy|pmo|title|pe|ccar` in `normKey`s) new, gone and changed, each with dollars, largest change first.
 
 It uses every row, not the switches.
+
+- **A line** is every row of one appropriation, FY, PMO, Title, Plan Event and CCaR, added together. A row added to a line
+  that was there, or taken from one that stays, changes that line; it is not a new or gone line (review BP-6).
+- **A line changes** when its amount changes, when its obligated dollars (rows marked Actual Execution) change, or when its
+  dollars move between months (by the month of each row's Date; no date is a month of its own). Each line carries
+  `obligated: [before, after]`, `moved: {cents, from:[{ym, cents}], to:[{ym, cents}]}` (the dollars that changed month:
+  half of every month's change, less the change in the amount; `from` and `to` are empty when nothing moved) and `what`,
+  the list of `'amount'`, `'obligated'`, `'dates'`, `'unread'` that changed. *Largest change first* is by the largest of
+  the change in amount, in obligated and in dollars moved (review BP-2: a pull in which money was obligated and money
+  slipped, with no amount changed, listed no line). A new or gone line moves nothing.
+- **A row that cannot be read** (§3) counts in no dollar figure here, as everywhere, but it is in its pull: its CCaR is
+  there, and so is its line when its FY reads. So it never makes a CCaR or a line new or gone (review M1: a CCaR whose one
+  row's Amount turned unreadable was listed as gone, with its dollars). A CCaR's dollars and PMO come from its rows that
+  read, and from the others only when none does; `ccarsNew` and `ccarsGone` carry `unread`, the rows of it that could
+  not be read. A line with such a row on either side, and anything that changed, is listed apart in `leaves.unread`,
+  with the dollars each side could read and `unread: [before, after]` row counts. `unread: [before, after]` on the
+  appropriation counts every row that could not be read, so the view can say how many.
 
 ## 5. Not Allocated
 
@@ -617,7 +668,8 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 - **Data through** (a month picker writing `settings.asOf`, from 1990-01 to 2100-12; a year still being typed is not taken,
   and a box left holding no month in that range goes back to the month in use, saying why) and **First FY** (a number input);
 - each appropriation's import date (`OPN imported 2026-10-05`): the day the pull came into the page, which is not always the
-  day CCaR made it;
+  day CCaR made it. Where two pulls on screen came in on one day, each is named to the minute (`2026-11-09 09:05`), and to
+  the second if need be, so the older can be told from the newer (review SCR2-11);
 - buttons **Import CCaR pull…** (a file input, multiple, `.xlsx,.csv`), **Save**, **Save a copy…**, **Export Excel**,
   **Help**;
 - the save state (*Saved* / *Unsaved changes*).
@@ -641,21 +693,41 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
   - The Not Allocated table for the block (§5 as a table: Column, Item, Status, CCaR(s), PMO(s), $M).
 - **PMOs**: a picker, then §8.6 on screen.
 - **Not Allocated**: the whole `naAll` table, with filters by appropriation, FY and PMO.
-- **Import report**.
+  - A choice (the PMO picked on PMOs too) is kept while the switches leave it nothing to show: it stays chosen, offered as
+    *(no items shown)* (*(no money shown)* on PMOs), the view says it has nothing that counts with these switches, and it
+    comes back when they show it. Only **Clear filters**, or another choice, takes it off (review SEAM-10).
+  - The count reads `0 of 12 items, $0.00M` for nothing: never `$-M` (`fmtMText`).
+- **Import report**. After a refused import, the refusal comes first, with what that import held; the report held below it is
+  then headed as the last import **taken**, before the one refused, never as "the last import" (review F8).
 - **What changed** (`diffPulls`), or "Only one pull so far". Each appropriation's section is named by its two pulls; where the
   current pull repeats an earlier one row for row (`sameSince`), it is named by that earlier pull, and says the newest import
-  changed nothing. Its list of imports names an import that placed no row as such, never as an empty line.
+  changed nothing. Its list of imports names an import that placed no row as such, never as an empty line, and names two
+  imports on one day by their times. It counts **lines** and says what one is (§4.6); each line says what changed in it
+  (the amount, its obligated dollars before and after, the money that moved from one month to another, rows that could not
+  be read) beside its dollars before and after and its obligated dollars before and after. Where either pull holds rows
+  that could not be read, the section says how many, and lists their lines apart.
 - **Settings**: the goal table (editable, with *Reset to v12's curves*), Authorized by block ($M, typed through `parseAmount`, and
   blank clears), the special CCaRs, and the budget table with service and lane override selects.
 
 **Behaviour:**
 
 - Every number is `fmtM` / `fmtPct`. Status shows its colour **and** its word.
-- Every view states `model.shown.text` when not everything is shown.
+- Every view states `model.shown.text` when not everything is shown. The Import report and What changed, which show every
+  row whatever the switches, head that notice *This view shows every row, whatever the switches*, never *Showing only part
+  of the data* (review SCR2-7).
+- A picker's accessible name starts with the words beside it: *Expand to (O&M FY2025)* (WCAG 2.5.3, review SCR2-10).
+- A change that makes the sticky top taller (its message line, say) never leaves the control the keyboard is on under it:
+  the control is scrolled back into view (WCAG 2.4.11, review SCR2-1).
+- **Printed** (Ctrl+P), every page carries `SP.CUI` at its top and bottom (the page's own margin boxes; the page's two CUI
+  lines are printed too, for a browser without them), and a line on paper only says the execution year, Data through, the
+  import dates and what is shown, which the top bar, not printed, says on screen (review SCR2-2).
+- The marks `†` and `‡` on a TOTAL row's navy are drawn in the header gold, which reads at 4.5:1 there (review SCR2-3).
 - **All text from a pull is escaped** (`SP.esc`) wherever it reaches markup. A plan event may be `"><img src=x onerror=…>` or
   contain `</script>`. No inline handler ever carries a value from the data; use event delegation with `data-` attributes.
 - A change to a switch, as-of, first FY or a setting rebuilds the model and redraws. Settings changes mark the file unsaved;
-  switch changes do not, because they are this browser's view.
+  switch changes do not, because they are this browser's view. A setting put back to what the file holds, with nothing but
+  settings changed since the file was opened or saved, leaves the file saved (Data through retyped as the month it showed,
+  say), and the message says nothing is unsaved (review SCR2-5).
 - **No data yet** shows one panel: what to import and how ("Each file is a CCaR export laid out like v12's Raw Data tabs; import
   one file per appropriation, or one file holding all four. Rows are placed by their Budget name.").
 - Errors are shown in a message line with the reason, never swallowed.
@@ -694,7 +766,8 @@ SP.state = { v:1, tool:'sfcb-spend-plan', savedAt:'ISO'|null, settings, pulls:{c
   - **a pull the same as the current one, row for row,** leaves `previous[ap]` as it is. The new pull is still current (with
     this import's `importedAt`), and records `sameSince`: the import time of the pull whose rows it repeats. What changed
     names that pull and says the newest import changed nothing;
-  - appropriations not in the import keep theirs and say from when;
+  - appropriations not in the import keep theirs and say from when (to the minute when that was the same day as this
+    import, and to the second when it was the same minute);
   - **the unidentified rows** are replaced by an import that brings some. An import that brings none leaves them while a pull
     the import they came with brought is still current (they then carry that import's `importedAt`), and moves them to
     `previous` once every such pull has been replaced. The message says which;

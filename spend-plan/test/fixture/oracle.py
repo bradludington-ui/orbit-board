@@ -497,6 +497,17 @@ def pmo_code(label):
     return m.group(1) if m else label[:12]
 
 
+def pmo_key_rank(key):
+    # the PMO order by key alone (§4.6, a CCaR's PMO in a tie): PMO_ORDER first, then by the key in UTF-16 code-unit
+    # order (the tool's comparison; big-endian UTF-16 bytes compare the same way), (no PMO) last
+    order = [norm_key(p) for p in PMO_ORDER]
+    if key in order:
+        return (0, order.index(key), b'')
+    if key == '':
+        return (2, 0, b'')
+    return (1, 0, key.encode('utf-16-be'))
+
+
 def pmo_sort_key(key, label):
     order = [norm_key(p) for p in PMO_ORDER]
     if key in order:
@@ -791,22 +802,29 @@ def build(state, settings, view):
 
 
 def diff_pulls(prev, cur, settings):
-    """§4.6 diffPulls, restricted to what §12 asks of expected.json. READING: 'every row' is every READABLE row, of
-    every FY (firstFY too is a view, and the diff ignores views); an unreadable row has no FY or no amount to place."""
+    """§4.6 diffPulls, restricted to what §12 asks of expected.json. 'Every row' is every row of every FY (firstFY too is
+    a view, and the diff ignores views). §4.6: a row that cannot be read counts in no dollar figure, but its CCaR is in
+    its pull all the same, so it never makes a CCaR new or gone; a CCaR's PMO is read from its rows that read, and from
+    the others only when none does."""
     res = {}
     for ap in AP_IDS:
         if ap not in prev or ap not in cur:
             continue
         side = []
         for rows in (prev[ap], cur[ap]):
-            ds = [derive(r, ap, settings) for r in rows if not r['bad']]
-            fig, ccars = {}, {}
-            for d in ds:
+            fig, ccars, unread = {}, {}, {}
+            for r in rows:
+                d = derive(r, ap, settings)
+                if r['bad']:
+                    unread.setdefault(d['k']['ccar'], []).append(d)
+                    continue
                 f = fig.setdefault('%s|%d' % (ap, d['fy']), {'approved': 0, 'obligated': 0})
                 f['approved'] += d['cents']
                 if d['status'] == 'exec':
                     f['obligated'] += d['cents']
                 ccars.setdefault(d['k']['ccar'], []).append(d)
+            for k, ds in unread.items():
+                ccars.setdefault(k, ds)          # a CCaR none of whose rows reads: present, by those rows alone
             side.append((fig, ccars))
         (f0, c0), (f1, c1) = side
         by_block = {}
@@ -815,10 +833,15 @@ def diff_pulls(prev, cur, settings):
             by_block[k] = {'approved': [a['approved'], b['approved']], 'obligated': [a['obligated'], b['obligated']]}
         moves = []
         for ck in sorted(set(c0) & set(c1)):
-            # READING: a CCaR's PMO is the PMO most of its rows carry (ties to the first met), labelled by the
-            # spelling most of those rows use
+            # §4.6: a CCaR's PMO is the PMO most of its rows carry; where PMOs carry as many rows, the first of them in
+            # the PMO order (PMO_ORDER, then any other PMO by its normalised name, (no PMO) last), never the first met:
+            # by row order, the same rows listed the other way round "moved" a tied CCaR (second review M3). Labelled
+            # by the spelling most of those rows use (§4.4)
             def pmo_of(rows):
-                pk = majority([r['k']['pmo'] for r in rows])
+                counts = {}
+                for r in rows:
+                    counts[r['k']['pmo']] = counts.get(r['k']['pmo'], 0) + 1
+                pk = min(counts, key=lambda k: (-counts[k],) + pmo_key_rank(k))
                 return pk, label_of([r for r in rows if r['k']['pmo'] == pk], 'pmo', '(no PMO)')
             p0, l0 = pmo_of(c0[ck])
             p1, l1 = pmo_of(c1[ck])

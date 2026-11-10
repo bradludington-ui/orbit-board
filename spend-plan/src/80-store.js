@@ -40,6 +40,12 @@ function st_own(o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k)
 
 SP.state = st_empty();
 let st_dirty = false;
+// What this page's own file holds, so a change undone is no change (review SCR2-5): retyping the month Data through
+// already showed took January at the first digit and October at the second, and the page read "Unsaved changes", asking
+// before it closed, though it held nothing its file lacked. st_savedSet is the JSON of the settings the file holds (null
+// when that is not known); st_dataMoved is true once anything but a setting has changed since the file was read or written.
+let st_savedSet = null;
+let st_dataMoved = false;
 let st_gen = 0;                  // moves on every change; a save marks the page clean only if nothing moved while it wrote
 let st_base = null;              // the savedAt of this page's own file as last read or written: Save's collision check
 let st_baseWhy = '';             // why the opened state was refused (ST_REFUSED), for the question Save then asks
@@ -59,11 +65,21 @@ let st_view = null;
 let st_unloadOn = false;
 const st_subs = [];
 
-function st_changed() {
+function st_changed(settingsOnly) {
   st_gen++;
+  if (!settingsOnly) st_dataMoved = true;
   st_dirty = true;
   st_dlOnly = false;
+  // settings put back as the file holds them, with nothing else changed since: the page holds nothing its file lacks
+  if (settingsOnly && !st_dataMoved && st_savedSet !== null && st_setJson(SP.state.settings) === st_savedSet) st_dirty = false;
   st_fire();
+}
+// settings as text with every object's keys in order, so an override cleared and set again compares equal to the file's
+function st_setJson(s) {
+  const canon = v => (Array.isArray(v) ? v.map(canon) : v && typeof v === 'object'
+    // a prototype-less object, so a budget named "__proto__" is a key here like any other, never the object's prototype
+    ? Object.keys(v).sort().reduce((o, k) => { o[k] = canon(v[k]); return o; }, Object.create(null)) : v);
+  return JSON.stringify(canon(s === undefined ? null : s));
 }
 function st_fire() {
   for (const f of st_subs.slice()) { try { f(); } catch (e) { /* a broken listener must not stop a save or an import */ } }
@@ -286,10 +302,11 @@ SP.storeInit = function storeInit() {
   }
   SP.state = st_empty();
   st_dirty = false; st_base = null; st_baseWhy = ''; st_dlOnly = false; st_refusedRaw = null; st_taken = null; st_copies.clear();
+  st_dataMoved = false; st_savedSet = null;   // known once the file's own plan (or its lack of one) is read below
   st_openedAt = new Date().toISOString();
   const tag = document.getElementById('spState');
   const text = tag ? String(tag.textContent || '').trim() : '';
-  if (!tag || text === '' || text === 'null') return { ok: true, message: '' };
+  if (!tag || text === '' || text === 'null') { st_savedSet = st_setJson(SP.state.settings); return { ok: true, message: '' }; }
   let st;
   try { st = JSON.parse(text); }
   catch (e) {
@@ -297,7 +314,7 @@ SP.storeInit = function storeInit() {
     return { ok: false, message: 'The data saved in this file cannot be read (' + ((e && e.message) || e) + '), so the page opened empty. '
       + 'The file itself is unchanged; Save asks before writing over it.' };
   }
-  if (st === null) return { ok: true, message: '' };
+  if (st === null) { st_savedSet = st_setJson(SP.state.settings); return { ok: true, message: '' }; }
   const why = st_check(st);
   if (why) {
     st_base = ST_REFUSED; st_baseWhy = why;
@@ -309,6 +326,7 @@ SP.storeInit = function storeInit() {
   if (st.savedAt === undefined) st.savedAt = null;
   SP.state = st;
   st_base = st.savedAt;
+  st_savedSet = st_setJson(st.settings);
   const aps = SP.APS.filter(a => st.pulls.current[a.id]).map(a => a.label);
   return { ok: true, message: (st.savedAt ? 'Opened the plan saved ' + st_when(st.savedAt) : 'Opened the saved plan')
     + (aps.length ? ' (' + st_list(aps) + ').' : '; it holds no pull yet.') };
@@ -577,7 +595,12 @@ SP.applyImport = function applyImport(parsed) {
   if (kept.length) {
     const byDay = new Map();
     for (const a of kept) {
-      const d = st_day(before[a.id].importedAt) || 'an unknown date';
+      // to the minute when it came in the same day as this import: "keep their pulls of 2026-11-09" on the day of a
+      // second import said nothing about which pulls were the older ones (review SCR2-11)
+      const at = before[a.id].importedAt;
+      const sec = x => { const t = new Date(Date.parse(x)); return isNaN(t.getTime()) ? '' : ':' + st_pad(t.getSeconds()); };
+      const d = (!st_day(at) || st_day(at) !== st_day(importedAt) ? st_day(at)
+        : st_when(at) !== st_when(importedAt) ? st_when(at) : st_when(at) + sec(at)) || 'an unknown date';
       if (!byDay.has(d)) byDay.set(d, []);
       byDay.get(d).push(a.label);
     }
@@ -667,7 +690,7 @@ SP.setSettings = function setSettings(patch) {
   const next = Object.assign({}, base, st_clone(patch));
   if (JSON.stringify(next) === JSON.stringify(st.settings)) return;   // nothing changed: nothing to save
   st.settings = next;
-  st_changed();
+  st_changed(true);
 };
 SP.isDirty = function isDirty() { return st_dirty; };
 SP.onStateChange = function onStateChange(fn) {
@@ -719,7 +742,8 @@ function st_saved(now, gen, h) {
   SP.state.savedAt = now;
   st_base = now; st_baseWhy = ''; st_refusedRaw = null; st_taken = null;
   if (h) st_handle = h;
-  if (gen === st_gen) { st_dirty = false; st_dlOnly = false; }   // an edit made while the file was being written is still unsaved
+  if (gen === st_gen) { st_dirty = false; st_dlOnly = false; st_dataMoved = false; st_savedSet = st_setJson(SP.state.settings); }   // an edit made while the file was being written is still unsaved
+  else st_savedSet = null;      // the file holds a state this page no longer has: no setting put back makes the page clean
   st_fire();
 }
 // A Save that could only download: the work is in the download, not in this page's own file, until someone puts the

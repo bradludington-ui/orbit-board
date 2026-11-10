@@ -497,13 +497,17 @@ try {
     const D = SP.diffPulls(store2.previous, store2.current, settingsFor('2026-10', 2025));
     same('diffPulls covers only appropriations in both pulls', Object.keys(D), ['om', 'ff']);
     for (const [ap, d] of Object.entries(D)) {
-      const leaves = [...d.leaves.new, ...d.leaves.gone, ...d.leaves.changed];
+      // every line whose readable dollars moved is in one of the four lists, so their changes add to Approved's
+      const leaves = [...d.leaves.new, ...d.leaves.gone, ...d.leaves.changed, ...(d.leaves.unread || [])];
       const net = leaves.reduce((x, l) => x + l.change, 0);
       C.chk('diff ' + ap + ': the leaf changes add to the change in Approved', net === d.totals.approved[1] - d.totals.approved[0], net + ' vs ' + (d.totals.approved[1] - d.totals.approved[0]));
       C.chk('diff ' + ap + ': leaf keys are ap|fy|pmo|title|pe|ccar in normKeys', leaves.every(l => l.key === l.parts.join('|') && l.parts.length === 6 && l.parts[0] === ap));
-      for (const k of ['new', 'gone', 'changed']) {
-        const l = d.leaves[k];
-        C.chk('diff ' + ap + ': ' + k + ' leaves are largest change first', l.every((x, i) => i === 0 || Math.abs(l[i - 1].change) >= Math.abs(x.change)));
+      for (const k of ['new', 'gone', 'changed', 'unread']) {
+        const l = d.leaves[k] || [];
+        // the size of a line's change is the largest of its amount, its obligated dollars and its dollars moved between
+        // months (review BP-2), restated here from the contract, never read from the tool's own `size`
+        const size = x => Math.max(Math.abs(x.change), Math.abs((x.obligated || [0, 0])[1] - (x.obligated || [0, 0])[0]), (x.moved || { cents: 0 }).cents);
+        C.chk('diff ' + ap + ': ' + k + ' leaves are largest change first', l.every((x, i) => i === 0 || size(l[i - 1]) >= size(x)));
       }
       C.chk('diff ' + ap + ': new leaves start at 0 and gone ones end at 0', d.leaves.new.every(l => l.before === 0) && d.leaves.gone.every(l => l.after === 0));
       C.chk('diff ' + ap + ': the totals are the blocks added', d.totals.approved[1] === Object.values(d.byBlock).reduce((x, v) => x + v.approved[1], 0));
@@ -512,6 +516,129 @@ try {
     C.chk('diff: the new CCaR carries its label and dollars', D[ch.newCcarAp] && D[ch.newCcarAp].ccarsNew.some(c => c.key === normKey(ch.newCcar) && c.cents !== 0 && c.label.length > 0));
     C.chk('diff: the plan event gone shows as gone leaves', D[ch.gonePeAp] && D[ch.gonePeAp].leaves.gone.some(l => l.parts[4] === normKey(ch.gonePe)));
     C.chk('diff: no previous pull, no report', Object.keys(SP.diffPulls({}, store2.current, settingsFor('2026-10', 2025))).length === 0);
+  }
+
+  // ============================================================================================ diffPulls: rows that do not
+  // read, money obligated or moved to another month (second review M1, BP-2, BP-6), on hand-built O&M rows
+  {
+    let n = 0;
+    const row = (o) => {
+      const c = new Array(32).fill('');
+      c[0] = o.fy === undefined ? 2026 : o.fy; c[2] = o.ccar; c[3] = o.title || 'A title'; c[4] = 'USAF O&M Discretionary';
+      c[7] = o.pe || 'A plan event'; c[8] = o.date || '2026-06-15'; c[9] = o.cents === undefined ? 100 : o.cents; c[10] = o.alloc || 'Not Allocated';
+      c[18] = o.pmo || 'Air Vehicle (AV)';
+      const r = { c, x: {}, src: [0, 'O&M Raw Data', ++n] };
+      if (o.bad) r.bad = [o.bad];
+      return r;
+    };
+    const S = settingsFor('2026-10', 2025);
+    const J = x => JSON.stringify(x);
+    const diffOf = (r0, r1) => SP.diffPulls({ om: { rows: r0, importedAt: '2026-11-02T12:00:00.000Z' } }, { om: { rows: r1, importedAt: '2026-11-09T12:00:00.000Z' } }, S).om;
+    const leafOf = (d, list, ccar) => (d.leaves[list] || []).find(l => l.parts[5] === normKey(ccar));
+    // M1: B200's one row reads in the first pull; in the second its Amount does not (it is still in the pull)
+    const keep = row({ ccar: 'D400', cents: 9000 });
+    const g1 = [keep, row({ ccar: 'B200', pe: 'PE B', cents: 500000000 })];
+    const g2 = [keep, row({ ccar: 'B200', pe: 'PE B', cents: null, bad: 'Amount “5,000,000 USD” is not an amount' })];
+    const m1 = diffOf(g1, g2);
+    C.chk('M1: a CCaR whose row no longer reads is not “gone from this pull”', !m1.ccarsGone.some(c => c.key === 'b200'), JSON.stringify(m1.ccarsGone));
+    C.chk('M1: nor is its line gone', !leafOf(m1, 'gone', 'B200'), JSON.stringify(m1.leaves.gone));
+    const u1 = leafOf(m1, 'unread', 'B200');
+    C.chk('M1: its line is listed apart: 5.00 it could read before, nothing it can read now, one row it could not read',
+      !!u1 && u1.before === 500000000 && u1.after === 0 && J(u1.unread) === '[0,1]' && J(u1.what).includes('unread'), JSON.stringify(u1));
+    same('M1: rows that could not be read, counted on each side', m1.unread, [0, 1]);
+    C.chk('M1: Approved after counts only what reads, as every figure does', m1.totals.approved[1] === 9000 && m1.totals.approved[0] === 500009000, JSON.stringify(m1.totals));
+    const m1r = diffOf(g2, g1);
+    C.chk('M1: the other way round, a CCaR whose row now reads is not “new in this pull”', !m1r.ccarsNew.some(c => c.key === 'b200') && !leafOf(m1r, 'new', 'B200')
+      && !!leafOf(m1r, 'unread', 'B200'), JSON.stringify(m1r.ccarsNew) + JSON.stringify(m1r.leaves.new));
+    // a CCaR truly gone is still gone, and one truly new still new, whether or not any of its rows read
+    const m1g = diffOf(g1, [keep]);
+    C.chk('M1 (control): a CCaR in no row of the new pull is gone', m1g.ccarsGone.some(c => c.key === 'b200') && !!leafOf(m1g, 'gone', 'B200'));
+    const m1n = diffOf([keep], g2);
+    C.chk('M1: a CCaR in no row of the earlier pull is new, even when its one row does not read',
+      m1n.ccarsNew.some(c => c.key === 'b200' && c.cents === 0 && c.unread === 1), JSON.stringify(m1n.ccarsNew));
+    // a row whose FY does not read has no line, but its CCaR is still in the pull
+    const m1f = diffOf(g1, [keep, row({ ccar: 'B200', pe: 'PE B', fy: null, cents: 500000000, bad: 'FY “FY2O26” is not a year' })]);
+    C.chk('M1: a CCaR whose only row has an FY that does not read is not gone either', !m1f.ccarsGone.some(c => c.key === 'b200') && m1f.unread[1] === 1,
+      JSON.stringify(m1f.ccarsGone));
+
+    // BP-2: no amount changed; A100's row became Actual Execution and C300's moved from Jun-2026 to Sep-2026
+    const h1 = [keep, row({ ccar: 'A100', pe: 'PE A', cents: 234000000 }), row({ ccar: 'C300', pe: 'PE C', cents: 187654321, date: '2026-06-28' })];
+    const h2 = [keep, row({ ccar: 'A100', pe: 'PE A', cents: 234000000, alloc: 'Actual Execution is allocated to a Plan Event' }),
+      row({ ccar: 'C300', pe: 'PE C', cents: 187654321, date: '2026-09-28' })];
+    const bp = diffOf(h1, h2);
+    const ob = leafOf(bp, 'changed', 'A100'), sl = leafOf(bp, 'changed', 'C300');
+    C.chk('BP-2: a line whose money became obligated is a changed line, and says so', !!ob && ob.change === 0 && J(ob.obligated) === '[0,234000000]'
+      && JSON.stringify(ob.what) === '["obligated"]', JSON.stringify(ob));
+    C.chk('BP-2: a line whose money moved from Jun to Sep is a changed line, and says from where to where', !!sl && sl.change === 0 && J(sl.moved) === J({ cents: 187654321,
+      from: [{ ym: '2026-06', cents: 187654321 }], to: [{ ym: '2026-09', cents: 187654321 }] }) && JSON.stringify(sl.what) === '["dates"]', JSON.stringify(sl));
+    same('BP-2: largest first by what moved: the obligated line (2.34) before the slipped one (1.88)', bp.leaves.changed.map(l => l.parts[5]), ['a100', 'c300']);
+    C.chk('BP-2 (control): the line nothing happened to is listed nowhere', ![...bp.leaves.changed, ...bp.leaves.new, ...bp.leaves.gone].some(l => l.parts[5] === 'd400'));
+    // an amount that grows in one month is a change of amount, not a move
+    const gr = diffOf(h1, [keep, h1[1], row({ ccar: 'C300', pe: 'PE C', cents: 187654321 + 500, date: '2026-06-28' })]);
+    const g = leafOf(gr, 'changed', 'C300');
+    C.chk('BP-2: more money in the same month is an amount change, and no month is said to have moved', !!g && g.change === 500 && J(g.moved) === J({ cents: 0, from: [], to: [] })
+      && JSON.stringify(g.what) === '["amount"]', JSON.stringify(g));
+
+    // BP-6: a line is every row of one FY, PMO, Title, Plan Event and CCaR added together: one of its two rows removed
+    // changes the line; it is not a line gone
+    const two = [keep, row({ ccar: 'E500', pe: 'PE E', cents: 300 }), row({ ccar: 'E500', pe: 'PE E', cents: 700 })];
+    const b6 = diffOf(two, [keep, two[1]]);
+    C.chk('BP-6: a row taken from a line that remains changes the line (one changed line, none gone)', b6.leaves.changed.length === 1 && b6.leaves.gone.length === 0
+      && b6.leaves.changed[0].before === 1000 && b6.leaves.changed[0].after === 300, JSON.stringify(b6.leaves));
+
+    // M3: a CCaR's PMO is the one most of its rows carry, and where PMOs carry as many rows it is the first of them in
+    // the PMO order (§4.4: SP.PMO_ORDER, then any other PMO by its normalised name, (no PMO) last), never the PMO of
+    // whichever row the pull happens to list first. Decided by row order, A100 (one AV row and one PSM row, the same in
+    // both pulls, only listed the other way round) was said to have moved from AV to PSM (second review M3).
+    // The expected PMOs are restated from that rule here, never read back from the tool.
+    const AVP = 'Air Vehicle (AV)', PSMP = 'Product Support Management (PSM)', ZC = 'Zeta Cell (ZC)', AC = 'Alpha Cell (AC)', NOP = '(no PMO)';
+    const pmoOfNew = rows => { const c = diffOf([keep], [keep].concat(rows)).ccarsNew; return c.length === 1 ? c[0].pmo : J(c); };
+    const a1 = row({ ccar: 'A100', pe: 'PE A1', cents: 100000, pmo: AVP }), a2 = row({ ccar: 'A100', pe: 'PE A2', cents: 200000, pmo: PSMP });
+    const m3 = diffOf([keep, a1, a2], [keep, a2, a1]);
+    same('M3: the same two rows listed the other way round move no CCaR to another PMO', m3.pmoMoves, []);
+    C.chk('M3: (and nothing else is said to have changed)', !m3.ccarsNew.length && !m3.ccarsGone.length && !m3.leaves.changed.length
+      && !m3.leaves.new.length && !m3.leaves.gone.length, J(m3.leaves));
+    same('M3: a CCaR with one AV row and one PSM row is AV’s, in either order (AV comes first in the PMO order)', [pmoOfNew([a1, a2]), pmoOfNew([a2, a1])], [AVP, AVP]);
+    // every order of four rows under four PMOs, one row each: on the list first, then other PMOs by name, (no PMO) last
+    const perms = xs => xs.length < 2 ? [xs] : xs.flatMap((x, i) => perms(xs.slice(0, i).concat(xs.slice(i + 1))).map(p => [x].concat(p)));
+    // a stored row's text is trimmed at import (§3), so a row with no PMO holds '' (row() would put AV in its place)
+    const tie = [PSMP, ZC, NOP, AC].map((p, i) => { const r = row({ ccar: 'P600', pe: 'PE P' + i, cents: 1000 * (i + 1), pmo: p }); if (p === NOP) r.c[18] = ''; return r; });
+    for (const [rows, want, what] of [[tie, PSMP, 'PSM (on the list) before two PMOs that are not and (no PMO)'],
+      [tie.slice(1), AC, 'Alpha Cell before Zeta Cell (by name) and (no PMO)'], [tie.slice(1, 3), ZC, 'Zeta Cell before (no PMO)']]) {
+      const ps = perms(rows);
+      const got = [...new Set(ps.map(pmoOfNew))];
+      same('M3: a tie between ' + rows.length + ' PMOs gives ' + what + ', in all ' + ps.length + ' orders of its rows', got, [want]);
+      const moves = ps.flatMap(p => ps.map(q => diffOf([keep].concat(p), [keep].concat(q)).pmoMoves.length)).reduce((s, x) => s + x, 0);
+      C.chk('M3: no pair of those orders says the CCaR moved (' + ps.length * ps.length + ' pairs)', moves === 0, moves + ' moves');
+    }
+    // where none of a CCaR's rows reads, its PMO is read from those rows (M1), by the same rule
+    const ub = (pmo, i) => row({ ccar: 'U700', pe: 'PE U' + i, cents: null, pmo, bad: 'Amount “x” is not an amount' });
+    same('M3: a tied CCaR none of whose rows reads moves nowhere when its rows swap', diffOf([keep, ub(PSMP, 1), ub(AVP, 2)], [keep, ub(AVP, 2), ub(PSMP, 1)]).pmoMoves, []);
+    // controls: the tie rule decides only a tie
+    same('M3 (control): most rows still decide: two PSM rows and one AV row are PSM’s, in any order',
+      [...new Set(perms([a1, a2, row({ ccar: 'A100', pe: 'PE A3', cents: 5, pmo: PSMP })]).map(pmoOfNew))], [PSMP]);
+    same('M3 (control): a CCaR whose one row moved from AV to PSM is still said to have moved',
+      diffOf([keep, row({ ccar: 'C300', pe: 'PE C', cents: 7000, pmo: AVP })], [keep, row({ ccar: 'C300', pe: 'PE C', cents: 7000, pmo: PSMP })]).pmoMoves
+        .map(m => [m.key, m.from, m.to]), [['c300', AVP, PSMP]]);
+    same('M3 (control): a PSM row added to that tie makes PSM carry most rows, and that is said',
+      diffOf([keep, a1, a2], [keep, a2, a1, row({ ccar: 'A100', pe: 'PE A2', cents: 1, pmo: PSMP })]).pmoMoves.map(m => [m.key, m.from, m.to]), [['a100', AVP, PSMP]]);
+    // the oracle states the rule on its own (fixture/oracle.py diff_pulls), and the fixture holds no tied CCaR: so both
+    // read two CSV pulls, through each side's own import, whose tied CCaRs list their rows in another order and one of
+    // whose CCaRs wholly moved. Each must report the real move and nothing else.
+    const H = SP.RAW_HEADERS;
+    const q = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const rec = (ccar, pe, pmo, amt) => { const o = { FY: 2026, 'CCaR No': ccar, Title: 'A title', Budget: 'USAF O&M Discretionary', 'Plan Event': pe,
+      Date: '2026-06-15', Amount: amt, Alloc: 'Not Allocated', PMO: pmo }; return H.map(h => q(o[h])).join(','); };
+    const p1 = [rec('A100', 'PE A1', AVP, 1000), rec('A100', 'PE A2', PSMP, 2000), rec('P600', 'PE P0', PSMP, 1), rec('P600', 'PE P1', ZC, 2),
+      rec('P600', 'PE P2', '', 3), rec('P600', 'PE P3', AC, 4), rec('Q800', 'PE Q0', '', 5), rec('Q800', 'PE Q1', ZC, 6), rec('C300', 'PE C', AVP, 7000)];
+    const p2 = [p1[1], p1[0], p1[5], p1[4], p1[3], p1[2], p1[7], p1[6], rec('C300', 'PE C', PSMP, 7000)];
+    writeFileSync(join(tmp.dir, 'm3-g1.csv'), [H.join(','), ...p1].join('\n'));
+    writeFileSync(join(tmp.dir, 'm3-g2.csv'), [H.join(','), ...p2].join('\n'));
+    const XM3 = oracle(['--files', join(tmp.dir, 'm3-g1.csv'), '--then', join(tmp.dir, 'm3-g2.csv'), '--asof', '2026-10', '--first', '2025'], 'm3');
+    const [i1, i2] = [await importFiles(['m3-g1.csv']), await importFiles(['m3-g2.csv'])];
+    const eM3 = SP.diffPulls({ om: i1.pulls.om }, { om: i2.pulls.om }, S).om.pmoMoves.map(m => [m.key, m.from, m.to]);
+    same('M3: the oracle reports the real move alone when tied CCaRs list their rows in another order', XM3.diff && XM3.diff.om && XM3.diff.om.pmoMoves, [['c300', AVP, PSMP]]);
+    same('M3: and so does the tool, reading the same two files', eM3, [['c300', AVP, PSMP]]);
   }
 } catch (e) {
   C.chk('the engine test ran to the end', false, e && e.stack ? e.stack : String(e));

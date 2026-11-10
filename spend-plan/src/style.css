@@ -116,6 +116,9 @@ table.grid{border-collapse:collapse;font-size:12px;background:#fff}
 .grid tr.total th,.grid tr.total td{background:var(--navy);color:#fff;font-weight:700;border-color:var(--navy)}
 .grid th.apg{vertical-align:middle;font-weight:700}
 .dag,.ddag{margin-left:2px;font-weight:700;color:#7a5a00}
+/* on a TOTAL row's navy the dark gold read 1.77:1 and could not be seen: the mark that says the total mixes in an entered,
+   every-service Authorized was a smudge (review SCR2-3). The gold of the header rows is about 9.8:1 on the navy. */
+.grid tr.total .dag,.grid tr.total .ddag{color:var(--gold)}
 
 /* the block tables: v12's outline styles (PMO 11 pt bold navy; Title 10 pt bold; Plan Event 10 pt; CCaR 9 pt) */
 table.blk{font-size:12px}
@@ -188,9 +191,22 @@ input.amt{width:11em;text-align:right}
 .nodata{max-width:60em}
 section.chg{margin-bottom:18px}
 
+/* PRINTED, every page carries the CUI marking at its top and its bottom (§6 item 14). The two lines in the page are
+   printed once each, at the start and the end of the document, so a view printed with Ctrl+P had pages of CUI figures
+   with no marking between its first page and its last (review SCR2-2): the page's own margin boxes repeat it on every
+   page. The two lines stay too, for a browser that draws no margin boxes. */
+@page{margin:0.55in 0.4in;
+  @top-center{content:"CUI//REL TO US DoW";font:700 10pt Calibri,Carlito,Arial,sans-serif;color:#000}
+  @bottom-center{content:"CUI//REL TO US DoW";font:700 10pt Calibri,Carlito,Arial,sans-serif;color:#000}}
+/* the top bar is not printed, and with it went Data through and the import dates: a printed appropriation view said
+   nowhere what month its actuals ran to (review SCR2-2). This line says it on paper only. */
+.printhead{display:none}
 @media print{
   header.top,.filters,.slidebtns,.acts{display:none}
   .cui{position:static}
+  /* a column the window's height is a page's height on paper: the Summary printed a blank second page */
+  body{display:block;min-height:0}
+  .printhead{display:block;margin:0 16px 4px;font-size:11px;color:#000}
   .tw.treew.box{max-height:none;overflow:visible}
   table.tree thead th{position:static}
 }

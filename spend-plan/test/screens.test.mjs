@@ -266,8 +266,9 @@ try {
   const told = hs.map(h => /pull of (.+) → pull of (.+)$/.exec(h)).filter(Boolean);
   C.chk('S11: each section names its two pulls so they can be told apart', told.length === hs.length && hs.length > 0 && told.every(m => m[1] !== m[2]), J(hs));
   const btns = await p.$$eval('section.chg button[data-act=diff]', l => l.map(e => e.textContent));
-  C.chk('S11: the Show buttons’ words agree with their counts', btns.length > 0 && btns.every(t => /^Show the 1 (row whose amount changed|new row|row gone) /.test(t)
-    || /^Show the (\d+) (rows whose amount changed|new rows|rows gone) /.test(t) && !/^Show the 1 /.test(t)), J(btns));
+  // lines, not rows: each is every row of one FY, PMO, Title, Plan Event and CCaR, added together (second review BP-6)
+  C.chk('S11: the Show buttons’ words agree with their counts', btns.length > 0 && btns.every(t => /^Show the 1 (changed line|new line|line gone|line with a row that could not be read) /.test(t)
+    || /^Show the (\d+) (changed lines|new lines|lines gone|lines with a row that could not be read) /.test(t) && !/^Show the 1 /.test(t)), J(btns));
   C.eq('S2-S12: no script error, no question asked', [errors, dialogs], [[], []]);
   await ctx.close();
 

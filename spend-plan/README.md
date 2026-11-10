@@ -24,10 +24,20 @@ Save it under any name you like. Keep one copy per team or per purpose. Each cop
 Press **Import CCaR pull…** and pick one or more files.
 
 - **What to import.** Each file is a CCaR export laid out like v12's Raw Data tabs. An `.xlsx` or a `.csv` works.
+  - A `.csv` may be UTF-8, Windows-1252 (Excel's plain CSV) or UTF-16 (Excel's *Unicode Text*, a reporting server's
+    *CSV (Unicode)*), and must be separated by commas. One separated by tabs or semicolons is refused, saying so: save it
+    from Excel as *CSV (Comma delimited)* or as an Excel Workbook (`.xlsx`). The tool does not guess a separator, because a
+    file separated by semicolons may write `1.234,56` for `1,234.56`.
+  - A file that is not a workbook or a CSV is named for what it is, with what to do: an old `.xls`, an **encrypted** workbook
+    (a password, or a sensitivity label that encrypts: saving it again keeps the encryption, so import a copy that is not
+    encrypted), a web page or web archive saved as `.xls`, a ZIP file holding a CSV, a workbook named `.csv`.
   - Import one file per appropriation, or one file holding all four. The old v12 workbook itself also imports: its four
     Raw Data tabs are read and its report tabs are skipped.
   - Columns are found by their header names, in any order. The header row may be anywhere in the first 15 rows.
   - Columns the tool does not know are kept, and appear in the raw data sheets of the export.
+  - The export's raw data sheets import again. Their last *Service*, *Lane*, *Status* and *Counted* columns are the tool's
+    own and are worked out again; a pull's own column of one of those names (CCaR's own *Status*, say) comes back with its
+    values.
 - **Where rows go.** Each row is placed in O&M, Full Fund, Initial Spares or OPN by its **Budget** name. If the budget
   does not say, the sheet name decides.
 - **Before an import replaces an appropriation's data, the page may ask.** It asks when:
@@ -43,7 +53,8 @@ Press **Import CCaR pull…** and pick one or more files.
   it would still replace that appropriation's whole pull. **OK** imports, and the message line says what to check.
 - **What an import replaces.** Each appropriation in the import replaces that appropriation's data. The data it replaces
   is kept, so **What changed** can compare the two. Appropriations not in the import keep their data, and the top bar says
-  when each was imported (the day it came into the page, which is not always the day CCaR made the pull).
+  when each was imported (the day it came into the page, which is not always the day CCaR made the pull; to the minute when
+  two came in on one day, so you can tell the older from the newer).
 - **A pull kept from before Data through ended.** Data through is one month for every appropriation. An appropriation whose
   pull was imported before that month ended (one kept from an earlier import) cannot hold all of it: its Obligation % lines
   say *actual through the 2026-10-05 import* instead of *actual through Oct*, on the screen, in the workbook and on the
@@ -53,7 +64,8 @@ Press **Import CCaR pull…** and pick one or more files.
 - **Rows whose appropriation is not identified** stay on screen while any pull from the same import is on screen. Once
   every pull that import brought has been replaced, they go. The message line says which.
 - **The message line** says what was imported, and also any file that was refused, rows that could not be read, and rows
-  whose Date could not be read (they sit in the **No date** column). It shows as a warning when a file was refused, when
+  whose Date could not be read (they sit in the **No date** column). A Month that cannot be read moves nothing: a row is
+  placed by its Date, and the Import report lists the two apart. It shows as a warning when a file was refused, when
   the page asked before importing, or when rows count nowhere (rows that could not be read, or rows whose appropriation
   is not identified).
 - **Data through** is reset to the last full month before the import, and the message line says so. Change it if you
@@ -66,7 +78,11 @@ Press **Import CCaR pull…** and pick one or more files.
   the earlier pulls, the import history and the settings (Authorized, special CCaRs, goals, budget overrides), and works
   every figure out again by its own rules. **Save** to keep it.
 - **When an import is refused, nothing changes.** For example, one appropriation's rows in two different sheets, or the
-  same file given twice. The message names each sheet and how many rows it holds, so a misfiled row is easy to find.
+  same file given twice. The message names each sheet and how many rows it holds, so a misfiled row is easy to find, and
+  names a hidden sheet as hidden (Excel does not show it: right-click a sheet tab and choose Unhide). Where one sheet holds
+  only a few of an appropriation's rows, they are most likely misfiled: move them, or correct their Budget. Where two each
+  hold a whole pull (last month's and this month's export, an old copy kept on a hidden sheet, one pull as `.xlsx` and as
+  `.csv`), leave all but the newest out of the import: moving rows across would count them twice.
 
 ## Reading the views
 
@@ -82,13 +98,28 @@ The view buttons sit under the top bar.
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Not Allocated list.
 - **Not Allocated.** Every item in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
-  that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count.
+  that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count. A
+  filter stays chosen when the switches leave it nothing to show (it says so, and its list comes back when they show it);
+  **Clear filters** takes it off. The PMO picked on **PMOs** stays picked the same way.
 - **Import report.** What the last import read, used, skipped and could not read; then any data on screen from earlier
-  imports, with the rows in it that count nowhere.
+  imports, with the rows in it that count nowhere. After a refused import, the refusal comes first, and the report below it
+  is headed as the last import *taken*, before the one refused.
 - **What changed.** The last pull against the one before it, for each appropriation imported twice: Approved and
   Obligated by FY, CCaRs new and gone, CCaRs that moved PMO, and every changed line, largest first. If the newest import
   of an appropriation was the same as the pull before it, row for row, the view says so, and shows the change the earlier
   pull brought.
+  - A **line** is every row of one FY, PMO, Title, Plan Event and CCaR, added together. A row added to a line, or taken from
+    one that stays, changes that line; it is not a new or gone line. So the counts are lines, not rows of the pull.
+  - A line changes when its amount changes, when its money becomes obligated (Actual Execution) or stops being, or when its
+    money moves to another month. Each changed line says which: for example *obligated 0.00 → 2.34*, or *1.88 moved from
+    Jun-2026 to Sep-2026*.
+  - A row that could not be read counts in no figure, but it is still in its pull: its CCaR and its line are never called
+    new or gone because of it. The view says how many such rows each pull holds, and lists their lines apart.
+  - A CCaR's PMO is the PMO most of its rows carry. Where two PMOs carry as many rows, it is the one that comes first in
+    the PMO order (Air Vehicle, Business Operations, … Training Systems, then any other PMO by name, *(no PMO)* last),
+    never the one whose row the pull happens to list first. So a pull that lists the same rows in another order moves no
+    CCaR. A CCaR with rows under more than one PMO is said to have moved when a row added or taken away changes which
+    PMO carries most of them.
 - **Settings.** See below.
 - **Help.** A short guide inside the page.
 
@@ -112,7 +143,7 @@ The filter bar has a box for each service and one for each lane (Discretionary a
   things cover every service and lane whatever the switches show, and say so: an entered Authorized, which is typed for
   an appropriation and FY as a whole (marked ‡ while a switch is off), and the Summary's notes on rows not counted.
 - When not everything is shown, each view, sheet and picture says what it shows. An export's file name ends in
-  `[filtered]`.
+  `[filtered]`. The Import report and What changed show every row whatever the switches, and say so.
 - The switches belong to this browser, not to the file. Changing them does not mark the file unsaved.
 - *Service not identified* appears only when a budget name matches no service rule. The **Settings** budget table lets you
   set its service. Once no row needs it, its box goes, and it no longer counts as a switch: nothing says *filtered*
@@ -130,7 +161,9 @@ The filter bar has a box for each service and one for each lane (Discretionary a
 
 ## Settings
 
-Settings are saved in the file. Changing one marks the file unsaved.
+Settings are saved in the file. Changing one marks the file unsaved. Changing it back to what the file holds (retyping the
+month Data through already shows, say), with nothing but settings changed since you opened or saved, leaves it saved, and
+the message line says nothing is unsaved.
 
 - **Goals.** The OSD goal curves, one row per kind of money, Prior Yr then Oct to Sep. **Reset to v12's curves** puts back
   v12's values.
@@ -278,8 +311,9 @@ Two smaller differences, from the same rules:
 
 ## CUI
 
-The data is CUI//REL TO US DoW. The marking is at the top and bottom of every screen, on every sheet of the export (header
-and footer, and above and below each Slide Snapshots block), and on every picture. A copy of this file that holds data is CUI. Keep it, and everything exported from it,
+The data is CUI//REL TO US DoW. The marking is at the top and bottom of every screen, of every printed page of a view (Ctrl+P;
+a printed view also says Data through and the import dates, which the top bar says on screen), on every sheet of the export
+(header and footer, and above and below each Slide Snapshots block), and on every picture. A copy of this file that holds data is CUI. Keep it, and everything exported from it,
 where CUI may be kept.
 
 ## For maintainers
