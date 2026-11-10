@@ -109,6 +109,12 @@ Helpers, each on `SP`:
   - Zero is `'-'`.
   - A non-zero amount under $5,000 is `'<0.01'`, or `'(<0.01)'` when negative, so nothing non-zero reads as zero.
 - **`fmtPct(x)`** gives `'12.34%'`, or `'—'` for `null`. **`fmtDelta(x)`** gives `'+20.90%'` or `'-15.03%'`.
+  - A delta that rounds to zero keeps its sign, `'-0.00%'` or `'+0.00%'`, as the workbook's `+0.00%;-0.00%;0.00%` shows it
+    (Excel and LibreOffice choose the section by the unrounded value). Only a delta within `SP.DELTA_ZERO` (`1e-12`,
+    `statusOf`'s tolerance) of zero is `'0.00%'`, and the workbook writes such a delta as 0 (`SP.deltaShown`), so a
+    `'-'` never stands beside *On track* and the screen and the workbook agree (review M5).
+- **`SP.DOWNLOAD_WHERE`** is the one sentence every download's message ends with: where a download lands is the browser's
+  choice, its downloads folder unless it asks.
 - **Dates** are ISO `'YYYY-MM-DD'` strings everywhere inside the tool. The helpers are `ymOf(date)`, `fyOf(date)` (Oct–Dec belong
   to the next FY) and `excelSerialToIso(n, date1904)`.
 
@@ -318,6 +324,7 @@ SP.buildModel(pulls, settings, view) -> {
   naAll:[Item & {ap, fy}],
   excluded:{beforeFirst:{cents, rows, byFy:{}}, unidentified:{cents, rows}, unreadable:{rows}},
   execAfterAsOf:{cents, rows},
+  stale:[{ap, label, day}],   // appropriations shown whose pull was imported before the as-of month ended (review BP-3)
 }
 Block    = {ap, apLabel, fy, n, curve, approved, unprog, obligated, unobligated, authorized, authorizedEntered, oblPct, goal, delta,
             status, execAfterAsOf, cols:[], cum:[], obl:[{v,kind}], goalC:[], statusC:[], pmoRows:[{pmo,label,cols,total}],
@@ -336,7 +343,13 @@ PmoBlock = the Block shape over only that PMO's rows. authorized = approved (§8
   - money before `firstFY`, by FY;
   - rows whose appropriation was not identified;
   - unreadable rows;
-  - executed rows dated after the as-of month.
+  - executed rows dated after the as-of month;
+  - each appropriation in `stale`.
+- **`stale`** holds each appropriation shown whose pull's import day (`importedAt`, in this computer's time) is before the
+  first day of the month after `asOf`. Such a pull, typically kept from an earlier import while another appropriation's
+  import moved `asOf` on, cannot hold the whole as-of month. Its blocks' Obligation % label says where its actuals stop
+  (§8), and the Summary's note names it, its day, and that its goal and status are still read at `asOf`. A pull with no
+  import time is not listed. This marks the products; it changes no figure.
 
 **`SP.diffPulls(prevPulls, curPulls, settings)`** reports what changed for each appropriation present in both pulls:
 
@@ -412,6 +425,7 @@ The tool must reproduce v12 in everything this list does not name. The v12 proof
 ```js
 spec = { creator:'SFCB Spend Plan', sheets:[ {
   name, tabColor:'1F3A68'?, grid:false?, freeze:'A5'?, outlineAbove:true?,   // summary rows above their detail
+  breaks:[row]?,                                     // a printed page starts at each of these rows (1-based, from 2)
   page:{orientation:'landscape', paper:'letter', fitWidth:1, fitHeight:0}?,
   header:'&C&"Calibri,Bold"CUI//REL TO US DoW'?, footer:'…'?,
   cols:[{w:12, hidden:false}],
@@ -431,7 +445,11 @@ Style = {font:{b,i,sz,color:'RRGGBB',name}, fill:'RRGGBB', fmt:'#,##0.00;(#,##0.
   defaulting to `yyyy-mm-dd`.
 - **Element order** follows the schema: `sheetPr` (`tabColor`, `outlinePr summaryBelow="0"` when `outlineAbove`,
   `pageSetUpPr fitToPage`), `sheetViews`, `sheetFormatPr`, `cols`, `sheetData`, `mergeCells`, `printOptions`, `pageMargins`,
-  `pageSetup`, `headerFooter`. Rows carry `outlineLevel` and `hidden`, and `sheetFormatPr outlineLevelRow` is the maximum used.
+  `pageSetup`, `headerFooter`, `rowBreaks`. Rows carry `outlineLevel` and `hidden`, and `sheetFormatPr outlineLevelRow` is the
+  maximum used.
+- **Page breaks** (`breaks`) are written as manual `rowBreaks` (`<brk id="r-1" man="1">`), each row once, in order. Excel and
+  LibreOffice keep them under fit to one page wide when the height is automatic (`fitHeight:0`). A row that is not a whole
+  number from 2, and more than Excel's 1,026 breaks a sheet, are refused.
 - **Sheet names**: at most 31 characters, none of `[]:*?/\`, unique (made unique with ` (2)`), never blank.
 - **The zip** is DEFLATE through `CompressionStream('deflate-raw')` where it exists, and stored otherwise.
 - **`SP.zipFiles([{name, data: Uint8Array}])`** is exposed for the pictures (§10).
@@ -441,7 +459,7 @@ Style = {font:{b,i,sz,color:'RRGGBB',name}, fill:'RRGGBB', fmt:'#,##0.00;(#,##0.
 ## 8. The Excel workbook (`60-export.js`)
 
 **`await SP.excelBytes(model, pulls, settings, meta)`** returns the bytes. **`SP.exportExcel()`** is the UI action: build,
-download, and say what was written.
+download, and say what was written and where (`SP.DOWNLOAD_WHERE`, §2).
 
 - The file name is `SFCB Spend Plan FY{E} - data through {Mon-YYYY} - {YYYY-MM-DD}.xlsx`, plus ` [filtered]` when not
   everything is shown.
@@ -477,7 +495,16 @@ download, and say what was written.
 **Plan cells** of the Obligation % row are italic and grey (`808080`). Plan cells of the OSD Status row keep their status fill
 and ink (white on green and red, black on yellow) and are italic: grey on the red or green fill measured about 1.5 : 1 and
 could not be read. The screens and the pictures draw them the same way. The Obligation % label reads
-`Obligation %  (Approved 3,482.32M; actual through Oct, plan after)`.
+`Obligation %  (Approved 3,482.32M; actual through Oct, plan after)`, and for a block whose appropriation is in
+`model.stale` (§4.6) `Obligation %  (Approved 9.39M; actual through the 2026-10-05 import, plan after)`: one wording
+(`SP.oblLabel`) on the screens, every sheet and the pictures. In the workbook a label wider than its column wraps, in a row
+as tall as its lines: right-aligned in the first column, its overflow has no cell to run into and would be cut.
+
+**The Authorized marks.** A figure is marked with a number format, so the cell is still the number: `†` when Authorized was
+not entered (Approved stands in), `‡` when it was entered while some switch is off. A TOTAL carries each mark its rows
+carry (`SP.authMarks`), `†‡` when both, on the screen as in the workbook (review SEAM-8). Every sheet and every view that
+prints a mark says what it means under the table it marks (`SP.AUTH_MARK_TEXT`), in a row as tall as its words: Excel
+never fits a row's height to a merged cell (review XP2-1, XP2-4).
 
 ### 8.1 Summary
 
@@ -489,9 +516,10 @@ could not be read. The screens and the pictures draw them the same way. The Obli
 - **Table:** headers *Appropriation, FY, Approved ($M), Authorized ($M), Obligated ($M), Unobligated ($M), Obl %, OSD Goal %,
   Delta (pp), Status*.
   - One row per block, the appropriation label merged down its rows.
-  - Authorized carries a `†` when it was not entered.
-  - **`TOTAL - Sustainment`**: the sums, with Obl % = obligated/approved, and no goal, delta or status.
-- **Below:** the legend (three coloured cells with their words and meanings), then the notes.
+  - Authorized carries a `†` when it was not entered, a `‡` when entered while a switch is off (§8, the Authorized marks).
+  - **`TOTAL - Sustainment`**: the sums, with Obl % = obligated/approved, and no goal, delta or status. Its Authorized
+    carries each mark its rows carry.
+- **Below:** the legend (three coloured cells with their words and meanings), a line for each mark used, then the notes.
 - Freeze below the header row.
 
 ### 8.2 Slide Snapshots
@@ -515,6 +543,9 @@ could not be read. The screens and the pictures draw them the same way. The Obli
   9. the bar `Not Allocated Requirements` and the §5 lines (label in A, text in B, merged across, wrapped);
   10. two blank rows.
 
+  Printed, each block after the first starts a page (a manual page break at its first CUI line, item 1), so no block is cut
+  across two pages; one block, fitted to the page's width, is about half a page at most (review XP2-6).
+
   Items 1–8 are the range line 2 names. A range picture carries only its cells, never the sheet's CUI header and footer or its
   line 3, so the marking (§6 item 14) and the filter statement (§4.3) are inside the range, as they are in the dashboard's
   pictures (§10).
@@ -524,7 +555,7 @@ could not be read. The screens and the pictures draw them the same way. The Obli
 - **Title:** `F-35 Sustainment {Ap} - Spend Plan & FY Summary (from the CCaR pull imported {YYYY-MM-DD})`.
 - **Line 2:** the shown text.
 - **Top table:** *FY, Approved, Authorized, Obligated, Unobligated, Obl %, OSD Goal %, Delta (pp), Status*, with a
-  `Total - All FYs` row that has no goal.
+  `Total - All FYs` row that has no goal, then a line for each Authorized mark the table uses (§8).
 - **Then each FY block:**
   1. bar `FY{fy} - Spend Plan by PMO / Title / Plan Event / CCaR  (1/2/3/4 in left margin)`;
   2. the header;
@@ -571,6 +602,10 @@ could not be read. The screens and the pictures draw them the same way. The Obli
   here. The screen's Import report lists them too.
 - **`Settings`**: as-of, execution year, first FY, the switches, the goal table, the Authorized entries, the special CCaRs, and
   the budget table (name, rows, $M, service, lane, override).
+  - The seventh switch, *Service not identified*, reads *Shown* or *Hidden* when it exists (§9). When it does not, it reads
+    *No such rows (no switch)* only when no row in the pulls has no service; otherwise it says there is no switch and counts
+    the rows with no service by why each counts nowhere (before the first FY, could not be read, appropriation not
+    identified), as the raw data sheets' Counted column gives it (review SEAM-9).
 
 ## 9. The screens (`90-ui.js`, `style.css`, `shell.html`)
 
@@ -581,7 +616,8 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 - the title `SFCB Spend Plan` and the execution year;
 - **Data through** (a month picker writing `settings.asOf`, from 1990-01 to 2100-12; a year still being typed is not taken,
   and a box left holding no month in that range goes back to the month in use, saying why) and **First FY** (a number input);
-- each appropriation's pull date;
+- each appropriation's import date (`OPN imported 2026-10-05`): the day the pull came into the page, which is not always the
+  day CCaR made it;
 - buttons **Import CCaR pull…** (a file input, multiple, `.xlsx,.csv`), **Save**, **Save a copy…**, **Export Excel**,
   **Help**;
 - the save state (*Saved* / *Unsaved changes*).
@@ -596,7 +632,7 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 
 **Views** (buttons with `aria-pressed`, not ARIA tabs):
 
-- **Summary** (§8.1 on screen).
+- **Summary** (§8.1 on screen), the TOTAL's Authorized marked as its rows are, and each mark explained under the table (§8).
 - **Slide blocks**: each block as a table, with **Copy picture** and **Save picture**, and **Save all pictures (.zip)** at the
   top.
 - **O&M**, **Full Fund**, **Initial Spares**, **OPN**: the top table, then each block's tree.
@@ -623,6 +659,9 @@ One page, keyboard-usable, with the CUI banner top and bottom (already in `shell
 - **No data yet** shows one panel: what to import and how ("Each file is a CCaR export laid out like v12's Raw Data tabs; import
   one file per appropriation, or one file holding all four. Rows are placed by their Budget name.").
 - Errors are shown in a message line with the reason, never swallowed.
+- A change says what changed: a goal names its curve, its column, the new goal and the old (`OSD goal for O&M, first year,
+  Mar, set to 55% (was 50%).`), as an Authorized names its block. A download (the workbook, a picture, the pictures' zip)
+  says it was downloaded and ends with `SP.DOWNLOAD_WHERE`.
 - **Help** is a short in-page guide: the rules of §4–§5 in plain words, and the differences from v12 (§6).
 
 ## 10. Slide pictures (`70-pictures.js`)

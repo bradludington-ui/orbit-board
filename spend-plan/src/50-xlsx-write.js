@@ -280,7 +280,9 @@ function xw_sheetNames(names, N) {
 // ONE SHEET
 // ---------------------------------------------------------------------------------------------------------------
 const xw_SPEC_KEYS = ['creator', 'sheets'];
-const xw_SHEET_KEYS = ['name', 'tabColor', 'grid', 'freeze', 'outlineAbove', 'page', 'header', 'footer', 'cols', 'rows', 'merges'];
+const xw_SHEET_KEYS = ['name', 'tabColor', 'grid', 'freeze', 'outlineAbove', 'page', 'header', 'footer', 'cols', 'rows', 'merges', 'breaks'];
+// Excel holds at most 1,026 manual page breaks a sheet and calls a file with more damaged
+const xw_MAX_BREAKS = 1026;
 const xw_ROW_KEYS = ['cells', 'ht', 'level', 'hidden'];
 const xw_COL_KEYS = ['w', 'hidden'];
 const xw_PAGE_KEYS = ['orientation', 'paper', 'fitWidth', 'fitHeight'];
@@ -507,6 +509,22 @@ function xw_sheetXml(sh, name, idx, S, SST, N) {
     };
     const x = hf('oddHeader', sh.header) + hf('oddFooter', sh.footer);
     if (x) parts.push('<headerFooter>' + x + '</headerFooter>');
+  }
+  // breaks: the rows (1-based) a printed page starts at. rowBreaks follows headerFooter in the schema. A <brk id="n"> ends
+  // a page AFTER row n, so a page that starts at row r is id r-1. Excel keeps manual breaks under "fit to 1 page wide"
+  // when the height is automatic (fitHeight 0), and so does LibreOffice; without them a sheet fitted to one page wide
+  // broke wherever a page filled, through the middle of a slide block (review XP2-6).
+  if (sh.breaks != null) {
+    if (!Array.isArray(sh.breaks)) throw new Error('writeXlsx: ' + where + ' breaks must be a list of row numbers');
+    const ids = [...new Set(sh.breaks.map(b => {
+      if (!Number.isInteger(b) || b < 2 || b > xw_MAXR) throw new Error('writeXlsx: ' + where + ' break ' + JSON.stringify(b) + ' is not a row from 2 to 1,048,576');
+      return b - 1;
+    }))].sort((a, b) => a - b);
+    if (ids.length > xw_MAX_BREAKS) throw new Error('writeXlsx: ' + where + ' has ' + ids.length + ' page breaks; Excel holds ' + SP.fmtInt(xw_MAX_BREAKS));
+    if (ids.length) {
+      parts.push('<rowBreaks count="' + ids.length + '" manualBreakCount="' + ids.length + '">'
+        + ids.map(id => '<brk id="' + id + '" max="16383" man="1"/>').join('') + '</rowBreaks>');
+    }
   }
   parts.push('</worksheet>');
   // the part as a list of byte chunks, in order: the zip CRCs and compresses them one after another

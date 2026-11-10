@@ -168,11 +168,21 @@ SP.fmtPct = function fmtPct(x) {
   const h = ut_pctHundredths(x);
   return (x < 0 && h ? '-' : '') + ut_pctText(h);
 };
-// '+20.90%' / '-15.03%'; a delta that rounds to zero is '0.00%', as the workbook's +0.00%;-0.00%;0.00% shows it
+// '+20.90%' / '-15.03%'. A delta that rounds to zero keeps its sign, '-0.00%' or '+0.00%', because that is how the
+// workbook's +0.00%;-0.00%;0.00% shows it: Excel and LibreOffice choose the section by the UNROUNDED value. This printed
+// '0.00%' for both, so a block a few cents short of its goal read 50.00% | 50.00% | 0.00% | Within 10 on the screen, a
+// status the figures beside it did not explain, while the workbook showed -0.00% (review M5). Only a delta within
+// SP.DELTA_ZERO of zero is '0.00%': that is statusOf's own tolerance (a ratio that is the goal exactly, reached through
+// a division, is on the goal), and the workbook writes such a delta as 0 (SP.deltaShown), so the two still agree.
+SP.DELTA_ZERO = 1e-12;
+SP.deltaShown = function deltaShown(x) {
+  if (typeof x !== 'number' || !isFinite(x)) return null;
+  return Math.abs(x) <= SP.DELTA_ZERO ? 0 : x;
+};
 SP.fmtDelta = function fmtDelta(x) {
-  if (typeof x !== 'number' || !isFinite(x)) return '—';
-  const h = ut_pctHundredths(x);
-  return (h === 0 ? '' : x < 0 ? '-' : '+') + ut_pctText(h);
+  const d = SP.deltaShown(x);
+  if (d === null) return '—';
+  return (d === 0 ? '' : d < 0 ? '-' : '+') + ut_pctText(ut_pctHundredths(d));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -217,6 +227,10 @@ SP.excelSerialToIso = function excelSerialToIso(n, date1904) {
 // DOWNLOAD (for the UI): a Blob URL clicked through a temporary anchor. The URL is revoked a minute later, not at once:
 // revoked in the same turn as the click, some browsers have not yet started reading it and save an empty file.
 // ---------------------------------------------------------------------------------------------------------------
+// Where a download lands is the browser's choice, so every message that reports one says it the same way (review BP-9:
+// the workbook's message said nothing of where, the pictures' named the downloads folder, which is wrong where the
+// browser asks where to save)
+SP.DOWNLOAD_WHERE = 'your browser puts it in its downloads folder, or asks where to save it.';
 SP.download = function download(name, bytesOrBlob, mime) {
   const isBlob = bytesOrBlob && typeof bytesOrBlob === 'object' && typeof bytesOrBlob.arrayBuffer === 'function'
     && typeof bytesOrBlob.size === 'number';

@@ -58,7 +58,10 @@ try {
   for (const [c, s] of FM) C.eq('fmtM(' + c + ')', SP.fmtM(c), s);
   const FP = [[0.1234, '12.34%'], [0.12345, '12.35%'], [1, '100.00%'], [0, '0.00%'], [-0.5, '-50.00%'], [null, '—']];
   for (const [x, s] of FP) C.eq('fmtPct(' + x + ')', SP.fmtPct(x), s);
-  const FD = [[0.209, '+20.90%'], [-0.1503, '-15.03%'], [0, '0.00%'], [0.00001, '0.00%'], [-0.00001, '0.00%'], [null, '—']];
+  // a delta that rounds to zero keeps its sign, as the workbook's +0.00%;-0.00%;0.00% shows it (Excel and LibreOffice pick
+  // the section by the unrounded value; review M5); only a delta within statusOf's 1e-12 of zero is '0.00%'
+  const FD = [[0.209, '+20.90%'], [-0.1503, '-15.03%'], [0, '0.00%'], [0.00001, '+0.00%'], [-0.00001, '-0.00%'], [-2.4876e-8, '-0.00%'],
+    [1e-13, '0.00%'], [-1e-12, '0.00%'], [-1.01e-12, '-0.00%'], [null, '—']];
   for (const [x, s] of FD) C.eq('fmtDelta(' + x + ')', SP.fmtDelta(x), s);
   C.eq('fmtUsd', [SP.fmtUsd(123456789), SP.fmtUsd(-5), SP.fmtUsd(0)], ['$1,234,567.89', '-$0.05', '$0.00']);
   C.eq('ymOf', [SP.ymOf('2026-03-31'), SP.ymOf(''), SP.ymOf(null)], ['2026-03', '', '']);

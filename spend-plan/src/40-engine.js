@@ -45,8 +45,10 @@ SP.statusWord = function statusWord(status) { return eng_own(SP.STATUS_WORDS, st
 // appropriation and FY as a whole, so no switch can reach it; printed unmarked beside an Approved the switches have cut,
 // it read on the real pull as a gap of over a billion dollars that was only the switch (review R3). The mark sits beside the figure,
 // on every product, because a note three screens down is not where a reader looks.
+// A TOTAL carries each mark its rows carry (SP.authMarks), so the words for † read true beside a total too: a total
+// adds in Approved for every row marked †.
 SP.AUTH_MARK_TEXT = Object.freeze({
-  '†': 'Authorized was not entered for this row; Approved is shown in its place.',
+  '†': 'Authorized was not entered; Approved is shown in its place (on a total, for the rows marked †).',
   '‡': 'Authorized as entered, for the appropriation and FY as a whole: it covers every service and lane, while the switches show only some.',
 });
 // '†' not entered (Approved stands in); '‡' entered while some switch is off; '' entered with everything shown
@@ -69,9 +71,14 @@ SP.authMarks = function authMarks(rows, model) {
 SP.fmtMText = function fmtMText(cents) {
   return typeof cents === 'number' && isFinite(cents) && Math.round(cents) === 0 ? '0.00' : SP.fmtM(cents);
 };
+// A block whose pull was imported before the data-through month ended cannot hold that whole month: "actual through
+// Oct" over a pull imported on 5 October put a month of actuals on a slide that had five days of them, and read its
+// goal and status at the end of October (review BP-3). Its label names where its actuals stop instead (model.stale).
 SP.oblLabel = function oblLabel(block, model) {
   const c = model && Array.isArray(model.cols) ? model.cols[model.asOfIndex] : null;
-  return 'Obligation %  (Approved ' + SP.fmtMText(block && block.approved) + 'M; actual through ' + (c ? c.label : '') + ', plan after)';
+  const st = block && model && Array.isArray(model.stale) ? model.stale.find(s => s.ap === block.ap) : null;
+  return 'Obligation %  (Approved ' + SP.fmtMText(block && block.approved) + 'M; actual through '
+    + (st ? 'the ' + st.day + ' import' : c ? c.label : '') + ', plan after)';
 };
 
 // §4.5. The 1e-12 lets a ratio that is the goal exactly, but arrived at through a division, count as on the goal.
@@ -433,6 +440,17 @@ function eng_tot(list, auth) {
   t.oblPct = t.approved !== 0 ? t.obligated / t.approved : null;
   return t;
 }
+// an import time -> its day in this computer's time ('YYYY-MM-DD'), as the sheet titles and the top bar print it; a
+// plain 'YYYY-MM-DD' is that day as written (read as a timestamp it would be UTC midnight, the day before west of
+// Greenwich); anything unreadable is ''
+function eng_localDay(iso) {
+  if (typeof iso !== 'string' || !iso) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const t = Date.parse(iso);
+  if (isNaN(t)) return '';
+  const d = new Date(t);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 function eng_fyName(b) { return ENG_AP_LABEL[b.ap] + ' FY' + b.fy; }
 function eng_dollars(c) { return '$' + SP.fmtM(c) + 'M'; }
 function eng_rowsWord(n) { return SP.fmtInt(n) + (n === 1 ? ' row' : ' rows'); }
@@ -548,11 +566,20 @@ SP.buildModel = function buildModel(pulls, settings, view) {
     execAfter.cents += b.execAfterAsOf; execAfter.rows += b.execAfterAsOfRows;
     execNoDate.cents += b.execNoDate; execNoDate.rows += b.execNoDateRows;
   }
+  // §4.6 stale: each appropriation shown whose pull was imported before the data-through month ended (its import day,
+  // in this computer's time, before the first of the next month). An import made after the month ended can hold all of
+  // it; one made during it cannot, and was kept from an earlier import while another appropriation moved Data through
+  // on (review BP-3). A pull with no import time says nothing, rather than a guess.
+  const stale = [];
+  for (const a of aps) {
+    const day = eng_localDay(pulls[a.ap] && pulls[a.ap].importedAt);
+    if (day && day < cx.asOfNext) stale.push({ ap: a.ap, label: a.label, day });
+  }
   const model = {
     asOf: S.asOf, asOfLabel: SP.asOfLabel(S.asOf), E: cx.E, firstFY: S.firstFY, window: { start: cx.wstart, end: cx.wend },
     cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown: eng_shown(V, present), special: S.special,
     present: { services: ENG_ALL_SVC.filter(s => present.svc.has(s)), lanes: ENG_LANES.filter(l => present.lane.has(l)) },
-    blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp,
+    blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp, stale,
     summary: { rows: blocks, total: eng_tot(blocks), notes: [] },
   };
   model.summary.notes = eng_notes(model);
@@ -577,6 +604,19 @@ function eng_notes(M) {
     if (authAll.length) ex.push('an entered Authorized (marked ‡)');
     if (bf.rows || ui.rows || ur) ex.push('the notes below on rows not counted');
     notes.push(M.shown.text + '. Every figure counts only these' + (ex.length ? ', except ' + ex.join(' and ') + ', which cover every service and lane' : '') + '.');
+  }
+  // a pull kept from an import made before the data-through month ended (review BP-3): Line 2's "Data through" is one
+  // month for every row below it, so the rows that cannot reach it are named here, on the Summary, as well as in their
+  // own blocks' Obligation % lines
+  const stl = Array.isArray(M.stale) ? M.stale : [];
+  if (stl.length) {
+    const one = stl.length === 1, s0 = stl[0];
+    const names = stl.map(s => s.label), list = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
+    notes.push('The ' + list + (one ? ' pull was imported ' + s0.day + ',' : ' pulls were imported') + ' before the end of ' + M.asOfLabel + ', the data-through month'
+      + (one ? '' : ' (' + stl.map(s => s.label + ' ' + s.day).join('; ') + ')') + ': ' + (one ? 'its actual obligations stop at that import' : 'their actual obligations stop at those imports') + ', while '
+      + (one ? 'its' : 'their') + ' goals and statuses are read at ' + M.asOfLabel + '. '
+      + (one ? 'Its Obligation % lines say “actual through the ' + s0.day + ' import”' : 'Their Obligation % lines name the import their actuals stop at')
+      + '. Import a newer pull to bring ' + (one ? 'it' : 'them') + ' up to date.');
   }
   const up = M.blocks.filter(b => b.unprog !== 0);
   if (up.length) notes.push('Unprogrammed money is counted in Approved: ' + up.map(b => eng_fyName(b) + ' ' + eng_dollars(b.unprog)).join('; ') + '.');

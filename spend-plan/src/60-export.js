@@ -100,6 +100,8 @@ const EXS = (() => {
   // the totals band
   const bf = f({ b: true, sz: 10, color: EX_NAVY }), center = f({ h: 'center', v: 'center' });
   X.bandLab = ex_s(bf, null, null, f({ h: 'right', v: 'center', indent: 1 }), EX_THIN);
+  // the Obligation % label when it needs two lines: right-aligned text past the first column has nowhere to run, so it is cut
+  X.bandLabW = ex_s(bf, null, null, f({ h: 'right', v: 'center', indent: 1, wrap: true }), EX_THIN);
   X.bandM = [ex_s(bf, null, EX_FM, right, EX_THIN), ex_s(bf, EX_CLOSED, EX_FM, right, EX_THIN)];
   X.bandP = [ex_s(bf, null, EX_FP, center, EX_THIN), ex_s(bf, EX_CLOSED, EX_FP, center, EX_THIN)];
   // plan cells of Obligation % and Status are italic and grey: a planned percentage is not an obligation
@@ -327,14 +329,18 @@ function ex_band(K, M, b) {
   ex_moneyRow(K, 'Cumulative Totals', L, b.cum, b.approved, EXS.bandM, EXS.bandM[0]);
   const pct = ex_num(b.oblPct), goal = ex_num(b.goal);
   // the label in the words the screen and the picture use (SP.oblLabel, review R7)
-  const obl = [{ v: SP.oblLabel(b, M), s: L },
+  // A label longer than its column wraps in a row as tall as its lines: right-aligned in the first column, the overflow
+  // has no cell to run into and Excel cuts it. "actual through the 2026-10-05 import" (review BP-3) beside an Approved over
+  // $10,000M is wider than the 70-wide column.
+  const lab = SP.oblLabel(b, M), labLines = ex_lines(lab, K.widths[0], 10, 1);
+  const obl = [{ v: lab, s: labLines > 1 ? EXS.bandLabW : L },
     ex_cell(pct, EXS.bandP[0])];
   for (const i of K.dc) {
     const o = b.obl[i] || {};
     obl.push(ex_cell(ex_num(o.v), o.kind === 'plan' ? EXS.bandPlan : EXS.bandP[K.closed[i] ? 1 : 0]));
   }
   obl.push(ex_cell(pct, EXS.bandP[0]));
-  ex_push(K, obl);
+  ex_push(K, obl, { ht: ex_ht(labLines, 10) });
   const g = [{ v: 'OSD Goal %', s: L }, ex_cell(goal, EXS.bandP[0])];
   for (const i of K.dc) g.push(ex_cell(ex_num(b.goalC[i]), EXS.bandP[K.closed[i] ? 1 : 0]));
   g.push(ex_cell(goal, EXS.bandP[0]));
@@ -381,7 +387,9 @@ function ex_figCells(r, mark) {
   const st = r.status && EXS.tStatus[r.status] ? r.status : null;
   return [ex_mc(r.approved, EXS.tM), ex_mc(r.authorized, EXS.tMMark[mark] || EXS.tM),
     ex_mc(r.obligated, EXS.tM), ex_mc(r.unobligated, EXS.tM), ex_cell(ex_num(r.oblPct), EXS.tPct),
-    ex_cell(ex_num(r.goal), EXS.tGoal), ex_cell(ex_num(r.delta), EXS.tDelta),
+    // a delta within SP.DELTA_ZERO of zero is written 0, as the screen prints it '0.00%': the format chooses its section by
+    // the sign, so a -1e-13 left by a division showed '-0.00%' beside On track (review M5)
+    ex_cell(ex_num(r.goal), EXS.tGoal), ex_cell(SP.deltaShown(r.delta), EXS.tDelta),
     st ? { v: ex_statusWord(st), s: EXS.tStatus[st] } : { s: EXS.tBlank }];
 }
 // a TOTAL row: the sums and their Obl %; no goal, delta or status (§8.1)
@@ -404,11 +412,16 @@ function ex_apFyRows(K, rows) {
 }
 // a TOTAL's mark: each mark its rows carry
 function ex_totMark(am) { return (am.dag ? '†' : '') + (am.ddag ? '‡' : ''); }
-// a line per mark used, saying what it means (SP.AUTH_MARK_TEXT, the words the screen uses)
+// a line per mark used, saying what it means (SP.AUTH_MARK_TEXT, the words the screen uses). Each row is as tall as its
+// words need across B:D: Excel never fits a row's height to a merged cell, so with no height the row stayed one line and
+// showed "Authorized as entered, for the appropriation and", hiding the half of ‡ that says why (review XP2-1).
+// LibreOffice sizes such a row itself, which is why its PDF never showed it.
 function ex_markLines(K, am) {
   for (const m of ['†', '‡']) {
     if (!(m === '†' ? am.dag : am.ddag)) continue;
-    const r = ex_push(K, [{ v: m, s: EXS.lineB }, { v: SP.AUTH_MARK_TEXT[m], s: EXS.text }, { s: EXS.text }, { s: EXS.text }]);
+    const text = SP.AUTH_MARK_TEXT[m];
+    const r = ex_push(K, [{ v: m, s: EXS.lineB }, { v: text, s: EXS.text }, { s: EXS.text }, { s: EXS.text }],
+      { ht: ex_ht(ex_lines(text, ex_widthOf(K, 1, 3), 10), 10) });
     K.sh.merges.push(ex_rng(r, 1, r, 3));
   }
 }
@@ -459,12 +472,18 @@ function ex_slides(M) {
   ex_subLine(K, EX_SLIDES_HOW);
   ex_shownLine(K, M);
   ex_blank(K);
+  // Printed, each block after the first starts a page. The sheet fits one page wide and pages broke wherever one filled,
+  // so a block printed for a meeting came out in two halves, its PMO rows on one page and Obligation % and OSD Status on
+  // the next, under no month headings (review XP2-6). A block is about 3.4 in tall at full size and half that fitted, so
+  // one always fits a page; its Not Allocated lines may run on, and the next block still starts a page of its own.
+  const breaks = [];
   for (const b of M.blocks) {
     // The marking and the filter go INSIDE the range line 2 tells people to copy. A range picture takes the cells and
     // nothing else: the sheet's CUI header and footer, and its line 3, never reach the slide, so a block copied as v12
     // laid it out was an unmarked CUI picture, and on a filtered workbook one that did not say services were hidden
     // (review XP-2). The dashboard's own pictures carry both, top and bottom; so does this range.
-    ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+    const top = ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+    if (b !== M.blocks[0]) breaks.push(top);
     if (!M.shown.all) ex_shownLine(K, M);
     ex_bar(K, b.apLabel + ' FY' + b.fy + ' - Spend Plan (PMO Summary, slide-ready)', EXS.barSlide, 25.5);
     ex_blockHead(K, M, 'PMO');
@@ -478,6 +497,7 @@ function ex_slides(M) {
     ex_na(K, M, b.na);
     ex_blank(K); ex_blank(K);
   }
+  if (breaks.length) K.sh.breaks = breaks;
   return K.sh;
 }
 
@@ -495,8 +515,10 @@ function ex_apSheet(M, a, pulls) {
   const am = SP.authMarks(a.blocks, M);
   const tr = ex_push(K, [{ v: 'Total - All FYs', s: EXS.totLabC }].concat(ex_totCells(a.total, ex_totMark(am))));
   K.sh.freeze = 'A' + (tr + 1);
-  // ‡ is said under the table it marks: this sheet has no Summary notes beside it (review R3)
-  if (am.ddag) ex_markLines(K, { ddag: true });
+  // each mark is said under the table it marks: this sheet has no Summary notes beside it (review R3). † too: on the
+  // normal workbook, nothing entered, every Authorized here carried a † that only the Summary explained, so this sheet
+  // printed or sent on its own carried a mark with no key (review XP2-4)
+  ex_markLines(K, am);
   ex_blank(K);
   for (const b of a.blocks) {
     ex_bar(K, 'FY' + b.fy + ' - Spend Plan by PMO / Title / Plan Event / CCaR  (1/2/3/4 in left margin)', EXS.barAp, 21.75);
@@ -664,6 +686,33 @@ function ex_reportSheet(M, pulls, meta) {
   return K.sh;
 }
 
+// The seventh switch's line when it has no box (§9): no row that would count has no service. That is not "no such
+// rows": rows with no service can sit before the first FY, or fail to read, and the raw data sheets list them with
+// Service "Service not identified". With First FY 2027 the Settings sheet said "No such rows" beside a raw sheet naming
+// two (review SEAM-9). They are counted here by the reason the raw sheets' Counted column gives (ex_counted), with every
+// switch on, because no switch can reach them.
+function ex_noSwitchLine(M, pulls, settings) {
+  const allSvc = new Set(SP.SERVICES.concat([SP.SVC_UNKNOWN])), allLane = new Set(['disc', 'mand']);
+  let before = 0, unread = 0, unid = 0;
+  const each = (rows, f) => { for (const row of Array.isArray(rows) ? rows : []) if (row && Array.isArray(row.c)) f(SP.deriveRow(row, settings)); };
+  for (const a of SP.APS) {
+    each(pulls && pulls[a.id] && pulls[a.id].rows, d => {
+      if (d.svc !== SP.SVC_UNKNOWN) return;
+      const why = ex_counted(d, M, allSvc, allLane);
+      if (/^No: could not be read/.test(why)) unread++; else if (why !== 'Yes') before++;
+    });
+  }
+  each(pulls && pulls.unidentified && pulls.unidentified.rows, d => { if (d.svc === SP.SVC_UNKNOWN) unid++; });
+  const n = before + unread + unid;
+  if (!n) return 'No such rows (no switch)';
+  const rw = k => SP.fmtInt(k) + (k === 1 ? ' row' : ' rows');
+  const parts = [];
+  if (before) parts.push(rw(before) + ' before the first FY shown (FY' + M.firstFY + ')');
+  if (unread) parts.push(rw(unread) + ' that could not be read');
+  if (unid) parts.push(rw(unid) + ' whose appropriation was not identified (see the Import Report)');
+  return 'No switch: no row that counts has no service. ' + (n === 1 ? 'The 1 row' : 'The ' + SP.fmtInt(n) + ' rows') + ' with no service '
+    + (n === 1 ? 'counts' : 'count') + ' nowhere: ' + parts.join('; ') + '.';
+}
 function ex_settingsSheet(M, pulls, settings) {
   const s = settings && typeof settings === 'object' ? settings : {};
   const widths = [60].concat(new Array(13).fill(11.027));
@@ -682,7 +731,7 @@ function ex_settingsSheet(M, pulls, settings) {
   // line says so rather than "Hidden" for a switch this plan has no box for (review S2)
   const hasUnknown = Array.isArray(M.present && M.present.services) && M.present.services.includes(SP.SVC_UNKNOWN);
   for (const sv of SP.SERVICES.concat([SP.SVC_UNKNOWN])) {
-    kv(sv, sv === SP.SVC_UNKNOWN && !hasUnknown ? 'No such rows (no switch)' : shownS.has(sv) ? 'Shown' : 'Hidden');
+    kv(sv, sv === SP.SVC_UNKNOWN && !hasUnknown ? ex_noSwitchLine(M, pulls, settings) : shownS.has(sv) ? 'Shown' : 'Hidden');
   }
   for (const l of ['disc', 'mand']) kv(SP.LANE_WORDS[l] + ' lane', shownL.has(l) ? 'Shown' : 'Hidden');
   kv('In words', M.shown.text);
@@ -775,7 +824,10 @@ SP.exportExcel = async function exportExcel() {
     const name = SP.excelFileName(model, today);
     SP.download(name, bytes, EX_MIME);
     const N = SP.lastXlsxNotes || { sheets: 0, messages: [] };
-    let msg = 'Wrote “' + name + '”: ' + N.sheets + ' sheets, ' + SP.fmtInt(Math.round(bytes.length / 1024)) + ' KB.';
+    // where it went, as the pictures' messages say it: the browser's download, so its downloads folder unless it asks.
+    // "Wrote …" alone left the place unsaid beside "Save all pictures", which named it (review BP-9).
+    let msg = 'Wrote “' + name + '” (' + N.sheets + ' sheets, ' + SP.fmtInt(Math.round(bytes.length / 1024)) + ' KB) as a download: '
+      + SP.DOWNLOAD_WHERE;
     if (!model.shown.all) msg += ' It is filtered: ' + model.shown.text + '.';
     if (N.messages && N.messages.length) msg += ' ' + N.messages.join(' ');
     return { ok: true, message: msg, name, sheets: N.sheets, size: bytes.length };

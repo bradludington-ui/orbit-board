@@ -156,7 +156,7 @@ function ui_st(st, plan, cls) {
 function ui_auth(cents, mark) {
   const m = String(mark || '');
   return '<td class="n" data-c="' + cents + '">' + ui_e(SP.fmtM(cents))
-    + (m.includes('†') ? '<span class="dag" title="Not entered: Approved is shown in its place">†</span>' : '')
+    + (m.includes('†') ? '<span class="dag" title="' + ui_e(SP.AUTH_MARK_TEXT['†']) + '">†</span>' : '')
     + (m.includes('‡') ? '<span class="ddag" title="' + ui_e(SP.AUTH_MARK_TEXT['‡']) + '">‡</span>' : '') + '</td>';
 }
 function ui_shown(M, extra) {
@@ -281,12 +281,18 @@ function ui_topTable(rows, opts) {
     i = j + 1;
   }
   const t = opts.total;
-  // a TOTAL that adds in an Authorized the switches do not reach is marked ‡ like the row it came from (review R3)
-  const ddag = !opts.authAlways && SP.authMarks(rows, opts.model).ddag;
+  // A TOTAL carries each mark its rows carry (SP.authMarks), as the workbook's TOTAL does: it adds in an Authorized the
+  // switches do not reach (‡, review R3), and Approved for every row where none was entered (†). It carried only ‡, so
+  // with nothing entered thirteen rows read 161.64† above a bare TOTAL that the workbook printed 2,214.43†: one figure,
+  // two claims about what it is (review SEAM-8).
+  const am = opts.authAlways ? { dag: false, ddag: false } : SP.authMarks(rows, opts.model);
   body.push('<tr class="total" data-bk="total"><th scope="row"' + (withAp ? ' colspan="2"' : '') + '>' + ui_e(opts.totalLabel) + '</th>'
-    + ui_m(t.approved) + ui_auth(t.authorized, ddag ? '‡' : '') + ui_m(t.obligated) + ui_m(t.unobligated) + ui_p(t.oblPct) + '<td></td><td></td><td></td></tr>');
+    + ui_m(t.approved) + ui_auth(t.authorized, (am.dag ? '†' : '') + (am.ddag ? '‡' : '')) + ui_m(t.obligated) + ui_m(t.unobligated) + ui_p(t.oblPct) + '<td></td><td></td><td></td></tr>');
+  // each mark used is said under the table, as each workbook sheet says it (review M4): an appropriation view's † had
+  // only a tooltip to explain it
   return '<div class="tw"><table class="grid top"><thead><tr class="hd">' + head + '</tr></thead><tbody>' + body.join('') + '</tbody></table></div>'
-    + (ddag ? '<p class="note">‡ ' + ui_e(SP.AUTH_MARK_TEXT['‡']) + '</p>' : '');
+    + (am.dag ? '<p class="note mark-note" data-mark="dag">† ' + ui_e(SP.AUTH_MARK_TEXT['†']) + '</p>' : '')
+    + (am.ddag ? '<p class="note mark-note" data-mark="ddag">‡ ' + ui_e(SP.AUTH_MARK_TEXT['‡']) + '</p>' : '');
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -675,7 +681,9 @@ function ui_vHelp() {
       '<strong>Columns:</strong> Prior Yr (dated before the execution year), Oct to Sep of the execution year, the next-year column, and No date. Total is the sum of all of them.',
       '<strong>Approved</strong> is every counted row. <strong>Obligated</strong> is the rows CCaR marks “Actual Execution”, whatever their date. <strong>Unobligated</strong> = Approved − Obligated.',
       '<strong>Authorized</strong> is what you enter in Settings; where nothing is entered, Approved is shown, marked †. An entered Authorized is for the appropriation and FY '
-      + 'as a whole, so while a switch is off it is marked ‡: it still counts every service and lane.',
+      + 'as a whole, so while a switch is off it is marked ‡: it still counts every service and lane. A total carries each mark its rows carry.',
+      '<strong>Data through</strong> is one month for every appropriation. An appropriation whose pull was imported before that month ended (one kept from an '
+      + 'earlier import) cannot hold all of it: its Obligation % lines say “actual through the … import” and the Summary’s notes name it.',
       '<strong>Obl %</strong> = Obligated ÷ Approved. The <strong>OSD goal</strong> comes from the curve for the money’s year of availability, at the data-through month.',
       '<strong>Status</strong>: On track (green) at or above the goal; Within 10 (yellow) within 10 points of it; Behind (red) more than 10 points behind.',
       'In the monthly rows, months up to Data through are actual (executed rows dated by then); later months are the plan, shown in italic.'])
@@ -794,7 +802,9 @@ function ui_drawTop(M) {
   E.save.className = 'savest ' + (st === 'saved' ? 'clean' : 'dirty');
   E.help.setAttribute('aria-pressed', ui.view === 'help' ? 'true' : 'false');
   const P = ui_pulls();
-  const bits = SP.APS.filter(a => P[a.id]).map(a => ui_e(a.label) + ' pulled <span class="d">' + ui_e(ui_day(P[a.id].importedAt) || 'date unknown') + '</span>');
+  // "imported", never "pulled": the date is when the pull came into this page, which is not when CCaR made it (a pull
+  // taken on Friday and imported on Monday read "pulled Monday", review BP-3)
+  const bits = SP.APS.filter(a => P[a.id]).map(a => ui_e(a.label) + ' imported <span class="d">' + ui_e(ui_day(P[a.id].importedAt) || 'date unknown') + '</span>');
   E.pulls.innerHTML = bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.';
 }
 function ui_drawNav(has) {
@@ -1032,8 +1042,12 @@ function ui_goalChanged(el) {
     ui_say('Goal unchanged: ' + (val === null ? 'that cell is blank (no goal)' : 'it is already ' + ui_pctText(val) + '%') + '.', 'info');
     return;
   }
+  // named as the Authorized message names its block: which curve and column, what it was, what it is (review BP-9)
+  const was = goals[k][i];
   goals[k][i] = val;
-  ui_setSettings({ goals }, 'Goal changed. The statuses are worked out again.', true);
+  const words = (UI_CURVES.find(c => c[0] === k) || [k, k])[1], col = i ? SP.MONTHS[i - 1] : 'Prior Yr';
+  const pc = x => (x === null || x === undefined ? 'blank (no goal)' : ui_pctText(x) + '%');
+  ui_setSettings({ goals }, 'OSD goal for ' + words + ', ' + col + ', set to ' + pc(val) + ' (was ' + pc(was) + '). The statuses are worked out again.', true);
 }
 function ui_authChanged(el) {
   const key = ui.reg.auth[Number(el.getAttribute('data-i'))];
@@ -1096,7 +1110,7 @@ async function ui_picture(kind, i) {
     await ui_busy('saving the picture', async () => {
       const blob = await SP.blockPng(b, M);
       const name = SP.download(ui_pictureName(b), blob, 'image/png');
-      ui_say('Saved “' + name + '” to your downloads.', 'ok');
+      ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
     });
   }
 }
@@ -1109,7 +1123,7 @@ async function ui_zip() {
     const blob = await SP.allPicturesZip(M);
     const name = SP.download('SFCB Spend Plan pictures FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + ui_today()
       + (M.shown.all ? '' : ' [filtered]') + '.zip', blob, 'application/zip');
-    ui_say('Saved “' + name + '” (' + M.blocks.length + ' pictures) to your downloads.', 'ok');
+    ui_say('Saved “' + name + '” (' + M.blocks.length + ' pictures) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
 

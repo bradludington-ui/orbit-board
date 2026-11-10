@@ -175,7 +175,8 @@ await P.waitForSelector('[data-act=view][data-v=summary]', { timeout: 20000 });
 await P.waitForFunction(() => !document.querySelector('#uiMsg').textContent.startsWith('Reading'));
 C.chk('import: the message line says what was imported', /\S/.test(await text(P, '#uiMsg')) && !(await P.$('.msg-err')), await text(P, '#uiMsg'));
 C.chk('import: Unsaved changes', (await text(P, '#uiSave')) === 'Unsaved changes', await text(P, '#uiSave'));
-C.chk('import: the four pull dates are shown', /O&M pulled .*Full Fund pulled .*Initial Spares pulled .*OPN pulled/.test(await text(P, '#uiPulls')), await text(P, '#uiPulls'));
+// "imported": the date is the import's, not CCaR's pull (review BP-3)
+C.chk('import: the four import dates are shown', /O&M imported .*Full Fund imported .*Initial Spares imported .*OPN imported/.test(await text(P, '#uiPulls')), await text(P, '#uiPulls'));
 // the as-of month an import picks is the last full month before today; the oracle's is 2026-10, so it is set to that
 await P.fill('#uiAsOf', '2026-10');
 await P.waitForFunction(() => document.querySelector('#uiEy').textContent === 'FY2027');
@@ -199,7 +200,10 @@ await view(P, 'summary');
 await summaryMatches(O.all, 'summary (all)');
 C.chk('summary title: FY27Q1', /Top-Line Snapshot \(FY27Q1\)/.test(await text(P, 'h2.title')), await text(P, 'h2.title'));
 C.chk('summary: the legend gives each colour its word', /On track[\s\S]*Within 10[\s\S]*Behind/.test(await text(P, 'table.legend')));
-C.chk('summary: † marks Authorized not entered', (await P.$$('tr[data-bk] .dag')).length === Object.keys(O.all.blocks).length);
+C.chk('summary: † marks Authorized not entered, on every block row', (await P.$$('tr[data-bk]:not([data-bk=total]) .dag')).length === Object.keys(O.all.blocks).length);
+// the TOTAL adds in Approved for each of them, so it carries † too, as the workbook's TOTAL does (review SEAM-8)
+C.chk('summary: the TOTAL that adds them in carries †, and the mark is explained under the table',
+  (await P.$$('tr[data-bk=total] .dag')).length === 1 && /† Authorized was not entered/.test(await text(P, '#uiMain')));
 
 // ------------------------------------------------------------------------------ every view, both window sizes
 for (const v of VIEWS) {

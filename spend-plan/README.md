@@ -43,7 +43,12 @@ Press **Import CCaR pull…** and pick one or more files.
   it would still replace that appropriation's whole pull. **OK** imports, and the message line says what to check.
 - **What an import replaces.** Each appropriation in the import replaces that appropriation's data. The data it replaces
   is kept, so **What changed** can compare the two. Appropriations not in the import keep their data, and the top bar says
-  when each was imported. The same pull imported again changes nothing What changed compares: What changed still shows the
+  when each was imported (the day it came into the page, which is not always the day CCaR made the pull).
+- **A pull kept from before Data through ended.** Data through is one month for every appropriation. An appropriation whose
+  pull was imported before that month ended (one kept from an earlier import) cannot hold all of it: its Obligation % lines
+  say *actual through the 2026-10-05 import* instead of *actual through Oct*, on the screen, in the workbook and on the
+  pictures, and the Summary's notes name it. Its goal and status are still read at Data through. Import a newer pull of it
+  to bring it up to date. The same pull imported again changes nothing What changed compares: What changed still shows the
   change the earlier pull brought, and says the newest import changed nothing.
 - **Rows whose appropriation is not identified** stay on screen while any pull from the same import is on screen. Once
   every pull that import brought has been replaced, they go. The message line says which.
@@ -68,7 +73,8 @@ Press **Import CCaR pull…** and pick one or more files.
 The view buttons sit under the top bar.
 
 - **Summary.** One row per appropriation and FY. Approved, Authorized, Obligated, Unobligated, Obl %, OSD Goal %, Delta and
-  Status. Then the TOTAL, the legend and the notes. The notes name anything left out of the figures.
+  Status. Then the TOTAL, the legend and the notes. The notes name anything left out of the figures. The TOTAL's Authorized
+  carries each mark its rows carry (†, ‡), and a line under the table says what each mark means, as the workbook does.
 - **Slide blocks.** Each appropriation and FY as a slide block. It shows the PMO rows by month, then Monthly Totals,
   Cumulative Totals, Obligation %, OSD Goal % and OSD Status. Under each block is its Not Allocated list. Each block has
   **Copy picture** and **Save picture**.
@@ -110,7 +116,8 @@ The filter bar has a box for each service and one for each lane (Discretionary a
 - The switches belong to this browser, not to the file. Changing them does not mark the file unsaved.
 - *Service not identified* appears only when a budget name matches no service rule. The **Settings** budget table lets you
   set its service. Once no row needs it, its box goes, and it no longer counts as a switch: nothing says *filtered*
-  because of it.
+  because of it. Rows with no service that count nowhere for another reason (before First FY, or unreadable) do not
+  bring the box back; the workbook's Settings sheet counts them by reason, as the raw data sheets list them.
 
 ## Data through and First FY
 
@@ -128,7 +135,7 @@ Settings are saved in the file. Changing one marks the file unsaved.
 - **Goals.** The OSD goal curves, one row per kind of money, Prior Yr then Oct to Sep. **Reset to v12's curves** puts back
   v12's values.
 - **Authorized.** Type a figure in $M for any appropriation and FY. A blank box means *not entered*. Then Approved is shown
-  in its place, marked †.
+  in its place, marked †. A total that adds one in is marked † too.
 - **Special CCaRs.** In the Not Allocated lists, a special CCaR is one item, named by its title. The defaults are
   `PP 2000` and `JSF6654`.
 - **Budgets.** Every budget name, with its rows, dollars, service and lane. You can override the service or the lane of
@@ -137,12 +144,16 @@ Settings are saved in the file. Changing one marks the file unsaved.
 ## Export Excel
 
 **Export Excel** downloads a workbook named `SFCB Spend Plan FY2027 - data through Oct-2026 - 2026-11-09.xlsx`, for
-example.
+example. Your browser puts it in its downloads folder, or asks where to save it, as it does the pictures.
 
 - It holds the Summary, Slide Snapshots, a sheet per appropriation, a tab per PMO, Not Allocated, the raw data sheets,
   the Import Report and Settings.
 - It holds values only, no formulas. Money is in $M.
-- It uses v12's look. Every sheet is marked CUI at the top and the bottom, and prints on letter, landscape, one page wide.
+- It uses v12's look. Every sheet is marked CUI at the top and the bottom, and prints on letter, landscape. The report
+  sheets print one page wide. The raw data sheets print at full size across pages, as v12's did (fitted to one page
+  wide, their 36 columns would print at about a quarter size); print them only when you need them.
+- On **Slide Snapshots**, each block after the first starts a new printed page, so no block is cut in two.
+- Every sheet that marks a figure † or ‡ says, under its table, what the mark means.
 - On the appropriation sheets and PMO tabs, the four outline buttons at the left open the rows level by level, as in
   v12: 1 PMO, 2 Title, 3 Plan Event, 4 CCaR. The sheets open showing PMO and Title rows.
 
@@ -219,7 +230,8 @@ way is wider for its height than the slide region; size it by its width.
   - O&M uses its first-year curve in its first year. In its second year and later it is expired, so the goal is 100%.
   - Procurement uses its first-, second-, third- or fourth-year curve.
   - Money for a later year has no goal.
-- **Delta** = Obl % − the goal.
+- **Delta** = Obl % − the goal. A delta that rounds to zero keeps its sign, as Excel shows it: `-0.00%` is just below the
+  goal (so Within 10, not On track), `+0.00%` just above it, and `0.00%` exactly on it.
 - **Status** always shows its word beside its colour:
   - **On track** (green): at or above the OSD goal.
   - **Within 10** (yellow): within 10 points of it.
