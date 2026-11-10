@@ -59,3 +59,9 @@ tools/export-audit/_shard-*.mjs
 # The security review bundle (tools/review/bundle.mjs): the board split into styles, markup and script.
 # Run output, regenerated from the board on demand.
 review/out/
+
+# The SFCB Spend Plan dashboard (spend-plan/): a separate one-file tool beside ORBIT (Brad, 9 Nov 2026). Its program file and
+# its page shell are source; a copy with a CCaR pull saved into it is budget data and must never be stageable, so only these two
+# names are let through, and its tests write every fixture and workbook to a temporary directory.
+!spend-plan/sfcb-spend-plan.html
+!spend-plan/src/shell.html
