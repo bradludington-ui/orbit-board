@@ -1279,7 +1279,9 @@ function eng_notes(M) {
       + SP.fmtInt(nb) + (nb === 1 ? ' budget' : ' budgets') + ' (' + ob.blocks.map(eng_fyName).join(', ') + '), ' + eng_dollarsT(ob.cents) + ' planned, '
       + eng_dollarsT(ob.obligated) + ' of it obligated. See the Import report.' + every);
   }
-  if (ui.rows) notes.push(eng_rowsWord(ui.rows) + ' (' + eng_dollars(ui.cents) + ') carry a Budget name that names no appropriation, on a sheet whose name does not name one either; '
+  // one row carries, several carry (review P5-9: "1 row ($0.28M) carry a Budget name"), as the rest of the sentence agrees
+  if (ui.rows) notes.push(eng_rowsWord(ui.rows) + ' (' + eng_dollars(ui.cents) + ') ' + (ui.rows === 1 ? 'carries' : 'carry')
+    + ' a Budget name that names no appropriation, on a sheet whose name does not name one either; '
     + (ui.rows === 1 ? 'it is' : 'they are') + ' counted nowhere. See the Import report.' + every);
   if (ur) notes.push(eng_rowsWord(ur) + ' could not be read (FY or Amount) and ' + (ur === 1 ? 'is' : 'are') + ' counted nowhere. See the Import report.' + every);
   const ea = M.execAfterAsOf;
@@ -1341,11 +1343,18 @@ function eng_baeNotes(M, X, notes, every) {
         : ', so the plan counts money that Approved does not.') + ' See the Import report.');
   }
   // §16.2 report money on a covered block that no plan event takes is in the Summary and on no PMO tab: said, so the PMO
-  // tabs are not read as adding up to the Summary
+  // tabs are not read as adding up to the Summary. Its Approved AND its Authorized: named by its Approved alone, the PMO tabs'
+  // Authorized fell short of the Summary's by a figure no sentence gave, an out-year budget carrying less Authorized than
+  // Approved (review P5-2). And an Authorized typed in Settings is for its block as a whole (§14.4), never shared among PMOs,
+  // so where one is typed the PMO tabs' Authorized cannot add up to the Summary's: said too, naming each such block.
   const una = eng_unassignedOf(M, null);
   if (una.length) {
+    const typed = M.blocks.filter(b => b.authorizedEntered);
     notes.push('The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. '
-      + eng_unassignedList(una) + ' of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.');
+      + una.map(u => eng_fyName(u) + ' ' + eng_dollarsT(u.approved) + ' Approved and ' + eng_dollarsT(u.authorized) + ' Authorized').join('; ')
+      + ' of the BAE report’s money is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.'
+      + (typed.length ? ' An Authorized typed in Settings (marked ‡: ' + eng_and(typed.map(eng_fyName)) + ') is for its block as a whole and is never shared '
+        + 'among the PMOs, so there the PMO tabs’ Authorized need not add up to the Summary’s.' : ''));
   }
   // §15.4: an (ap, fy) whose only pull rows are FY2025 OBBBA funding is said in its own words, in place of these
   const nbo = X.noBlock.filter(t => !t.obbba);
@@ -1403,10 +1412,15 @@ SP.obbbaLines = function obbbaLines(M) {
 // (no PMO) one too: a PMO's row no longer reads a budget's name, so (no PMO) is the plan events with a blank PMO.
 SP.PMO_TAB_PLAN_EVENTS = 'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan '
   + 'events of several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.';
-// the covered blocks among `keys` whose report money no plan event takes, and that money: [{ap, fy, approved, authorized}]
+// the covered blocks whose report money no plan event takes, and that money: [{ap, fy, approved, authorized}]. keys null:
+// every such block, in model order (the Summary's); else only the blocks `keys` names, in its order (a PMO tab's own
+// order, Full Fund first, as its table, its offObligated line and its typed-Authorized line list them)
 function eng_unassignedOf(model, keys) {
-  const un = model && model.bae && Array.isArray(model.bae.unassigned) ? model.bae.unassigned : [];
-  return un.filter(u => (!keys || keys.has(u.ap + '|' + u.fy)) && (u.approved !== 0 || u.authorized !== 0));
+  const un = (model && model.bae && Array.isArray(model.bae.unassigned) ? model.bae.unassigned : [])
+    .filter(u => u.approved !== 0 || u.authorized !== 0);
+  if (!keys) return un;
+  const by = new Map(un.map(u => [u.ap + '|' + u.fy, u]));
+  return [...new Set(keys)].filter(k => by.has(k)).map(k => by.get(k));
 }
 function eng_unassignedList(list) { return list.map(u => eng_fyName(u) + ' ' + eng_dollarsT(u.approved)).join('; '); }
 SP.pmoTabNotes = function pmoTabNotes(pmo, model) {
@@ -1415,7 +1429,7 @@ SP.pmoTabNotes = function pmoTabNotes(pmo, model) {
   const pe = rows.filter(r => r.basis === 'planEvent');
   if (!pe.length) return [];
   const out = [SP.PMO_TAB_PLAN_EVENTS];
-  const un = eng_unassignedOf(model, new Set(pe.map(r => r.key)));
+  const un = eng_unassignedOf(model, pe.map(r => r.key));
   if (un.length) {
     out.push(eng_unassignedList(un) + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).');
   }

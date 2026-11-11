@@ -161,8 +161,9 @@ function compare(sc, M, X, part) {
   }
   same(sc + ': PMO codes', Object.fromEntries(M.pmos.map(p => [p.label, p.code])), X.pmoCodes);
   const e = M.excluded;
-  same(sc + ': excluded', { beforeFirst: e.beforeFirst.cents, beforeFirstRows: e.beforeFirst.rows, beforeFirstByFy: e.beforeFirst.byFy,
-    unidentified: e.unidentified.cents, unidentifiedRows: e.unidentified.rows, unreadableRows: e.unreadable.rows }, X.excluded);
+  // (§15.2: the oracle states the FY2025 OBBBA rows set aside only on a scenario that loads one, bae-obbba here)
+  same(sc + ': excluded', Object.assign({ beforeFirst: e.beforeFirst.cents, beforeFirstRows: e.beforeFirst.rows, beforeFirstByFy: e.beforeFirst.byFy,
+    unidentified: e.unidentified.cents, unidentifiedRows: e.unidentified.rows, unreadableRows: e.unreadable.rows }, 'obbba' in X.excluded ? { obbba: e.obbba } : {}), X.excluded);
   same(sc + ': execAfterAsOf', M.execAfterAsOf, X.execAfterAsOf);
   same(sc + ': rowsByAp', M.rowsByAp, X.rowsByAp);
   C.chk(sc + ': the oracle read a report', !!X.bae && X.bae.present === true);
@@ -374,6 +375,10 @@ try {
   apply(st2, await importFiles(['pull-all.xlsx', 'bae.xlsx']));
   apply(st2, g2, NOW2);
   C.chk('gen2: the later report is current and the first previous', st2.bae.current.importedAt === NOW2 && st2.bae.previous.importedAt === NOW);
+  // §15.5 bae-obbba: the obbba pulls with their report, so §16's split and its identities are held on its covered blocks too
+  const gO = await importFiles(['obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx']);
+  const stO = { current: {}, previous: {}, bae: { current: null, previous: null } };
+  apply(stO, gO);
 
   // ============================================================================================ the scenarios (§14.8)
   const SCEN = [
@@ -384,6 +389,7 @@ try {
     { name: 'bae-entered-off', st: st1, part: g1.report.bae, asOf: '2026-10', first: 2025, auth: ENT, svcOff: ['USN (USN CV)'] },
     { name: 'bae-asof-2027-10', st: st1, part: g1.report.bae, asOf: '2027-10', first: 2025 },
     { name: 'bae-gen2', st: st2, part: g2.report.bae, asOf: '2026-10', first: 2025 },
+    { name: 'bae-obbba', st: stO, part: gO.report.bae, asOf: '2026-10', first: 2025 },
   ];
   const models = {}, plain = {};
   for (const sc of SCEN) {
@@ -401,6 +407,12 @@ try {
       same('bae-gen2: SP.diffBae, per (ap, fy) and the budgets new, gone and changed, largest change first',
         diffBaeShape(SP.diffBae(sc.st.bae.previous, sc.st.bae.current, s)), X.diffBae);
     }
+  }
+
+  {
+    const Mo = models['bae-obbba'];
+    C.chk('bae-obbba: its covered blocks hold a budget split among PMOs and money no plan event uses, so §16’s identities are held there too',
+      Mo.blocks.some(b => b.covered) && Mo.bae.split.length > 0 && Mo.bae.unassigned.length > 0, J([Mo.bae.split.length, Mo.bae.unassigned.length]));
   }
 
   // ============================================================================================ the switches move the
@@ -548,9 +560,10 @@ try {
     // typed Authorized never split
     const PE_LINE = 'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan events '
       + 'of several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.';
+    // (the blocks in the tab's own row order, §8.6: Full Fund, Initial Spares, O&M, OPN, as its table and its other lines)
     const unLine = (p, Mx) => {
-      const ks = new Set(p.rows.filter(r => r.covered).map(r => r.key));
-      const us = Mx.bae.unassigned.filter(u => ks.has(u.ap + '|' + u.fy) && (u.approved !== 0 || u.authorized !== 0));
+      const us = p.rows.filter(r => r.covered).map(r => Mx.bae.unassigned.find(u => u.ap + '|' + u.fy === r.key))
+        .filter(u => u && (u.approved !== 0 || u.authorized !== 0));
       return us.length ? [us.map(u => AP_LABEL[u.ap] + ' FY' + u.fy + ' $' + SP.fmtMText(u.approved) + 'M').join('; ')
         + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).'] : [];
     };
@@ -654,7 +667,7 @@ try {
       'Approved and Authorized come from the BAE report of 2026-01-31 12:00 (Report__BAE_x_2026-01-31_120000.xlsx) wherever it has figures for a block: it holds 7 rows of sustainment budgets (6 budgets), $19.00M Approved and $14.30M Authorized over every FY. Counted nowhere: 1 Flyaway (production) row, 1 row naming no appropriation, 1 row that could not be read and 1 row before FY2025. Its total row agrees with the rows read.',
       'The BAE report has no figure for O&M FY2026: Approved there is the CCaR plan (marked §).',
       'O&M FY2027: the CCaR plan ($4.57M) is 26% of the BAE report’s Approved ($17.30M); Obl % is measured against the report’s figure.',
-      'The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. O&M FY2027 $2.30M of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.',
+      'The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. O&M FY2027 $2.30M Approved and $0.30M Authorized of the BAE report’s money is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.',
       'The BAE report holds money for Full Fund FY2027 ($0.70M Approved, $0.00M Authorized), which the CCaR pull has no rows for: no block is shown for it.',
       'Unprogrammed money is counted in the CCaR plan: O&M FY2027 $0.07M.',
       'Authorized was neither entered nor in the BAE report for O&M FY2026; Approved is shown in its place (marked †).',
@@ -767,7 +780,8 @@ try {
     same('§16 hand: the BAE Report sheet’s PMO column, row by row', M.bae.derived.map(d => d.goes), [
       PSML + ' 57.1%; ' + PPL + ' 28.6%; ' + AVL + ' 14.3%', AVL + ' 100.0%', 'No plan event uses it', TSSL + ' 50.0%; ' + AOL + ' 50.0%', 'No plan event uses it']);
     same('§16 hand: the Summary’s note', M.summary.notes.filter(x => x.startsWith('The PMO tabs share')), ['The PMO tabs share each budget’s Approved and Authorized among the PMOs '
-      + 'whose plan events use it, by their CCaR plan on it. O&M FY2027 $0.05M of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.']);
+      + 'whose plan events use it, by their CCaR plan on it. O&M FY2027 $0.05M Approved and $0.04M Authorized of the BAE report’s money is on budgets no plan event uses, '
+      + 'so the PMO tabs add up to the Summary less it.']);   // review P5-2: its Authorized too
     same('§16 hand: under a PMO tab', SP.pmoTabLines(M.pmos.find(p => p.code === 'CDS'), M), [
       'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan events of several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.',
       'O&M FY2027 $0.05M of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).']);

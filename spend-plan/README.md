@@ -121,8 +121,11 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
     shares add up to the report's figure exactly (the odd cents go to the largest remainders; a tie to the PMO listed first).
     A PMO whose plan on a budget is zero or below takes no share of it.
   - **Report money no plan event uses** (a budget no counted row names in that block, or one whose plan is not above zero
-    for any PMO) is in the Summary's Approved and Authorized and on no PMO table. The Summary's notes and the PMO table say
-    how much, so the PMO tables add up to the Summary less it. The Import report lists each such budget and why, and each
+    for any PMO) is in the Summary's Approved and Authorized and on no PMO table. The Summary's notes say how much of each
+    block's Approved and of its Authorized it is, so the PMO tables add up to the Summary less it; an Authorized you type is
+    for its block as a whole and never shared among the PMOs, so there the note says the PMO tables' Authorized need not add
+    up to the Summary's. Each PMO table says how much of the Approved on its blocks is on no PMO table. The Import report
+    lists each such budget, with its Approved and Authorized, and why, and each
     budget split among PMOs with every PMO's plan and share. The workbook's *BAE Report* sheet says, in its PMO column, which
     PMOs share each counted row's budget and each one's share of the plan (`Air Vehicle (AV) 62.5%; …`), or *No plan event
     uses it*. The detail under each PMO table still lists its rows.
@@ -150,15 +153,20 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
 - **What the Summary's notes flag.** The report itself (its date, the budgets counted and those left out by kind, and
   whether its own total row agrees with its rows), each block the report has no figure for (§), each block whose CCaR plan
   is under half the report's Approved (flagged, never hidden; a plan just under half is said to be *under 50%*, never 50%),
-  each block whose plan and Obligated count money the report's Approved leaves out (above), and any year the report holds
-  money for that the pull has no rows for.
+  each block whose plan and Obligated count money the report's Approved leaves out (above), the report money no plan event
+  uses (its Approved and its Authorized, on no PMO table, so the PMO tables add up to the Summary less it, a typed
+  Authorized excepted), and any year the report holds money for that the pull has no rows for.
 - **The Import report** says what the file held (rows read and skipped, conversions, rows that could not be read, the total
   row check), then how the figures read it: its rows by scope, its sustainment budgets' Approved and Authorized by
   appropriation and FY, the budgets the pull counts that the report has no row for, the report's budgets with money that
-  no pull row names, and the budgets a block the report covers counts that its Approved leaves out (Flyaway, naming no
-  appropriation, or no Budget), each with its plan and its obligations. Three of those lists are worked out on the blocks as
-  the switches leave them (the flagged blocks, the pull's budgets with no report row, and the money an Approved leaves out):
-  with a switch off, each says so, on screen and in the workbook, and a switch can flag a block or take its flag away.
+  no pull row names, the budgets a block the report covers counts that its Approved leaves out (Flyaway, naming no
+  appropriation, or no Budget), each with its plan and its obligations, and last how the PMO tables share the report: the
+  budgets split among PMOs by their plan events (each PMO's plan and its share of Approved and Authorized, largest first),
+  and the report money no plan event uses, which is on no PMO table (each budget, its figures, and why: no plan event
+  uses it in that block, or its plan events' plan is not above zero). Five of those lists are worked out on the blocks as
+  the switches leave them (the flagged blocks, the pull's budgets with no report row, the money an Approved leaves out, and
+  the two on the PMO tables): with a switch off, each says so, on screen and in the workbook, and a switch can flag a block
+  or take its flag away.
 - **What changed** compares a report with the one it replaced: Approved and Authorized before and after by appropriation and
   FY, then the budgets new, gone and changed, largest change first. A budget with a row that could not be read is listed apart,
   with how many such rows each report holds, so a row that stopped reading never shows as money cut to $0.
@@ -251,12 +259,13 @@ The filter bar has a box for each service and one for each lane (Discretionary a
   - It is a fixed rule, not a setting. An OBBBA budget of any other FY counts like any row, and so does a name where OBBBA
     is only part of a longer word.
   - It is treated as money before First FY is: an appropriation and FY whose only rows it is has no block, and under a
-    First FY after 2025 such rows are before the First FY instead.
+    First FY after 2025 such rows are before the First FY instead. An appropriation's view whose only rows from First FY on
+    are this funding says so, rather than that the pull holds none.
   - When such rows are loaded, the Summary's notes say how much is left out, Settings states the rule under First FY, and
     the Import report lists each budget with its rows, plan and obligated dollars, and the BAE report's rows of it. The raw
     data sheets and the *BAE Report* sheet list every such row, with *FY2025 OBBBA funding (not a reporting year)* as the
-    reason it is not counted. **What changed** compares the pulls row for row, these included, and leaves them out of the
-    BAE report's comparison as it leaves Flyaway out.
+    reason it is not counted. **What changed** compares the pulls row for row, these included, and says so when the pulls
+    it compares hold any; it leaves them out of the BAE report's comparison as it leaves Flyaway out.
 
 ## Settings
 

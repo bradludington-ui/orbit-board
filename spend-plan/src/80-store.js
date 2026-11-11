@@ -726,8 +726,11 @@ SP.applyImport = function applyImport(parsed) {
       if (t.obbba) not.push(SP.fmtInt(t.obbba) + ' FY' + SP.OBBBA_FY + ' OBBBA');
       if (t.off) not.push(SP.fmtInt(t.off) + ' in a service or lane switched off');
       if (t.bad) not.push(SP.fmtInt(t.bad) + ' that could not be read');
+      // what "counted" means names the rule too when it took rows out, as it names the switches (review P5-6: "30 of them
+      // counted (sustainment budgets of FY2025 or later)" where 38 rows were that, 8 of them FY2025 OBBBA funding)
       counted = ', ' + (t.yes === n && n !== 1 ? 'every one' : t.yes === n ? 'it' : SP.fmtInt(t.yes) + ' of them') + ' counted (sustainment budgets of FY' + t.firstFY
-        + ' or later' + (t.off ? ', in the services and lanes shown' : '') + ')' + (not.length ? '; not counted: ' + st_list(not) : '');
+        + ' or later' + (t.obbba ? ', FY' + SP.OBBBA_FY + ' OBBBA funding left out' : '') + (t.off ? ', in the services and lanes shown' : '') + ')'
+        + (not.length ? '; not counted: ' + st_list(not) : '');
     }
     said.push('Imported the BAE report “' + b.file + '” › “' + b.sheet + '”, ' + (b.stamp ? 'dated ' + b.stamp : 'which has no date in its file name')
       + ': ' + st_rows(n) + counted + '.');

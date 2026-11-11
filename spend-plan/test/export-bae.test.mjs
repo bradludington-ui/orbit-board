@@ -92,8 +92,15 @@ const PE_LINE = 'Approved and Authorized are the BAE report’s figures for the 
 const unMoney = X => X.bae.unassigned.filter(u => u.approved !== 0 || u.authorized !== 0);
 const unList = us => us.map(u => AP_LABEL[u.ap] + ' FY' + u.fy + ' $' + mSent(u.approved) + 'M').join('; ');
 const unTabLine = us => unList(us) + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).';
-const unSummaryNote = us => 'The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. '
-  + unList(us) + ' of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.';
+// review P5-2: each block names its unassigned Approved AND Authorized (the PMO tabs' Authorized falls short of the Summary's
+// by the latter), and a block whose Authorized is typed is named, since a typed figure is never shared among the PMOs
+const andL = l => l.length > 1 ? l.slice(0, -1).join(', ') + ' and ' + l[l.length - 1] : l.join('');
+const typedOf = X => Object.keys(X.blocks).filter(k => X.blocks[k].authorizedEntered).map(k => AP_LABEL[k.split('|')[0]] + ' FY' + k.split('|')[1]);
+const unSummaryNote = (us, typed) => 'The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. '
+  + us.map(u => AP_LABEL[u.ap] + ' FY' + u.fy + ' $' + mSent(u.approved) + 'M Approved and $' + mSent(u.authorized) + 'M Authorized').join('; ')
+  + ' of the BAE report’s money is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.'
+  + (typed.length ? ' An Authorized typed in Settings (marked ‡: ' + andL(typed) + ') is for its block as a whole and is never shared among the PMOs, '
+    + 'so there the PMO tabs’ Authorized need not add up to the Summary’s.' : '');
 const figs16 = t => 'Approved ' + usd(t.approved) + ', Authorized ' + usd(t.authorized);
 const splitItem = e => '    ' + AP_LABEL[e.ap] + ' FY' + e.fy + ': “' + e.name + '” (' + figs16(e) + '), by each PMO’s CCaR plan on it, largest share first: '
   + e.pmos.map(p => p.pmo + ', plan ' + usd(p.plan) + ': ' + figs16(p)).join('; ') + '.';
@@ -391,7 +398,7 @@ try {
       C.chk(w + ': a note on the report itself (§14.5)', ns.some(n => /^Approved and Authorized come from the BAE report /.test(n) && n.includes(rows1(X.bae.rows.in))), ns.join(' / ').slice(0, 300));
       // §16.2: the report money no plan event uses, named once, so the PMO tabs are not read as adding up to the Summary
       C.eq(w + ': the note on report money no plan event uses (§16.2), from the oracle', ns.filter(n => n.startsWith('The PMO tabs share')),
-        unMoney(X).length ? [unSummaryNote(unMoney(X))] : []);
+        unMoney(X).length ? [unSummaryNote(unMoney(X), typedOf(X))] : []);
       // rule 5: each block whose CCaR plan is under half the report's Approved, flagged in the Summary's notes
       for (const p of X.bae.planShort) {
         const label = AP_LABEL[p.ap] + ' FY' + p.fy;
@@ -489,7 +496,8 @@ try {
       // event uses, when there is some (§14.4's sentences on budget names went with rules 4 and 7)
       C.eq(w + ': it says what its figures count, in §16.2’s words, when a row is on its plan events', notes[0] === PE_LINE, onPE);
       C.chk(w + ': and never §14.4’s words on budget names', !notes.some(n => /end(s)? in (this|any) PMO’s code/.test(n)), notes.join(' / '));
-      const unT = unMoney(X).filter(u => tab[u.ap + '|' + u.fy] && tab[u.ap + '|' + u.fy].basis === 'planEvent');
+      // (the blocks in the tab's own row order, §8.6: Full Fund, Initial Spares, O&M, OPN, as its table and its M4-6 line)
+      const unT = keys.filter(k => tab[k].basis === 'planEvent').map(k => unMoney(X).find(u => u.ap + '|' + u.fy === k)).filter(Boolean);
       C.eq(w + ': it names the report money no plan event uses on the blocks it shows, only where there is some (§16.2)',
         notes.filter(n => n.endsWith('it is in the Summary and on no PMO tab (see the Import report).')), unT.length ? [unTabLine(unT)] : []);
       const offRows = keys.filter(k => tab[k].basis === 'planEvent' && tab[k].offObligated !== 0);

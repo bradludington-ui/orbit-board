@@ -70,6 +70,8 @@ const mText = c => (c !== 0 && Math.abs(c) < 500000 ? (c < 0 ? '(<0.01)' : '<0.0
 
 // §16.2 restated: a PMO tab's line on what its figures count, the money no plan event uses (on a tab, in the Summary's
 // note) and the Import report's two lists, dollars exact as the Import report writes them
+// §8.6 restated: a PMO tab's rows, and so the blocks its lines name, run Full Fund, Initial Spares, O&M, OPN
+const TAB_AP = ['ff', 'sp', 'om', 'opn'];
 const PE_LINE = 'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan events of '
   + 'several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.';
 const usd16 = c => (c < 0 ? '-' : '') + '$' + String(Math.floor(Math.abs(c) / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + String(Math.abs(c) % 100).padStart(2, '0');
@@ -303,8 +305,10 @@ try {
     // §16.2 the report money no plan event uses, from the oracle
     const unS = X.bae.unassigned.filter(u => u.approved !== 0 || u.authorized !== 0);
     C.eq('summary notes: the report money no plan event uses, so the PMO tabs add up to the Summary less it (§16.2)', notes.filter(n => n.startsWith('The PMO tabs share')),
+      // review P5-2: each block's unassigned Approved and Authorized (bae-all types no Authorized, so no sentence on one)
       unS.length ? ['The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. '
-        + unS.map(u => AP[u.ap] + ' FY' + u.fy + ' $' + mText(u.approved) + 'M').join('; ') + ' of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.'] : []);
+        + unS.map(u => AP[u.ap] + ' FY' + u.fy + ' $' + mText(u.approved) + 'M Approved and $' + mText(u.authorized) + 'M Authorized').join('; ')
+        + ' of the BAE report’s money is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.'] : []);
 
     // ------------------------------------------------------------- appropriation views
     for (const ap of Object.keys(AP)) {
@@ -378,7 +382,10 @@ try {
       C.chk('PMO ' + label + ': says what its figures count, only where a row is on its plan events (§16.2)', ns.includes(PE_LINE) === anyPE
         && !ns.some(n => /end(s)? in (this|any) PMO’s code/.test(n)), ns.join(' / '));
       const rowK = [...m.querySelectorAll('table.top tr[data-bk]')].map(r => r.getAttribute('data-bk'));
-      const unK = X.bae.unassigned.filter(u => (u.approved !== 0 || u.authorized !== 0) && tab[u.ap + '|' + u.fy] && tab[u.ap + '|' + u.fy].basis === 'planEvent');
+      // (the blocks in the tab's own row order, restated from §8.6: Full Fund, Initial Spares, O&M, OPN, then FY)
+      const tabKeys = Object.keys(tab).sort((a, b) => TAB_AP.indexOf(a.split('|')[0]) - TAB_AP.indexOf(b.split('|')[0]) || Number(a.split('|')[1]) - Number(b.split('|')[1]));
+      const unK = tabKeys.filter(k => tab[k].basis === 'planEvent').map(k => X.bae.unassigned.find(u => u.ap + '|' + u.fy === k))
+        .filter(u => u && (u.approved !== 0 || u.authorized !== 0));
       C.eq('PMO ' + label + ': names the report money no plan event uses on its blocks, only where there is some (§16.2)', ns.filter(n => n.endsWith('on no PMO tab (see the Import report).')),
         unK.length ? [unK.map(u => AP[u.ap] + ' FY' + u.fy + ' $' + mText(u.approved) + 'M').join('; ') + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).'] : []);
       if (unK.length) unSeen = true;

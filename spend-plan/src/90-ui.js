@@ -411,7 +411,12 @@ function ui_vAp(M, ap) {
   const out = ['<h2 class="title">' + ui_e(SP.apTitle(label, when, A ? M : null, false)) + '</h2>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'];
   if (!A) {
-    out.push('<p class="none">' + (p ? 'No ' + ui_e(label) + ' rows from FY' + ui_e(M.firstFY) + ' on in the current pull.' : 'No ' + ui_e(label) + ' pull has been imported yet.') + '</p>');
+    // §15.2: an appropriation whose only rows from First FY on are FY2025 OBBBA funding has no block either, and "No O&M rows
+    // from FY2025 on" then denied rows the pull holds (review M5-4). It says why instead, in the noBlock note's words (§15.4).
+    const ob = p && Array.isArray(M.obbbaNoBlock) && M.obbbaNoBlock.some(t => t.ap === ap);
+    out.push('<p class="none"' + (ob ? ' data-obbba="1"' : '') + '>' + (ob ? 'No ' + ui_e(label) + ' block is shown: the current pull’s only ' + ui_e(label)
+      + ' rows from FY' + ui_e(M.firstFY) + ' on are FY' + ui_e(SP.OBBBA_FY) + ' OBBBA funding, which is left out: it is not a reporting year.'
+      : p ? 'No ' + ui_e(label) + ' rows from FY' + ui_e(M.firstFY) + ' on in the current pull.' : 'No ' + ui_e(label) + ' pull has been imported yet.') + '</p>');
     return out.join('');
   }
   out.push(ui_topTable(A.blocks, { model: M, withAp: false, total: A.total, totalLabel: 'Total - All FYs' }));
@@ -621,7 +626,11 @@ function ui_baeRead(M) {
   const X = M.bae, r = X.rows;
   const rows = n => ui_e(ui_rowsN(n));
   const usd = c => '$' + ui_e(SP.fmtMText(c)) + 'M';
-  const before = X.derived.filter(d => d.why === SP.BAE_COUNTED_WHY.first).length;
+  // "of them": the sustainment rows (scope 'in') before First FY. A FY2025 OBBBA row is not one of them (§15.3: its scope is
+  // 'obbba', whatever First FY), though under a later First FY its reason is Before the first FY (§15.2); counted by its
+  // reason alone it sat inside "of them" and again on its own line below (review M5-2, P5-4: "of them, 17 rows before
+  // FY2026" of 30 sustainment rows, 8 of the 17 FY2025 OBBBA rows). Each row is said once, on its own scope's line.
+  const before = X.derived.filter(d => d.why === SP.BAE_COUNTED_WHY.first && d.scope === 'in').length;
   const off = X.derived.filter(d => d.why === SP.BAE_COUNTED_WHY.off).length;
   const out = ['<section class="baeread" aria-labelledby="ui-baeread-h"><h3 class="sub" id="ui-baeread-h">The BAE report as the figures read it</h3>',
     '<p class="l2">A budget row counts in Approved and Authorized when its name places it in O&amp;M, Full Fund, Initial Spares or OPN, it is not Flyaway '
@@ -631,7 +640,7 @@ function ui_baeRead(M) {
     '<ul class="notes baerows">'
     + '<li data-scope="in">Sustainment budgets: ' + rows(r.in) + ' (' + ui_e(SP.fmtInt(X.budgetsIn)) + (X.budgetsIn === 1 ? ' budget' : ' budgets') + '), Approved '
     + usd(X.cents.approved) + ' and Authorized ' + usd(X.cents.authorized) + ' over every FY'
-    + (before ? '; of them, ' + rows(before) + ' before FY' + ui_e(M.firstFY) + ' count nowhere' : '')
+    + (before ? '; of them, ' + rows(before) + ' before FY' + ui_e(M.firstFY) + (before === 1 ? ' counts' : ' count') + ' nowhere' : '')
     + (off ? '; ' + rows(off) + ' of a service or lane switched off ' + (off === 1 ? 'is' : 'are') + ' not counted while the switches show what they do' : '') + '.</li>'
     + '<li data-scope="flyaway">Flyaway (production), counted nowhere: ' + rows(r.flyaway) + '.</li>'
     + '<li data-scope="noap">Naming no appropriation (Advance Procurement, Modifications, RDT&amp;E, squadron budgets), counted nowhere: ' + rows(r.noap) + '.</li>'
@@ -731,12 +740,24 @@ function ui_leafWhat(l) {
   }
   return w.join('; ');
 }
+// §15.2: whether the pulls What changed compares (the appropriations in both, SP.diffPulls) hold a FY2025 OBBBA row. They are
+// compared, as rows before First FY are, so a FY figure there differs from the Summary's by them; the view says so then
+// (review P5-5), and only then, so a page with none draws the view as before.
+function ui_obbbaCompared(prev, cur, aps) {
+  const S = ui_settings();
+  for (const ap of aps) for (const p of [prev && prev[ap], cur && cur[ap]]) {
+    if (!p || !Array.isArray(p.rows)) continue;
+    for (const row of p.rows) { try { const d = SP.deriveRow(row, S); if (SP.isObbba25(d.budget, d.fy)) return true; } catch (e) { /* a row that will not derive is no such row */ } }
+  }
+  return false;
+}
 function ui_vChanges(M) {
   const st = ui_state();
-  const out = ['<h2 class="title">What changed between the last two different pulls</h2>',
-    '<p class="l2">Every row of every FY is compared, whatever the switches show and whatever the First FY, because the question is what the new pull holds.'
+  const head = ob => '<p class="l2">Every row of every FY is compared, whatever the switches show and whatever the First FY'
+    + (ob ? ', FY' + ui_e(SP.OBBBA_FY) + ' OBBBA funding (left out of every other figure) included' : '') + ', because the question is what the new pull holds.'
     + ' A row that could not be read (FY or Amount) counts in no figure, here as everywhere, but it is still in its pull: its CCaR and its line are not'
-    + ' called new or gone because of it.</p>', ui_shown(M, '', 'it compares every row of the two pulls')];
+    + ' called new or gone because of it.</p>';
+  const out = ['<h2 class="title">What changed between the last two different pulls</h2>', head(false), ui_shown(M, '', 'it compares every row of the two pulls')];
   const hist = st && Array.isArray(st.history) ? st.history : [];
   if (hist.length) {
     // an import that placed no row in an appropriation (only rows no appropriation claims) read "2026-11-04: " with
@@ -759,6 +780,7 @@ function ui_vChanges(M) {
   catch (e) { return out.concat(['<p class="err">What changed could not be worked out: ' + ui_e((e && e.message) || e) + '</p>', baeSec]).join(''); }
   const aps = Object.keys(D);
   if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>', baeSec); return out.join(''); }
+  if (ui_obbbaCompared((st && st.pulls && st.pulls.previous) || {}, ui_pulls(), aps)) out[1] = head(true);
   // A pull's section compares the pulls themselves (SP.diffPulls: every row, no switches), so its figure is the CCaR plan.
   // With a BAE report loaded, "Approved" on every other view is the report's (§14.3, answer 2), and headed "Approved" here
   // the plan read 423.70 for O&M FY2026 beside 520.28 on the Summary and in the BAE section below, one word for two
@@ -1114,8 +1136,8 @@ function ui_vHelp() {
       '<strong>FY' + SP.OBBBA_FY + ' OBBBA funding is left out</strong> of every figure, block, list and picture, whatever the switches show: a row whose Budget '
       + '(a BAE report row’s Budget Name) holds the word OBBBA and whose FY is ' + SP.OBBBA_FY + '. FY' + SP.OBBBA_FY + ' is not a reporting year (Brad, '
       + '11 Nov 2026). It is a fixed rule, not a setting: an OBBBA budget of any other FY counts as any row does. Where such rows are loaded, the Summary’s '
-      + 'notes, Settings and the Import report say how much is left out, and an appropriation and FY whose only rows they are has no block. Under a later '
-      + 'First FY they are before the First FY instead.',
+      + 'notes and the Import report say how much is left out, Settings states the rule, and an appropriation and FY whose only rows they are has no block. '
+      + 'Under a later First FY they are before the First FY instead.',
       'The service and lane switches are this browser’s view, not saved in the file. They drive every figure and every list on every view, the export and the '
       + 'pictures, with two exceptions that cover every service and lane: an entered Authorized, which is entered for an appropriation and FY as a whole and saved '
       + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, FY' + SP.OBBBA_FY + ' OBBBA funding, rows whose appropriation is not identified, '
@@ -1139,8 +1161,10 @@ function ui_vHelp() {
       'A PMO’s tab is built from its plan events (the rows whose PMO column names it; the (no PMO) tab is the plan events with no PMO). Its Approved and '
       + 'Authorized are the report’s figures for the budgets its plan events are assigned to, and its Obligated counts its plan events’ executed rows. A budget '
       + 'the plan events of several PMOs use is split among them by each one’s CCaR plan on it, to the cent. Report money no plan event uses (a budget no '
-      + 'counted row names, or one whose plan is not above zero) is in the Summary and on no PMO tab: the Summary’s notes and the PMO tab say how much, and '
-      + 'the Import report lists each budget, and each one split. The workbook’s BAE Report sheet says, in its PMO column, which PMOs share each row’s budget. '
+      + 'counted row names, or one whose plan is not above zero) is in the Summary and on no PMO tab. The Summary’s notes say how much of each block’s '
+      + 'Approved and Authorized it is, so the PMO tabs add up to the Summary less it (except an Authorized typed in Settings, which is for its block as a '
+      + 'whole and never shared among PMOs); a PMO tab says how much of the Approved on its blocks it is; and the Import report lists each budget, and each '
+      + 'one split. The workbook’s BAE Report sheet says, in its PMO column, which PMOs share each row’s budget. '
       + 'The detail below each PMO table still lists its rows.',
       'The CCaR plan and Obligated count every row of the pull, Flyaway budgets, budgets that name no appropriation and rows with no Budget included, which the '
       + 'report’s Approved never holds: each block with such money is named in the Summary’s notes, each budget in the Import report, and a PMO table says how '

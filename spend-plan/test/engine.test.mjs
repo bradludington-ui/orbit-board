@@ -134,8 +134,11 @@ function compare(sc, M, X) {
   same(sc + ': PMO tabs (every PMO block, figures, columns and Not Allocated)', tabs, X.pmoTabs);
   same(sc + ': PMO codes', Object.fromEntries(M.pmos.map(p => [p.label, p.code])), X.pmoCodes);
   const e = M.excluded;
-  same(sc + ': excluded', { beforeFirst: e.beforeFirst.cents, beforeFirstRows: e.beforeFirst.rows, beforeFirstByFy: e.beforeFirst.byFy,
-    unidentified: e.unidentified.cents, unidentifiedRows: e.unidentified.rows, unreadableRows: e.unreadable.rows }, X.excluded);
+  // §15.2: the oracle states the FY2025 OBBBA rows set aside only on a scenario that loads one (its READING: absent reads as
+  // §15.2's zeros), so the tool's are compared to it there and held to the zeros everywhere else
+  same(sc + ': excluded', Object.assign({ beforeFirst: e.beforeFirst.cents, beforeFirstRows: e.beforeFirst.rows, beforeFirstByFy: e.beforeFirst.byFy,
+    unidentified: e.unidentified.cents, unidentifiedRows: e.unidentified.rows, unreadableRows: e.unreadable.rows }, 'obbba' in X.excluded ? { obbba: e.obbba } : {}), X.excluded);
+  if (!('obbba' in X.excluded)) same(sc + ': excluded.obbba is §15.2’s zeros where no FY2025 OBBBA row is loaded', e.obbba, { rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] });
   same(sc + ': execAfterAsOf', M.execAfterAsOf, X.execAfterAsOf);
   same(sc + ': rowsByAp', M.rowsByAp, X.rowsByAp);
   same(sc + ': naAll is every block’s list, in model order',
@@ -297,6 +300,9 @@ try {
     ['om', 'ff', 'sp', 'opn'].map(ap => store2.current[ap] === (ap === 'om' || ap === 'ff' ? gen2.pulls[ap] : store2.current[ap]) && !!store2.current[ap]), [true, true, true, true]);
   C.eq('gen2: the previous pulls are gen1’s O&M and Full Fund (and its unidentified rows)', Object.keys(store2.previous).sort(), ['ff', 'om', 'unidentified']);
 
+  // §15.5 the obbba pulls (O&M FY2025 holding only FY2025 OBBBA rows, Full Fund FY2025 mixing them with ordinary ones)
+  const storeO = { current: {}, previous: {} };
+  apply(storeO, await importFiles(['obbba/pull-om.xlsx', 'obbba/pull-ff.csv']));
   const SCEN = [
     { name: 'all', store: store1, asOf: '2026-10', first: 2025 },
     { name: 'usaf-off', store: store1, asOf: '2026-10', first: 2025, svcOff: ['USAF'] },
@@ -304,6 +310,10 @@ try {
     { name: 'asof-2026-03', store: store1, asOf: '2026-03', first: 2025 },
     { name: 'first-2024', store: store1, asOf: '2026-10', first: 2024 },
     { name: 'gen2', store: store2, asOf: '2026-10', first: 2025 },
+    // §15.5: FY2025 OBBBA funding left out, under a switch, and before a later First FY instead
+    { name: 'obbba', store: storeO, asOf: '2026-10', first: 2025 },
+    { name: 'obbba-usaf-off', store: storeO, asOf: '2026-10', first: 2025, svcOff: ['USAF'] },
+    { name: 'obbba-first-2026', store: storeO, asOf: '2026-10', first: 2026 },
   ];
   const models = {};
   for (const sc of SCEN) {
@@ -315,6 +325,16 @@ try {
     compare(sc.name, M, X);
     invariants(sc.name, M);
     if (sc.name === 'gen2') same('gen2: diffPulls, per appropriation in both pulls', diffShape(SP.diffPulls(sc.store.previous, sc.store.current, settingsFor(sc.asOf, sc.first))), X.diff);
+  }
+  // §15.5 the obbba fixture makes the rule matter, so the comparisons above could fail: the rule takes a whole block away (O&M
+  // FY2025, whose only rows are FY2025 OBBBA funding) and leaves one less its rows (Full Fund FY2025); under First FY 2026
+  // the same rows are before the First FY instead (§4.3: condition 3 first)
+  {
+    const Mo = models.obbba, Mf = models['obbba-first-2026'];
+    C.chk('obbba: O&M FY2025 has no block, Full Fund FY2025 has one, and the rows left out are on both',
+      !Mo.blocks.some(b => b.key === 'om|2025') && Mo.blocks.some(b => b.key === 'ff|2025')
+      && Mo.excluded.obbba.blocks.map(b => b.ap + '|' + b.fy).join() === 'om|2025,ff|2025' && Mo.excluded.obbba.obligated > 0, JSON.stringify(Mo.excluded.obbba.blocks));
+    C.chk('obbba-first-2026: none is left out by the rule; they are before the First FY', Mf.excluded.obbba.rows === 0 && Mf.excluded.beforeFirst.byFy['2025'] > 0);
   }
 
   // ============================================================================================ settings in play

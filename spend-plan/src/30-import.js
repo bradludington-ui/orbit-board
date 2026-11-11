@@ -640,6 +640,7 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
       part.readable++;
       part.cents.approved += c[IMP_BAE_APP];
       part.cents.authorized += c[IMP_BAE_AUTH];
+      if (imp_baeObbba(stored)) part.obbba = (part.obbba || 0) + 1;     // §15.3, there only when some is (review P5-6)
     }
   }
   // THE TOTAL ROW, CHECKED. It is a sum of floating-point dollars, so each figure agrees when it is within $1 of the
@@ -1071,6 +1072,14 @@ function imp_pullLines(L, report) {
 // is taken as it may be (a report saved by another version draws, never throws).
 //   b  report.bae (parseFiles' part), or null;  kept  the import time of a report kept from an earlier import (baeKeptLines),
 //   whose blank rows and conversions were not kept and are not said
+// §15.3 whether a stored report row is readable FY2025 OBBBA funding, scope 'obbba': read by the model's own judgement of a
+// row (SP.baeDerive, after Flyaway and naming no appropriation) wherever the page has it, so the import's words and the
+// figures never count different rows; the predicate alone where only the import's modules are loaded
+function imp_baeObbba(stored) {
+  if (!stored || !Array.isArray(stored.c)) return false;
+  if (typeof SP.baeDerive === 'function') { try { const d = SP.baeDerive(stored, null); return d.readable && d.scope === 'obbba'; } catch (e) { return false; } }
+  return !(Array.isArray(stored.bad) && stored.bad.length) && SP.isObbba25(stored.c[0], stored.c[1]);
+}
 function imp_baeLines(L, b, kept) {
   if (!b || typeof b !== 'object') return;
   const num = v => (typeof v === 'number' && isFinite(v) ? v : 0);
@@ -1090,8 +1099,10 @@ function imp_baeLines(L, b, kept) {
   L.push('  Rows read: ' + SP.fmtInt(read) + (bad.length ? ' (' + SP.fmtInt(num(b.readable)) + ' readable, ' + SP.fmtInt(bad.length) + ' unreadable)' : '')
     + (kept !== undefined ? '.' : '. Blank rows skipped: ' + SP.fmtInt(num(b.blank)) + '.'));
   const c = b.cents && typeof b.cents === 'object' ? b.cents : {};
+  // the kinds the figures leave out, FY2025 OBBBA funding among them when the report holds some (§15.3; review P5-6: named
+  // without it, the sentence read as the whole list while $36.64M of the gap to the sustainment figure was OBBBA rows)
   L.push('  The readable rows hold Approved ' + usd(c.approved) + ' and Authorized ' + usd(c.authorized) + ': every budget in the report, '
-    + 'before Flyaway and the budgets that name no appropriation are left out.');
+    + 'before Flyaway' + (num(b.obbba) > 0 ? ', FY' + SP.OBBBA_FY + ' OBBBA funding' : '') + ' and the budgets that name no appropriation are left out.');
   const ownC = arr(b.ownCols).map(String);
   if (cols.length === 4) L.push('  Columns: ' + SP.fmtInt(num(b.columns)) + ', every one kept as the file has it'
     + (ownC.length ? ', besides this tool’s own ' + imp_list(ownC) + ', which are worked out again on every load and not kept' : '') + '. Read: ' + cols.map(imp_q).join(', ')
@@ -1156,19 +1167,19 @@ SP.baeKeptLines = function baeKeptLines(bae, report) {
   // the last import's own report: its section is already in that import's report
   if (report && report.bae && typeof report.bae === 'object' && typeof b.importedAt === 'string' && report.importedAt === b.importedAt) return L;
   const okNum = v => typeof v === 'number' && Number.isSafeInteger(v);
-  let readable = 0, approved = 0, authorized = 0;
+  let readable = 0, approved = 0, authorized = 0, obbba = 0;
   const unreadable = [];
   for (const r of b.rows) {
     if (!r || !Array.isArray(r.c)) continue;
     if (Array.isArray(r.bad) && r.bad.length) {
       unreadable.push({ row: Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?', reasons: r.bad, name: r.c[0], fy: r.c[1],
         approved: r.c[2], authorized: r.c[3], raw: r.raw && typeof r.raw === 'object' ? r.raw : {} });
-    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; }
+    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; if (imp_baeObbba(r)) obbba++; }
   }
   const t = b.total && typeof b.total === 'object' ? b.total : null;
   const dA = t && okNum(t.approved) ? t.approved - approved : null, dU = t && okNum(t.authorized) ? t.authorized - authorized : null;
   imp_baeLines(L, { file: b.file, sheet: b.sheet, stamp: b.stamp, cols: SP.baeCols(b), columns: Array.isArray(b.headers) ? b.headers.length : 0,
-    rowsRead: b.rows.length, readable, cents: { approved, authorized }, unreadable,
+    rowsRead: b.rows.length, readable, cents: { approved, authorized }, unreadable, obbba,
     total: t ? { rowNo: t.rowNo, approved: okNum(t.approved) ? t.approved : null, authorized: okNum(t.authorized) ? t.authorized : null,
       sumApproved: approved, sumAuthorized: authorized, diffApproved: dA, diffAuthorized: dU, raw: t.raw,
       ok: dA !== null && dU !== null && Math.abs(dA) <= 100 && Math.abs(dU) <= 100 } : null },

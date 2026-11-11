@@ -53,9 +53,11 @@
 #   refusedThen (only when the --then import was refused), input {files, then, svcOff, lanes[, authorized]}
 # With a BAE report among the files (§14; CONTRACT §14.8 lists every key), and only then, each block also carries
 #   planned, approvedSrc, covered, authorizedSrc, slide {basis, oblPct, goal, delta, status}, planShort, marks, and its
-#   approved, authorized, unobligated, oblPct, delta and status follow §14.3; pmoTabs follow §14.4 (basis, sect,
-#   planned, offObligated); aps and summary add planned and marks; "bae" is model.bae (with offReport, review M4-6);
-#   "diffBae" follows a second report.
+#   approved, authorized, unobligated, oblPct, delta and status follow §14.3; pmoTabs follow §16.1 on a covered block
+#   (basis 'planEvent': each PMO's share of the report's budgets its plan events use, by its plan on each) and §14.4 on
+#   one the report does not cover (basis 'row'), with sect, planned and offObligated; aps and summary add planned and
+#   marks; "bae" is model.bae (with offReport, review M4-6), and §16.3's split and unassigned, and pmoColumn
+#   [[rowNo, the BAE Report sheet's PMO column]] (§16.2); "diffBae" follows a second report.
 # §15 (FY2025 OBBBA funding is left out), and only when a pull or the report holds a row the predicate names (its
 # budget name holds the word OBBBA and its FY reads 2025, readable or not, whatever First FY), so every scenario without
 # one is byte for byte what it was before §15 (READING: absent reads as §15.2's zeros):

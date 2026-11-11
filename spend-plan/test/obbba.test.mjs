@@ -428,8 +428,11 @@ try {
     tp.window.confirm = () => true;
     const { state, msgs } = await planOf(tp.SP, [[files(OM, FF, SPR, BAE), NOW]], { asOf: '2026-10' });
     tp.close();
+    // review P5-6: what "counted" means names the rule beside the First FY, as it names the switches: 8 rows here are
+    // sustainment budgets of FY2025 or later, and 6 count
     C.chk('the import message names the report’s rows not counted, “2 FY2025 OBBBA” among them',
-      msgs[0].includes('11 rows, 6 of them counted (sustainment budgets of FY2025 or later); not counted: 2 Flyaway (production), 1 that names no appropriation and 2 FY2025 OBBBA.'), msgs[0]);
+      msgs[0].includes('11 rows, 6 of them counted (sustainment budgets of FY2025 or later, FY2025 OBBBA funding left out); not counted: 2 Flyaway (production), '
+        + '1 that names no appropriation and 2 FY2025 OBBBA.'), msgs[0]);
     const T = await boot(pageHtml({ state }));
     C.eq('the page boots on the plan with no script errors', T.errors(), []);
     const M = T.SP.buildModel(state.pulls.current, state.settings, T.SP.getView(), state.bae.current);

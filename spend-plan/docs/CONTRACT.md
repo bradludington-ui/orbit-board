@@ -1226,7 +1226,10 @@ reporting year."* This replaces his 9 Nov answer on OBBBA. It holds with or with
 - It is a **fixed rule, not a setting**. It is stated in Help and the README always, and in Settings (view and sheet), the
   Summary's notes and the Import report whenever a row it leaves out is loaded.
 - **With no FY2025 OBBBA row loaded, nothing changes**: every model, view and sheet is byte-identical to the build before §15
-  (Help and the README excepted, which state the rule). Every existing scenario keeps its exact expected output.
+  (Help and the README excepted, which state the rule). Every existing scenario keeps its exact expected output. Two words
+  for exactly one row were corrected in the same review, with or without such a row: the Summary's note on rows whose
+  appropriation is not identified says *1 row (…) carries* (review P5-9), and the Import report's *of them, 1 row before
+  FY{firstFY} counts nowhere*; with any other count, they read as before.
 
 ### 15.2 Pull rows
 
@@ -1266,15 +1269,33 @@ reporting year."* This replaces his 9 Nov answer on OBBBA. It holds with or with
   FY2025 OBBBA funding, which is left out. The BAE report's {$approved} Approved and {$authorized} Authorized for it are not
   shown.*
 - **The report's own note** (§14.5, *those left out by kind*) and **the import message** (§14.7, *not counted: …*) add *{n}
-  FY2025 OBBBA*.
+  FY2025 OBBBA*. The import message's account of what *counted* means names the rule beside the First FY when it left any
+  row out: *(sustainment budgets of FY2025 or later, FY2025 OBBBA funding left out[, in the services and lanes shown])*
+  (review P5-6).
+- **The Import report's file part** (§14.1, view and sheet), whose sentence on the readable rows' money lists what the figures
+  leave out, adds FY2025 OBBBA funding when the report holds a readable row of it (scope `'obbba'`): *…every budget in the
+  report, before Flyaway, FY2025 OBBBA funding and the budgets that name no appropriation are left out.* (review P5-6)
 - **The Import report** (view and sheet): a section *FY2025 OBBBA funding, left out (not a reporting year)*, shown when any is
   loaded: each pull budget with its appropriation, rows, plan and obligated, a total, and the report's rows of it (rows,
   Approved, Authorized). The BAE section's table by appropriation and FY says, for an `obbba` noBlock row: *FY2025 OBBBA funding
-  is left out (not a reporting year), so no block is shown*. Its rows by scope count `FY2025 OBBBA`.
+  is left out (not a reporting year), so no block is shown*. Its rows by scope count `FY2025 OBBBA`, each row once, on its
+  scope's line: the sustainment line's *of them, {n} before FY{firstFY}* counts only rows of scope `'in'`, so under a later
+  First FY a FY2025 OBBBA row (scope `'obbba'`, reason *Before the first FY*) is on its own line and not inside that count
+  too (review M5-2, P5-4).
 - **Counted columns.** A raw data sheet's row: *No: FY2025 OBBBA funding (not a reporting year)*. The `BAE Report` sheet:
   *FY2025 OBBBA funding (not a reporting year)*.
 - **Settings** (view and sheet), when any is loaded, a line under First FY: *FY2025 OBBBA funding is left out of every figure: it
-  is not a reporting year (Brad, 11 Nov 2026).*
+  is not a reporting year (Brad, 11 Nov 2026).* It states the rule, not the amount: the Summary's notes and the Import report
+  say how much (review P5-8: Help said Settings did).
+- **An appropriation's view with no block** (§9) whose only rows from First FY on are FY2025 OBBBA funding (an `(ap, fy)` in
+  `model.obbbaNoBlock` for it) says so, in place of *No {ap} rows from FY{firstFY} on in the current pull.*, which denied rows
+  the pull holds: *No {ap} block is shown: the current pull's only {ap} rows from FY{firstFY} on are FY2025 OBBBA funding,
+  which is left out: it is not a reporting year.* (review M5-4) No sheet has this case: an appropriation with no block has no
+  sheet (§8.3–8.5).
+- **What changed** (§9) compares the pulls themselves, these rows included (§15.2). When the appropriations it compares hold
+  any in either pull, its opening sentence names them beside the switches and the First FY: *Every row of every FY is
+  compared, whatever the switches show and whatever the First FY, FY2025 OBBBA funding (left out of every other figure)
+  included, because …* (review P5-5: a FY there read $2.28M above the Summary's with no word why).
 - **Help and the README** state the rule where they state First FY.
 
 ### 15.5 Tests
@@ -1339,8 +1360,13 @@ report does not cover, a PMO row is §4.6's as before.
   *{Ap FYyyyy $X.XXM; …} of the BAE report's Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab
   (see the Import report).* The typed-Authorized line, the `offObligated` line and the narrowed § note follow as in §14.4.
 - **The Summary's notes**, with a report loaded, when any block has unassigned money: *The PMO tabs share each budget's Approved
-  and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. {Ap FYyyyy $X.XXM; …} of the BAE report's
-  Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.*
+  and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. {Ap FYyyyy $X.XXM Approved and $Y.YYM
+  Authorized; …} of the BAE report's money is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.*
+  Each block names its unassigned Approved **and** Authorized (§16.1's identity holds for each): named by its Approved alone,
+  the PMO tabs' Authorized fell short of the Summary's by a figure no sentence gave, an out-year budget carrying less
+  Authorized than Approved (review P5-2). When any block's Authorized is typed (§4.5, §14.4: for the block as a whole, never
+  split to PMOs), the note adds: *An Authorized typed in Settings (marked ‡: {Ap FYyyyy, …}) is for its block as a whole and
+  is never shared among the PMOs, so there the PMO tabs' Authorized need not add up to the Summary's.*
 - **The Import report** (view and sheet), in the BAE section, two lists, each *none* when empty:
   - *Budgets split among PMOs by their plan events*: each budget used by more than one PMO in a covered block, with its block, its
     Approved and Authorized, and each PMO's plan on it and share of each, largest share first;
