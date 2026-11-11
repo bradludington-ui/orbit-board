@@ -65,3 +65,5 @@ review/out/
 # names are let through, and its tests write every fixture and workbook to a temporary directory.
 !spend-plan/sfcb-spend-plan.html
 !spend-plan/src/shell.html
+# Python writes a bytecode cache beside the oracle when a test imports it; it is never source.
+spend-plan/**/__pycache__/
