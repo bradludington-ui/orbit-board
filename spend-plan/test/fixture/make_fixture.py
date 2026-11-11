@@ -664,6 +664,8 @@ def bae_meaning(name):
         return BAE_ONLY[name]
     if name in OBBBA_NAMES:
         return OBBBA_NAMES[name][:5]
+    if name in OBBBA2_NAMES:
+        return OBBBA2_NAMES[name][:5]
     ap, svc, lane = BUDGETS[name]
     return ap, ('in' if ap else 'noap'), svc, lane, BUDGET_PMO[name]
 
@@ -1181,6 +1183,345 @@ def build_obbba_bae(g, seed):
     return rows
 
 
+# ======================================================= FY2025 O&M OBBBA funding, marked in Budget Flex 02 too (§17)
+# Brad, 11 Nov 2026: "Yes, leave out OBBBA funding for O&M but leave it in for Spares." A row is FY2025 O&M OBBBA funding
+# when its appropriation is O&M, its FY is 2025, and it is marked OBBBA: the word, whole, in any case, in its budget name;
+# for a report row, in its Budget Flex 02 cell; for a pull row, when the loaded report holds an O&M FY2025 row of the
+# same budget (normKey) whose Budget Flex 02 holds the word. OBBBA money of every other appropriation counts.
+# DIR/obbba2/ holds three pulls and a report built for §17 alone (CONTRACT §17.4), every name and figure invented:
+#   obbba2/pull-om.xlsx  O&M, one v12 tab "O&M Raw Data" (title on row 1, header on row 2, shared strings). FY2025: rows
+#                        on a budget only the report marks (left out with the report, counted without: obligated and
+#                        not, one spelt in capitals, one unreadable), rows on a second budget the report marks in lower
+#                        case (another service, the Mandatory lane), rows named OBBBA (left out either way: two
+#                        services, both lanes), and ordinary rows, so the block stays. Among those: a budget whose report
+#                        row holds OBBBAX in Budget Flex 02, one whose report row holds the word in Budget Flex 01 and 03
+#                        only, one the report marks in FY2026 only, and one whose name places no appropriation (the sheet
+#                        places it in O&M) whose report row is marked but is not O&M, so it marks nothing: all count.
+#                        FY2026 and FY2027: ordinary, with FY2026 rows on the marked budget and on a named one (count).
+#   obbba2/pull-ff.csv   Full Fund, as pull-ff.csv is: FY2025 rows named OBBBA, and rows on a budget the report marks in
+#                        Budget Flex 02 (both count: §17 is for O&M only); FY2026 ordinary.
+#   obbba2/pull-sp.xlsx  "Spares Raw Data" and "OPN Raw Data": Initial Spares FY2025 rows on the budget the report marks,
+#                        named without the word, and rows named OBBBA; OPN FY2025 rows on a budget the report marks. All
+#                        count.
+#   obbba2/bae.xlsx      a report shaped as bae.xlsx is, whose Budget Flex 02 holds the word (beside other text, as a real
+#                        cell holds it) on: O&M FY2025 rows whose names do not (left out; one in lower case, one with no
+#                        pull row), an O&M FY2025 row whose name does too (left out, by its name), an O&M FY2026 row, an
+#                        Initial Spares, a Full Fund and an OPN FY2025 row (each counts), a Full Fund Flyaway FY2025 row
+#                        (Flyaway first) and a row naming no appropriation (that first). Also an O&M FY2025 row named
+#                        OBBBA whose Flex 02 does not hold it (by its name), OBBBAX in Flex 02 once (ordinary), the word
+#                        in Budget Flex 01 and 03 only once (ordinary), and ordinary rows covering every block that remains.
+# They are drawn from their OWN random streams, after every other file (obbba/ too) is written: not one byte of any other
+# file moves (--no-obbba2 writes the rest alone; fixture.test.mjs compares the two).
+O2_FLEX = 'USAF O&M- Fixture Bridge Line Discretionary AV'
+O2_FLEX_CAPS = 'USAF O&M- FIXTURE BRIDGE LINE DISCRETIONARY AV'           # the same budget (normKey), in capitals
+O2_FLEX_LOW = 'USN O&M- Fixture Bridge USN CV Readiness Mandatory PSM'
+O2_REPONLY = 'USAF O&M - AFRC Fixture Reserve Bridge Discretionary CDS'
+O2_NAMED = 'USAF O&M - ANG OBBBA Fixture Surge Mandatory PP'
+O2_NAMED2 = 'USN O&M- OBBBA Fixture Afloat Discretionary CDS'
+O2_ORD = 'USAF O&M- Fixture Depot Bridge Discretionary PSM'
+O2_LONG = 'USAF O&M- Fixture Ledger Line Discretionary BOP'
+O2_FLEX13 = 'USN O&M- Fixture USMC CV Bridge Discretionary MxS'
+O2_FLEX26 = 'USMC STOVL O&M - Fixture Bridge Line Discretionary TSS'
+O2_NOAP = 'Interagency Fixture Bridge Reimbursable Line'
+O2_FF_FLEX = 'USAF APAF Full Fund Fixture Bridge SUPT Discretionary MxS'
+O2_FF_NAMED = 'USMC STOVL APN Full Fund OBBBA Bridge SUPT Mandatory PP'
+O2_FF_FLY = 'USAF APAF Full Fund Bridge Flyaway Lot Discretionary AV'
+O2_SP_FLEX = 'USN APN Spares Fixture Bridge Initial Discretionary PP'
+O2_SP_NAMED = 'USAF APAF Spares OBBBA Fixture Initial Discretionary AV'
+O2_OPN_FLEX = 'USN OPN Fixture Bridge Ship Line Discretionary MxS'
+# What each name MEANS, stated by hand and never by running a rule: (ap, the name's scope by §14.2 without its FY,
+# service, lane, the budget's PMO, whether the name holds OBBBA as a whole word, whether the report's FY2025 row of this
+# budget holds OBBBA as a whole word in its Budget Flex 02). The report MARKS a budget (§17.1, for pull rows) when that
+# last is true and the name is an O&M one: the generator states that from this table, never by matching the text.
+OBBBA2_NAMES = {
+    O2_FLEX: ('om', 'in', USAF, 'disc', AV, False, True),
+    O2_FLEX_CAPS: ('om', 'in', USAF, 'disc', AV, False, True),
+    O2_FLEX_LOW: ('om', 'in', USN, 'mand', PSM, False, True),
+    O2_REPONLY: ('om', 'in', AFRC, 'disc', CDS, False, True),            # no pull row
+    O2_NAMED: ('om', 'in', ANG, 'mand', PP, True, True),                  # the name and Flex 02 both
+    O2_NAMED2: ('om', 'in', USN, 'disc', CDS, True, False),               # the name alone
+    O2_ORD: ('om', 'in', USAF, 'disc', PSM, False, False),
+    O2_LONG: ('om', 'in', USAF, 'disc', BOP, False, False),               # OBBBAX in Flex 02: a longer word
+    O2_FLEX13: ('om', 'in', USMCCV, 'disc', MXS, False, False),           # the word in Flex 01 and 03 only
+    O2_FLEX26: ('om', 'in', STOVL, 'disc', TSS, False, False),            # Flex 02 marked in FY2026 only
+    O2_NOAP: (None, 'noap', UNK, 'disc', NOPMO, False, True),            # marked, but its name places no appropriation
+    O2_FF_FLEX: ('ff', 'in', USAF, 'disc', MXS, False, True),
+    O2_FF_NAMED: ('ff', 'in', STOVL, 'mand', PP, True, False),
+    O2_FF_FLY: ('ff', 'flyaway', USAF, 'disc', AV, False, True),          # no pull row
+    O2_SP_FLEX: ('sp', 'in', USN, 'disc', PP, False, True),
+    O2_SP_NAMED: ('sp', 'in', USAF, 'disc', AV, True, False),
+    O2_OPN_FLEX: ('opn', 'in', USN, 'disc', MXS, False, True),
+}
+OBBBA2_FILES = {'pull-om': 'obbba2/pull-om.xlsx', 'pull-ff': 'obbba2/pull-ff.csv', 'pull-sp': 'obbba2/pull-sp.xlsx',
+                'bae': 'obbba2/bae.xlsx'}
+# CONTRACT §14.6, §15.4 and §17.3, the BAE Report sheet's Counted words, restated for the manifest's "meant"
+OBBBA2_BAE_WHY = {'bad': 'Could not be read', 'flyaway': 'Flyaway (production)', 'noap': 'Names no appropriation',
+                  'before': 'Before the first FY', 'name': 'FY2025 O&M OBBBA funding (not a reporting year)',
+                  'flex02': 'FY2025 O&M OBBBA funding (not a reporting year), marked in Budget Flex 02', 'yes': 'Yes'}
+
+
+def obbba2_marked(name):
+    """Whether the report marks a pull row's budget (§17.1): its FY2025 row holds the word in Budget Flex 02 and the name
+    is an O&M one (the report row's own appropriation, SP.apOfBudget), from the table."""
+    o = OBBBA2_NAMES.get(name)
+    return bool(o and o[0] == 'om' and o[6])
+
+
+def obbba2_meant(it, report, first=2025):
+    """What a pull row of obbba2/ is MEANT to be at First FY 2025 with every switch on, without the report or with it: the
+    first §4.3 condition it fails, as the oracle's rawCounted codes it ('unreadable', 'unidentified', 'beforeFirst', then
+    'obbba' when its name marks it, 'obbbaReport' when only the report's Budget Flex 02 does), else 'counted'."""
+    if it['bad']:
+        return 'unreadable'
+    if it['ap'] is None:
+        return 'unidentified'
+    if it['fy'] < first:
+        return 'beforeFirst'
+    if it['ap'] == 'om' and it['fy'] == 2025:
+        if it['word']:
+            return 'obbba'
+        if report and it['marked']:
+            return 'obbbaReport'
+    return 'counted'
+
+
+class Obbba2Gen(Gen):
+    PREFIX = {'om': 'CO', 'ff': 'CF', 'sp': 'CS', 'opn': 'CP', 'misc': 'CX'}
+
+    def __init__(self, seed):
+        super().__init__(seed)
+        self.rng = random.Random('obbba2-pull|%d' % seed)       # its own stream: no other file's is drawn on
+
+    def meaning(self, budget):
+        if budget in OBBBA2_NAMES:
+            o = OBBBA2_NAMES[budget]
+            return o[0], o[2], o[3]
+        return BUDGETS[budget]
+
+
+def build_obbba2(seed):
+    """The three pulls of obbba2/. Each row's intent gains `case`, `word` and `marked` (from OBBBA2_NAMES), `obbba` (FY2025
+    O&M OBBBA funding with no report loaded: its name), `obbbaReport` (with the report: its name or the report's mark),
+    `by` (with the report: 'name' | 'report' | None), `elsewhere` (counted OBBBA money of another appropriation, by its
+    name, in FY2025: §17.2 M.obbbaElsewhere) and `meant` ({noReport, report}: obbba2_meant)."""
+    g = Obbba2Gen(seed)
+    D = dt.date
+
+    def R(case, tab, fy, k, d, c, a, **kw):
+        r = g.row(tab, fy, k[0], k[1], kw.pop('budget', k[2]), k[3], d, c, a, k[4], **kw)
+        r['intent']['case'] = case
+        return r
+    # ----------------------------------------------------------- O&M FY2025: marked, named and ordinary rows
+    K1 = ('JSF9731', 'Bridge Readiness Draw', O2_FLEX, 'AX - Bridge Readiness Lot', AV)
+    mk = 'a budget only the report marks (Budget Flex 02): left out with the report, counted without'
+    R(mk + ', obligated', 'om', 2025, K1, D(2025, 7, 14), 1_640_000_00, EXEC)
+    R(mk + ', spelt in capitals (one budget by normKey), obligated', 'om', 2025, K1, D(2026, 1, 20), 905_000_00, EXEC,
+      budget=O2_FLEX_CAPS)
+    R(mk + ', obligated after the as-of month', 'om', 2025, K1, D(2026, 12, 9), 415_000_00, EXEC)
+    R(mk + ', planned', 'om', 2025, K1, D(2027, 2, 28), 2_310_000_00, NA)
+    R(mk + ', with an unreadable amount: unreadable first', 'om', 2025, K1, D(2027, 4, 30), None, NA,
+      amount_cell='TBD', bad=['Amount'])
+    K2 = ('CT-90731', 'Afloat Bridge Engines', O2_FLEX_LOW, 'PX - Afloat Bridge Engines', PSM)
+    mk2 = 'a budget the report marks in lower case (obbba), a second service, the Mandatory lane'
+    R(mk2 + ', obligated', 'om', 2025, K2, D(2025, 11, 5), 1_270_000_00, EXEC)
+    R(mk2 + ', planned', 'om', 2025, K2, D(2027, 5, 31), 640_000_00, NA)
+    R(mk2 + ', Forecast', 'om', 2025, K2, D(2027, 8, 31), 385_000_00, FCST)
+    K3 = ('JSF9732', 'Guard Surge Line', O2_NAMED, 'EX - Guard Surge Lot', PP)
+    nm = 'named OBBBA (the report marks it in Budget Flex 02 too): left out by its name, with or without the report'
+    R(nm + ', the Mandatory lane, obligated', 'om', 2025, K3, D(2025, 12, 2), 2_075_000_00, EXEC)
+    R(nm + ', planned', 'om', 2025, K3, D(2027, 3, 31), 1_160_000_00, NA)
+    K4 = ('CT-90732', 'Afloat Surge Kit', O2_NAMED2, 'CX - Afloat Surge Kit', CDS)
+    nm2 = 'named OBBBA (the report\'s Flex 02 does not hold it): left out by its name, with or without the report'
+    R(nm2 + ', obligated', 'om', 2025, K4, D(2026, 3, 17), 1_490_000_00, EXEC)
+    R(nm2 + ', Unprogrammed', 'om', 2025, K4, D(2027, 7, 31), 720_000_00, UNPROG)
+    for _ in range(3):
+        g.program('om', 2025)
+    K5 = ('JSF9733', 'Depot Bridge Support', O2_ORD, 'PX - Depot Bridge Labor', PSM)
+    R('ordinary O&M FY2025 (the block stays), obligated', 'om', 2025, K5, D(2025, 10, 28), 3_260_000_00, EXEC)
+    R('ordinary O&M FY2025 (the block stays), planned', 'om', 2025, K5, D(2027, 1, 31), 1_850_000_00, NA)
+    K6 = ('CT-90733', 'Ledger Bridge Kit', O2_LONG, 'BX - Ledger Bridge Kit', BOP)
+    lw = 'the report holds OBBBAX in this budget\'s Budget Flex 02 (a longer word): counts'
+    R(lw, 'om', 2025, K6, D(2026, 2, 12), 690_000_00, EXEC)
+    R(lw, 'om', 2025, K6, D(2027, 6, 30), 330_000_00, NA)
+    K7 = ('JSF9734', 'Carrier Bridge Seats', O2_FLEX13, 'MX - Carrier Bridge Seats', MXS)
+    f13 = 'the report holds the word in Budget Flex 01 and 03 only, which are never read: counts'
+    R(f13, 'om', 2025, K7, D(2025, 9, 3), 845_000_00, EXEC)
+    R(f13, 'om', 2025, K7, D(2027, 4, 30), 510_000_00, NA)
+    K8 = ('CT-90734', 'Lift Bridge Overhaul', O2_FLEX26, 'TX - Lift Bridge Overhaul', TSS)
+    f26 = 'the report marks this budget in FY2026 only: its FY2025 rows count'
+    R(f26, 'om', 2025, K8, D(2026, 4, 21), 1_120_000_00, EXEC)
+    R(f26, 'om', 2025, K8, D(2027, 2, 28), 465_000_00, NA)
+    K9 = ('JSF9735', 'Interagency Bridge Draw', O2_NOAP, 'QX - Interagency Bridge Draw', PSM)
+    na_ = ('a name that places no appropriation (the sheet places it in O&M); the report\'s row of it is marked but is not '
+           'O&M, so it marks nothing: counts')
+    R(na_, 'om', 2025, K9, D(2026, 5, 6), 560_000_00, EXEC)
+    R(na_, 'om', 2025, K9, D(2027, 1, 31), 275_000_00, NA)
+    # ----------------------------------------------------------- O&M FY2026 and FY2027: ordinary
+    for _ in range(3):
+        g.program('om', 2026)
+    R('the marked budget in FY2026: counts (the report marks FY2025 rows only)', 'om', 2026, K1, D(2026, 6, 16), 1_330_000_00, EXEC)
+    R('the marked budget in FY2026: counts (the report marks FY2025 rows only)', 'om', 2026, K1, D(2027, 3, 31), 870_000_00, NA)
+    R('named OBBBA in FY2026: counts', 'om', 2026, K3, D(2026, 8, 25), 1_045_000_00, EXEC)
+    R('the budget the report marks in FY2026: counts', 'om', 2026, K8, D(2027, 5, 31), 980_000_00, NA)
+    for _ in range(2):
+        g.program('om', 2027)
+    # ----------------------------------------------------------- Full Fund
+    for _ in range(3):
+        g.program('ff', 2025)
+    F1 = ('JSF9741', 'Lift Fan Bridge Lot', O2_FF_NAMED, 'PX - Lift Fan Bridge Lot', PP)
+    R('Full Fund FY2025 named OBBBA: counts (§17 is for O&M only), the Mandatory lane, obligated', 'ff', 2025, F1,
+      D(2025, 8, 19), 3_420_000_00, EXEC)
+    R('Full Fund FY2025 named OBBBA: counts, planned', 'ff', 2025, F1, D(2027, 2, 28), 1_275_000_00, NA)
+    F2 = ('CT-90741', 'Tooling Bridge Buy', O2_FF_FLEX, 'MX - Tooling Bridge Buy', MXS)
+    R('Full Fund FY2025 on a budget the report marks in Budget Flex 02: counts, obligated', 'ff', 2025, F2,
+      D(2026, 1, 13), 2_150_000_00, EXEC)
+    R('Full Fund FY2025 on a budget the report marks in Budget Flex 02: counts, planned', 'ff', 2025, F2,
+      D(2027, 6, 30), 940_000_00, NA)
+    for _ in range(2):
+        g.program('ff', 2026)
+    # ----------------------------------------------------------- Initial Spares and OPN
+    for _ in range(2):
+        g.program('sp', 2025)
+    S1 = ('JSF9751', 'Bridge Spares Pool', O2_SP_FLEX, 'PX - Bridge Spares Pool', PP)
+    sm = 'Initial Spares FY2025 on the budget the report marks in Budget Flex 02, named without the word: counts (Brad)'
+    R(sm + ', obligated', 'sp', 2025, S1, D(2025, 10, 7), 2_860_000_00, EXEC)
+    R(sm + ', planned', 'sp', 2025, S1, D(2027, 3, 31), 1_430_000_00, NA)
+    S2 = ('CT-90751', 'Airframe Bridge Spares', O2_SP_NAMED, 'AX - Airframe Bridge Spares', AV)
+    R('Initial Spares FY2025 named OBBBA: counts (Brad), obligated', 'sp', 2025, S2, D(2026, 2, 26), 1_760_000_00, EXEC)
+    R('Initial Spares FY2025 named OBBBA: counts (Brad), planned', 'sp', 2025, S2, D(2027, 4, 30), 615_000_00, NA)
+    for _ in range(2):
+        g.program('sp', 2026)
+    for _ in range(2):
+        g.program('opn', 2025)
+    P1 = ('CT-90761', 'Ship Bridge Line', O2_OPN_FLEX, 'MX - Ship Bridge Line', MXS)
+    R('OPN FY2025 on a budget the report marks in Budget Flex 02: counts, obligated', 'opn', 2025, P1, D(2026, 3, 4),
+      1_380_000_00, EXEC)
+    R('OPN FY2025 on a budget the report marks in Budget Flex 02: counts, planned', 'opn', 2025, P1, D(2027, 5, 31),
+      520_000_00, NA)
+    files = {'om': OBBBA2_FILES['pull-om'], 'ff': OBBBA2_FILES['pull-ff'], 'sp': OBBBA2_FILES['pull-sp'],
+             'opn': OBBBA2_FILES['pull-sp']}
+    for tab in ('om', 'ff', 'sp', 'opn'):
+        for r in g.rows[tab]:
+            it = r['intent']
+            it.setdefault('case', 'ordinary')
+            it['file'] = files[tab]
+            o = OBBBA2_NAMES.get(it['budget'])
+            it['word'] = bool(o and o[5])
+            it['marked'] = obbba2_marked(it['budget'])
+            o25 = it['ap'] == 'om' and it['fy'] == 2025
+            it['obbba'] = o25 and it['word']
+            it['obbbaReport'] = o25 and (it['word'] or it['marked'])
+            it['by'] = ('name' if it['word'] else 'report') if it['obbbaReport'] else None
+            it['elsewhere'] = (not it['bad'] and it['ap'] not in (None, 'om') and it['fy'] == 2025 and it['word'])
+            it['meant'] = {'noReport': obbba2_meant(it, False), 'report': obbba2_meant(it, True)}
+    return g
+
+
+class Obbba2BaeGen(BaeGen):
+    def __init__(self, seed):
+        self.rng = random.Random('obbba2-bae|%d' % seed)        # its own stream: no other report's is drawn on
+
+    def row(self, name, fy, app, auth, case='', flex=None, flex_word=False, **kw):
+        """bae_meaning gives the NAME's scope; §17.1 makes a row 'obbba' when its name is an O&M one, its FY is 2025 and
+        its name or its Budget Flex 02 holds the word, after 'flyaway' and 'noap'. `flex` writes the three Flex cells
+        ({'Budget Flex 02': 'DI OBBBA', ...}); `flex_word` STATES whether that Flex 02 holds the word (never matched
+        here). Each row's intent gains the three texts, `flexWord`, `word`, `obbba`, `obbbaBy`, `case`, `elsewhere` and
+        `meant` (the Counted words at First FY 2025, every switch on)."""
+        assert flex_word is False or flex, 'a row said to be marked writes its Budget Flex 02'
+        r = super().row(name, fy, app, auth, **kw)
+        cells, it = r['cells'], r['intent']
+        for col, v in (flex or {}).items():
+            cells[col] = v
+        it['flex01'], it['flex02'], it['flex03'] = (cells.get('Budget Flex 01'), cells.get('Budget Flex 02'),
+                                                    cells.get('Budget Flex 03'))
+        it['flexWord'] = bool(flex_word)
+        o = OBBBA2_NAMES.get(name)
+        it['word'] = bool(o and o[5])
+        it['obbba'] = it['ap'] == 'om' and it['fy'] == 2025 and (it['word'] or it['flexWord'])
+        if it['obbba'] and it['scope'] == 'in':
+            it['scope'] = 'obbba'
+        it['obbbaBy'] = ('name' if it['word'] else 'flex02') if it['scope'] == 'obbba' else None
+        it['case'] = case
+        it['elsewhere'] = (not it['bad'] and it['scope'] == 'in' and it['ap'] != 'om' and it['fy'] == 2025
+                           and (it['word'] or it['flexWord']))
+        it['meant'] = OBBBA2_BAE_WHY['bad' if it['bad'] else it['scope'] if it['scope'] in ('flyaway', 'noap')
+                                     else 'before' if it['fy'] < 2025 else it['obbbaBy'] if it['scope'] == 'obbba'
+                                     else 'yes']
+        return r
+
+
+def build_obbba2_bae(g, seed):
+    """The report of obbba2/: the §17 cases with fixed figures and their Budget Flex cells, then ordinary rows covering
+    every other budget and FY the pulls count with the report loaded (Approved 1.0-1.25x its plan)."""
+    b = Obbba2BaeGen(seed)
+    rng = b.rng
+    F2, F1, F3 = 'Budget Flex 02', 'Budget Flex 01', 'Budget Flex 03'
+    hand = [
+        # name, FY, Approved, Authorized, the Flex cells, Flex 02 holds the word (stated), why it is there
+        (O2_FLEX, 2025, 4_850_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'O&M FY2025, marked in Budget Flex 02 only: left out (obbbaBy flex02), and it marks the pull\'s rows of its budget'),
+        (O2_FLEX_LOW, 2025, 2_120_000_00, 1_900_000_00, {F2: 'MA obbba'}, True,
+         'O&M FY2025, marked in Budget Flex 02 in lower case: left out (obbbaBy flex02)'),
+        (O2_REPONLY, 2025, 3_375_000_00, '=', {F2: 'OBBBA DI'}, True,
+         'O&M FY2025, marked in Budget Flex 02, no pull row: left out (obbbaBy flex02)'),
+        (O2_NAMED, 2025, 5_600_000_00, '=', {F2: 'MA OBBBA'}, True,
+         'O&M FY2025, its name and its Budget Flex 02 both: left out (obbbaBy name)'),
+        (O2_NAMED2, 2025, 2_480_000_00, '=', {F2: 'DI'}, False,
+         'O&M FY2025, its name alone: left out (obbbaBy name)'),
+        (O2_LONG, 2025, 1_380_000_00, '=', {F2: 'DI OBBBAX'}, False,
+         'O&M FY2025, OBBBAX in Budget Flex 02 (a longer word): counts'),
+        (O2_FLEX13, 2025, 1_525_000_00, '=', {F1: 'FIXT OBBBA', F2: 'DI', F3: 'OBBBA FXR'}, False,
+         'O&M FY2025, the word in Budget Flex 01 and 03 only (never read): counts'),
+        (O2_FLEX26, 2025, 1_910_000_00, '=', {F2: 'DI'}, False, 'O&M FY2025, not marked: counts'),
+        (O2_FLEX26, 2026, 1_240_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'O&M FY2026, marked in Budget Flex 02: counts (FY2025 only is left out)'),
+        (O2_NOAP, 2025, 1_150_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'marked in Budget Flex 02 but naming no appropriation: that first; not O&M, so it marks no pull row'),
+        (O2_FF_FLEX, 2025, 3_950_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'Full Fund FY2025, marked in Budget Flex 02: counts (obbbaElsewhere, by Flex 02)'),
+        (O2_FF_NAMED, 2025, 5_125_000_00, 4_600_000_00, {F2: 'MA'}, False,
+         'Full Fund FY2025, named OBBBA: counts (obbbaElsewhere, by name)'),
+        (O2_FF_FLY, 2025, 875_000_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'Full Fund Flyaway FY2025, marked in Budget Flex 02: Flyaway first, so in no obbbaElsewhere'),
+        (O2_SP_FLEX, 2025, 4_725_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'Initial Spares FY2025, marked in Budget Flex 02: counts (Brad; obbbaElsewhere, by Flex 02)'),
+        (O2_SP_NAMED, 2025, 2_840_000_00, '=', {F2: 'DI'}, False,
+         'Initial Spares FY2025, named OBBBA: counts (obbbaElsewhere, by name)'),
+        (O2_OPN_FLEX, 2025, 2_260_000_00, '=', {F2: 'DI OBBBA'}, True,
+         'OPN FY2025, marked in Budget Flex 02: counts (obbbaElsewhere, by Flex 02)'),
+    ]
+    rows = [b.row(name, fy, app, auth, case=case, flex=flex, flex_word=fw) for name, fy, app, auth, flex, fw, case in hand]
+    # the table's Flex 02 column states the same marks as the rows written here (a budget, by normKey, is marked when
+    # its FY2025 row says so)
+    nk = lambda s: ' '.join(s.split()).lower()
+    for name, o in OBBBA2_NAMES.items():
+        said = any(nk(n) == nk(name) and fy == 2025 and fw for n, fy, _a, _u, _f, fw, _c in hand)
+        assert said == o[6], name
+    have = {(nk(r['intent']['name']), r['intent']['fy']) for r in rows}
+    plan = {}
+    for tab in ('om', 'ff', 'sp', 'opn'):
+        for r in g.rows[tab]:
+            it = r['intent']
+            if it['meant']['report'] == 'counted':
+                plan[(it['budget'], it['fy'])] = plan.get((it['budget'], it['fy']), 0) + it['cents']
+    for (name, fy) in sorted(plan):
+        if (nk(name), fy) in have:
+            continue
+        have.add((nk(name), fy))
+        base = max(plan[(name, fy)], 1_500_000_00)
+        a = int(base * rng.uniform(1.0, 1.25))
+        case = 'ordinary: covers its block'
+        if fy < 2027:
+            rows.append(b.row(name, fy, a, '=', case=case))
+        elif rng.random() < .5:
+            rows.append(b.row(name, fy, a, BAE_ZERO, case=case))
+        else:
+            a -= a % 100
+            rows.append(b.row(name, fy, a, a * rng.randint(40, 90) // 100, app_style='int', case=case))
+    rows.sort(key=lambda r: (r['intent']['name'].lower(), r['intent']['fy']))
+    return rows
+
+
 # ----------------------------------------------------------------------------------------------------- writers
 def put_row(ws, rno, order, cells, epoch1904=False, extra=None):
     for ci, h in enumerate(order, start=1):
@@ -1196,7 +1537,7 @@ def put_row(ws, rno, order, cells, epoch1904=False, extra=None):
             c.number_format = 'yyyy-mm-dd'
 
 
-def write_raw_tab(wb, ap, rows, trailing=0):
+def write_raw_tab(wb, ap, rows, trailing=0, rowkey=None):
     ws = wb.create_sheet(TABS[ap])
     ws.cell(row=1, column=1, value=TAB_TITLE[ap])
     order = RAW_HEADERS + ['Svc (auto)', 'Inc (auto)']
@@ -1205,6 +1546,8 @@ def write_raw_tab(wb, ap, rows, trailing=0):
     rno = 3
     for i, r in enumerate(rows):
         put_row(ws, rno, RAW_HEADERS, r['cells'])
+        if rowkey:
+            r['intent'][rowkey] = rno           # the sheet row it was written on (obbba2/ only: its manifest records it)
         # v12's formula columns, filled the way its fallback filled them (every unmatched name read as USAF): the
         # tool must ignore both
         ws.cell(row=rno, column=33, value='USAF')
@@ -1359,12 +1702,12 @@ def save_deterministic(wb, path, shared):
             zout.writestr(zi, files[n])
 
 
-def write_all(path, g, include=('om', 'ff', 'sp', 'opn'), misc=True, notes=True):
+def write_all(path, g, include=('om', 'ff', 'sp', 'opn'), misc=True, notes=True, rowkey=None):
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
     for ap in ('om', 'ff', 'sp', 'opn'):
         if ap in include:
-            write_raw_tab(wb, ap, g.rows[ap], trailing=12 if ap in ('om', 'ff') else 0)
+            write_raw_tab(wb, ap, g.rows[ap], trailing=12 if ap in ('om', 'ff') else 0, rowkey=rowkey)
     if misc:
         write_misc(wb, g.rows['misc'])
     if notes:
@@ -1421,6 +1764,9 @@ def main():
     ap.add_argument('--seed', type=int, default=20261109)
     ap.add_argument('--no-obbba', action='store_true', dest='no_obbba',
                     help='leave out obbba/ (fixture.test.mjs uses it to prove obbba/ moves no other byte)')
+    ap.add_argument('--no-obbba2', action='store_true', dest='no_obbba2',
+                    help='leave out obbba2/ (fixture.test.mjs uses it to prove obbba2/ moves no other byte); --no-obbba '
+                         'leaves out obbba/ alone, and obbba2/ is the same with or without it')
     args = ap.parse_args()
     out = args.out
     os.makedirs(os.path.join(out, 'gen2'), exist_ok=True)
@@ -1446,6 +1792,16 @@ def main():
         write_csv(os.path.join(out, OBBBA_FILES['pull-ff']), og.rows['ff'], rowkey='row')
         obae = build_obbba_bae(og, args.seed)
         write_bae(os.path.join(out, OBBBA_FILES['bae']), obae)
+    # §17's obbba2/ comes after everything above, obbba/ included, from its own random streams: nothing above moves (§17.4)
+    o2 = o2bae = None
+    if not args.no_obbba2:
+        os.makedirs(os.path.join(out, 'obbba2'), exist_ok=True)
+        o2 = build_obbba2(args.seed)
+        write_all(os.path.join(out, OBBBA2_FILES['pull-om']), o2, include=('om',), misc=False, notes=False, rowkey='row')
+        write_csv(os.path.join(out, OBBBA2_FILES['pull-ff']), o2.rows['ff'], rowkey='row')
+        write_all(os.path.join(out, OBBBA2_FILES['pull-sp']), o2, include=('sp', 'opn'), misc=False, notes=False, rowkey='row')
+        o2bae = build_obbba2_bae(o2, args.seed)
+        write_bae(os.path.join(out, OBBBA2_FILES['bae']), o2bae)
 
     def intents(g, aps):
         return [r['intent'] for a in aps for r in g.rows[a]]
@@ -1484,6 +1840,28 @@ def main():
             'budgetPmo': {n: OBBBA_NAMES[n][4] if n in OBBBA_NAMES else BUDGET_PMO[n] for n in used},
             'pull': [r['intent'] for t in ('om', 'misc', 'ff') for r in og.rows[t]],
             'bae': [r['intent'] for r in obae]}
+    if o2:
+        # §17: what each row of obbba2/ was MEANT to be. "pull" is every row of the three pulls in file order (obbba2/
+        # pull-om.xlsx, obbba2/pull-ff.csv, then obbba2/pull-sp.xlsx's Spares and OPN tabs), each with the sheet row it
+        # was written on, its case, `word` (its name holds OBBBA) and `marked` (the report marks its budget), both from
+        # OBBBA2_NAMES, `obbba` / `obbbaReport` (FY2025 O&M OBBBA funding without the report / with it), `by` (with it:
+        # 'name' | 'report'), `elsewhere` (§17.2 obbbaElsewhere's pull side) and `meant` ({noReport, report}: the
+        # oracle's rawCounted code at First FY 2025, every switch on). "bae" is every report row as the "bae" part's rows
+        # are, plus the three Budget Flex texts written, `flexWord` (Flex 02 holds the word, stated by hand), `word`,
+        # `obbba` (the §17.1 predicate), `obbbaBy`, `case`, `elsewhere` and the Counted words meant. "names" states each
+        # name by hand; "marks" the names whose budget the report marks for pull rows; "budgetPmo" the budget's PMO of
+        # every name the pulls use.
+        used2 = sorted({r['intent']['budget'] for t in ('om', 'ff', 'sp', 'opn') for r in o2.rows[t]})
+        manifest['obbba2'] = {
+            'note': 'CONTRACT §17: FY2025 O&M OBBBA funding is left out, marked in its name or in Budget Flex 02; the '
+                    'oracle never reads this part either',
+            'files': {OBBBA2_FILES['pull-om']: ['O&M Raw Data'], OBBBA2_FILES['pull-ff']: [],
+                      OBBBA2_FILES['pull-sp']: ['Spares Raw Data', 'OPN Raw Data'], OBBBA2_FILES['bae']: ['Sheet1']},
+            'names': {n: dict(zip(('ap', 'scope', 'svc', 'lane', 'pmo', 'word', 'flex25'), v)) for n, v in OBBBA2_NAMES.items()},
+            'marks': sorted(n for n in OBBBA2_NAMES if obbba2_marked(n)),
+            'budgetPmo': {n: OBBBA2_NAMES[n][4] if n in OBBBA2_NAMES else BUDGET_PMO[n] for n in used2},
+            'pull': [r['intent'] for t in ('om', 'ff', 'sp', 'opn') for r in o2.rows[t]],
+            'bae': [r['intent'] for r in o2bae]}
     with open(os.path.join(out, 'manifest.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
         f.write('\n')
@@ -1493,6 +1871,9 @@ def main():
     if og:
         print('obbba/: O&M %d, unidentified %d, FF %d pull rows; %d report rows' % (
             len(og.rows['om']), len(og.rows['misc']), len(og.rows['ff']), len(obae) - 1))
+    if o2:
+        print('obbba2/: O&M %d, FF %d, Spares %d, OPN %d pull rows; %d report rows' % (
+            len(o2.rows['om']), len(o2.rows['ff']), len(o2.rows['sp']), len(o2.rows['opn']), len(o2bae) - 1))
 
 
 if __name__ == '__main__':

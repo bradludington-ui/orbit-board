@@ -99,7 +99,7 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
     name carries no date is known by the day you imported it.
   - The page asks first when the new report has fewer than half the readable rows of the one on screen.
   - The message says how many of the report's rows count (its sustainment budgets of the First FY or later, in the services
-    and lanes shown, FY2025 OBBBA funding left out) and why the others do not.
+    and lanes shown, FY2025 O&M OBBBA funding left out) and why the others do not.
   - Imported before any pull, the report waits for one, and *No data yet* shows its import report: the rows that could not
     be read and the check against its own total row.
   - A workbook this tool exported can be imported again: its *BAE Report* sheet is read as the report, and the five columns
@@ -253,19 +253,30 @@ The filter bar has a box for each service and one for each lane (Discretionary a
     If you leave the box with a year not finished, or empty, it goes back to the month in use and the message line says so.
 - **First FY** is the oldest money year shown. It starts at FY2025. Money for earlier years is counted nowhere, and the
   Summary's notes say how much there is.
-- **FY2025 OBBBA funding is left out** of every figure, block, list and picture, whatever the switches show (Brad, 11 Nov
-  2026: *"Just leave FY25 OBBBA funding out. Although it's active technically, it's not a reporting year."*). A row is FY2025
-  OBBBA funding when its Budget (a BAE report row's Budget Name) holds the word OBBBA, in any case, and its FY is 2025.
-  - It is a fixed rule, not a setting. An OBBBA budget of any other FY counts like any row, and so does a name where OBBBA
-    is only part of a longer word.
+- **FY2025 O&M OBBBA funding is left out** of every figure, block, list and picture, whatever the switches show (Brad, 11
+  Nov 2026: *"Just leave FY25 OBBBA funding out. Although it's active technically, it's not a reporting year."*, and then
+  *"Yes, leave out OBBBA funding for O&M but leave it in for Spares."*). A row is FY2025 O&M OBBBA funding when its
+  appropriation is O&M, its FY is 2025, and it is marked OBBBA: the word OBBBA, in any case, is in its Budget (a BAE report
+  row's Budget Name), or
+  - for a BAE report row, in its *Budget Flex 02* column (found by its heading; the report marks most of its OBBBA money
+    there). Budget Flex 01 and 03 are not read for it, and a report with no Budget Flex 02 column is read by its names alone.
+  - for a CCaR pull row, while a BAE report is loaded, in the Budget Flex 02 of a report row of the same budget whose FY is
+    2025 and whose appropriation is O&M, so the plan and the report leave out the same money. With no report loaded a pull
+    row is judged by its own Budget alone.
+  - It is a fixed rule, not a setting. OBBBA funding of every other appropriation (Initial Spares, Full Fund, OPN) counts
+    like any other money, and the Import report lists it as such. An OBBBA budget of any other FY counts like any row, and
+    so does a name where OBBBA is only part of a longer word.
   - It is treated as money before First FY is: an appropriation and FY whose only rows it is has no block, and under a
     First FY after 2025 such rows are before the First FY instead. An appropriation's view whose only rows from First FY on
     are this funding says so, rather than that the pull holds none.
   - When such rows are loaded, the Summary's notes say how much is left out, Settings states the rule under First FY, and
-    the Import report lists each budget with its rows, plan and obligated dollars, and the BAE report's rows of it. The raw
-    data sheets and the *BAE Report* sheet list every such row, with *FY2025 OBBBA funding (not a reporting year)* as the
-    reason it is not counted. **What changed** compares the pulls row for row, these included, and says so when the pulls
-    it compares hold any; it leaves them out of the BAE report's comparison as it leaves Flyaway out.
+    the Import report lists each budget with its rows, plan and obligated dollars (naming those left out because the BAE
+    report marks them), and the BAE report's rows of it, named OBBBA and marked in Budget Flex 02 only. The raw data sheets
+    and the *BAE Report* sheet list every such row, with *FY2025 O&M OBBBA funding (not a reporting year)* as the reason it
+    is not counted, adding *marked in Budget Flex 02* (a report row) or *marked in the BAE report's Budget Flex 02* (a pull
+    row) where the row's own name does not hold the word. **What changed** compares the pulls row for row, these included,
+    and says so when the pulls it compares hold any; it leaves them out of the BAE report's comparison as it leaves
+    Flyaway out.
 
 ## Settings
 
@@ -384,7 +395,8 @@ way is wider for its height than the slide region; size it by its width.
   - **Behind** (red): more than 10 points behind.
   - In the month columns after Data through, the status is the plan's, shown in italic.
 - **Which rows count:** a row counts when its FY and Amount can be read, its appropriation is known, its FY is at least
-  First FY, it is not FY2025 OBBBA funding (see *Data through and First FY*), and the switches show its service and lane.
+  First FY, it is not FY2025 O&M OBBBA funding (see *Data through and First FY*), and the switches show its service and
+  lane.
 - **Not Allocated** lists every counted row that is not *Actual Execution*.
   - Items are grouped by column, status and plan event. Each item shows its dollars, largest first within each month.
   - Unprogrammed, Forecast and other statuses are tagged.

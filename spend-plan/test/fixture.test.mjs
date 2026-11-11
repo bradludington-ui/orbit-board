@@ -9,6 +9,9 @@
 //      running sum ends at the dated total, usaf-off = all less the USAF rows, mand-only + disc-only = all, and the
 //      same rows in other layouts (pull-om.xlsx + pull-ff.csv + pull-sp-opn.xlsx) give exactly what pull-all.xlsx gives.
 //   3. coverage: the fixture really holds every case CONTRACT §12 lists, so a later edit cannot quietly drop one.
+// §15 (FY2025 OBBBA funding left out) is read as §17 amends it (O&M only; marked in a name or in the BAE report's Budget
+// Flex 02): obbba/'s record is §15's and is translated here (its report holds the word in no Budget Flex cell, which a
+// read of the file proves), and obbba2/, written for §17, carries §17's own record.
 // LibreOffice (when present) reads two of the files on its own, so a fixture openpyxl writes wrongly and reads back
 // the same wrong way cannot pass for right.
 //
@@ -396,7 +399,7 @@ function baeExpect(pull, bae, budgetPmo, o) {
     authorized: Math.round(tot.authorized * 100) - sum(good.map(r => r.authorized)) };
   const why = r => r.bad.length ? 'Could not be read' : r.scope === 'flyaway' ? 'Flyaway (production)'
     : r.scope === 'noap' ? 'Names no appropriation' : r.fy < first ? 'Before the first FY'
-    : r.scope === 'obbba' ? OB_WHY : shown(r) ? 'Yes' : 'Switch off';
+    : r.scope === 'obbba' ? (r.obbbaBy === 'flex02' ? OB_WHY_FLEX : OB_WHY) : shown(r) ? 'Yes' : 'Switch off';
   return { P, E, blocks, repRows: Object.fromEntries(data.map(r => [r.row, r])),
     lists: {
       rows: Object.assign({ in: ins.length, flyaway: good.filter(r => r.scope === 'flyaway').length, noap: good.filter(r => r.scope === 'noap').length,
@@ -413,6 +416,8 @@ function baeExpect(pull, bae, budgetPmo, o) {
       offReport: keys.filter(k => blocks[k].off).map(k => Object.assign({ ap: k.split('|')[0], fy: +k.split('|')[1] }, blocks[k].off)),
       unreadable: data.filter(r => r.bad.length).map(r => ({ rowNo: r.row, name: r.name || '', bad: r.bad })),
       counted: data.map(r => [r.row, why(r)]),
+      // §17.2: how each report row of scope obbba is marked (readable or not), when such a row is loaded anywhere
+      obbbaBy: (pull.some(r => r.obbba) || data.some(r => r.obbba)) ? data.filter(r => r.scope === 'obbba').map(r => [r.row, r.obbbaBy]) : undefined,
       // §16.3: in model order, then the budget's name; §16.2 the BAE Report sheet's PMO column
       split: keys.flatMap(k => blocks[k].splits.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0) || (a.key < b.key ? -1 : 1))
         .map(e => Object.assign({ ap: k.split('|')[0], fy: +k.split('|')[1] }, e))),
@@ -466,21 +471,51 @@ function baeDiffExpect(r0, r1) {
 }
 
 // ======================================================================= §15 FY2025 OBBBA funding is left out
-// Restated from CONTRACT §15, never imported from the fixture or the tool: the rule, the Counted words, and what the
-// generator's own record (manifest.obbba, whose rows carry `obbba`: FY2025 OBBBA funding, from its hand-stated table)
-// makes of M.excluded.obbba and of each pull row's Counted reason.
+// Restated from CONTRACT §15 and §17, never imported from the fixture or the tool: the rule, the Counted words, and what
+// the generator's own record makes of M.excluded.obbba, of each pull row's Counted reason and of M.obbbaElsewhere. A row's
+// `obbba` here is FY2025 O&M OBBBA funding (§17.1) as the generator states it: manifest.obbba2's own (by its name, and with
+// the report by the report's marks too), or manifest.obbba's §15 flag read under §17 (ob17Pull, ob17Bae).
 const OB_RULE = /\bOBBBA\b/i;
-const OB_WHY = 'FY2025 OBBBA funding (not a reporting year)';
-// M.excluded.obbba (§15.2): the readable, identified rows of FY >= First FY that are FY2025 OBBBA funding, whatever the
+const OB_WHY = 'FY2025 O&M OBBBA funding (not a reporting year)';           // §15.4 in §17.3's words
+const OB_WHY_FLEX = OB_WHY + ', marked in Budget Flex 02';                   // §17.3: a report row marked by Flex 02 alone
+const OB15_WHY = 'FY2025 OBBBA funding (not a reporting year)';               // §15.4's words, as manifest.obbba records them
+// manifest.obbba under §17: its report holds the word in no Budget Flex cell (read below from the file), so a row is FY2025
+// O&M OBBBA funding exactly when the generator's §15 flag (the name holds the word, FY 2025) says so AND it is O&M; an OBBBA
+// row of another appropriation is ordinary (scope 'in', Counted Yes), and counted OBBBA money of FY2025 outside O&M is
+// M.obbbaElsewhere's (`elsewhere`, from the generator's word table)
+const ob17Pull = (rows, names) => rows.map(r => Object.assign({}, r, { obbba: !!(r.obbba && r.ap === 'om'), by: r.obbba && r.ap === 'om' ? 'name' : null,
+  elsewhere: !r.bad.length && !!r.ap && r.ap !== 'om' && r.fy === 2025 && !!(names[r.budget] && names[r.budget].word) }));
+const ob17Bae = (rows, names) => rows.map(r => {
+  if (r.kind !== 'data') return r;
+  const ob = !!(r.obbba && r.ap === 'om'), scope = r.scope === 'obbba' && !ob ? 'in' : r.scope;
+  const word = !!(r.name && names[r.name] && names[r.name].word);
+  return Object.assign({}, r, { obbba: ob, scope, obbbaBy: scope === 'obbba' ? 'name' : null, word, flexWord: false,
+    meant: r.meant === OB15_WHY ? (ob ? OB_WHY : 'Yes') : r.meant,
+    elsewhere: !r.bad.length && scope === 'in' && r.ap !== 'om' && r.fy === 2025 && word });
+});
+// manifest.obbba2 for a scenario without the report (a pull row is marked by its own name alone) or with it
+const ob2Pull = (rows, report) => rows.map(r => Object.assign({}, r, { obbba: report ? r.obbbaReport : r.obbba, by: report ? r.by : (r.obbba ? 'name' : null) }));
+// §17.2 M.obbbaElsewhere from the generator's `elsewhere` flags: per appropriation other than O&M, FY2025, in model order, the
+// pull's rows (by name) and the report's (by name or by Budget Flex 02, byName + byFlex02 = rows); nothing once FY2025 is
+// before the First FY (READING, as the oracle: it lists money that counts)
+function elsewhereExpect(pull, rep, first) {
+  if (first > 2025) return [];
+  const E = {};
+  const ent = ap => (E[ap] = E[ap] || { ap, fy: 2025, pull: { rows: 0, cents: 0, obligated: 0 }, report: { rows: 0, approved: 0, authorized: 0, byName: 0, byFlex02: 0 } });
+  for (const r of pull) if (r.elsewhere) { const p = ent(r.ap).pull; p.rows++; p.cents += r.cents; if (r.status === 'exec') p.obligated += r.cents; }
+  for (const r of rep) if (r.kind === 'data' && r.elsewhere) { const t = ent(r.ap).report; t.rows++; t.approved += r.approved; t.authorized += r.authorized; t[r.word ? 'byName' : 'byFlex02']++; }
+  return AP_ORDER.filter(a => E[a]).map(a => E[a]);
+}
+// M.excluded.obbba (§15.2): the readable, identified rows of FY >= First FY that are FY2025 O&M OBBBA funding, whatever the
 // switches; blocks in model order, budgets one per normKey, first spelling, in row order (the manifest lists the rows
-// in file order, O&M's file first, as every §15 scenario imports them)
+// in file order, O&M's file first, as every §15 and §17 scenario imports them), each budget saying how it is marked (§17.2)
 function obbbaExpect(rows, first) {
   const out = { rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] }, B = {}, U = {}, order = [];
   for (const r of rows) {
     if (r.bad.length || !r.ap || r.fy < first || !r.obbba) continue;
     const ob = r.status === 'exec' ? r.cents : 0, k = r.ap + '|' + r.fy, key = normKey(r.budget);
     const b = B[k] = B[k] || { ap: r.ap, fy: r.fy, rows: 0, cents: 0, obligated: 0 };
-    if (!U[key]) { U[key] = { key, name: String(r.budget).trim(), ap: r.ap, rows: 0, cents: 0, obligated: 0 }; order.push(key); }
+    if (!U[key]) { U[key] = { key, name: String(r.budget).trim(), ap: r.ap, rows: 0, cents: 0, obligated: 0, by: r.by === 'report' ? 'report' : 'name' }; order.push(key); }
     for (const t of [out, b, U[key]]) { t.rows++; t.cents += r.cents; t.obligated += ob; }
   }
   out.blocks = Object.keys(B).sort(blockOrder).map(k => B[k]);
@@ -489,7 +524,8 @@ function obbbaExpect(rows, first) {
 }
 // the first §4.3 condition a row of the generator's record fails, as the oracle's rawCounted spells it
 const rawWhy = (r, { first, svcOff = [], lanes = ['disc', 'mand'] }) => r.bad.length ? 'unreadable' : !r.ap ? 'unidentified'
-  : r.fy < first ? 'beforeFirst' : r.obbba ? 'obbba' : (!svcOff.includes(r.svc) && lanes.includes(r.lane)) ? 'yes' : 'switch';
+  : r.fy < first ? 'beforeFirst' : r.obbba ? (r.by === 'report' ? 'obbbaReport' : 'obbba')
+  : (!svcOff.includes(r.svc) && lanes.includes(r.lane)) ? 'yes' : 'switch';
 // the oracle's reading of obbba/'s pulls, against the manifest: M.excluded.obbba, every row's Counted reason (matched by
 // file and sheet row, both recorded by the generator as it wrote them), and the seventh switch
 function obbbaAgainst(tag, exp, rows, o) {
@@ -533,6 +569,52 @@ print(json.dumps({'sheets': wb.sheetnames, 'headerRow': hi + 1, 'headers': hdr, 
   'totalMinusSum': [last[ca].value - nums(ca), last[cu].value - nums(cu)]}))
 `;
 
+// the three Budget Flex columns of a report file as openpyxl reads them on its own (never the oracle): how many columns
+// carry each header, and every non-blank cell by its sheet row
+const FLEX_PY = `
+import json, sys, openpyxl
+wb = openpyxl.load_workbook(sys.argv[1])
+ws = wb.worksheets[0]
+rows = list(ws.iter_rows())
+hi = next(i for i, r in enumerate(rows[:15]) if any(c.value is not None and 'Budget Name' in str(c.value) for c in r))
+hdr = [str(c.value).strip() if c.value is not None else '' for c in rows[hi]]
+cols = {f: [j for j, h in enumerate(hdr) if h == f] for f in ('Budget Flex 01', 'Budget Flex 02', 'Budget Flex 03')}
+cells = {f: {str(r[js[0]].row): r[js[0]].value for r in rows[hi + 1:] if r[js[0]].value is not None} for f, js in cols.items() if js}
+print(json.dumps({'headers': {f: len(js) for f, js in cols.items()}, 'cells': cells}, default=str))
+`;
+// a copy of obbba2/pull-om.xlsx whose given sheet rows have " OBBBA" added to their Budget: the plan as the report leaves it
+// (§17.1: the report's marks take those rows out), stated by their names, for a run with no report to compare against
+const RENAME_PY = `
+import json, sys, openpyxl
+src, dst, rows = sys.argv[1], sys.argv[2], json.loads(sys.argv[3])
+wb = openpyxl.load_workbook(src)
+ws = wb['O&M Raw Data']
+col = next(c.column for c in ws[2] if c.value == 'Budget')
+for n in rows:
+    ws.cell(row=n, column=col).value = ws.cell(row=n, column=col).value + ' OBBBA'
+wb.save(dst)
+`;
+
+// a copy of obbba2/bae.xlsx with its Budget Flex 02 column taken out ('drop'), or with a second column headed Budget Flex 02
+// after the last, holding the word on every budget row ('dup'): §17.1 reads a report with no such column by its names
+// alone, and where two columns are headed so, the first
+const FLEXCOL_PY = `
+import sys, openpyxl
+src, dst, mode = sys.argv[1], sys.argv[2], sys.argv[3]
+wb = openpyxl.load_workbook(src)
+ws = wb.worksheets[0]
+hdr = [c.value for c in ws[1]]
+if mode == 'drop':
+    ws.delete_cols(hdr.index('Budget Flex 02') + 1)
+else:
+    col = len(hdr) + 1
+    ws.cell(row=1, column=col, value='Budget Flex 02')
+    for r in range(2, ws.max_row + 1):
+        if ws.cell(row=r, column=1).value:
+            ws.cell(row=r, column=col, value='DI OBBBA')
+wb.save(dst)
+`;
+
 // ===================================================================================================================
 const S = scratchDir('sfcbsp-fixture-');
 try {
@@ -542,6 +624,7 @@ try {
   // ---------------------------------------------------------------------------------------------- determinism
   const files = () => ['pull-all.xlsx', 'pull-om.xlsx', 'pull-ff.csv', 'pull-sp-opn.xlsx', 'gen2/pull-om.xlsx', 'gen2/pull-ff.csv', 'bae.xlsx', 'gen2/bae.xlsx', 'manifest.json'];
   const h = (d, f) => createHash('sha256').update(readFileSync(join(d, f))).digest('hex');
+  const same = (X, Y, f) => existsSync(join(X, f)) && existsSync(join(Y, f)) && h(X, f) === h(Y, f);   // a missing file is a failure, not a crash
   for (const f of files()) chk('the same seed writes the same bytes: ' + f, h(A, f) === h(B, f));
   chk('about 600 rows', man.gen1.length >= 550 && man.gen1.length <= 700, String(man.gen1.length));
 
@@ -930,6 +1013,9 @@ try {
 
   // ================================================== §15 FY2025 OBBBA funding is left out (CONTRACT §15.5)
   const OB = man.obbba, OBP = OB.pull, OBR = OB.bae.filter(r => r.kind === 'data');
+  // §17: obbba/'s record read under §17 (O&M only; its report marks nothing in Budget Flex 02, read from the file below)
+  const OBP17 = ob17Pull(OBP, OB.names), OB17B = ob17Bae(OB.bae, OB.names), OBR17 = OB17B.filter(r => r.kind === 'data');
+  const O2F = ['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx', 'obbba2/bae.xlsx'];
   // ------------------------------------------- obbba/ is written last, from its own streams: it moves no other byte
   for (const f of ['obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx']) chk('the same seed writes the same bytes: ' + f, h(A, f) === h(B, f));
   {
@@ -943,6 +1029,8 @@ try {
       delete mA.obbba;
       chk('obbba/ adds the manifest\'s "obbba" part and changes nothing else in it', only && JSON.stringify(mA) === JSON.stringify(mD));
       chk('--no-obbba writes no obbba/', !existsSync(join(D, 'obbba')));
+      // --no-obbba leaves out obbba/ alone: obbba2/ is drawn from its own streams and is the same with or without it
+      for (const f of O2F) chk('obbba2/ is the same with or without obbba/: ' + f, same(A, D, f));
     }
   }
   // --------------------------------------------------- coverage: every case §15.5 names, and the extra ones
@@ -1000,23 +1088,34 @@ try {
       ['Could not be read', 'FY2025 OBBBA funding (not a reporting year)', 'Flyaway (production)', 'Names no appropriation', 'Yes']);
   }
   // ----------------------------------------------- the oracle's reading of obbba/, against the generator's record
+  // §17 re-expects these: obbba/'s OBBBA rows outside O&M (Full Fund FY2025's, and the report's Full Fund and Spares FY2025
+  // rows) now count, so every figure below is held to OBP17 / OBR17, the generator's §15 record read under §17
   const OB_SC = { obbba: { asOf: '2026-10', first: 2025 }, 'obbba-usaf-off': { asOf: '2026-10', first: 2025, svcOff: ['USAF'] },
     'obbba-first-2026': { asOf: '2026-10', first: 2026 } };
   const exO = {};
   for (const [s, o] of Object.entries(OB_SC)) {
     const e = exO[s] = oracle(A, s);
     if (!e) continue;
-    againstManifest(s, e, fromManifest(OBP, o));
+    againstManifest(s, e, fromManifest(OBP17, o));
     structure(s, e);
-    obbbaAgainst(s, e, OBP, o);
+    obbbaAgainst(s, e, OBP17, o);
+    eq(s + ': obbbaElsewhere: the OBBBA money outside O&M that counts (§17.2), the pulls\' alone', e.obbbaElsewhere, elsewhereExpect(OBP17, [], o.first));
     eq(s + ': the settings it was run with', [e.firstFY, e.input.svcOff, e.input.files], [o.first, o.svcOff || [], ['pull-om.xlsx', 'pull-ff.csv']]);
   }
   if (exO.obbba) {
     const e = exO.obbba;
     chk('obbba: O&M FY2025, whose pull rows are all FY2025 OBBBA funding (one unreadable), has no block', !('om|2025' in e.blocks) && 'ff|2025' in e.blocks);
-    chk('obbba: the generator\'s "meant" is the reason the oracle gives each row at First FY 2025, every switch on',
+    chk('obbba: the generator\'s "meant" (its §15 record) is the first §15 condition each row fails at First FY 2025, every switch on',
       OBP.every(r => r.meant === (rawWhy(r, OB_SC.obbba) === 'yes' ? 'counted' : rawWhy(r, OB_SC.obbba))));
-    chk('obbba: some FY2025 OBBBA money is obligated, some not', e.excluded.obbba.obligated > 0 && e.excluded.obbba.obligated < e.excluded.obbba.cents);
+    chk('obbba: some FY2025 O&M OBBBA money is obligated, some not', e.excluded.obbba.obligated > 0 && e.excluded.obbba.obligated < e.excluded.obbba.cents);
+    // §17: Full Fund's FY2025 OBBBA rows count; the rule names O&M alone, by name (obbba/'s report marks nothing)
+    chk('obbba: §17: excluded.obbba names O&M FY2025 alone, every budget marked by its name', e.excluded.obbba.blocks.map(b => b.ap + '|' + b.fy).join() === 'om|2025'
+      && e.excluded.obbba.budgets.length > 0 && e.excluded.obbba.budgets.every(b => b.ap === 'om' && b.by === 'name'), JSON.stringify(e.excluded.obbba.blocks));
+    const ffOb = OBP.filter(r => r.ap === 'ff' && r.fy === 2025 && r.obbba && !r.bad.length);
+    chk('obbba: §17: Full Fund FY2025\'s OBBBA rows are counted, each one', ffOb.length >= 3 && ffOb.every(r => ((e.rawCounted.ff || []).find(x => x[2] === r.row) || [])[3] === 'yes'),
+      String(ffOb.length));
+    chk('obbba: §17: obbbaElsewhere names Full Fund FY2025, with every one of those rows', (e.obbbaElsewhere || []).length === 1 && e.obbbaElsewhere[0].ap === 'ff'
+      && e.obbbaElsewhere[0].pull.rows === ffOb.length);
   }
   if (exO.obbba && exO['obbba-usaf-off']) eq('obbba-usaf-off: excluded.obbba is the same whatever the switches', exO['obbba-usaf-off'].excluded.obbba, exO.obbba.excluded.obbba);
   if (exO['obbba-first-2026']) {
@@ -1027,28 +1126,239 @@ try {
       { 2025: sum(Object.values(exO.obbba.blocks).filter(b => b.fy === 2025).map(b => b.approved)) + exO.obbba.excluded.obbba.cents });
   }
   for (const [s, x] of [['all', ex.all], ['bae-all', exB['bae-all']], ['bae-gen2', exB['bae-gen2']]]) if (x)
-    chk(s + ': with no FY2025 OBBBA row loaded, no §15 key (excluded.obbba, rawCounted, bae.rows.obbba, noBlock[].obbba)',
-      !('obbba' in x.excluded) && !('rawCounted' in x) && !(x.bae && ('obbba' in x.bae.rows || x.bae.noBlock.some(n => 'obbba' in n))));
+    chk(s + ': with no FY2025 OBBBA row loaded, no §15 or §17 key (excluded.obbba, rawCounted, obbbaElsewhere, bae.rows.obbba, bae.obbbaBy, noBlock[].obbba)',
+      !('obbba' in x.excluded) && !('rawCounted' in x) && !('obbbaElsewhere' in x)
+      && !(x.bae && ('obbba' in x.bae.rows || 'obbbaBy' in x.bae || x.bae.noBlock.some(n => 'obbba' in n))));
   // ---------------------------------------------------------------- bae-obbba: the two pulls with the report
   {
-    const XO = baeExpect(OBP, OB.bae, OB.budgetPmo, { asOf: '2026-10', first: 2025 });
+    const XO = baeExpect(OBP17, OB17B, OB.budgetPmo, { asOf: '2026-10', first: 2025 });
     const e = oracle(A, 'bae-obbba');
     compareBae('bae-obbba', e, XO, exO.obbba);
     if (e && exO.obbba) {
-      eq('bae-obbba: excluded.obbba and every pull row\'s Counted reason are the plain obbba run\'s', [e.excluded, e.rawCounted], [exO.obbba.excluded, exO.obbba.rawCounted]);
-      eq('bae-obbba: bae.rows.obbba counts the readable FY2025 OBBBA report rows', e.bae.rows.obbba, OBR.filter(r => r.scope === 'obbba' && !r.bad.length).length);
+      eq('bae-obbba: excluded.obbba and every pull row\'s Counted reason are the plain obbba run\'s (the report marks nothing in Budget Flex 02)',
+        [e.excluded, e.rawCounted], [exO.obbba.excluded, exO.obbba.rawCounted]);
+      eq('bae-obbba: bae.rows.obbba counts the readable FY2025 O&M OBBBA report rows', e.bae.rows.obbba, OBR17.filter(r => r.scope === 'obbba' && !r.bad.length).length);
+      eq('bae-obbba: bae.obbbaBy: every report row of scope obbba, each marked by its name', e.bae.obbbaBy, OBR17.filter(r => r.scope === 'obbba').map(r => [r.row, 'name']));
       const om = OBR.filter(r => r.ap === 'om' && r.fy === 2025 && r.scope === 'in' && !r.bad.length);
       eq('bae-obbba: O&M FY2025 is a noBlock with obbba, its money the ordinary report rows alone', e.bae.noBlock.filter(n => n.ap === 'om' && n.fy === 2025),
         [{ ap: 'om', fy: 2025, approved: sum(om.map(r => r.approved)), authorized: sum(om.map(r => r.authorized)), obbba: true }]);
       chk('bae-obbba: obbba is on no other noBlock entry', e.bae.noBlock.every(n => (n.ap === 'om' && n.fy === 2025) || !('obbba' in n)));
-      const left = [...new Set(OBP.filter(r => r.obbba && r.ap).map(r => normKey(r.budget)))];
-      chk('bae-obbba: no budget left out as FY2025 OBBBA funding is in pullOnly', left.every(k => !e.bae.pullOnly.includes(k)), e.bae.pullOnly.join('; '));
-      chk('bae-obbba: no offReport entry for the OBBBA Flyaway pull budget', !e.bae.offReport.some(o => o.budgets.some(b => /flyaway/i.test(b.name) && /obbba/i.test(b.name))));
-      eq('bae-obbba: Counted per report row is the generator\'s "meant"', e.bae.counted, OBR.map(r => [r.row, r.meant]));
+      // §17 re-expected: the report's Initial Spares FY2025 row is named OBBBA and the pulls hold no Spares; it counts now,
+      // so Initial Spares FY2025 is an (ap, fy) with report money and no block, and its budget a reportOnly one
+      const sp = OBR.filter(r => r.ap === 'sp' && r.fy === 2025 && !r.bad.length);
+      eq('bae-obbba: §17: the Spares OBBBA row counts, so Initial Spares FY2025 is a noBlock (no obbba flag: it has no pull row)',
+        e.bae.noBlock.filter(n => n.ap === 'sp'), [{ ap: 'sp', fy: 2025, approved: sum(sp.map(r => r.approved)), authorized: sum(sp.map(r => r.authorized)) }]);
+      chk('bae-obbba: §17: … and its budget is a reportOnly one', sp.length === 1 && e.bae.reportOnly.includes(normKey(sp[0].name)), e.bae.reportOnly.join('; '));
+      const left = [...new Set(OBP17.filter(r => r.obbba && r.ap).map(r => normKey(r.budget)))];
+      chk('bae-obbba: no budget left out as FY2025 O&M OBBBA funding is in pullOnly', left.every(k => !e.bae.pullOnly.includes(k)), e.bae.pullOnly.join('; '));
+      // §17 re-expected (it was "no offReport entry for the OBBBA Flyaway pull budget"): that Full Fund budget counts now, so
+      // on the covered Full Fund FY2025 block it is money the report's Approved can never hold (review M4-6), as Flyaway
+      const fly = OBP.filter(r => r.ap === 'ff' && r.fy === 2025 && r.obbba && /\bflyaway\b/i.test(r.budget) && !r.bad.length);
+      eq('bae-obbba: §17: the OBBBA Flyaway pull budget counts, so it is on Full Fund FY2025\'s offReport as Flyaway',
+        e.bae.offReport.filter(o => o.ap === 'ff' && o.fy === 2025).flatMap(o => o.budgets.filter(b => /obbba/i.test(b.name)).map(b => [b.kind, b.planned])),
+        fly.length ? [['flyaway', sum(fly.map(r => r.cents))]] : ['the fixture holds no OBBBA Flyaway pull row']);
+      eq('bae-obbba: Counted per report row is the generator\'s "meant", read under §17', e.bae.counted, OBR17.map(r => [r.row, r.meant]));
       chk('bae-obbba: every block that remains is covered, by its ordinary rows', Object.values(e.blocks).every(b => b.covered));
-      chk('bae-obbba: no FY2025 OBBBA row is a reportOnly budget', !OBR.some(r => r.scope === 'obbba' && e.bae.reportOnly.includes(normKey(r.name))
-        && !OBR.some(x => x.scope === 'in' && normKey(x.name) === normKey(r.name))));
+      chk('bae-obbba: no FY2025 O&M OBBBA row is a reportOnly budget', !OBR17.some(r => r.scope === 'obbba' && e.bae.reportOnly.includes(normKey(r.name))
+        && !OBR17.some(x => x.scope === 'in' && normKey(x.name) === normKey(r.name))));
+      eq('bae-obbba: obbbaElsewhere: Full Fund FY2025 (the pull\'s and the report\'s, by name) and Initial Spares FY2025 (the report\'s)',
+        e.obbbaElsewhere, elsewhereExpect(OBP17, OB17B, 2025));
     }
+  }
+
+  // ================================== §17 FY2025 O&M OBBBA funding, marked in its name or in Budget Flex 02 (CONTRACT §17.4)
+  const O2 = man.obbba2, O2P = O2.pull, O2R = O2.bae.filter(r => r.kind === 'data');
+  // ------------------------------------------- obbba2/ is written last, from its own streams: it moves no other byte
+  for (const f of O2F) chk('the same seed writes the same bytes: ' + f, same(A, B, f));
+  {
+    const E2 = join(S.dir, 'e');
+    const r = py([MAKE, '--out', E2, '--no-obbba2']);
+    chk('make_fixture.py --no-obbba2 ran', r.status === 0, (r.stderr || '').slice(-300));
+    if (r.status === 0) {
+      for (const f of [...files().filter(f => f !== 'manifest.json'), 'obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx'])
+        chk('obbba2/ moves no byte of ' + f, same(A, E2, f));
+      const mA = JSON.parse(readFileSync(join(A, 'manifest.json'), 'utf8')), mE = JSON.parse(readFileSync(join(E2, 'manifest.json'), 'utf8'));
+      const only = 'obbba2' in mA && !('obbba2' in mE);
+      delete mA.obbba2;
+      chk('obbba2/ adds the manifest\'s "obbba2" part and changes nothing else in it', only && JSON.stringify(mA) === JSON.stringify(mE));
+      chk('--no-obbba2 writes no obbba2/', !existsSync(join(E2, 'obbba2')));
+    }
+  }
+  // ------------------------- the Budget Flex columns, read from the report files on their own (openpyxl, never the oracle)
+  const flexOf = (dir, f) => { const r = py(['-c', FLEX_PY, join(dir, f)]); return r.status === 0 ? JSON.parse(r.stdout) : (chk('read the Flex cells of ' + f, false, r.stderr.slice(-400)), null); };
+  for (const f of ['bae.xlsx', 'gen2/bae.xlsx', 'obbba/bae.xlsx']) {
+    const x = flexOf(A, f);
+    if (!x) continue;
+    eq(f + ': one column each headed Budget Flex 01, 02 and 03', x.headers, { 'Budget Flex 01': 1, 'Budget Flex 02': 1, 'Budget Flex 03': 1 });
+    const hit = Object.entries(x.cells).flatMap(([c, v]) => Object.entries(v).filter(([, t]) => OB_RULE.test(String(t))).map(([n, t]) => c + ' row ' + n + ': ' + t));
+    chk(f + ': no Budget Flex cell holds OBBBA, so §17 reads its rows by their names alone', !hit.length, hit.slice(0, 4).join('; '));
+  }
+  {
+    const x = flexOf(A, 'obbba2/bae.xlsx');
+    if (x) {
+      eq('obbba2/bae.xlsx: one column each headed Budget Flex 01, 02 and 03', x.headers, { 'Budget Flex 01': 1, 'Budget Flex 02': 1, 'Budget Flex 03': 1 });
+      const bad = [];
+      for (const r of O2R) for (const [c, k] of [['Budget Flex 01', 'flex01'], ['Budget Flex 02', 'flex02'], ['Budget Flex 03', 'flex03']])
+        if ((x.cells[c][String(r.row)] ?? null) !== (r[k] ?? null)) bad.push(r.row + ' ' + c + ': ' + x.cells[c][String(r.row)] + ', want ' + r[k]);
+      chk('obbba2/bae.xlsx: every row\'s three Budget Flex cells are the manifest\'s', !bad.length, bad.slice(0, 5).join('; '));
+    }
+    // the generator states by hand which Flex 02 cells hold the word and which names do; §17.1's /\bOBBBA\b/i, restated, agrees
+    const off = O2R.filter(r => r.flexWord !== OB_RULE.test(String(r.flex02 ?? ''))).map(r => r.row + ': ' + r.flex02);
+    chk('obbba2/: the generator\'s hand-stated Budget Flex 02 word agrees with §17.1\'s /\\bOBBBA\\b/i on every report row', !off.length, off.join('; '));
+    const offN = Object.entries(O2.names).filter(([n, v]) => v.word !== OB_RULE.test(n)).map(([n]) => n);
+    chk('obbba2/: the generator\'s hand-stated OBBBA word agrees with §17.1\'s /\\bOBBBA\\b/i on every name', !offN.length, offN.join('; '));
+    // the budgets the report marks for pull rows (§17.1): an O&M FY2025 row whose Flex 02 holds the word, by normKey
+    const marks = new Set(O2R.filter(r => r.fy === 2025 && r.ap === 'om' && r.flexWord && !r.bad.length).map(r => normKey(r.name)));
+    eq('obbba2/: the names the manifest says the report marks are its O&M FY2025 rows marked in Budget Flex 02, by normKey',
+      [...new Set(O2.marks.map(normKey))].sort(), [...marks].sort());
+    chk('obbba2/: every pull row\'s `marked` is its budget\'s normKey among them', O2P.every(r => r.marked === marks.has(normKey(r.budget))));
+  }
+  // --------------------------------------------------------------- coverage: every case §17.4 names, and the extra ones
+  {
+    const n2 = (what, pred, min = 1, rows = O2P) => { const n = rows.filter(pred).length; chk(`obbba2/ holds ${what} (${n})`, n >= min, String(n)); };
+    const rep = (what, pred, min = 1) => n2(what, pred, min, O2R);
+    const flexLow = r => r.flexWord && /\bobbba\b/.test(String(r.flex02)) && !/OBBBA/.test(String(r.flex02));
+    rep('O&M FY2025 rows marked in Budget Flex 02 whose names do not hold the word (left out, by Flex 02)',
+      r => r.ap === 'om' && r.fy === 2025 && r.flexWord && !r.word && r.scope === 'obbba' && r.obbbaBy === 'flex02', 3);
+    rep('an O&M FY2025 row whose name holds the word, and its Flex 02 too (left out, by its name)',
+      r => r.ap === 'om' && r.fy === 2025 && r.word && r.flexWord && r.scope === 'obbba' && r.obbbaBy === 'name');
+    rep('an O&M FY2025 row whose name holds the word and its Flex 02 not (left out, by its name)',
+      r => r.ap === 'om' && r.fy === 2025 && r.word && !r.flexWord && r.scope === 'obbba' && r.obbbaBy === 'name');
+    rep('an O&M FY2026 row marked in Budget Flex 02, which counts', r => r.ap === 'om' && r.fy === 2026 && r.flexWord && r.scope === 'in' && r.meant === 'Yes');
+    for (const [ap, w] of [['sp', 'an Initial Spares'], ['ff', 'a Full Fund'], ['opn', 'an OPN']])
+      rep(w + ' FY2025 row marked in Budget Flex 02, which counts', r => r.ap === ap && r.fy === 2025 && r.flexWord && !r.word && r.scope === 'in' && r.meant === 'Yes');
+    rep('Initial Spares and Full Fund FY2025 rows named OBBBA, which count', r => ['sp', 'ff'].includes(r.ap) && r.fy === 2025 && r.word && r.scope === 'in', 2);
+    rep('a Flex 02 holding the word in lower case', r => flexLow(r) && r.scope === 'obbba');
+    rep('every Flex 02 that holds the word holds other text beside it, as a real cell does', r => r.flexWord && String(r.flex02).trim() !== 'OBBBA', O2R.filter(r => r.flexWord).length);
+    rep('the word inside a longer word in Budget Flex 02 (OBBBAX), ordinary', r => /obbba/i.test(String(r.flex02)) && !r.flexWord && !r.word && r.scope === 'in');
+    rep('the word in Budget Flex 01 or 03 only, ordinary', r => (OB_RULE.test(String(r.flex01 ?? '')) || OB_RULE.test(String(r.flex03 ?? ''))) && !r.flexWord && !r.word && r.scope === 'in');
+    chk('obbba2/bae.xlsx: the word in Budget Flex 01 or 03 on one row only', O2R.filter(r => OB_RULE.test(String(r.flex01 ?? '')) || OB_RULE.test(String(r.flex03 ?? ''))).length === 1);
+    rep('a Full Fund Flyaway FY2025 row marked in Flex 02 (Flyaway first)', r => r.flexWord && r.scope === 'flyaway' && r.fy === 2025);
+    rep('a FY2025 row marked in Flex 02 whose name places no appropriation (that first)', r => r.flexWord && r.scope === 'noap' && r.fy === 2025);
+    rep('an O&M FY2025 budget marked in Flex 02 that no pull row uses', r => r.scope === 'obbba' && r.obbbaBy === 'flex02' && !O2P.some(x => normKey(x.budget) === normKey(r.name)));
+    // the pulls
+    const omOut = r => r.ap === 'om' && r.fy === 2025 && !r.bad.length;
+    const byRep = O2P.filter(r => omOut(r) && r.meant.noReport === 'counted' && r.meant.report === 'obbbaReport');
+    chk(`obbba2/ holds O&M FY2025 rows on budgets only the report marks: counted without it, left out with it (${byRep.length})`, byRep.length >= 5);
+    chk('… of two services, both lanes, obligated and not', new Set(byRep.map(r => r.svc)).size >= 2 && new Set(byRep.map(r => r.lane)).size === 2
+      && byRep.some(r => r.status === 'exec') && byRep.some(r => r.status !== 'exec'), JSON.stringify([...new Set(byRep.map(r => r.svc + '/' + r.lane))]));
+    const repNames = new Set(O2R.map(r => r.name));
+    n2('a row on a marked budget spelt otherwise than the report spells it (one budget by normKey)', r => r.marked && !repNames.has(r.budget) && O2R.some(x => normKey(x.name) === normKey(r.budget)));
+    const named = O2P.filter(r => omOut(r) && r.meant.noReport === 'obbba' && r.meant.report === 'obbba');
+    chk(`obbba2/ holds O&M FY2025 rows named OBBBA, left out with or without the report (${named.length})`, named.length >= 3
+      && new Set(named.map(r => r.svc)).size >= 2 && new Set(named.map(r => r.lane)).size === 2 && named.some(r => r.status === 'exec') && named.some(r => r.status !== 'exec'));
+    n2('O&M FY2025 ordinary rows, so the block stays', r => omOut(r) && r.meant.report === 'counted', 8);
+    n2('an unreadable O&M FY2025 row on a marked budget (unreadable first)', r => r.ap === 'om' && r.fy === 2025 && r.marked && r.bad.length && r.meant.report === 'unreadable');
+    n2('Initial Spares FY2025 rows on the budget the report marks in Flex 02, named without the word, which count',
+      r => r.ap === 'sp' && r.fy === 2025 && !r.word && O2R.some(x => x.flexWord && x.fy === 2025 && normKey(x.name) === normKey(r.budget)) && r.meant.report === 'counted', 2);
+    n2('Initial Spares FY2025 rows named OBBBA, which count', r => r.ap === 'sp' && r.fy === 2025 && r.word && r.meant.report === 'counted', 2);
+    n2('Full Fund FY2025 rows named OBBBA, which count', r => r.ap === 'ff' && r.fy === 2025 && r.word && r.meant.report === 'counted', 2);
+    n2('O&M FY2026 rows on a budget the report marks for FY2025, which count', r => r.ap === 'om' && r.fy === 2026 && r.marked && r.meant.report === 'counted');
+    n2('O&M FY2025 rows on a budget the report marks in FY2026 only, which count',
+      r => omOut(r) && !r.marked && O2R.some(x => x.flexWord && x.fy === 2026 && normKey(x.name) === normKey(r.budget)) && r.meant.report === 'counted');
+    n2('O&M FY2025 rows on a budget whose marked report row names no appropriation (the sheet places them in O&M), which count',
+      r => omOut(r) && O2R.some(x => x.flexWord && x.scope === 'noap' && normKey(x.name) === normKey(r.budget)) && r.meant.report === 'counted');
+    n2('O&M FY2025 rows on budgets whose report rows hold OBBBAX in Flex 02, or the word in Flex 01 and 03 only, which count',
+      r => omOut(r) && O2R.some(x => normKey(x.name) === normKey(r.budget) && x.fy === 2025 && !x.flexWord && /obbba/i.test([x.flex01, x.flex02, x.flex03].join(' '))) && r.meant.report === 'counted', 4);
+    const els = O2P.filter(r => r.elsewhere);
+    chk(`obbba2/: counted OBBBA rows outside O&M (obbbaElsewhere's pull side) of two services and both lanes, obligated and not (${els.length})`,
+      new Set(els.map(r => r.svc)).size >= 2 && new Set(els.map(r => r.lane)).size === 2 && els.some(r => r.status === 'exec') && els.some(r => r.status !== 'exec'));
+    const remain = Object.keys(fromManifest(ob2Pull(O2P, true), { asOf: '2026-10', first: 2025 }).blocks).sort(blockOrder);
+    eq('obbba2/: the blocks that remain with the report (O&M FY2025 stays)', remain, ['om|2025', 'om|2026', 'om|2027', 'ff|2025', 'ff|2026', 'sp|2025', 'sp|2026', 'opn|2025']);
+    chk('obbba2/bae.xlsx: ordinary rows cover every block that remains', remain.every(k => O2R.some(r => r.scope === 'in' && !r.bad.length && r.ap + '|' + r.fy === k)));
+    eq('obbba2/: the report\'s rows are meant as §14.6 and §17.3 word them', [...new Set(O2R.map(r => r.meant))].sort(),
+      ['FY2025 O&M OBBBA funding (not a reporting year)', 'FY2025 O&M OBBBA funding (not a reporting year), marked in Budget Flex 02', 'Flyaway (production)', 'Names no appropriation', 'Yes']);
+  }
+  // ------------------------------------------ the oracle's reading of obbba2/, against the generator's record (§17.4)
+  const O2_SC = { obbba2: [{ asOf: '2026-10', first: 2025 }, false], 'bae-obbba2': [{ asOf: '2026-10', first: 2025 }, true],
+    'bae-obbba2-first-2026': [{ asOf: '2026-10', first: 2026 }, true], 'bae-obbba2-usaf-off': [{ asOf: '2026-10', first: 2025, svcOff: ['USAF'] }, true] };
+  // the plan the report leaves (its marked O&M FY2025 rows out), stated by their names in a copy of obbba2/pull-om.xlsx, run
+  // with no report: every figure of the plan the report-scenario holds must be this run's (compareBae's "plain")
+  function plain2(dir, man2, o, tag) {
+    const rows = man2.pull.filter(r => r.file === 'obbba2/pull-om.xlsx' && r.by === 'report').map(r => r.row);
+    const rd = join(S.dir, 'rn-' + tag);
+    mkdirSync(rd, { recursive: true });
+    const r1 = py(['-c', RENAME_PY, join(dir, 'obbba2', 'pull-om.xlsx'), join(rd, 'pull-om.xlsx'), JSON.stringify(rows)]);
+    if (r1.status !== 0) { chk(tag + ': the renamed plan was written', false, r1.stderr.slice(-300)); return null; }
+    const out = join(rd, 'plain.json');
+    const r2 = py([ORACLE, '--files', join(rd, 'pull-om.xlsx'), join(dir, 'obbba2', 'pull-ff.csv'), join(dir, 'obbba2', 'pull-sp.xlsx'),
+      '--first', String(o.first), ...(o.svcOff ? ['--svc-off', ...o.svcOff] : []), '--out', out]);
+    if (r2.status !== 0) { chk(tag + ': the renamed plan ran', false, r2.stderr.slice(-300)); return null; }
+    return JSON.parse(readFileSync(out, 'utf8'));
+  }
+  function obbba2Against(tag, dir, man2, ex2) {
+    const P2 = man2.pull, R2b = man2.bae.filter(r => r.kind === 'data');
+    for (const [s, [o, report]] of Object.entries(O2_SC)) {
+      const e = ex2[s] = oracle(dir, s);
+      if (!e) continue;
+      const t = tag + s, rows = ob2Pull(P2, report);
+      if (!report) { againstManifest(t, e, fromManifest(rows, o)); structure(t, e); }
+      obbbaAgainst(t, e, rows, o);
+      eq(t + ': obbbaElsewhere (§17.2), the generator\'s', e.obbbaElsewhere, elsewhereExpect(P2, report ? R2b : [], o.first));
+      eq(t + ': the settings it was run with', [e.firstFY, e.input.svcOff, e.input.files],
+        [o.first, o.svcOff || [], ['pull-om.xlsx', 'pull-ff.csv', 'pull-sp.xlsx', ...(report ? ['bae.xlsx'] : [])]]);
+      if (!report) continue;
+      const pl = plain2(dir, man2, o, (tag + s).replace(/\W+/g, '_'));
+      if (pl) {
+        // the plan as the report leaves it, held to the generator's record (the marked rows out) as every plain run is
+        againstManifest(t + ' (its plan)', pl, fromManifest(rows, o));
+        structure(t + ' (its plan)', pl);
+        // the renamed plan leaves out by name exactly the rows the report leaves out by its marks; only each budget's key,
+        // name and `by` differ, and excluded.obbba itself is held to the generator's record above (obbbaAgainst)
+        const fig = x => x && Object.assign({}, x, { budgets: x.budgets.map(b => [b.ap, b.rows, b.cents, b.obligated]) });
+        eq(t + ': the plan with the report\'s marked rows renamed to carry the word leaves out the same rows', fig(pl.excluded.obbba), fig(e.excluded.obbba));
+        pl.excluded = Object.assign({}, pl.excluded, { obbba: e.excluded.obbba });
+      }
+      compareBae(t, e, baeExpect(rows, man2.bae, man2.budgetPmo, o), pl);
+      eq(t + ': bae.obbbaBy: every report row of scope obbba, how it is marked (§17.2)', e.bae.obbbaBy, R2b.filter(r => r.scope === 'obbba').map(r => [r.row, r.obbbaBy]));
+    }
+    const a = ex2.obbba2, b = ex2['bae-obbba2'], u = ex2['bae-obbba2-usaf-off'], f = ex2['bae-obbba2-first-2026'];
+    if (a && b) {
+      // the report changes which pull rows count on O&M FY2025 alone, and there by exactly the rows it marks
+      const marked = P2.filter(r => r.by === 'report' && !r.bad.length);
+      for (const k of Object.keys(a.blocks)) {
+        if (k !== 'om|2025') eq(tag + 'bae-obbba2 ' + k + ': the report leaves this block\'s plan as it is', b.blocks[k] && b.blocks[k].planned, a.blocks[k].approved);
+        else eq(tag + 'bae-obbba2 om|2025: the report takes out of the plan exactly the rows it marks', b.blocks[k] && b.blocks[k].planned,
+          a.blocks[k].approved - sum(marked.map(r => r.cents)));
+      }
+      chk(tag + 'obbba2: with no report the marked budgets\' O&M FY2025 rows count; with it they are left out, by "report"',
+        marked.length >= 5 && !a.excluded.obbba.budgets.some(x => x.by === 'report') && b.excluded.obbba.budgets.some(x => x.by === 'report'));
+    }
+    if (b && u) {
+      eq(tag + 'bae-obbba2-usaf-off: excluded.obbba is the same whatever the switches', u.excluded.obbba, b.excluded.obbba);
+      eq(tag + 'bae-obbba2-usaf-off: obbbaElsewhere is the same whatever the switches', u.obbbaElsewhere, b.obbbaElsewhere);
+      chk(tag + 'bae-obbba2-usaf-off: a USAF budget the report marks is among those left out', u.excluded.obbba.budgets.some(x => x.by === 'report'
+        && P2.some(r => normKey(r.budget) === x.key && r.svc === 'USAF')));
+    }
+    if (f) {
+      eq(tag + 'bae-obbba2-first-2026: every FY2025 row is before the First FY instead: excluded.obbba is §15.2\'s zeros', f.excluded.obbba,
+        { rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] });
+      eq(tag + 'bae-obbba2-first-2026: obbbaElsewhere is [] (no OBBBA money of FY2025 counts)', f.obbbaElsewhere, []);
+    }
+  }
+  const ex2 = {};
+  obbba2Against('', A, O2, ex2);
+  // §17.1 on the report's shape, the oracle against itself: a report with no Budget Flex 02 column is read by its names alone
+  // (the pull rows its Flex 02 marked count again, exactly as with no report); a second column headed Budget Flex 02, holding
+  // the word on every row, changes nothing (the first is read)
+  {
+    const run = (mode) => {
+      const d = join(S.dir, 'fx-' + mode);
+      mkdirSync(d, { recursive: true });
+      const r1 = py(['-c', FLEXCOL_PY, join(A, 'obbba2', 'bae.xlsx'), join(d, 'bae.xlsx'), mode]);
+      if (r1.status !== 0) { chk('the report copy (' + mode + ') was written', false, r1.stderr.slice(-300)); return null; }
+      const out = join(d, 'exp.json');
+      const r2 = py([ORACLE, '--files', join(A, 'obbba2', 'pull-om.xlsx'), join(A, 'obbba2', 'pull-ff.csv'), join(A, 'obbba2', 'pull-sp.xlsx'), join(d, 'bae.xlsx'), '--out', out]);
+      return r2.status === 0 ? JSON.parse(readFileSync(out, 'utf8')) : (chk('the oracle read the report copy (' + mode + ')', false, r2.stderr.slice(-300)), null);
+    };
+    const dropped = run('drop'), dup = run('dup');
+    if (dropped && ex2.obbba2) {
+      eq('a report with no Budget Flex 02 column: the pull rows are judged by their names alone (excluded.obbba and every Counted reason as with no report)',
+        [dropped.excluded.obbba, dropped.rawCounted], [ex2.obbba2.excluded.obbba, ex2.obbba2.rawCounted]);
+      eq('… and its own rows by their names alone (bae.obbbaBy)', dropped.bae.obbbaBy, O2R.filter(r => r.scope === 'obbba' && r.obbbaBy === 'name').map(r => [r.row, 'name']));
+    }
+    if (dup && ex2['bae-obbba2']) eq('a second column headed Budget Flex 02, holding the word on every row, changes nothing: the first is read',
+      JSON.stringify(dup), JSON.stringify(Object.assign({}, ex2['bae-obbba2'], { input: dup.input })));
   }
 
   // ---------------------------------------------------------------------------- refusals (§3: nothing changes)
@@ -1160,12 +1470,15 @@ try {
     for (const [s, o] of Object.entries(OB_SC)) {
       const e = p7[s] = oracle(C, s);
       if (!e) continue;
-      againstManifest('seed 7 ' + s, e, fromManifest(O7.pull, o));
+      againstManifest('seed 7 ' + s, e, fromManifest(ob17Pull(O7.pull, O7.names), o));
       structure('seed 7 ' + s, e);
-      obbbaAgainst('seed 7 ' + s, e, O7.pull, o);
+      obbbaAgainst('seed 7 ' + s, e, ob17Pull(O7.pull, O7.names), o);
+      eq('seed 7 ' + s + ': obbbaElsewhere (§17.2)', e.obbbaElsewhere, elsewhereExpect(ob17Pull(O7.pull, O7.names), [], o.first));
     }
-    compareBae('seed 7 bae-obbba', oracle(C, 'bae-obbba'), baeExpect(O7.pull, O7.bae, O7.budgetPmo, { asOf: '2026-10', first: 2025 }), p7.obbba);
+    compareBae('seed 7 bae-obbba', oracle(C, 'bae-obbba'), baeExpect(ob17Pull(O7.pull, O7.names), ob17Bae(O7.bae, O7.names), O7.budgetPmo, { asOf: '2026-10', first: 2025 }), p7.obbba);
   }
+  // §17 on another seed's obbba2/: the same rules, whatever rows the seed draws
+  obbba2Against('seed 7 ', C, man7.obbba2, {});
 } catch (e) {
   chk('the test ran to the end', false, e && e.stack || String(e));
 } finally {

@@ -11,7 +11,8 @@
 #                        --out expected.json [--summary]
 #   python3 -I oracle.py --scenario all|usaf-off|mand-only|disc-only|asof-2026-03|first-2024|gen2|layout|
 #                        bae-all|bae-usaf-off|bae-mand-only|bae-entered|bae-entered-off|bae-asof-2027-10|bae-gen2|
-#                        obbba|obbba-usaf-off|obbba-first-2026|bae-obbba
+#                        obbba|obbba-usaf-off|obbba-first-2026|bae-obbba|
+#                        obbba2|bae-obbba2|bae-obbba2-first-2026|bae-obbba2-usaf-off
 #                        --fixture DIR --out expected.json
 # A BAE report is one of the --files (or --then): it is known by its headers (§14.1), never by its name.
 #
@@ -58,19 +59,28 @@
 #   one the report does not cover (basis 'row'), with sect, planned and offObligated; aps and summary add planned and
 #   marks; "bae" is model.bae (with offReport, review M4-6), and §16.3's split and unassigned, and pmoColumn
 #   [[rowNo, the BAE Report sheet's PMO column]] (§16.2); "diffBae" follows a second report.
-# §15 (FY2025 OBBBA funding is left out), and only when a pull or the report holds a row the predicate names (its
-# budget name holds the word OBBBA and its FY reads 2025, readable or not, whatever First FY), so every scenario without
-# one is byte for byte what it was before §15 (READING: absent reads as §15.2's zeros):
+# §15 (FY2025 OBBBA funding is left out) as §17 amends it (Brad, 11 Nov 2026: "leave out OBBBA funding for O&M but leave
+# it in for Spares"): FY2025 O&M OBBBA funding is a row of appropriation O&M and FY 2025 marked OBBBA, by the word in its
+# budget name or, for a report row, in its Budget Flex 02 cell, or, for a pull row, by a loaded report's O&M FY2025 row
+# of the same budget whose Budget Flex 02 holds it. The keys below are written only when a pull or the report holds a row
+# the §17.1 predicate names (readable or not, whatever First FY), so every scenario without one is byte for byte what it
+# was before §15 (READING: absent reads as §15.2's zeros, and obbbaElsewhere as []):
 #   excluded.obbba {rows, cents, obligated, blocks [{ap, fy, rows, cents, obligated}], budgets [{key, name, ap, rows,
-#             cents, obligated}]}   the rows §4.3 sets aside for condition 4 (readable, identified, fy >= firstFY), every
-#             switch whatever; blocks in model order, budgets one per normKey, first spelling, in row order
+#             cents, obligated, by}]}   the rows §4.3 sets aside for condition 4 (readable, identified, fy >= firstFY),
+#             every switch whatever; blocks in model order, budgets one per normKey, first spelling, in row order, `by`
+#             'name' | 'report' (§17.2); only O&M can be named
 #   rawCounted {ap: [[fileIndex, sheet, rowNo, why]]}   every pull row (unidentified ones under "unidentified"), in pull
-#             order, by the first §4.3 condition it fails: 'unreadable', 'unidentified', 'beforeFirst', 'obbba', 'switch',
-#             else 'yes'. The raw data sheet's Counted for 'obbba' reads "No: FY2025 OBBBA funding (not a reporting year)"
-#             (§15.4); the other words are the tool's, which the contract does not spell. A CSV's sheet is its file name.
-#   with a report: bae.rows.obbba (readable rows of scope 'obbba'), noBlock[].obbba = true (written only when true:
-#             READING, so a noBlock entry without it is byte for byte §14's), and bae.counted gives such a row
-#             "FY2025 OBBBA funding (not a reporting year)".
+#             order, by the first §4.3 condition it fails: 'unreadable', 'unidentified', 'beforeFirst', 'obbba' (its
+#             name marks it), 'obbbaReport' (only the report's Budget Flex 02 marks its budget), 'switch', else 'yes'. The
+#             raw data sheet's Counted reads "No: FY2025 O&M OBBBA funding (not a reporting year)" for 'obbba' and adds
+#             ", marked in the BAE report's Budget Flex 02" for 'obbbaReport' (§15.4, §17.3); the other words are the
+#             tool's, which the contract does not spell. A CSV's sheet is its file name.
+#   obbbaElsewhere [{ap, fy, pull {rows, cents, obligated}, report {rows, approved, authorized, byName, byFlex02}}]
+#             §17.2: the OBBBA money that counts, per (ap, fy) of another appropriation, FY2025 only, in model order
+#   with a report: bae.rows.obbba (readable rows of scope 'obbba'), bae.obbbaBy [[rowNo, 'name' | 'flex02']] for every
+#             row of scope 'obbba' (readable or not, §17.2), noBlock[].obbba = true (written only when true: READING, so a
+#             noBlock entry without it is byte for byte §14's), and bae.counted gives such a row "FY2025 O&M OBBBA
+#             funding (not a reporting year)", with ", marked in Budget Flex 02" when its name does not hold the word.
 # A refused first import writes {"refused": why, "stage": "files"} instead, and exits 3.
 import argparse
 import csv
@@ -116,16 +126,26 @@ MONTH_ABBR = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oc
 EPS = 1e-12
 
 
-# §15.1: FY2025 OBBBA funding. One predicate, used by every reader here. READING: \b and the case-folding are
-# JavaScript's for /\bOBBBA\b/i (ASCII word characters, ASCII letters folded), so re.ASCII.
+# §17.1 (replacing §15.1): FY2025 O&M OBBBA funding. One predicate, used by every reader here, with one helper for a
+# stored report row's Budget Flex 02 cell and one for the set of budgets the report marks (below, by read_bae). READING:
+# \b and the case-folding are JavaScript's for /\bOBBBA\b/i (ASCII word characters, ASCII letters folded), so re.ASCII.
 OBBBA_FY = 2025
 OBBBA_RE = re.compile(r'\bOBBBA\b', re.I | re.A)
-OBBBA_WHY = 'FY2025 OBBBA funding (not a reporting year)'
+OBBBA_WHY = 'FY2025 O&M OBBBA funding (not a reporting year)'                   # §15.4 as §17.3 words it
+OBBBA_WHY_FLEX = OBBBA_WHY + ', marked in Budget Flex 02'                      # §17.3: a report row marked by Flex 02 alone
+FLEX02 = 'budget flex 02'      # §17.1: the column's header, compared as §14.1 compares the four it reads
 
 
-def is_obbba25(name, fy):
-    """§15.1 SP.isObbba25: the budget name holds the word OBBBA (whole word, any case) and the FY is 2025."""
-    return fy == OBBBA_FY and bool(OBBBA_RE.search('' if name is None else str(name)))
+def obbba_word(text):
+    """Whether a text holds the word OBBBA, whole, in any case (§17.1's mark, in a name or a Budget Flex 02 cell)."""
+    return bool(OBBBA_RE.search('' if text is None else str(text)))
+
+
+def is_obbba25(name, fy, ap, mark=False):
+    """§17.1 SP.isObbba25(name, fy, ap, mark): the FY is 2025, the appropriation is O&M, and the word is in the name or
+    the mark holds (for a report row, its Budget Flex 02 holds the word; for a pull row, the loaded report marks its
+    budget). Every other appropriation's OBBBA money is ordinary."""
+    return fy == OBBBA_FY and ap == 'om' and (obbba_word(name) or bool(mark))
 
 
 class Refused(Exception):
@@ -519,6 +539,11 @@ def read_bae(fi, path, sname, src, hi, hrow):
                     cols.setdefault(f, ci)
             if f in cols:
                 break
+    # §17.1: the Budget Flex 02 column, found by its header as the four are (READING: compared as §14.1 compares them, a
+    # trailing unit in parentheses taken off; where two columns are headed so, the first). A report with none is read by
+    # its names alone. It is kept beside the four and never decides whether a row is skipped: a row blank in the four
+    # the tool reads is skipped whatever its Flex 02 says.
+    flex_ci = next((ci for ci, hv in enumerate(hrow) if not is_blank(hv) and bae_header_key(hv) == FLEX02), None)
     it = iter_sheet_rows(src)
     raw, skipped, row_no = [], 0, 0
     for r in it:
@@ -529,6 +554,7 @@ def read_bae(fi, path, sname, src, hi, hrow):
         if all(is_blank(v) for v in vals.values()):
             skipped += 1
             continue
+        vals['_flex02'] = (r[flex_ci] if flex_ci is not None and flex_ci < len(r) else None)
         raw.append((row_no, vals))
     # §14.1 the total row: no Budget Name and no FY, holding amounts, after the last budget row. READING: the first
     # such row after the last named row; any other row with no Budget Name is unreadable.
@@ -557,7 +583,8 @@ def read_bae(fi, path, sname, src, hi, hrow):
         # READING: every '$0.000' read is a conversion, in a row that reads or not (each is a cell read as zero)
         conv['approved'] += ah == 'textZero'
         conv['authorized'] += uh == 'textZero'
-        rows.append({'rowNo': rn, 'name': name, 'fy': fy, 'approved': a, 'authorized': u, 'bad': bad})
+        rows.append({'rowNo': rn, 'name': name, 'fy': fy, 'approved': a, 'authorized': u, 'bad': bad,
+                     'flex02': js_string(v['_flex02'])})
     good = [x for x in rows if not x['bad']]
     if not good:
         raise Refused('the BAE report %s / %s has no readable row' % (os.path.basename(path), sname))
@@ -575,6 +602,22 @@ def read_bae(fi, path, sname, src, hi, hrow):
     return {'fi': fi, 'file': os.path.basename(path), 'sheet': sname, 'stamp': bae_stamp(os.path.basename(path)),
             'headerRow': hi + 1, 'headers': [js_string(h) for h in hrow], 'rows': rows, 'skipped': skipped,
             'conversions': conv, 'total': total, 'totalCheck': check}
+
+
+def flex02_of(x):
+    """§17.1: a stored report row's Budget Flex 02 text ('' when the report has no such column or the cell is blank)."""
+    return x.get('flex02') or ''
+
+
+def bae_marked_keys(bae):
+    """§17.1: the budgets (normKey) the loaded report marks for pull rows: a row of that budget whose FY is 2025, whose
+    appropriation (SP.apOfBudget(name)) is O&M and whose Budget Flex 02 holds the word. Empty with no report.
+    READING: a row whose FY and name read marks its budget whether or not its amounts read (the rule names the budget,
+    the FY, the appropriation and the cell, never the amounts); a row with no name names no budget."""
+    if not bae:
+        return set()
+    return {norm_key(x['name']) for x in bae['rows'] if x['name'] and x['fy'] == OBBBA_FY
+            and ap_of_budget(x['name']) == 'om' and obbba_word(flex02_of(x))}
 
 
 def type_row(vals, extras, src, date1904):
@@ -713,6 +756,7 @@ class Model:
             cy, cm = ey, em
         self.closed = {c: (c == 'prior' or (c.startswith('m') and int(c[1:]) <= self.asof_idx)) for c in COLS}
         self.special = {norm_key(s) for s in settings['special']}
+        self.marked = set()          # §17.1: the budgets the loaded report marks (bae_marked_keys); none with no report
 
     def col_of(self, date):
         if date == '':
@@ -727,11 +771,15 @@ class Model:
     def shown(self, r):
         return self.view['svc'].get(r['svc'], True) and self.view['lane'].get(r['lane'], True)
 
+    def ob(self, r):
+        """§17.1 for a derived pull row: FY2025 O&M OBBBA funding, by its own appropriation (§3, §4.1) and its name, or
+        by the loaded report's mark on its budget."""
+        return is_obbba25(r['budget'], r['fy'], r['ap'], norm_key(r['budget']) in self.marked)
+
     def counts(self, r):
         # §4.3: readable, appropriation identified (rows reach here only from an identified pull), fy >= firstFY, not
-        # FY2025 OBBBA funding (§15), shown
-        return (not r['bad']) and r['fy'] >= self.settings['firstFY'] and not is_obbba25(r['budget'], r['fy']) \
-            and self.shown(r)
+        # FY2025 O&M OBBBA funding (§15, §17), shown
+        return (not r['bad']) and r['fy'] >= self.settings['firstFY'] and not self.ob(r) and self.shown(r)
 
     def curve_of(self, ap, n):
         if n <= 0:
@@ -864,6 +912,7 @@ class Model:
 def build(state, settings, view):
     """The expected.json for the current pulls of `state`."""
     m = Model(settings, view)
+    m.marked = bae_marked_keys((state.get('bae') or {}).get('current'))
     out = {'asOf': settings['asOf'], 'E': m.E, 'firstFY': settings['firstFY'], 'asOfIndex': m.asof_idx,
            'window': {'start': m.wstart, 'end': m.wend},
            'special': sorted(m.special)}
@@ -880,7 +929,7 @@ def build(state, settings, view):
     # §9: the seventh switch, Service not identified, exists only when some row would count but for the switches and
     # has no service; the switches a plan has are the ones what is shown is stated over (review S2)
     has_unknown = any(not r['bad'] and r['fy'] is not None and r['fy'] >= settings['firstFY'] and r['svc'] == SVC_UNKNOWN
-                      and not is_obbba25(r['budget'], r['fy']) for ap in AP_IDS for r in derived[ap])
+                      and not m.ob(r) for ap in AP_IDS for r in derived[ap])
     exist = SERVICES + ([SVC_UNKNOWN] if has_unknown else [])
     out['shown'] = {'services': [s for s in exist if view['svc'].get(s, True)],
                     'lanes': [l for l in ('disc', 'mand') if view['lane'].get(l, True)]}
@@ -897,10 +946,11 @@ def build(state, settings, view):
         rows = derived[ap]
         # READING: a block exists for every (ap, fy >= firstFY) holding any row whose FY is readable, whatever the
         # switches; a row whose amount alone is unreadable names its block too. The fixture's unreadable-amount rows
-        # sit in blocks that have other rows, so this reading changes no expected value. §15.2: FY2025 OBBBA funding
-        # names no block, read or not ("this one would be left out if it read").
+        # sit in blocks that have other rows, so this reading changes no expected value. §15.2: FY2025 O&M OBBBA
+        # funding names no block, read or not ("this one would be left out if it read"), its mark the name's or the
+        # report's (§17.1).
         keys = sorted({r['fy'] for r in rows if r['fy'] is not None and r['fy'] >= settings['firstFY']
-                       and not is_obbba25(r['budget'], r['fy'])})
+                       and not m.ob(r)})
         for fy in keys:
             brows = [r for r in rows if r['fy'] == fy and m.counts(r)]
             b = m.figures(ap, fy, brows)
@@ -931,9 +981,9 @@ def build(state, settings, view):
         else:
             excluded['unidentified'] += r['cents']
             excluded['unidentifiedRows'] += 1
-    ob_loaded = obbba_loaded(state)
+    ob_loaded = obbba_loaded(state, m.marked)
     if ob_loaded:
-        excluded['obbba'] = obbba_excluded(derived, settings)
+        excluded['obbba'] = obbba_excluded(derived, settings, m)
     out['showNoDate'] = show_nodate
     out['blocks'] = blocks
     aps = {}
@@ -985,39 +1035,48 @@ def build(state, settings, view):
     out['rowsByAp'] = {ap: len(state['current'][ap]) for ap in AP_IDS + ['unidentified'] if ap in state['current']}
     if ob_loaded:
         out['rawCounted'] = raw_counted(derived, m, settings)
+    elsewhere = obbba_elsewhere(derived, (state.get('bae') or {}).get('current'), settings)
+    if ob_loaded or elsewhere:
+        out['obbbaElsewhere'] = elsewhere
     if (state.get('bae') or {}).get('current'):
         bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded)
     return out
 
 
-# ---------------------------------------------------------------------------------------- §15 FY2025 OBBBA funding
-def obbba_loaded(state):
-    """Whether any loaded row is one the §15.1 predicate names: a current pull row (any appropriation, unidentified
-    included, read or not) or a current report row, by its name and the FY it reads."""
-    for rows in state['current'].values():
-        if any(is_obbba25(r['budget'], r['fy']) for r in rows):
+# ---------------------------------------------------------------- §15 FY2025 OBBBA funding, read as §17 amends it
+def obbba_loaded(state, marked):
+    """Whether any loaded row is one the §17.1 predicate names: a current pull row of an identified appropriation (read or
+    not, whatever First FY), by its appropriation, the FY it reads, its name and the report's marks (`marked`), or a
+    current report row, by its name's appropriation, its FY, its name and its own Budget Flex 02. A row whose
+    appropriation is not identified is never one (the predicate asks for O&M)."""
+    for ap in AP_IDS:
+        if any(is_obbba25(r['budget'], r['fy'], ap, norm_key(r['budget']) in marked) for r in state['current'].get(ap, [])):
             return True
     bae = (state.get('bae') or {}).get('current')
-    return bool(bae) and any(is_obbba25(x['name'], x['fy']) for x in bae['rows'])
+    return bool(bae) and any(is_obbba25(x['name'], x['fy'], ap_of_budget(x['name']) if x['name'] else None,
+                                        obbba_word(flex02_of(x))) for x in bae['rows'])
 
 
-def obbba_excluded(derived, settings):
+def obbba_excluded(derived, settings, m):
     """§15.2 M.excluded.obbba: the rows §4.3 sets aside for condition 4, every switch whatever. A row is set aside for
     the first condition it fails, so an unreadable one is unreadable, one whose appropriation is not identified is
     that, and one before First FY is that. READING: budgets in row order is the oracle's one row order (appropriation
     order, then pull order), which is the import's own order when the files list the appropriations in that order, as
-    every §15 scenario does; a budget met in two appropriations (by sheet name alone) takes its first row's."""
+    every §15 and §17 scenario does. §17.2: only O&M can be named; each budget carries `by`, 'name' when the pull's name
+    holds the word, else 'report' (READING: from the budget's first spelling; every spelling of one normKey holds the
+    word alike, so it is the budget's)."""
     first = settings['firstFY']
     out = {'rows': 0, 'cents': 0, 'obligated': 0, 'blocks': [], 'budgets': []}
     blocks, budgets = {}, {}
     for ap in AP_IDS:
         for r in derived[ap]:
-            if r['bad'] or r['fy'] < first or not is_obbba25(r['budget'], r['fy']):
+            if r['bad'] or r['fy'] < first or not m.ob(r):
                 continue
             ob = r['cents'] if r['status'] == 'exec' else 0
             b = blocks.setdefault((ap, r['fy']), {'ap': ap, 'fy': r['fy'], 'rows': 0, 'cents': 0, 'obligated': 0})
             k = norm_key(r['budget'])
-            u = budgets.setdefault(k, {'key': k, 'name': r['budget'], 'ap': ap, 'rows': 0, 'cents': 0, 'obligated': 0})
+            u = budgets.setdefault(k, {'key': k, 'name': r['budget'], 'ap': ap, 'rows': 0, 'cents': 0, 'obligated': 0,
+                                       'by': 'name' if obbba_word(r['budget']) else 'report'})
             for t in (out, b, u):
                 t['rows'] += 1
                 t['cents'] += r['cents']
@@ -1043,14 +1102,57 @@ def raw_counted(derived, m, settings):
                 why = 'unidentified'
             elif r['fy'] < first:
                 why = 'beforeFirst'
-            elif is_obbba25(r['budget'], r['fy']):
-                why = 'obbba'
+            elif m.ob(r):
+                why = 'obbba' if obbba_word(r['budget']) else 'obbbaReport'      # §17.3: marked by its name, or by the report
             else:
                 why = 'yes' if m.shown(r) else 'switch'
             lst.append([r['src'][0], r['src'][1], r['src'][2], why])
         if lst:
             out[ap] = lst
     return out
+
+
+def obbba_elsewhere(derived, bae, settings):
+    """§17.2 M.obbbaElsewhere: the OBBBA money that counts, per (ap, fy) that is not O&M FY2025, in FY 2025 only, in model
+    order: the pull's rows whose name holds the word, and the report's rows whose name or Budget Flex 02 holds it.
+    READING, each, where §17.2 leaves it open: "counts" is every condition §4.3 and §14.2 set before the switches, so a
+    pull row is readable, of an identified appropriation and of a FY >= First FY, and a report row readable, of scope
+    'in' (Flyaway and a name that places no appropriation never count) and of a FY >= First FY; neither follows the
+    switches, as excluded.obbba does not (§15.2); a pull row is marked by its own name alone (the report's mark reaches
+    O&M pull rows only); byName counts the report rows whose name holds the word and byFlex02 those marked in Budget
+    Flex 02 alone (§17.2's obbbaBy), so the two add up to rows; an (ap, fy) with money on one side only has zeros on the
+    other."""
+    first = settings['firstFY']
+    if OBBBA_FY < first:
+        return []
+    ent = {}
+
+    def entry(ap):
+        return ent.setdefault(ap, {'ap': ap, 'fy': OBBBA_FY, 'pull': {'rows': 0, 'cents': 0, 'obligated': 0},
+                                   'report': {'rows': 0, 'approved': 0, 'authorized': 0, 'byName': 0, 'byFlex02': 0}})
+    for ap in AP_IDS:
+        if ap == 'om':
+            continue
+        for r in derived[ap]:
+            if r['bad'] or r['fy'] != OBBBA_FY or not obbba_word(r['budget']):
+                continue
+            p = entry(ap)['pull']
+            p['rows'] += 1
+            p['cents'] += r['cents']
+            p['obligated'] += r['cents'] if r['status'] == 'exec' else 0
+    for x in (bae['rows'] if bae else []):
+        if x['bad'] or x['fy'] != OBBBA_FY:
+            continue
+        ap, scope = bae_scope(x['name'], x['fy'], flex02_of(x))
+        named, flexed = obbba_word(x['name']), obbba_word(flex02_of(x))
+        if scope != 'in' or ap == 'om' or not (named or flexed):
+            continue
+        t = entry(ap)['report']
+        t['rows'] += 1
+        t['approved'] += x['approved']
+        t['authorized'] += x['authorized']
+        t['byName' if named else 'byFlex02'] += 1
+    return [ent[ap] for ap in AP_IDS if ap in ent]
 
 
 def diff_pulls(prev, cur, settings):
@@ -1105,17 +1207,17 @@ def diff_pulls(prev, cur, settings):
 
 
 # --------------------------------------------------------------------------------------------- §14.2 a budget row
-def bae_scope(name, fy=None):
+def bae_scope(name, fy=None, flex=''):
     """(ap, scope): ap by the §3 Budget rule alone (no sheet name); scope 'flyaway' when the name holds the word
     Flyaway (READING: in any case, as every other name rule of §3 is), else 'noap' when no appropriation, else 'obbba'
-    when the row is FY2025 OBBBA funding (§15.3: by the name and the FY the row reads; with no FY given, a name's own
-    scope), else 'in'."""
+    when the row is FY2025 O&M OBBBA funding (§15.3, §17.1: by its appropriation, the FY the row reads, its name and its
+    own Budget Flex 02 text `flex`; with no FY given, a name's own scope), else 'in'."""
     ap = ap_of_budget(name) if name else None
     if re.search(r'\bflyaway\b', name or '', re.I):
         return ap, 'flyaway'
     if ap is None:
         return ap, 'noap'
-    return ap, ('obbba' if is_obbba25(name, fy) else 'in')
+    return ap, ('obbba' if is_obbba25(name, fy, ap, obbba_word(flex)) else 'in')
 
 
 def off_kind(budget):
@@ -1166,7 +1268,9 @@ def bae_derive_rows(bae, settings, idx):
     for x in bae['rows']:
         d = dict(x)
         d['key'] = norm_key(x['name'])
-        d['ap'], d['scope'] = bae_scope(x['name'], x['fy'])
+        d['ap'], d['scope'] = bae_scope(x['name'], x['fy'], flex02_of(x))
+        # §17.2: how a row of scope 'obbba' is marked, 'name' when its name holds the word, whatever Flex 02 says
+        d['obbbaBy'] = ('name' if obbba_word(x['name']) else 'flex02') if d['scope'] == 'obbba' else None
         d['svc'], d['lane'] = svc_of(x['name'], settings), lane_of(x['name'], settings)
         d['pmo'] = budget_pmo(x['name'], idx)
         out.append(d)
@@ -1381,14 +1485,14 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
             t['approved'] += x['approved']
             t['authorized'] += x['authorized']
             t['money'] = t['money'] or x['approved'] != 0 or x['authorized'] != 0
-    # §15.3: an (ap, fy) whose pull rows were all FY2025 OBBBA funding (so it would have had a block) carries obbba.
-    # READING: "pull rows" are every row of that appropriation whose FY reads that year, read or not; the flag is
-    # written only when true.
+    # §15.3: an (ap, fy) whose pull rows were all FY2025 O&M OBBBA funding (so it would have had a block) carries obbba.
+    # READING: "pull rows" are every row of that appropriation whose FY reads that year, read or not, each judged by
+    # §17.1 with the report's marks; the flag is written only when true.
     all_ob = {}
     for ap in AP_IDS:
         for r in derived[ap]:
             if r['fy'] is not None:
-                all_ob[(ap, r['fy'])] = all_ob.get((ap, r['fy']), True) and is_obbba25(r['budget'], r['fy'])
+                all_ob[(ap, r['fy'])] = all_ob.get((ap, r['fy']), True) and m.ob(r)
 
     def nb_entry(ap, fy, t):
         e = {'ap': ap, 'fy': fy, 'approved': t['approved'], 'authorized': t['authorized']}
@@ -1420,8 +1524,8 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
             return 'Names no appropriation'
         if x['fy'] < first:
             return 'Before the first FY'
-        if x['scope'] == 'obbba':          # §15.3: after Before the first FY, before Switch off
-            return OBBBA_WHY
+        if x['scope'] == 'obbba':          # §15.3: after Before the first FY, before Switch off; §17.3's words
+            return OBBBA_WHY_FLEX if x['obbbaBy'] == 'flex02' else OBBBA_WHY
         return 'Yes' if m.shown(x) else 'Switch off'
     # READING: a name's scope is the name's (§14.2 without the FY): 'obbba' belongs to a row, its name and FY, so a
     # budget whose first row is FY2025 is not therefore an 'obbba' budget
@@ -1458,6 +1562,8 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
         'budgets': budgets, 'pullBudgetPmo': pull_bpmo,
         'split': split_list, 'unassigned': unassigned_list,
         'pmoColumn': [[x['rowNo'], pmo_column(x, share_of, plabel)] for x in rows]}
+    if ob_loaded:
+        out['bae']['obbbaBy'] = [[x['rowNo'], x['obbbaBy']] for x in rows if x['scope'] == 'obbba']
 
 
 def diff_bae(prev, cur, settings):
@@ -1475,8 +1581,8 @@ def diff_bae(prev, cur, settings):
         for x in bae['rows']:
             if not x['name']:
                 continue
-            ap, scope = bae_scope(x['name'], x['fy'])
-            if scope != 'in':               # Flyaway, naming no appropriation and FY2025 OBBBA funding (§15.3) are out
+            ap, scope = bae_scope(x['name'], x['fy'], flex02_of(x))
+            if scope != 'in':               # Flyaway, naming no appropriation and FY2025 O&M OBBBA funding (§15.3) are out
                 continue
             k = norm_key(x['name'])
             present.add(k)
@@ -1599,6 +1705,16 @@ SCENARIOS = {
     'obbba-usaf-off': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv'], svc_off=['USAF']),
     'obbba-first-2026': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv'], first=2026),
     'bae-obbba': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx']),
+    # §17.4: FY2025 O&M OBBBA funding, marked in its name or in Budget Flex 02. obbba2 is the pulls alone (a pull row is
+    # judged by its own name); bae-obbba2 adds the report, whose Budget Flex 02 marks budgets the pulls' O&M FY2025 rows
+    # use; bae-obbba2-first-2026 makes every FY2025 row a row before First FY; bae-obbba2-usaf-off turns a service off
+    # that marked and left-out rows carry.
+    'obbba2': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx']),
+    'bae-obbba2': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx', 'obbba2/bae.xlsx']),
+    'bae-obbba2-first-2026': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx',
+                                         'obbba2/bae.xlsx'], first=2026),
+    'bae-obbba2-usaf-off': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx',
+                                       'obbba2/bae.xlsx'], svc_off=['USAF']),
 }
 
 

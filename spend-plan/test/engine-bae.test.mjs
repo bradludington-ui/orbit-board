@@ -175,6 +175,13 @@ function compare(sc, M, X, part) {
   same(sc + ': model.bae.split (§16.3)', M.bae.split.map(e => Object.assign({}, e, { pmos: e.pmos.map(p => ({ pmo: p.label, plan: p.plan, approved: p.approved,
     authorized: p.authorized })) })), X.bae.split);
   same(sc + ': model.bae.unassigned (§16.3)', M.bae.unassigned, X.bae.unassigned);
+  // §17.2 how each report row of scope 'obbba' is marked ('name' | 'flex02'), and no other row carries obbbaBy; the oracle
+  // writes the list only where a row the rule names is loaded (absent reads as none)
+  same(sc + ': model.bae.derived[].obbbaBy, row by row (§17.2)', M.bae.derived.filter(d => 'obbbaBy' in d).map(d => [d.rowNo, d.obbbaBy]), X.bae.obbbaBy || []);
+  C.chk(sc + ': only a row of scope obbba carries obbbaBy', M.bae.derived.every(d => ('obbbaBy' in d) === (d.scope === 'obbba')));
+  // §17.2 the OBBBA money that counts outside O&M (the oracle's READING: absent reads as [])
+  same(sc + ': obbbaElsewhere (§17.2)', M.obbbaElsewhere === undefined ? [] : M.obbbaElsewhere, X.obbbaElsewhere || []);
+  if ('obbbaElsewhere' in X) C.chk(sc + ': the model carries obbbaElsewhere where the oracle writes it', Array.isArray(M.obbbaElsewhere), String(M.obbbaElsewhere));
   same(sc + ': the BAE Report sheet’s PMO column, row by row (§16.2)', M.bae.derived.map(d => [d.rowNo, d.goes]), X.bae.pmoColumn);
   same(sc + ': model.bae.unreadable: each row, its name and what could not be read',
     M.bae.unreadable.map(u => ({ rowNo: u.rowNo, name: u.name, bad: u.fields })), X.bae.unreadable);
@@ -379,6 +386,24 @@ try {
   const gO = await importFiles(['obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx']);
   const stO = { current: {}, previous: {}, bae: { current: null, previous: null } };
   apply(stO, gO);
+  // §17.4 bae-obbba2: the obbba2 pulls with their report, whose Budget Flex 02 marks O&M FY2025 budgets (the pulls' rows on
+  // them are left out with the report), and Initial Spares, Full Fund and OPN FY2025 budgets (which count)
+  const gO2 = await importFiles(['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx', 'obbba2/bae.xlsx']);
+  const stO2 = { current: {}, previous: {}, bae: { current: null, previous: null } };
+  apply(stO2, gO2);
+  // §17.1: the report marks O&M FY2025 pull rows of the budgets it marks, so the plan the report leaves is not the pulls with
+  // no report: the invariants' no-report model (M0) is built from the pulls with those rows' Budget named OBBBA, which the
+  // rule leaves out by name alone. Which budgets the report marks is the generator's own record (manifest.json's marks),
+  // never the tool's SP.baeObbbaKeys.
+  const MARKS2 = new Set(man.obbba2.marks.map(normKey));
+  const BUD_I = SP.RAW_HEADERS.map(normKey).indexOf('budget'), FY_I = SP.RAW_HEADERS.map(normKey).indexOf('fy');
+  const asLeft = (pulls, marks) => {
+    if (!marks || !marks.size) return pulls;
+    const out = Object.assign({}, pulls);
+    if (pulls.om) out.om = Object.assign({}, pulls.om, { rows: pulls.om.rows.map(r => r.c[FY_I] === 2025 && marks.has(normKey(r.c[BUD_I]))
+      ? Object.assign({}, r, { c: r.c.map((v, i) => i === BUD_I ? v + ' OBBBA' : v) }) : r) });
+    return out;
+  };
 
   // ============================================================================================ the scenarios (§14.8)
   const SCEN = [
@@ -390,13 +415,17 @@ try {
     { name: 'bae-asof-2027-10', st: st1, part: g1.report.bae, asOf: '2027-10', first: 2025 },
     { name: 'bae-gen2', st: st2, part: g2.report.bae, asOf: '2026-10', first: 2025 },
     { name: 'bae-obbba', st: stO, part: gO.report.bae, asOf: '2026-10', first: 2025 },
+    // §17.4 FY2025 O&M OBBBA funding marked in its name or in Budget Flex 02, a later First FY, and a service off
+    { name: 'bae-obbba2', st: stO2, part: gO2.report.bae, asOf: '2026-10', first: 2025, marks: MARKS2 },
+    { name: 'bae-obbba2-first-2026', st: stO2, part: gO2.report.bae, asOf: '2026-10', first: 2026, marks: MARKS2 },
+    { name: 'bae-obbba2-usaf-off', st: stO2, part: gO2.report.bae, asOf: '2026-10', first: 2025, svcOff: ['USAF'], marks: MARKS2 },
   ];
   const models = {}, plain = {};
   for (const sc of SCEN) {
     const X = oracle(['--scenario', sc.name, '--fixture', tmp.dir], sc.name);
     const s = settingsFor(sc.asOf, sc.first, sc.auth), v = viewFor(sc.svcOff, sc.lanes);
     const M = SP.buildModel(sc.st.current, s, v, sc.st.bae.current);
-    const M0 = SP.buildModel(sc.st.current, s, v);
+    const M0 = SP.buildModel(asLeft(sc.st.current, sc.marks), s, v);
     models[sc.name] = M; plain[sc.name] = M0;
     C.chk(sc.name + ': the oracle and the scenario agree on what was asked', X.asOf === sc.asOf && X.firstFY === sc.first
       && J(X.input.authorized || {}) === J(sc.auth || {}) && J(X.input.svcOff) === J([...(sc.svcOff || [])].sort()));
@@ -413,6 +442,31 @@ try {
     const Mo = models['bae-obbba'];
     C.chk('bae-obbba: its covered blocks hold a budget split among PMOs and money no plan event uses, so §16’s identities are held there too',
       Mo.blocks.some(b => b.covered) && Mo.bae.split.length > 0 && Mo.bae.unassigned.length > 0, J([Mo.bae.split.length, Mo.bae.unassigned.length]));
+  }
+  // §17.4 the obbba2 report makes §17 matter, so the comparisons above could fail: it leaves out O&M FY2025 rows marked only in
+  // Budget Flex 02 (with their pull rows, by:'report') and rows named OBBBA, while Initial Spares, Full Fund and OPN FY2025
+  // money marked either way counts. The report changes the plan on O&M FY2025 alone, by exactly the readable pull rows of
+  // the budgets it marks (summed here from the tool's pull rows, picked by the generator's marks).
+  {
+    const M = models['bae-obbba2'], o = M.excluded.obbba, Mn = SP.buildModel(stO2.current, settingsFor('2026-10', 2025), viewFor());
+    C.chk('bae-obbba2: excluded.obbba is O&M FY2025 alone, with budgets marked by their name and by the report',
+      o.blocks.map(b => b.ap + '|' + b.fy).join() === 'om|2025' && o.budgets.some(t => t.by === 'name') && o.budgets.some(t => t.by === 'report'), J(o));
+    same('bae-obbba2: each budget left out by:\'report\' is one the generator says the report marks, and only those',
+      o.budgets.filter(t => t.by === 'report').map(t => t.key).sort(), o.budgets.filter(t => MARKS2.has(t.key) && !/\bOBBBA\b/i.test(t.name)).map(t => t.key).sort());
+    C.chk('bae-obbba2: report rows of scope obbba marked by name and by Budget Flex 02 alone',
+      M.bae.derived.some(d => d.obbbaBy === 'name') && M.bae.derived.some(d => d.obbbaBy === 'flex02'), J(M.bae.derived.filter(d => d.obbbaBy).map(d => [d.rowNo, d.obbbaBy])));
+    C.chk('bae-obbba2: OBBBA money outside O&M is listed for Initial Spares, Full Fund and OPN FY2025, with report rows by Budget Flex 02',
+      ['sp', 'ff', 'opn'].every(a => (M.obbbaElsewhere || []).some(e => e.ap === a && e.fy === 2025)) && (M.obbbaElsewhere || []).some(e => e.report.byFlex02 > 0), J(M.obbbaElsewhere));
+    const omRows = stO2.current.om.rows.filter(r => !(r.bad && r.bad.length) && r.c[FY_I] === 2025 && MARKS2.has(normKey(r.c[BUD_I])) && !/\bOBBBA\b/i.test(String(r.c[BUD_I])));
+    const marked = sum(omRows.map(r => SP.deriveRow(r, settingsFor('2026-10', 2025)).cents));
+    const bad = [];
+    for (const b of Mn.blocks) {
+      const w = M.blocks.find(x => x.key === b.key);
+      const want = b.key === 'om|2025' ? b.approved - marked : b.approved;
+      if (!w || w.planned !== want) bad.push(b.key + ' planned ' + (w && w.planned) + ', want ' + want);
+    }
+    C.chk('bae-obbba2: the report moves the plan on O&M FY2025 alone, by exactly the pull rows of the budgets its Budget Flex 02 marks', !bad.length && marked > 0 && omRows.length > 0, bad.join('; ') + ' marked ' + marked);
+    C.chk('bae-obbba2: and O&M FY2025 keeps its block (ordinary rows remain)', M.blocks.some(b => b.key === 'om|2025'));
   }
 
   // ============================================================================================ the switches move the

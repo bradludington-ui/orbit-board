@@ -444,6 +444,9 @@ const IMP_BAE_SMALL = 10000000;
 // amounts "Budget Approved Amount ($M)" though the cells hold dollars (the $M is the number format's), so the unit says
 // nothing about the value and is not part of the name.
 function imp_baeKey(v) { return SP.normKey(imp_text(v).replace(/\s*\([^()]*\)$/, '')); }
+// the same comparison for every header of a stored report: §17.1 finds its Budget Flex 02 column (SP.baeFlex02Col) as §14.1
+// finds the four it reads
+SP.baeHeaderKey = imp_baeKey;
 // the header row: the first row numbered 1–15 holding all four; or the row closest to it (two or more of the four), so a
 // sheet that is nearly a report says which header it lacks
 function imp_baeHeader(rows, rowNo) {
@@ -564,6 +567,8 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
   }
   const cols = col.map(j => nameAt.get(j));
   const four = new Set(col);
+  // §17.1 its Budget Flex 02 column, by the headers kept, as every reader of the stored report finds it (SP.baeFlex02Col)
+  const flexCol = SP.baeFlex02Col({ headers });
   const extrasOf = r => {
     const x = Object.create(null);   // keyed by headers out of the file: a column headed __proto__ is a column
     for (let j = 0; j < r.length; j++) if (!four.has(j) && nameAt.has(j) && !imp_isBlank(r[j])) x[nameAt.get(j)] = imp_text(r[j]);
@@ -640,7 +645,7 @@ function imp_baeSheet(fileIdx, fileName, kind, sh, hi) {
       part.readable++;
       part.cents.approved += c[IMP_BAE_APP];
       part.cents.authorized += c[IMP_BAE_AUTH];
-      if (imp_baeObbba(stored)) part.obbba = (part.obbba || 0) + 1;     // §15.3, there only when some is (review P5-6)
+      if (imp_baeObbba(stored, flexCol)) part.obbba = (part.obbba || 0) + 1;     // §15.3, there only when some is (review P5-6)
     }
   }
   // THE TOTAL ROW, CHECKED. It is a sum of floating-point dollars, so each figure agrees when it is within $1 of the
@@ -1072,13 +1077,15 @@ function imp_pullLines(L, report) {
 // is taken as it may be (a report saved by another version draws, never throws).
 //   b  report.bae (parseFiles' part), or null;  kept  the import time of a report kept from an earlier import (baeKeptLines),
 //   whose blank rows and conversions were not kept and are not said
-// §15.3 whether a stored report row is readable FY2025 OBBBA funding, scope 'obbba': read by the model's own judgement of a
-// row (SP.baeDerive, after Flyaway and naming no appropriation) wherever the page has it, so the import's words and the
-// figures never count different rows; the predicate alone where only the import's modules are loaded
-function imp_baeObbba(stored) {
+// §15.3, §17.1 whether a stored report row is readable FY2025 O&M OBBBA funding, scope 'obbba': read by the model's own
+// judgement of a row (SP.baeDerive, after Flyaway and naming no appropriation) wherever the page has it, so the import's
+// words and the figures never count different rows; the predicate alone where only the import's modules are loaded.
+// flexCol: its report's Budget Flex 02 column (SP.baeFlex02Col), the mark the predicate reads beside the name.
+function imp_baeObbba(stored, flexCol) {
   if (!stored || !Array.isArray(stored.c)) return false;
-  if (typeof SP.baeDerive === 'function') { try { const d = SP.baeDerive(stored, null); return d.readable && d.scope === 'obbba'; } catch (e) { return false; } }
-  return !(Array.isArray(stored.bad) && stored.bad.length) && SP.isObbba25(stored.c[0], stored.c[1]);
+  if (typeof SP.baeDerive === 'function') { try { const d = SP.baeDerive(stored, null, undefined, flexCol); return d.readable && d.scope === 'obbba'; } catch (e) { return false; } }
+  const name = imp_text(stored.c[0]), ap = name !== '' ? SP.apOfBudget(name) : null;
+  return !(Array.isArray(stored.bad) && stored.bad.length) && !/\bflyaway\b/i.test(name) && SP.isObbba25(name, stored.c[1], ap, SP.baeFlex02(stored, flexCol));
 }
 function imp_baeLines(L, b, kept) {
   if (!b || typeof b !== 'object') return;
@@ -1102,7 +1109,7 @@ function imp_baeLines(L, b, kept) {
   // the kinds the figures leave out, FY2025 OBBBA funding among them when the report holds some (§15.3; review P5-6: named
   // without it, the sentence read as the whole list while $36.64M of the gap to the sustainment figure was OBBBA rows)
   L.push('  The readable rows hold Approved ' + usd(c.approved) + ' and Authorized ' + usd(c.authorized) + ': every budget in the report, '
-    + 'before Flyaway' + (num(b.obbba) > 0 ? ', FY' + SP.OBBBA_FY + ' OBBBA funding' : '') + ' and the budgets that name no appropriation are left out.');
+    + 'before Flyaway' + (num(b.obbba) > 0 ? ', FY' + SP.OBBBA_FY + ' O&M OBBBA funding' : '') + ' and the budgets that name no appropriation are left out.');
   const ownC = arr(b.ownCols).map(String);
   if (cols.length === 4) L.push('  Columns: ' + SP.fmtInt(num(b.columns)) + ', every one kept as the file has it'
     + (ownC.length ? ', besides this tool’s own ' + imp_list(ownC) + ', which are worked out again on every load and not kept' : '') + '. Read: ' + cols.map(imp_q).join(', ')
@@ -1168,13 +1175,13 @@ SP.baeKeptLines = function baeKeptLines(bae, report) {
   if (report && report.bae && typeof report.bae === 'object' && typeof b.importedAt === 'string' && report.importedAt === b.importedAt) return L;
   const okNum = v => typeof v === 'number' && Number.isSafeInteger(v);
   let readable = 0, approved = 0, authorized = 0, obbba = 0;
-  const unreadable = [];
+  const unreadable = [], flexCol = SP.baeFlex02Col(b);
   for (const r of b.rows) {
     if (!r || !Array.isArray(r.c)) continue;
     if (Array.isArray(r.bad) && r.bad.length) {
       unreadable.push({ row: Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?', reasons: r.bad, name: r.c[0], fy: r.c[1],
         approved: r.c[2], authorized: r.c[3], raw: r.raw && typeof r.raw === 'object' ? r.raw : {} });
-    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; if (imp_baeObbba(r)) obbba++; }
+    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; if (imp_baeObbba(r, flexCol)) obbba++; }
   }
   const t = b.total && typeof b.total === 'object' ? b.total : null;
   const dA = t && okNum(t.approved) ? t.approved - approved : null, dU = t && okNum(t.authorized) ? t.authorized - authorized : null;

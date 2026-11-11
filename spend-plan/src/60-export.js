@@ -634,14 +634,23 @@ function ex_naSheet(M) {
   return K.sh;
 }
 
-// Why a row counts in no figure, by the first §4.3 condition it fails; 'Yes' when it counts.
-function ex_counted(d, M, svcOn, laneOn) {
+// §17.1 the pull budgets the model left out because the BAE report marks them in its Budget Flex 02 (SP.baeObbbaKeys, as
+// SP.buildModel read them): the predicate's mark for a pull row, read off the model the sheets print, so a raw data sheet's
+// Counted can never disagree with the figures over which rows the report took away
+function ex_obMarks(M) {
+  const ob = M && M.excluded && M.excluded.obbba;
+  return new Set((ob && Array.isArray(ob.budgets) ? ob.budgets : []).filter(b => b.by === 'report').map(b => b.key));
+}
+// Why a row counts in no figure, by the first §4.3 condition it fails; 'Yes' when it counts. ap: the pull it is stored in;
+// marks: ex_obMarks(M)
+function ex_counted(d, M, svcOn, laneOn, ap, marks) {
   if (d.bad || !Number.isInteger(d.fy) || !Number.isSafeInteger(d.cents)) {
     return 'No: could not be read (' + (d.bad && d.bad.length ? d.bad.join('; ') : 'FY or Amount') + ')';
   }
   if (d.fy < M.firstFY) return 'No: FY' + d.fy + ' is before the first FY shown (FY' + M.firstFY + ')';
-  // §15.2 condition 4, after condition 3: a FY2025 OBBBA row under a later First FY is before the First FY
-  if (SP.isObbba25(d.budget, d.fy)) return 'No: ' + SP.OBBBA_WHY;
+  // §15.2 condition 4, after condition 3: a FY2025 O&M OBBBA row under a later First FY is before the First FY. §17.3: one
+  // whose own name does not mark it was marked by the report's Budget Flex 02, and says so
+  if (SP.isObbba25(d.budget, d.fy, ap, marks.has(SP.normKey(d.budget)))) return 'No: ' + (SP.obbbaWord(d.budget) ? SP.OBBBA_WHY : SP.OBBBA_WHY_REPORT);
   if (!svcOn.has(d.svc)) return 'No: service switched off (' + d.svc + ')';
   if (!laneOn.has(d.lane)) return 'No: lane switched off (' + (SP.LANE_WORDS[d.lane] || d.lane) + ')';
   return 'Yes';
@@ -660,7 +669,7 @@ function ex_rawSheet(M, a, p, settings) {
   const K = ex_sheet(a.rawSheet, widths, { freeze: 'A2', page: EX_PAGE_DATA });
   delete K.sh.grid;   // a data sheet keeps its gridlines, as v12's raw tabs did
   ex_push(K, heads.map(t => ({ v: t, s: EXS.rHead })), { ht: 21.75 });
-  const svcOn = new Set(M.shown.services), laneOn = new Set(M.shown.lanes);
+  const svcOn = new Set(M.shown.services), laneOn = new Set(M.shown.lanes), marks = ex_obMarks(M);
   const nx = extras.length;
   for (const row of p.rows) {
     if (!row || !Array.isArray(row.c)) continue;
@@ -686,7 +695,7 @@ function ex_rawSheet(M, a, p, settings) {
     cells[32 + nx] = { v: d.svc, s: EXS.rText };
     cells[33 + nx] = { v: SP.LANE_WORDS[d.lane] || d.lane, s: EXS.rText };
     cells[34 + nx] = { v: d.statusLabel || d.status, s: EXS.rText };
-    cells[35 + nx] = { v: ex_counted(d, M, svcOn, laneOn), s: EXS.rText };
+    cells[35 + nx] = { v: ex_counted(d, M, svcOn, laneOn, a.id, marks), s: EXS.rText };
     ex_push(K, cells);
   }
   return K.sh;
@@ -877,12 +886,19 @@ function ex_reportSheet(M, pulls, meta) {
       + '); what each holds that counts nowhere:', s: EXS.lineB }]);
     for (const line of kept) ex_push(K, [{ v: line, s: EXS.line }]);
   }
-  // §15.4 FY2025 OBBBA funding, left out: the view's section, line for line (SP.obbbaLines), when any is loaded
+  // §15.4 FY2025 O&M OBBBA funding, left out: the view's section, line for line (SP.obbbaLines), when any is loaded
   const obl = SP.obbbaLines(M);
   if (obl.length) {
     ex_blank(K);
     ex_push(K, [{ v: SP.OBBBA_HEAD, s: EXS.lineB }]);
     for (const line of obl) ex_push(K, [{ v: '  ' + line, s: EXS.line }]);
+  }
+  // §17.3 the OBBBA money outside O&M, which counts like any other money: the view's list, line for line, when there is any
+  const oel = typeof SP.obbbaElsewhereLines === 'function' ? SP.obbbaElsewhereLines(M) : [];
+  if (oel.length) {
+    ex_blank(K);
+    ex_push(K, [{ v: SP.OBBBA_ELSEWHERE_HEAD, s: EXS.lineB }]);
+    for (const line of oel) ex_push(K, [{ v: '  ' + line, s: EXS.line }]);
   }
   if (bae) {
     // the report on screen when the last import did not bring it: its own section, from its stored rows (SP.baeKeptLines),
@@ -906,13 +922,15 @@ function ex_reportSheet(M, pulls, meta) {
 function ex_noSwitchLine(M, pulls, settings) {
   const allSvc = new Set(SP.SERVICES.concat([SP.SVC_UNKNOWN])), allLane = new Set(['disc', 'mand']);
   let before = 0, unread = 0, unid = 0, obbba = 0;
+  const marks = ex_obMarks(M);
   const each = (rows, f) => { for (const row of Array.isArray(rows) ? rows : []) if (row && Array.isArray(row.c)) f(SP.deriveRow(row, settings)); };
   for (const a of SP.APS) {
     each(pulls && pulls[a.id] && pulls[a.id].rows, d => {
       if (d.svc !== SP.SVC_UNKNOWN) return;
-      const why = ex_counted(d, M, allSvc, allLane);
+      const why = ex_counted(d, M, allSvc, allLane, a.id, marks);
       if (/^No: could not be read/.test(why)) unread++;
-      else if (why === 'No: ' + SP.OBBBA_WHY) obbba++;          // §15.2: left out by its own rule, not before the First FY
+      // §15.2: left out by its own rule, not before the First FY (marked by its name, or by the report, §17.3)
+      else if (why === 'No: ' + SP.OBBBA_WHY || why === 'No: ' + SP.OBBBA_WHY_REPORT) obbba++;
       else if (why !== 'Yes') before++;
     });
   }

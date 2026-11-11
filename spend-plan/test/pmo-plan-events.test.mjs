@@ -510,25 +510,36 @@ try {
   // with a report, against the code before §16 on the same import: §16 moves a covered block's PMO rows (and the words,
   // lists and column that say so) and nothing else. An uncovered block and its PMO rows, every block's own figures, the
   // totals, every PMO's detail, model.bae but for §16's fields, and every sheet §16 does not touch, byte for byte.
+  // §17 (built after §16) says FY2025 O&M OBBBA funding where §15 said FY2025 OBBBA funding (§17.3), states the O&M-only rule in
+  // Settings, records how a budget and a report row are marked (§17.2: excluded.obbba.budgets[].by, derived[].obbbaBy), and
+  // adds model.obbbaElsewhere: the hand-built report's one OBBBA row is O&M (BOB), so no figure moves. Those words and fields
+  // are taken back to §15's on this side only, and the rest must still be the code before §16's. obbba.test.mjs and
+  // obbba-om.test.mjs hold §17's own.
+  const RULE17 = 'FY2025 O&M OBBBA funding is left out of every figure: it is not a reporting year. OBBBA funding of every other appropriation counts '
+    + 'like any other money (Brad, 11 Nov 2026).';
+  const RULE15 = 'FY2025 OBBBA funding is left out of every figure: it is not a reporting year (Brad, 11 Nov 2026).';
+  const as15 = s => s.split(RULE17).join(RULE15).replace(/FY2025 O&M OBBBA/g, 'FY2025 OBBBA');
+  const ex15 = e => { const x = JSON.parse(J(e)); if (x.obbba) for (const b of x.obbba.budgets) delete b.by; return J(x); };
   function asBefore(w, SPb, Pn, Pb, sn, sb, vn, vb, reach = true) {
     const Mr = SP.buildModel(Pn.pulls, sn, vn, withBae(Pn)), Mrb = SPb.buildModel(Pb.pulls, sb, vb, withBae(Pb));
-    for (const f of ['blocks', 'aps', 'naAll', 'excluded', 'shown', 'execAfterAsOf'])
+    for (const f of ['blocks', 'aps', 'naAll', 'shown', 'execAfterAsOf'])
       C.chk(w + ': model.' + f + ' is the one before §16, byte for byte', J(Mr[f]) === J(Mrb[f]));
+    C.chk(w + ': model.excluded is the one before §16, byte for byte (§17.2’s by set aside)', ex15(Mr.excluded) === J(Mrb.excluded));
     C.chk(w + ': the Summary’s TOTAL is the one before §16', J(Mr.summary.total) === J(Mrb.summary.total));
-    C.eq(w + ': the Summary’s notes are the ones before §16, and the one on money no plan event uses', Mr.summary.notes.filter(n => !n.startsWith('The PMO tabs share')),
-      Mrb.summary.notes);
+    C.eq(w + ': the Summary’s notes are the ones before §16 (§17.3’s words aside), and the one on money no plan event uses',
+      Mr.summary.notes.filter(n => !n.startsWith('The PMO tabs share')).map(as15), Mrb.summary.notes);
     const unc = Mx => J(Mx.pmos.map(p => [p.label, p.rows.filter(r => !r.covered)]).filter(x => x[1].length));
     C.chk(w + ': every PMO row of a block the report does not cover is the one before §16', unc(Mr) === unc(Mrb) && (!reach || unc(Mr) !== '[]'), unc(Mr).slice(0, 200));
     const det = Mx => J(Object.fromEntries(Mx.pmos.map(p => [p.label, Object.fromEntries(p.blocks.filter(b => b.tree.length).map(b => [b.key,
       [b.cols, b.cum, b.obl, b.goalC, b.statusC, b.tree, b.na, b.unprog, b.execAfterAsOf, b.planned, b.slide]]))]).filter(([, v]) => Object.keys(v).length)));
     C.chk(w + ': every PMO’s detail under its table (its rows by the PMO column) is the one before §16', det(Mr) === det(Mrb));
-    const baeRest = Mx => { const x = JSON.parse(J(Mx.bae)); delete x.split; delete x.unassigned; for (const d of x.derived || []) delete d.goes; return J(x); };
-    C.chk(w + ': model.bae is the one before §16, but for its split, unassigned and PMO column', baeRest(Mr) === baeRest(Mrb));
+    const baeRest = Mx => { const x = JSON.parse(J(Mx.bae)); delete x.split; delete x.unassigned; for (const d of x.derived || []) { delete d.goes; delete d.obbbaBy; } return J(x); };
+    C.chk(w + ': model.bae is the one before §16, but for its split, unassigned and PMO column (and §17’s words and obbbaBy)', as15(baeRest(Mr)) === baeRest(Mrb));
     const sh = (S, Mx, Px, st) => S.excelSpec(Mx, Px.pulls, st, { report: Px.report, today: TODAY, bae: withBae(Px) }).sheets;
     const a = sh(SP, Mr, Pn, sn), b = sh(SPb, Mrb, Pb, sb);
     const pmoTab = n => /^PMO /.test(n), keep = n => !/^(PMO |Summary$|BAE Report$|Import Report$)/.test(n);
     C.eq(w + ': the same sheets, in the same order, the PMO tabs (§16’s to decide) aside', a.map(x => x.name).filter(n => !pmoTab(n)), b.map(x => x.name).filter(n => !pmoTab(n)));
-    const moved = a.filter(x => keep(x.name)).filter(x => J(x) !== J(b.find(y => y.name === x.name))).map(x => x.name);
+    const moved = a.filter(x => keep(x.name)).filter(x => as15(J(x)) !== J(b.find(y => y.name === x.name))).map(x => x.name);
     C.chk(w + ': every sheet but the Summary, the PMO tabs, the BAE Report and the Import Report is the one before §16, cell for cell',
       moved.length === 0 && a.some(x => keep(x.name) && /^(O&M|Full Fund)$/.test(x.name)), J(moved));
     return { a, b };

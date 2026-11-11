@@ -139,6 +139,10 @@ function compare(sc, M, X) {
   same(sc + ': excluded', Object.assign({ beforeFirst: e.beforeFirst.cents, beforeFirstRows: e.beforeFirst.rows, beforeFirstByFy: e.beforeFirst.byFy,
     unidentified: e.unidentified.cents, unidentifiedRows: e.unidentified.rows, unreadableRows: e.unreadable.rows }, 'obbba' in X.excluded ? { obbba: e.obbba } : {}), X.excluded);
   if (!('obbba' in X.excluded)) same(sc + ': excluded.obbba is §15.2’s zeros where no FY2025 OBBBA row is loaded', e.obbba, { rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] });
+  // §17.2 the OBBBA money that counts outside O&M, per (ap, fy). The oracle writes the list only where a row the rule names is
+  // loaded or the list has an entry (its READING: absent reads as []); where it writes it, the model carries it too, equal
+  same(sc + ': obbbaElsewhere (§17.2)', M.obbbaElsewhere === undefined ? [] : M.obbbaElsewhere, X.obbbaElsewhere || []);
+  if ('obbbaElsewhere' in X) C.chk(sc + ': the model carries obbbaElsewhere where the oracle writes it', Array.isArray(M.obbbaElsewhere), String(M.obbbaElsewhere));
   same(sc + ': execAfterAsOf', M.execAfterAsOf, X.execAfterAsOf);
   same(sc + ': rowsByAp', M.rowsByAp, X.rowsByAp);
   same(sc + ': naAll is every block’s list, in model order',
@@ -303,6 +307,10 @@ try {
   // §15.5 the obbba pulls (O&M FY2025 holding only FY2025 OBBBA rows, Full Fund FY2025 mixing them with ordinary ones)
   const storeO = { current: {}, previous: {} };
   apply(storeO, await importFiles(['obbba/pull-om.xlsx', 'obbba/pull-ff.csv']));
+  // §17.4 the obbba2 pulls alone: O&M FY2025 rows named OBBBA (left out), rows on budgets only the report marks (counted, as
+  // no report is loaded), Initial Spares, Full Fund and OPN FY2025 OBBBA money (counted, listed in obbbaElsewhere)
+  const storeO2 = { current: {}, previous: {} };
+  apply(storeO2, await importFiles(['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx']));
   const SCEN = [
     { name: 'all', store: store1, asOf: '2026-10', first: 2025 },
     { name: 'usaf-off', store: store1, asOf: '2026-10', first: 2025, svcOff: ['USAF'] },
@@ -314,6 +322,8 @@ try {
     { name: 'obbba', store: storeO, asOf: '2026-10', first: 2025 },
     { name: 'obbba-usaf-off', store: storeO, asOf: '2026-10', first: 2025, svcOff: ['USAF'] },
     { name: 'obbba-first-2026', store: storeO, asOf: '2026-10', first: 2026 },
+    // §17.4: the obbba2 pulls with no report, so each pull row is judged by its own name
+    { name: 'obbba2', store: storeO2, asOf: '2026-10', first: 2025 },
   ];
   const models = {};
   for (const sc of SCEN) {
@@ -327,14 +337,32 @@ try {
     if (sc.name === 'gen2') same('gen2: diffPulls, per appropriation in both pulls', diffShape(SP.diffPulls(sc.store.previous, sc.store.current, settingsFor(sc.asOf, sc.first))), X.diff);
   }
   // §15.5 the obbba fixture makes the rule matter, so the comparisons above could fail: the rule takes a whole block away (O&M
-  // FY2025, whose only rows are FY2025 OBBBA funding) and leaves one less its rows (Full Fund FY2025); under First FY 2026
-  // the same rows are before the First FY instead (§4.3: condition 3 first)
+  // FY2025, whose only rows are FY2025 O&M OBBBA funding), and §17 keeps Full Fund FY2025's OBBBA rows (OBBBA funding outside
+  // O&M counts like any other money, listed in obbbaElsewhere); under First FY 2026 the same rows are before the First FY
+  // instead (§4.3: condition 3 first)
   {
     const Mo = models.obbba, Mf = models['obbba-first-2026'];
-    C.chk('obbba: O&M FY2025 has no block, Full Fund FY2025 has one, and the rows left out are on both',
+    C.chk('obbba: O&M FY2025 has no block, Full Fund FY2025 has one, and the rows left out are O&M’s alone (§17)',
       !Mo.blocks.some(b => b.key === 'om|2025') && Mo.blocks.some(b => b.key === 'ff|2025')
-      && Mo.excluded.obbba.blocks.map(b => b.ap + '|' + b.fy).join() === 'om|2025,ff|2025' && Mo.excluded.obbba.obligated > 0, JSON.stringify(Mo.excluded.obbba.blocks));
+      && Mo.excluded.obbba.blocks.map(b => b.ap + '|' + b.fy).join() === 'om|2025' && Mo.excluded.obbba.obligated > 0, JSON.stringify(Mo.excluded.obbba.blocks));
+    C.chk('obbba: Full Fund FY2025’s OBBBA rows count, and are listed as OBBBA money outside O&M (§17.2)',
+      Array.isArray(Mo.obbbaElsewhere) && Mo.obbbaElsewhere.some(e => e.ap === 'ff' && e.fy === 2025 && e.pull.rows > 0), JSON.stringify(Mo.obbbaElsewhere));
     C.chk('obbba-first-2026: none is left out by the rule; they are before the First FY', Mf.excluded.obbba.rows === 0 && Mf.excluded.beforeFirst.byFy['2025'] > 0);
+  }
+  // §17.4 obbba2 without its report: only the O&M FY2025 rows NAMED OBBBA are left out (each budget by:'name'); the O&M
+  // FY2025 rows on budgets only the report marks still count, so O&M FY2025 keeps its block; and the OBBBA money of Initial
+  // Spares, Full Fund and OPN FY2025 counts and is listed. A fixture that could not reach these would make compare() pass for
+  // nothing.
+  {
+    const M2 = models.obbba2, o = M2.excluded.obbba, mk = new Set(manifest.obbba2.marks.map(normKey));
+    C.chk('obbba2: O&M FY2025 keeps its block, and only O&M FY2025 rows are left out, every budget by its own name',
+      M2.blocks.some(b => b.key === 'om|2025') && o.rows > 0 && o.blocks.map(b => b.ap + '|' + b.fy).join() === 'om|2025' && o.budgets.every(t => t.by === 'name'), JSON.stringify(o));
+    C.chk('obbba2: no budget only the report would mark is left out with no report loaded', !o.budgets.some(t => mk.has(t.key) && !/\bOBBBA\b/i.test(t.name)),
+      JSON.stringify(o.budgets.map(t => t.key)));
+    C.chk('obbba2: the pulls do hold O&M FY2025 rows on a budget only the report marks (so the check above can fail)',
+      storeO2.current.om.rows.some(r => { const b = r.c[SP.RAW_HEADERS.indexOf('Budget')]; return mk.has(normKey(b)) && r.c[SP.RAW_HEADERS.indexOf('FY')] === 2025 && !/\bOBBBA\b/i.test(String(b)); }));
+    C.chk('obbba2: every entry of the list is FY2025 outside O&M', (M2.obbbaElsewhere || []).every(e => e.fy === 2025 && e.ap !== 'om'), JSON.stringify(M2.obbbaElsewhere));
+    C.chk('obbba2: the list names Full Fund and Initial Spares FY2025 with pull rows', ['ff', 'sp'].every(a => (M2.obbbaElsewhere || []).some(e => e.ap === a && e.fy === 2025 && e.pull.rows > 0)), JSON.stringify(M2.obbbaElsewhere));
   }
 
   // ============================================================================================ settings in play

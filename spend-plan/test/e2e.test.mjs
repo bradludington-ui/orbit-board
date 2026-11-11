@@ -20,6 +20,11 @@
 //     funding, has no Summary row; the Summary's note and the obbba noBlock note say so in §15.4's words and Settings
 //     states the rule; two PMO tabs that share a budget by their plan events are the oracle's; Save keeps all of it, the
 //     saved file opens showing it, and its workbook says the same.
+//   - with the obbba2 pulls and their report (CONTRACT §17; bae-obbba2): the report's Budget Flex 02 marks O&M FY2025
+//     budgets whose names do not hold the word, so their pull rows are left out with it (O&M FY2025 keeps its block, its
+//     plan less exactly that money), while Initial Spares FY2025's OBBBA money counts and is listed as such; the Summary,
+//     the Import report's two sections and Settings say so in §17.3's words; Save keeps it, the saved file opens showing
+//     it, and its workbook's raw O&M sheet, Import Report and Settings say the same.
 //
 //   node spend-plan/test/e2e.test.mjs                      the page assembled from the sources (as build.mjs writes it)
 //   E2E_FILE=spend-plan/sfcb-spend-plan.html node …        the built file itself
@@ -502,22 +507,25 @@ try {
   const mT = c => { if (c === 0) return '0.00'; const a = Math.abs(c); let h = Math.floor(a / 1e6); if (a - h * 1e6 >= 500000) h++;
     const b = a < 500000 ? '<0.01' : String(Math.floor(h / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + String(h % 100).padStart(2, '0'); return c < 0 ? '(' + b + ')' : b; };
   const ob = OO.excluded.obbba, rws = n => n + (n === 1 ? ' row' : ' rows');
-  const OB_NOTE = 'FY2025 OBBBA funding is left out of every figure: it is not a reporting year. The CCaR pull holds ' + rws(ob.rows) + ' of it on ' + ob.budgets.length
+  // §17.3: the words say FY2025 O&M OBBBA funding
+  const OB_NOTE = 'FY2025 O&M OBBBA funding is left out of every figure: it is not a reporting year. The CCaR pull holds ' + rws(ob.rows) + ' of it on ' + ob.budgets.length
     + (ob.budgets.length === 1 ? ' budget' : ' budgets') + ' (' + ob.blocks.map(b => fyName(b.ap + '|' + b.fy)).join(', ') + '), $' + mT(ob.cents) + 'M planned, $' + mT(ob.obligated)
     + 'M of it obligated. See the Import report.';
   const nb = OO.bae.noBlock.filter(t => t.obbba);
-  const NB_NOTES = nb.map(t => fyName(t.ap + '|' + t.fy) + ' has no block: its only CCaR pull rows are FY2025 OBBBA funding, which is left out. The BAE report’s $'
+  const NB_NOTES = nb.map(t => fyName(t.ap + '|' + t.fy) + ' has no block: its only CCaR pull rows are FY2025 O&M OBBBA funding, which is left out. The BAE report’s $'
     + mT(t.approved) + 'M Approved and $' + mT(t.authorized) + 'M Authorized for it are not shown.');
-  const RULE = 'FY2025 OBBBA funding is left out of every figure: it is not a reporting year (Brad, 11 Nov 2026).';
-  C.chk('OBBBA: the fixture leaves out a whole block (O&M FY2025, named by the report) and part of another (Full Fund FY2025)', !OO.blocks['om|2025'] && !!OO.blocks['ff|2025']
-    && J(ob.blocks.map(b => b.ap + '|' + b.fy)) === J(['om|2025', 'ff|2025']) && J(nb.map(t => t.ap + '|' + t.fy)) === J(['om|2025']), J(ob.blocks) + J(nb));
+  const RULE = 'FY2025 O&M OBBBA funding is left out of every figure: it is not a reporting year. OBBBA funding of every other appropriation counts '
+    + 'like any other money (Brad, 11 Nov 2026).';
+  // §17: the rule is O&M's alone, so Full Fund FY2025's OBBBA rows count and only O&M FY2025 is left out
+  C.chk('OBBBA: the fixture leaves out a whole block (O&M FY2025, named by the report); Full Fund FY2025 keeps its OBBBA rows (§17)', !OO.blocks['om|2025'] && !!OO.blocks['ff|2025']
+    && J(ob.blocks.map(b => b.ap + '|' + b.fy)) === J(['om|2025']) && J(nb.map(t => t.ap + '|' + t.fy)) === J(['om|2025']), J(ob.blocks) + J(nb));
   const obScreen = async (w, what) => {
     await view(w.p, 'summary');
     await until(w.p, () => !!document.querySelector('#uiMain ul.notes'));
     const rows = await topRead(w.p);
     summaryMatches(rows, OO, what + ': every Summary row and the TOTAL are the oracle’s bae-obbba, with no row for O&M FY2025');
     const ns = await w.p.$$eval('#uiMain ul.notes li', ls => ls.map(e => e.textContent));
-    C.chk(what + ': the Summary’s note on FY2025 OBBBA funding, and the obbba noBlock note for O&M FY2025, in §15.4’s words', ns.includes(OB_NOTE) && NB_NOTES.every(n => ns.includes(n)), J(ns));
+    C.chk(what + ': the Summary’s note on FY2025 O&M OBBBA funding, and the obbba noBlock note for O&M FY2025, in §17.3’s words', ns.includes(OB_NOTE) && NB_NOTES.every(n => ns.includes(n)), J(ns));
     await view(w.p, 'settings');
     C.eq(what + ': Settings says the rule under First FY', await w.p.$eval('#uiMain p.obbba-rule', e => e.textContent).catch(() => null), RULE);
     return rows;
@@ -571,6 +579,88 @@ try {
     C.chk('OBBBA reopened: the Settings sheet states the rule', cellsOf('Settings').some(cs => cs.some(c => c[1] === RULE)));
   }
   C.chk('OBBBA reopened: no script error and no dialog', !F2.errors.length && !F2.dialogs.length, F2.errors.concat(F2.dialogs).join(' | '));
+
+  // ============================================================================ FY2025 O&M OBBBA funding marked in Budget Flex 02 (§17)
+  // A fresh page, the obbba2 pulls and their report in one import (bae-obbba2). Every figure is the oracle's; the words are
+  // §17.3's, restated.
+  const O2 = oracle('bae-obbba2'), O2n = oracle('obbba2');
+  const PAGE4 = join(tmp.dir, 'obbba2-page.html');
+  writeFileSync(PAGE4, process.env.E2E_FILE ? readFileSync(resolve(process.env.E2E_FILE), 'utf8') : pageHtml());
+  const G = await open(PAGE4);
+  await G.p.setInputFiles('#uiFile', ['pull-om.xlsx', 'pull-ff.csv', 'pull-sp.xlsx', 'bae.xlsx'].map(f => join(FX, 'obbba2', f)));
+  C.chk('OBBBA2: the import of the obbba2 pulls and report lands', await until(G.p, () => !!document.querySelector('#uiMain table.top') && !!(SP.state.bae && SP.state.bae.current)));
+  await G.p.fill('#uiAsOf', '2026-10'); await G.p.dispatchEvent('#uiAsOf', 'change');
+  await G.p.fill('#uiFirst', '2025'); await G.p.dispatchEvent('#uiFirst', 'change');
+  await until(G.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
+  const usd = c => (c < 0 ? '-' : '') + '$' + String(Math.floor(Math.abs(c) / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + String(Math.abs(c) % 100).padStart(2, '0');
+  const o2 = O2.excluded.obbba, byRep = o2.budgets.filter(t => t.by === 'report'), repCents = byRep.reduce((a, t) => a + t.cents, 0);
+  const WHY2 = 'FY2025 O&M OBBBA funding (not a reporting year)', WHY2_FLEX = WHY2 + ', marked in Budget Flex 02';
+  const nName = O2.bae.counted.filter(([, w]) => w === WHY2).length, nFlex = O2.bae.counted.filter(([, w]) => w === WHY2_FLEX).length;
+  const spE = (O2.obbbaElsewhere || []).find(e => e.ap === 'sp' && e.fy === 2025);
+  C.chk('OBBBA2: the fixture leaves out O&M FY2025 money marked only in the report’s Budget Flex 02, O&M FY2025 keeps its block with its plan less exactly that, '
+    + 'and Initial Spares FY2025’s OBBBA money counts', byRep.length > 0 && repCents > 0 && !!O2.blocks['om|2025'] && !!O2n.blocks['om|2025']
+    && O2.blocks['om|2025'].planned === O2n.blocks['om|2025'].approved - repCents && !!O2.blocks['sp|2025'] && !!spE && spE.pull.rows > 0 && spE.report.byFlex02 > 0
+    && nFlex > 0 && nName > 0, J([byRep, O2.blocks['om|2025'] && O2.blocks['om|2025'].planned, spE]));
+  const OB2_NOTE = 'FY2025 O&M OBBBA funding is left out of every figure: it is not a reporting year. The CCaR pull holds ' + rws(o2.rows) + ' of it on ' + o2.budgets.length
+    + (o2.budgets.length === 1 ? ' budget' : ' budgets') + ' (' + o2.blocks.map(b => fyName(b.ap + '|' + b.fy)).join(', ') + '), $' + mT(o2.cents) + 'M planned, $' + mT(o2.obligated)
+    + 'M of it obligated. See the Import report.';
+  // §17.3 the Import report's section names each budget the report marks as such, and counts the report's rows both ways
+  const BUD_LINES = o2.budgets.map(t => '“' + t.name + '” (' + AP[t.ap] + ')' + (t.by === 'report' ? ', marked in the BAE report’s Budget Flex 02' : '') + ': '
+    + rws(t.rows) + ', plan ' + usd(t.cents) + ', obligated ' + usd(t.obligated) + '.');
+  const REP_TAIL = ' (named OBBBA: ' + rws(nName) + '; marked in Budget Flex 02 only: ' + rws(nFlex) + ').';
+  const ELSE_HEAD = 'OBBBA funding outside O&M counts like any other money (Brad, 11 Nov 2026):';
+  const SP_LINE = 'Initial Spares FY2025: in the CCaR pull, ' + rws(spE ? spE.pull.rows : 0) + ', plan ' + usd(spE ? spE.pull.cents : 0) + '; in the BAE report, '
+    + rws(spE ? spE.report.rows : 0) + ' (named OBBBA: ' + rws(spE ? spE.report.byName : 0) + '; marked in Budget Flex 02: ' + rws(spE ? spE.report.byFlex02 : 0) + '), Approved '
+    + usd(spE ? spE.report.approved : 0) + ', Authorized ' + usd(spE ? spE.report.authorized : 0) + '.';
+  const ob2Screen = async (w, what) => {
+    await view(w.p, 'summary');
+    await until(w.p, () => !!document.querySelector('#uiMain ul.notes'));
+    const rows = await topRead(w.p);
+    summaryMatches(rows, O2, what + ': every Summary row and the TOTAL are the oracle’s bae-obbba2 (O&M FY2025 and Initial Spares FY2025 among them)');
+    const ns = await w.p.$$eval('#uiMain ul.notes li', ls => ls.map(e => e.textContent));
+    C.chk(what + ': the Summary’s note on FY2025 O&M OBBBA funding counts the rows the report marks too', ns.includes(OB2_NOTE), J(ns));
+    await view(w.p, 'report');
+    const sec = await w.p.$$eval('#uiMain section.obbba .rl', es => es.map(e => e.textContent.trim())).catch(() => []);
+    C.chk(what + ': the Import report’s section names each budget left out, those the report marks as such, and the report’s rows named and marked in Budget Flex 02',
+      BUD_LINES.every(l => sec.includes(l)) && sec.some(l => l.startsWith('In the BAE report: ') && l.endsWith(REP_TAIL)), J(sec));
+    const els = await w.p.$$eval('#uiMain section.obbba-else', ss => ss.map(s => [s.querySelector('h3').textContent.trim()].concat([...s.querySelectorAll('.rl')].map(e => e.textContent.trim()))));
+    C.chk(what + ': the Import report lists Initial Spares FY2025’s OBBBA money as counting (§17.3)', els.length === 1 && els[0][0] === ELSE_HEAD && els[0].includes(SP_LINE), J(els));
+    await view(w.p, 'settings');
+    C.eq(what + ': Settings says the rule under First FY', await w.p.$eval('#uiMain p.obbba-rule', e => e.textContent).catch(() => null), RULE);
+    return { rows, sec, els };
+  };
+  const ob2Before = await ob2Screen(G, 'OBBBA2');
+  C.chk('OBBBA2: no script error and no dialog', !G.errors.length && !G.dialogs.length, G.errors.concat(G.dialogs).join(' | '));
+  await G.p.evaluate(path => window.__fs.picks.push(path), PAGE4);
+  await G.p.click('[data-act=save]');
+  C.chk('OBBBA2: Save says it saved', await until(G.p, () => /Saved/.test(document.querySelector('#uiSave').textContent) && /msg-ok/.test(document.querySelector('#uiMsg').className)), J(await msg(G.p)));
+  const G2 = await open(PAGE4);
+  await until(G2.p, () => !!document.querySelector('#uiMain table.top'));
+  C.chk('OBBBA2: the saved file opens as Saved, on the same Data through and First FY', /Saved/.test(await G2.p.textContent('#uiSave')) && !/Unsaved/.test(await G2.p.textContent('#uiSave'))
+    && (await G2.p.$eval('#uiAsOf', e => e.value)) === '2026-10' && (await G2.p.$eval('#uiFirst', e => e.value)) === '2025');
+  C.eq('OBBBA2 reopened: the Summary, the Import report’s two sections and Settings are the same', await ob2Screen(G2, 'OBBBA2 reopened'), ob2Before);
+  // and its workbook: O&M Raw Data says which rows were left out because the report marks their budget; the Import Report
+  // sheet carries the same two sections; Settings the rule
+  await view(G2.p, 'summary');
+  n = G2.downloads.length;
+  await G2.p.click('[data-act=export]');
+  const x2 = await download(G2, n, 'OBBBA2 reopened: Export Excel');
+  if (x2) {
+    const R = JSON.parse(py([join(HERE, 'export-read.py'), x2.path]));
+    const colA = name => { const s = R.sheets.find(x => x.name === name); return s ? s.rows.map(r => { const a = []; for (const [ci, v] of r.cells) a[ci] = v; return a; }) : []; };
+    const raw = colA('O&M Raw Data'), ci = raw.length ? raw[0].indexOf('Counted') : -1;
+    const want = (O2.rawCounted.om || []).map(z => z[3]);
+    const got = raw.slice(1).map(r => r[ci]);
+    C.eq('OBBBA2 reopened: O&M Raw Data’s Counted marks a row left out by the report’s Budget Flex 02 exactly where the oracle does',
+      got.map(w => w === 'No: ' + WHY2 + ', marked in the BAE report’s Budget Flex 02' ? 'obbbaReport' : w === 'No: ' + WHY2 ? 'obbba' : '-'),
+      want.map(w => w === 'obbbaReport' || w === 'obbba' ? w : '-'));
+    C.chk('OBBBA2 reopened: … and there are such rows', want.includes('obbbaReport'));
+    const IR = colA('Import Report').map(r => r[0]).filter(v => typeof v === 'string');
+    C.chk('OBBBA2 reopened: the Import Report sheet carries the section’s budgets and the list of OBBBA money outside O&M, as the screen does',
+      BUD_LINES.every(l => IR.includes('    ' + l)) && IR.includes(ELSE_HEAD) && IR.includes('  ' + SP_LINE), J(IR.filter(l => /OBBBA|Initial Spares FY2025/.test(l))));
+    C.chk('OBBBA2 reopened: the Summary sheet’s note and the Settings sheet’s rule', colA('Summary').some(r => r[0] === OB2_NOTE) && colA('Settings').some(r => r.includes(RULE)));
+  }
+  C.chk('OBBBA2 reopened: no script error and no dialog', !G2.errors.length && !G2.dialogs.length, G2.errors.concat(G2.dialogs).join(' | '));
 } catch (e) {
   C.chk('the run reached its end', false, (e && e.stack) || String(e));
 } finally {

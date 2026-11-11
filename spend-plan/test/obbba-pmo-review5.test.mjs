@@ -176,7 +176,7 @@ try {
         + OB_ROWS + ' FY2025 OBBBA rows (review M5-2, P5-4)',
       inLi.includes('; of them, ' + before + (before === 1 ? ' row' : ' rows') + ' before FY' + first + (before === 1 ? ' counts' : ' count') + ' nowhere'), inLi);
       C.chk('First FY ' + first + ': the FY2025 OBBBA rows are on their own line, ' + OB_ROWS + ' of them',
-        li('obbba') === 'FY2025 OBBBA funding (not a reporting year), counted nowhere: ' + OB_ROWS + ' rows.', li('obbba'));
+        li('obbba') === 'FY2025 O&M OBBBA funding (not a reporting year), counted nowhere: ' + OB_ROWS + ' rows.', li('obbba'));    // §17.3's words
       // each row said once: the rows the lines count add up to the rows the report holds
       const n = k => { const x = /: (\d+) rows?/.exec(li(k)); return x ? Number(x[1]) : NaN; };
       C.eq('First FY ' + first + ': the lines by scope count every row once', n('in') + n('flyaway') + n('noap') + n('obbba') + n('bad'), BAE.length);
@@ -193,13 +193,14 @@ try {
     const out = k => sum(BAE.filter((r, i) => SCOPE[i] === k).map(r => D(r[2])));
     const inC = out('in');
     C.chk('the fixture: the readable rows’ Approved less Flyaway, FY2025 OBBBA and naming no appropriation is the sustainment budgets’', readable - out('flyaway') - out('obbba') - out('noap') === inC);
-    const LINE = '  The readable rows hold Approved ' + usd(readable) + ' and Authorized ' + usd(readU) + ': every budget in the report, before Flyaway, FY2025 OBBBA '
+    // §17.3: the words say FY2025 O&M OBBBA funding (every OBBBA row here is O&M)
+    const LINE = '  The readable rows hold Approved ' + usd(readable) + ' and Authorized ' + usd(readU) + ': every budget in the report, before Flyaway, FY2025 O&M OBBBA '
       + 'funding and the budgets that name no appropriation are left out.';
     // the message, at First FY 2025: 4 rows count (2, 5, 6, 7); row 1 is before FY2025; rows 3 and 4 are FY2025 OBBBA
     const { state, msgs } = await planOf([[files(OM, FF, BAE), NOW]], { asOf: '2026-10' });
     C.chk('the import message: “counted” names the rule beside the First FY (review P5-6)', msgs[0].includes('Imported the BAE report “bae.csv” › “bae”, which has no date in its '
-      + 'file name: 9 rows, 4 of them counted (sustainment budgets of FY2025 or later, FY2025 OBBBA funding left out); not counted: 1 Flyaway (production), 1 that names '
-      + 'no appropriation, 1 before FY2025 and 2 FY2025 OBBBA.'), msgs[0]);
+      + 'file name: 9 rows, 4 of them counted (sustainment budgets of FY2025 or later, FY2025 O&M OBBBA funding left out); not counted: 1 Flyaway (production), 1 that names '
+      + 'no appropriation, 1 before FY2025 and 2 FY2025 O&M OBBBA.'), msgs[0]);
     // control: a report with no FY2025 OBBBA row says what it said before §15
     const BAE0 = BAE.filter((r, i) => SCOPE[i] !== 'obbba');
     const p0 = await planOf([[files(OM, FF, BAE0), NOW]], { asOf: '2026-10' });
@@ -242,7 +243,7 @@ try {
     const OM2 = OM.filter(r => r['CCaR No'] === 'QR0001' || r['CCaR No'] === 'QR0003');    // FY2024, and FY2025 OBBBA
     const OM3 = OM.filter(r => r['CCaR No'] === 'QR0001');                                 // FY2024 alone
     const cases = [
-      [OM2, 2025, 'No O&M block is shown: the current pull’s only O&M rows from FY2025 on are FY2025 OBBBA funding, which is left out: it is not a reporting year.', true],
+      [OM2, 2025, 'No O&M block is shown: the current pull’s only O&M rows from FY2025 on are FY2025 O&M OBBBA funding, which is left out: it is not a reporting year.', true],
       [OM2, 2026, 'No O&M rows from FY2026 on in the current pull.', false],
       [OM3, 2025, 'No O&M rows from FY2025 on in the current pull.', false]];
     for (const [om, first, want, ob] of cases) {
@@ -261,7 +262,7 @@ try {
   // P5-5: What changed says it compares FY2025 OBBBA rows when the pulls hold some
   // =================================================================================================================
   await block('what changed', async () => {
-    const L2 = ob => 'Every row of every FY is compared, whatever the switches show and whatever the First FY' + (ob ? ', FY2025 OBBBA funding (left out of every '
+    const L2 = ob => 'Every row of every FY is compared, whatever the switches show and whatever the First FY' + (ob ? ', FY2025 O&M OBBBA funding (left out of every '
       + 'other figure) included' : '') + ', because the question is what the new pull holds.';
     const amt = (rows, ccar, a) => rows.map(r => (r['CCaR No'] === ccar ? Object.assign({}, r, { Amount: a }) : r));
     const plain = OM.filter(r => r['CCaR No'] !== 'QR0003');
@@ -288,8 +289,9 @@ try {
     const T = await boot(pageHtml({}));
     const h = flat((await T.help()).textContent);
     C.chk('Help: the Summary’s notes and the Import report say how much is left out, Settings states the rule (review P5-8)',
-      h.includes('Where such rows are loaded, the Summary’s notes and the Import report say how much is left out, Settings states the rule, and an appropriation and FY '
-        + 'whose only rows they are has no block.') && !/Settings and the Import report say how much/.test(h), h.slice(0, 400));
+      // §17: "such rows" now follows a sentence on the OBBBA money that counts, so Help names the rows it means
+      h.includes('Where rows the rule leaves out are loaded, the Summary’s notes and the Import report say how much is left out, Settings states the '
+        + 'rule, and an appropriation and FY whose only rows they are has no block.') && !/Settings and the Import report say how much/.test(h), h.slice(0, 400));
     C.chk('Help: the Summary’s notes say how much of each block’s Approved and Authorized is on no PMO tab (review P5-2)',
       h.includes('The Summary’s notes say how much of each block’s Approved and Authorized it is, so the PMO tabs add up to the Summary less it (except an Authorized '
         + 'typed in Settings, which is for its block as a whole and never shared among PMOs)'), '');

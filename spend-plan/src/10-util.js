@@ -40,16 +40,78 @@ SP.goalsDefault = () => JSON.parse(JSON.stringify(SP.GOALS_DEFAULT));
 // Month abbreviations by calendar month (index 0 = January), for "Nov-2025"-style labels
 SP.CAL_MONTHS = ut_freeze(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']);
 
-// §15 FY2025 OBBBA FUNDING IS LEFT OUT (Brad, 11 Nov 2026: "Just leave FY25 OBBBA funding out. Although it's active
-// technically, it's not a reporting year."). A row is FY2025 OBBBA funding when its budget name (a pull row's Budget, a
-// BAE report row's Budget Name) holds the WORD OBBBA, in any case, and its FY is 2025 exactly. A fixed rule, not a
+// §15, §17 FY2025 O&M OBBBA FUNDING IS LEFT OUT (Brad, 11 Nov 2026: "Just leave FY25 OBBBA funding out. Although it's
+// active technically, it's not a reporting year.", then, shown that the BAE report marks most of it in its Budget Flex 02
+// column: "Yes, leave out OBBBA funding for O&M but leave it in for Spares."). A row is FY2025 O&M OBBBA funding when its
+// appropriation is O&M, its FY is 2025 exactly and it is MARKED: the WORD OBBBA, in any case, in its budget name (a pull
+// row's Budget, a BAE report row's Budget Name), or `mark` holds: a report row's Budget Flex 02 text holds the word, or,
+// for a pull row (which has no such column), the loaded report marks its budget so (SP.baeObbbaKeys). A fixed rule, not a
 // setting. THE ONE PREDICATE: every reader asks it, and no other line spells the rule, so the pull, the report, the
 // workbook and the screens cannot come to disagree about which rows it takes. An OBBBA budget of any other FY is an
-// ordinary row, and so is a name where OBBBA is part of a longer word ("NOBBBAX").
+// ordinary row, so is one of any other appropriation (Initial Spares by Brad's answer; Full Fund and OPN by the lead's
+// default, §17.1), and so is a name where OBBBA is part of a longer word ("NOBBBAX").
 SP.OBBBA_FY = 2025;
 const UT_OBBBA = /\bOBBBA\b/i;
-SP.isObbba25 = function isObbba25(name, fy) {
-  return fy === SP.OBBBA_FY && UT_OBBBA.test(String(name ?? ''));
+// whether a text holds the word: a budget name, or a Budget Flex 02 cell (the mark §17.1 reads, and no other column)
+SP.obbbaWord = function obbbaWord(text) {
+  return UT_OBBBA.test(String(text ?? ''));
+};
+// mark: a report row's Budget Flex 02 text (a string, which marks when it holds the word), or for a pull row whether the
+// loaded report marks its budget (true or false); absent, the name alone decides
+function ut_obbbaMarked(name, mark) {
+  return SP.obbbaWord(name) || mark === true || (typeof mark === 'string' && SP.obbbaWord(mark));
+}
+SP.isObbba25 = function isObbba25(name, fy, ap, mark) {
+  return fy === SP.OBBBA_FY && ap === 'om' && ut_obbbaMarked(name, mark);
+};
+// §17.2 OBBBA money that COUNTS, said so in the Import report (model.obbbaElsewhere, information only): FY2025, marked as the
+// predicate reads a mark, of an identified appropriation other than O&M. The same words as the rule, so the two lists can
+// never overlap or leave a marked FY2025 row of an identified appropriation in neither.
+SP.isObbbaElsewhere = function isObbbaElsewhere(name, fy, ap, mark) {
+  return fy === SP.OBBBA_FY && typeof ap === 'string' && ap !== '' && ap !== 'om' && ut_obbbaMarked(name, mark);
+};
+// §17.1 A BAE REPORT ROW'S BUDGET FLEX 02 CELL. The column is found by its header, as §14.1 finds the four it reads (its
+// normKey, a trailing unit in parentheses taken off: SP.baeHeaderKey): the first of the stored report's headers that is
+// 'budget flex 02'; where two columns are headed so, the import keeps the second as "Budget Flex 02 (2)", after the first.
+// null when the report has headers and none is that column; undefined when it records no headers at all (a report saved by
+// hand or another version), and each row is then read by its own columns, which are the report's headers in the file's
+// order. Budget Flex 01 and 03 are never read for it.
+const UT_FLEX02 = 'budget flex 02';
+function ut_flexKey(h) { return typeof SP.baeHeaderKey === 'function' ? SP.baeHeaderKey(h) : SP.normKey(h); }
+SP.baeFlex02Col = function baeFlex02Col(bae) {
+  if (!bae || typeof bae !== 'object' || !Array.isArray(bae.headers)) return undefined;
+  for (const h of bae.headers) if (ut_flexKey(h) === UT_FLEX02) return String(h);
+  return null;
+};
+// a stored report row's Budget Flex 02 text, '' when it has none. col: SP.baeFlex02Col of its report (undefined: found
+// among the row's own columns)
+SP.baeFlex02 = function baeFlex02(row, col) {
+  const x = row && row.x && typeof row.x === 'object' ? row.x : null;
+  if (!x) return '';
+  if (col === undefined) col = Object.keys(x).find(k => ut_flexKey(k) === UT_FLEX02);
+  if (typeof col !== 'string' || !Object.prototype.hasOwnProperty.call(x, col)) return '';
+  const v = x[col];
+  return v === null || v === undefined ? '' : String(v);
+};
+// §17.1 the budgets (their names' normKey) the loaded report marks as FY2025 O&M OBBBA funding in Budget Flex 02: each of
+// its rows whose FY is 2025, whose name places it in O&M (SP.apOfBudget, as §14.2 places a report row) and whose Budget Flex
+// 02 holds the word, read or not. A pull row of such a budget is marked by it (the predicate's `mark`), so the plan and the
+// report leave out the same money. An empty set with no report, so a pull with none is judged by its own names alone.
+SP.baeObbbaKeys = function baeObbbaKeys(bae) {
+  const out = new Set();
+  const rows = bae && typeof bae === 'object' && Array.isArray(bae.rows) ? bae.rows : [];
+  if (!rows.length) return out;
+  const col = SP.baeFlex02Col(bae);
+  if (col === null) return out;
+  for (const row of rows) {
+    const c = row && Array.isArray(row.c) ? row.c : null;
+    if (!c) continue;
+    const name = String(c[0] ?? '').trim();
+    if (name === '') continue;
+    // the name is left out of the question: the mark alone, as the pull row's own name is asked by the predicate itself
+    if (SP.isObbba25('', c[1], SP.apOfBudget(name), SP.baeFlex02(row, col))) out.add(SP.normKey(name));
+  }
+  return out;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
