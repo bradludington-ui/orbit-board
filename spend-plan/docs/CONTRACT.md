@@ -1427,12 +1427,13 @@ Spares."* This **replaces §15.1's rule**. Everything else in §15 stands, read 
        by its names alone. No other column is read for it (Budget Flex 01 and 03 are not).
      - for a **pull row**, which has no such column: when the loaded BAE report holds a row of the **same budget** (its name's
        `normKey`) whose FY is 2025, whose appropriation is O&M and whose Budget Flex 02 holds the word. So the plan and the
-       report leave out the same money (Brad: *"leave out OBBBA funding for O&M"*). With no report loaded, a pull row is judged
-       by its own name alone. This is the one way the report changes which pull rows count; §15's *it holds with or without a
+       report leave out the same money (Brad: *"leave out OBBBA funding for O&M"*; asked again, he confirmed it the same day:
+       *"Yes"*). With no report loaded, a pull row is judged by its own name alone. This is the one way the report changes which pull rows count; §15's *it holds with or without a
        BAE report* is narrowed by it.
 - **OBBBA money of every other appropriation counts like any other money.** Initial Spares by Brad's answer. Full Fund and
-  OPN by the lead's default, which Brad may reverse: they are procurement money like Initial Spares, still within their years
-  of availability in FY2025, and neither holds OBBBA in the real files. Such a row is ordinary: scope `'in'`, Counted *Yes*.
+  OPN by the lead's proposal, which Brad confirmed the same day (*"Yes"*): they are procurement money like Initial Spares, still
+  within their years of availability in FY2025, and neither holds OBBBA in the real files. Such a row is ordinary: scope `'in'`,
+  Counted *Yes*.
 - **One predicate** still decides it, with the appropriation and the mark: `SP.isObbba25(name, fy, ap, mark)` is true exactly when
   `fy === 2025`, `ap === 'om'` and the word is in `name` or `mark` holds (a report row's Budget Flex 02 text; for a pull row,
   whether the report marks its budget). One helper reads a stored report row's Budget Flex 02 cell; one gives the set of
