@@ -1219,6 +1219,9 @@ reporting year."* This replaces his 9 Nov answer on OBBBA. It holds with or with
 
 ### 15.1 The rule
 
+*Replaced on 11 Nov 2026 by §17: the rule is for O&M only, and a report row marked OBBBA in Budget Flex 02 is FY2025 O&M OBBBA
+funding too.*
+
 - A row is **FY2025 OBBBA funding** when its budget name (a pull row's `Budget`, a report row's `Budget Name`) holds the word
   `OBBBA` as a whole word, in any case (`/\bOBBBA\b/i`), **and** its FY is 2025 (`SP.OBBBA_FY = 2025`). One predicate,
   `SP.isObbba25(name, fy)`, used by every reader; nothing else spells the rule.
@@ -1402,3 +1405,90 @@ report does not cover, a PMO row is §4.6's as before.
 - Every new check is shown failing on the code before it. The real-file proof (scratch only): per covered block, the PMO rows
   plus the unassigned money equal the Summary's Approved and Authorized to the cent; an independent `python3 -I` calculation
   from this section agrees with every PMO row.
+
+## 17. FY2025 OBBBA funding: O&M only, and marked in Budget Flex 02 too (Brad, 11 Nov 2026)
+
+The second review (M5-1) found that the real BAE report marks most of its FY2025 OBBBA money in its **Budget Flex 02** column,
+not in the budget name: 8 FY2025 rows carry the word there and only 2 of them in the name. Seven are O&M, the eighth is
+Initial Spares. Asked whether a report row whose Budget Flex 02 holds OBBBA is FY2025 OBBBA funding, and if so whether the
+pull's rows on the same budget and FY go too, Brad answered: *"Yes, leave out OBBBA funding for O&M but leave it in for
+Spares."* This **replaces §15.1's rule**. Everything else in §15 stands, read with *FY2025 O&M OBBBA funding* where it says
+*FY2025 OBBBA funding*.
+
+### 17.1 The rule
+
+- A row is **FY2025 O&M OBBBA funding** when all three hold:
+  1. **its appropriation is O&M**: a pull row's identified appropriation (§3, §4.1); a report row's `SP.apOfBudget(name)`
+     (§14.2);
+  2. **its FY is 2025** (`SP.OBBBA_FY`);
+  3. **it is marked OBBBA**: the word `OBBBA`, whole, in any case (`/\bOBBBA\b/i`), is in its budget name, or
+     - for a **report row**, in its **Budget Flex 02** cell. The column is found by its header, as §14.1 finds the four it
+       reads (`normKey` = `budget flex 02`; where two columns are headed so, the first). A report with no such column is read
+       by its names alone. No other column is read for it (Budget Flex 01 and 03 are not).
+     - for a **pull row**, which has no such column: when the loaded BAE report holds a row of the **same budget** (its name's
+       `normKey`) whose FY is 2025, whose appropriation is O&M and whose Budget Flex 02 holds the word. So the plan and the
+       report leave out the same money (Brad: *"leave out OBBBA funding for O&M"*). With no report loaded, a pull row is judged
+       by its own name alone. This is the one way the report changes which pull rows count; §15's *it holds with or without a
+       BAE report* is narrowed by it.
+- **OBBBA money of every other appropriation counts like any other money.** Initial Spares by Brad's answer. Full Fund and
+  OPN by the lead's default, which Brad may reverse: they are procurement money like Initial Spares, still within their years
+  of availability in FY2025, and neither holds OBBBA in the real files. Such a row is ordinary: scope `'in'`, Counted *Yes*.
+- **One predicate** still decides it, with the appropriation and the mark: `SP.isObbba25(name, fy, ap, mark)` is true exactly when
+  `fy === 2025`, `ap === 'om'` and the word is in `name` or `mark` holds (a report row's Budget Flex 02 text; for a pull row,
+  whether the report marks its budget). One helper reads a stored report row's Budget Flex 02 cell; one gives the set of
+  budget keys the report marks. No other line spells the rule.
+- §15.2's order is unchanged: a row before First FY is *before the First FY*, not OBBBA.
+- **With no row anywhere whose name or Budget Flex 02 holds the word**, every model, view and sheet is byte-identical to the
+  build before §17 (and so to the build before §15), Help and the README excepted.
+
+### 17.2 The model
+
+- §15.2 and §15.3 hold for FY2025 O&M OBBBA funding exactly as written: `M.excluded.obbba`, scope `'obbba'`, the reasons,
+  `noBlock[].obbba`, `pullOnly`, `offReport`, `SP.diffBae`, `SP.diffPulls`, the raw data sheets. Its `blocks` and `budgets` can
+  only name O&M.
+- How a row is marked is kept: a report row derived with scope `'obbba'` carries `obbbaBy: 'name' | 'flex02'` (`'name'` when the
+  name holds the word, whatever Flex 02 says); each entry of `M.excluded.obbba.budgets` carries `by: 'name' | 'report'`
+  (`'report'` when the pull's name does not hold the word and the report's Budget Flex 02 marks the budget).
+- `M.obbbaElsewhere` lists the OBBBA money that **counts**: per `(ap, fy)` not O&M FY2025, any pull row or report row whose name
+  (or, for a report row, Budget Flex 02) holds the word, in FY 2025 only: `{ap, fy, pull:{rows, cents, obligated}, report:{rows,
+  approved, authorized, byName, byFlex02}}`, in model order. With none it is `[]`. It is information only: no figure reads it.
+
+### 17.3 Words, on screen and in the workbook alike
+
+- Wherever §15.4 states the rule or names the rows, it says **FY2025 O&M OBBBA funding**: the Summary's note, the obbba
+  `noBlock` note, the report's note and the import message (*{n} FY2025 O&M OBBBA*), the Import report's section (*FY2025 O&M
+  OBBBA funding, left out (not a reporting year)*) and its table's words, the Counted reasons, What changed, Help and the
+  README.
+- **Settings** (view and sheet), when any row this rule leaves out is loaded: *FY2025 O&M OBBBA funding is left out of every
+  figure: it is not a reporting year. OBBBA funding of every other appropriation counts like any other money (Brad, 11 Nov
+  2026).*
+- **Counted words** for a row marked other than by its own name: a report row, *FY2025 O&M OBBBA funding (not a reporting
+  year), marked in Budget Flex 02*; a pull row, *No: FY2025 O&M OBBBA funding (not a reporting year), marked in the BAE report's
+  Budget Flex 02*.
+- **The Import report's section** lists the report's rows of it in two counts, *named OBBBA* and *marked in Budget Flex 02
+  only*; and names each pull budget left out because the report marks it, as such.
+- **The Import report** adds, when `M.obbbaElsewhere` is not empty: *OBBBA funding outside O&M counts like any other money
+  (Brad, 11 Nov 2026):* then one line per `(ap, fy)` with the pull's rows and plan and the report's rows (named, Budget Flex 02),
+  Approved and Authorized.
+- **The Summary's notes** say nothing new about the money that counts: it is ordinary money.
+
+### 17.4 Tests
+
+- The fixture writes a new folder `obbba2/` from its own random stream, after everything else, so no byte of any existing file
+  moves. Every name and figure invented. It holds, at the least:
+  - a report (`obbba2/bae.xlsx`) whose Budget Flex 02 holds the word on: O&M FY2025 rows whose names do not (left out); an O&M
+    FY2025 row whose name holds it too (left out, `obbbaBy:'name'`); an O&M FY2026 row (counts); an Initial Spares FY2025 row
+    (counts); a Full Fund FY2025 and an OPN FY2025 row (count); a lower-case `obbba`; the word inside a longer word (`OBBBAX`,
+    ordinary); the word in Budget Flex 01 or 03 only (ordinary); and ordinary rows covering every block that remains;
+  - pulls (`obbba2/pull-om.xlsx`, `obbba2/pull-sp.xlsx` or a CSV, as the generator likes) with: O&M FY2025 rows on a budget only
+    the report marks (left out with the report, counted without), O&M FY2025 rows named OBBBA (left out), O&M FY2025 ordinary
+    rows (the block stays), Initial Spares FY2025 rows on the Flex-marked budget, named without the word (count), Initial
+    Spares and Full Fund FY2025 rows named OBBBA (count); two services, both lanes, obligated and not.
+- Oracle scenarios, from §17 and the CONTRACT alone: `obbba2` (the pulls alone), `bae-obbba2` (with the report),
+  `bae-obbba2-first-2026`, `bae-obbba2-usaf-off`. The §15 scenarios are expected under §17: their rows outside O&M that §15 left
+  out now count. List every expectation that changes, and why.
+- Every product against the oracle on those scenarios. Each new check shown failing on the code before §17.
+- The real-file proof (scratch only): with no report, every figure equals §15's proof (every real OBBBA row is O&M FY2025);
+  with the report, the O&M FY2025 `noBlock` note's report figures fall by exactly the report's O&M FY2025 rows marked in Budget
+  Flex 02 only, the Import report counts every O&M FY2025 row marked either way, Initial Spares FY2025 and every other figure
+  are unchanged, and `M.obbbaElsewhere` names Initial Spares FY2025.
