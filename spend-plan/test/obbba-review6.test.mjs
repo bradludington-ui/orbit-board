@@ -17,8 +17,8 @@
 //   P6-2  the list of OBBBA money outside O&M names its count in the section's words, "marked in Budget Flex 02 only";
 //         Help and the README say what that list holds and no more (FY2025, while First FY is 2025 or earlier).
 //
-//   node spend-plan/test/obbba-review6.test.mjs   (Part B reads two earlier builds from git: in a shallow clone run
-//   git fetch --unshallow first)
+//   node spend-plan/test/obbba-review6.test.mjs   (the checks on old boards read two earlier builds from git: in a
+//   shallow clone run git fetch --unshallow first)
 process.env.TZ = 'America/New_York';
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -220,7 +220,7 @@ try {
       const asm = await assembleAt(sha);
       if (!C.chk('the build ' + sha + ' is in this clone (in a shallow clone run git fetch --unshallow)', !!asm)) return;
       for (const c of CASES) {
-        const tag = 'a board saved by ' + sha + ' whose report ' + c.what;
+        const tag = 'a board saved by ' + sha + ', its report: ' + c.what;
         const tb = loadTool({ html: asm({}) });
         tb.SP.applyImport(await tb.SP.parseFiles(filesOf(c), { now: NOW }));
         tb.SP.setSettings({ asOf: '2026-10' });
