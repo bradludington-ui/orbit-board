@@ -8,6 +8,8 @@ and the dashboard produces all the same products. His answers, given that day:
 - **Years:** "FY25 is the first year."
 - **The Excel export:** "Values are good enough."
 - **OBBBA:** "Don't worry about OBBBA. I don't have any this year."
+  - Replaced on 11 Nov 2026 (§15): *"Just leave FY25 OBBBA funding out. Although it's active technically, it's not a
+    reporting year."*
 - **Everything else:** he accepted the stated defaults.
 
 This file is the one statement of what the tool does. Every builder works to it, and every check is written from it. Where it is
@@ -275,8 +277,9 @@ A row counts in every product only if:
 
 1. it is readable;
 2. its appropriation is identified;
-3. `fy >= firstFY`; and
-4. the switches show both its service and its lane.
+3. `fy >= firstFY`;
+4. it is not FY2025 OBBBA funding (§15, Brad, 11 Nov 2026); and
+5. the switches show both its service and its lane.
 
 There are no other filters. **One set of switches drives every figure and every list**, and each product states what it shows
 when not everything is shown.
@@ -970,7 +973,8 @@ first: **with no BAE report loaded, nothing in §1–§13 changes**, and every e
 Recomputed on every load, like `deriveRow`, so a rule fix applies to an old report:
 
 - **`ap`** = `SP.apOfBudget(name)` (the §3 Budget rule; no sheet name is ever used for a report row).
-- **`scope`**: `'flyaway'` when the name holds the word `Flyaway`; else `'noap'` when `ap` is null; else `'in'`.
+- **`scope`**: `'flyaway'` when the name holds the word `Flyaway`; else `'noap'` when `ap` is null; else `'obbba'` when the row
+  is FY2025 OBBBA funding (§15); else `'in'`.
 - **`svc`** and **`lane`**: the budget table's override for that name (`settings.budgets[normKey(name)]`, §3), else
   `SP.svcRule(name)` and `SP.laneRule(name)`, exactly as for a pull row. So the switches reach the report's figures, and an
   override set for a budget moves its pull rows and its report row together.
@@ -1201,3 +1205,89 @@ column, Obligated by the PMO column, Authorized = Approved (`†`); `basis:'row'
     as `SP.APS`, then FY. `pullOnly` and `reportOnly` hold sorted `normKey`s. Each `diffBae` list is largest `size` first.
   - Where §14 leaves a choice, the oracle's reading is marked `READING:` in `oracle.py`.
 - A check must be able to fail (§12), and every new check is shown failing on the code before it.
+
+## 15. FY2025 OBBBA funding is left out (Brad, 11 Nov 2026)
+
+Shown that O&M FY2025 read *Behind* at about 1.5% against the BAE report's Approved, because the real pull's O&M FY2025 holds
+nothing but OBBBA budgets, Brad answered: *"Just leave FY25 OBBBA funding out. Although it's active technically, it's not a
+reporting year."* This replaces his 9 Nov answer on OBBBA. It holds with or without a BAE report.
+
+### 15.1 The rule
+
+- A row is **FY2025 OBBBA funding** when its budget name (a pull row's `Budget`, a report row's `Budget Name`) holds the word
+  `OBBBA` as a whole word, in any case (`/\bOBBBA\b/i`), **and** its FY is 2025 (`SP.OBBBA_FY = 2025`). One predicate,
+  `SP.isObbba25(name, fy)`, used by every reader; nothing else spells the rule.
+- An OBBBA budget of any other FY is an ordinary row. A name where `OBBBA` is part of a longer word (`NOBBBAX`) is ordinary.
+- It is a **fixed rule, not a setting**. It is stated in Help and the README always, and in Settings (view and sheet), the
+  Summary's notes and the Import report whenever a row it leaves out is loaded.
+- **With no FY2025 OBBBA row loaded, nothing changes**: every model, view and sheet is byte-identical to the build before §15
+  (Help and the README excepted, which state the rule). Every existing scenario keeps its exact expected output.
+
+### 15.2 Pull rows
+
+- **§4.3's condition 4.** It is checked after condition 3, so a row before First FY (First FY 2026, say) is *before the First
+  FY*, not OBBBA: each row is set aside for the first condition it fails, in §4.3's order.
+- **Treated as a row before First FY is.** It counts in no figure, block, tree, column, slide block, picture, Not Allocated
+  item, PMO row or PMO tab, whatever the switches show. It **names no block**: an `(ap, fy)` whose only rows are FY2025 OBBBA
+  funding has no block, as one before First FY has none. An unreadable row whose FY reads 2025 and whose Budget names OBBBA
+  names no block either (§4.6 lets an unreadable row name its block; this one would be left out if it read). Wherever rows
+  before First FY still appear, these appear too, unchanged: the raw data sheets (every row), and `SP.diffPulls`, which
+  compares the pulls themselves.
+- **The model** carries them as `M.excluded.obbba = {rows, cents, obligated, blocks:[{ap, fy, rows, cents, obligated}],
+  budgets:[{key, name, ap, rows, cents, obligated}]}`, whatever the switches. `cents` is the sum of their amounts (the plan they
+  would have added), `obligated` the part whose status is Actual Execution (§4.5's rule). `blocks` is in model order;
+  `budgets` one per budget (`normKey`), first spelling, in row order. With none it is `{rows:0, cents:0, obligated:0, blocks:[],
+  budgets:[]}`.
+- They take no part in §14's lists: a budget whose only counted rows were FY2025 OBBBA funding is not in `pullOnly` and has no
+  `offReport` entry.
+
+### 15.3 Report rows
+
+- `SP.baeDerive` gives such a row `scope:'obbba'` (§14.2): after `'flyaway'` and `'noap'`, before `'in'`. It never counts and
+  never makes a block *covered*.
+- Its reason (`eng_baeWhyKey`, `ENG_BAE_WHY`) comes after *Before the first FY* and before *Switch off*: `obbba:'FY2025 OBBBA
+  funding (not a reporting year)'`. `model.bae.rows` and `SP.baeTally` gain `obbba`. `SP.diffBae` (in-scope rows) leaves these
+  rows out, as it leaves Flyaway out.
+- **`noBlock`.** An `(ap, fy)` the report holds counting money for, whose pull rows were **all** FY2025 OBBBA funding (so it
+  would have had a block), carries `obbba:true`. Its money is still not shown. The words below say why.
+
+### 15.4 Words, on screen and in the workbook alike
+
+- **The Summary's notes** (after the note on money before First FY), when any pull row is left out: *FY2025 OBBBA funding is left
+  out of every figure: it is not a reporting year. The CCaR pull holds {n rows} of it on {n budgets} ({Ap FY, …}), {$plan}
+  planned, {$obligated} of it obligated. See the Import report.*, with the same closing sentence the note on money before
+  First FY takes when a switch is off (it counts every service and lane).
+- **A `noBlock` entry with `obbba`**, in place of the ordinary words: *O&M FY2025 has no block: its only CCaR pull rows are
+  FY2025 OBBBA funding, which is left out. The BAE report's {$approved} Approved and {$authorized} Authorized for it are not
+  shown.*
+- **The report's own note** (§14.5, *those left out by kind*) and **the import message** (§14.7, *not counted: …*) add *{n}
+  FY2025 OBBBA*.
+- **The Import report** (view and sheet): a section *FY2025 OBBBA funding, left out (not a reporting year)*, shown when any is
+  loaded: each pull budget with its appropriation, rows, plan and obligated, a total, and the report's rows of it (rows,
+  Approved, Authorized). The BAE section's table by appropriation and FY says, for an `obbba` noBlock row: *FY2025 OBBBA funding
+  is left out (not a reporting year), so no block is shown*. Its rows by scope count `FY2025 OBBBA`.
+- **Counted columns.** A raw data sheet's row: *No: FY2025 OBBBA funding (not a reporting year)*. The `BAE Report` sheet:
+  *FY2025 OBBBA funding (not a reporting year)*.
+- **Settings** (view and sheet), when any is loaded, a line under First FY: *FY2025 OBBBA funding is left out of every figure: it
+  is not a reporting year (Brad, 11 Nov 2026).*
+- **Help and the README** state the rule where they state First FY.
+
+### 15.5 Tests
+
+- The fixture writes `obbba/` (its own random stream, after everything else is written, so not one existing byte moves):
+  - `obbba/pull-om.xlsx`, O&M rows: FY2025 holding **only** OBBBA rows (the block must vanish), FY2026 with ordinary rows and one
+    OBBBA FY2026 budget (it counts), an OBBBA FY2025 row with an unreadable amount, a name with `obbba` in lower case, and one
+    with `OBBBA` inside a longer word;
+  - `obbba/pull-ff.csv`, Full Fund FY2025 mixing ordinary and OBBBA rows (the block stays, less them), with exec and non-exec
+    statuses and two services;
+  - `obbba/bae.xlsx`, a report with OBBBA FY2025 rows, an OBBBA FY2026 row, ordinary O&M FY2025 rows (the `obbba` noBlock), and
+    ordinary rows covering the blocks that remain;
+  - every name and figure invented. Nothing from the real files, whose OBBBA budgets are the real names.
+- Oracle scenarios, each asOf `2026-10`, firstFY 2025 unless said: `obbba` (the two pulls), `obbba-usaf-off`, `obbba-first-2026`
+  (every OBBBA FY2025 row is before First FY instead), `bae-obbba` (the pulls with the report). Expected output adds
+  `excluded.obbba`, `bae.rows.obbba`, `noBlock[].obbba` and the Counted reasons.
+- Every product is checked against the oracle on those scenarios, and every existing scenario byte for byte. Each new check is
+  shown failing on the code before it.
+- The real-file proof (scratch only): with no report (asOf `2026-04`, firstFY 2024), every block equals the v12 proof's except
+  O&M FY2025, which is gone, and the TOTAL is down by exactly that block's Approved and Obligated. With the report, O&M FY2025 is
+  gone and named by the `obbba` noBlock note.
