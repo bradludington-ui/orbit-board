@@ -610,7 +610,7 @@ try {
   const REP_TAIL = ' (named OBBBA: ' + rws(nName) + '; marked in Budget Flex 02 only: ' + rws(nFlex) + ').';
   const ELSE_HEAD = 'OBBBA funding outside O&M counts like any other money (Brad, 11 Nov 2026):';
   const SP_LINE = 'Initial Spares FY2025: in the CCaR pull, ' + rws(spE ? spE.pull.rows : 0) + ', plan ' + usd(spE ? spE.pull.cents : 0) + '; in the BAE report, '
-    + rws(spE ? spE.report.rows : 0) + ' (named OBBBA: ' + rws(spE ? spE.report.byName : 0) + '; marked in Budget Flex 02: ' + rws(spE ? spE.report.byFlex02 : 0) + '), Approved '
+    + rws(spE ? spE.report.rows : 0) + ' (named OBBBA: ' + rws(spE ? spE.report.byName : 0) + '; marked in Budget Flex 02 only: ' + rws(spE ? spE.report.byFlex02 : 0) + '), Approved '
     + usd(spE ? spE.report.approved : 0) + ', Authorized ' + usd(spE ? spE.report.authorized : 0) + '.';
   const ob2Screen = async (w, what) => {
     await view(w.p, 'summary');

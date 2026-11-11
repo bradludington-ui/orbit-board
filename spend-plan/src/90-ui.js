@@ -551,9 +551,11 @@ function ui_vNa(M) {
     + ui_naTable(M, items, true);
 }
 
-function ui_reportLines(rep) {
+// bae: the BAE report on screen, given for the report held for the data on screen (never a refused import's), so its file
+// part says what this page leaves out (SP.importReportLines; reviews M6-3, P6-3)
+function ui_reportLines(rep, bae) {
   let lines = [];
-  try { lines = SP.importReportLines(rep); } catch (e) { lines = ['The report could not be drawn: ' + ((e && e.message) || e)]; }
+  try { lines = SP.importReportLines(rep, bae); } catch (e) { lines = ['The report could not be drawn: ' + ((e && e.message) || e)]; }
   return ui_lines(lines);
 }
 function ui_lines(lines) {
@@ -585,7 +587,7 @@ function ui_vReport(M) {
   // above" could mean either (review F8).
   const lastTaken = ui.refused ? 'The last import taken' : 'The last import';
   if (rep) out.push('<h3 class="sub">' + (kept.length ? lastTaken + (ui.refused ? ', before the one refused' : '')
-    : 'The import the data on screen came from') + '</h3>' + ui_reportLines(rep));
+    : 'The import the data on screen came from') + '</h3>' + ui_reportLines(rep, ui_bae()));
   else if (!ui.refused) out.push('<p class="none">No import report is held in this file.</p>');
   // the rows no appropriation claims, each named: the Summary sends the reader here for them, and they are in no other
   // view (review XP-8)
@@ -1149,9 +1151,12 @@ function ui_vHelp() {
       + 'row whose FY is ' + SP.OBBBA_FY + ' and whose Budget (a BAE report row’s Budget Name) holds the word OBBBA; a BAE report row of O&amp;M FY' + SP.OBBBA_FY
       + ' whose Budget Flex 02 holds it; and the CCaR pull’s O&amp;M FY' + SP.OBBBA_FY + ' rows of a budget the BAE report marks so, while that report is loaded. '
       + 'FY' + SP.OBBBA_FY + ' is not a reporting year (Brad, 11 Nov 2026). It is a fixed rule, not a setting: OBBBA funding of every other appropriation '
-      + '(Initial Spares, Full Fund, OPN) counts like any other money, and so does an OBBBA budget of any other FY; the Import report lists the OBBBA money outside '
-      + 'O&amp;M it counts. Where rows the rule leaves out are loaded, the Summary’s notes and the Import report say how much is left out, Settings states the '
-      + 'rule, and an appropriation and FY whose only rows they are has no block. Under a later First FY they are before the First FY instead.',
+      + '(Initial Spares, Full Fund, OPN) counts like any other money, and so does an OBBBA budget of any other FY. The Import report lists the FY' + SP.OBBBA_FY
+      // review P6-2: what the list holds, no more: FY2025 only, from First FY on, by the pull's own Budget and the report's two marks
+      + ' OBBBA money outside O&amp;M that counts (while First FY is ' + SP.OBBBA_FY + ' or earlier): the CCaR pull’s rows whose Budget holds the word, and the '
+      + 'BAE report’s rows whose Budget Name or Budget Flex 02 holds it; OBBBA money of any other FY is not listed. Where rows the rule leaves out are loaded, '
+      + 'the Summary’s notes and the Import report say how much is left out, Settings states the rule, and an appropriation and FY whose only rows they are '
+      + 'has no block. Under a later First FY they are before the First FY instead.',
       'The service and lane switches are this browser’s view, not saved in the file. They drive every figure and every list on every view, the export and the '
       + 'pictures, with two exceptions that cover every service and lane: an entered Authorized, which is entered for an appropriation and FY as a whole and saved '
       + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, rows whose appropriation is not identified, '
@@ -1232,7 +1237,7 @@ function ui_noDataBaeReport(B) {
     try { kept = SP.baeKeptLines(B, rep); }
     catch (e) { kept = ['The BAE report could not be listed: ' + ((e && e.message) || e)]; }
   }
-  const body = kept.length ? ui_lines(kept) : rep ? ui_reportLines(rep) : '';
+  const body = kept.length ? ui_lines(kept) : rep ? ui_reportLines(rep, B) : '';
   return body ? '<div class="baerep"><h3 class="sub">Import report</h3>' + body + '</div>' : '';
 }
 

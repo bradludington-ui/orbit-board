@@ -1473,8 +1473,10 @@ SP.obbbaLines = function obbbaLines(M) {
 };
 // §17.3 THE IMPORT REPORT'S LIST OF THE OBBBA MONEY THAT COUNTS (headed SP.OBBBA_ELSEWHERE_HEAD), for the view and the sheet
 // alike, from model.obbbaElsewhere: one line per (ap, fy) of another appropriation, FY2025, with the pull's rows and plan,
-// and, with a report loaded, the report's rows (named OBBBA, marked in Budget Flex 02), Approved and Authorized. [] when
-// there is none. It is ordinary money, so the Summary says nothing of it (§17.3).
+// and, with a report loaded, the report's rows (named OBBBA, marked in Budget Flex 02 only), Approved and Authorized. []
+// when there is none. It is ordinary money, so the Summary says nothing of it (§17.3). byFlex02 counts the rows whose name
+// does not hold the word, so it carries the section's own words, "marked in Budget Flex 02 only" (review P6-2): without
+// "only", one page named one count two ways, and it read as if it could overlap the named count.
 SP.obbbaElsewhereLines = function obbbaElsewhereLines(M) {
   const E = M && Array.isArray(M.obbbaElsewhere) ? M.obbbaElsewhere : [];
   if (!E.length) return [];
@@ -1482,7 +1484,7 @@ SP.obbbaElsewhereLines = function obbbaElsewhereLines(M) {
   return E.map(e => {
     const p = e.pull, r = e.report;
     return eng_fyName(e) + ': in the CCaR pull, ' + (p.rows ? eng_rowsWord(p.rows) + ', plan ' + SP.fmtUsd(p.cents) : 'none')
-      + (rep ? '; in the BAE report, ' + (r.rows ? eng_rowsWord(r.rows) + ' (named OBBBA: ' + eng_rowsWord(r.byName) + '; marked in Budget Flex 02: '
+      + (rep ? '; in the BAE report, ' + (r.rows ? eng_rowsWord(r.rows) + ' (named OBBBA: ' + eng_rowsWord(r.byName) + '; marked in Budget Flex 02 only: '
         + eng_rowsWord(r.byFlex02) + '), Approved ' + SP.fmtUsd(r.approved) + ', Authorized ' + SP.fmtUsd(r.authorized) : 'none') : '') + '.';
   });
 };

@@ -133,7 +133,7 @@ function obLines(X, reportRow) {
 }
 // §17.3 the Import report's list of the OBBBA money outside O&M, from the oracle's obbbaElsewhere ([] where it writes none)
 const elseLines = X => (X.obbbaElsewhere || []).map(e => fyName(e) + ': in the CCaR pull, ' + (e.pull.rows ? rows1(e.pull.rows) + ', plan ' + usd(e.pull.cents) : 'none')
-  + (X.bae ? '; in the BAE report, ' + (e.report.rows ? rows1(e.report.rows) + ' (named OBBBA: ' + rows1(e.report.byName) + '; marked in Budget Flex 02: '
+  + (X.bae ? '; in the BAE report, ' + (e.report.rows ? rows1(e.report.rows) + ' (named OBBBA: ' + rows1(e.report.byName) + '; marked in Budget Flex 02 only: '
     + rows1(e.report.byFlex02) + '), Approved ' + usd(e.report.approved) + ', Authorized ' + usd(e.report.authorized) : 'none') : '') + '.');
 // §16.2 the Import report's two lists, from the oracle
 const splitItems = X => X.bae.split.map(e => fyName(e) + ': “' + e.name + '” (' + figs(e) + '), by each PMO’s CCaR plan on it, largest share first: '

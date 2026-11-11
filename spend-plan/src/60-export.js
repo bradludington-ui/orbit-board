@@ -875,7 +875,8 @@ function ex_reportSheet(M, pulls, meta) {
   if (!rep) ex_push(K, [{ v: 'No import report is held for the last import.', s: EXS.line }]);
   else {
     ex_push(K, [{ v: 'The last import:', s: EXS.lineB }]);
-    for (const line of SP.importReportLines(rep)) ex_push(K, [{ v: line, s: EXS.line }]);
+    // with the report on screen, so its file part says what this workbook leaves out (reviews M6-3, P6-3)
+    for (const line of SP.importReportLines(rep, meta && meta.bae)) ex_push(K, [{ v: line, s: EXS.line }]);
   }
   // the pulls the last import did not replace, listed from their own rows: the Summary's notes count their unreadable
   // rows, and the last import's report alone said "none" (review IMP-2)

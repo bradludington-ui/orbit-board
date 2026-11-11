@@ -264,8 +264,10 @@ The filter bar has a box for each service and one for each lane (Discretionary a
     2025 and whose appropriation is O&M, so the plan and the report leave out the same money. With no report loaded a pull
     row is judged by its own Budget alone.
   - It is a fixed rule, not a setting. OBBBA funding of every other appropriation (Initial Spares, Full Fund, OPN) counts
-    like any other money, and the Import report lists it as such. An OBBBA budget of any other FY counts like any row, and
-    so does a name where OBBBA is only part of a longer word.
+    like any other money. An OBBBA budget of any other FY counts like any row, and so does a name where OBBBA is only part
+    of a longer word. The Import report lists the FY2025 OBBBA money outside O&M that counts (while First FY is 2025 or
+    earlier): the CCaR pull's rows whose Budget holds the word, and the BAE report's rows whose Budget Name or Budget
+    Flex 02 holds it. OBBBA money of any other FY is not listed.
   - It is treated as money before First FY is: an appropriation and FY whose only rows it is has no block, and under a
     First FY after 2025 such rows are before the First FY instead. An appropriation's view whose only rows from First FY on
     are this funding says so, rather than that the pull holds none.

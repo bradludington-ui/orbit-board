@@ -1469,8 +1469,21 @@ Spares."* This **replaces §15.1's rule**. Everything else in §15 stands, read 
 - **The Import report's section** lists the report's rows of it in two counts, *named OBBBA* and *marked in Budget Flex 02
   only*; and names each pull budget left out because the report marks it, as such.
 - **The Import report** adds, when `M.obbbaElsewhere` is not empty: *OBBBA funding outside O&M counts like any other money
-  (Brad, 11 Nov 2026):* then one line per `(ap, fy)` with the pull's rows and plan and the report's rows (named, Budget Flex 02),
-  Approved and Authorized.
+  (Brad, 11 Nov 2026):* then one line per `(ap, fy)` with the pull's rows and plan and the report's rows, Approved and
+  Authorized. The report's rows are in the section's own two counts and words, *named OBBBA* and *marked in Budget Flex 02
+  only* (`byName`, `byFlex02`: a row whose name holds the word is counted as named, whatever its Flex 02 says): *…in the BAE
+  report, {n rows} (named OBBBA: {n rows}; marked in Budget Flex 02 only: {n rows}), Approved …, Authorized ….* (review
+  P6-2: one page named one count two ways).
+- **The Import report's file part** (§15.4) decides whether to name *FY2025 O&M OBBBA funding* among what the figures leave
+  out by this page's rule, never by the count the page that imported stored (`lastImport.report.bae.obbba`): that count is a
+  judgement, made by the importing page's rule (a page before §17 counted OBBBA rows of every appropriation by their names
+  alone; one before §15 stored none). Wherever the report on screen is the one the import brought (the same import time, as
+  `SP.baeKeptLines` tells them apart), the count is worked out from its stored rows on drawing, on the view and the sheet
+  alike (`SP.importReportLines(report, bae)`); the stored report is never changed. A refused import's report is read as it is:
+  its count was made by this page (reviews M6-3, P6-3).
+- **Help and the README** say what that list holds and no more: the FY2025 OBBBA money outside O&M that counts, while First
+  FY is 2025 or earlier: the CCaR pull's rows whose Budget holds the word, and the BAE report's rows whose Budget Name or
+  Budget Flex 02 holds it; OBBBA money of any other FY counts and is not listed (review P6-2).
 - **The Summary's notes** say nothing new about the money that counts: it is ordinary money.
 
 ### 17.4 Tests
@@ -1489,6 +1502,17 @@ Spares."* This **replaces §15.1's rule**. Everything else in §15 stands, read 
   `bae-obbba2-first-2026`, `bae-obbba2-usaf-off`. The §15 scenarios are expected under §17: their rows outside O&M that §15 left
   out now count. List every expectation that changes, and why.
 - Every product against the oracle on those scenarios. Each new check shown failing on the code before §17.
+- **Every branch of the rule, each in a plan where only it decides** (review M6-2: the fixtures above also hold pull rows named
+  OBBBA, and no unreadable report row marked in Budget Flex 02, so four branches could be broken with every check passing):
+  an unreadable report row marked in Budget Flex 02 marks its budget's O&M FY2025 pull rows (*read or not*, §17.1); an
+  unreadable FY2025 row outside O&M, marked either way, is never in `M.obbbaElsewhere`; a report whose only FY2025 O&M OBBBA
+  rows are its own, marked in Budget Flex 02 alone, with no pull row of their budgets, gives `model.bae.rows.obbba` and the
+  Import report's line for it; and a plan whose only word is in a Budget Flex 02 outside O&M gives `M.obbbaElsewhere` and
+  the Import report's list. Each shown failing with that branch broken.
+- **A board saved by an earlier build** (the §15 build, cc4a4c8, and the build before §15, f8fe40e, both read from git),
+  opened by this one, says in its Import report's file part what this build leaves out, on the view and the sheet: a
+  report whose only FY2025 O&M OBBBA rows are marked in Budget Flex 02 alone (named), and one whose only OBBBA row is
+  Initial Spares FY2025, named OBBBA (not named) (reviews M6-3, P6-3).
 - The real-file proof (scratch only): with no report, every figure equals §15's proof (every real OBBBA row is O&M FY2025);
   with the report, the O&M FY2025 `noBlock` note's report figures fall by exactly the report's O&M FY2025 rows marked in Budget
   Flex 02 only, the Import report counts every O&M FY2025 row marked either way, Initial Spares FY2025 and every other figure

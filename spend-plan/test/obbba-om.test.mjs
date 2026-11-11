@@ -200,11 +200,11 @@ const EXP_LINES_REP = ['In the CCaR pulls: 4 rows on 3 budgets (O&M FY2025):',
   '  “' + B_OML + '” (O&M), marked in the BAE report’s Budget Flex 02: 1 row, plan ' + usd(D(400000)) + ', obligated ' + usd(D(400000)) + '.',
   '  Total: 4 rows, plan ' + usd(D(4000000)) + ', obligated ' + usd(D(3300000)) + '.',
   'In the BAE report: 3 rows, Approved ' + usd(D(4400000)) + ', Authorized ' + usd(D(3900000)) + ' (named OBBBA: 1 row; marked in Budget Flex 02 only: 2 rows).'];
-const EXP_ELSE_LINES = ['Full Fund FY2025: in the CCaR pull, 1 row, plan ' + usd(D(1500000)) + '; in the BAE report, 2 rows (named OBBBA: 1 row; marked in Budget Flex 02: 1 row), '
+const EXP_ELSE_LINES = ['Full Fund FY2025: in the CCaR pull, 1 row, plan ' + usd(D(1500000)) + '; in the BAE report, 2 rows (named OBBBA: 1 row; marked in Budget Flex 02 only: 1 row), '
   + 'Approved ' + usd(D(2300000)) + ', Authorized ' + usd(D(2250000)) + '.',
-'Initial Spares FY2025: in the CCaR pull, 2 rows, plan ' + usd(D(400000)) + '; in the BAE report, 2 rows (named OBBBA: 1 row; marked in Budget Flex 02: 1 row), '
+'Initial Spares FY2025: in the CCaR pull, 2 rows, plan ' + usd(D(400000)) + '; in the BAE report, 2 rows (named OBBBA: 1 row; marked in Budget Flex 02 only: 1 row), '
   + 'Approved ' + usd(D(1300000)) + ', Authorized ' + usd(D(1200000)) + '.',
-'OPN FY2025: in the CCaR pull, none; in the BAE report, 1 row (named OBBBA: 0 rows; marked in Budget Flex 02: 1 row), Approved ' + usd(D(350000))
+'OPN FY2025: in the CCaR pull, none; in the BAE report, 1 row (named OBBBA: 0 rows; marked in Budget Flex 02 only: 1 row), Approved ' + usd(D(350000))
   + ', Authorized ' + usd(D(350000)) + '.'];
 // the report's Counted, file order (§17.3)
 const EXP_COUNTED = ['Yes', WHY_FLEX, WHY, WHY_FLEX, 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'];

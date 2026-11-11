@@ -969,8 +969,12 @@ function imp_dateLines(L, pad, dates, months) {
   }
 }
 
-// The report as plain lines (the Import report view and the workbook's Import Report sheet both print these)
-SP.importReportLines = function importReportLines(report) {
+// The report as plain lines (the Import report view and the workbook's Import Report sheet both print these).
+//   report  an import's report;  bae  the BAE report on screen (SP.state.bae.current), given where the report is the one
+//   held for the data on screen: when the import brought it (the same import time), what its file part says the figures
+//   leave out is worked out from its stored rows by this page's rules (imp_baeNow), never read from the count the
+//   importing page stored. Left out (a refused import, the opening check), the report is read as it is.
+SP.importReportLines = function importReportLines(report, bae) {
   const L = [];
   if (!report) return L;
   const hdrNote = s => {
@@ -1004,7 +1008,7 @@ SP.importReportLines = function importReportLines(report) {
   // would all read none, beside a report that holds rows. Its own section follows instead.
   const pullSide = !report.bae || (report.files || []).some(fr => (fr.sheets || []).some(s => s && s.used && !s.bae));
   if (pullSide) imp_pullLines(L, report);
-  imp_baeLines(L, report.bae);
+  imp_baeLines(L, imp_baeNow(report, bae));
   for (const n of report.notes || []) L.push(n);
   return L;
 };
@@ -1086,6 +1090,33 @@ function imp_baeObbba(stored, flexCol) {
   if (typeof SP.baeDerive === 'function') { try { const d = SP.baeDerive(stored, null, undefined, flexCol); return d.readable && d.scope === 'obbba'; } catch (e) { return false; } }
   const name = imp_text(stored.c[0]), ap = name !== '' ? SP.apOfBudget(name) : null;
   return !(Array.isArray(stored.bad) && stored.bad.length) && !/\bflyaway\b/i.test(name) && SP.isObbba25(name, stored.c[1], ap, SP.baeFlex02(stored, flexCol));
+}
+// how many of a stored report's readable rows (no reason it could not be read, both amounts whole cents) are FY2025 O&M
+// OBBBA funding (imp_baeObbba), by this page's rule: what the file part's sentence names when it is above 0. b: a stored
+// report (SP.state.bae.current); 0 for anything that is not one.
+function imp_baeObbbaCount(b) {
+  if (!b || typeof b !== 'object' || !Array.isArray(b.rows)) return 0;
+  const okNum = v => typeof v === 'number' && Number.isSafeInteger(v), flexCol = SP.baeFlex02Col(b);
+  let n = 0;
+  for (const r of b.rows) {
+    if (!r || !Array.isArray(r.c) || (Array.isArray(r.bad) && r.bad.length) || !okNum(r.c[2]) || !okNum(r.c[3])) continue;
+    if (imp_baeObbba(r, flexCol)) n++;
+  }
+  return n;
+}
+// §17 (reviews M6-3, P6-3) the import's BAE part as this page reads it: the count of FY2025 O&M OBBBA rows its file part
+// names is a judgement by a rule, not a fact about the file, and the page that imported stored it by ITS rule (a page
+// before §17 counted OBBBA rows of every appropriation, by their names alone; one before §15 stored none). So where the
+// report on screen is the one this import brought (the same import time, as SP.baeKeptLines tells them apart), the count
+// is worked out again from its stored rows; every other part is read as stored. A copy: the stored report is never changed.
+function imp_baeNow(report, bae) {
+  const b = report && report.bae;
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return b;
+  if (!bae || typeof bae !== 'object' || Array.isArray(bae) || !Array.isArray(bae.rows)) return b;
+  if (typeof bae.importedAt !== 'string' || !bae.importedAt || bae.importedAt !== report.importedAt) return b;
+  const n = imp_baeObbbaCount(bae), out = Object.assign({}, b);
+  if (n > 0) out.obbba = n; else delete out.obbba;
+  return out;
 }
 function imp_baeLines(L, b, kept) {
   if (!b || typeof b !== 'object') return;
@@ -1174,14 +1205,14 @@ SP.baeKeptLines = function baeKeptLines(bae, report) {
   // the last import's own report: its section is already in that import's report
   if (report && report.bae && typeof report.bae === 'object' && typeof b.importedAt === 'string' && report.importedAt === b.importedAt) return L;
   const okNum = v => typeof v === 'number' && Number.isSafeInteger(v);
-  let readable = 0, approved = 0, authorized = 0, obbba = 0;
-  const unreadable = [], flexCol = SP.baeFlex02Col(b);
+  let readable = 0, approved = 0, authorized = 0;
+  const unreadable = [], obbba = imp_baeObbbaCount(b);
   for (const r of b.rows) {
     if (!r || !Array.isArray(r.c)) continue;
     if (Array.isArray(r.bad) && r.bad.length) {
       unreadable.push({ row: Array.isArray(r.src) && r.src[2] !== undefined ? r.src[2] : '?', reasons: r.bad, name: r.c[0], fy: r.c[1],
         approved: r.c[2], authorized: r.c[3], raw: r.raw && typeof r.raw === 'object' ? r.raw : {} });
-    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; if (imp_baeObbba(r, flexCol)) obbba++; }
+    } else if (okNum(r.c[2]) && okNum(r.c[3])) { readable++; approved += r.c[2]; authorized += r.c[3]; }
   }
   const t = b.total && typeof b.total === 'object' ? b.total : null;
   const dA = t && okNum(t.approved) ? t.approved - approved : null, dU = t && okNum(t.authorized) ? t.authorized - authorized : null;
