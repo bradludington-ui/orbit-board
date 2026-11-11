@@ -448,10 +448,10 @@ function ui_vPmos(M) {
       + ' they show it; pick another PMO to see that one.</p>';
   }
   ui.pmoLabel = P.label;
-  // WITH A BAE REPORT LOADED a PMO row of a block the report covers is the budgets' figures (§14.4): its Authorized is the
-  // report's, not Approved, so the rows carry their own marks (§ and † on a block the report has no figure for, nothing on
-  // the budgets') and the words under the table are SP.pmoTabLines', the workbook's, in its order. "A PMO row shows Approved"
-  // is said only of the rows it is true of. With no report the table and its note are §8.6's, unchanged.
+  // WITH A BAE REPORT LOADED a PMO row of a block the report covers is the PMO's share of the report's budgets its plan events
+  // use (§16.1): its Authorized is the report's, not Approved, so the rows carry their own marks (§ and † on a block the report
+  // has no figure for, nothing on a covered one) and the words under the table are SP.pmoTabLines', the workbook's, in its
+  // order. "A PMO row shows Approved" is said only of the rows it is true of. With no report the table and its note are §8.6's.
   const rep = ui_rep(M);
   const notes = SP.pmoTabLines(P, M);
   const out = [pick, '<h2 class="title">PMO: ' + ui_e(P.label) + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>',
@@ -626,8 +626,8 @@ function ui_baeRead(M) {
   const out = ['<section class="baeread" aria-labelledby="ui-baeread-h"><h3 class="sub" id="ui-baeread-h">The BAE report as the figures read it</h3>',
     '<p class="l2">A budget row counts in Approved and Authorized when its name places it in O&amp;M, Full Fund, Initial Spares or OPN, it is not Flyaway '
     + '(production), its FY is FY' + ui_e(M.firstFY) + ' or later' + ('obbba' in r ? ', it is not ' + ui_e(SP.OBBBA_WHY) : '')
-    + ', and the switches show its service and lane. A PMO’s row counts the budgets whose name ends in '
-    + 'that PMO’s code, and the (no PMO) row those whose name ends in none.</p>',
+    + ', and the switches show its service and lane. A PMO’s row takes the budgets its plan events are assigned to; a budget the plan events '
+    + 'of several PMOs use is split among them by each one’s CCaR plan on it, and money no plan event uses is on no PMO’s row (both listed below).</p>',
     '<ul class="notes baerows">'
     + '<li data-scope="in">Sustainment budgets: ' + rows(r.in) + ' (' + ui_e(SP.fmtInt(X.budgetsIn)) + (X.budgetsIn === 1 ? ' budget' : ' budgets') + '), Approved '
     + usd(X.cents.approved) + ' and Authorized ' + usd(X.cents.authorized) + ' over every FY'
@@ -691,6 +691,18 @@ function ui_baeRead(M) {
       + ui_e((UI_AP_LABEL[o.ap] || o.ap) + ' FY' + o.fy + ': ' + (t.name === '' ? '(no Budget, ' + ui_rowsN(t.rows) + ')' : t.name) + ' ('
         + (SP.OFF_REPORT_KIND[t.kind] || t.kind) + '): CCaR plan $' + SP.fmtMText(t.planned) + 'M, obligated $' + SP.fmtMText(t.obligated) + 'M.') + '</li>').join('') + '</ul>'
       : '<p class="none">None: every row the pull counts on a covered block is on a budget the report’s Approved can hold.</p>'));
+  // §16.2 how the PMO tabs share the report, in the sheet's words (SP.pmoSplitLists): the budgets several PMOs' plan events
+  // use, and the money no plan event takes, which is in the Summary and on no PMO tab. Both follow the switches.
+  const pl = SP.pmoSplitLists(M);
+  const swNote = M.shown.all ? '' : '<p class="note">Counted with the switches as they are: a budget of a service or lane switched off is not listed, and a '
+    + 'PMO’s plan counts only the rows shown.</p>';
+  for (const [part, cls] of [[pl.split, 'pmosplit'], [pl.unassigned, 'unassigned']]) {
+    out.push('<h4 class="sub" data-n="' + part.items.length + '">' + ui_e(part.head) + ': ' + ui_e(part.items.length ? SP.fmtInt(part.items.length) : part.none) + '</h4>'
+      + swNote
+      + (part.items.length ? '<ul class="notes ' + cls + '">' + part.items.map(it => '<li data-bk="' + ui_e(it.bk) + '" data-key="' + ui_e(it.key) + '"'
+        + (it.why ? ' data-why="' + ui_e(it.why) + '"' : '') + '>' + ui_e(it.text) + '</li>').join('') + '</ul>'
+        : '<p class="none">None.</p>'));
+  }
   out.push('</section>');
   return out.join('');
 }
@@ -1124,8 +1136,12 @@ function ui_vHelp() {
       'Where it has figures for an appropriation and FY, <strong>Approved</strong> and <strong>Authorized</strong> in the Summary and the appropriation and PMO '
       + 'tables are the report’s, from its sustainment budgets: every budget whose name places it in O&amp;M, Full Fund, Initial Spares or OPN, except Full '
       + 'Fund Flyaway and FY' + SP.OBBBA_FY + ' OBBBA funding. Obl %, Unobligated and Status are measured against that Approved. The switches reach the report’s budgets as they reach the pull’s rows.',
-      'A PMO’s row counts the budgets whose name ends in its code (“… Discretionary AV”), and the obligated rows of those budgets; the (no PMO) row counts the budgets '
-      + 'whose name ends in no PMO’s code (“… CAM”, “… SUPT”). The detail below each still lists rows by their own PMO.',
+      'A PMO’s tab is built from its plan events (the rows whose PMO column names it; the (no PMO) tab is the plan events with no PMO). Its Approved and '
+      + 'Authorized are the report’s figures for the budgets its plan events are assigned to, and its Obligated counts its plan events’ executed rows. A budget '
+      + 'the plan events of several PMOs use is split among them by each one’s CCaR plan on it, to the cent. Report money no plan event uses (a budget no '
+      + 'counted row names, or one whose plan is not above zero) is in the Summary and on no PMO tab: the Summary’s notes and the PMO tab say how much, and '
+      + 'the Import report lists each budget, and each one split. The workbook’s BAE Report sheet says, in its PMO column, which PMOs share each row’s budget. '
+      + 'The detail below each PMO table still lists its rows.',
       'The CCaR plan and Obligated count every row of the pull, Flyaway budgets, budgets that name no appropriation and rows with no Budget included, which the '
       + 'report’s Approved never holds: each block with such money is named in the Summary’s notes, each budget in the Import report, and a PMO table says how '
       + 'much of its Obligated it is.',

@@ -575,7 +575,8 @@ function ex_pmoSheet(M, p) {
     K.sh.freeze = 'A' + (tr + 1);
     ex_span(K, 'Authorized is entered by appropriation and FY; a PMO row shows Approved.', EXS.note, 0, 9);
   } else {
-    // §14.4 with a BAE report: a row the report covers is the budgets' figures and carries no mark; a row it does not
+    // §16.1 with a BAE report: a row the report covers is the PMO's share of the budgets its plan events use and carries no
+    // mark; a row it does not
     // cover is §4.6's, its Approved the plan (§) and its Authorized that Approved (†), marked as the screen marks them
     ex_apFyRows(K, p.rows.map(r => Object.assign({}, r, { mark: SP.authMark(r, M), amark: SP.approvedMark(r, M) })));
     const am = SP.authMarks(p.rows, M);
@@ -754,7 +755,10 @@ function ex_baeSheet(M, bae) {
     if (!totDone && rn !== null && Number.isInteger(tr.rowNo) && rn > tr.rowNo) { tot(); totDone = true; }
     const c = row && Array.isArray(row.c) ? row.c : [];
     const cells = fileCells(c, row && row.raw, row && row.x);
-    cells.push(txt(d.apLabel), txt(d.svc), txt(SP.LANE_WORDS[d.lane] || d.lane), txt(d.pmoLabel), txt(d.why));
+    // §16.2 its PMO column says where a counting row's money goes: the PMOs whose plan events take a share of its budget in
+    // its block, by their plan, or that no plan event uses it; blank on a row that does not count. A budget's last word no
+    // longer moves a dollar (rules 4 and 7 replaced), so the column no longer prints it.
+    cells.push(txt(d.apLabel), txt(d.svc), txt(SP.LANE_WORDS[d.lane] || d.lane), txt(d.goes), txt(d.why));
     ex_push(K, cells);
   });
   if (!totDone) tot();
@@ -818,6 +822,13 @@ SP.baeModelLines = function baeModelLines(M) {
   for (const { o, t } of items) {
     L.push('    ' + apL(o.ap) + ' FY' + o.fy + ': ' + (t.name === '' ? '(no Budget, ' + rw(t.rows) + ')' : q(t.name)) + ' (' + (SP.OFF_REPORT_KIND[t.kind] || t.kind)
       + '): CCaR plan ' + SP.fmtUsd(t.planned) + ', obligated ' + SP.fmtUsd(t.obligated) + '.');
+  }
+  // §16.2 how the PMO tabs share the report: the budgets several PMOs' plan events use, and the money no plan event takes
+  // (on no PMO tab). Both are worked out on the blocks as the switches leave them, so each says so under a switch.
+  const pl = SP.pmoSplitLists(M);
+  for (const part of [pl.split, pl.unassigned]) {
+    L.push('  ' + part.head + sw + ': ' + (part.items.length ? SP.fmtInt(part.items.length) + '.' : part.none + '.'));
+    for (const it of part.items) L.push('    ' + it.text);
   }
   return L;
 };

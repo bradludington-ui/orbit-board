@@ -570,17 +570,55 @@ try {
     const om0b = om0.map(r => (r['CCaR No'] === 'QA0021' ? Object.assign({}, r, { Amount: '350000' }) : r));
     const bae0b = bae0.map(r => (r[0] === B_OMO ? [r[0], r[1], 650000, 500000] : r));
     const strip = M => { const x = JSON.parse(J(M)); delete x.obbbaNoBlock; delete x.excluded.obbba; return J(x); };
+    // §16 (Brad, 11 Nov 2026, built after §15 on this tree) moves, WITH A REPORT LOADED ONLY, a covered block's PMO rows
+    // (by the plan events), the BAE Report sheet's PMO column, the words under a PMO tab, the Summary's note on report money
+    // no plan event uses and the Import report's two lists. The code before §15 has none of it, so with a report those are set
+    // aside on both sides here, and engine-bae, export-bae and screens-bae hold them to the oracle; everything else must
+    // still be the code before §15's, byte for byte. A PMO's detail (its rows by the PMO column) is §16's too, and stays.
+    const DETAIL = ['key', 'ap', 'fy', 'n', 'curve', 'cols', 'cum', 'obl', 'goalC', 'statusC', 'tree', 'na', 'unprog', 'execAfterAsOf', 'planned', 'slide'];
+    const mask16 = (M, rep) => {
+      const x = JSON.parse(M);
+      if (!rep) return J(x);
+      if (x.bae) { delete x.bae.split; delete x.bae.unassigned; for (const d of x.bae.derived || []) delete d.goes; }
+      x.summary.notes = x.summary.notes.filter(n => !n.startsWith('The PMO tabs share'));
+      x.pmos = x.pmos.map(p => ({ key: p.key, label: p.label, code: p.code, blocks: p.blocks.filter(b => b.tree.length || b.planned)
+        .map(b => Object.fromEntries(DETAIL.map(f => [f, b[f]]))) })).filter(p => p.blocks.length);
+      return J(x);
+    };
+    const ROW16 = /^(The PMO tabs share| {2}Budgets split among PMOs by their plan events| {2}BAE report money no plan event uses)/;
+    const wb16 = (spec, rep) => {
+      const x = JSON.parse(J(spec));
+      if (!rep) return J(x);
+      x.sheets = x.sheets.filter(sh => !/^PMO /.test(sh.name)).map(sh => {
+        const text = r => (r.cells || []).map(c => (c && typeof c.v === 'string' ? c.v : '')).join('');
+        const drop = new Set();
+        let inList = false;
+        sh.rows.forEach((r, i) => {
+          const t = text(r);
+          if (ROW16.test(t)) { drop.add(i); inList = !t.startsWith('The'); } else if (inList && t.startsWith('    ')) drop.add(i); else inList = false;
+        });
+        if (sh.name === 'BAE Report') {                     // its PMO column, the last but one (§16.2)
+          const w = sh.rows[0].cells.length;
+          for (const r of sh.rows.slice(1)) if (r.cells[w - 2]) r.cells[w - 2] = { s: r.cells[w - 2].s };
+        }
+        const merges = sh.merges.map(m => { const g = /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/.exec(m); const i = Number(g[2]) - 1;
+          return drop.has(i) ? null : J([g[1], g[3], Number(g[4]) - Number(g[2]), sh.rows[i]]); }).filter(Boolean).sort();
+        return Object.assign(sh, { rows: sh.rows.filter((_, i) => !drop.has(i)), merges });
+      });
+      return J(x);
+    };
     for (const [name, withRep] of [['no report', false], ['with a report', true]]) {
       const Pn = await SP.parseFiles(files(om0, ff0, sp0, withRep ? bae0 : null), { now: NOW });
       const Pb = await SPb.parseFiles(files(om0, ff0, sp0, withRep ? bae0 : null), { now: NOW });
       for (const [w, first, off, lanes] of [['every switch on'], ['USAF off', 2025, ['USAF']], ['mandatory only', 2025, [], ['mand']], ['First FY 2026', 2026], ['First FY 2024', 2024]]) {
         const Mn = SP.buildModel(Pn.pulls, S0(SP, first), V0(SP, off, lanes), withBae(Pn)), Mb = SPb.buildModel(Pb.pulls, S0(SPb, first), V0(SPb, off, lanes), withBae(Pb));
-        C.chk(name + ', ' + w + ': the model is the one before §15, but for the empty excluded.obbba and obbbaNoBlock', strip(Mn) === J(Mb));
+        C.chk(name + ', ' + w + ': the model is the one before §15, but for the empty excluded.obbba and obbbaNoBlock' + (withRep ? ' (and §16’s PMO figures, set aside)' : ''),
+          mask16(strip(Mn), withRep) === mask16(J(Mb), withRep));
         C.chk(name + ', ' + w + ': … and those are empty', J(Mn.excluded.obbba) === J({ rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] }) && J(Mn.obbbaNoBlock) === '[]');
         const meta = P => ({ report: P.report, today: '2026-11-09', bae: withBae(P) });
-        const sn = J(SP.excelSpec(Mn, Pn.pulls, S0(SP, first), meta(Pn))), sb = J(SPb.excelSpec(Mb, Pb.pulls, S0(SPb, first), meta(Pb)));
+        const sn = wb16(SP.excelSpec(Mn, Pn.pulls, S0(SP, first), meta(Pn)), withRep), sb = wb16(SPb.excelSpec(Mb, Pb.pulls, S0(SPb, first), meta(Pb)), withRep);
         let at = 0; while (at < sn.length && sn[at] === sb[at]) at++;
-        C.chk(name + ', ' + w + ': the workbook is the one before §15, cell for cell', sn === sb, 'first difference at ' + at + ': before …' + sb.slice(Math.max(0, at - 100), at + 80) + '… now …' + sn.slice(Math.max(0, at - 100), at + 80));
+        C.chk(name + ', ' + w + ': the workbook is the one before §15, cell for cell' + (withRep ? ' (§16’s PMO tabs, PMO column and lines set aside)' : ''), sn === sb, 'first difference at ' + at + ': before …' + sb.slice(Math.max(0, at - 100), at + 80) + '… now …' + sn.slice(Math.max(0, at - 100), at + 80));
       }
     }
     // the store and every view (Help aside: it states the rule always), on a plan of two imports each with a report
@@ -593,6 +631,26 @@ try {
     C.chk('the saved state is the one before §15', J(pn.state.pulls) === J(pb.state.pulls) && J(pn.state.bae) === J(pb.state.bae) && J(pn.state.settings) === J(pb.state.settings));
     const A = await boot(pageHtml({ state: pn.state })), Bp = await boot(withState(assembleB({}), pn.state));
     const same = (what, f) => { const a = f(A), b = f(Bp); C.chk('no FY2025 OBBBA row: ' + what + ' is drawn as before §15', a === b, a.length + ' vs ' + b.length + ' characters, first difference at ' + [...a].findIndex((ch, i) => ch !== b[i])); };
+    // §16 on the screens, set aside as above (both reports are loaded here): the Import report's account of a PMO's row and its
+    // two lists, the Summary's note on money no plan event uses, and a PMO tab's table and the lines under it (its detail,
+    // the sections below, stays)
+    const html16 = (T, v) => {
+      const m = T.main().cloneNode(true);
+      if (v === 'report') {
+        for (const h of [...m.querySelectorAll('section.baeread h4')].filter(h => /^(Budgets split among PMOs|BAE report money no plan event uses)/.test(h.textContent))) {
+          while (h.nextElementSibling && h.nextElementSibling.tagName !== 'H4') h.nextElementSibling.remove();
+          h.remove();
+        }
+        const l2 = m.querySelector('section.baeread p.l2');
+        if (l2) l2.innerHTML = l2.innerHTML.replace(/ A PMO’s row .*$/, '');
+      }
+      for (const li of [...m.querySelectorAll('li, p')].filter(x => x.textContent.startsWith('The PMO tabs share'))) li.remove();
+      // the strip over each block prints the PMO row's figures (§8.6 item 3), which §16 moves; the tree and band below it stay
+      for (const x of m.querySelectorAll('section.blk-sec tr.strip')) x.remove();
+      if (v === 'pmos') return [...m.querySelectorAll('section.blk-sec')].map(x => x.outerHTML).join('');
+      return m.innerHTML;
+    };
+    const same16 = (what, v) => same(what, T => html16(T, v));
     same('the top', T => T.doc.getElementById('uiTop').innerHTML);
     same('the switches', T => T.doc.getElementById('uiFilters').innerHTML);
     // the pages compared hold the plan: its blocks on the Summary, both reports and both pulls on What changed
@@ -607,17 +665,17 @@ try {
       if (v === 'changes') {
         for (const T of [A, Bp]) for (const b of [...T.main().querySelectorAll('button[data-act=diff]:not([disabled])')]) { T.click(T.doc.querySelector('[data-fkey="' + b.getAttribute('data-fkey') + '"]')); await settle(); }
       }
-      same('the ' + v + ' view', T => T.main().innerHTML);
+      same16('the ' + v + ' view', v);
     }
     await A.view('pmos'); await Bp.view('pmos');
     const n = A.main().querySelector('select[data-act=pmo]').options.length;
     for (let i = 0; i < n; i++) {
       for (const T of [A, Bp]) { T.change(T.main().querySelector('select[data-act=pmo]'), String(i)); await settle(); }
-      same('PMO tab ' + i, T => T.main().innerHTML);
+      same16('PMO tab ' + i + ', its detail', 'pmos');
     }
     // a switch off, then the Summary and the Import report again
     for (const T of [A, Bp]) { const box = T.doc.querySelector('#uiFilters input[type=checkbox]'); box.checked = false; box.dispatchEvent(new T.W.Event('change', { bubbles: true })); await settle(); }
-    for (const v of ['summary', 'report', 'settings']) { await A.view(v); await Bp.view(v); same('the ' + v + ' view with a switch off', T => T.main().innerHTML); }
+    for (const v of ['summary', 'report', 'settings']) { await A.view(v); await Bp.view(v); same16('the ' + v + ' view with a switch off', v); }
     C.eq('no script error on either page', A.errors().concat(Bp.errors()), []);
     A.t.close(); Bp.t.close(); tb.close();
   });

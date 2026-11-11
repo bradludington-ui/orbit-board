@@ -553,6 +553,9 @@ const ENG_BUDGET_COL = SP.RAW_HEADERS.indexOf('Budget');
 const ENG_BAE_WHY = Object.freeze({ bad: 'Could not be read', flyaway: 'Flyaway (production)', noap: 'Names no appropriation',
   first: 'Before the first FY', obbba: SP.OBBBA_WHY, off: 'Switch off', yes: 'Yes' });
 SP.BAE_COUNTED_WHY = ENG_BAE_WHY;
+// §16.2 the BAE Report sheet's PMO column for a counting row whose budget no PMO takes a share of
+const ENG_NO_PLAN_EVENT = 'No plan event uses it';
+SP.NO_PLAN_EVENT = ENG_NO_PLAN_EVENT;
 // the word Flyaway, in any case, as every name rule of §3 is read: aircraft production, never sustainment (rule 1)
 const ENG_FLYAWAY = /\bflyaway\b/i;
 // A budget's service and lane are the pull's own (§14.2): read through SP.deriveRow on a row holding only that Budget,
@@ -677,12 +680,14 @@ function eng_baeBlock(b, rep, cov, auth) {
   // typed $398.77M printed where the report says $520.28M (review I4-4). With no report, ‡ stays §8's (a switch off).
   b.marks = { sect: !cov, dagger: b.authorizedSrc === 'approved', ddagger: !!auth.entered };
 }
-// §14.4 a PMO's row in a block with a report loaded. pb holds §4.5's figures over the PMO's rows by their PMO column: the
-// detail its tab lists below the table (tree, columns, Not Allocated, the totals band), and those stay, on the plan.
-// Where the report covers the block, the stoplight figures are the budgets': Approved and Authorized of the counting
-// report rows whose budget's PMO is this PMO, and Obligated of the block's executed rows whose BUDGET names it (bpmo,
-// rule 7), so the four measure the same money. A typed Authorized is for the whole block and is never split: the row
-// keeps the report's. Elsewhere the row is §4.6's, Authorized = Approved (†).
+// §16.1 a PMO's row in a block with a report loaded (Brad, 11 Nov 2026: "PMO tab should be based on Plan Event entries. The BAE
+// budget assigned to that plan event should matrix over to populate the approved and authorized amounts"). pb holds §4.5's
+// figures over the PMO's rows by their PMO column: the detail its tab lists below the table (tree, columns, Not Allocated,
+// the totals band), and those stay, on the plan. Where the report covers the block, Approved and Authorized are the PMO's
+// shares of the report's budgets its plan events use (SP.splitByPlan, by its CCaR plan on each), and Obligated stays its
+// own executed rows by the PMO column: the tree's Obligated. A typed Authorized is for the whole block and is never split:
+// the row keeps the report's share. Elsewhere the row is §4.6's, Authorized = Approved (†).
+// This replaces rules 4 and 7 (§14.4), which read a PMO off a budget's NAME: a budget's last word no longer moves a dollar.
 // §14.3 KEEPS A COVERED BLOCK'S PULL ROWS WHATEVER THEIR BUDGET (planned and Obligated are §4.5's), while its Approved is
 // the report's sustainment budgets alone. So money on a budget the report's Approved can never hold sits on one side of
 // Obl % only: a Flyaway budget (aircraft production, rule 1), one whose name places it in no appropriation (counted here
@@ -726,23 +731,55 @@ function eng_offWords(budgets) {
   }
   return eng_and(out);
 }
-function eng_baePmo(pb, cov, rep, obl) {
+function eng_baePmo(pb, cov, share) {
   const planned = pb.approved;
   pb.planned = planned;
   pb.covered = cov;
   pb.slide = { basis: planned, oblPct: pb.oblPct, goal: pb.goal, delta: pb.delta, status: pb.status };
   if (cov) {
-    pb.approved = eng_sumOf(rep, 'approved');
-    pb.authorized = eng_sumOf(rep, 'authorized');
-    pb.obligated = obl;
-    eng_againstApproved(pb);
+    pb.approved = share.approved;
+    pb.authorized = share.authorized;
+    eng_againstApproved(pb);                 // Obligated is §4.5's over the PMO's own rows: the tree's (§16.1)
   }
   pb.approvedSrc = cov ? 'report' : 'plan';
   pb.authorizedSrc = cov ? 'report' : 'approved';
-  pb.basis = cov ? 'budget' : 'row';
+  // 'planEvent' (§16.3), a new word: §14.4's 'budget' is gone, so a check written for the rule replaced cannot pass by name
+  pb.basis = cov ? 'planEvent' : 'row';
   pb.sect = !cov;
   pb.marks = { sect: !cov, dagger: !cov, ddagger: false };
 }
+// §16.1 SHARE ONE AMOUNT AMONG THE PMOs BY THEIR PLAN: whole cents, by largest remainder, so the shares add up to the amount
+// EXACTLY. weights[i] is the i-th PMO's weight, in the model's PMO order; a weight that is not a whole number above zero
+// counts as 0 (the caller passes max(0, plan)). Each PMO first gets the floor of amount x weight / total; the cents left
+// over (fewer than the PMOs) go one each to the largest remainders, a tie to the PMO earlier in the order. A negative
+// amount is split as its absolute value and negated, so a negative budget is shared exactly as a positive one is.
+// The products are worked in BigInt: a $5B budget against a $5B plan is 2.5e23, far past the 2^53 a Number holds exactly,
+// and a share computed in floating point can land a cent on the wrong PMO, or lose one.
+//   -> an array of whole cents, one per weight, adding up to amount; or null when no weight is above zero (the budget is
+//      UNASSIGNED: on no PMO tab, §16.1) or the amount is not whole cents (nothing that could be shared exactly)
+SP.splitByPlan = function splitByPlan(amount, weights) {
+  if (!Number.isSafeInteger(amount)) return null;
+  const w = (Array.isArray(weights) ? weights : []).map(x => (Number.isSafeInteger(x) && x > 0 ? BigInt(x) : 0n));
+  let W = 0n;
+  for (const x of w) W += x;
+  if (W === 0n) return null;
+  const neg = amount < 0, A = BigInt(neg ? -amount : amount);
+  const share = w.map(x => A * x / W), rem = w.map(x => A * x % W);
+  let left = A;
+  for (const x of share) left -= x;
+  const order = [];
+  for (let i = 0; i < w.length; i++) if (w[i] > 0n) order.push(i);
+  order.sort((i, j) => (rem[i] > rem[j] ? -1 : rem[i] < rem[j] ? 1 : i - j));
+  for (let k = 0; left > 0n; k++, left--) share[order[k]] += 1n;
+  return share.map(x => (x === 0n ? 0 : neg ? -Number(x) : Number(x)));
+};
+// §16.2 a share of the plan as the BAE Report sheet prints it: a percent to one decimal, rounded half up, worked in whole
+// numbers so 62.45% is never 62.4% by a binary fraction. w, W: the PMO's weight and the budget's total (cents, W > 0).
+SP.planPct = function planPct(w, W) {
+  const a = BigInt(w), b = BigInt(W);
+  const t = (2000n * a + b) / (2n * b);
+  return String(t / 10n) + '.' + String(t % 10n) + '%';
+};
 // a total of blocks or rows (§14.3): planned added up, and each mark any of them carries
 function eng_baeTot(t, list) {
   t.planned = eng_sumOf(list, 'planned');
@@ -894,18 +931,30 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     });
   }
   const shown = eng_shown(V, present);
-  // a pull row's bpmo: the PMO its Budget's name ends in (§14.2), the PMO rule 7 counts its obligated dollars under. One
-  // reading per distinct Budget text, since a pull repeats a few dozen budgets over thousands of rows.
+  // a Budget's PMO by its name's last word (§14.2), one reading per distinct Budget text: information only since §16
+  // (model.bae.pullBudgetPmo), no figure reads it
   const bpCache = new Map();
   const bpmoOf = name => { const s = eng_txt(name); let k = bpCache.get(s); if (k === undefined) bpCache.set(s, (k = eng_budgetPmoKey(s, idx))); return k; };
   const okCache = new Map();
   const offKindOf = name => { const s = eng_txt(name); let k = okCache.get(s); if (k === undefined) okCache.set(s, (k = eng_offKind(s))); return k; };
+  // a PMO's name: the spelling most of its counted rows use. A PMO named on no counted row (a budget's last word, §14.2,
+  // read for information only) is named as the pull names it on any row, else as SP.PMO_ORDER writes it.
+  const pmoLabel = pk => {
+    if (pmoSpell.has(pk)) return eng_major(pmoSpell.get(pk), ENG_BLANK.pmo);
+    if (allSpell && allSpell.has(pk)) return eng_major(allSpell.get(pk), ENG_BLANK.pmo);
+    return SP.PMO_ORDER.find(x => SP.normKey(x) === pk) || ENG_BLANK.pmo;
+  };
+  // the model's PMO order (model.pmos is sorted so), by key: a tie in a split goes to the PMO earlier in it (§16.1)
+  const pmoBefore = (a, b) => eng_pmoSort({ key: a, label: pmoLabel(a) }, { key: b, label: pmoLabel(b) });
   // the blocks, appropriation order then FY
   const keys = [...blockOf.keys()].sort((a, b) => {
     const x = blockOf.get(a), y = blockOf.get(b);
     return ENG_AP_IDS.indexOf(x.ap) - ENG_AP_IDS.indexOf(y.ap) || x.fy - y.fy;
   });
   const blocks = [], pmoBlocks = new Map();   // PMO key -> [PmoBlock]
+  // §16.3 each covered block's budgets as they are shared among its PMOs: the split ones (more than one PMO's plan above
+  // zero) and the unassigned (none); and every budget's sharing, for the BAE Report sheet's PMO column (§16.2)
+  const splitAll = [], unassignedAll = [], shareOf = new Map();   // 'ap|fy' -> budget key -> [{pmo, plan}] | null
   for (const key of keys) {
     const { ap, fy } = blockOf.get(key), rows = blockRows.get(key);
     const entered = eng_own(S.authorized, key) && Number.isSafeInteger(S.authorized[key]);
@@ -918,30 +967,72 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
       b.offReport = cov ? eng_offReport(rows, offKindOf) : null;
     }
     blocks.push(b);
-    // each PMO's own block: the same figures over only its rows, Authorized = Approved (§8.6)
+    // each PMO's own block: the same figures over only its rows, by the PMO column: exactly the PMOs the block's tree shows
+    // (§16.1: a budget's name no longer gives a PMO a row)
     const byPmo = new Map();
     for (const r of rows) {
       let l = byPmo.get(r.d.k.pmo);
       if (!l) byPmo.set(r.d.k.pmo, (l = []));
       l.push(r);
     }
-    // §14.4: in a block the report covers, a PMO has a row also when only a budget naming it counts there, or only
-    // executed rows whose budget names it; such a row's detail (its rows by their own PMO column) is empty
-    // and, of a PMO's Obligated by bpmo, the part on budgets the report's Approved can never hold (eng_offKind)
-    const repPmo = new Map(), oblPmo = new Map(), offPmo = new Map();
-    if (B) for (const r of rows) r.d.bpmo = bpmoOf(r.d.budget);
+    // §16.1 on a covered block: each PMO's plan on each budget (its counted rows by the PMO column and the Budget's
+    // normKey), and the report's Approved and Authorized of each budget, shared among the PMOs by that plan
+    const share = new Map(), offPmo = new Map();
     if (cov) {
-      for (const x of rep) { if (!repPmo.has(x.pmo)) repPmo.set(x.pmo, []); repPmo.get(x.pmo).push(x); }
+      const pks = [...byPmo.keys()].sort(pmoBefore);
+      for (const pk of pks) share.set(pk, { approved: 0, authorized: 0 });
+      const plan = new Map();                       // budget key -> PMO key -> cents
       for (const r of rows) {
-        if (r.d.status !== 'exec') continue;
-        oblPmo.set(r.d.bpmo, (oblPmo.get(r.d.bpmo) || 0) + r.cents);
-        if (offKindOf(r.d.budget)) offPmo.set(r.d.bpmo, (offPmo.get(r.d.bpmo) || 0) + r.cents);
+        const bk = SP.normKey(r.d.budget);
+        let m = plan.get(bk);
+        if (!m) plan.set(bk, (m = new Map()));
+        m.set(r.d.k.pmo, (m.get(r.d.k.pmo) || 0) + r.cents);
+        // §16.1 offObligated: the part of a PMO's own Obligated on budgets the report's Approved can never hold
+        if (r.d.status === 'exec' && offKindOf(r.d.budget)) offPmo.set(r.d.k.pmo, (offPmo.get(r.d.k.pmo) || 0) + r.cents);
       }
-      for (const pk of [...repPmo.keys(), ...oblPmo.keys()]) if (!byPmo.has(pk)) byPmo.set(pk, []);
+      const rb = new Map();                         // budget key -> {key, name, approved, authorized}: the report's, in file order
+      for (const x of rep) {
+        let t = rb.get(x.key);
+        if (!t) rb.set(x.key, (t = { key: x.key, name: x.name, approved: 0, authorized: 0 }));
+        t.approved += x.approved; t.authorized += x.authorized;
+      }
+      const shares = new Map(), split = [], un = [];
+      for (const t of rb.values()) {
+        const m = plan.get(t.key);
+        const weights = pks.map(pk => Math.max(0, (m && m.get(pk)) || 0));
+        const sa = SP.splitByPlan(t.approved, weights), su = SP.splitByPlan(t.authorized, weights);
+        if (!sa || !su) {
+          // no PMO's plan on it is above zero: on no PMO tab, in the Summary, and named (§16.1, §16.2)
+          un.push({ key: t.key, name: t.name, approved: t.approved, authorized: t.authorized, why: m ? 'noplan' : 'nopull' });
+          shares.set(t.key, null);
+          continue;
+        }
+        const takers = [];
+        pks.forEach((pk, i) => {
+          const s0 = share.get(pk);
+          s0.approved += sa[i]; s0.authorized += su[i];
+          if (weights[i] > 0) takers.push({ pmo: pk, rank: i, plan: weights[i], approved: sa[i], authorized: su[i] });
+        });
+        // largest share first: by plan, which orders the shares the same way (largest remainder never puts a smaller
+        // weight's share above a larger one's); a tie in the model's PMO order
+        takers.sort((x, y) => y.plan - x.plan || x.rank - y.rank);
+        shares.set(t.key, takers.map(x => ({ pmo: x.pmo, plan: x.plan })));
+        if (takers.length > 1) {
+          split.push({ ap, fy, key: t.key, name: t.name, approved: t.approved, authorized: t.authorized,
+            pmos: takers.map(x => ({ pmo: x.pmo, label: pmoLabel(x.pmo), plan: x.plan, approved: x.approved, authorized: x.authorized })) });
+        }
+      }
+      const byName = (x, y) => eng_cmp(x.name, y.name) || eng_cmp(x.key, y.key);
+      for (const e of split.sort(byName)) splitAll.push(e);
+      if (un.length) {
+        un.sort(byName);
+        unassignedAll.push({ ap, fy, approved: eng_sumOf(un, 'approved'), authorized: eng_sumOf(un, 'authorized'), budgets: un });
+      }
+      shareOf.set(key, shares);
     }
     for (const [pk, prs] of byPmo) {
       const pb = eng_block(prs, ap, fy, cx, S, { entered: false, cents: 0 });
-      if (B) { eng_baePmo(pb, cov, repPmo.get(pk) || [], oblPmo.get(pk) || 0); pb.offObligated = offPmo.get(pk) || 0; }
+      if (B) { eng_baePmo(pb, cov, share.get(pk)); pb.offObligated = offPmo.get(pk) || 0; }
       if (!pmoBlocks.has(pk)) pmoBlocks.set(pk, []);
       pmoBlocks.get(pk).push(pb);
     }
@@ -953,13 +1044,6 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     const list = blocks.filter(b => b.ap === ap);
     if (list.length) aps.push({ ap, label: ENG_AP_LABEL[ap], blocks: list, total: B ? eng_baeTot(eng_tot(list), list) : eng_tot(list) });
   }
-  // a PMO's name: the spelling most of its counted rows use. With a report, a PMO with a row only through its budgets is
-  // named as the pull names it on any row, else as SP.PMO_ORDER writes it (§14.4).
-  const pmoLabel = pk => {
-    if (pmoSpell.has(pk)) return eng_major(pmoSpell.get(pk), ENG_BLANK.pmo);
-    if (allSpell && allSpell.has(pk)) return eng_major(allSpell.get(pk), ENG_BLANK.pmo);
-    return SP.PMO_ORDER.find(x => SP.normKey(x) === pk) || ENG_BLANK.pmo;
-  };
   // the PMOs, in PMO order by the label over every counted row; each with its blocks in v12's PMO-tab order
   const tabOrder = (a, b) => ENG_PMO_TAB_ORDER.indexOf(a.ap) - ENG_PMO_TAB_ORDER.indexOf(b.ap) || a.fy - b.fy;
   const pmos = [];
@@ -1000,7 +1084,8 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp, stale, obbbaNoBlock,
     summary: { rows: blocks, total: B ? eng_baeTot(eng_tot(blocks), blocks) : eng_tot(blocks), notes: [] },
   };
-  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock, obLoaded });
+  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock, obLoaded,
+    split: splitAll, unassigned: unassignedAll, shareOf });
   model.summary.notes = eng_notes(model);
   return model;
 };
@@ -1010,9 +1095,23 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
 //   K: {S, cx, blocks, pmoLabel, bpmoOf, pullBudget (key -> first spelling, four pulls), pullKeys (every pull row's
 //       budget key, unidentified rows' too), countedKeys (each counted row's budget key, Flyaway left out),
 //       obbbaNoBlock (each (ap, fy) whose only pull rows are FY2025 OBBBA funding, §15.2), obLoaded (any row SP.isObbba25
-//       names is loaded, a pull's or the report's, read or not)}
+//       names is loaded, a pull's or the report's, read or not), split and unassigned (§16.3), shareOf ('ap|fy' of each
+//       covered block -> budget key -> the PMOs taking a share, [{pmo, plan}] largest first, or null when unassigned)}
 function eng_baeModel(B, R, idx, K) {
   const { S, cx, blocks } = K;
+  // §16.2 the BAE Report sheet's PMO column: where a counting row's money goes. Each PMO whose plan events take a share of
+  // its budget in its block, with its share of the plan, largest first; else "No plan event uses it" (a budget the plan
+  // events use with no plan above zero is on no PMO tab either, and §16.2 gives no third wording; the Import report says
+  // which of the two it is). Blank on a row that does not count. A counting row of a year the pull has no block for is on
+  // no PMO tab, so no plan event uses it there either.
+  const goes = x => {
+    if (!x.counts) return '';
+    const sh = K.shareOf && K.shareOf.get(x.ap + '|' + x.fy), t = sh ? sh.get(x.key) : null;
+    if (!t || !t.length) return ENG_NO_PLAN_EVENT;
+    let W = 0;
+    for (const p of t) W += p.plan;
+    return t.map(p => K.pmoLabel(p.pmo) + ' ' + SP.planPct(p.plan, W)).join('; ');
+  };
   const good = R.filter(x => x.readable), ins = good.filter(x => x.scope === 'in');
   const rank = ap => ENG_AP_IDS.indexOf(ap);
   const byKey = (a, b) => rank(a.ap) - rank(b.ap) || a.fy - b.fy;
@@ -1093,8 +1192,13 @@ function eng_baeModel(B, R, idx, K) {
     // each report row as §14.2 reads it, in file order: what the BAE Report sheet prints after the file's own columns
     derived: R.map(x => ({ rowNo: x.rowNo, name: x.name, key: x.key, fy: x.fy, approved: x.approved, authorized: x.authorized, ap: x.ap,
       apLabel: x.ap ? ENG_AP_LABEL[x.ap] : '', scope: x.scope, svc: x.svc, lane: x.lane, pmo: x.pmo, pmoLabel: lbl(x.pmo),
-      readable: x.readable, counts: x.counts, why: x.why })),
+      readable: x.readable, counts: x.counts, why: x.why, goes: goes(x) })),
     budgets, pullBudgetPmo, pmoIndex: idx,
+    // §16.3 how each covered block's budgets are shared among its PMOs by their plan, following the switches as the blocks
+    // do: the budgets more than one PMO takes a share of, in model order then name, each PMO largest share first; and the
+    // report money on no PMO tab, per covered block that has any
+    split: (K.split || []).map(e => Object.assign({}, e, { pmos: e.pmos.map(p => Object.assign({}, p)) })),
+    unassigned: (K.unassigned || []).map(u => Object.assign({}, u, { budgets: u.budgets.map(t => Object.assign({}, t)) })),
   };
 }
 // which of the four a row could not read: 'Budget Name', 'FY', 'Approved', 'Authorized'. The import's own words say why
@@ -1236,6 +1340,13 @@ function eng_baeNotes(M, X, notes, every) {
       + (o.obligated !== 0 ? '; ' + eng_dollarsT(o.obligated) + ' of it is obligated, so Obligated and Obl % count money that Approved does not.'
         : ', so the plan counts money that Approved does not.') + ' See the Import report.');
   }
+  // §16.2 report money on a covered block that no plan event takes is in the Summary and on no PMO tab: said, so the PMO
+  // tabs are not read as adding up to the Summary
+  const una = eng_unassignedOf(M, null);
+  if (una.length) {
+    notes.push('The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. '
+      + eng_unassignedList(una) + ' of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.');
+  }
   // §15.4: an (ap, fy) whose only pull rows are FY2025 OBBBA funding is said in its own words, in place of these
   const nbo = X.noBlock.filter(t => !t.obbba);
   if (nbo.length) {
@@ -1284,30 +1395,40 @@ SP.obbbaLines = function obbbaLines(M) {
   }
   return L;
 };
-// §14.4 the lines under a PMO tab's table with a BAE report loaded, in the one wording the screen and the workbook print:
-// what its figures count where they are the budgets', and, where a typed Authorized stands on a block the tab shows,
-// that it is never split among PMOs. [] with no report, or for a PMO none of whose rows is on the budgets.
+// §16.2 the lines under a PMO tab's table with a BAE report loaded, in the one wording the screen and the workbook print:
+// what its figures count where the report covers a block (the PMO's plan events, and a budget several PMOs use split by
+// their plan), the report money on the blocks it shows that no plan event takes, where Obligated holds money the report's
+// Approved leaves out, and that a typed Authorized is never split among PMOs. [] with no report, or for a PMO none of whose
+// rows the report covers. §14.4's sentences on budgets whose name ends in a PMO's code went with rules 4 and 7, the
+// (no PMO) one too: a PMO's row no longer reads a budget's name, so (no PMO) is the plan events with a blank PMO.
+SP.PMO_TAB_PLAN_EVENTS = 'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan '
+  + 'events of several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.';
+// the covered blocks among `keys` whose report money no plan event takes, and that money: [{ap, fy, approved, authorized}]
+function eng_unassignedOf(model, keys) {
+  const un = model && model.bae && Array.isArray(model.bae.unassigned) ? model.bae.unassigned : [];
+  return un.filter(u => (!keys || keys.has(u.ap + '|' + u.fy)) && (u.approved !== 0 || u.authorized !== 0));
+}
+function eng_unassignedList(list) { return list.map(u => eng_fyName(u) + ' ' + eng_dollarsT(u.approved)).join('; '); }
 SP.pmoTabNotes = function pmoTabNotes(pmo, model) {
   if (!pmo || !model || !model.bae || !model.bae.present) return [];
   const rows = Array.isArray(pmo.rows) ? pmo.rows : [];
-  const bud = rows.filter(r => r.basis === 'budget');
-  if (!bud.length) return [];
-  // (no PMO) has no code of its own: SP.pmoCode reads 'no PMO' out of its label, and no budget ends in that. Its row counts
-  // the budgets whose last word is NO PMO's code (§14.2: CAM, SUPT, Initial, a Budget left blank), the ones every other
-  // tab leaves, so it says that; filling §14.4's sentence in with its "code" told a reader the opposite of the rule, on
-  // the tab that holds over half the real report's sustainment Approved (review M4-3)
-  const what = pmo.key === '' ? 'whose name does not end in any PMO’s code, which no other PMO’s tab counts'
-    : 'whose name ends in this PMO’s code (' + pmo.code + ')';
-  const out = ['Approved, Authorized and Obligated count the budgets ' + what + '; the detail below lists rows by their own PMO.'];
-  // rule 7 counts a PMO row's Obligated by the budget's PMO, Flyaway and budgets that name no appropriation included, while
-  // its Approved is the sustainment budgets alone; where that leaves money on one side only, the tab says how much (M4-6)
-  const off = bud.filter(r => Number.isSafeInteger(r.offObligated) && r.offObligated !== 0);
+  const pe = rows.filter(r => r.basis === 'planEvent');
+  if (!pe.length) return [];
+  const out = [SP.PMO_TAB_PLAN_EVENTS];
+  const un = eng_unassignedOf(model, new Set(pe.map(r => r.key)));
+  if (un.length) {
+    out.push(eng_unassignedList(un) + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).');
+  }
+  // a PMO row's Obligated counts every executed row of its plan events, Flyaway and budgets that name no appropriation
+  // included, while its Approved is the report's sustainment budgets alone; where that leaves money on one side only, the
+  // tab says how much (review M4-6)
+  const off = pe.filter(r => Number.isSafeInteger(r.offObligated) && r.offObligated !== 0);
   if (off.length) {
     out.push('Obligated includes money executed on budgets the BAE report’s Approved leaves out (Flyaway (production), a budget that names no '
       + 'appropriation, or no Budget at all): ' + off.map(r => eng_fyName(r) + ' ' + eng_dollarsT(r.offObligated)).join('; ')
       + '. Obl % there counts it against an Approved that does not.');
   }
-  const typed = bud.filter(r => (model.blocks || []).some(b => b.key === r.key && b.authorizedSrc === 'entered'));
+  const typed = pe.filter(r => (model.blocks || []).some(b => b.key === r.key && b.authorizedSrc === 'entered'));
   if (typed.length) {
     out.push('Authorized is entered for ' + eng_and(typed.map(eng_fyName)) + ' as a whole and is never split among the PMOs: this tab shows the BAE report’s Authorized for '
       + (typed.length === 1 ? 'that block' : 'those blocks') + '.');
@@ -1317,12 +1438,31 @@ SP.pmoTabNotes = function pmoTabNotes(pmo, model) {
 // EVERY LINE UNDER A PMO TAB'S TABLE, in order, for the screen and the workbook alike: they were written apart and said the
 // same thing in two wordings and two orders (integration, §14.4). With no report it is §8.6's one note, word for word. With
 // one, it is SP.pmoTabNotes' lines, then §8.6's note narrowed to the rows it is still true of: a row the report covers
-// shows the budgets' Authorized, so "a PMO row shows Approved" is said only when a row is §4.6's.
+// shows the report's Authorized, so "a PMO row shows Approved" is said only when a row is §4.6's.
 SP.pmoTabLines = function pmoTabLines(pmo, model) {
   if (!model || !model.bae || !model.bae.present) return ['Authorized is entered by appropriation and FY; a PMO row shows Approved.'];
   const rows = pmo && Array.isArray(pmo.rows) ? pmo.rows : [];
-  return SP.pmoTabNotes(pmo, model).concat(rows.some(r => r.basis !== 'budget')
+  return SP.pmoTabNotes(pmo, model).concat(rows.some(r => r.basis !== 'planEvent')
     ? ['Authorized is entered by appropriation and FY; where the BAE report has no figure for a block, its PMO row shows Approved.'] : []);
+};
+// §16.2 THE IMPORT REPORT'S TWO LISTS ON HOW THE PMO TABS SHARE THE REPORT, for the view and the sheet alike: the budgets
+// split among PMOs by their plan events, and the report money no plan event takes (on no PMO tab). Both follow the
+// switches, as the blocks they speak of do. Dollars are exact (SP.fmtUsd), as the Import report's are.
+//   -> {split: {head, none, items: [{bk, key, text}]}, unassigned: {head, none, items: [{bk, key, why, text}]}}
+SP.PMO_SPLIT_WHY = Object.freeze({ nopull: 'no plan event uses it in this block', noplan: 'its plan events’ plan is not above zero' });
+SP.pmoSplitLists = function pmoSplitLists(M) {
+  const X = M && M.bae && M.bae.present ? M.bae : null;
+  const sp = X && Array.isArray(X.split) ? X.split : [], un = X && Array.isArray(X.unassigned) ? X.unassigned : [];
+  const q = s => '“' + String(s ?? '') + '”';
+  const figs = t => 'Approved ' + SP.fmtUsd(t.approved) + ', Authorized ' + SP.fmtUsd(t.authorized);
+  return {
+    split: { head: 'Budgets split among PMOs by their plan events', none: 'none',
+      items: sp.map(e => ({ bk: e.ap + '|' + e.fy, key: e.key, text: eng_fyName(e) + ': ' + q(e.name) + ' (' + figs(e) + '), by each PMO’s CCaR plan on it, '
+        + 'largest share first: ' + e.pmos.map(p => p.label + ', plan ' + SP.fmtUsd(p.plan) + ': ' + figs(p)).join('; ') + '.' })) },
+    unassigned: { head: 'BAE report money no plan event uses (on no PMO tab)', none: 'none',
+      items: un.flatMap(u => u.budgets.map(t => ({ bk: u.ap + '|' + u.fy, key: t.key, why: t.why,
+        text: eng_fyName(u) + ': ' + q(t.name) + ' (' + figs(t) + '): ' + (SP.PMO_SPLIT_WHY[t.why] || t.why) + '.' }))) },
+  };
 };
 // THE STRIP OVER A PMO TAB'S BLOCK (§8.6 item 3), for the screen and the workbook alike: the stoplight row's figures for
 // that block, each with the mark that row carries in the table above (§14.4, §14.5). They were written apart, and only the

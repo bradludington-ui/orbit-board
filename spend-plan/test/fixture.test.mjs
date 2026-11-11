@@ -282,9 +282,29 @@ const AP_ORDER = ['om', 'ff', 'sp', 'opn'];
 const blockOrder = (a, b) => AP_ORDER.indexOf(a.split('|')[0]) - AP_ORDER.indexOf(b.split('|')[0]) || +a.split('|')[1] - +b.split('|')[1];
 const add = (o, k, f, v) => { const t = o[k] = o[k] || { approved: 0, authorized: 0, obligated: 0 }; t[f] += v; return t; };
 
-// What §14.2–14.5 make of the generator's own record of a pull and a report, for given settings: the manifest-side
-// answer the oracle's reading of the FILES is held to. The pull side reuses fromManifest; budgets' PMOs are the
-// generator's hand-stated ones (manifest.bae.budgetPmo and each report row's pmo), never the rule run on the name.
+// §16.1 restated: the PMO order of §4.4 by label (SP.PMO_ORDER first, then any other PMO by its label, (no PMO) last),
+// and a share of whole cents by largest remainder, the tie to the PMO earlier in that order, a negative amount split as its
+// absolute value and negated; null when no weight is above zero
+const PMO_ORDER16 = ['air vehicle (av)', 'business operations (bop)', 'combat data systems (cds)', 'maintenance systems (mxs)',
+  'product support management (psm)', 'propulsion (pp)', 'training systems (tss)'];
+const pmoRank16 = l => { const i = PMO_ORDER16.indexOf(normKey(l)); return i >= 0 ? [0, i, ''] : l === '(no PMO)' ? [2, 0, ''] : [1, 0, normKey(l)]; };
+const pmoCmp16 = (a, b) => { const x = pmoRank16(a), y = pmoRank16(b); return x[0] - y[0] || x[1] - y[1] || (x[2] < y[2] ? -1 : x[2] > y[2] ? 1 : 0); };
+function share16(amount, weights) {
+  const W = weights.reduce((a, w) => a + BigInt(w), 0n);
+  if (W === 0n) return null;
+  const A = BigInt(Math.abs(amount));
+  const q = weights.map(w => A * BigInt(w) / W), r = weights.map(w => A * BigInt(w) % W);
+  let left = A - q.reduce((a, x) => a + x, 0n);
+  const order = weights.map((w, i) => i).filter(i => weights[i] > 0).sort((i, j) => (r[i] > r[j] ? -1 : r[i] < r[j] ? 1 : i - j));
+  for (const i of order) { if (left === 0n) break; q[i] += 1n; left -= 1n; }
+  return q.map(x => (amount < 0 ? -Number(x) : Number(x)));
+}
+// the share of the plan the BAE Report sheet's PMO column prints: a percent to one decimal, half up
+const pct16 = (w, W) => { const t = (2000n * BigInt(w) + BigInt(W)) / (2n * BigInt(W)); return (t / 10n) + '.' + (t % 10n) + '%'; };
+
+// What §14.2–14.5 and §16 make of the generator's own record of a pull and a report, for given settings: the manifest-side
+// answer the oracle's reading of the FILES is held to. The pull side reuses fromManifest; a PMO row is its plan events'
+// (§16.1: the PMO column the generator wrote on each row), never a budget's name.
 function baeExpect(pull, bae, budgetPmo, o) {
   const { first, svcOff = [], lanes = ['disc', 'mand'], auth = {} } = o;
   const P = fromManifest(pull, o);
@@ -307,12 +327,34 @@ function baeExpect(pull, bae, budgetPmo, o) {
     const entered = k in auth;
     const authorized = entered ? auth[k] : cov ? sum(rep.map(r => r.authorized)) : approved;
     const tabs = {};
-    for (const r of pb.rows) add(tabs, r.pmo || '(no PMO)', 'approved', 0);           // every PMO with a pull row
+    const lab = r => r.pmo || '(no PMO)';
+    for (const r of pb.rows) add(tabs, lab(r), 'approved', 0);           // every PMO with a counted pull row (§16.1)
     let off = null;
+    const splits = [], unas = [], cols = {};
     if (cov) {
-      for (const r of rep) { add(tabs, r.pmo, 'approved', r.approved); add(tabs, r.pmo, 'authorized', r.authorized); }
+      // §16.1: each PMO's plan on each budget, by its PMO column; the report's figures per budget, in file order; each
+      // budget's shared by the plan above zero, or unassigned
+      const pks = [...new Set(pb.rows.map(lab))].sort(pmoCmp16);
+      const plan = {};
+      for (const r of pb.rows) { const bk = normKey(r.budget); plan[bk] = plan[bk] || {}; plan[bk][lab(r)] = (plan[bk][lab(r)] || 0) + r.cents; }
+      const rb = {};
+      for (const r of rep) {
+        const bk = normKey(r.name);
+        const t = rb[bk] = rb[bk] || { key: bk, name: String(r.name).trim(), approved: 0, authorized: 0 };
+        t.approved += r.approved; t.authorized += r.authorized;
+      }
+      for (const t of Object.values(rb)) {
+        const w = pks.map(p => Math.max(0, (plan[t.key] || {})[p] || 0));
+        const sa = share16(t.approved, w), su = share16(t.authorized, w);
+        if (!sa) { unas.push(Object.assign({}, t, { why: t.key in plan ? 'noplan' : 'nopull' })); cols[t.key] = null; continue; }
+        pks.forEach((p, i) => { add(tabs, p, 'approved', sa[i]); add(tabs, p, 'authorized', su[i]); });
+        const takers = pks.map((p, i) => i).filter(i => w[i] > 0).sort((i, j) => w[j] - w[i] || i - j);
+        cols[t.key] = takers.map(i => [pks[i], w[i]]);
+        if (takers.length > 1) splits.push({ key: t.key, name: t.name, approved: t.approved, authorized: t.authorized,
+          pmos: takers.map(i => ({ pmo: pks[i], plan: w[i], approved: sa[i], authorized: su[i] })) });
+      }
       for (const r of pb.rows) if (r.status === 'exec') {
-        const t = add(tabs, budgetPmo[r.budget], 'obligated', r.cents);
+        const t = add(tabs, lab(r), 'obligated', r.cents);
         if (offKind(r.budget)) t.offObligated = (t.offObligated || 0) + r.cents;
       }
       const by = {};
@@ -333,7 +375,7 @@ function baeExpect(pull, bae, budgetPmo, o) {
     }
     blocks[k] = { covered: cov, planned, approved, approvedSrc: cov ? 'report' : 'plan', authorized,
       authorizedSrc: entered ? 'entered' : cov ? 'report' : 'approved', authorizedEntered: entered, obligated: pb.obligated,
-      unobligated: approved - pb.obligated, planShort: cov && approved > 0 && 2 * planned < approved, tabs, off };
+      unobligated: approved - pb.obligated, planShort: cov && approved > 0 && 2 * planned < approved, tabs, off, splits, unas, cols, rows: pb.rows };
   }
   const keys = Object.keys(blocks).sort(blockOrder);
   const nb = {};
@@ -355,7 +397,7 @@ function baeExpect(pull, bae, budgetPmo, o) {
   const why = r => r.bad.length ? 'Could not be read' : r.scope === 'flyaway' ? 'Flyaway (production)'
     : r.scope === 'noap' ? 'Names no appropriation' : r.fy < first ? 'Before the first FY'
     : r.scope === 'obbba' ? OB_WHY : shown(r) ? 'Yes' : 'Switch off';
-  return { P, E, blocks,
+  return { P, E, blocks, repRows: Object.fromEntries(data.map(r => [r.row, r])),
     lists: {
       rows: Object.assign({ in: ins.length, flyaway: good.filter(r => r.scope === 'flyaway').length, noap: good.filter(r => r.scope === 'noap').length,
         bad: data.length - good.length }, (pull.some(r => r.obbba) || data.some(r => r.obbba)) ? { obbba: good.filter(r => r.scope === 'obbba').length } : {}),
@@ -370,7 +412,19 @@ function baeExpect(pull, bae, budgetPmo, o) {
       pullOnly: [...pullOnly].sort(), reportOnly: [...reportOnly].sort(),
       offReport: keys.filter(k => blocks[k].off).map(k => Object.assign({ ap: k.split('|')[0], fy: +k.split('|')[1] }, blocks[k].off)),
       unreadable: data.filter(r => r.bad.length).map(r => ({ rowNo: r.row, name: r.name || '', bad: r.bad })),
-      counted: data.map(r => [r.row, why(r)]) } };
+      counted: data.map(r => [r.row, why(r)]),
+      // §16.3: in model order, then the budget's name; §16.2 the BAE Report sheet's PMO column
+      split: keys.flatMap(k => blocks[k].splits.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0) || (a.key < b.key ? -1 : 1))
+        .map(e => Object.assign({ ap: k.split('|')[0], fy: +k.split('|')[1] }, e))),
+      unassigned: keys.filter(k => blocks[k].unas.length).map(k => { const u = blocks[k].unas.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0) || (a.key < b.key ? -1 : 1));
+        return { ap: k.split('|')[0], fy: +k.split('|')[1], approved: sum(u.map(t => t.approved)), authorized: sum(u.map(t => t.authorized)), budgets: u }; }),
+      pmoColumn: data.map(r => {
+        if (!counting(r)) return [r.row, ''];
+        const b = blocks[r.ap + '|' + r.fy], c = b && b.cols[normKey(r.name)];
+        if (!c) return [r.row, 'No plan event uses it'];
+        const W = sum(c.map(x => x[1]));
+        return [r.row, c.map(([p, w]) => p + ' ' + pct16(w, W)).join('; ')];
+      }) } };
 }
 
 // §14.6 diffBae from the generator's record of the two reports: per (ap, fy), and the budgets new, gone and changed; a
@@ -704,6 +758,31 @@ try {
   cnt('an unreadable amount', D1.filter(r => r.bad.includes('Approved') || r.bad.includes('Authorized')).length);
   cnt('planShort blocks', XA.lists.planShort.length, 2);
   cnt('a planShort block with a plan', XA.lists.planShort.filter(p => p.planned > 0).length);
+  // §16.4, from the generator's record (manifest) through §16.1 restated above, never from either program: a budget split
+  // between two PMOs and one among three, with unequal plans and a cent to place; a budget no plan event uses; one whose plan
+  // is not above zero for any PMO; a plan event on two budgets; a PMO whose plan events use only budgets the report lacks
+  const sp16 = XA.lists.split, ub16 = XA.lists.unassigned.flatMap(u => u.budgets);
+  cnt('§16: a budget split between two PMOs with unequal plans', sp16.filter(e => e.pmos.length === 2 && e.pmos[0].plan !== e.pmos[1].plan).length);
+  cnt('§16: a budget split among three PMOs or more', sp16.filter(e => e.pmos.length >= 3).length);
+  cnt('§16: a split with a remainder to place', sp16.filter(e => ['approved', 'authorized'].some(f => e.pmos.some(p => BigInt(p[f]) * BigInt(sum(e.pmos.map(q => q.plan)))
+    !== BigInt(e[f]) * BigInt(p.plan)))).length);
+  cnt('§16: a budget no plan event uses, with money', ub16.filter(t => t.why === 'nopull' && t.approved !== 0).length);
+  cnt('§16: a budget whose plan is not above zero for any PMO', ub16.filter(t => t.why === 'noplan').length);
+  const pe16 = {};
+  for (const r of g1.filter(r => r.ap && !r.bad.length && r.fy >= 2025 && XA.blocks[r.ap + '|' + r.fy] && XA.blocks[r.ap + '|' + r.fy].covered)) {
+    const k = r.ap + '|' + r.fy + '|' + normKey(r.pmo) + '|' + normKey(r.pe);
+    (pe16[k] = pe16[k] || new Set()).add(normKey(r.budget));
+  }
+  cnt('§16: a plan event on two budgets, in a covered block', Object.values(pe16).filter(x => x.size > 1).length);
+  // (its plan events' budgets, by the PMO column, against the report budgets that count in that block)
+  const lack16 = [];
+  for (const [k, b] of Object.entries(XA.blocks).filter(([, b]) => b.covered)) {
+    const repB = new Set(Object.keys(b.cols));
+    const own = {};
+    for (const r of b.rows || []) (own[r.pmo || '(no PMO)'] = own[r.pmo || '(no PMO)'] || new Set()).add(normKey(r.budget));
+    for (const [p, bs] of Object.entries(own)) if (![...bs].some(x => repB.has(x))) lack16.push(k + ' ' + p);
+  }
+  cnt('§16: a PMO whose plan events in a covered block use only budgets the report lacks', lack16.length);
   cnt('a covered block reading Approved $0 with USAF off', Object.values(baeExpect(g1, R1, BM.budgetPmo, { asOf: '2026-10', first: 2025, svcOff: ['USAF'] }).blocks)
     .filter(b => b.covered && b.approved === 0 && b.planned !== 0).length);
   for (const f of ['int', 'cents', 'subcent']) cnt('amounts written as ' + f, D1.filter(r => r.forms.approved === f || r.forms.authorized === f).length, 2);
@@ -757,8 +836,8 @@ try {
       for (const [l, tr] of Object.entries(tabs)) {
         const w = x.tabs[l];
         if (!w) continue;
-        eq(`${t} PMO ${l}: Approved, Authorized, Obligated, basis, and the Obligated its Approved leaves out (M4-6)`,
-          [tr.approved, tr.authorized, tr.obligated, tr.basis, tr.sect, tr.offObligated], [w.approved, w.authorized, w.obligated, x.covered ? 'budget' : 'row', !x.covered, w.offObligated || 0]);
+        eq(`${t} PMO ${l}: Approved, Authorized, Obligated, basis, and the Obligated its Approved leaves out (M4-6, §16)`,
+          [tr.approved, tr.authorized, tr.obligated, tr.basis, tr.sect, tr.offObligated], [w.approved, w.authorized, w.obligated, x.covered ? 'planEvent' : 'row', !x.covered, w.offObligated || 0]);
         chk(`${t} PMO ${l}: Obl % and status`, close(tr.oblPct, tr.approved ? tr.obligated / tr.approved : null) &&
           tr.status === statusOf(tr.oblPct, b.goal), JSON.stringify([tr.oblPct, tr.status]));
         const pd = plain.pmoTabs[l] && plain.pmoTabs[l][k];
@@ -775,8 +854,19 @@ try {
     chk(tag + ': the summary\'s Obl % is over the report\'s Approved', close(exp.summary.oblPct, s.approved ? s.obligated / s.approved : null));
     for (const ap of Object.keys(exp.aps)) eq(`${tag}: the ${ap} total adds its blocks`, ['approved', 'planned', 'authorized', 'obligated', 'unobligated'].map(f => exp.aps[ap][f]),
       Object.values(totals(blocks.filter(b => b.ap === ap))));
-    for (const f of ['rows', 'skipped', 'cents', 'total', 'uncovered', 'noBlock', 'planShort', 'pullOnly', 'reportOnly', 'unreadable', 'counted'])
+    for (const f of ['rows', 'skipped', 'cents', 'total', 'uncovered', 'noBlock', 'planShort', 'pullOnly', 'reportOnly', 'unreadable', 'counted',
+      'split', 'unassigned', 'pmoColumn'])
       eq(`${tag}: model.bae.${f}`, exp.bae[f], X.lists[f]);
+    // §16.1 per covered block, exactly: the PMO rows and the money no plan event uses add up to the block's Approved and the
+    // report's Authorized (a typed Authorized is the block's, never split)
+    for (const [k, b] of Object.entries(exp.blocks)) {
+      if (!b.covered) continue;
+      const rows = Object.values(exp.pmoTabs).filter(tb => tb[k]).map(tb => tb[k]);
+      const u = exp.bae.unassigned.find(x => x.ap + '|' + x.fy === k) || { approved: 0, authorized: 0 };
+      const repU = sum(X.lists.counted.filter(c => c[1] === 'Yes').map(c => c[0]).map(rn => (X.repRows[rn] || {})).filter(r => r.ap + '|' + r.fy === k).map(r => r.authorized));
+      eq(`${tag} ${k}: Σ PMO rows + unassigned = the block’s Approved and the report’s Authorized (§16.1)`,
+        [sum(rows.map(r => r.approved)) + u.approved, sum(rows.map(r => r.authorized)) + u.authorized], [b.approved, repU]);
+    }
     // each block's budgets compared by name: the manifest's row order need not be the files'
     const byName = l => (l || []).map(o => Object.assign({}, o, { budgets: [...o.budgets].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)) }));
     eq(`${tag}: model.bae.offReport (review M4-6)`, byName(exp.bae.offReport), byName(X.lists.offReport));

@@ -67,6 +67,13 @@ const day = iso => { const d = new Date(iso); return d.getFullYear() + '-' + pad
 // $M in a sentence, as §2 shows it: two decimals, thousands separators, a non-zero amount under $5,000 as <0.01
 const mText = c => (c !== 0 && Math.abs(c) < 500000 ? (c < 0 ? '(<0.01)' : '<0.01')
   : (c < 0 ? '(' : '') + (Math.abs(c) / 1e8).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (c < 0 ? ')' : ''));
+
+// §16.2 restated: a PMO tab's line on what its figures count, the money no plan event uses (on a tab, in the Summary's
+// note) and the Import report's two lists, dollars exact as the Import report writes them
+const PE_LINE = 'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan events of '
+  + 'several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.';
+const usd16 = c => (c < 0 ? '-' : '') + '$' + String(Math.floor(Math.abs(c) / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + String(Math.abs(c) % 100).padStart(2, '0');
+const figs16 = t => 'Approved ' + usd16(t.approved) + ', Authorized ' + usd16(t.authorized);
 // a $M figure as the screen prints it, read back to within its last place: '(1.23)' and '<0.01' included
 function mClose(text, cents) {
   const s = flat(text);
@@ -293,6 +300,11 @@ try {
           : ', so the plan counts money that Approved does not.') + ' See the Import report.';
       C.chk('summary notes: ' + o.ap + '|' + o.fy + ' names the money its Approved leaves out (M4-6)', notes.includes(want), want + ' | ' + notes.join(' / '));
     }
+    // §16.2 the report money no plan event uses, from the oracle
+    const unS = X.bae.unassigned.filter(u => u.approved !== 0 || u.authorized !== 0);
+    C.eq('summary notes: the report money no plan event uses, so the PMO tabs add up to the Summary less it (§16.2)', notes.filter(n => n.startsWith('The PMO tabs share')),
+      unS.length ? ['The PMO tabs share each budget’s Approved and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. '
+        + unS.map(u => AP[u.ap] + ' FY' + u.fy + ' $' + mText(u.approved) + 'M').join('; ') + ' of the BAE report’s Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.'] : []);
 
     // ------------------------------------------------------------- appropriation views
     for (const ap of Object.keys(AP)) {
@@ -329,6 +341,7 @@ try {
     const sel = () => T.main().querySelector('select[data-act=pmo]');
     const labels = [...sel().options].map(o => o.textContent);
     C.eq('PMOs: a tab for every PMO the oracle has, and no other', labels.slice().sort(), Object.keys(X.pmoTabs).sort());
+    let unSeen = false, offSeen = false;
     for (const label of labels) {
       const o = [...sel().options].find(x => x.textContent === label);
       T.change(sel(), o.value);
@@ -357,23 +370,29 @@ try {
         const mt = sec && [...sec.querySelectorAll('tr.band')].find(r2 => flat(r2.querySelector('th').textContent) === 'Monthly Totals');
         if (!mt || Number(mt.querySelector('td[data-c]').getAttribute('data-c')) !== x.planned) bad.push(k + ': its totals band is not the plan by its PMO column');
       }
-      C.chk('PMO ' + label + ': every row, strip and totals band is the oracle’s (§14.4)', !bad.length, bad.slice(0, 4).join('; '));
+      C.chk('PMO ' + label + ': every row, strip and totals band is the oracle’s (§16.1)', !bad.length, bad.slice(0, 4).join('; '));
       const ns = [...m.querySelectorAll('p.note')].map(e => flat(e.textContent));
-      const anyBud = Object.values(tab).some(x => x.basis === 'budget'), anyRow = Object.values(tab).some(x => x.basis === 'row');
-      // (no PMO) has no code: it counts the budgets whose last word is no PMO's code, and says so (review M4-3; the sentence
-      // before that review filled §14.4's words in with 'no PMO', a code no budget ends in)
-      const budNote = 'Approved, Authorized and Obligated count the budgets ' + (label === '(no PMO)' ? 'whose name does not end in any PMO’s code, which no other PMO’s tab counts'
-        : 'whose name ends in this PMO’s code (' + X.pmoCodes[label] + ')') + '; the detail below lists rows by their own PMO.';
-      C.chk('PMO ' + label + ': says what its figures count, only where they are the budgets’', ns.includes(budNote) === anyBud, ns.join(' / '));
+      const anyPE = Object.values(tab).some(x => x.basis === 'planEvent'), anyRow = Object.values(tab).some(x => x.basis === 'row');
+      // §16.2: every tab, (no PMO) too, says the same of a covered row (§14.4's sentences on budget names went with rules 4
+      // and 7), then the report money no plan event uses on the blocks it shows, in the tab's order, when there is some
+      C.chk('PMO ' + label + ': says what its figures count, only where a row is on its plan events (§16.2)', ns.includes(PE_LINE) === anyPE
+        && !ns.some(n => /end(s)? in (this|any) PMO’s code/.test(n)), ns.join(' / '));
+      const rowK = [...m.querySelectorAll('table.top tr[data-bk]')].map(r => r.getAttribute('data-bk'));
+      const unK = X.bae.unassigned.filter(u => (u.approved !== 0 || u.authorized !== 0) && tab[u.ap + '|' + u.fy] && tab[u.ap + '|' + u.fy].basis === 'planEvent');
+      C.eq('PMO ' + label + ': names the report money no plan event uses on its blocks, only where there is some (§16.2)', ns.filter(n => n.endsWith('on no PMO tab (see the Import report).')),
+        unK.length ? [unK.map(u => AP[u.ap] + ' FY' + u.fy + ' $' + mText(u.approved) + 'M').join('; ') + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).'] : []);
+      if (unK.length) unSeen = true;
       // review M4-6: the Obligated its Approved leaves out, block by block in the tab's order, only where there is some
-      const offK = [...m.querySelectorAll('table.top tr[data-bk]')].map(r => r.getAttribute('data-bk')).filter(k => tab[k] && tab[k].basis === 'budget' && tab[k].offObligated !== 0);
+      const offK = rowK.filter(k => tab[k] && tab[k].basis === 'planEvent' && tab[k].offObligated !== 0);
       C.eq('PMO ' + label + ': names the Obligated its Approved leaves out, only where there is some (M4-6)', ns.filter(n => n.startsWith('Obligated includes money executed')),
         offK.length ? ['Obligated includes money executed on budgets the BAE report’s Approved leaves out (Flyaway (production), a budget that names no appropriation, or no Budget at all): '
           + offK.map(k => AP[k.split('|')[0]] + ' FY' + k.split('|')[1] + ' $' + mText(tab[k].offObligated) + 'M').join('; ') + '. Obl % there counts it against an Approved that does not.'] : []);
-      if (label === '(no PMO)') C.chk('fixture: (no PMO) holds such Obligated, so the line is there to see', offK.length > 0);
+      if (offK.length) offSeen = true;
       C.chk('PMO ' + label + ': never says every PMO row shows Approved', !ns.includes('Authorized is entered by appropriation and FY; a PMO row shows Approved.')
         && ns.some(n => n === 'Authorized is entered by appropriation and FY; where the BAE report has no figure for a block, its PMO row shows Approved.') === anyRow, ns.join(' / '));
     }
+
+    C.chk('fixture: a PMO tab names the Obligated its Approved leaves out, and one the money no plan event uses, so both lines are there to see', offSeen && unSeen);
 
     // ------------------------------------------------------------- Import report
     m = await T.view('report');
@@ -399,6 +418,22 @@ try {
         [...R.querySelectorAll('ul.offreport li')].map(e => [e.getAttribute('data-bk'), e.getAttribute('data-kind'), flat(e.textContent)]), offWant);
       const offH = [...R.querySelectorAll('h4.sub')].find(h => /which its Approved leaves out/.test(h.textContent));
       C.chk('Import report: … under a heading that counts them', !!offH && offH.getAttribute('data-n') === String(offWant.length) && flat(offH.textContent).endsWith(': ' + offWant.length), offH && offH.outerHTML);
+      // §16.2 the two lists on how the PMO tabs share the report, in the oracle's figures and the sheet's words
+      const spWant = X.bae.split.map(e => [e.ap + '|' + e.fy, e.key, null, AP[e.ap] + ' FY' + e.fy + ': “' + e.name + '” (' + figs16(e) + '), by each PMO’s CCaR plan on it, largest share first: '
+        + e.pmos.map(p => p.pmo + ', plan ' + usd16(p.plan) + ': ' + figs16(p)).join('; ') + '.']);
+      const unWant = X.bae.unassigned.flatMap(u => u.budgets.map(t => [u.ap + '|' + u.fy, t.key, t.why, AP[u.ap] + ' FY' + u.fy + ': “' + t.name + '” (' + figs16(t) + '): '
+        + (t.why === 'nopull' ? 'no plan event uses it in this block' : 'its plan events’ plan is not above zero') + '.']));
+      const items = cls => [...R.querySelectorAll('ul.' + cls + ' li')].map(e => [e.getAttribute('data-bk'), e.getAttribute('data-key'), e.getAttribute('data-why'), flat(e.textContent)]);
+      C.eq('Import report: the budgets split among PMOs by their plan events, each PMO’s plan and shares (§16.2)', items('pmosplit'), spWant);
+      C.eq('Import report: the report money no plan event uses, each budget and why (§16.2)', items('unassigned'), unWant);
+      C.chk('fixture: both §16 lists hold something', spWant.length > 0 && unWant.length > 0);
+      for (const [re, n] of [[/^Budgets split among PMOs by their plan events/, spWant.length], [/^BAE report money no plan event uses \(on no PMO tab\)/, unWant.length]]) {
+        const h = [...R.querySelectorAll('h4.sub')].find(x => re.test(flat(x.textContent)));
+        C.chk('Import report: … each under a heading that counts it (§16.2)', !!h && h.getAttribute('data-n') === String(n) && flat(h.textContent).endsWith(': ' + n), h && h.outerHTML);
+      }
+      C.chk('Import report: the rule says a PMO’s row takes the budgets its plan events use (§16.2), never a budget’s name', flat(R.querySelector('p.l2').textContent)
+        .includes('A PMO’s row takes the budgets its plan events are assigned to; a budget the plan events of several PMOs use is split among them by each one’s CCaR plan on it')
+        && !/name ends in/.test(R.querySelector('p.l2').textContent), flat(R.querySelector('p.l2').textContent));
     }
     C.chk('Import report: no report is said to be kept from an earlier import (the last import brought it)', !/from an earlier import/.test(rep));
 
@@ -430,6 +465,16 @@ try {
     await settle();
     const help = [...T.main().querySelectorAll('h3.sub')].find(h => h.textContent === 'The BAE report of budgets');
     C.chk('Help: a section on the BAE report, ending with what happens with none', !!help && /With no BAE report loaded, nothing on any view changes\.$/.test(flat(help.nextElementSibling.textContent)));
+    C.chk('Help: a PMO’s tab is built from its plan events, a budget several PMOs use split by their CCaR plan, never by a budget’s name (§16.2)', !!help
+      && flat(help.nextElementSibling.textContent).includes('A PMO’s tab is built from its plan events')
+      && flat(help.nextElementSibling.textContent).includes('A budget the plan events of several PMOs use is split among them by each one’s CCaR plan on it, to the cent.')
+      && flat(help.nextElementSibling.textContent).includes('Report money no plan event uses')
+      && !/name ends in/.test(help.nextElementSibling.textContent), help && flat(help.nextElementSibling.textContent).slice(0, 300));
+    // §16.2: the README gives the same account (rules 4 and 7 replaced)
+    const rd = readFileSync(join(HERE, '..', 'README.md'), 'utf8').replace(/\s+/g, ' ');
+    C.chk('README: a PMO’s row is built from its plan events, a shared budget split by each PMO’s CCaR plan, and the money no plan event uses named (§16.2)',
+      rd.includes('**A PMO\'s row is built from its plan events**') && rd.includes('**A budget several PMOs use is split** among them by each one\'s CCaR plan on it')
+      && rd.includes('**Report money no plan event uses**') && rd.includes('*No plan event uses it*') && !/counts the budgets whose name ends in/.test(rd));
     C.chk('Help: a pull’s section of What changed is said to be the CCaR plan (review P4-2)', !!help
       && flat(help.nextElementSibling.textContent).includes('What changed compares the pulls themselves, so a pull’s section there names its figures the CCaR plan, never Approved.'));
     T.click(T.doc.querySelector('[data-act=help]'));
@@ -466,7 +511,7 @@ try {
     totalRow('bae-entered summary', m, E.summary);
     markNotes('bae-entered summary', m, E.summary.marks);
     // the PMO tab of a PMO with a budget row on the typed block says the typed figure is never split
-    const pmoTyped = Object.keys(E.pmoTabs).find(l => E.pmoTabs[l]['om|2026'] && E.pmoTabs[l]['om|2026'].basis === 'budget');
+    const pmoTyped = Object.keys(E.pmoTabs).find(l => E.pmoTabs[l]['om|2026'] && E.pmoTabs[l]['om|2026'].basis === 'planEvent');
     m = await T.view('pmos');
     const sel = T.main().querySelector('select[data-act=pmo]');
     T.change(sel, [...sel.options].find(o => o.textContent === pmoTyped).value);

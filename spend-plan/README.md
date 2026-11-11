@@ -113,10 +113,19 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
     Spares or OPN, except Full Fund **Flyaway** (aircraft production). Advance Procurement, Modifications, RDT&E and squadron
     budgets name no appropriation and are left out. The switches reach the report's budgets as they reach the pull's rows,
     and a service or lane you set for a budget in **Settings** moves its report rows too.
-  - **A PMO's row** counts the budgets whose name ends in that PMO's code (`… Discretionary AV`). Its Obligated counts the
-    executed rows of those budgets, so Approved, Authorized, Obligated and Obl % measure the same money. The **(no PMO)** row
-    counts the budgets whose name ends in no PMO's code (`… CAM`, `… SUPT`, `… Initial`), the ones no other PMO counts, and
-    its table says so. The detail under each PMO table still lists rows by their own PMO.
+  - **A PMO's row is built from its plan events** (Brad, 11 Nov 2026): the rows whose PMO column names it, exactly the PMOs
+    its block's tree shows; **(no PMO)** is the plan events with no PMO. Its Approved and Authorized are the report's figures
+    for the budgets its plan events are assigned to, and its Obligated counts its plan events' executed rows, as the tree does.
+    A budget's name no longer decides a PMO.
+  - **A budget several PMOs use is split** among them by each one's CCaR plan on it in that block, in whole cents, so the
+    shares add up to the report's figure exactly (the odd cents go to the largest remainders; a tie to the PMO listed first).
+    A PMO whose plan on a budget is zero or below takes no share of it.
+  - **Report money no plan event uses** (a budget no counted row names in that block, or one whose plan is not above zero
+    for any PMO) is in the Summary's Approved and Authorized and on no PMO table. The Summary's notes and the PMO table say
+    how much, so the PMO tables add up to the Summary less it. The Import report lists each such budget and why, and each
+    budget split among PMOs with every PMO's plan and share. The workbook's *BAE Report* sheet says, in its PMO column, which
+    PMOs share each counted row's budget and each one's share of the plan (`Air Vehicle (AV) 62.5%; …`), or *No plan event
+    uses it*. The detail under each PMO table still lists its rows.
   - **Money the report can never hold.** The CCaR plan and Obligated count every row of the pull, while the report's Approved
     counts only its sustainment budgets. A row on a Flyaway budget, on a budget whose name places it in no appropriation (put
     in a block by the sheet it came on), or with no Budget at all is therefore counted on one side of Obl % only. Nothing is

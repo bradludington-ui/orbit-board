@@ -352,8 +352,8 @@ try {
     const tab = OB.pmoTabs['Air Vehicle (AV)'], pr = (await topRead(D.p)).filter(r => r.k !== 'total');
     const bad = pr.filter(r => !tab[r.k] || J(r.c) !== J([tab[r.k].approved, tab[r.k].authorized, tab[r.k].obligated, tab[r.k].unobligated])
       || r.sect !== tab[r.k].sect || r.dag !== tab[r.k].sect).map(r => r.k + ' ' + J(r.c) + ' § ' + r.sect);
-    C.chk('BAE: the AV tab’s rows are the oracle’s (the budgets’ figures where covered, § and † where not)', pr.length === Object.keys(tab).length && !bad.length
-      && pr.some(r => tab[r.k].basis === 'budget') && pr.some(r => tab[r.k].basis === 'row'), bad.join('; ') + ' rows ' + pr.length);
+    C.chk('BAE: the AV tab’s rows are the oracle’s (its share of the budgets its plan events use where covered, § and † where not; §16.1)', pr.length === Object.keys(tab).length && !bad.length
+      && pr.some(r => tab[r.k].basis === 'planEvent') && pr.some(r => tab[r.k].basis === 'row'), bad.join('; ') + ' rows ' + pr.length);
     screenPmoNotes = await D.p.$$eval('#uiMain p.note.pmo-note', ps => ps.map(e => e.textContent.trim()));
   }
   C.chk('no script error and no dialog on the BAE views', !D.errors.length && !D.dialogs.length, D.errors.concat(D.dialogs).join(' | '));
@@ -393,6 +393,11 @@ try {
       const want = OB.bae.counted.map(c => c[1]);
       C.chk('BAE: its sheet has every report row and the total row, each with Counted', counted.length === want.length + (OB.bae.totalRow ? 1 : 0)
         && counted.filter(v => v === 'Yes').length === want.filter(v => v === 'Yes').length, counted.length + ' vs ' + want.length);
+      // §16.2 its PMO column says where each counting row's money goes, as the oracle works it out (blank where a row does not count)
+      const pi = head.indexOf('PMO');
+      const goes = sh[ib].rows.slice(1).filter(r => (r.cells.find(c => c[0] === ci) || [])[1] !== undefined && !/^No: the report’s own total row/.test((r.cells.find(c => c[0] === ci) || [])[1]))
+        .map(r => (r.cells.find(c => c[0] === pi) || [])[1] ?? '');
+      C.eq('BAE: its PMO column is the PMOs whose plan events share each budget, by their plan, or “No plan event uses it” (§16.2)', goes, OB.bae.pmoColumn.map(c => c[1]));
     }
     const avSheet = sh.find(x => x.name === 'PMO AV');
     if (screenPmoNotes && C.chk('BAE: the workbook has the PMO AV sheet', !!avSheet)) {
@@ -400,9 +405,15 @@ try {
       const lines = sheetLines.filter(t => screenPmoNotes.includes(t));
       // one source for both (SP.pmoTabLines): each line the screen prints under the table is on the sheet, in its order
       C.eq('BAE: the PMO tab says the lines under its table that the workbook’s PMO sheet says, in the same order', lines, screenPmoNotes);
-      C.chk('BAE: the PMO tab’s lines say what its figures count and narrow §8.6’s note', screenPmoNotes.length === 2
-        && /^Approved, Authorized and Obligated count the budgets whose name ends in this PMO’s code \(AV\)/.test(screenPmoNotes[0])
-        && screenPmoNotes[1] === 'Authorized is entered by appropriation and FY; where the BAE report has no figure for a block, its PMO row shows Approved.', J(screenPmoNotes));
+      // §16.2: what its figures count, the report money no plan event uses on its covered blocks (from the oracle), then
+      // §8.6's note narrowed to the rows the report does not cover
+      const tab = OB.pmoTabs['Air Vehicle (AV)'];
+      const unK = OB.bae.unassigned.filter(u => (u.approved || u.authorized) && tab[u.ap + '|' + u.fy] && tab[u.ap + '|' + u.fy].basis === 'planEvent');
+      C.chk('BAE: the PMO tab’s lines say what its figures count, the money no plan event uses, and narrow §8.6’s note', unK.length > 0 && screenPmoNotes[0]
+        === 'Approved and Authorized are the BAE report’s figures for the budgets this PMO’s plan events are assigned to; a budget the plan events of several PMOs use is split among them by each one’s CCaR plan on it. Obligated counts this PMO’s plan events.'
+        && screenPmoNotes[1] === unK.map(u => fyName(u.ap + '|' + u.fy) + ' $' + (u.approved / 1e8).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'M').join('; ')
+          + ' of the BAE report’s Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab (see the Import report).'
+        && screenPmoNotes[screenPmoNotes.length - 1] === 'Authorized is entered by appropriation and FY; where the BAE report has no figure for a block, its PMO row shows Approved.', J(screenPmoNotes));
     }
   }
   C.chk('no script error during the BAE export', !D.errors.length, D.errors.join(' | '));

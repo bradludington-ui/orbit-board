@@ -1171,6 +1171,45 @@ def bae_derive_rows(bae, settings, idx):
     return out
 
 
+# ------------------------------------------------------------------------------ §16 PMO rows from plan events
+def split_by_plan(amount, weights):
+    """§16.1: share `amount` (whole cents) among the weights in whole cents by largest remainder, so the shares add up to it
+    exactly; a weight is max(0, w); a tie goes to the earlier weight (the model's PMO order); a negative amount is split
+    as its absolute value and negated. None when no weight is above zero (the budget is unassigned). Python's integers
+    are exact, so no product is rounded."""
+    w = [max(0, x) for x in weights]
+    total = sum(w)
+    if total == 0:
+        return None
+    a = -amount if amount < 0 else amount
+    floor = [a * x // total for x in w]
+    rem = [a * x % total for x in w]
+    left = a - sum(floor)
+    for i in sorted([i for i in range(len(w)) if w[i] > 0], key=lambda i: (-rem[i], i))[:left]:
+        floor[i] += 1
+    return [-v if amount < 0 else v for v in floor]
+
+
+def plan_pct(w, total):
+    """§16.2: a share of the plan as a percent to one decimal. READING: rounded half up, in whole numbers."""
+    tenths = (2000 * w + total) // (2 * total)
+    return '%d.%d%%' % (tenths // 10, tenths % 10)
+
+
+def pmo_column(x, share_of, plabel):
+    """§16.2 the BAE Report sheet's PMO column: blank on a row that does not count; else each PMO whose plan events take a
+    share of its budget in its block, with its share of the plan, largest first; else 'No plan event uses it'. READING:
+    that wording too for a budget its plan events use with no plan above zero (§16.2 gives no other), and for a counting
+    row of an (ap, fy) the pull has no block for (no plan event of that year uses it)."""
+    if not x['counts']:
+        return ''
+    t = share_of.get('%s|%d' % (x['ap'], x['fy']), {}).get(x['key'])
+    if not t:
+        return 'No plan event uses it'
+    total = sum(wt for _pk, wt in t)
+    return '; '.join('%s %s' % (plabel(pk), plan_pct(wt, total)) for pk, wt in t)
+
+
 # ---------------------------------------------------------------------------- §14.3–14.5 the model with a report
 def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded=False):
     bae = state['bae']['current']
@@ -1189,9 +1228,17 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
         if budget not in bp_cache:
             bp_cache[budget] = budget_pmo(budget, idx)
         return bp_cache[budget]
+    def plabel(pk):          # the tab's label: its counted rows' majority spelling, else the pull's, else the list's
+        if pk in pmo_rows:
+            return label_of(sorted([r for rs in pmo_rows[pk].values() for r in rs], key=lambda r: r['_i']), 'pmo', '(no PMO)')
+        if pk in by_pk:
+            return label_of(sorted(by_pk[pk], key=lambda r: r['_i']), 'pmo', '(no PMO)')
+        return next((l for l in PMO_ORDER if norm_key(l) == pk), '(no PMO)')
     blocks = out['blocks']
     tab_rows = {}            # PMO key -> {block key -> figures}
     off_list = []            # review M4-6: each covered block's counted pull money on budgets Approved can never hold
+    split_list, unassigned_list = [], []      # §16.3, in model order (the blocks are, here)
+    share_of = {}            # block key -> budget key -> [(PMO key, weight)] largest first, or None (unassigned)
     for key, b in blocks.items():
         ap, fy = b['ap'], b['fy']
         cov = (ap, fy) in covered
@@ -1215,22 +1262,56 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
                   'slide': slide, 'planShort': cov and approved > 0 and 2 * planned < approved,
                   # READING (answer 8, review I4-4): with a report, an entered Authorized is marked ‡ whatever the switches
                   'marks': {'sect': not cov, 'dagger': asrc == 'approved', 'ddagger': entered}})
-        # §14.4 the PMO rows of this block
+        # §16.1 the PMO rows of this block: by the PMO column, the PMOs the tree shows; on a covered block Approved and
+        # Authorized are each PMO's shares of the report's budgets its plan events use, by its CCaR plan on each
         brows = block_rows[key]
         by_col = {}
         for r in brows:
             by_col.setdefault(r['k']['pmo'], []).append(r)
-        pks = set(by_col)
-        rep_by, obl_by, off_by = {}, {}, {}
+        pks = sorted(by_col, key=lambda pk: pmo_sort_key(pk, plabel(pk)))     # the model's PMO order
+        pa_by = {pk: 0 for pk in pks}
+        pu_by = {pk: 0 for pk in pks}
         if cov:
-            for x in rep:
-                rep_by.setdefault(x['pmo'], []).append(x)
+            # READING: a budget is the normKey of a pull row's Budget and of a report row's Budget Name; a pull row with
+            # no Budget is the budget '' (no report row can have that name, so its plan takes no share of anything)
+            plan = {}
             for r in brows:
-                if r['status'] == 'exec':
-                    obl_by[bpmo(r['budget'])] = obl_by.get(bpmo(r['budget']), 0) + r['cents']
-                    if off_kind(r['budget']):
-                        off_by[bpmo(r['budget'])] = off_by.get(bpmo(r['budget']), 0) + r['cents']
-            pks |= set(rep_by) | set(obl_by)
+                pp = plan.setdefault(norm_key(r['budget']), {})
+                pp[r['k']['pmo']] = pp.get(r['k']['pmo'], 0) + r['cents']
+            rb = {}
+            for x in rep:                    # the block's counting report rows, in file order
+                t = rb.setdefault(x['key'], {'key': x['key'], 'name': x['name'], 'approved': 0, 'authorized': 0})
+                t['approved'] += x['approved']
+                t['authorized'] += x['authorized']
+            splits, unas, cols = [], [], {}
+            for bk, t in rb.items():
+                weights = [max(0, plan.get(bk, {}).get(pk, 0)) for pk in pks]
+                sa, su = split_by_plan(t['approved'], weights), split_by_plan(t['authorized'], weights)
+                if sa is None:
+                    unas.append(dict(t, why='noplan' if bk in plan else 'nopull'))
+                    cols[bk] = None
+                    continue
+                for i, pk in enumerate(pks):
+                    pa_by[pk] += sa[i]
+                    pu_by[pk] += su[i]
+                # READING: the PMOs a split names are those whose weight is above zero (the ones taking a share), largest
+                # share first: by plan, a tie in the model's PMO order (shares by largest remainder never order otherwise)
+                takers = sorted([i for i in range(len(pks)) if weights[i] > 0], key=lambda i: (-weights[i], i))
+                cols[bk] = [(pks[i], weights[i]) for i in takers]
+                if len(takers) > 1:
+                    splits.append({'ap': ap, 'fy': fy, 'key': bk, 'name': t['name'], 'approved': t['approved'],
+                                   'authorized': t['authorized'],
+                                   'pmos': [{'pmo': plabel(pks[i]), 'plan': weights[i], 'approved': sa[i], 'authorized': su[i]}
+                                            for i in takers]})
+            # READING: within a block, by the budget's name (its first spelling among the block's counting report rows,
+            # in file order), then its normKey; an unassigned budget is listed whatever its money (§16.3 lists every
+            # budget with no PMO weight), and only the notes ask for money
+            split_list.extend(sorted(splits, key=lambda e: (e['name'], e['key'])))
+            if unas:
+                unas.sort(key=lambda e: (e['name'], e['key']))
+                unassigned_list.append({'ap': ap, 'fy': fy, 'approved': sum(u['approved'] for u in unas),
+                                        'authorized': sum(u['authorized'] for u in unas), 'budgets': unas})
+            share_of[key] = cols
             # READING: one entry per budget (normKey; every row with no Budget is one), first spelling, in row order; an
             # entry whose plan and obligated are both 0 is left out, and a block with none has no entry
             off = {}
@@ -1248,30 +1329,24 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
                 off_list.append({'ap': ap, 'fy': fy, 'planned': sum(t['planned'] for t in buds),
                                  'obligated': sum(t['obligated'] for t in buds), 'budgets': buds})
         for pk in pks:
-            prows = by_col.get(pk, [])
+            prows = by_col[pk]
             f = m.figures(ap, fy, prows)     # the detail below the table: rows by their PMO column, on the plan
+            po = f['obligated']               # §16.1: the PMO's own executed rows, the tree's Obligated
             if cov:
-                pa = sum(x['approved'] for x in rep_by.get(pk, []))
-                pu = sum(x['authorized'] for x in rep_by.get(pk, []))
-                po = obl_by.get(pk, 0)
-                basis = 'budget'
+                pa, pu, basis = pa_by[pk], pu_by[pk], 'planEvent'
             else:
-                pa, po, basis = f['approved'], f['obligated'], 'row'
+                pa, basis = f['approved'], 'row'
                 pu = pa
             pp = (po / pa) if pa != 0 else None
             pd = (pp - b['goal']) if (pp is not None and b['goal'] is not None) else None
+            # offObligated (review M4-6): of the PMO's Obligated, the part on budgets the report's Approved can never hold
+            offo = sum(r['cents'] for r in prows if r['status'] == 'exec' and off_kind(r['budget'])) if cov else 0
             tab_rows.setdefault(pk, {})[key] = {
                 'approved': pa, 'authorized': pu, 'obligated': po, 'unobligated': pa - po, 'oblPct': pp, 'goal': b['goal'],
                 'delta': pd, 'status': Model.status_of(pp, b['goal']), 'basis': basis, 'sect': not cov,
                 'planned': f['approved'], 'unprog': f['unprog'], 'execAfterAsOf': f['execAfterAsOf'], 'cols': f['cols'],
-                'na': m.na_items(prows), 'offObligated': off_by.get(pk, 0)}
+                'na': m.na_items(prows), 'offObligated': offo}
 
-    def plabel(pk):          # the tab's label: its counted rows' majority spelling, else the pull's, else the list's
-        if pk in pmo_rows:
-            return label_of(sorted([r for rs in pmo_rows[pk].values() for r in rs], key=lambda r: r['_i']), 'pmo', '(no PMO)')
-        if pk in by_pk:
-            return label_of(sorted(by_pk[pk], key=lambda r: r['_i']), 'pmo', '(no PMO)')
-        return next((l for l in PMO_ORDER if norm_key(l) == pk), '(no PMO)')
     out['pmoTabs'] = {plabel(pk): t for pk, t in tab_rows.items()}
     out['pmoCodes'] = {plabel(pk): pmo_code(plabel(pk)) for pk in tab_rows}
     # §14.3 totals
@@ -1378,7 +1453,9 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
         'offReport': sorted(off_list, key=lambda o: (ap_rank[o['ap']], o['fy'])),
         'unreadable': [{'rowNo': x['rowNo'], 'name': x['name'], 'bad': x['bad']} for x in rows if x['bad']],
         'counted': [[x['rowNo'], why(x)] for x in rows],
-        'budgets': budgets, 'pullBudgetPmo': pull_bpmo}
+        'budgets': budgets, 'pullBudgetPmo': pull_bpmo,
+        'split': split_list, 'unassigned': unassigned_list,
+        'pmoColumn': [[x['rowNo'], pmo_column(x, share_of, plabel)] for x in rows]}
 
 
 def diff_bae(prev, cur, settings):
