@@ -920,13 +920,14 @@ USAF_and_DoN_<date>.xlsx*), which gives each budget's Approved and Authorized am
    production). Advance Procurement, Modifications, RDT&E and squadron budgets name no appropriation and are out.
 2. **Approved** in the stoplight tables is **the report's Approved**, not the CCaR plan total.
 3. **Obl %, Unobligated and the status** are measured against **Approved** (now the report's), as v12 measured them.
-4. **PMO rows** take Approved and Authorized from **the budgets whose name ends in that PMO** (`… Discretionary AV`).
+4. **PMO rows** take Approved and Authorized from **the budgets whose name ends in that PMO** (`… Discretionary AV`). *Replaced on 11 Nov 2026 by §16: by the PMO's plan
+   events.*
 5. **Partial years:** the report's Approved is used on every block it covers, and a block whose CCaR plan is under half of it
    is **flagged** (the Summary's notes, the Import report), never hidden.
 6. **Slide blocks stay on the plan:** the slide blocks, and the totals band under every tree (§8.3–8.6), keep measuring the
    CCaR plan by month, as they do now.
 7. **PMO Obligated** is counted **by the budget's PMO** too, so a PMO row's Approved, Authorized, Obligated and Obl % measure
-   the same money.
+   the same money. *Replaced on 11 Nov 2026 by §16: by the PMO column, as the tree counts it.*
 8. **A typed Authorized wins** over the report for its block, marked as entered; clearing it goes back to the report's.
 
 The rest of this section is the lead's reading of those answers. Where the sections above say "Approved", read this section
@@ -1016,6 +1017,10 @@ the model is exactly §4's (every field below takes its no-report value).
   obligated / approved.
 
 ### 14.4 PMO rows with a report loaded (rules 4 and 7)
+
+**Replaced by §16 (Brad, 11 Nov 2026) for every block the report covers.** A PMO row there is built from the PMO's plan
+events, and the sentences under the tab are §16.2's. What follows stands for a block the report does not cover, for the typed
+Authorized, the `offObligated` line, the strip and `SP.pmoTabLines`; the rest is kept as the record of the rule replaced.
 
 For a covered block, a PMO's stoplight row (`pmos[].rows`, the PMO tab's table) is **the budgets' figures for that PMO**:
 
@@ -1291,3 +1296,83 @@ reporting year."* This replaces his 9 Nov answer on OBBBA. It holds with or with
 - The real-file proof (scratch only): with no report (asOf `2026-04`, firstFY 2024), every block equals the v12 proof's except
   O&M FY2025, which is gone, and the TOTAL is down by exactly that block's Approved and Obligated. With the report, O&M FY2025 is
   gone and named by the `obbba` noBlock note.
+
+## 16. PMO tabs are built from the PMO's plan events (Brad, 11 Nov 2026)
+
+Brad, 11 Nov 2026: *"PMO tab should be based on Plan Event entries. The BAE budget assigned to that plan event should matrix
+over to populate the approved and authorized amounts."* Asked how a budget used by plan events of several PMOs is split, he
+chose **by each PMO's CCaR plan on it**, and asked for the figures **on the PMO's table only**, the tree under it unchanged.
+This **replaces rules 4 and 7** (§14, §14.4) for every block the report covers. With no report loaded, and on a block the
+report does not cover, a PMO row is §4.6's as before.
+
+### 16.1 A PMO's row on a covered block
+
+- **Which PMOs have a row:** every PMO with a counted pull row in the block, by its **PMO column** (`k.pmo`), exactly the PMOs
+  the block's tree shows. `(no PMO)` is the plan events with a blank PMO. A budget's name no longer decides a PMO (`bpmo` and
+  `SP.budgetPmo` are no longer used for any figure).
+- **A PMO's plan on a budget** (`plan[p][b]`): the sum of the block's counted pull rows (§4.3, switches included) whose PMO
+  column is `p` and whose Budget's `normKey` is `b`. A budget's plan in the block is `Σp plan[p][b]`.
+- **A budget's report figures in the block:** `A[b]`, `U[b]` = the Approved and Authorized of the block's counting report rows
+  (§14.3) whose name's `normKey` is `b`.
+- **The split** (`SP.splitByPlan(amount, weights)`): each PMO's weight on `b` is `max(0, plan[p][b])`. `A[b]` and `U[b]` are each
+  shared out in whole cents by largest remainder, in proportion to the weights, so the shares add up to `A[b]` (and `U[b]`)
+  **exactly**; ties go to the PMO earlier in model order. A negative amount is split as its absolute value and negated. When
+  every weight is 0 (no PMO's plan on `b` is above zero), the budget is **unassigned**, as below.
+- **`approved`** = `Σb` that PMO's share of `A[b]`; **`authorized`** = `Σb` its share of `U[b]`. A typed Authorized is still for the
+  block as a whole and never split (§14.4): a PMO row keeps the report's split figure.
+- **`obligated`** = the PMO's counted `exec` rows by its PMO column: the tree's own Obligated. `offObligated` (§14.3, review
+  M4-6) is the part of it on budgets the report's Approved can never hold, by PMO column, 0 when none.
+- `unobligated`, `oblPct`, `goal`, `delta`, `status` as for a block, on that `approved`. **`basis:'planEvent'`** (a new value:
+  `'budget'` is gone, so a check written for the old rule cannot pass by name).
+- **Unassigned report money.** A budget with counting report rows in the block and no PMO weight on it there (no counted plan
+  event uses it, or every PMO's plan on it is 0 or below) is on **no PMO tab**: it is in the Summary's Approved and Authorized
+  and named (§16.2). So, per block and exactly: `Σp approved = block approved − Σ unassigned approved`, and the same for
+  Authorized (report part only: a typed Authorized is the block's). Tests assert it on every covered block.
+- **Invariant** across PMO tabs: every report dollar of a covered block is on exactly one PMO row or unassigned, never two.
+
+### 16.2 Words, on screen and in the workbook alike
+
+- **Under a PMO tab's table** (`SP.pmoTabLines`, one source for both), with a report loaded and a covered block shown, in place
+  of §14.4's budget-name sentences (including the `(no PMO)` one): *Approved and Authorized are the BAE report's figures for the
+  budgets this PMO's plan events are assigned to; a budget the plan events of several PMOs use is split among them by each
+  one's CCaR plan on it. Obligated counts this PMO's plan events.* Then, when any shown covered block has unassigned money:
+  *{Ap FYyyyy $X.XXM; …} of the BAE report's Approved is on budgets no plan event uses; it is in the Summary and on no PMO tab
+  (see the Import report).* The typed-Authorized line, the `offObligated` line and the narrowed § note follow as in §14.4.
+- **The Summary's notes**, with a report loaded, when any block has unassigned money: *The PMO tabs share each budget's Approved
+  and Authorized among the PMOs whose plan events use it, by their CCaR plan on it. {Ap FYyyyy $X.XXM; …} of the BAE report's
+  Approved is on budgets no plan event uses, so the PMO tabs add up to the Summary less it.*
+- **The Import report** (view and sheet), in the BAE section, two lists, each *none* when empty:
+  - *Budgets split among PMOs by their plan events*: each budget used by more than one PMO in a covered block, with its block, its
+    Approved and Authorized, and each PMO's plan on it and share of each, largest share first;
+  - *BAE report money no plan event uses (on no PMO tab)*: each unassigned budget with its block, Approved and Authorized, and
+    why (*no plan event uses it in this block* or *its plan events' plan is not above zero*).
+  - Both take the switches; under a switch they say so as §14.6's other switch-dependent lists do.
+- **The `BAE Report` sheet's PMO column** now says where a counting row's money goes: the PMO label of each PMO whose plan
+  events take a share of that budget in that row's block, with its share of the plan as a percent to one decimal, largest first
+  (*Air Vehicle (AV) 62.5%; Product Support Management (PSM) 37.5%*), or *No plan event uses it*; blank on a row that does not
+  count. Its header stays *PMO*.
+- **Help and the README** replace their account of rules 4 and 7 with this section's.
+- **The PMO strip** (§8.6 item 3) prints the row's figures as before.
+
+### 16.3 The model
+
+- `pmos[].rows[]` on a covered block: as §16.1 (`approved`, `authorized`, `obligated`, `offObligated`, `unobligated`, `oblPct`,
+  `goal`, `delta`, `status`, `basis:'planEvent'`, `sect:false`).
+- `model.bae.split` = `[{ap, fy, key, name, approved, authorized, pmos:[{pmo, plan, approved, authorized}]}]`, the budgets with
+  more than one PMO weight above zero in a covered block, in model order then name; `model.bae.unassigned` =
+  `[{ap, fy, approved, authorized, budgets:[{key, name, approved, authorized, why:'nopull'|'noplan'}]}]`, per covered block
+  with any. Both take the switches.
+- `model.bae.pullBudgetPmo` and the report rows' `pmo` (§14.2) stay as information only; no figure reads them.
+
+### 16.4 Tests
+
+- The oracle implements §16 from the contract alone; every `bae-*` scenario's `pmoTabs` changes to it (`basis:'planEvent'`),
+  and expected output gains `bae.split` and `bae.unassigned`. The fixture's `bae.xlsx` must hold, in a covered block: a budget
+  used by plan events of two PMOs (and one of three) with unequal plans, so the split is not even and has a remainder to place;
+  a budget no plan event uses; a budget whose plan nets to 0 or below for every PMO; a plan event on two budgets; and a PMO
+  whose plan events use only budgets the report lacks. Add rows to the existing fixture **only from a new random stream after
+  everything else**, or in a new file, so existing pull bytes do not move; say which.
+- No-report output and every uncovered block are byte-identical to before.
+- Every new check is shown failing on the code before it. The real-file proof (scratch only): per covered block, the PMO rows
+  plus the unassigned money equal the Summary's Approved and Authorized to the cent; an independent `python3 -I` calculation
+  from this section agrees with every PMO row.
