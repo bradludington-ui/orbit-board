@@ -147,6 +147,15 @@ SP.apTitle = function apTitle(label, day, model, always) {
 // copied off the sheet beside the Summary read as a figure that disagreed with it (review P4-6).
 SP.SLIDES_PLAN_NOTE = 'The slide blocks measure the CCaR plan by month, as they always have: where the BAE report has figures for a block, '
   + 'its Approved on the Summary is the report’s, and the block’s Obligation % row says “CCaR plan” beside the plan it measures.';
+// §15.4 FY2025 OBBBA FUNDING (SP.isObbba25), in the one wording each product prints, the screen and the workbook alike:
+// why such a row counts nowhere (a Counted column), the Import report's section on it, the Settings line, and what the BAE
+// report's table by appropriation and FY says of an (ap, fy) whose only pull rows it leaves out. SP.obbbaLines gives the
+// section's lines, and the Summary's two notes are worked out once, in the model.
+const ENG_OBBBA = 'FY' + SP.OBBBA_FY + ' OBBBA';
+SP.OBBBA_WHY = ENG_OBBBA + ' funding (not a reporting year)';
+SP.OBBBA_HEAD = ENG_OBBBA + ' funding, left out (not a reporting year)';
+SP.OBBBA_RULE = ENG_OBBBA + ' funding is left out of every figure: it is not a reporting year (Brad, 11 Nov 2026).';
+SP.OBBBA_NOBLOCK_WHERE = ENG_OBBBA + ' funding is left out (not a reporting year), so no block is shown';
 
 // §4.5. The 1e-12 lets a ratio that is the goal exactly, but arrived at through a division, count as on the goal.
 SP.statusOf = function statusOf(pct, goal) {
@@ -539,9 +548,10 @@ function eng_and(list) { return list.length > 1 ? list.slice(0, -1).join(', ') +
 // pull row it is derived again on every build (SP.baeDerive), so a rule fixed later reaches a report already saved.
 // ---------------------------------------------------------------------------------------------------------------
 const ENG_BUDGET_COL = SP.RAW_HEADERS.indexOf('Budget');
-// §14.6 the BAE Report sheet's Counted column: 'Yes', or the first reason a row counts nowhere, in §4.3's order
+// §14.6 the BAE Report sheet's Counted column: 'Yes', or the first reason a row counts nowhere, in §4.3's order. §15.3: a
+// FY2025 OBBBA row comes after Before the first FY and before Switch off, as its condition does in §4.3.
 const ENG_BAE_WHY = Object.freeze({ bad: 'Could not be read', flyaway: 'Flyaway (production)', noap: 'Names no appropriation',
-  first: 'Before the first FY', off: 'Switch off', yes: 'Yes' });
+  first: 'Before the first FY', obbba: SP.OBBBA_WHY, off: 'Switch off', yes: 'Yes' });
 SP.BAE_COUNTED_WHY = ENG_BAE_WHY;
 // the word Flyaway, in any case, as every name rule of §3 is read: aircraft production, never sustainment (rule 1)
 const ENG_FLYAWAY = /\bflyaway\b/i;
@@ -591,7 +601,9 @@ SP.baeDerive = function baeDerive(row, settings, model) {
   const approved = Number.isSafeInteger(c[2]) ? c[2] : null, authorized = Number.isSafeInteger(c[3]) ? c[3] : null;
   const bad = row && Array.isArray(row.bad) && row.bad.length ? row.bad : null;
   const ap = name !== '' ? SP.apOfBudget(name) : null;           // the §3 Budget rule alone: a report has no sheet to place it
-  const scope = ENG_FLYAWAY.test(name) ? 'flyaway' : ap ? 'in' : 'noap';
+  // §15.3: FY2025 OBBBA funding is its own scope, after Flyaway and naming no appropriation: it never counts and never makes
+  // a block covered. Like the others it is read off the name and the FY alone, so it is what a row IS, whatever First FY.
+  const scope = ENG_FLYAWAY.test(name) ? 'flyaway' : !ap ? 'noap' : SP.isObbba25(name, fy) ? 'obbba' : 'in';
   const sl = eng_svcLaneOf(name, settings);
   const src = row && Array.isArray(row.src) ? row.src : null;
   return { name, key: SP.normKey(name), fy, approved, authorized, ap, scope, svc: sl.svc, lane: sl.lane, pmo: SP.budgetPmo(name, model),
@@ -599,23 +611,25 @@ SP.baeDerive = function baeDerive(row, settings, model) {
     rowNo: src && Number.isInteger(src[2]) ? src[2] : null, src };
 };
 // §14.2 why a report row counts or not: the first reason in §4.3's order, as a key of ENG_BAE_WHY ('bad', 'flyaway', 'noap',
-// 'first', 'off', or 'yes' when it counts). V is eng_view's. The one judgement the model makes of each row and the
-// import's message counts by (SP.baeTally), so the two never count different rows.
+// 'first', 'obbba', 'off', or 'yes' when it counts). V is eng_view's. The one judgement the model makes of each row and the
+// import's message counts by (SP.baeTally), so the two never count different rows. A FY2025 OBBBA row under a First FY
+// after 2025 is before the First FY (§15.2: each row is set aside for the first condition it fails).
 function eng_baeWhyKey(x, firstFY, V) {
   if (!x.readable) return 'bad';
   if (x.scope === 'flyaway') return 'flyaway';
   if (x.scope === 'noap') return 'noap';
   if (x.fy < firstFY) return 'first';
+  if (x.scope === 'obbba') return 'obbba';
   if (!V.svc.has(x.svc) || !V.lane.has(x.lane)) return 'off';
   return 'yes';
 }
 // §14.7 a report's rows by why each counts or not, under these settings (First FY, the budget table) and switches: what the
 // import's message names. The message gave rows READ and the money of the whole report, Flyaway, RDT&E and the years
 // before First FY included, so its headline Approved matched nothing a stoplight table shows (review I4-6).
-//   -> {rows, yes, bad, flyaway, noap, first, off, firstFY}
+//   -> {rows, yes, bad, flyaway, noap, first, obbba, off, firstFY}
 SP.baeTally = function baeTally(bae, settings, view) {
   const S = eng_settings(settings, false), V = eng_view(view);
-  const t = { rows: 0, yes: 0, bad: 0, flyaway: 0, noap: 0, first: 0, off: 0, firstFY: S.firstFY };
+  const t = { rows: 0, yes: 0, bad: 0, flyaway: 0, noap: 0, first: 0, obbba: 0, off: 0, firstFY: S.firstFY };
   const B = eng_baeOf(bae);
   if (!B) return t;
   for (const row of B.rows) { t.rows++; t[eng_baeWhyKey(SP.baeDerive(row, settings), S.firstFY, V)]++; }
@@ -750,7 +764,11 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
   pulls = pulls && typeof pulls === 'object' ? pulls : {};
   const rowsByAp = {};
   const excluded = { beforeFirst: { cents: 0, rows: 0, byFy: {}, rowsByFy: {} }, unidentified: { cents: 0, rows: 0 },
-    unreadable: { rows: 0 } };
+    unreadable: { rows: 0 }, obbba: { rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] } };
+  // §15.2 FY2025 OBBBA funding, set aside as a row before First FY is: by (ap, fy) and by budget (its normKey, first
+  // spelling, in row order); and every (ap, fy) such a row would have named, readable or not (obGone), whose only pull
+  // rows they are when it ends with no block
+  const obBlocks = new Map(), obBudgets = new Map(), obGone = new Set();
   const blockRows = new Map();          // 'ap|fy' -> counted rows, in pull order
   const blockOf = new Map();            // 'ap|fy' -> {ap, fy}
   const pmoSpell = new Map();           // PMO key -> spellings over every counted row, in row order (its tab's label)
@@ -784,14 +802,34 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
       }
       if (!eng_readable(d)) {
         excluded.unreadable.rows++;
-        // a row whose FY reads still names its block: a block does not vanish because its one row's amount is damaged
-        if (Number.isInteger(d.fy) && d.fy >= S.firstFY) ensure(ap, d.fy);
+        // a row whose FY reads still names its block: a block does not vanish because its one row's amount is damaged.
+        // §15.2: except FY2025 OBBBA funding, which would be left out if it read, so names no block, as a row before
+        // First FY names none
+        if (Number.isInteger(d.fy) && d.fy >= S.firstFY) {
+          if (SP.isObbba25(d.budget, d.fy)) obGone.add(ap + '|' + d.fy);
+          else ensure(ap, d.fy);
+        }
         continue;
       }
       if (d.fy < S.firstFY) {
         const b = excluded.beforeFirst, k = String(d.fy);
         b.cents += d.cents; b.rows++;
         b.byFy[k] = (b.byFy[k] || 0) + d.cents; b.rowsByFy[k] = (b.rowsByFy[k] || 0) + 1;
+        continue;
+      }
+      // §4.3 condition 4 (§15.2), after condition 3: counted in no figure, block or list, whatever the switches show
+      if (SP.isObbba25(d.budget, d.fy)) {
+        const key = ap + '|' + d.fy, obl = d.status === 'exec' ? d.cents : 0;
+        obGone.add(key);
+        const o = excluded.obbba;
+        o.rows++; o.cents += d.cents; o.obligated += obl;
+        let t = obBlocks.get(key);
+        if (!t) obBlocks.set(key, (t = { ap, fy: d.fy, rows: 0, cents: 0, obligated: 0 }));
+        t.rows++; t.cents += d.cents; t.obligated += obl;
+        const bk = SP.normKey(d.budget);
+        let u = obBudgets.get(bk);
+        if (!u) obBudgets.set(bk, (u = { key: bk, name: eng_txt(d.budget).trim(), ap, rows: 0, cents: 0, obligated: 0 }));
+        u.rows++; u.cents += d.cents; u.obligated += obl;
         continue;
       }
       const list = ensure(ap, d.fy);
@@ -817,6 +855,13 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
       else { excluded.unidentified.cents += d.cents; excluded.unidentified.rows++; }
     }
   }
+  // §15.2: blocks in model order (appropriation order then FY), budgets in row order; and the (ap, fy) such rows would
+  // have named that have no block, whatever the switches (a block never depends on them)
+  const obRank = (x, y) => ENG_AP_IDS.indexOf(x.ap) - ENG_AP_IDS.indexOf(y.ap) || x.fy - y.fy;
+  excluded.obbba.blocks = [...obBlocks.values()].sort(obRank);
+  excluded.obbba.budgets = [...obBudgets.values()];
+  const obbbaNoBlock = [...obGone].filter(k => !blockOf.has(k)).map(k => { const i = k.indexOf('|'); return { ap: k.slice(0, i), fy: Number(k.slice(i + 1)) }; })
+    .sort(obRank);
   // §14.2 THE REPORT'S ROWS, each derived and judged once, in file order. A report row counts when it reads, is a
   // sustainment budget (scope 'in'), is of firstFY or later, and the switches show its service and lane: the switches
   // reach it as they reach a pull row. So such a row makes its service's switch exist (§9) as a pull row does, or a
@@ -829,7 +874,8 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
       const x = SP.baeDerive(row, settings, idx);
       const why = eng_baeWhyKey(x, S.firstFY, V);
       x.counts = why === 'yes'; x.why = ENG_BAE_WHY[why];
-      if (why === 'bad' || why === 'flyaway' || why === 'noap') return x;
+      // §15.3: FY2025 OBBBA funding never makes a block covered, as Flyaway never does
+      if (why === 'bad' || why === 'flyaway' || why === 'noap' || why === 'obbba') return x;
       const key = x.ap + '|' + x.fy;
       covered.add(key);                                 // §14.3: covered whatever the switches show
       if (why === 'first') return x;
@@ -944,10 +990,10 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     asOf: S.asOf, asOfLabel: SP.asOfLabel(S.asOf), E: cx.E, firstFY: S.firstFY, window: { start: cx.wstart, end: cx.wend },
     cols: cx.cols, asOfIndex: cx.asOfIndex, showNoDate, shown, special: S.special,
     present: { services: ENG_ALL_SVC.filter(s => present.svc.has(s)), lanes: ENG_LANES.filter(l => present.lane.has(l)) },
-    blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp, stale,
+    blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp, stale, obbbaNoBlock,
     summary: { rows: blocks, total: B ? eng_baeTot(eng_tot(blocks), blocks) : eng_tot(blocks), notes: [] },
   };
-  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys });
+  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock });
   model.summary.notes = eng_notes(model);
   return model;
 };
@@ -955,7 +1001,8 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
 // §14.5 model.bae: the report as the model reads it. Its counts and dollars are over every FY and take no switch (the
 // report as a whole); noBlock, planShort and pullOnly follow the switches, as the blocks they speak of do.
 //   K: {S, cx, blocks, pmoLabel, bpmoOf, pullBudget (key -> first spelling, four pulls), pullKeys (every pull row's
-//       budget key, unidentified rows' too), countedKeys (each counted row's budget key, Flyaway left out)}
+//       budget key, unidentified rows' too), countedKeys (each counted row's budget key, Flyaway left out),
+//       obbbaNoBlock (each (ap, fy) whose only pull rows are FY2025 OBBBA funding, §15.2)}
 function eng_baeModel(B, R, idx, K) {
   const { S, cx, blocks } = K;
   const good = R.filter(x => x.readable), ins = good.filter(x => x.scope === 'in');
@@ -994,7 +1041,11 @@ function eng_baeModel(B, R, idx, K) {
     t.approved += x.approved; t.authorized += x.authorized;
     if (x.approved !== 0 || x.authorized !== 0) t.money = true;
   }
-  const noBlock = [...nb.values()].filter(t => t.money).sort(byKey).map(t => ({ ap: t.ap, fy: t.fy, approved: t.approved, authorized: t.authorized }));
+  // §15.3: one whose pull rows were all FY2025 OBBBA funding would have had a block; it says so (obbba:true), and its money
+  // is still not shown. The flag is there only when true, so a model with no such rows is the one before §15.
+  const obGone = new Set((K.obbbaNoBlock || []).map(t => t.ap + '|' + t.fy));
+  const noBlock = [...nb.values()].filter(t => t.money).sort(byKey).map(t => Object.assign({ ap: t.ap, fy: t.fy, approved: t.approved, authorized: t.authorized },
+    obGone.has(t.ap + '|' + t.fy) ? { obbba: true } : {}));
   const reportKeys = new Set(R.filter(x => x.name !== '').map(x => x.key));
   const pullOnly = [...K.countedKeys].filter(k => !reportKeys.has(k)).sort(eng_cmp);
   const reportOnly = [...new Set(ins.filter(x => x.fy >= S.firstFY && x.fy <= cx.E && (x.approved !== 0 || x.authorized !== 0) && !K.pullKeys.has(x.key))
@@ -1011,8 +1062,10 @@ function eng_baeModel(B, R, idx, K) {
   return {
     present: true, file: eng_txt(B.file), sheet: eng_txt(B.sheet), stamp: typeof B.stamp === 'string' && B.stamp ? B.stamp : null,
     importedAt: typeof B.importedAt === 'string' ? B.importedAt : null, when, of: when ? 'of ' + when : 'with no date recorded',
-    rows: { in: ins.length, flyaway: good.filter(x => x.scope === 'flyaway').length, noap: good.filter(x => x.scope === 'noap').length,
-      bad: R.length - good.length },
+    // §15.3: rows of FY2025 OBBBA funding, by scope as the others are, there only when some is loaded, so a report with
+    // none reads as it did before §15
+    rows: Object.assign({ in: ins.length, flyaway: good.filter(x => x.scope === 'flyaway').length, noap: good.filter(x => x.scope === 'noap').length,
+      bad: R.length - good.length }, good.some(x => x.scope === 'obbba') ? { obbba: good.filter(x => x.scope === 'obbba').length } : {}),
     budgetsIn: new Set(ins.map(x => x.key)).size,
     cents: { approved: eng_sumOf(ins, 'approved'), authorized: eng_sumOf(ins, 'authorized') },
     total, totalRow, byBlock,
@@ -1058,11 +1111,13 @@ function eng_notes(M) {
   const every = filtered ? ' This counts every service and lane, whatever the switches show.' : '';
   const authAll = filtered ? M.blocks.filter(b => b.authorizedEntered) : [];
   const bf = M.excluded.beforeFirst, ui = M.excluded.unidentified, ur = M.excluded.unreadable.rows;
+  // §15.2 FY2025 OBBBA funding, set aside as money before First FY is (a model built before §15 has none)
+  const ob = M.excluded.obbba && M.excluded.obbba.rows ? M.excluded.obbba : null;
   const X = M.bae && M.bae.present ? M.bae : null;
   if (filtered) {
     const ex = [];
     if (authAll.length) ex.push('an entered Authorized (marked ‡)');
-    if (bf.rows || ui.rows || ur) ex.push('the notes below on rows not counted');
+    if (bf.rows || ui.rows || ur || ob) ex.push('the notes below on rows not counted');
     // the report's own totals (§14.5 cents: in scope, every FY, no switches) describe the report, not what is shown
     if (X) ex.push('the note below on the BAE report as a whole');
     notes.push(M.shown.text + '. Every figure counts only these' + (ex.length ? ', except ' + eng_and(ex) + ', which cover every service and lane' : '') + '.');
@@ -1102,6 +1157,14 @@ function eng_notes(M) {
     notes.push('Money before FY' + M.firstFY + ' is not shown: ' + fys.map(k => 'FY' + k + ' ' + eng_dollars(bf.byFy[k])
       + ' (' + eng_rowsWord(bf.rowsByFy[k]) + ')').join('; ') + '.' + every);
   }
+  // §15.4 after the note on money before First FY, and like it counting every service and lane: the rule comes before the
+  // switches in §4.3, so no switch reaches these rows
+  if (ob) {
+    const nb = ob.budgets.length;
+    notes.push(ENG_OBBBA + ' funding is left out of every figure: it is not a reporting year. The CCaR pull holds ' + eng_rowsWord(ob.rows) + ' of it on '
+      + SP.fmtInt(nb) + (nb === 1 ? ' budget' : ' budgets') + ' (' + ob.blocks.map(eng_fyName).join(', ') + '), ' + eng_dollarsT(ob.cents) + ' planned, '
+      + eng_dollarsT(ob.obligated) + ' of it obligated. See the Import report.' + every);
+  }
   if (ui.rows) notes.push(eng_rowsWord(ui.rows) + ' (' + eng_dollars(ui.cents) + ') carry a Budget name that names no appropriation, on a sheet whose name does not name one either; '
     + (ui.rows === 1 ? 'it is' : 'they are') + ' counted nowhere. See the Import report.' + every);
   if (ur) notes.push(eng_rowsWord(ur) + ' could not be read (FY or Amount) and ' + (ur === 1 ? 'is' : 'are') + ' counted nowhere. See the Import report.' + every);
@@ -1137,6 +1200,9 @@ function eng_baeNotes(M, X, notes, every) {
   if (r.noap) out.push(eng_rowsWord(r.noap) + ' naming no appropriation');
   if (r.bad) out.push(eng_rowsWord(r.bad) + ' that could not be read');
   if (before) out.push(eng_rowsWord(before) + ' before FY' + M.firstFY);
+  // §15.3: the rows the rule leaves out (by why, as the rows before First FY are: under a later First FY they are those)
+  const obN = X.derived.filter(d => d.why === ENG_BAE_WHY.obbba).length;
+  if (obN) out.push(SP.fmtInt(obN) + ' ' + ENG_OBBBA + (obN === 1 ? ' row' : ' rows'));
   let check;
   if (X.total) {
     check = X.total.ok ? 'Its total row agrees with the rows read.'
@@ -1160,12 +1226,54 @@ function eng_baeNotes(M, X, notes, every) {
       + (o.obligated !== 0 ? '; ' + eng_dollarsT(o.obligated) + ' of it is obligated, so Obligated and Obl % count money that Approved does not.'
         : ', so the plan counts money that Approved does not.') + ' See the Import report.');
   }
-  if (X.noBlock.length) {
-    const one = X.noBlock.length === 1;
-    notes.push('The BAE report holds money for ' + X.noBlock.map(t => ENG_AP_LABEL[t.ap] + ' FY' + t.fy + ' (' + eng_dollarsT(t.approved) + ' Approved, '
+  // §15.4: an (ap, fy) whose only pull rows are FY2025 OBBBA funding is said in its own words, in place of these
+  const nbo = X.noBlock.filter(t => !t.obbba);
+  if (nbo.length) {
+    const one = nbo.length === 1;
+    notes.push('The BAE report holds money for ' + nbo.map(t => ENG_AP_LABEL[t.ap] + ' FY' + t.fy + ' (' + eng_dollarsT(t.approved) + ' Approved, '
       + eng_dollarsT(t.authorized) + ' Authorized)').join('; ') + ', which the CCaR pull has no rows for: no block is shown for ' + (one ? 'it' : 'them') + '.');
   }
+  for (const t of X.noBlock.filter(x => x.obbba)) {
+    notes.push(eng_fyName(t) + ' has no block: its only CCaR pull rows are ' + ENG_OBBBA + ' funding, which is left out. The BAE report’s '
+      + eng_dollarsT(t.approved) + ' Approved and ' + eng_dollarsT(t.authorized) + ' Authorized for it are not shown.');
+  }
 }
+// §15.4 THE IMPORT REPORT'S SECTION ON FY2025 OBBBA FUNDING (headed SP.OBBBA_HEAD), for the view and the sheet alike:
+// each pull budget the rule leaves out, with its appropriation, rows, plan and obligated, their total, and the BAE report's
+// rows of it. Shown when any such row is loaded, that is, left out by the rule: under a First FY after 2025 they are
+// before the First FY instead, and said so where those are. Dollars are exact (SP.fmtUsd), as the Import report's are.
+SP.obbbaLoaded = function obbbaLoaded(M) {
+  const ob = M && M.excluded && M.excluded.obbba;
+  if (ob && ob.rows > 0) return true;
+  return !!(M && M.bae && M.bae.present && Array.isArray(M.bae.derived) && M.bae.derived.some(d => d.why === ENG_BAE_WHY.obbba));
+};
+// §15.4 whether an (ap, fy) has no block because its only pull rows are FY2025 OBBBA funding (model.obbbaNoBlock, whatever
+// the switches): what the BAE report's table by appropriation and FY says of it, on the view and the sheet alike
+SP.isObbbaNoBlock = function isObbbaNoBlock(M, key) {
+  return !!(M && Array.isArray(M.obbbaNoBlock) && M.obbbaNoBlock.some(t => t.ap + '|' + t.fy === key));
+};
+SP.obbbaLines = function obbbaLines(M) {
+  if (!SP.obbbaLoaded(M)) return [];
+  const ob = M.excluded.obbba && M.excluded.obbba.rows > 0 ? M.excluded.obbba : null;
+  const L = ['A row whose budget name holds the word OBBBA and whose FY is ' + SP.OBBBA_FY + ' counts in no figure, block, list or picture, whatever the '
+    + 'switches show: FY' + SP.OBBBA_FY + ' is not a reporting year (Brad, 11 Nov 2026).'];
+  if (!ob) L.push('In the CCaR pulls: none.');
+  else {
+    const nb = ob.budgets.length;
+    L.push('In the CCaR pulls: ' + eng_rowsWord(ob.rows) + ' on ' + SP.fmtInt(nb) + (nb === 1 ? ' budget' : ' budgets') + ' ('
+      + ob.blocks.map(eng_fyName).join(', ') + '):');
+    for (const t of ob.budgets) {
+      L.push('  “' + t.name + '” (' + ENG_AP_LABEL[t.ap] + '): ' + eng_rowsWord(t.rows) + ', plan ' + SP.fmtUsd(t.cents) + ', obligated ' + SP.fmtUsd(t.obligated) + '.');
+    }
+    L.push('  Total: ' + eng_rowsWord(ob.rows) + ', plan ' + SP.fmtUsd(ob.cents) + ', obligated ' + SP.fmtUsd(ob.obligated) + '.');
+  }
+  if (M.bae && M.bae.present) {
+    const rr = (Array.isArray(M.bae.derived) ? M.bae.derived : []).filter(d => d.why === ENG_BAE_WHY.obbba);
+    L.push('In the BAE report: ' + (rr.length ? eng_rowsWord(rr.length) + ', Approved ' + SP.fmtUsd(eng_sumOf(rr, 'approved')) + ', Authorized '
+      + SP.fmtUsd(eng_sumOf(rr, 'authorized')) + '.' : 'none.'));
+  }
+  return L;
+};
 // §14.4 the lines under a PMO tab's table with a BAE report loaded, in the one wording the screen and the workbook print:
 // what its figures count where they are the budgets', and, where a typed Authorized stands on a block the tab shows,
 // that it is never split among PMOs. [] with no report, or for a PMO none of whose rows is on the budgets.

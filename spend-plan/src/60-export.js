@@ -639,6 +639,8 @@ function ex_counted(d, M, svcOn, laneOn) {
     return 'No: could not be read (' + (d.bad && d.bad.length ? d.bad.join('; ') : 'FY or Amount') + ')';
   }
   if (d.fy < M.firstFY) return 'No: FY' + d.fy + ' is before the first FY shown (FY' + M.firstFY + ')';
+  // §15.2 condition 4, after condition 3: a FY2025 OBBBA row under a later First FY is before the First FY
+  if (SP.isObbba25(d.budget, d.fy)) return 'No: ' + SP.OBBBA_WHY;
   if (!svcOn.has(d.svc)) return 'No: service switched off (' + d.svc + ')';
   if (!laneOn.has(d.lane)) return 'No: lane switched off (' + (SP.LANE_WORDS[d.lane] || d.lane) + ')';
   return 'Yes';
@@ -780,15 +782,19 @@ SP.baeModelLines = function baeModelLines(M) {
   // took their place, under nothing that said a switch had moved them (review P4-4, §4.3).
   const sw = M.shown && !M.shown.all ? ', with the switches as they are (' + M.shown.text + ')' : '';
   L.push('The BAE report of budgets ' + X.of + (X.file ? ' (' + q(X.file) + ')' : '') + ', as the figures read it:');
+  // §15.3: FY2025 OBBBA funding is a kind of its own, said only when the report holds some (r.obbba is there only then)
   L.push('  Rows by what they are (every FY, whatever the switches show): ' + rw(r.in || 0) + ' of sustainment budgets (their names place '
     + 'them in O&M, Full Fund, Initial Spares or OPN); counted nowhere, ' + rw(r.flyaway || 0) + ' of Full Fund Flyaway (aircraft production), '
-    + rw(r.noap || 0) + ' naming no appropriation and ' + rw(r.bad || 0) + ' that could not be read.');
+    + rw(r.noap || 0) + ' naming no appropriation' + (r.obbba ? ', ' + rw(r.obbba) + ' of ' + SP.OBBBA_WHY : '') + ' and ' + rw(r.bad || 0) + ' that could not be read.');
   const bb = X.byBlock && typeof X.byBlock === 'object' ? Object.keys(X.byBlock) : [];
   L.push('  The sustainment budgets’ Approved and Authorized by appropriation and FY (every FY, every service and lane, whatever the switches show):'
     + (bb.length ? '' : ' none.'));
   for (const k of bb) {
     const v = X.byBlock[k], i = k.indexOf('|');
-    L.push('    ' + apL(k.slice(0, i)) + ' FY' + k.slice(i + 1) + ': Approved ' + SP.fmtUsd(v.approved) + ', Authorized ' + SP.fmtUsd(v.authorized) + '.');
+    // §15.4 an (ap, fy) whose only pull rows are FY2025 OBBBA funding: the words the view's table says of it
+    const ob = SP.isObbbaNoBlock(M, k);
+    L.push('    ' + apL(k.slice(0, i)) + ' FY' + k.slice(i + 1) + ': Approved ' + SP.fmtUsd(v.approved) + ', Authorized ' + SP.fmtUsd(v.authorized)
+      + (ob ? '; ' + SP.OBBBA_NOBLOCK_WHERE : '') + '.');
   }
   const ps = Array.isArray(X.planShort) ? X.planShort : [];
   L.push('  Blocks whose CCaR plan is under half the BAE report’s Approved (flagged, never hidden: Obl % is measured against the report’s figure)' + sw + ': '
@@ -860,6 +866,13 @@ function ex_reportSheet(M, pulls, meta) {
       + '); what each holds that counts nowhere:', s: EXS.lineB }]);
     for (const line of kept) ex_push(K, [{ v: line, s: EXS.line }]);
   }
+  // §15.4 FY2025 OBBBA funding, left out: the view's section, line for line (SP.obbbaLines), when any is loaded
+  const obl = SP.obbbaLines(M);
+  if (obl.length) {
+    ex_blank(K);
+    ex_push(K, [{ v: SP.OBBBA_HEAD, s: EXS.lineB }]);
+    for (const line of obl) ex_push(K, [{ v: '  ' + line, s: EXS.line }]);
+  }
   if (bae) {
     // the report on screen when the last import did not bring it: its own section, from its stored rows (SP.baeKeptLines),
     // or its unreadable rows and its total row's check would be listed nowhere in this workbook
@@ -881,24 +894,27 @@ function ex_reportSheet(M, pulls, meta) {
 // switch on, because no switch can reach them.
 function ex_noSwitchLine(M, pulls, settings) {
   const allSvc = new Set(SP.SERVICES.concat([SP.SVC_UNKNOWN])), allLane = new Set(['disc', 'mand']);
-  let before = 0, unread = 0, unid = 0;
+  let before = 0, unread = 0, unid = 0, obbba = 0;
   const each = (rows, f) => { for (const row of Array.isArray(rows) ? rows : []) if (row && Array.isArray(row.c)) f(SP.deriveRow(row, settings)); };
   for (const a of SP.APS) {
     each(pulls && pulls[a.id] && pulls[a.id].rows, d => {
       if (d.svc !== SP.SVC_UNKNOWN) return;
       const why = ex_counted(d, M, allSvc, allLane);
-      if (/^No: could not be read/.test(why)) unread++; else if (why !== 'Yes') before++;
+      if (/^No: could not be read/.test(why)) unread++;
+      else if (why === 'No: ' + SP.OBBBA_WHY) obbba++;          // §15.2: left out by its own rule, not before the First FY
+      else if (why !== 'Yes') before++;
     });
   }
   each(pulls && pulls.unidentified && pulls.unidentified.rows, d => { if (d.svc === SP.SVC_UNKNOWN) unid++; });
   // §14.2: a BAE report's rows have a service by the same rules, and one with none that could count makes the switch
   // exist (SP.buildModel); with no switch, every such row of the report counts nowhere, and the BAE Report sheet says why
   const baeRows = ex_hasBae(M) && Array.isArray(M.bae.derived) ? M.bae.derived.filter(d => d.svc === SP.SVC_UNKNOWN).length : 0;
-  const n = before + unread + unid + baeRows;
+  const n = before + unread + unid + baeRows + obbba;
   if (!n) return 'No such rows (no switch)';
   const rw = k => SP.fmtInt(k) + (k === 1 ? ' row' : ' rows');
   const parts = [];
   if (before) parts.push(rw(before) + ' before the first FY shown (FY' + M.firstFY + ')');
+  if (obbba) parts.push(rw(obbba) + ' of ' + SP.OBBBA_WHY);
   if (unread) parts.push(rw(unread) + ' that could not be read');
   if (unid) parts.push(rw(unid) + ' whose appropriation was not identified (see the Import Report)');
   if (baeRows) parts.push(rw(baeRows) + ' of the BAE report (each with its reason in the Counted column of the BAE Report sheet)');
@@ -961,6 +977,8 @@ function ex_settingsSheet(M, pulls, settings) {
   kv('Data through', M.asOfLabel + ' (' + M.asOf + ')');
   kv('Execution year', 'FY' + M.E + ': ' + M.window.start + ' up to ' + M.window.end);
   kv('First FY shown', M.firstFY, EXS.line);
+  // §15.4 the fixed rule, under First FY, when a row it leaves out is loaded (the view says it in the same words)
+  if (SP.obbbaLoaded(M)) ex_push(K, [{ v: SP.OBBBA_RULE, s: EXS.line }]);
   ex_blank(K);
   // not "every figure": an entered Authorized and the notes on rows not counted cover every service and lane (review R3);
   // with a BAE report, so do the notes and the Import Report's figures on the report as a whole (§14.5)

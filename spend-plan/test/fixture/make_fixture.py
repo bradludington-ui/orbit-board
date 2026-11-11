@@ -137,6 +137,8 @@ def cents_cell(c):
 
 
 class Gen:
+    PREFIX = {'om': 'OM', 'ff': 'FF', 'sp': 'SP', 'opn': 'OP', 'misc': 'MX'}     # each row's id: OM-0001 ...
+
     def __init__(self, seed):
         self.rng = random.Random(seed)
         self.rows = {'om': [], 'ff': [], 'sp': [], 'opn': [], 'misc': []}
@@ -173,7 +175,7 @@ class Gen:
         """One data row. `date` is the intended date (a dt.date or None); a *_cell argument writes that cell some other
         way (text, a serial number, a time of day) while the intent records what that cell must be read as."""
         self.n[tab] += 1
-        rid = '%s-%04d' % ({'om': 'OM', 'ff': 'FF', 'sp': 'SP', 'opn': 'OP', 'misc': 'MX'}[tab], self.n[tab])
+        rid = '%s-%04d' % (self.PREFIX[tab], self.n[tab])
         rng = self.rng
         cells = {h: None for h in RAW_HEADERS}
         cells['FY'] = fy if fy_cell == '=' else fy_cell
@@ -207,7 +209,7 @@ class Gen:
         cells['CSR'] = rng.choice(['Common', None])
         cells['Contract Mod'] = rng.choice(['Basic', 'P000%02d' % rng.randint(1, 40)])
         cells['Cost Element'] = rng.choice(['Sustainment', None])
-        bap, bsvc, blane = BUDGETS[budget]
+        bap, bsvc, blane = self.meaning(budget)
         ap = bap
         if tab in ('om', 'ff', 'sp', 'opn') and ap is None:
             ap = tab                 # the sheet name decides (only in v12-named tabs; see the header)
@@ -234,6 +236,10 @@ class Gen:
         r = {'cells': cells, 'intent': intent}
         self.rows[tab].append(r)
         return r
+
+    def meaning(self, budget):
+        """(ap, service, lane) of a budget name, from the hand-stated table (ObbbaGen adds its own names)."""
+        return BUDGETS[budget]
 
     # --- random programs -------------------------------------------------------------------------------------------
     EXEC_WIN = {2024: (dt.date(2023, 10, 1), dt.date(2026, 6, 30)), 2025: (dt.date(2024, 10, 1), dt.date(2026, 10, 31)),
@@ -652,9 +658,12 @@ BAE_BRIMLOW = 'USAF O&M - AFRC CAM Discretionary Brimlow'     # gen2's new pull 
 
 
 def bae_meaning(name):
-    """(ap, scope, service, lane, budget's PMO) of a report name, from the hand-stated tables above."""
+    """(ap, scope, service, lane, budget's PMO) of a report name, from the hand-stated tables above. The scope is the
+    NAME's (§14.2 without the FY): a row of an OBBBA name in FY2025 is 'obbba' (§15), which the row states itself."""
     if name in BAE_ONLY:
         return BAE_ONLY[name]
+    if name in OBBBA_NAMES:
+        return OBBBA_NAMES[name][:5]
     ap, svc, lane = BUDGETS[name]
     return ap, ('in' if ap else 'noap'), svc, lane, BUDGET_PMO[name]
 
@@ -920,6 +929,258 @@ BAE_GEN2_LABELS = {BAE_NAME: 'Budget Name ', BAE_FY: 'Budget FY', BAE_AUTH: 'Bud
 BAE_GEN2_TOP = ['BAE ALL Services - Fixture Report', 'Run 2026-12-01 06:00 - every service']
 
 
+# ============================================================================ FY2025 OBBBA funding is left out (§15)
+# Brad, 11 Nov 2026: "Just leave FY25 OBBBA funding out. Although it's active technically, it's not a reporting year."
+# A row is FY2025 OBBBA funding when its budget name holds the word OBBBA (whole word, any case) and its FY is 2025.
+# DIR/obbba/ holds two pulls and a report built for §15 alone (CONTRACT §15.5), every name and figure invented:
+#   obbba/pull-om.xlsx  O&M, laid out as pull-om.xlsx is (sheet "Report", the columns in another order, the 1904 date
+#                       system). FY2025 holds ONLY FY2025 OBBBA rows, so its block must vanish: obligated and not, two
+#                       services and both lanes, one budget spelt two ways, one in lower case, one whose name no
+#                       service rule knows, one FY written as text, one obligated after the as-of month, and one with
+#                       an unreadable amount, which must not name the block either. FY2026 holds ordinary rows, an
+#                       OBBBA budget whose FY2025 row is left out (it counts in FY2026 only) and a name with OBBBA
+#                       inside a longer word. Then an OBBBA FY2025 row whose appropriation nothing identifies: it is set
+#                       aside for that, the earlier §4.3 condition.
+#   obbba/pull-ff.csv   Full Fund, as pull-ff.csv is. FY2025 mixes ordinary and OBBBA rows (the block stays, less them):
+#                       obligated and not, two services, both lanes, an OBBBA Flyaway budget (left out, so on no
+#                       offReport), and OBBBA inside a longer word with a letter after it and with one before it, which
+#                       are ordinary. FY2026 holds an OBBBA budget, which counts.
+#   obbba/bae.xlsx      a report shaped as bae.xlsx is: OBBBA FY2025 rows (§15.3 scope 'obbba'; a Flyaway one and one
+#                       naming no appropriation, which are those first; one that cannot be read, which is that first;
+#                       one in mixed case; one for a Spares year the pulls have no block for), OBBBA rows of FY2026
+#                       (ordinary), ordinary O&M FY2025 rows (the noBlock entry with obbba), ordinary rows covering every
+#                       block that remains, and out-years. The lower-case pull budget and the unknown-service one are
+#                       left out of it, so neither may be in pullOnly.
+# They are drawn from their OWN random streams, after every other file is written: not one byte of the files above
+# moves (--no-obbba writes the rest alone; fixture.test.mjs compares the two).
+#
+# What each name MEANS, stated by hand and never by running a rule: (ap, the name's scope by §14.2 without its FY,
+# service, lane, the budget's PMO, whether the name holds OBBBA as a whole word). A row of a name holding the word, in
+# FY2025, is FY2025 OBBBA funding: the generator states that from this table, never by matching the text.
+OBBBA_NAMES = {
+    # O&M FY2025: nothing but these (the block vanishes)
+    'USAF O&M- OBBBA Fixture Readiness Discretionary AV': ('om', 'in', USAF, 'disc', AV, True),
+    'USAF O&M- OBBBA FIXTURE READINESS DISCRETIONARY AV': ('om', 'in', USAF, 'disc', AV, True),   # the same budget, in capitals
+    'USN O&M- OBBBA Fixture USN CV Readiness Discretionary PSM': ('om', 'in', USN, 'disc', PSM, True),
+    'USAF O&M - ANG OBBBA Fixture Line Mandatory PP': ('om', 'in', ANG, 'mand', PP, True),
+    'USAF O&M- obbba Fixture Surge Discretionary TSS': ('om', 'in', USAF, 'disc', TSS, True),       # lower case; no report row
+    'DoN O&M- OBBBA Fixture Reimbursable Discretionary PSM': ('om', 'in', UNK, 'disc', PSM, True),  # no service rule; no report row
+    'USAF O&M- OBBBA Fixture Sustain Line Discretionary PSM': ('om', 'in', USAF, 'disc', PSM, True),  # FY2025 and FY2026
+    # O&M FY2026: OBBBA inside a longer word is an ordinary name (CONTRACT §15.1's own example)
+    'USAF O&M- NOBBBAX Fixture Line Discretionary BOP': ('om', 'in', USAF, 'disc', BOP, False),
+    # an appropriation nothing identifies (no rule names it, and the sheet "Report" names none)
+    'Interagency OBBBA Reimbursable Line': (None, 'noap', UNK, 'disc', NOPMO, True),
+    # Full Fund
+    'USN APN Full Fund SUPT USN CV OBBBA Discretionary BOP': ('ff', 'in', USN, 'disc', BOP, True),
+    'USMC STOVL APN Full Fund OBBBA SUPT Mandatory PP': ('ff', 'in', STOVL, 'mand', PP, True),
+    'USAF APAF Full Fund OBBBA Flyaway Lot Discretionary AV': ('ff', 'flyaway', USAF, 'disc', AV, True),
+    'USAF APAF Full Fund OBBBAX SUPT Discretionary MxS': ('ff', 'in', USAF, 'disc', MXS, False),     # a letter after the word
+    'USN APN Full Fund SUPT NOBBBA Discretionary CDS': ('ff', 'in', USN, 'disc', CDS, False),        # a letter before it
+    'USAF APAF Full Fund OBBBA SUPT Discretionary TSS': ('ff', 'in', USAF, 'disc', TSS, True),       # FY2026 only: counts
+    # only the report carries these
+    'USMC STOVL O&M - OBBBA Fixture Line Discretionary AV': ('om', 'in', STOVL, 'disc', AV, True),   # an unreadable amount
+    'USN O&M- Obbba Fixture Analytics Discretionary CDS': ('om', 'in', USN, 'disc', CDS, True),      # mixed case
+    'USN APN Spares OBBBA Fixture Initial Discretionary PP': ('sp', 'in', USN, 'disc', PP, True),    # no Spares block here
+    'USAF RDT&E OBBBA Fixture Development Discretionary AV': (None, 'noap', USAF, 'disc', AV, True),
+}
+OBBBA_FILES = {'pull-om': 'obbba/pull-om.xlsx', 'pull-ff': 'obbba/pull-ff.csv', 'bae': 'obbba/bae.xlsx'}
+# CONTRACT §14.6 and §15.4, the BAE Report sheet's Counted words, restated for the manifest's "meant"
+OBBBA_BAE_WHY = {'bad': 'Could not be read', 'flyaway': 'Flyaway (production)', 'noap': 'Names no appropriation',
+                 'before': 'Before the first FY', 'obbba': 'FY2025 OBBBA funding (not a reporting year)', 'yes': 'Yes'}
+
+
+def obbba_word(name):
+    """Whether a name holds OBBBA as a whole word, from the table (False for every name the table does not hold)."""
+    return bool(name in OBBBA_NAMES and OBBBA_NAMES[name][5])
+
+
+def obbba_meant(it, first=2025):
+    """What a pull row is MEANT to be at First FY 2025 with every switch on: the first §4.3 condition it fails
+    ('unreadable', 'unidentified', 'beforeFirst', 'obbba'), else 'counted'."""
+    if it['bad']:
+        return 'unreadable'
+    if it['ap'] is None:
+        return 'unidentified'
+    if it['fy'] < first:
+        return 'beforeFirst'
+    return 'obbba' if it['obbba'] else 'counted'
+
+
+class ObbbaGen(Gen):
+    PREFIX = {'om': 'BO', 'ff': 'BF', 'sp': 'BS', 'opn': 'BP', 'misc': 'BX'}
+
+    def __init__(self, seed):
+        super().__init__(seed)
+        self.rng = random.Random('obbba-pull|%d' % seed)        # its own stream: the pulls' is never drawn on
+
+    def meaning(self, budget):
+        if budget in OBBBA_NAMES:
+            o = OBBBA_NAMES[budget]
+            return o[0], o[2], o[3]
+        return BUDGETS[budget]
+
+
+def build_obbba(seed):
+    """The two pulls of obbba/. Each row's intent gains `case` (why it is there), `obbba` (FY2025 OBBBA funding, from
+    OBBBA_NAMES) and `meant` (obbba_meant)."""
+    g = ObbbaGen(seed)
+    D = dt.date
+
+    def R(case, tab, fy, k, d, c, a, **kw):
+        r = g.row(tab, fy, k[0], k[1], kw.pop('budget', k[2]), k[3], d, c, a, k[4], **kw)
+        r['intent']['case'] = case
+        return r
+    # ----------------------------------------------------------- O&M FY2025: nothing but FY2025 OBBBA funding
+    O1 = ('JSF9711', 'Readiness Surge Package', 'USAF O&M- OBBBA Fixture Readiness Discretionary AV', 'AX - Surge Spares Lot', AV)
+    R('OBBBA FY2025, obligated', 'om', 2025, O1, D(2025, 6, 18), 2_450_000_00, EXEC)
+    R('OBBBA FY2025, its budget spelt in capitals: one budget, first spelling', 'om', 2025, O1, D(2026, 2, 11), 1_175_500_00,
+      EXEC, budget='USAF O&M- OBBBA FIXTURE READINESS DISCRETIONARY AV')
+    R('OBBBA FY2025, obligated after the as-of month', 'om', 2025, O1, D(2026, 12, 15), 640_000_00, EXEC)
+    R('OBBBA FY2025, planned', 'om', 2025, O1, D(2027, 1, 31), 3_200_000_00, NA)
+    R('OBBBA FY2025 with an unreadable amount: set aside as unreadable, and names no block', 'om', 2025, O1,
+      D(2027, 3, 31), None, NA, amount_cell='TBD', bad=['Amount'])
+    O2 = ('CT-90711', 'Afloat Readiness Surge', 'USN O&M- OBBBA Fixture USN CV Readiness Discretionary PSM', 'PX - Afloat Surge', PSM)
+    R('OBBBA FY2025, a second service, obligated', 'om', 2025, O2, D(2025, 9, 30), 1_880_000_00, EXEC)
+    R('OBBBA FY2025, its FY written as text', 'om', 2025, O2, D(2026, 11, 30), 920_000_00, NA, fy_cell='FY25')
+    R('OBBBA FY2025, Forecast', 'om', 2025, O2, D(2027, 6, 30), 410_000_00, FCST)
+    O3 = ('JSF9712', 'Guard Engine Surge', 'USAF O&M - ANG OBBBA Fixture Line Mandatory PP', 'EX - Guard Engine Lot', PP)
+    R('OBBBA FY2025, the Mandatory lane, obligated', 'om', 2025, O3, D(2025, 11, 20), 3_050_000_00, EXEC)
+    R('OBBBA FY2025, the Mandatory lane, planned', 'om', 2025, O3, D(2027, 2, 28), 1_420_000_00, NA)
+    O4 = ('JSF9713', 'Trainer Surge Upgrade', 'USAF O&M- obbba Fixture Surge Discretionary TSS', 'TX - Trainer Surge', TSS)
+    R('OBBBA FY2025, the word in lower case', 'om', 2025, O4, D(2026, 4, 9), 760_000_00, EXEC)
+    R('OBBBA FY2025, the word in lower case', 'om', 2025, O4, D(2027, 4, 30), 515_000_00, NA)
+    O7 = ('CT-90713', 'Reimbursable Surge Draw', 'DoN O&M- OBBBA Fixture Reimbursable Discretionary PSM', 'DX - Surge Draw', PSM)
+    R('OBBBA FY2025 with no service: makes no seventh switch', 'om', 2025, O7, D(2027, 5, 31), 330_000_00, NA)
+    O5 = ('JSF9714', 'Sustainment Bridge Fund', 'USAF O&M- OBBBA Fixture Sustain Line Discretionary PSM', 'PX - Bridge Lot 1', PSM)
+    R('OBBBA FY2025 on a budget whose other rows are FY2026', 'om', 2025, O5, D(2025, 8, 14), 1_260_000_00, EXEC)
+    # ----------------------------------------------------------- O&M FY2026 and FY2027: ordinary
+    for _ in range(4):
+        g.program('om', 2026)
+    R('an OBBBA budget in FY2026: ordinary, counts', 'om', 2026, O5, D(2026, 3, 19), 2_040_000_00, EXEC)
+    R('an OBBBA budget in FY2026: ordinary, counts', 'om', 2026, O5, D(2027, 2, 28), 1_150_000_00, NA)
+    R('an OBBBA budget in FY2026: ordinary, counts', 'om', 2026, O5, D(2027, 8, 31), 680_000_00, NA)
+    N1 = ('CT-90715', 'Ledger Bridge Account', 'USAF O&M- NOBBBAX Fixture Line Discretionary BOP', 'BX - Bridge Account', BOP)
+    R('OBBBA inside a longer word: ordinary', 'om', 2026, N1, D(2026, 1, 22), 455_000_00, EXEC)
+    R('OBBBA inside a longer word: ordinary', 'om', 2026, N1, D(2027, 3, 31), 290_000_00, NA)
+    for _ in range(3):
+        g.program('om', 2027)
+    # ----------------------------------------------------------- written after the O&M rows: no appropriation
+    U = ('CT-90714', 'Interagency Surge Line', 'Interagency OBBBA Reimbursable Line', 'QX - Interagency Surge', PSM)
+    R('OBBBA FY2025 whose appropriation nothing identifies: set aside as that first', 'misc', 2025, U, D(2027, 1, 31),
+      275_000_00, NA)
+    # ----------------------------------------------------------- Full Fund FY2025: ordinary and OBBBA rows mixed
+    for _ in range(3):
+        g.program('ff', 2025)
+    F1 = ('JSF9721', 'Afloat Depot Surge', 'USN APN Full Fund SUPT USN CV OBBBA Discretionary BOP', 'BX - Depot Surge Lot', BOP)
+    R('OBBBA FY2025 beside ordinary rows, obligated', 'ff', 2025, F1, D(2025, 7, 9), 4_100_000_00, EXEC, fy_cell='FY2025')
+    R('OBBBA FY2025 beside ordinary rows, planned', 'ff', 2025, F1, D(2027, 3, 31), 1_650_000_00, NA)
+    R('OBBBA FY2025 beside ordinary rows, Unprogrammed', 'ff', 2025, F1, D(2027, 9, 30), 800_000_00, UNPROG)
+    F2 = ('JSF9722', 'Lift System Surge', 'USMC STOVL APN Full Fund OBBBA SUPT Mandatory PP', 'PX - Lift System Lot', PP)
+    R('OBBBA FY2025, a second service, the Mandatory lane, obligated', 'ff', 2025, F2, D(2025, 12, 3), 2_725_000_00, EXEC)
+    R('OBBBA FY2025, a second service, the Mandatory lane, planned', 'ff', 2025, F2, D(2027, 5, 31), 990_000_00, NA)
+    F3 = ('CT-90721', 'Production Surge Lot', 'USAF APAF Full Fund OBBBA Flyaway Lot Discretionary AV', 'AX - Surge Airframes', AV)
+    R('OBBBA FY2025 on a Flyaway budget: left out, so on no offReport', 'ff', 2025, F3, D(2025, 10, 16), 9_500_000_00, EXEC)
+    F4 = ('JSF9723', 'Tooling Bridge', 'USAF APAF Full Fund OBBBAX SUPT Discretionary MxS', 'MX - Bridge Tooling', MXS)
+    R('OBBBA with a letter after it, FY2025: ordinary', 'ff', 2025, F4, D(2025, 4, 22), 1_330_000_00, EXEC)
+    R('OBBBA with a letter after it, FY2025: ordinary', 'ff', 2025, F4, D(2027, 1, 31), 470_000_00, NA)
+    F6 = ('CT-90722', 'Comms Bridge Kit', 'USN APN Full Fund SUPT NOBBBA Discretionary CDS', 'CX - Bridge Kit', CDS)
+    R('OBBBA with a letter before it, FY2025: ordinary', 'ff', 2025, F6, D(2026, 5, 7), 615_000_00, EXEC)
+    R('OBBBA with a letter before it, FY2025: ordinary', 'ff', 2025, F6, D(2027, 6, 30), 240_000_00, NA)
+    # ----------------------------------------------------------- Full Fund FY2026 and FY2027
+    for _ in range(3):
+        g.program('ff', 2026)
+    F5 = ('JSF9724', 'Trainer Bridge Buy', 'USAF APAF Full Fund OBBBA SUPT Discretionary TSS', 'TX - Bridge Buy', TSS)
+    R('an OBBBA budget in FY2026: ordinary, counts', 'ff', 2026, F5, D(2026, 6, 25), 1_875_000_00, EXEC)
+    R('an OBBBA budget in FY2026: ordinary, counts', 'ff', 2026, F5, D(2027, 4, 30), 560_000_00, NA)
+    for _ in range(2):
+        g.program('ff', 2027)
+    files = {'om': OBBBA_FILES['pull-om'], 'misc': OBBBA_FILES['pull-om'], 'ff': OBBBA_FILES['pull-ff']}
+    for tab in ('om', 'misc', 'ff'):
+        for r in g.rows[tab]:
+            it = r['intent']
+            it.setdefault('case', 'ordinary')
+            it['file'] = files[tab]
+            it['obbba'] = obbba_word(it['budget']) and it['fy'] == 2025
+            it['meant'] = obbba_meant(it)
+    return g
+
+
+class ObbbaBaeGen(BaeGen):
+    def __init__(self, seed):
+        self.rng = random.Random('obbba-bae|%d' % seed)         # its own stream: the reports' is never drawn on
+
+    def row(self, name, fy, app, auth, case='', **kw):
+        """bae_meaning gives the NAME's scope; §15.3 makes a row of an OBBBA name in FY2025 'obbba', after 'flyaway'
+        and 'noap'. Each row's intent gains `obbba`, `case` and `meant` (the Counted words at First FY 2025, every
+        switch on)."""
+        r = super().row(name, fy, app, auth, **kw)
+        it = r['intent']
+        it['obbba'] = obbba_word(name) and it['fy'] == 2025
+        if it['obbba'] and it['scope'] == 'in':
+            it['scope'] = 'obbba'
+        it['case'] = case
+        it['meant'] = OBBBA_BAE_WHY['bad' if it['bad'] else it['scope'] if it['scope'] in ('flyaway', 'noap', 'obbba')
+                                    else 'before' if it['fy'] < 2025 else 'yes']
+        return r
+
+
+def build_obbba_bae(g, seed):
+    """The report of obbba/: ordinary rows covering every block the two pulls leave (each budget and FY the pulls
+    count, Approved 1.0-1.25x its plan), then the §15 cases with fixed figures."""
+    b = ObbbaBaeGen(seed)
+    rng = b.rng
+    plan = {}
+    for tab in ('om', 'ff'):
+        for r in g.rows[tab]:
+            it = r['intent']
+            if it['meant'] == 'counted':
+                plan[(it['budget'], it['fy'])] = plan.get((it['budget'], it['fy']), 0) + it['cents']
+    rows = []
+    for (name, fy) in sorted(plan):
+        base = max(plan[(name, fy)], 1_500_000_00)
+        a = int(base * rng.uniform(1.0, 1.25))
+        case = 'an OBBBA budget of FY%d: ordinary, counts' % fy if obbba_word(name) else 'ordinary: covers its block'
+        if fy < 2027:
+            rows.append(b.row(name, fy, a, '=', case=case))
+        elif rng.random() < .5:
+            rows.append(b.row(name, fy, a, BAE_ZERO, case=case))
+        else:
+            a -= a % 100
+            rows.append(b.row(name, fy, a, a * rng.randint(40, 90) // 100, app_style='int', case=case))
+    Z = BAE_ZERO
+    ob = 'OBBBA FY2025: never counts, never covers'
+    for name, fy, app, auth, case in [
+            ('USAF O&M- OBBBA Fixture Readiness Discretionary AV', 2025, 8_250_000_00, '=', ob),
+            ('USN O&M- OBBBA Fixture USN CV Readiness Discretionary PSM', 2025, 3_400_000_00, 3_100_000_00, ob),
+            ('USAF O&M - ANG OBBBA Fixture Line Mandatory PP', 2025, 4_600_000_00, '=', ob),
+            ('USAF O&M- OBBBA Fixture Sustain Line Discretionary PSM', 2025, 1_500_000_00, '=', ob),
+            ('USN APN Full Fund SUPT USN CV OBBBA Discretionary BOP', 2025, 7_100_000_00, '=', ob),
+            ('USMC STOVL APN Full Fund OBBBA SUPT Mandatory PP', 2025, 3_900_000_00, '=', ob),
+            ('USN O&M- Obbba Fixture Analytics Discretionary CDS', 2025, 2_640_000_00, '=', ob + ' (the word in mixed case)'),
+            ('USN APN Spares OBBBA Fixture Initial Discretionary PP', 2025, 5_250_000_00, '=',
+             ob + ' (no Spares block: counted, it would be a noBlock)'),
+            ('USAF APAF Full Fund OBBBA Flyaway Lot Discretionary AV', 2025, 950_000_000_00, '=', 'OBBBA FY2025 Flyaway: Flyaway first'),
+            ('USAF RDT&E OBBBA Fixture Development Discretionary AV', 2025, 42_000_000_00, '=',
+             'OBBBA FY2025 naming no appropriation: that first'),
+            # ordinary O&M FY2025: money for an (ap, fy) whose only pull rows are FY2025 OBBBA funding (noBlock, obbba)
+            ('USAF O&M- Fixture Line Discretionary AV', 2025, 6_300_000_00, '=', 'ordinary O&M FY2025: the obbba noBlock'),
+            ('USN O&M- Fixture USN CV LA Discretionary PSM', 2025, 2_180_000_00, 1_900_000_00, 'ordinary O&M FY2025: the obbba noBlock'),
+            # OBBBA budgets of other FYs: ordinary
+            ('USAF O&M- OBBBA Fixture Readiness Discretionary AV', 2026, 2_750_000_00, '=',
+             'an OBBBA budget of FY2026 whose pull rows are all FY2025: counts'),
+            ('USN O&M- Obbba Fixture Analytics Discretionary CDS', 2026, 2_910_000_00, '=',
+             'an OBBBA budget of FY2026 with no pull row: counts, reportOnly'),
+            ('USAF O&M- OBBBA Fixture Sustain Line Discretionary PSM', 2028, 3_000_000_00, Z, 'an out-year, not authorized'),
+            ('USAF APAF Full Fund OBBBA SUPT Discretionary TSS', 2029, 4_400_000_00, Z, 'an out-year, not authorized')]:
+        assert not any(r['intent']['name'] == name and r['intent']['fy'] == fy for r in rows), (name, fy)
+        rows.append(b.row(name, fy, app, auth, case=case))
+    # an OBBBA FY2025 row that cannot be read: unreadable first
+    rows.append(b.row('USMC STOVL O&M - OBBBA Fixture Line Discretionary AV', 2025, '$2.500', BAE_ZERO, bad=('Approved',),
+                      case='OBBBA FY2025 with an unreadable amount: could not be read first'))
+    rows.sort(key=lambda r: (r['intent']['name'].lower(), r['intent']['fy']))
+    return rows
+
+
 # ----------------------------------------------------------------------------------------------------- writers
 def put_row(ws, rno, order, cells, epoch1904=False, extra=None):
     for ci, h in enumerate(order, start=1):
@@ -986,7 +1247,7 @@ def report_order(seed):
     return order
 
 
-def write_report(path, om_rows, misc_rows, seed):
+def write_report(path, om_rows, misc_rows, seed, rowkey=None):
     wb = openpyxl.Workbook()
     wb.epoch = CALENDAR_MAC_1904
     ws = wb.active
@@ -997,6 +1258,8 @@ def write_report(path, om_rows, misc_rows, seed):
     rno = 2
     for i, r in enumerate(om_rows):
         put_row(ws, rno, order, r['cells'], epoch1904=True, extra=('checked' if i % 9 == 0 else None))
+        if rowkey:
+            r['intent'][rowkey] = rno           # the sheet row it was written on (obbba/ only: its manifest records it)
         rno += 1
         if i == 30:
             rno += 1                                   # a blank row
@@ -1004,6 +1267,8 @@ def write_report(path, om_rows, misc_rows, seed):
             rno += 1
     for r in misc_rows:
         put_row(ws, rno, order, r['cells'], epoch1904=True, extra='combined export line')
+        if rowkey:
+            r['intent'][rowkey] = rno
         rno += 1
     save_deterministic(wb, path, shared=False)
 
@@ -1021,17 +1286,22 @@ def csv_text(v):
     return str(v)
 
 
-def write_csv(path, rows):
+def write_csv(path, rows, rowkey=None):
     buf = io.StringIO(newline='')
     w = csv.writer(buf, lineterminator='\r\n', quoting=csv.QUOTE_MINIMAL)
     w.writerow(RAW_HEADERS)
+    rno = 2                                           # the record number: the header is record 1
     for i, r in enumerate(rows):
         for h in ('Date', 'Month'):
             v = r['cells'][h]
             assert v is None or isinstance(v, (dt.datetime, str)), 'FF rows go out as CSV: no serial dates'
         w.writerow([csv_text(r['cells'][h]) for h in RAW_HEADERS])
+        if rowkey:
+            r['intent'][rowkey] = rno
+        rno += 1
         if i == 25:
             w.writerow([''] * len(RAW_HEADERS))       # a blank line of empty fields
+            rno += 1
     with open(path, 'w', encoding='utf-8', newline='') as f:
         f.write('\ufeff' + buf.getvalue())
 
@@ -1149,6 +1419,8 @@ def main():
     ap = argparse.ArgumentParser(description='Write the synthetic CCaR pulls (CONTRACT §12).')
     ap.add_argument('--out', required=True)
     ap.add_argument('--seed', type=int, default=20261109)
+    ap.add_argument('--no-obbba', action='store_true', dest='no_obbba',
+                    help='leave out obbba/ (fixture.test.mjs uses it to prove obbba/ moves no other byte)')
     args = ap.parse_args()
     out = args.out
     os.makedirs(os.path.join(out, 'gen2'), exist_ok=True)
@@ -1165,6 +1437,15 @@ def main():
     bae2, bae2ch = build_bae_gen2(bg, bae1, g2)
     write_bae(os.path.join(out, 'bae.xlsx'), bae1)
     write_bae(os.path.join(out, 'gen2', 'bae.xlsx'), bae2, BAE_GEN2_ORDER, BAE_GEN2_LABELS, BAE_GEN2_TOP)
+    # §15's obbba/ comes after everything above, from its own random streams: nothing above moves (§15.5)
+    og = obae = None
+    if not args.no_obbba:
+        os.makedirs(os.path.join(out, 'obbba'), exist_ok=True)
+        og = build_obbba(args.seed)
+        write_report(os.path.join(out, OBBBA_FILES['pull-om']), og.rows['om'], og.rows['misc'], args.seed, rowkey='row')
+        write_csv(os.path.join(out, OBBBA_FILES['pull-ff']), og.rows['ff'], rowkey='row')
+        obae = build_obbba_bae(og, args.seed)
+        write_bae(os.path.join(out, OBBBA_FILES['bae']), obae)
 
     def intents(g, aps):
         return [r['intent'] for a in aps for r in g.rows[a]]
@@ -1188,12 +1469,30 @@ def main():
                           for n in sorted(set(BAE_ONLY) | {n for n, b in BUDGETS.items() if b[0]})},
                 'gen1': [r['intent'] for r in bae1], 'gen2': [r['intent'] for r in bae2], 'gen2Changes': bae2ch},
     }
+    if og:
+        # §15: what each row of obbba/ was MEANT to be. "pull" is every row of the two pulls in file order (obbba/
+        # pull-om.xlsx: its O&M rows, then the row nothing identifies; then obbba/pull-ff.csv), each with the sheet
+        # row it was written on, its case, whether it is FY2025 OBBBA funding (from OBBBA_NAMES, never the text) and
+        # what it is meant to be at First FY 2025 with every switch on. "bae" is every report row as the "bae" part's
+        # rows are, plus obbba, case and the Counted words meant. "names" states each name by hand; "budgetPmo" is the
+        # budget's PMO of every name the two pulls use.
+        used = sorted({r['intent']['budget'] for t in ('om', 'misc', 'ff') for r in og.rows[t]})
+        manifest['obbba'] = {
+            'note': 'CONTRACT §15: FY2025 OBBBA funding is left out; the oracle never reads this part either',
+            'files': {OBBBA_FILES['pull-om']: ['Report'], OBBBA_FILES['pull-ff']: [], OBBBA_FILES['bae']: ['Sheet1']},
+            'names': {n: dict(zip(('ap', 'scope', 'svc', 'lane', 'pmo', 'word'), v)) for n, v in OBBBA_NAMES.items()},
+            'budgetPmo': {n: OBBBA_NAMES[n][4] if n in OBBBA_NAMES else BUDGET_PMO[n] for n in used},
+            'pull': [r['intent'] for t in ('om', 'misc', 'ff') for r in og.rows[t]],
+            'bae': [r['intent'] for r in obae]}
     with open(os.path.join(out, 'manifest.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
         f.write('\n')
     n = {a: len(g1.rows[a]) for a in g1.rows}
     print('fixture written to %s: %d rows (%s); gen2 O&M %d, FF %d' % (
         out, sum(n.values()), ', '.join('%s %d' % kv for kv in n.items()), len(g2.rows['om']), len(g2.rows['ff'])))
+    if og:
+        print('obbba/: O&M %d, unidentified %d, FF %d pull rows; %d report rows' % (
+            len(og.rows['om']), len(og.rows['misc']), len(og.rows['ff']), len(obae) - 1))
 
 
 if __name__ == '__main__':

@@ -40,6 +40,18 @@ SP.goalsDefault = () => JSON.parse(JSON.stringify(SP.GOALS_DEFAULT));
 // Month abbreviations by calendar month (index 0 = January), for "Nov-2025"-style labels
 SP.CAL_MONTHS = ut_freeze(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']);
 
+// §15 FY2025 OBBBA FUNDING IS LEFT OUT (Brad, 11 Nov 2026: "Just leave FY25 OBBBA funding out. Although it's active
+// technically, it's not a reporting year."). A row is FY2025 OBBBA funding when its budget name (a pull row's Budget, a
+// BAE report row's Budget Name) holds the WORD OBBBA, in any case, and its FY is 2025 exactly. A fixed rule, not a
+// setting. THE ONE PREDICATE: every reader asks it, and no other line spells the rule, so the pull, the report, the
+// workbook and the screens cannot come to disagree about which rows it takes. An OBBBA budget of any other FY is an
+// ordinary row, and so is a name where OBBBA is part of a longer word ("NOBBBAX").
+SP.OBBBA_FY = 2025;
+const UT_OBBBA = /\bOBBBA\b/i;
+SP.isObbba25 = function isObbba25(name, fy) {
+  return fy === SP.OBBBA_FY && UT_OBBBA.test(String(name ?? ''));
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // TEXT
 // ---------------------------------------------------------------------------------------------------------------

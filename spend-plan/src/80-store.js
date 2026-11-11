@@ -722,6 +722,8 @@ SP.applyImport = function applyImport(parsed) {
       if (t.flyaway) not.push(SP.fmtInt(t.flyaway) + ' Flyaway (production)');
       if (t.noap) not.push(SP.fmtInt(t.noap) + (t.noap === 1 ? ' that names' : ' that name') + ' no appropriation');
       if (t.first) not.push(SP.fmtInt(t.first) + ' before FY' + t.firstFY);
+      // §15.3: FY2025 OBBBA funding, left out by its own rule (SP.isObbba25), after the First FY as in §4.3
+      if (t.obbba) not.push(SP.fmtInt(t.obbba) + ' FY' + SP.OBBBA_FY + ' OBBBA');
       if (t.off) not.push(SP.fmtInt(t.off) + ' in a service or lane switched off');
       if (t.bad) not.push(SP.fmtInt(t.bad) + ' that could not be read');
       counted = ', ' + (t.yes === n && n !== 1 ? 'every one' : t.yes === n ? 'it' : SP.fmtInt(t.yes) + ' of them') + ' counted (sustainment budgets of FY' + t.firstFY
