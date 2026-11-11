@@ -1319,6 +1319,9 @@ def bae_extend(out, m, derived, block_rows, pmo_rows, state, settings, ob_loaded
             e['obbba'] = True
         return e
     report_keys = {x['key'] for x in rows if x['name']}
+    # READING (§15.2, "treated as a row before First FY is"): an FY2025 OBBBA pull row is still a pull row of its name,
+    # as a row before First FY is, so a report name whose only pull rows are FY2025 OBBBA funding is not reportOnly;
+    # §15.2 takes such rows out of pullOnly and offReport only, which follow the counted rows
     pull_keys = {norm_key(r['budget']) for ap in AP_IDS + ['unidentified'] for r in derived[ap]}
     # READING: pullOnly is every budget of a COUNTED pull row (§4.3: the switches apply) with no report row of that
     # name at all, a name placed by its sheet included (it can have no report row in scope); a Flyaway name is not

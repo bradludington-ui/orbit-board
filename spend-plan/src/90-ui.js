@@ -625,7 +625,7 @@ function ui_baeRead(M) {
   const off = X.derived.filter(d => d.why === SP.BAE_COUNTED_WHY.off).length;
   const out = ['<section class="baeread" aria-labelledby="ui-baeread-h"><h3 class="sub" id="ui-baeread-h">The BAE report as the figures read it</h3>',
     '<p class="l2">A budget row counts in Approved and Authorized when its name places it in O&amp;M, Full Fund, Initial Spares or OPN, it is not Flyaway '
-    + '(production), its FY is FY' + ui_e(M.firstFY) + ' or later' + (r.obbba ? ', it is not ' + ui_e(SP.OBBBA_WHY) : '')
+    + '(production), its FY is FY' + ui_e(M.firstFY) + ' or later' + ('obbba' in r ? ', it is not ' + ui_e(SP.OBBBA_WHY) : '')
     + ', and the switches show its service and lane. A PMO’s row counts the budgets whose name ends in '
     + 'that PMO’s code, and the (no PMO) row those whose name ends in none.</p>',
     '<ul class="notes baerows">'
@@ -635,8 +635,8 @@ function ui_baeRead(M) {
     + (off ? '; ' + rows(off) + ' of a service or lane switched off ' + (off === 1 ? 'is' : 'are') + ' not counted while the switches show what they do' : '') + '.</li>'
     + '<li data-scope="flyaway">Flyaway (production), counted nowhere: ' + rows(r.flyaway) + '.</li>'
     + '<li data-scope="noap">Naming no appropriation (Advance Procurement, Modifications, RDT&amp;E, squadron budgets), counted nowhere: ' + rows(r.noap) + '.</li>'
-    // §15.3: said only when the report holds some (r.obbba is there only then)
-    + (r.obbba ? '<li data-scope="obbba">' + ui_e(SP.OBBBA_WHY) + ', counted nowhere: ' + rows(r.obbba) + '.</li>' : '')
+    // §15.3: said only when such a row is loaded (r.obbba is there only then)
+    + ('obbba' in r ? '<li data-scope="obbba">' + ui_e(SP.OBBBA_WHY) + ', counted nowhere: ' + rows(r.obbba) + '.</li>' : '')
     + '<li data-scope="bad">Could not be read, counted nowhere: ' + rows(r.bad) + (r.bad ? ' (each is listed in the report’s own section)' : '') + '.</li>'
     + '</ul>'];
   // in scope, every FY, no switches (§14.5 byBlock), with where each one stands on this page

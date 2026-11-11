@@ -769,6 +769,10 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
   // spelling, in row order); and every (ap, fy) such a row would have named, readable or not (obGone), whose only pull
   // rows they are when it ends with no block
   const obBlocks = new Map(), obBudgets = new Map(), obGone = new Set();
+  // whether any row the predicate names is loaded at all (a pull row of any appropriation, unidentified ones too, or a
+  // report row, read or not, whatever First FY): only then does model.bae.rows carry obbba, so a model with none is the
+  // model before §15 (§15.1)
+  let obLoaded = false;
   const blockRows = new Map();          // 'ap|fy' -> counted rows, in pull order
   const blockOf = new Map();            // 'ap|fy' -> {ap, fy}
   const pmoSpell = new Map();           // PMO key -> spellings over every counted row, in row order (its tab's label)
@@ -792,6 +796,7 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     rowsByAp[ap] = p.rows.length;
     for (const row of p.rows) {
       const d = SP.deriveRow(row, settings);
+      if (!obLoaded && SP.isObbba25(d.budget, d.fy)) obLoaded = true;
       if (B) {
         let sp = allSpell.get(d.k.pmo);
         if (!sp) allSpell.set(d.k.pmo, (sp = new Map()));
@@ -850,6 +855,7 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     rowsByAp.unidentified = un.rows.length;
     for (const row of un.rows) {
       const d = SP.deriveRow(row, settings);
+      if (!obLoaded && SP.isObbba25(d.budget, d.fy)) obLoaded = true;
       if (B) pullKeys.add(SP.normKey(d.budget));
       if (!eng_readable(d)) excluded.unreadable.rows++;
       else { excluded.unidentified.cents += d.cents; excluded.unidentified.rows++; }
@@ -872,6 +878,7 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     idx = eng_pmoIndex(allSpell);
     R = B.rows.map(row => {
       const x = SP.baeDerive(row, settings, idx);
+      if (!obLoaded && SP.isObbba25(x.name, x.fy)) obLoaded = true;
       const why = eng_baeWhyKey(x, S.firstFY, V);
       x.counts = why === 'yes'; x.why = ENG_BAE_WHY[why];
       // §15.3: FY2025 OBBBA funding never makes a block covered, as Flyaway never does
@@ -993,7 +1000,7 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     blocks, aps, pmos, naAll, excluded, execAfterAsOf: execAfter, execNoDate, rowsByAp, stale, obbbaNoBlock,
     summary: { rows: blocks, total: B ? eng_baeTot(eng_tot(blocks), blocks) : eng_tot(blocks), notes: [] },
   };
-  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock });
+  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock, obLoaded });
   model.summary.notes = eng_notes(model);
   return model;
 };
@@ -1002,7 +1009,8 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
 // report as a whole); noBlock, planShort and pullOnly follow the switches, as the blocks they speak of do.
 //   K: {S, cx, blocks, pmoLabel, bpmoOf, pullBudget (key -> first spelling, four pulls), pullKeys (every pull row's
 //       budget key, unidentified rows' too), countedKeys (each counted row's budget key, Flyaway left out),
-//       obbbaNoBlock (each (ap, fy) whose only pull rows are FY2025 OBBBA funding, §15.2)}
+//       obbbaNoBlock (each (ap, fy) whose only pull rows are FY2025 OBBBA funding, §15.2), obLoaded (any row SP.isObbba25
+//       names is loaded, a pull's or the report's, read or not)}
 function eng_baeModel(B, R, idx, K) {
   const { S, cx, blocks } = K;
   const good = R.filter(x => x.readable), ins = good.filter(x => x.scope === 'in');
@@ -1054,7 +1062,9 @@ function eng_baeModel(B, R, idx, K) {
   const budgets = {};
   for (const x of R) {
     if (x.name === '' || eng_own(budgets, x.key)) continue;
-    budgets[x.key] = { name: x.name, ap: x.ap, scope: x.scope, svc: x.svc, lane: x.lane, pmo: lbl(x.pmo) };
+    // a budget's scope is its NAME's: 'obbba' belongs to a row (its name and its FY), so a budget whose first row is FY2025
+    // OBBBA funding is still a sustainment budget ('in'), as its FY2026 rows are (§15.3)
+    budgets[x.key] = { name: x.name, ap: x.ap, scope: x.scope === 'obbba' ? 'in' : x.scope, svc: x.svc, lane: x.lane, pmo: lbl(x.pmo) };
   }
   const pullBudgetPmo = {};
   for (const [k, name] of K.pullBudget) pullBudgetPmo[k] = lbl(K.bpmoOf(name));
@@ -1062,10 +1072,10 @@ function eng_baeModel(B, R, idx, K) {
   return {
     present: true, file: eng_txt(B.file), sheet: eng_txt(B.sheet), stamp: typeof B.stamp === 'string' && B.stamp ? B.stamp : null,
     importedAt: typeof B.importedAt === 'string' ? B.importedAt : null, when, of: when ? 'of ' + when : 'with no date recorded',
-    // §15.3: rows of FY2025 OBBBA funding, by scope as the others are, there only when some is loaded, so a report with
-    // none reads as it did before §15
+    // §15.3: the readable rows of FY2025 OBBBA funding, by scope as the others are; there only when such a row is loaded
+    // (in a pull or the report), so a plan with none reads as it did before §15
     rows: Object.assign({ in: ins.length, flyaway: good.filter(x => x.scope === 'flyaway').length, noap: good.filter(x => x.scope === 'noap').length,
-      bad: R.length - good.length }, good.some(x => x.scope === 'obbba') ? { obbba: good.filter(x => x.scope === 'obbba').length } : {}),
+      bad: R.length - good.length }, K.obLoaded ? { obbba: good.filter(x => x.scope === 'obbba').length } : {}),
     budgetsIn: new Set(ins.map(x => x.key)).size,
     cents: { approved: eng_sumOf(ins, 'approved'), authorized: eng_sumOf(ins, 'authorized') },
     total, totalRow, byBlock,

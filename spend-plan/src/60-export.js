@@ -782,10 +782,10 @@ SP.baeModelLines = function baeModelLines(M) {
   // took their place, under nothing that said a switch had moved them (review P4-4, §4.3).
   const sw = M.shown && !M.shown.all ? ', with the switches as they are (' + M.shown.text + ')' : '';
   L.push('The BAE report of budgets ' + X.of + (X.file ? ' (' + q(X.file) + ')' : '') + ', as the figures read it:');
-  // §15.3: FY2025 OBBBA funding is a kind of its own, said only when the report holds some (r.obbba is there only then)
+  // §15.3: FY2025 OBBBA funding is a kind of its own, said only when such a row is loaded (r.obbba is there only then)
   L.push('  Rows by what they are (every FY, whatever the switches show): ' + rw(r.in || 0) + ' of sustainment budgets (their names place '
     + 'them in O&M, Full Fund, Initial Spares or OPN); counted nowhere, ' + rw(r.flyaway || 0) + ' of Full Fund Flyaway (aircraft production), '
-    + rw(r.noap || 0) + ' naming no appropriation' + (r.obbba ? ', ' + rw(r.obbba) + ' of ' + SP.OBBBA_WHY : '') + ' and ' + rw(r.bad || 0) + ' that could not be read.');
+    + rw(r.noap || 0) + ' naming no appropriation' + ('obbba' in r ? ', ' + rw(r.obbba) + ' of ' + SP.OBBBA_WHY : '') + ' and ' + rw(r.bad || 0) + ' that could not be read.');
   const bb = X.byBlock && typeof X.byBlock === 'object' ? Object.keys(X.byBlock) : [];
   L.push('  The sustainment budgets’ Approved and Authorized by appropriation and FY (every FY, every service and lane, whatever the switches show):'
     + (bb.length ? '' : ' none.'));
