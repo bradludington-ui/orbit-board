@@ -1,7 +1,8 @@
 # APEX
 
 Appropriation Planning & Execution. In November 2026 this tool was first called the SFCB Spend Plan, then SCOPE.
-Its mark is a T-Rex's head; `assets/apex-logo.svg` and `assets/apex-mark.svg` are the logo for slides and documents.
+Its logo is in ORBIT's style, a ring and a satellite, with a T-Rex inside the ring; `assets/apex-logo.svg`,
+`assets/apex-wordmark.svg` and `assets/apex-mark.svg` are for slides and documents.
 
 CUI//REL TO US DoW applies to any copy that holds data.
 

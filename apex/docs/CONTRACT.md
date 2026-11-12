@@ -1612,11 +1612,15 @@ Brad: *"Let's change the name to APEX — Appropriation Planning & Execution. Le
   and the browser key `sfcbsp.view`. A file saved as the SFCB Spend Plan or as SCOPE opens, saves and is taken as a plan
   exactly as before. Tests that read an older build from git ask for it under `spend-plan/`, where those commits hold it,
   and read its workbook creator as APEX.
-- **The mark** is a T-Rex's head in profile, jaws open: one SVG path drawn for this tool, inline in the top bar in the
-  frame's teal (nothing is loaded from anywhere). `apex/assets/apex-mark.svg` is the mark alone (it takes the colour of the
-  text around it) and `apex/assets/apex-logo.svg` the mark with the name and what it stands for, for slides and documents.
-  The mark is decoration: the name beside it is the text, so it is hidden from screen readers.
+- **The logo** is in ORBIT's theme (Brad, the same day: *"I want it to show small arms but also be in the same theme as my
+  ORBIT logo"*): a ring with a satellite at two o'clock and a gap masked out of the ring around it, one colour with the
+  satellite in the accent, and the name in outlines of Liberation Sans Bold. Where ORBIT's ring holds a body at its
+  centre, APEX's holds a T-Rex, head and shoulders, jaws open, with its two small arms, facing away from the satellite.
+  `apex/assets/gen.py` writes `apex-mark.svg` (the ring and the T-Rex), `apex-wordmark.svg` (the mark, then APEX) and
+  `apex-logo.svg` (the wordmark over what the letters stand for). They paint with `currentColor` and take
+  `var(--apex-accent)` for the satellite. The wordmark is inline in the top bar, in the frame's ink and gold (nothing is
+  loaded from anywhere); it is hidden from screen readers, and the name is beside it as text that is read and not shown.
 - Nothing else changes: no figure, no view, no sheet, no picture. Help and the README give the name's history.
 - Tests: the name checks (`overview`, `ui`, `export`, `e2e`, `save`, `import-safety`) expect APEX; `overview` checks the
-  top bar's words and that the mark is drawn.
+  top bar's words, that the logo is drawn in the page, and that the name is there as text.
 

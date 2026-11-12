@@ -31,7 +31,9 @@ body{margin:0;background:var(--sbg);color:#111;font:13px/1.35 Calibri,Carlito,"S
 header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);color:var(--sink);border-bottom:1px solid var(--sline);box-shadow:0 2px 6px rgba(0,0,0,.5)}
 .bar1{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:7px 14px;background:linear-gradient(180deg,#0b1a31,var(--sbg2));color:var(--sink)}
 .brand{margin:0;font-size:20px;font-weight:800;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;letter-spacing:.03em}
-.brand .mark{width:26px;height:26px;color:var(--steal);flex:none}
+.brand .logo{height:26px;width:auto;flex:none;color:var(--sink);--apex-accent:var(--gold)}
+/* the name as text, beside the drawn one: read aloud and found by a search, not shown twice */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .brand .bs{font-size:13px;font-weight:400;letter-spacing:0;color:var(--smut);padding-left:9px;border-left:1px solid var(--sedge)}
 .brand .ey{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--steal);background:#0c3a3a;color:#d6fbf6;font-size:12px;font-weight:700;letter-spacing:0}
 .brand .ey:empty{display:none}

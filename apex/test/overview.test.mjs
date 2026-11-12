@@ -61,8 +61,11 @@ try {
     C.eq('the page is titled APEX', T.doc.title, 'APEX');
     C.chk('the top names APEX, with what the letters stand for', /^APEX\s*Appropriation Planning & Execution/.test(T.doc.querySelector('h1.brand').textContent)
       && T.doc.querySelector('h1.brand').getAttribute('title') === 'Appropriation Planning & Execution');
-    C.chk('the top carries the T-Rex mark, drawn in the page itself and hidden from screen readers', !!T.doc.querySelector('h1.brand svg.mark path[d]')
-      && T.doc.querySelector('h1.brand svg.mark').getAttribute('aria-hidden') === 'true' && !T.doc.querySelector('h1.brand svg.mark [href], h1.brand svg.mark image'));
+    C.chk('the top carries the logo, drawn in the page itself and hidden from screen readers, with the name as text beside it', !!T.doc.querySelector('h1.brand svg.logo path[d]')
+      && T.doc.querySelector('h1.brand svg.logo').getAttribute('aria-hidden') === 'true' && !T.doc.querySelector('h1.brand svg.logo [href], h1.brand svg.logo image')
+      && T.doc.querySelector('h1.brand .bn').textContent === 'APEX');
+    C.chk('the logo is the ring, its satellite and the T-Rex, and the ids it uses are used once', T.doc.querySelectorAll('h1.brand svg.logo circle').length >= 3
+      && T.doc.querySelectorAll('#a-w-ring').length === 1 && T.doc.querySelectorAll('#a-w-in').length === 1);
     C.chk('no data yet: the menu is not drawn and the page is on a sheet', T.doc.getElementById('uiNav').hidden && T.main().className === 'sheet');
     C.chk('the page still carries the marker every saved file carries', !!T.doc.querySelector('meta[name="sfcb-spend-plan"]'));
     C.eq('no data yet: no script error', T.errors(), []);
