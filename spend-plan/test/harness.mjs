@@ -1,4 +1,4 @@
-// The test harness for the SFCB Spend Plan dashboard. Every test boots the tool from its SOURCES (build.mjs assemble),
+// The test harness for SCOPE (until November 2026 the SFCB Spend Plan dashboard). Every test boots the tool from its SOURCES (build.mjs assemble),
 // never from the built file on disk, so tests run by two builders at once cannot read a half-written page.
 //
 //   const t = loadTool({ modules: ['util','xlsx-read','import'] });   // only these modules
@@ -27,7 +27,7 @@ export function pageHtml({ modules = null, state = null } = {}) {
   return html;
 }
 
-export function loadTool({ modules = null, state = null, html = null, url = 'file:///tmp/sfcb-spend-plan.html', quiet = true } = {}) {
+export function loadTool({ modules = null, state = null, html = null, url = 'file:///tmp/scope.html', quiet = true } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
   vc.on('jsdomError', e => errors.push(e && (e.message || String(e))));

@@ -1,19 +1,22 @@
-# SFCB Spend Plan
+# SCOPE
+
+Sustainment Current-Year Obligations, Planning & Execution. Until November 2026 this tool was called the SFCB Spend Plan.
 
 CUI//REL TO US DoW applies to any copy that holds data.
 
 ## What it is
 
-The SFCB Spend Plan replaces the *SFCB FY26 Spend Plan Workbook v12*. You import the CCaR pull. The tool draws every
+SCOPE replaces the *SFCB FY26 Spend Plan Workbook v12*. You import the CCaR pull. The tool draws every
 product the workbook made: the Summary, the slide blocks, the four appropriation tabs, the PMO tabs and the Not Allocated
 lists. **Export Excel** writes them all as a workbook of values.
 
-It is one file: `sfcb-spend-plan.html`. It is separate from ORBIT. It needs no install, no network and no add-ins. The file
+It is one file: `scope.html` (`sfcb-spend-plan.html` before the rename; a copy saved under the old name still opens and
+saves, and its plan can be brought into the new file with **Import CCaR pull…**). It is separate from ORBIT. It needs no install, no network and no add-ins. The file
 is also its own database: **Save** writes your data and settings into the file itself.
 
 ## Opening it
 
-1. Put `sfcb-spend-plan.html` on the shared drive.
+1. Put `scope.html` on the shared drive.
 2. Open it in Edge or Chrome (double-click, or drag it onto the browser).
 3. The first time, it says *No data yet*. Import a pull.
 
@@ -178,7 +181,15 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
 
 ## Reading the views
 
-The view buttons sit under the top bar.
+The views are in the menu down the left side (a row across the top in a narrow window). The page opens on the
+**Overview**.
+
+- **Overview** works out nothing of its own. Its tiles are the Summary's Approved, Authorized, Obligated and Unobligated
+  for the fiscal year you pick at its top right (or **All**), added up as the Summary's TOTAL is, with the same marks.
+  Its status counts are the Summary's rows. Each small chart is one slide block's Obligation % and OSD goal by month: an
+  actual through the Data through month, the plan after. A chart's name opens that appropriation.
+- The Overview is drawn in SCOPE's dark colours. Every other view is on a light sheet in v12's colours, so the screen
+  matches the workbook and the slide pictures.
 
 - **Summary.** One row per appropriation and FY. Approved, Authorized, Obligated, Unobligated, Obl %, OSD Goal %, Delta and
   Status. Then the TOTAL, the legend and the notes. The notes name anything left out of the figures. The TOTAL carries each
@@ -299,7 +310,7 @@ the message line says nothing is unsaved.
 
 ## Export Excel
 
-**Export Excel** downloads a workbook named `SFCB Spend Plan FY2027 - data through Oct-2026 - 2026-11-09.xlsx`, for
+**Export Excel** downloads a workbook named `SCOPE FY2027 - data through Oct-2026 - 2026-11-09.xlsx`, for
 example. Your browser puts it in its downloads folder, or asks where to save it, as it does the pictures.
 
 - It holds the Summary, Slide Snapshots, a sheet per appropriation, a tab per PMO, Not Allocated, the raw data sheets,
@@ -346,7 +357,7 @@ way is wider for its height than the slide region; size it by its width.
 - **Where the browser cannot write files** (for example Firefox), Save downloads the file instead. The shared copy is not
   updated until you put the download in its place. Until then the top bar says **Downloaded, not in the file yet**, and the
   browser still asks before you close the page. If your downloads folder already holds a file of that name, the browser
-  adds a number (`sfcb-spend-plan (1).html`): put the newest download in place, not the older one.
+  adds a number (`scope (1).html`): put the newest download in place, not the older one.
 - **Where writing is refused** (a setting or policy that blocks editing files), Save and Save a copy… offer to download
   the plan instead, so the work is not lost.
 
@@ -366,7 +377,7 @@ way is wider for its height than the slide region; size it by its width.
   open. Read the new question: it is about their latest save.
 - **"You picked …, not …, the file this page was opened from."**: you picked another file. **Cancel**, then Save again and
   pick this page's own file. **OK** writes there instead, and this page goes on saving there until it is closed.
-- **"Not saved: … is not an SFCB Spend Plan file"** (or *holds data saved by another tool*, or *could not be read*): you
+- **"Not saved: … is not a SCOPE file"** (or *holds data saved by another tool*, or *could not be read*): you
   picked the wrong file. Nothing was written. Save again and pick this page's own file.
 - **"Not saved: no file was picked."** The file window was closed. Save again.
 - **A file whose saved data cannot be read opens empty** and says why. Saving over it asks first, and OK replaces the data it

@@ -128,7 +128,7 @@ function xr_notZip(u) {
   const raw = t16 ? new TextDecoder(t16.enc).decode(u.subarray(0, n & ~1)) : new TextDecoder('utf-8').decode(u.subarray(0, n));
   const head = raw.replace(/^﻿/, '').replace(/^\s+/, '');
   if (/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(head)) {
-    return no + 'it is a saved SFCB Spend Plan, not a CCaR pull. To bring that plan into this page, import the plan file on its '
+    return no + 'it is a saved SCOPE plan, not a CCaR pull. To bring that plan into this page, import the plan file on its '
       + 'own: the page then offers to take its pulls, history and settings.';
   }
   if (/^<\?xml[\s\S]{0,4000}urn:schemas-microsoft-com:office:spreadsheet/i.test(head)) {

@@ -331,6 +331,9 @@ try {
       p.on('pageerror', e => errors.push(e.message));
       p.on('dialog', d => d.dismiss().catch(() => {}));
       await p.goto(pathToFileURL(file).href);
+      // SCOPE opens on the Overview (CONTRACT §18); these checks read the Summary
+      await p.waitForSelector('[data-act=view][data-v=summary]');
+      await p.click('[data-act=view][data-v=summary]');
       await p.waitForSelector('tr[data-bk=total]');
       const saveWord = () => p.$eval('#uiSave', e => e.textContent);
       await p.evaluate(() => SP.say(''));

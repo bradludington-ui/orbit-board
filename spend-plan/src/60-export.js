@@ -2,7 +2,7 @@
 //
 //   await SP.excelBytes(model, pulls, settings, meta)  -> Uint8Array, the workbook
 //   SP.excelSpec(model, pulls, settings, meta)         -> the spec SP.writeXlsx is given (what the tests read before bytes)
-//   SP.excelFileName(model, today)                     -> 'SFCB Spend Plan FY2027 - data through Oct-2026 - 2026-11-09.xlsx'
+//   SP.excelFileName(model, today)                     -> 'SCOPE FY2027 - data through Oct-2026 - 2026-11-09.xlsx'
 //   await SP.exportExcel()                             -> {ok, message, name}: the UI action (build, download, say what)
 //
 //   meta = {report?: the last import's report, today?: 'YYYY-MM-DD' (the date in the file name; this browser's today),
@@ -1088,16 +1088,16 @@ SP.excelSpec = function excelSpec(model, pulls, settings, meta) {
   if (ex_hasBae(M)) sheets.push(ex_baeSheet(M, meta && meta.bae));
   sheets.push(ex_reportSheet(M, pulls, meta || {}));
   sheets.push(ex_settingsSheet(M, pulls, settings));
-  return { creator: 'SFCB Spend Plan', sheets };
+  return { creator: 'SCOPE', sheets };
 };
 SP.excelBytes = async function excelBytes(model, pulls, settings, meta) {
   return SP.writeXlsx(SP.excelSpec(model, pulls, settings, meta));
 };
-// 'SFCB Spend Plan FY2027 - data through Oct-2026 - 2026-11-09.xlsx', and ' [filtered]' before the extension when the
+// 'SCOPE FY2027 - data through Oct-2026 - 2026-11-09.xlsx', and ' [filtered]' before the extension when the
 // switches hide anything: a filtered workbook emailed on must say so in the one place everyone reads, its name
 SP.excelFileName = function excelFileName(model, today) {
   const day = typeof today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(today) ? today : ex_today();
-  return 'SFCB Spend Plan FY' + model.E + ' - data through ' + model.asOfLabel + ' - ' + day
+  return 'SCOPE FY' + model.E + ' - data through ' + model.asOfLabel + ' - ' + day
     + (model.shown && model.shown.all ? '' : ' [filtered]') + '.xlsx';
 };
 

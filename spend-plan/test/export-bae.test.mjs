@@ -841,7 +841,8 @@ try {
       const Mb = SPb.buildModel(pb.pulls, sb, mkV(SPb)), Mn = SP.buildModel(pn.pulls, sn, mkV(SP));
       const metaB = { report: pb.report, today: TODAY }, metaN = { report: pn.report, today: TODAY };
       if (cs.meta) metaN.bae = baeOf(parsed);
-      const specB = JSON.stringify(SPb.excelSpec(Mb, pb.pulls, sb, metaB)), specN = JSON.stringify(SP.excelSpec(Mn, pn.pulls, sn, metaN));
+      // the workbook's creator is the tool's name, SCOPE since CONTRACT §18: the older build's is read as today's
+      const specB = JSON.stringify(SPb.excelSpec(Mb, pb.pulls, sb, metaB)).replace('"creator":"SFCB Spend Plan"', '"creator":"SCOPE"'), specN = JSON.stringify(SP.excelSpec(Mn, pn.pulls, sn, metaN));
       let at = 0; while (at < specB.length && specB[at] === specN[at]) at++;
       C.chk('no report, ' + cs.name + ': the workbook’s spec is the one the code before the report wrote, cell for cell', specB === specN,
         'first difference at ' + at + ': before …' + specB.slice(Math.max(0, at - 120), at + 80) + '… now …' + specN.slice(Math.max(0, at - 120), at + 80) + '…');

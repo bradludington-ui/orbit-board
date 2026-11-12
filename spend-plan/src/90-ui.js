@@ -16,7 +16,7 @@ const UI_SVC = SP.SERVICES.concat([SP.SVC_UNKNOWN]);
 const UI_LANES = [['disc', 'Discretionary'], ['mand', 'Mandatory']];
 const UI_LEVELS = ['PMO', 'Title', 'Plan Event', 'CCaR'];
 const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
-const UI_VIEWS = [['summary', 'Summary'], ['slides', 'Slide blocks']]
+const UI_VIEWS = [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks']]
   .concat(SP.APS.map(a => [a.id, a.label]))
   .concat([['pmos', 'PMOs'], ['na', 'Not Allocated'], ['report', 'Import report'], ['changes', 'What changed'], ['settings', 'Settings']]);
 const UI_CURVES = [
@@ -29,7 +29,8 @@ const UI_NODATA = 'Each file is a CCaR export laid out like v12’s Raw Data tab
 // what the page remembers between draws. None of it is saved in the file or in browser storage: only the switches are
 // this browser's to keep (§11), and they belong to the store.
 const ui = {
-  view: 'summary', back: 'summary',
+  view: 'overview', back: 'overview',
+  ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
@@ -353,6 +354,102 @@ function ui_topTable(rows, opts) {
 // ---------------------------------------------------------------------------------------------------------------
 // THE VIEWS
 // ---------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------
+// THE OVERVIEW (CONTRACT §18): the Summary's figures as tiles, each block's Obligation % against its OSD goal by month
+// (the slide block's own rows), and Approved by appropriation. SP.overviewOf reads every figure off the model: nothing
+// here is worked out a second way, so the tiles cannot disagree with the Summary, nor a chart with its slide block.
+// ---------------------------------------------------------------------------------------------------------------
+const UI_MARK = '<svg class="mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle cx="20" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="3.2"/>'
+  + '<circle cx="20" cy="20" r="2.6" fill="currentColor"/><path d="M20 2v9M20 29v9M2 20h9M29 20h9" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>';
+const UI_OV_AP = ['#2f8cff', '#2fd6c8', '#62e07d', '#f5b942'];
+function ui_ovFy(M) {
+  const fys = [...new Set(M.summary.rows.map(r => r.fy))];
+  if (ui.ovFy === 'all') return null;
+  if (typeof ui.ovFy === 'number' && fys.includes(ui.ovFy)) return ui.ovFy;
+  return fys.includes(M.E) ? M.E : null;
+}
+function ui_ovTile(id, label, cents, marks, sub, M) {
+  const m = String(marks || '');
+  return '<div class="tile" data-tile="' + id + '"><span class="tl">' + ui_e(label) + '</span><span class="tv" data-c="' + cents + '">' + ui_e(SP.fmtMText(cents))
+    + ['§', '†', '‡'].map(k => (m.includes(k) ? ui_markSpan(k, M) : '')).join('') + '</span><span class="ts">' + sub + '</span></div>';
+}
+// one block's months: a bar for each month's Obligation % (an actual in a closed month, the plan after, as the slide
+// block prints it) and a line through the OSD goal. The words are in each mark's title and in the picture's own label.
+function ui_ovChart(c) {
+  const W = 300, H = 132, L = 30, R = 6, T = 8, B = 20, pw = W - L - R, ph = H - T - B;
+  const vals = c.months.flatMap(m => [m.v, m.goal]).filter(x => typeof x === 'number' && isFinite(x));
+  const top = Math.max(1, ...vals), step = pw / 12, y = v => T + ph - Math.max(0, v) / top * ph;
+  let g = '';
+  for (const f of [0, 0.5, 1]) {
+    g += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(f).toFixed(1) + '" y2="' + y(f).toFixed(1) + '"/>'
+      + '<text class="ax" x="' + (L - 4) + '" y="' + (y(f) + 3).toFixed(1) + '" text-anchor="end">' + (f * 100) + '%</text>';
+  }
+  const pts = [];
+  c.months.forEach((m, i) => {
+    const x = L + i * step;
+    const say = m.label + ': ' + (m.v === null ? 'no figure' : SP.fmtPct(m.v) + (m.kind === 'plan' ? ' planned' : ' actual'))
+      + (m.goal === null || m.goal === undefined ? '' : '; OSD goal ' + SP.fmtPct(m.goal)) + (m.status ? '; ' + SP.statusWord(m.status) : '');
+    if (typeof m.v === 'number' && isFinite(m.v)) {
+      const yy = y(m.v);
+      g += '<rect class="b ' + (m.kind === 'plan' ? 'bp' : 'ba') + '" x="' + (x + 3).toFixed(1) + '" y="' + yy.toFixed(1) + '" width="' + (step - 6).toFixed(1)
+        + '" height="' + Math.max(0, T + ph - yy).toFixed(1) + '"><title>' + ui_e(say) + '</title></rect>';
+    }
+    if (typeof m.goal === 'number' && isFinite(m.goal)) pts.push([(x + step / 2).toFixed(1), y(m.goal).toFixed(1)]);
+    g += '<text class="ax" x="' + (x + step / 2).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + ui_e(m.label.slice(0, 1)) + '</text>';
+  });
+  if (pts.length) g += '<polyline class="gline" points="' + pts.map(p => p.join(',')).join(' ') + '"/>' + pts.map(p => '<circle class="gdot" cx="' + p[0] + '" cy="' + p[1] + '" r="2"/>').join('');
+  return '<svg class="ovsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + ui_e(c.apLabel + ' FY' + c.fy + ': Obligation % by month against the OSD goal') + '">' + g + '</svg>';
+}
+function ui_ovDonut(byAp) {
+  if (!byAp.length || byAp.some(a => !(a.approved > 0))) return '';
+  const r = 40, C = 2 * Math.PI * r;
+  let off = 0, arcs = '';
+  byAp.forEach((a, i) => {
+    const len = a.share * C;
+    arcs += '<circle cx="60" cy="60" r="' + r + '" fill="none" stroke="' + UI_OV_AP[SP.APS.findIndex(x => x.id === a.ap) % UI_OV_AP.length] + '" stroke-width="18" stroke-dasharray="'
+      + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 60 60)"/>';
+    off += len;
+  });
+  return '<svg class="donut" viewBox="0 0 120 120" aria-hidden="true" focusable="false">' + arcs + '</svg>';
+}
+function ui_vOverview(M) {
+  const O = SP.overviewOf(M, ui_ovFy(M)), t = O.total, rep = ui_rep(M);
+  const seg = '<div class="seg" role="group" aria-label="Fiscal year">' + O.fys.map(f => '<button type="button" data-act="ovfy" data-fy="' + f + '" data-fkey="ovfy:' + f
+    + '" aria-pressed="' + (O.fy === f ? 'true' : 'false') + '">FY' + f + '</button>').join('')
+    + '<button type="button" data-act="ovfy" data-fy="all" data-fkey="ovfy:all" aria-pressed="' + (O.fy === null ? 'true' : 'false') + '">All</button></div>';
+  const head = '<div class="ovhead"><h2 class="ovtitle">Overview</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel)
+    + (rep ? ' · Approved and Authorized from the BAE report ' + ui_e(M.bae.of) : ' · Approved is the CCaR plan') + '</span><span class="grow"></span>' + seg + '</div>'
+    + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>';
+  if (!O.rows.length) return head + '<p class="none">No appropriation and FY has rows to show.</p>';
+  const of = (x, w) => (x === null || x === undefined ? '' : ui_e(SP.fmtPct(x)) + ' of ' + w);
+  const tiles = '<div class="tiles">'
+    + ui_ovTile('approved', 'Approved ($M)', t.approved, O.marks.sect ? '§' : '', O.fy === null ? 'every FY shown' : 'FY' + O.fy, M)
+    + ui_ovTile('authorized', 'Authorized ($M)', t.authorized, (O.marks.dag ? '†' : '') + (O.marks.ddag ? '‡' : ''), of(t.approved !== 0 ? t.authorized / t.approved : null, 'Approved'), M)
+    + ui_ovTile('obligated', 'Obligated ($M)', t.obligated, '', of(t.oblPct, 'Approved'), M)
+    + ui_ovTile('unobligated', 'Unobligated ($M)', t.unobligated, '', 'Approved - Obligated', M)
+    + '</div>';
+  const n = O.rows.length;
+  const status = '<div class="ovstatus" data-tile="status"><span class="tl">Status of ' + n + (n === 1 ? ' block' : ' blocks') + '</span>'
+    + O.status.map(s => '<span class="stc st st-' + s.status + '" data-st="' + s.status + '">' + s.n + ' ' + ui_e(s.word) + '</span>').join('')
+    + (O.none ? '<span class="stc stn" data-st="none">' + O.none + ' with no OSD goal</span>' : '')
+    + '<button type="button" data-act="view" data-v="summary" data-fkey="ov:summary">Open the Summary</button></div>';
+  const charts = '<section class="card"><h3>Obligation % against the OSD goal, by month</h3>'
+    + '<p class="cardnote">Each block as its slide block states it: an actual through ' + ui_e(M.cols[M.asOfIndex].label) + ', the plan after. Bars are Obligation %; the line is the OSD goal.</p>'
+    + '<div class="ovcharts">' + O.charts.map(c => {
+      const b = O.rows.find(r => r.key === c.key), sl = SP.slideOf(b);
+      return '<figure class="ovc" data-bk="' + ui_e(c.key) + '"><figcaption><button type="button" class="ovopen" data-act="view" data-v="' + ui_e(b.ap) + '" data-fkey="ov:' + ui_e(c.key) + '">'
+        + ui_e(c.apLabel) + ' FY' + c.fy + '</button>' + (sl && sl.status ? '<span class="stc st st-' + sl.status + '">' + ui_e(SP.statusWord(sl.status)) + '</span>' : '')
+        + '<span class="ovpct">' + (sl && sl.oblPct !== null && sl.oblPct !== undefined ? ui_e(SP.fmtPct(sl.oblPct)) : '') + '</span></figcaption>' + ui_ovChart(c)
+        + '<p class="ovlab">' + ui_e(c.label) + '</p></figure>';
+    }).join('') + '</div>'
+    + '<p class="ovleg"><span class="k ka"></span>Actual <span class="k kp"></span>Plan <span class="k kg"></span>OSD goal</p></section>';
+  const aps = '<section class="card"><h3>Approved by appropriation' + (O.fy === null ? '' : ', FY' + O.fy) + '</h3><div class="ovap">' + ui_ovDonut(O.byAp)
+    + '<table class="ovaps"><tbody>' + O.byAp.map(a => '<tr data-ap="' + ui_e(a.ap) + '"><th scope="row"><span class="k" style="background:'
+      + UI_OV_AP[SP.APS.findIndex(x => x.id === a.ap) % UI_OV_AP.length] + '"></span>' + ui_e(a.label) + '</th><td class="n" data-c="' + a.approved + '">' + ui_e(SP.fmtMText(a.approved))
+      + '</td><td class="n">' + (a.share === null ? '' : ui_e(SP.fmtPct(a.share))) + '</td></tr>').join('') + '</tbody></table></div></section>';
+  return head + tiles + status + '<div class="ovnotes">' + ui_markNotes(O.marks, M) + '</div><div class="ovtwo">' + charts + aps + '</div>';
+}
+
 function ui_quarter(M) { return Math.ceil(M.asOfIndex / 3); }
 function ui_vSummary(M) {
   const legend = '<table class="legend"><caption>Status</caption><tbody>' + SP.STATUS_LEGEND.map(l =>
@@ -1124,7 +1221,7 @@ function ui_vSettings(M) {
 function ui_vHelp() {
   const li = a => '<ul>' + a.map(x => '<li>' + x + '</li>').join('') + '</ul>';
   return '<h2 class="title">Help</h2><div class="help">'
-    + '<h3 class="sub">What this is</h3><p>The SFCB Spend Plan replaces the Spend Plan Workbook (v12). Import the CCaR pull; every product the workbook made is drawn here, '
+    + '<h3 class="sub">What this is</h3><p>SCOPE (Sustainment Current-Year Obligations, Planning &amp; Execution) replaces the Spend Plan Workbook (v12); until November 2026 it was called the SFCB Spend Plan. Import the CCaR pull; every product the workbook made is drawn here, '
     + 'and <strong>Export Excel</strong> writes them as a workbook of values. The file is its own database: <strong>Save</strong> writes the data and the settings into this file.</p>'
     + '<h3 class="sub">Importing</h3>' + li([
       'Each file is a CCaR export laid out like v12’s Raw Data tabs (.xlsx or .csv). Import one file per appropriation, or one file holding all four.',
@@ -1161,6 +1258,12 @@ function ui_vHelp() {
       + 'pictures, with two exceptions that cover every service and lane: an entered Authorized, which is entered for an appropriation and FY as a whole and saved '
       + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, rows whose appropriation is not identified, '
       + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
+    + '<h3 class="sub">The Overview</h3>' + li([
+      'The page opens on the <strong>Overview</strong>. It works out nothing of its own: its tiles are the Summary’s Approved, Authorized, Obligated and '
+      + 'Unobligated for the fiscal year picked (or every FY), added up as the Summary’s TOTAL is, with the same marks; its status counts are the Summary’s '
+      + 'rows; and each small chart is a slide block’s own Obligation % and OSD goal by month, an actual through the Data through month and the plan after.',
+      'Pick a fiscal year, or All, at its top right. A chart’s name opens that appropriation; Open the Summary opens the Summary.',
+    ])
     + '<h3 class="sub">The figures</h3>' + li([
       '<strong>Columns:</strong> Prior Yr (dated before the execution year), Oct to Sep of the execution year, the next-year column, and No date. Total is the sum of all of them.',
       '<strong>Approved</strong> is every counted row (the BAE report’s figure where one is loaded: below). <strong>Obligated</strong> is the rows CCaR marks “Actual Execution”, whatever their date. <strong>Unobligated</strong> = Approved − Obligated.',
@@ -1248,7 +1351,8 @@ function ui_skeleton() {
   const app = document.getElementById('app');
   app.innerHTML = '<header class="top" id="uiTop">'
     + '<div class="bar1">'
-    + '<h1 class="brand">SFCB Spend Plan <span class="ey" id="uiEy"></span></h1>'
+    + '<h1 class="brand" title="Sustainment Current-Year Obligations, Planning &amp; Execution">' + UI_MARK + '<span class="bn">SCOPE</span>'
+    + '<span class="bs">Sustainment Spend Plans</span> <span class="ey" id="uiEy"></span></h1>'
     + '<label class="fld">Data through <input type="month" id="uiAsOf" data-fkey="asof" min="1990-01" max="2100-12"></label>'
     + '<label class="fld">First FY <input type="number" id="uiFirst" data-fkey="first" min="1990" max="2100" step="1"></label>'
     + '<span class="grow"></span>'
@@ -1262,11 +1366,11 @@ function ui_skeleton() {
     + '<div class="pulls" id="uiPulls"></div>'
     + '<div class="msgrow"><div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
     + '<button type="button" class="msgx" id="uiMsgX" data-act="msgx" data-fkey="msgx" hidden>Dismiss</button></div>'
-    + '<nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '</header>'
     + '<div class="printhead" id="uiPrintHead" aria-hidden="true"></div>'
-    + '<div id="uiFilters"></div>'
-    + '<main id="uiMain" tabindex="-1"></main>'
+    + '<div class="shell" id="uiShell"><nav class="views" id="uiNav" aria-label="Views"></nav>'
+    + '<div class="content"><div id="uiFilters"></div>'
+    + '<main id="uiMain" tabindex="-1"></main></div></div>'
     + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>';
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
@@ -1367,7 +1471,7 @@ function ui_drawTop(M) {
   E.pulls.innerHTML = (bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.') + (B ? ui_baeTop(B, when) : '');
   // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
   if (E.printHead) {
-    E.printHead.textContent = has ? 'SFCB Spend Plan' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
+    E.printHead.textContent = has ? 'SCOPE' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
       + E.pulls.textContent + (M ? ' · ' + M.shown.text : '') : '';
   }
 }
@@ -1406,6 +1510,7 @@ function ui_drawMain(M) {
   if (!ui_hasData()) return ui_vNoData();
   if (!M) return '<p class="err">The figures could not be worked out: ' + ui_e(ui.modelErr || 'unknown reason') + '</p>'
     + (v === 'settings' ? ui_vSettings(null) : v === 'report' ? ui_vReport() : '');
+  if (v === 'overview') return ui_vOverview(M);
   if (v === 'summary') return ui_vSummary(M);
   if (v === 'slides') return ui_vSlides(M);
   if (UI_AP_LABEL[v]) return ui_vAp(M, v);
@@ -1414,7 +1519,7 @@ function ui_drawMain(M) {
   if (v === 'report') return ui_vReport(M);
   if (v === 'changes') return ui_vChanges(M);
   if (v === 'settings') return ui_vSettings(M);
-  return ui_vSummary(M);
+  return ui_vOverview(M);
 }
 
 function ui_render() {
@@ -1433,6 +1538,9 @@ function ui_render() {
   let html;
   try { html = ui_drawMain(M); }
   catch (e) { html = '<p class="err">This view could not be drawn: ' + ui_e((e && e.message) || e) + '</p>'; }
+  // the Overview is drawn on the dark shell; every other view on a light sheet, in v12's colours, as the workbook and the
+  // pictures print it (§18)
+  ui.els.main.className = has && M && ui.view === 'overview' ? 'ov' : 'sheet';
   ui.els.main.innerHTML = html;
   ui_layout();
   // the keyboard goes back to the control it was on; if that control is gone, to the one the action named (ui.focusTo),
@@ -1492,7 +1600,7 @@ async function ui_import(fileList) {
       if (r && r.ok) {
         ui.refused = null;
         ui_invalidate();
-        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'summary';
+        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'overview';
       }
       ui_say((r && r.message) || 'The plan was not taken.', r && r.ok ? 'ok' : 'err');
       ui_render();
@@ -1521,7 +1629,7 @@ async function ui_import(fileList) {
     }
     ui.refused = null;
     ui_invalidate();
-    if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'summary';
+    if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'overview';
     // an import that refused a file or placed rows that look misfiled is not a plain success, and does not look like one
     ui_say((r && r.message) || 'Imported.', r && r.warn ? 'warn' : 'ok');
     ui_render();
@@ -1705,7 +1813,7 @@ async function ui_zip() {
   await ui_busy('saving the pictures', async () => {
     ui_say('Drawing ' + M.blocks.length + ' pictures…', 'info');
     const blob = await SP.allPicturesZip(M);
-    const name = SP.download('SFCB Spend Plan pictures FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + ui_today()
+    const name = SP.download('SCOPE pictures FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + ui_today()
       + (M.shown.all ? '' : ' [filtered]') + '.zip', blob, 'application/zip');
     ui_say('Saved “' + name + '” (' + M.blocks.length + ' pictures) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
@@ -1723,8 +1831,14 @@ function ui_onClick(ev) {
       if (moved) ui_toTop();
       break;
     }
+    case 'ovfy': {
+      const f = t.getAttribute('data-fy');
+      ui.ovFy = f === 'all' ? 'all' : Number(f);
+      ui_render();
+      break;
+    }
     case 'help':
-      if (ui.view === 'help') ui.view = ui.back || 'summary';
+      if (ui.view === 'help') ui.view = ui.back || 'overview';
       else { ui.back = ui.view; ui.view = 'help'; }
       ui_render();
       ui_toTop();

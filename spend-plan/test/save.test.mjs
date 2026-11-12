@@ -198,7 +198,7 @@ try {
   writeFileSync(N3, program.replace(/<script id="spState" type="application\/json">[\s\S]*?<\/script>/,
     () => '<script id="spState" type="application/json">{"v":1,"tool":"sfcb-<' + '/script>'));
   const N4 = join(tmp.dir, 'gone.html');
-  const refusals = [['a page that is not this tool', N1, /is not an SFCB Spend Plan file/],
+  const refusals = [['a page that is not this tool', N1, /is not a SCOPE file/],
     ['this tool holding another tool’s data', N2, /another tool/],
     ['this tool holding data that cannot be read', N3, /cannot be read/],
     ['a file that cannot be read at all', N4, /could not be read/]];

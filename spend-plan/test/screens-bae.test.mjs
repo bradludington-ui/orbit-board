@@ -809,7 +809,8 @@ try {
       const html = pageHtml({ state: st });
       const A = await boot({ html }), B = await boot({ html: swap(swap(html, nowUi, oldUi.stdout), nowCss, oldCss.stdout) });
       const same = (what, f) => { const a = f(A), b = f(B); C.chk('no report (' + name + '): ' + what + ' is drawn as before §14', a === b, a.length + ' vs ' + b.length + ' characters, first difference at ' + [...a].findIndex((ch, i) => ch !== b[i])); };
-      same('the top', T => T.doc.getElementById('uiTop').innerHTML);
+      // the top's frame (the name, the menu's place) is SCOPE's since CONTRACT §18: what the top SAYS is compared
+      same('the top (its pulls line and its message)', T => T.doc.getElementById('uiPulls').innerHTML + '|' + T.doc.getElementById('uiMsg').innerHTML);
       same('the switches', T => T.doc.getElementById('uiFilters').innerHTML);
       for (const v of ['summary', 'slides', 'om', 'ff', 'sp', 'opn', 'na', 'report', 'changes', 'settings']) {
         await A.view(v); await B.view(v);
@@ -865,6 +866,9 @@ try {
       p.on('pageerror', e => errors.push(e.message));
       p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
       await p.goto(pathToFileURL(f).href);
+      // SCOPE opens on the Overview (CONTRACT §18); these checks read the Summary
+      await p.waitForSelector('[data-act=view][data-v=summary]');
+      await p.click('[data-act=view][data-v=summary]');
       await p.waitForSelector('tr[data-bk=total]');
       // § and † on the TOTAL's navy read at 4.5:1 or more (as † and ‡ do, review SCR2-3)
       const ratio = await p.evaluate(() => {

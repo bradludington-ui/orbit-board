@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Builds the SFCB Spend Plan dashboard: one self-contained HTML file, sfcb-spend-plan.html, from spend-plan/src.
+// Builds SCOPE (until November 2026 the SFCB Spend Plan dashboard): one self-contained HTML file, scope.html, from spend-plan/src.
 //
-//   node spend-plan/build.mjs            write spend-plan/sfcb-spend-plan.html
+//   node spend-plan/build.mjs            write spend-plan/scope.html
 //   node spend-plan/build.mjs --check    exit 1 if the committed file is not exactly what the sources build
 //
 // The page is src/shell.html with two markers filled in: /*@CSS@*/ takes src/style.css, and /*@JS@*/ takes every
@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SRC = join(HERE, 'src');
-export const OUT = join(HERE, 'sfcb-spend-plan.html');
+export const OUT = join(HERE, 'scope.html');
 
 export function moduleFiles() {
   return readdirSync(SRC).filter(f => /^\d\d-[a-z0-9-]+\.js$/.test(f)).sort();
@@ -51,14 +51,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     let have = '';
     try { have = readFileSync(OUT, 'utf8'); } catch {}
     if (have !== html) {
-      console.error('spend-plan/sfcb-spend-plan.html is not what spend-plan/src builds. Run: node spend-plan/build.mjs');
+      console.error('spend-plan/scope.html is not what spend-plan/src builds. Run: node spend-plan/build.mjs');
       process.exit(1);
     }
-    console.log('spend-plan/sfcb-spend-plan.html is current (' + html.length.toLocaleString() + ' characters)');
+    console.log('spend-plan/scope.html is current (' + html.length.toLocaleString() + ' characters)');
   } else {
     const tmp = OUT + '.tmp';
     writeFileSync(tmp, html);
     renameSync(tmp, OUT);
-    console.log('wrote spend-plan/sfcb-spend-plan.html (' + html.length.toLocaleString() + ' characters)');
+    console.log('wrote spend-plan/scope.html (' + html.length.toLocaleString() + ' characters)');
   }
 }

@@ -19,13 +19,13 @@
 // ---------------------------------------------------------------------------------------------------------------
 // WHAT THE STATE IS
 // ---------------------------------------------------------------------------------------------------------------
-const ST_TOOL = 'sfcb-spend-plan';
+const ST_TOOL = 'sfcb-spend-plan';   // the page's marker keeps the tool's first name on purpose: every file saved before the rename to SCOPE carries it
 const ST_V = 1;
 const ST_VIEW_KEY = 'sfcbsp.view';     // ORBIT's prio27*/spmt* share this file:// origin; ours never collide with them
 const ST_PULL_KEYS = ['om', 'ff', 'sp', 'opn', 'unidentified'];
 // What #app holds in the shell before the UI draws. Used only when the page was captured after the UI had drawn (a
 // late storeInit), so a saved file still opens like a fresh one instead of showing yesterday's screen frozen in place.
-const ST_BOOT_NOTE = '<p class="boot-note">Opening the SFCB Spend Plan…</p>';
+const ST_BOOT_NOTE = '<p class="boot-note">Opening SCOPE…</p>';
 // The page's own file was opened with saved data this page refused (wrong version, wrong shape). It never equals a
 // savedAt, so Save cannot treat that file as "the one this page opened with" and write over data it could not read.
 const ST_REFUSED = Object.freeze({ refused: true });
@@ -117,7 +117,7 @@ function st_rows(n) { return (SP.fmtInt ? SP.fmtInt(n) : String(n)) + (n === 1 ?
 function st_pageName() {
   let n = '';
   try { n = decodeURIComponent(String(location.pathname || '').split('/').pop() || ''); } catch (e) { n = ''; }
-  return /\.html?$/i.test(n) ? n : 'sfcb-spend-plan.html';
+  return /\.html?$/i.test(n) ? n : 'scope.html';
 }
 // the page's own file name when its address names one, else '' (a name Save cannot compare a picked file with)
 function st_pageNameKnown() {
@@ -838,7 +838,7 @@ SP.takePlan = function takePlan(text, name) {
   const fname = String(name || 'that file');
   const f = st_readFile(text);
   if (f.why) return { ok: false, message: 'Nothing was taken: “' + fname + '” ' + f.why + '.' };
-  if (!f.state) return { ok: false, message: 'Nothing was taken: “' + fname + '” is an SFCB Spend Plan file with no plan saved in it.' };
+  if (!f.state) return { ok: false, message: 'Nothing was taken: “' + fname + '” is a SCOPE file with no plan saved in it.' };
   const why = st_check(f.state);
   if (why) return { ok: false, message: 'Nothing was taken from “' + fname + '”: ' + why + '.' };
   const inc = f.state;
@@ -904,13 +904,13 @@ SP.onStateChange = function onStateChange(fn) {
 // tool's data is never written over. One saved by someone else since this page last read or wrote it is written over
 // only after the person says so.
 // ---------------------------------------------------------------------------------------------------------------
-const ST_TYPES = name => [{ description: 'SFCB Spend Plan — pick this file: ' + name, accept: { 'text/html': ['.html', '.htm'] } }];
+const ST_TYPES = name => [{ description: 'SCOPE — pick this file: ' + name, accept: { 'text/html': ['.html', '.htm'] } }];
 // the file's text -> {state} (null when it holds none) or {why}: why it must not be written over. raw is the saved-data
 // text as written, when there is a place for it: what tells the very data this page could not read from any other.
 function st_readFile(txt) {
-  if (typeof txt !== 'string' || !/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(txt)) return { why: 'is not an SFCB Spend Plan file' };
+  if (typeof txt !== 'string' || !/<meta\s+name=["']?sfcb-spend-plan["'\s>]/i.test(txt)) return { why: 'is not a SCOPE file' };
   const m = /<script\b[^>]*\bid=["']?spState["']?[^>]*>([\s\S]*?)<\/script\s*>/i.exec(txt);
-  if (!m) return { why: 'is an SFCB Spend Plan page with no place for its data' };
+  if (!m) return { why: 'is a SCOPE page with no place for its data' };
   const raw = m[1].trim();
   let st;
   try { st = JSON.parse(raw || 'null'); } catch (e) { return { why: 'holds saved data that cannot be read', raw, unreadable: true }; }
@@ -1180,7 +1180,7 @@ async function st_saveCopy() {
   let h;
   try {
     h = await window.showSaveFilePicker({ suggestedName: suggested,
-      types: [{ description: 'SFCB Spend Plan (a new file)', accept: { 'text/html': ['.html', '.htm'] } }] });
+      types: [{ description: 'SCOPE (a new file)', accept: { 'text/html': ['.html', '.htm'] } }] });
   } catch (e) {
     if (st_abortish(e)) return { ok: false, message: 'No copy was saved: no file name was given.' };
     const why = 'the file window could not open (' + st_err(e) + ')';

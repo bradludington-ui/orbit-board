@@ -654,7 +654,7 @@ try {
         C.chk(name + ', ' + w + ': … and those are empty', J(Mn.excluded.obbba) === J({ rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] }) && J(Mn.obbbaNoBlock) === '[]'
           && J(Mn.obbbaElsewhere) === '[]');
         const meta = P => ({ report: P.report, today: '2026-11-09', bae: withBae(P) });
-        const sn = wb16(SP.excelSpec(Mn, Pn.pulls, S0(SP, first), meta(Pn)), withRep), sb = wb16(SPb.excelSpec(Mb, Pb.pulls, S0(SPb, first), meta(Pb)), withRep);
+        const sn = wb16(SP.excelSpec(Mn, Pn.pulls, S0(SP, first), meta(Pn)), withRep), sb = wb16(SPb.excelSpec(Mb, Pb.pulls, S0(SPb, first), meta(Pb)), withRep).replace('"creator":"SFCB Spend Plan"', '"creator":"SCOPE"');   // the creator is the tool's name, SCOPE since §18
         let at = 0; while (at < sn.length && sn[at] === sb[at]) at++;
         C.chk(name + ', ' + w + ': the workbook is the one before §15, cell for cell' + (withRep ? ' (§16’s PMO tabs, PMO column and lines set aside)' : ''), sn === sb, 'first difference at ' + at + ': before …' + sb.slice(Math.max(0, at - 100), at + 80) + '… now …' + sn.slice(Math.max(0, at - 100), at + 80));
       }
@@ -689,7 +689,8 @@ try {
       return m.innerHTML;
     };
     const same16 = (what, v) => same(what, T => html16(T, v));
-    same('the top', T => T.doc.getElementById('uiTop').innerHTML);
+    // the top's frame (the name, the menu's place) is SCOPE's since CONTRACT §18: what the top SAYS is compared
+    same('the top (its pulls line and its message)', T => T.doc.getElementById('uiPulls').innerHTML + '|' + T.doc.getElementById('uiMsg').innerHTML);
     same('the switches', T => T.doc.getElementById('uiFilters').innerHTML);
     // the pages compared hold the plan: its blocks on the Summary, both reports and both pulls on What changed
     await A.view('summary');

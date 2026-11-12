@@ -605,7 +605,7 @@ try {
         const Mn = SP.buildModel(Pn2.pulls, S0(SP, first), V0(SP, off, lanes), withBae(Pn2)), Mb = SPb.buildModel(Pb2.pulls, S0(SPb, first), V0(SPb, off, lanes), withBae(Pb2));
         C.chk(name + ', ' + w + ': the model is the one before §17, byte for byte', J(Mn) === J(Mb));
         const meta = P => ({ report: P.report, today: '2026-11-09', bae: withBae(P) });
-        const sn = J(SP.excelSpec(Mn, Pn2.pulls, S0(SP, first), meta(Pn2))), sb = J(SPb.excelSpec(Mb, Pb2.pulls, S0(SPb, first), meta(Pb2)));
+        const sn = J(SP.excelSpec(Mn, Pn2.pulls, S0(SP, first), meta(Pn2))), sb = J(SPb.excelSpec(Mb, Pb2.pulls, S0(SPb, first), meta(Pb2))).replace('"creator":"SFCB Spend Plan"', '"creator":"SCOPE"');   // the creator is the tool's name, SCOPE since §18
         let at = 0; while (at < sn.length && sn[at] === sb[at]) at++;
         C.chk(name + ', ' + w + ': the workbook is the one before §17, cell for cell', sn === sb, 'first difference at ' + at + ': before …' + sb.slice(Math.max(0, at - 100), at + 80) + '… now …' + sn.slice(Math.max(0, at - 100), at + 80));
       }
@@ -622,7 +622,8 @@ try {
     C.chk('the saved state is the one before §17', J(pn.state.pulls) === J(pb.state.pulls) && J(pn.state.bae) === J(pb.state.bae) && J(pn.state.settings) === J(pb.state.settings));
     const A = await boot(pageHtml({ state: pn.state })), Bp = await boot(withState(assembleB({}), pn.state));
     const same = (what, f) => { const a = f(A), b = f(Bp); C.chk('no OBBBA word: ' + what + ' is drawn as before §17', a === b, a.length + ' vs ' + b.length + ' characters, first difference at ' + [...a].findIndex((ch, i) => ch !== b[i])); };
-    same('the top', T => T.doc.getElementById('uiTop').innerHTML);
+    // the top's frame (the name, the menu's place) is SCOPE's since CONTRACT §18: what the top SAYS is compared
+    same('the top (its pulls line and its message)', T => T.doc.getElementById('uiPulls').innerHTML + '|' + T.doc.getElementById('uiMsg').innerHTML);
     same('the switches', T => T.doc.getElementById('uiFilters').innerHTML);
     for (const v of ['summary', 'slides', 'om', 'ff', 'sp', 'opn', 'na', 'report', 'changes', 'settings']) {
       await A.view(v); await Bp.view(v);

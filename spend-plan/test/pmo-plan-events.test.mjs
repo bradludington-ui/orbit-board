@@ -555,7 +555,7 @@ try {
       const Pn = await SP.parseFiles(files(false), { now: NOW }), Pb = await SPb.parseFiles(files(false), { now: NOW });
       const Mn = SP.buildModel(Pn.pulls, S0(SP), V0(SP, off)), Mb = SPb.buildModel(Pb.pulls, S0(SPb), V0(SPb, off));
       C.chk('no report, ' + w + ': the model is the one before §16, byte for byte', J(Mn) === J(Mb));
-      const sn = J(SP.excelSpec(Mn, Pn.pulls, S0(SP), { report: Pn.report, today: TODAY })), sb = J(SPb.excelSpec(Mb, Pb.pulls, S0(SPb), { report: Pb.report, today: TODAY }));
+      const sn = J(SP.excelSpec(Mn, Pn.pulls, S0(SP), { report: Pn.report, today: TODAY })), sb = J(SPb.excelSpec(Mb, Pb.pulls, S0(SPb), { report: Pb.report, today: TODAY })).replace('"creator":"SFCB Spend Plan"', '"creator":"SCOPE"');   // the creator is the tool's name, SCOPE since §18
       let at = 0; while (at < sn.length && sn[at] === sb[at]) at++;
       C.chk('no report, ' + w + ': the workbook is the one before §16, cell for cell', sn === sb, 'first difference at ' + at + ': before …' + sb.slice(Math.max(0, at - 100), at + 80)
         + '… now …' + sn.slice(Math.max(0, at - 100), at + 80));

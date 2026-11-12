@@ -152,7 +152,7 @@ async function fits(p, where) {
 // ================================================================================== A. a fresh page, imported
 const A = await open(page(null));
 const P = A.p;
-C.chk('the page title', (await P.title()) === 'SFCB Spend Plan');
+C.chk('the page title', (await P.title()) === 'SCOPE');
 C.chk('no data yet: the one panel says what to import', /No data yet/.test(await text(P, '#uiMain'))
   && /one file per appropriation, or one file holding all four/.test(await text(P, '#uiMain')));
 C.chk('no data yet: no views and no switches', (await P.$$('[data-act=view]')).length === 0 && (await P.$$('[data-act=svc]')).length === 0);
@@ -358,7 +358,7 @@ async function pressed(sel, label, fn, download) {
 }
 await view(P, 'summary');
 const xl = await pressed('[data-act=export]', 'Export Excel', 'exportExcel', true);
-if (xl) C.chk('Export Excel: a .xlsx named for the plan', /^SFCB Spend Plan FY2027 - data through Oct-2026 - \d{4}-\d{2}-\d{2}\.xlsx$/.test(xl.suggestedFilename()), xl.suggestedFilename());
+if (xl) C.chk('Export Excel: a .xlsx named for the plan', /^SCOPE FY2027 - data through Oct-2026 - \d{4}-\d{2}-\d{2}\.xlsx$/.test(xl.suggestedFilename()), xl.suggestedFilename());
 await view(P, 'slides');
 const png = await pressed('[data-act=savepic][data-b="0"]', 'Save picture', 'blockPng', true);
 if (png) {
@@ -501,6 +501,9 @@ await clean(A, 'a second pull');
 // ================================================================== B. a saved file: Saved, until a setting moves
 const B = await open(page(await savedState()));
 const Q = B.p;
+// SCOPE opens on the Overview (CONTRACT §18); these checks read the Summary
+await Q.waitForSelector('[data-act=view][data-v=summary]');
+await Q.click('[data-act=view][data-v=summary]');
 await Q.waitForSelector('tr[data-bk=total]');
 C.chk('saved file: opens Saved', (await text(Q, '#uiSave')) === 'Saved', await text(Q, '#uiSave'));
 C.chk('saved file: the Summary is the oracle\'s', (await cents(Q, 'tr[data-bk=total] td.n')) === O.all.summary.approved);
@@ -568,6 +571,9 @@ await noImg(B, 'saved file');
   const big = { om: { rows, headers: H.slice(), files: [{ name: 'synthetic.xlsx', sheets: ['O&M Raw Data'] }], importedAt: NOW } };
   const W = await open(page(await savedState(big)));
   const R = W.p;
+  // SCOPE opens on the Overview (CONTRACT §18); these checks read the Summary
+  await R.waitForSelector('[data-act=view][data-v=summary]');
+  await R.click('[data-act=view][data-v=summary]');
   await R.waitForSelector('tr[data-bk=total]');
   const t0 = Date.now();
   await R.click('[data-act=view][data-v=om]');

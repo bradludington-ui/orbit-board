@@ -319,13 +319,13 @@ try {
     C.chk('IMP-7: a plan with a pull is refused: a plan is taken on its own', /msg-err/.test(m3.cls) && /on its own/.test(m3.text), J(m3));
     const notPlan = '<!DOCTYPE html><html><head><title>x</title></head><body>hello</body></html>';
     const r4 = typeof D.SP.takePlan === 'function' ? D.SP.takePlan(notPlan, 'page.html') : { ok: true };
-    C.chk('IMP-7: a page that is not a plan is refused, and says why', r4.ok === false && /not an SFCB Spend Plan file/.test(r4.message), J(r4));
+    C.chk('IMP-7: a page that is not a plan is refused, and says why', r4.ok === false && /not a SCOPE file/.test(r4.message), J(r4));
     const other = planHtml.replace(/"tool":"sfcb-spend-plan"/, '"tool":"someone-else"');
     const r5 = typeof D.SP.takePlan === 'function' ? D.SP.takePlan(other, 'other.html') : { ok: true };
     C.chk('IMP-7: a plan saved by another tool is refused', r5.ok === false && /another tool/.test(r5.message), J(r5));
     const e6 = await refusal(D.parse([['plan.html', planHtml]]));
     C.chk('IMP-7/IMP-10: handed to the pull reader, a plan is named as a plan, not a truncated workbook',
-      !!e6 && /saved SFCB Spend Plan, not a CCaR pull/.test(e6.message) && !/truncated/.test(e6.message), e6 && e6.message);
+      !!e6 && /saved SCOPE plan, not a CCaR pull/.test(e6.message) && !/truncated/.test(e6.message), e6 && e6.message);
     A.t.close(); B.t.close(); D.t.close();
   });
 

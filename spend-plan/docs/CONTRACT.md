@@ -1,4 +1,7 @@
-# SFCB Spend Plan dashboard: the build contract
+# SCOPE (until November 2026 the SFCB Spend Plan dashboard): the build contract
+
+*The tool was renamed SCOPE on 12 Nov 2026 (§18). Sections 1 to 17 are kept as written and say "SFCB Spend Plan" and
+`sfcb-spend-plan.html`: read SCOPE and `scope.html`.*
 
 Brad asked on 9 Nov 2026 for the *SFCB FY26 Spend Plan Workbook v12* to become an active dashboard. He imports raw CCaR data,
 and the dashboard produces all the same products. His answers, given that day:
@@ -1517,3 +1520,56 @@ Spares."* This **replaces §15.1's rule**. Everything else in §15 stands, read 
   with the report, the O&M FY2025 `noBlock` note's report figures fall by exactly the report's O&M FY2025 rows marked in Budget
   Flex 02 only, the Import report counts every O&M FY2025 row marked either way, Initial Spares FY2025 and every other figure
   are unchanged, and `M.obbbaElsewhere` names Initial Spares FY2025.
+
+## 18. SCOPE: the name, the frame and the Overview (Brad, 12 Nov 2026)
+
+Brad sent a picture of the look he wants, named the tool **SCOPE** (*Sustainment Current-Year Obligations, Planning &
+Execution*), chose the first of three mockups (a menu down the left and a new Overview page), said *"Yes, change to SCOPE"*
+for the file name and the workbook's titles, and *"Stay consistent with what we've already created"*.
+
+### 18.1 The name
+
+- The page is `spend-plan/scope.html`, titled `SCOPE`. Its top bar reads **SCOPE | Sustainment Spend Plans** with the
+  execution year. The workbook is `SCOPE FY{E} - data through {Mon-YYYY} - {YYYY-MM-DD}.xlsx`, its creator `SCOPE`; the
+  pictures' zip is `SCOPE pictures FY{E} - …`. Every message that named the tool says SCOPE.
+- **Three things keep the first name on purpose**, because files and browsers already hold them: the page's marker
+  `<meta name="sfcb-spend-plan">`, the saved state's `tool:'sfcb-spend-plan'`, and the browser key `sfcbsp.view`. So a
+  file saved before the rename opens, saves and is taken as a plan exactly as before. The folder stays `spend-plan/`.
+- Help and the README say the tool was the SFCB Spend Plan until November 2026.
+
+### 18.2 The frame
+
+- The sticky top holds the name, Data through, First FY, the buttons, the pulls line and the message. The views are a
+  menu down the left (`nav#uiNav`, the same buttons as before, **Overview** first), beside the view; at 900 px and
+  narrower the menu is a row above the view. The menu is not printed.
+- The frame is dark. **Every view but the Overview is on a light sheet in v12's colours** (`main.sheet`), unchanged, so
+  the screen still matches the workbook and the slide pictures, which do not change at all.
+- At 1366 px wide a tree opened to CCaR keeps its full width beside the menu (review S6 holds).
+
+### 18.3 The Overview
+
+- It is the view the page opens on once a pull is loaded, and where an import lands.
+- **It works out no figure.** `SP.overviewOf(model, fy)` reads the Summary's rows and the blocks:
+  - `fy` is one of the FYs the Summary has a row for, or every FY. The page opens on the execution year when it has a
+    row, else on every FY, and keeps the choice while it is open.
+  - **Tiles**: Approved, Authorized, Obligated and Unobligated of those rows, added up as the Summary's TOTAL is (for
+    every FY it is that TOTAL), printed in $M as the tables print it, with § † ‡ where the rows carry them and each
+    mark's line beneath. Authorized and Obligated say their share of Approved.
+  - **Status**: how many of those rows read each status word, and how many have no OSD goal.
+  - **Charts**: one per block shown. Bars are the block's Obligation % by month, Oct to Sep (an actual in a closed month,
+    the plan after: the slide block's own row, on the CCaR plan even where a BAE report covers the block, §14.3); the
+    line is its OSD goal. Its caption is the slide block's own label, Obligation % and status. Its name opens the
+    appropriation.
+  - **Approved by appropriation**: each appropriation's Approved and its share; the ring is drawn only when every
+    share is above zero.
+- It follows the switches as the Summary does, and says what is shown.
+- Expenditures are not shown: neither the CCaR pull nor the BAE report carries them.
+
+### 18.4 Tests
+
+- `test/overview.test.mjs`: a small invented plan with every figure worked by hand (with and without a BAE report), and
+  the Overview held to the Summary view of the same page for each choice of FY; the menu, the name, the light sheet, the
+  two ways out, a switch off.
+- Tests that read the Summary in Chromium open it first. Comparisons with builds before the rename read the older
+  build's creator as SCOPE and compare what the top says, not its frame.
+

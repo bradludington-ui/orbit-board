@@ -27,7 +27,7 @@
 //     it, and its workbook's raw O&M sheet, Import Report and Settings say the same.
 //
 //   node spend-plan/test/e2e.test.mjs                      the page assembled from the sources (as build.mjs writes it)
-//   E2E_FILE=spend-plan/sfcb-spend-plan.html node …        the built file itself
+//   E2E_FILE=spend-plan/scope.html node …        the built file itself
 import { chromium } from 'playwright-core';
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
@@ -116,6 +116,7 @@ const view = async (p, v) => {
   else await p.click('[data-act=view][data-v="' + v + '"]');
 };
 // what the Summary shows: every row's cells as text, and every money cell's exact cents
+// SCOPE opens on the Overview (CONTRACT §18): each wait for the Summary's table below first opens the Summary
 const summaryShown = p => p.$$eval('#uiMain table.top tr', trs => trs.map(tr => [...tr.children].map(td =>
   (td.getAttribute('data-c') !== null ? 'c' + td.getAttribute('data-c') + ' ' : '') + td.textContent.trim())));
 async function download(w, n0, what) {
@@ -133,7 +134,7 @@ try {
   const A = await open(PAGE);
   C.chk('a fresh page shows the no-data panel', /Import a CCaR pull|CCaR export laid out like v12/.test(await A.p.textContent('#uiMain')));
   await A.p.setInputFiles('#uiFile', [join(FX, 'pull-all.xlsx')]);
-  C.chk('the import lands (the Summary shows a table)', await until(A.p, () => !!document.querySelector('#uiMain table.top')));
+  C.chk('the import lands (the Summary shows a table)', await until(A.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]'))));
   const m1 = await msg(A.p);
   // the fixture holds rows that count nowhere on purpose (an unreadable Amount, rows no appropriation claims): the message
   // names them, and reads as a warning, never as a plain success (review F4, DL-2)
@@ -201,7 +202,7 @@ try {
   await A.p.click('[data-act=export]');
   const xl = await download(A, n, 'Export Excel');
   if (xl) {
-    C.chk('the workbook is named for the plan', /^SFCB Spend Plan FY2027 - data through Oct-2026 - \d{4}-\d{2}-\d{2}\.xlsx$/.test(xl.name), xl.name);
+    C.chk('the workbook is named for the plan', /^SCOPE FY2027 - data through Oct-2026 - \d{4}-\d{2}-\d{2}\.xlsx$/.test(xl.name), xl.name);
     const R = JSON.parse(py([join(HERE, 'export-read.py'), xl.path]));
     const sheets = R.sheets || R;
     const sum = (Array.isArray(sheets) ? sheets : Object.values(sheets)).find(s => s.name === 'Summary');
@@ -267,7 +268,7 @@ try {
   C.chk('no script error and no dialog while saving', !A.errors.length && !A.dialogs.length, A.errors.concat(A.dialogs).join(' | '));
 
   const B = await open(PAGE);
-  await until(B.p, () => !!document.querySelector('#uiMain table.top'));
+  await until(B.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')));
   C.chk('the saved file opens as Saved', /Saved/.test(await B.p.textContent('#uiSave')) && !/Unsaved/.test(await B.p.textContent('#uiSave')));
   C.chk('the saved file opens with Data through and First FY as saved',
     (await B.p.$eval('#uiAsOf', e => e.value)) === '2026-10' && (await B.p.$eval('#uiFirst', e => e.value)) === '2025');
@@ -282,7 +283,7 @@ try {
   writeFileSync(PAGE2, process.env.E2E_FILE ? readFileSync(resolve(process.env.E2E_FILE), 'utf8') : pageHtml());
   const D = await open(PAGE2);
   await D.p.setInputFiles('#uiFile', [join(FX, 'pull-all.xlsx'), BAE1]);
-  C.chk('BAE: the import with a report lands', await until(D.p, () => !!document.querySelector('#uiMain table.top') && !!(SP.state.bae && SP.state.bae.current)));
+  C.chk('BAE: the import with a report lands', await until(D.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')) && !!(SP.state.bae && SP.state.bae.current)));
   const mb = await msg(D.p);
   // §14.7: the message line names the report, its date and its rows, and warns: the fixture's report has a row that
   // could not be read
@@ -443,7 +444,7 @@ try {
     && st2.bae.current.rows.length === OB.bae.rows.in + OB.bae.rows.flyaway + OB.bae.rows.noap + OB.bae.rows.bad
     && st2.bae.current.stamp === '2026-01-31 12:00'), st2 && st2.bae && J({ n: st2.bae.current && st2.bae.current.rows.length, prev: st2.bae.previous }));
   const E2 = await open(PAGE2);
-  await until(E2.p, () => !!document.querySelector('#uiMain table.top'));
+  await until(E2.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')));
   C.chk('BAE: the saved file opens as Saved', /Saved/.test(await E2.p.textContent('#uiSave')) && !/Unsaved/.test(await E2.p.textContent('#uiSave')));
   C.eq('BAE: the reopened Summary is the same, figure for figure and mark for mark', await topRead(E2.p), beforeB);
   await view(E2.p, 'settings');
@@ -499,7 +500,7 @@ try {
   writeFileSync(PAGE3, process.env.E2E_FILE ? readFileSync(resolve(process.env.E2E_FILE), 'utf8') : pageHtml());
   const F = await open(PAGE3);
   await F.p.setInputFiles('#uiFile', [join(FX, 'obbba', 'pull-om.xlsx'), join(FX, 'obbba', 'pull-ff.csv'), join(FX, 'obbba', 'bae.xlsx')]);
-  C.chk('OBBBA: the import of the obbba pulls and report lands', await until(F.p, () => !!document.querySelector('#uiMain table.top') && !!(SP.state.bae && SP.state.bae.current)));
+  C.chk('OBBBA: the import of the obbba pulls and report lands', await until(F.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')) && !!(SP.state.bae && SP.state.bae.current)));
   await F.p.fill('#uiAsOf', '2026-10'); await F.p.dispatchEvent('#uiAsOf', 'change');
   await F.p.fill('#uiFirst', '2025'); await F.p.dispatchEvent('#uiFirst', 'change');
   await until(F.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
@@ -559,7 +560,7 @@ try {
   await F.p.click('[data-act=save]');
   C.chk('OBBBA: Save says it saved', await until(F.p, () => /Saved/.test(document.querySelector('#uiSave').textContent) && /msg-ok/.test(document.querySelector('#uiMsg').className)), J(await msg(F.p)));
   const F2 = await open(PAGE3);
-  await until(F2.p, () => !!document.querySelector('#uiMain table.top'));
+  await until(F2.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')));
   C.chk('OBBBA: the saved file opens as Saved, on the same Data through and First FY', /Saved/.test(await F2.p.textContent('#uiSave')) && !/Unsaved/.test(await F2.p.textContent('#uiSave'))
     && (await F2.p.$eval('#uiAsOf', e => e.value)) === '2026-10' && (await F2.p.$eval('#uiFirst', e => e.value)) === '2025');
   const obAfter = await obScreen(F2, 'OBBBA reopened');
@@ -588,7 +589,7 @@ try {
   writeFileSync(PAGE4, process.env.E2E_FILE ? readFileSync(resolve(process.env.E2E_FILE), 'utf8') : pageHtml());
   const G = await open(PAGE4);
   await G.p.setInputFiles('#uiFile', ['pull-om.xlsx', 'pull-ff.csv', 'pull-sp.xlsx', 'bae.xlsx'].map(f => join(FX, 'obbba2', f)));
-  C.chk('OBBBA2: the import of the obbba2 pulls and report lands', await until(G.p, () => !!document.querySelector('#uiMain table.top') && !!(SP.state.bae && SP.state.bae.current)));
+  C.chk('OBBBA2: the import of the obbba2 pulls and report lands', await until(G.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')) && !!(SP.state.bae && SP.state.bae.current)));
   await G.p.fill('#uiAsOf', '2026-10'); await G.p.dispatchEvent('#uiAsOf', 'change');
   await G.p.fill('#uiFirst', '2025'); await G.p.dispatchEvent('#uiFirst', 'change');
   await until(G.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
@@ -635,7 +636,7 @@ try {
   await G.p.click('[data-act=save]');
   C.chk('OBBBA2: Save says it saved', await until(G.p, () => /Saved/.test(document.querySelector('#uiSave').textContent) && /msg-ok/.test(document.querySelector('#uiMsg').className)), J(await msg(G.p)));
   const G2 = await open(PAGE4);
-  await until(G2.p, () => !!document.querySelector('#uiMain table.top'));
+  await until(G2.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')));
   C.chk('OBBBA2: the saved file opens as Saved, on the same Data through and First FY', /Saved/.test(await G2.p.textContent('#uiSave')) && !/Unsaved/.test(await G2.p.textContent('#uiSave'))
     && (await G2.p.$eval('#uiAsOf', e => e.value)) === '2026-10' && (await G2.p.$eval('#uiFirst', e => e.value)) === '2025');
   C.eq('OBBBA2 reopened: the Summary, the Import report’s two sections and Settings are the same', await ob2Screen(G2, 'OBBBA2 reopened'), ob2Before);

@@ -308,7 +308,7 @@ try {
 
     // ------------------------------------------------------------------------------- the file name and the shown text
     const fname = SP.excelFileName(model, TODAY);
-    C.eq(sc.name + ': the file name', fname, 'SFCB Spend Plan FY' + X.E + ' - data through Oct-' + (X.E - 1) + ' - ' + TODAY
+    C.eq(sc.name + ': the file name', fname, 'SCOPE FY' + X.E + ' - data through Oct-' + (X.E - 1) + ' - ' + TODAY
       + (X.shown.all ? '' : ' [filtered]') + '.xlsx');
     if (sc.name === 'usaf-off') C.chk('usaf-off: the shown text says USAF is off', !SX.includes('USAF,') && SX.startsWith('Services shown: USAF ANG'), SX);
 
@@ -846,7 +846,7 @@ try {
     const d = new Date(), today = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
     C.chk('exportExcel downloads one workbook', caught.length === 1 && caught[0].bytes[0] === 0x50 && /spreadsheetml/.test(caught[0].mime), show(caught.map(c => c.name)));
     C.eq('exportExcel names it with the date, the data-through month and [filtered]', caught[0] && caught[0].name,
-      'SFCB Spend Plan FY2027 - data through Oct-2026 - ' + today + ' [filtered].xlsx');
+      'SCOPE FY2027 - data through Oct-2026 - ' + today + ' [filtered].xlsx');
     C.chk('exportExcel says what it wrote, and that it is filtered', res && res.ok === true && res.message.includes(caught[0] && caught[0].name)
       && res.message.includes('filtered') && res.message.includes('Services shown: USAF ANG'), show(res));
     settings.asOf = 'October';

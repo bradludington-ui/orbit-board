@@ -8,7 +8,7 @@
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   if (typeof SP.exportExcel !== 'function') SP.exportExcel = async function () {
     const M = model();
-    const name = SP.download('SFCB Spend Plan FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + today() + (M.shown.all ? '' : ' [filtered]') + '.xlsx',
+    const name = SP.download('SCOPE FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + today() + (M.shown.all ? '' : ' [filtered]') + '.xlsx',
       new Uint8Array([0x50, 0x4b, 0x05, 0x06].concat(new Array(18).fill(0))), 'application/octet-stream');
     return { ok: true, message: 'Wrote “' + name + '” (test stand-in).' };
   };

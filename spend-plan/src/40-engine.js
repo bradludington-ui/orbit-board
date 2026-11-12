@@ -1802,3 +1802,37 @@ SP.diffBae = function diffBae(prev, cur, settings) {
     budgetsUnread: ranked(all.filter(k => unr(k) && differs(k))),
   };
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// THE OVERVIEW (CONTRACT §18). Nothing here is a new figure: every number is one the Summary or a slide block already
+// states, read off the model and added up the way the Summary's own TOTAL is (eng_tot, and eng_baeTot with a report).
+//   fy: a fiscal year the model has a block for, or null/'' for every FY. An FY with no block reads as every FY.
+// -> { fys, fy, rows, total, marks, status: [{status, word, n}], byAp: [{ap, label, approved, share}],
+//      charts: [{key, apLabel, fy, label, months: [{label, v, kind, goal, status}]}] }
+// ---------------------------------------------------------------------------------------------------------------
+SP.overviewOf = function overviewOf(M, fy) {
+  const all = M && M.summary && Array.isArray(M.summary.rows) ? M.summary.rows : [];
+  const fys = [...new Set(all.map(r => r.fy))].sort((a, b) => a - b);
+  const pick = fys.includes(Number(fy)) && fy !== null && fy !== '' ? Number(fy) : null;
+  const rows = pick === null ? all : all.filter(r => r.fy === pick);
+  const rep = !!(M && M.bae && M.bae.present);
+  const total = pick === null ? M.summary.total : rep ? eng_baeTot(eng_tot(rows), rows) : eng_tot(rows);
+  const marks = SP.authMarks(rows, M);
+  const status = SP.STATUS_LEGEND.map(l => ({ status: l.status, word: l.word, n: rows.filter(r => r.status === l.status).length }));
+  const none = rows.filter(r => !SP.STATUS_LEGEND.some(l => l.status === r.status)).length;
+  const byAp = [];
+  for (const a of SP.APS) {
+    const mine = rows.filter(r => r.ap === a.id);
+    if (!mine.length) continue;
+    const approved = eng_sumOf(mine, 'approved');
+    byAp.push({ ap: a.id, label: a.label, approved, share: total.approved !== 0 ? approved / total.approved : null });
+  }
+  const charts = rows.map(b => ({
+    key: b.key, apLabel: b.apLabel, fy: b.fy, label: SP.oblLabel(b, M),
+    months: M.cols.filter(c => c.index >= 1 && c.index <= 12).map(c => {
+      const o = b.obl[c.index] || {}, s = b.statusC[c.index] || {};
+      return { label: c.label, v: o.v === undefined ? null : o.v, kind: o.kind || null, goal: b.goalC[c.index], status: s.status || null };
+    }),
+  }));
+  return { fys, fy: pick, rows, total, marks, status, none, byAp, charts };
+};

@@ -547,7 +547,7 @@ SP.writeXlsx = async function writeXlsx(spec) {
   const names = xw_sheetNames(sheets.map(s => (s && typeof s === 'object') ? s.name : null), N);
   const S = xw_Styles(N), SST = { map: new Map(), byOut: new Map(), odd: new Map(), list: [], count: 0 };
   const sheetXml = sheets.map((sh, i) => xw_sheetXml(sh, names[i], i, S, SST, N));
-  const creator = xw_txt(spec.creator == null ? 'SFCB Spend Plan' : spec.creator, N);
+  const creator = xw_txt(spec.creator == null ? 'SCOPE' : spec.creator, N);
   const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
   const XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
   const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';

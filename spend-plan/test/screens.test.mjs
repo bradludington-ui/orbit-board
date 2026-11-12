@@ -66,6 +66,9 @@ try {
   p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   p.on('dialog', d => { dialogs.push(d.type() + ': ' + d.message()); d.dismiss().catch(() => {}); });
   await p.goto(pageFile('sfcb-spend-plan.html', STATE));
+  // SCOPE opens on the Overview (CONTRACT §18); these checks read the Summary
+  await p.waitForSelector('[data-act=view][data-v=summary]');
+  await p.click('[data-act=view][data-v=summary]');
   await p.waitForSelector('tr[data-bk=total]');
   const text = sel => p.$eval(sel, e => e.textContent).catch(() => null);
   const msg = () => text('#uiMsg');
@@ -279,6 +282,9 @@ try {
   const qd = [];
   q.on('dialog', d => { qd.push(d.type()); d.dismiss().catch(() => {}); });
   await q.goto(pageFile('downloads.html', STATE));
+  // SCOPE opens on the Overview (CONTRACT §18); these checks read the Summary
+  await q.waitForSelector('[data-act=view][data-v=summary]');
+  await q.click('[data-act=view][data-v=summary]');
   await q.waitForSelector('tr[data-bk=total]');
   await q.fill('#uiFirst', '2026'); await q.press('#uiFirst', 'Tab');
   await q.waitForFunction(() => document.getElementById('uiSave').textContent === 'Unsaved changes');

@@ -390,8 +390,8 @@ try {
     const shell = readFileSync(join(HERE, '..', 'src', 'shell.html'), 'utf8');
     C.chk('src/shell.html carries a null state', shell.includes(NULL_TAG));
     C.chk('the page the sources build carries a null state', assemble().includes(NULL_TAG));
-    const built = join(HERE, '..', 'sfcb-spend-plan.html');
-    if (existsSync(built)) C.chk('the built sfcb-spend-plan.html carries a null state', readFileSync(built, 'utf8').includes(NULL_TAG));
+    const built = join(HERE, '..', 'scope.html');
+    if (existsSync(built)) C.chk('the built scope.html carries a null state', readFileSync(built, 'utf8').includes(NULL_TAG));
   }
 
   // ===================================================================== no row limits (§6 item 9)
