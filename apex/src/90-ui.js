@@ -422,6 +422,28 @@ function ui_ovDonut(byAp) {
   });
   return '<svg class="donut" viewBox="0 0 120 120" aria-hidden="true" focusable="false">' + arcs + '</svg>';
 }
+// THE CHARTS, LINED UP (Brad, 12 Nov 2026: "line them up by appropriation and year order. Right now it's hard to find
+// exactly what you really want to see"). One row for each appropriation, in the order every list prints them, and one
+// column for each fiscal year shown, earliest first, so a block is always found at its appropriation's row under its
+// year; a year an appropriation has no block for is an empty place, never closed up. With one year picked the
+// appropriations run down a single column.
+function ui_ovGrid(O, M) {
+  const fys = [...new Set(O.charts.map(c => c.fy))].sort((a, b) => a - b);
+  const head = fys.length > 1 ? fys.map((f, i) => '<div class="ovfyh" style="grid-column:' + (i + 1) + '">FY' + f + '</div>').join('') : '';
+  const rows = SP.APS.map(a => {
+    const mine = O.charts.filter(c => O.rows.find(r => r.key === c.key).ap === a.id).sort((x, y) => x.fy - y.fy);
+    if (!mine.length) return '';
+    return '<h4 class="ovaph" data-ap="' + ui_e(a.id) + '">' + ui_e(a.label) + '</h4>' + mine.map(c => {
+      const b = O.rows.find(r => r.key === c.key), sl = SP.slideOf(b);
+      return '<figure class="ovc" data-bk="' + ui_e(c.key) + '" style="grid-column:' + (fys.indexOf(c.fy) + 1) + '"><figcaption><button type="button" class="ovopen" data-act="view" data-v="'
+        + ui_e(b.ap) + '" data-fkey="ov:' + ui_e(c.key) + '">' + ui_e(c.apLabel) + ' FY' + c.fy + '</button>'
+        + (sl && sl.status ? '<span class="stc st st-' + sl.status + '">' + ui_e(SP.statusWord(sl.status)) + '</span>' : '')
+        + '<span class="ovpct">' + (sl && sl.oblPct !== null && sl.oblPct !== undefined ? ui_e(SP.fmtPct(sl.oblPct)) : '') + '</span></figcaption>' + ui_ovChart(c)
+        + '<p class="ovlab">' + ui_e(c.label) + '</p></figure>';
+    }).join('');
+  }).join('');
+  return '<div class="ovscroll"><div class="ovcharts" data-cols="' + fys.length + '" style="--n:' + Math.max(1, fys.length) + '">' + head + rows + '</div></div>';
+}
 function ui_vOverview(M) {
   const O = SP.overviewOf(M, ui_ovFy(M)), t = O.total, rep = ui_rep(M);
   const seg = '<div class="seg" role="group" aria-label="Fiscal year">' + O.fys.map(f => '<button type="button" data-act="ovfy" data-fy="' + f + '" data-fkey="ovfy:' + f
@@ -460,19 +482,13 @@ function ui_vOverview(M) {
     // plan (§14.3 rule 6), so one block can read two Obligation % and two statuses on this page: said here in the words
     // the Slide blocks view and the Slide Snapshots sheet use (review MC-2)
     + (rep ? '<p class="cardnote bae-plan">' + ui_e(SP.SLIDES_PLAN_NOTE) + ' The tiles and the status counts above are the Summary’s, measured against its Approved.</p>' : '')
-    + '<div class="ovcharts">' + O.charts.map(c => {
-      const b = O.rows.find(r => r.key === c.key), sl = SP.slideOf(b);
-      return '<figure class="ovc" data-bk="' + ui_e(c.key) + '"><figcaption><button type="button" class="ovopen" data-act="view" data-v="' + ui_e(b.ap) + '" data-fkey="ov:' + ui_e(c.key) + '">'
-        + ui_e(c.apLabel) + ' FY' + c.fy + '</button>' + (sl && sl.status ? '<span class="stc st st-' + sl.status + '">' + ui_e(SP.statusWord(sl.status)) + '</span>' : '')
-        + '<span class="ovpct">' + (sl && sl.oblPct !== null && sl.oblPct !== undefined ? ui_e(SP.fmtPct(sl.oblPct)) : '') + '</span></figcaption>' + ui_ovChart(c)
-        + '<p class="ovlab">' + ui_e(c.label) + '</p></figure>';
-    }).join('') + '</div>'
+    + ui_ovGrid(O, M)
     + '<p class="ovleg"><span class="k ka"></span>Actual <span class="k kp"></span>Plan <span class="k kg"></span>OSD goal</p></section>';
   const aps = '<section class="card"><h3>Approved by appropriation' + (O.fy === null ? '' : ', FY' + O.fy) + '</h3><div class="ovap">' + ui_ovDonut(O.byAp)
     + '<table class="ovaps"><tbody>' + O.byAp.map(a => '<tr data-ap="' + ui_e(a.ap) + '"><th scope="row"><span class="k" style="background:'
       + UI_OV_AP[SP.APS.findIndex(x => x.id === a.ap) % UI_OV_AP.length] + '"></span>' + ui_e(a.label) + '</th><td class="n" data-c="' + a.approved + '">' + ui_e(SP.fmtMText(a.approved)) + (a.sect ? ui_markSpan('§', M) : '')
       + '</td><td class="n">' + (a.share === null ? '' : ui_e(SP.fmtPct(a.share))) + '</td></tr>').join('') + '</tbody></table></div></section>';
-  return head + tiles + status + '<div class="ovnotes">' + ui_markNotes(O.marks, M) + staleNote + '</div><div class="ovtwo">' + charts + aps + '</div>';
+  return head + tiles + status + '<div class="ovnotes">' + ui_markNotes(O.marks, M) + staleNote + '</div><div class="ovtwo' + (new Set(O.charts.map(c => c.fy)).size > 2 ? ' ovwide' : '') + '">' + charts + aps + '</div>';
 }
 
 function ui_quarter(M) { return Math.ceil(M.asOfIndex / 3); }

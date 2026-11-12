@@ -189,7 +189,8 @@ The views are in the menu down the left side (a row across the top in a narrow w
 - **Overview** works out nothing of its own. Its tiles are the Summary's Approved, Authorized, Obligated and Unobligated
   for the fiscal year you pick at its top right (or **All**), added up as the Summary's TOTAL is, with the same marks.
   Its status counts are the Summary's rows. Each small chart is one slide block's Obligation % and OSD goal by month: an
-  actual through the Data through month, the plan after. A chart's name opens that appropriation.
+  actual through the Data through month, the plan after. The charts are lined up: a row for each
+  appropriation, a column for each fiscal year. A chart's name opens that appropriation.
 - A row with no status is counted one of two ways: **with no Obligation %** (its Approved is zero for what is shown, so
   there is nothing to hold against its OSD goal) or **with no OSD goal** (its money is for a later year). A chart with
   nothing in Oct to Sep says so, and names the slide block's column its plan is in.

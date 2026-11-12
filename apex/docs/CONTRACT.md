@@ -1580,6 +1580,11 @@ for the file name and the workbook's titles, and *"Stay consistent with what we'
   - **With a BAE report** the tiles and the status counts are the Summary's (the report's Approved) and the charts the
     slide blocks' (the CCaR plan), so one block can read two Obligation % and two statuses on the page. The chart card
     says so in `SP.SLIDES_PLAN_NOTE`'s words (review MC-2).
+  - **The charts are lined up** (Brad, 12 Nov 2026: *"line them up by appropriation and year order. Right now it's hard
+    to find exactly what you really want to see"*): a row for each appropriation, in the order every list prints them,
+    under its name; a column for each fiscal year shown, earliest first, under its heading. A year an appropriation has
+    no block for is an empty place, never closed up. With three years or more the charts take the whole width and
+    Approved by appropriation goes beneath; a window too narrow for the columns scrolls the charts inside their card.
   - **Approved by appropriation**: each appropriation's Approved and its share, with § where a row of it carries §
     (§14.5, review MC-3); the ring is drawn only when every share is above zero.
   - **A stale pull** (§4.6) among the rows shown is named under the tiles with its import day, as the Summary's note

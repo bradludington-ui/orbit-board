@@ -125,6 +125,20 @@ try {
       C.chk('FY ' + f + ': the status counts are the Summary’s rows', words.every(w => [...m.querySelectorAll('.ovstatus .stc')].some(s => s.textContent === mine.filter(r => r.st === w).length + ' ' + w))
         && [...m.querySelectorAll('.ovstatus .stc')].reduce((s, e) => s + parseInt(e.textContent, 10), 0) === mine.length, m.querySelector('.ovstatus').textContent);
       C.eq('FY ' + f + ': one chart per block', [...m.querySelectorAll('.ovc')].map(x => x.getAttribute('data-bk')), mine.map(r => r.k));
+      // the charts are lined up: a row for each appropriation in the order every list prints them, a column for each FY
+      {
+        const fys = [...new Set(mine.map(r => Number(r.k.split('|')[1])))].sort((x, y) => x - y);
+        const AP = { om: 'O&M', ff: 'Full Fund', sp: 'Initial Spares', opn: 'OPN' };
+        const seq = [...m.querySelectorAll('.ovcharts > *')].map(e => (e.classList.contains('ovfyh') ? 'fy:' + e.textContent + '@' + e.getAttribute('style')
+          : e.classList.contains('ovaph') ? 'ap:' + e.textContent : 'c:' + e.getAttribute('data-bk') + '@' + e.getAttribute('style')));
+        const want = (fys.length > 1 ? fys.map((y, i) => 'fy:FY' + y + '@grid-column:' + (i + 1)) : []).concat(['om', 'ff', 'sp', 'opn'].flatMap(a => {
+          const ks = mine.filter(r => r.k.startsWith(a + '|')).map(r => r.k).sort((x, y) => Number(x.split('|')[1]) - Number(y.split('|')[1]));
+          return ks.length ? ['ap:' + AP[a]].concat(ks.map(k => 'c:' + k + '@grid-column:' + (fys.indexOf(Number(k.split('|')[1])) + 1))) : [];
+        }));
+        C.eq('FY ' + f + ': the charts are lined up, a row for each appropriation and a column for each fiscal year', seq, want);
+        C.chk('FY ' + f + ': the grid has a column for each fiscal year shown', m.querySelector('.ovcharts').getAttribute('data-cols') === String(fys.length)
+          && m.querySelector('.ovtwo').classList.contains('ovwide') === (fys.length > 2));
+      }
     }
     C.eq('every FY: the tiles are the Summary’s TOTAL row', ['approved', 'authorized', 'obligated', 'unobligated'].map(k => tile(m, k)), sum.find(r => r.k === 'total').c);
     C.eq('every FY, worked by hand: 13.0M, 13.0M, 5.0M, 8.0M', ['approved', 'authorized', 'obligated', 'unobligated'].map(k => tile(m, k)), [D(13e6), D(13e6), D(5e6), D(8e6)]);

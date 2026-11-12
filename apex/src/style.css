@@ -249,7 +249,15 @@ main.ov .dag,main.ov .ddag,main.ov .sect{color:var(--gold);font-size:15px}
 .ovtwo{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}
 .card h3{margin:0 0 4px;font-size:14px}
 .cardnote{margin:0 0 8px;font-size:12px}
-.ovcharts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+/* the charts lined up: a row for each appropriation, a column for each fiscal year (§18.3). With three years or more the
+   charts take the page's whole width and Approved by appropriation goes beneath; a window too narrow for the columns
+   scrolls the charts sideways inside their card, never the page. */
+.ovtwo.ovwide{grid-template-columns:minmax(0,1fr)}
+.ovscroll{overflow-x:auto}
+.ovcharts{display:grid;grid-template-columns:repeat(var(--n,1),minmax(190px,1fr));gap:8px 10px;align-items:start}
+.ovcharts[data-cols="1"]{grid-template-columns:minmax(0,560px)}
+.ovfyh{font-weight:700;font-size:13px;text-align:center;color:var(--sink);padding:2px 0;border-bottom:1px solid var(--sline)}
+.ovaph{grid-column:1/-1;margin:6px 0 0;font-size:13px;font-weight:700;color:#9fd0ff}
 .ovc{margin:0;padding:8px;border:1px solid var(--sline);border-radius:8px;background:#081426;min-width:0}
 .ovc figcaption{display:flex;align-items:center;gap:8px;margin-bottom:2px}
 main.ov .ovopen{border:0;background:none;padding:2px 0;font-weight:700;color:#9fd0ff;text-decoration:underline}
