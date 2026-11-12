@@ -188,6 +188,13 @@ The views are in the menu down the left side (a row across the top in a narrow w
   for the fiscal year you pick at its top right (or **All**), added up as the Summary's TOTAL is, with the same marks.
   Its status counts are the Summary's rows. Each small chart is one slide block's Obligation % and OSD goal by month: an
   actual through the Data through month, the plan after. A chart's name opens that appropriation.
+- A row with no status is counted one of two ways: **with no Obligation %** (its Approved is zero for what is shown, so
+  there is nothing to hold against its OSD goal) or **with no OSD goal** (its money is for a later year). A chart with
+  nothing in Oct to Sep says so, and names the slide block's column its plan is in.
+- With a BAE report loaded, the tiles and the status counts measure the report's Approved, as the Summary does, and each
+  chart measures the CCaR plan, as its slide block does. One block can then show two Obligation % on the page; the chart
+  card says so, and Approved by appropriation marks § where a figure is the CCaR plan.
+- Printed, the Overview is dark ink on white with each chart's name, its colour keys and its status colours.
 - The Overview is drawn in SCOPE's dark colours. Every other view is on a light sheet in v12's colours, so the screen
   matches the workbook and the slide pictures.
 

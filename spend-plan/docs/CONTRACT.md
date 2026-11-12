@@ -1544,7 +1544,14 @@ for the file name and the workbook's titles, and *"Stay consistent with what we'
   narrower the menu is a row above the view. The menu is not printed.
 - The frame is dark. **Every view but the Overview is on a light sheet in v12's colours** (`main.sheet`), unchanged, so
   the screen still matches the workbook and the slide pictures, which do not change at all.
-- At 1366 px wide a tree opened to CCaR keeps its full width beside the menu (review S6 holds).
+- At 1366 px wide a tree opened to CCaR keeps its full width beside the menu (review S6 holds), **with a 15 px
+  scrollbar drawn**: up to 1400 px the menu is 118 px and the sheet's margins are tighter (review UX-1; the menu was
+  144 px at every width, which left a tree 1177 px against trees that run to 1195 px).
+- At 900 px and narrower the Overview, the switches and the sheet keep 8 px off the window's left edge, as off its right
+  (reviews RF-2, UX-4).
+- **Printed**, the Overview is dark ink on white. Each chart keeps its name (every other button is left off), the tiles'
+  lower lines and the switch-off line clear 4.5:1, the bars 3:1, and the colour keys and status fills are kept
+  (`print-color-adjust: exact`) (reviews UX-2, UX-3).
 
 ### 18.3 The Overview
 
@@ -1555,13 +1562,25 @@ for the file name and the workbook's titles, and *"Stay consistent with what we'
   - **Tiles**: Approved, Authorized, Obligated and Unobligated of those rows, added up as the Summary's TOTAL is (for
     every FY it is that TOTAL), printed in $M as the tables print it, with § † ‡ where the rows carry them and each
     mark's line beneath. Authorized and Obligated say their share of Approved.
-  - **Status**: how many of those rows read each status word, and how many have no OSD goal.
+  - **Status**: how many of those rows read each status word. A row with no status word is counted one of two ways,
+    never both (review MC-1): **with no OSD goal** (its goal is blank: money for a later year) or **with no
+    Obligation %** (it has a goal and its Approved is zero for what is shown, §4.5).
   - **Charts**: one per block shown. Bars are the block's Obligation % by month, Oct to Sep (an actual in a closed month,
     the plan after: the slide block's own row, on the CCaR plan even where a BAE report covers the block, §14.3); the
     line is its OSD goal. Its caption is the slide block's own label, Obligation % and status. Its name opens the
-    appropriation.
-  - **Approved by appropriation**: each appropriation's Approved and its share; the ring is drawn only when every
-    share is above zero.
+    appropriation. A chart with no month above zero and no goal says *Nothing obligated or planned in Oct to Sep, and
+    no OSD goal*, and the block's Obligation % in the slide block's next-year column when that is not zero (review
+    RF-1). The sentence above the charts names the Data through month, or, where a pull shown is stale (§4.6), leaves
+    it to each chart's label, which names the import (review MC-5).
+  - **With a BAE report** the tiles and the status counts are the Summary's (the report's Approved) and the charts the
+    slide blocks' (the CCaR plan), so one block can read two Obligation % and two statuses on the page. The chart card
+    says so in `SP.SLIDES_PLAN_NOTE`'s words (review MC-2).
+  - **Approved by appropriation**: each appropriation's Approved and its share, with § where a row of it carries §
+    (§14.5, review MC-3); the ring is drawn only when every share is above zero.
+  - **A stale pull** (§4.6) among the rows shown is named under the tiles with its import day, as the Summary's note
+    names it (review MC-5).
+  - A picked FY the plan no longer has a row for (First FY moved, a new import) falls back as the page opens: the
+    execution year when it has a row, else every FY.
 - It follows the switches as the Summary does, and says what is shown.
 - Expenditures are not shown: neither the CCaR pull nor the BAE report carries them.
 
@@ -1570,6 +1589,10 @@ for the file name and the workbook's titles, and *"Stay consistent with what we'
 - `test/overview.test.mjs`: a small invented plan with every figure worked by hand (with and without a BAE report), and
   the Overview held to the Summary view of the same page for each choice of FY; the menu, the name, the light sheet, the
   two ways out, a switch off.
+- `test/scope-review.test.mjs` (Chromium, with a real scrollbar): the trees at 1366 px, the gutter at 900 and 600 px,
+  the printed Overview's names, contrast and colour keys, and a chart with nothing to draw. `overview.test.mjs` also
+  holds each rule a planted mistake once passed (review MC-7): the two no-status counts, ‡, a dropped FY, a stale
+  label, a bar above 100%, the two status readings with a report, the goal by month, a negative share.
 - Tests that read the Summary in Chromium open it first. Comparisons with builds before the rename read the older
   build's creator as SCOPE and compare what the top says, not its frame.
 

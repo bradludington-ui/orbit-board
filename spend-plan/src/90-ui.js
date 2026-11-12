@@ -397,8 +397,15 @@ function ui_ovChart(c) {
     if (typeof m.goal === 'number' && isFinite(m.goal)) pts.push([(x + step / 2).toFixed(1), y(m.goal).toFixed(1)]);
     g += '<text class="ax" x="' + (x + step / 2).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + ui_e(m.label.slice(0, 1)) + '</text>';
   });
+  // NOTHING TO DRAW. A block for a year after the execution year has its whole plan in the slide block's next-year column,
+  // so every month here is 0.00% and it has no OSD goal: the chart was an empty plot under "plan after", beside a caption
+  // that could read 80% (review RF-1). The plot says so, and where the plan is, in the slide block's own column name.
+  const empty = !pts.length && !c.months.some(m => typeof m.v === 'number' && isFinite(m.v) && m.v !== 0);
+  const why = empty ? ['Nothing obligated or planned', 'in ' + c.months[0].label + ' to ' + c.months[c.months.length - 1].label + ', and no OSD goal',
+    c.later && c.later.v !== 0 ? 'Obligation % in the ' + c.later.label + ' column: ' + SP.fmtPct(c.later.v) : ''].filter(Boolean) : [];
+  why.forEach((w, i) => { g += '<text class="ovnone" x="' + (L + pw / 2) + '" y="' + (T + ph / 2 - 12 + i * 14) + '" text-anchor="middle">' + ui_e(w) + '</text>'; });
   if (pts.length) g += '<polyline class="gline" points="' + pts.map(p => p.join(',')).join(' ') + '"/>' + pts.map(p => '<circle class="gdot" cx="' + p[0] + '" cy="' + p[1] + '" r="2"/>').join('');
-  return '<svg class="ovsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + ui_e(c.apLabel + ' FY' + c.fy + ': Obligation % by month against the OSD goal') + '">' + g + '</svg>';
+  return '<svg class="ovsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + ui_e(c.apLabel + ' FY' + c.fy + ': Obligation % by month against the OSD goal' + (why.length ? '. ' + why[0] + ' ' + why.slice(1).join('. ') : '')) + '">' + g + '</svg>';
 }
 function ui_ovDonut(byAp) {
   if (!byAp.length || byAp.some(a => !(a.approved > 0))) return '';
@@ -429,12 +436,27 @@ function ui_vOverview(M) {
     + ui_ovTile('unobligated', 'Unobligated ($M)', t.unobligated, '', 'Approved - Obligated', M)
     + '</div>';
   const n = O.rows.length;
+  // a pull imported before the data-through month ended (§4.6): the Summary names it in a note; the Overview had none
+  // beside "Data through" and the Obligated tile (review MC-5)
+  const staleNote = !O.stale.length ? '' : '<p class="note ovstale">Imported before the end of ' + ui_e(M.asOfLabel) + ', the data-through month: '
+    + ui_e(O.stale.map(s => s.label + ' ' + s.day).join('; ')) + '. Actual obligations stop at that import, while goals and statuses are read at '
+    + ui_e(M.asOfLabel) + '; each chart’s label names the import.</p>';
   const status = '<div class="ovstatus" data-tile="status"><span class="tl">Status of ' + n + (n === 1 ? ' block' : ' blocks') + '</span>'
     + O.status.map(s => '<span class="stc st st-' + s.status + '" data-st="' + s.status + '">' + s.n + ' ' + ui_e(s.word) + '</span>').join('')
-    + (O.none ? '<span class="stc stn" data-st="none">' + O.none + ' with no OSD goal</span>' : '')
+    // two reasons a row has no status word, said apart (review MC-1): "no OSD goal" over a row whose Approved was zero
+    // contradicted the Summary, which prints that row's goal
+    + (O.noPct ? '<span class="stc stn" data-st="nopct" title="Approved is zero for what is shown, so there is no Obligation % to hold against the OSD goal">' + O.noPct + ' with no Obligation %</span>' : '')
+    + (O.noGoal ? '<span class="stc stn" data-st="none">' + O.noGoal + ' with no OSD goal</span>' : '')
     + '<button type="button" data-act="view" data-v="summary" data-fkey="ov:summary">Open the Summary</button></div>';
   const charts = '<section class="card"><h3>Obligation % against the OSD goal, by month</h3>'
-    + '<p class="cardnote">Each block as its slide block states it: an actual through ' + ui_e(M.cols[M.asOfIndex].label) + ', the plan after. Bars are Obligation %; the line is the OSD goal.</p>'
+    // "an actual through Nov" over a pull imported on 9 November was untrue, above labels that said so (review MC-5):
+    // where a pull shown is stale the sentence leaves the month to each chart's own label (SP.oblLabel, §4.6)
+    + '<p class="cardnote">Each block as its slide block states it: an actual through '
+    + (O.stale.length ? 'the month or import its label names' : ui_e(M.cols[M.asOfIndex].label)) + ', the plan after. Bars are Obligation %; the line is the OSD goal.</p>'
+    // with a BAE report the tiles and the status counts above measure the report's Approved and these charts the CCaR
+    // plan (§14.3 rule 6), so one block can read two Obligation % and two statuses on this page: said here in the words
+    // the Slide blocks view and the Slide Snapshots sheet use (review MC-2)
+    + (rep ? '<p class="cardnote bae-plan">' + ui_e(SP.SLIDES_PLAN_NOTE) + ' The tiles and the status counts above are the Summary’s, measured against its Approved.</p>' : '')
     + '<div class="ovcharts">' + O.charts.map(c => {
       const b = O.rows.find(r => r.key === c.key), sl = SP.slideOf(b);
       return '<figure class="ovc" data-bk="' + ui_e(c.key) + '"><figcaption><button type="button" class="ovopen" data-act="view" data-v="' + ui_e(b.ap) + '" data-fkey="ov:' + ui_e(c.key) + '">'
@@ -445,9 +467,9 @@ function ui_vOverview(M) {
     + '<p class="ovleg"><span class="k ka"></span>Actual <span class="k kp"></span>Plan <span class="k kg"></span>OSD goal</p></section>';
   const aps = '<section class="card"><h3>Approved by appropriation' + (O.fy === null ? '' : ', FY' + O.fy) + '</h3><div class="ovap">' + ui_ovDonut(O.byAp)
     + '<table class="ovaps"><tbody>' + O.byAp.map(a => '<tr data-ap="' + ui_e(a.ap) + '"><th scope="row"><span class="k" style="background:'
-      + UI_OV_AP[SP.APS.findIndex(x => x.id === a.ap) % UI_OV_AP.length] + '"></span>' + ui_e(a.label) + '</th><td class="n" data-c="' + a.approved + '">' + ui_e(SP.fmtMText(a.approved))
+      + UI_OV_AP[SP.APS.findIndex(x => x.id === a.ap) % UI_OV_AP.length] + '"></span>' + ui_e(a.label) + '</th><td class="n" data-c="' + a.approved + '">' + ui_e(SP.fmtMText(a.approved)) + (a.sect ? ui_markSpan('§', M) : '')
       + '</td><td class="n">' + (a.share === null ? '' : ui_e(SP.fmtPct(a.share))) + '</td></tr>').join('') + '</tbody></table></div></section>';
-  return head + tiles + status + '<div class="ovnotes">' + ui_markNotes(O.marks, M) + '</div><div class="ovtwo">' + charts + aps + '</div>';
+  return head + tiles + status + '<div class="ovnotes">' + ui_markNotes(O.marks, M) + staleNote + '</div><div class="ovtwo">' + charts + aps + '</div>';
 }
 
 function ui_quarter(M) { return Math.ceil(M.asOfIndex / 3); }
@@ -1263,6 +1285,10 @@ function ui_vHelp() {
       + 'Unobligated for the fiscal year picked (or every FY), added up as the Summary’s TOTAL is, with the same marks; its status counts are the Summary’s '
       + 'rows; and each small chart is a slide block’s own Obligation % and OSD goal by month, an actual through the Data through month and the plan after.',
       'Pick a fiscal year, or All, at its top right. A chart’s name opens that appropriation; Open the Summary opens the Summary.',
+      'A row with no status is counted one of two ways: <strong>with no Obligation %</strong> (its Approved is zero for what is shown, so there is nothing to hold against its OSD goal) '
+      + 'or <strong>with no OSD goal</strong> (its money is for a later year). A chart with nothing in Oct to Sep says so, and names the slide block’s column its plan is in.',
+      'With a BAE report loaded, the tiles and the status counts measure the report’s Approved, as the Summary does, and each chart measures the CCaR plan, as its slide block does: '
+      + 'one block can show two Obligation % on this page, and the chart card says so.',
     ])
     + '<h3 class="sub">The figures</h3>' + li([
       '<strong>Columns:</strong> Prior Yr (dated before the execution year), Oct to Sep of the execution year, the next-year column, and No date. Total is the sum of all of them.',

@@ -63,7 +63,9 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);col
    in a narrow window it is a row above the view. */
 .shell{display:flex;align-items:flex-start;min-width:0}
 .content{flex:1 1 0;min-width:0}
-/* 144px and the sheet's narrow margins leave a tree opened to CCaR its full width at 1366 px, a scrollbar included */
+/* 144px beside the sheet. At 1400 px and narrower the menu and the sheet's margins are tighter (the rule is at the end
+   of the screen rules): at 1366 px with a 15 px scrollbar, 144px left a tree 1177 px, and trees opened to CCaR run to
+   1195 px, so three of the fixture's lost their right-hand column to a box of their own (review UX-1) */
 nav.views{flex:0 0 144px;display:flex;flex-direction:column;gap:2px;padding:10px 6px;position:sticky;top:var(--topH, 96px);
   max-height:calc(100vh - var(--topH, 96px) - var(--cuiH));overflow-y:auto}
 nav.views[hidden]{display:none}
@@ -258,6 +260,7 @@ main.ov .ovopen:hover{background:none;color:#fff}
 .ovsvg .bp{fill:rgba(63,155,255,.32);stroke:var(--sblue);stroke-width:1;stroke-dasharray:3 2}
 .ovsvg .gline{fill:none;stroke:#fff;stroke-width:1.5}
 .ovsvg .gdot{fill:#fff}
+.ovsvg .ovnone{fill:var(--sink);font-size:11px}
 .ovlab{margin:2px 0 0;font-size:11px;overflow-wrap:anywhere}
 .ovleg{margin:8px 0 0;font-size:12px;color:var(--smut)}
 .k{display:inline-block;width:11px;height:11px;border-radius:2px;margin:0 5px 0 12px;vertical-align:-1px}
@@ -273,6 +276,21 @@ main.ov .ovopen:hover{background:none;color:#fff}
 .ovaps tr+tr th,.ovaps tr+tr td{border-top:1px solid var(--sline)}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.ovtwo{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
+/* THE FRAME IN A NARROWER WINDOW (§18.2). Up to 1400 px the menu is 118px and the sheet's margins are tighter, so a tree
+   opened to CCaR keeps its full width beside the menu at 1366 px, a 15 px scrollbar included (review UX-1). */
+@media (max-width:1400px){
+  nav.views{flex-basis:118px;padding:10px 4px}
+  nav.views button{padding:6px 7px}
+  main.sheet{margin-right:4px;padding-left:6px;padding-right:6px}
+}
+/* at 900 px and narrower the menu is a row above the view and no longer supplies the left gutter: the Overview, the
+   switches and the sheet touched the window's left edge while the right kept 8 px (reviews RF-2, UX-4) */
+@media (max-width:900px){
+  nav.views{flex-basis:auto;padding:6px 10px}
+  nav.views button{padding:6px 10px}
+  .filters,main.sheet{margin-left:8px;margin-right:8px}
+  main.ov{padding-left:8px}
+}
 
 /* PRINTED, every page carries the CUI marking at its top and its bottom (§6 item 14). The two lines in the page are
    printed once each, at the start and the end of the document, so a view printed with Ctrl+P had pages of CUI figures
@@ -285,7 +303,10 @@ main.ov .ovopen:hover{background:none;color:#fff}
    nowhere what month its actuals ran to (review SCR2-2). This line says it on paper only. */
 .printhead{display:none}
 @media print{
-  header.top,.filters,.slidebtns,.acts,nav.views,main.ov button{display:none}
+  /* a chart's name is a button on screen and its only name: hidden with the other buttons, the printed charts could
+     not be told apart (review UX-2). It prints as plain words. */
+  header.top,.filters,.slidebtns,.acts,nav.views,main.ov button:not(.ovopen){display:none}
+  main.ov .ovopen,main.ov .ovopen:hover{color:#000;text-decoration:none}
   /* paper is white: the shell's dark frame is not printed, and the Overview prints dark words on white */
   body{background:#fff}
   .shell{display:block}
@@ -294,6 +315,13 @@ main.ov .ovopen:hover{background:none;color:#fff}
   .ovc{background:#fff}
   .ovsvg .gline{stroke:#000}.ovsvg .gdot{fill:#000}.kg{background:#000}
   main.ov .dag,main.ov .ddag,main.ov .sect{color:#7a5a00}
+  /* colours fixed for the dark frame were left on white paper at 1.5:1, and the keys and status fills are backgrounds,
+     which a browser drops from print unless told to keep them (review UX-3) */
+  .ts{color:#333}
+  .shownline.filtered,.ovshown.filtered{color:#8a3a00}
+  .ovsvg .ba{fill:#0b6f67}.ka{background:#0b6f67}
+  .ovsvg .bp{fill:rgba(31,58,104,.14);stroke:#1F3A68}.kp{background:rgba(31,58,104,.14);border-color:#1F3A68}
+  main.ov .k,main.ov .stc,.ovsvg,.donut{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .cui{position:static}
   /* a column the window's height is a page's height on paper: the Summary printed a blank second page */
   body{display:block;min-height:0}

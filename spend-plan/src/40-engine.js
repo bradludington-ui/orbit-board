@@ -1807,8 +1807,13 @@ SP.diffBae = function diffBae(prev, cur, settings) {
 // THE OVERVIEW (CONTRACT §18). Nothing here is a new figure: every number is one the Summary or a slide block already
 // states, read off the model and added up the way the Summary's own TOTAL is (eng_tot, and eng_baeTot with a report).
 //   fy: a fiscal year the model has a block for, or null/'' for every FY. An FY with no block reads as every FY.
-// -> { fys, fy, rows, total, marks, status: [{status, word, n}], byAp: [{ap, label, approved, share}],
-//      charts: [{key, apLabel, fy, label, months: [{label, v, kind, goal, status}]}] }
+// -> { fys, fy, rows, total, marks, status: [{status, word, n}], noGoal, noPct, none, stale,
+//      byAp: [{ap, label, approved, sect, share}],
+//      charts: [{key, apLabel, fy, label, months: [{label, v, kind, goal, status}], later: {label, v} | null}] }
+// A row with no status word is one of two things, and they are counted apart (review MC-1): it has no OSD goal (its
+// money is for a later year), or it has a goal and no Obligation % to hold against it, because its Approved is zero
+// (a service or lane switched off, §4.5). "N with no OSD goal" over both said a row had no goal beside a Summary that
+// printed its goal.
 // ---------------------------------------------------------------------------------------------------------------
 SP.overviewOf = function overviewOf(M, fy) {
   const all = M && M.summary && Array.isArray(M.summary.rows) ? M.summary.rows : [];
@@ -1819,20 +1824,28 @@ SP.overviewOf = function overviewOf(M, fy) {
   const total = pick === null ? M.summary.total : rep ? eng_baeTot(eng_tot(rows), rows) : eng_tot(rows);
   const marks = SP.authMarks(rows, M);
   const status = SP.STATUS_LEGEND.map(l => ({ status: l.status, word: l.word, n: rows.filter(r => r.status === l.status).length }));
-  const none = rows.filter(r => !SP.STATUS_LEGEND.some(l => l.status === r.status)).length;
+  const bare = rows.filter(r => !SP.STATUS_LEGEND.some(l => l.status === r.status));
+  const noGoal = bare.filter(r => r.goal === null || r.goal === undefined).length, noPct = bare.length - noGoal, none = bare.length;
+  // the pulls among these rows that were imported before the data-through month ended (§4.6), as the Summary names them
+  const stale = (Array.isArray(M.stale) ? M.stale : []).filter(s => rows.some(r => r.ap === s.ap));
   const byAp = [];
   for (const a of SP.APS) {
     const mine = rows.filter(r => r.ap === a.id);
     if (!mine.length) continue;
     const approved = eng_sumOf(mine, 'approved');
-    byAp.push({ ap: a.id, label: a.label, approved, share: total.approved !== 0 ? approved / total.approved : null });
+    // § beside an appropriation's Approved when a row of it carries §, as the Summary's TOTAL does (§14.5, review MC-3)
+    byAp.push({ ap: a.id, label: a.label, approved, sect: SP.authMarks(mine, M).sect, share: total.approved !== 0 ? approved / total.approved : null });
   }
+  // `later`: the slide block's own next-year column, read only so a chart with nothing in Oct to Sep can say where the
+  // block's plan is (review RF-1); it is never drawn as a bar
+  const nx = M.cols.find(c => c.index === ENG_NEXT);
   const charts = rows.map(b => ({
     key: b.key, apLabel: b.apLabel, fy: b.fy, label: SP.oblLabel(b, M),
+    later: nx && b.obl[nx.index] && typeof b.obl[nx.index].v === 'number' ? { label: nx.label, v: b.obl[nx.index].v } : null,
     months: M.cols.filter(c => c.index >= 1 && c.index <= 12).map(c => {
       const o = b.obl[c.index] || {}, s = b.statusC[c.index] || {};
       return { label: c.label, v: o.v === undefined ? null : o.v, kind: o.kind || null, goal: b.goalC[c.index], status: s.status || null };
     }),
   }));
-  return { fys, fy: pick, rows, total, marks, status, none, byAp, charts };
+  return { fys, fy: pick, rows, total, marks, status, noGoal, noPct, none, stale, byAp, charts };
 };
