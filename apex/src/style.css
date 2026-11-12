@@ -1,0 +1,331 @@
+/* APEX (until November 2026 the SFCB Spend Plan) dashboard: the page look (CONTRACT §9, §18). The frame is APEX's dark
+   shell; every table is on a light sheet in v12's colours: navy 1F3A68 bars, gold FFE699 header rows with
+   a 404040 box, thin 808080 grid, PMO-tab bars 305496 with BDD7EE strips, closed months F2F2F2, and a status that is
+   always its colour AND its word. Nothing here is loaded from anywhere: the CSP allows no font or stylesheet but this. */
+:root{
+  --navy:#1F3A68; --navy2:#305496; --strip:#BDD7EE; --gold:#FFE699; --box:#404040; --grid:#808080; --closed:#F2F2F2;
+  --green:#00B050; --yellow:#FFD700; --red:#C00000; --plan:#595959; --focus:#E46C0A; --line:#c8d0dc; --soft:#eef2f8;
+  --cuiH:20px;
+  /* the APEX shell (§18) */
+  --sbg:#040a16; --sbg2:#081426; --spanel:#0c1b31; --spanel2:#10233f; --sline:#1c3557; --sedge:#4f6f9c; --sink:#eaf2fc; --smut:#a9bdd8;
+  --steal:#2fd6c8; --sblue:#3f9bff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;
+  /* the keyboard's place is never under the sticky top or the bottom CUI line (WCAG 2.2 2.4.11, review S5): --topH and
+     --theadH are what they cover, measured by the screens (90-ui.js ui_layout) as the top grows and shrinks */
+  scroll-padding-top:calc(var(--topH, 140px) + var(--theadH, 0px) + 8px);scroll-padding-bottom:calc(var(--cuiH) + 8px)}
+/* a column at least the window's height, so on a short view the bottom CUI line sits at the bottom, not mid-screen */
+body{margin:0;background:var(--sbg);color:#111;font:13px/1.35 Calibri,Carlito,"Segoe UI",Arial,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column}
+#app{flex:1 0 auto;min-width:0}
+
+/* the CUI marking stays on screen at the top and the bottom whatever is scrolled (§6 item 14) */
+.cui{position:sticky;z-index:40;height:var(--cuiH);line-height:var(--cuiH);text-align:center;font-weight:700;font-size:12px;
+  letter-spacing:.04em;background:#fff;color:#000;border-color:#000;border-style:solid;border-width:0}
+.cui-top{top:0;border-bottom-width:1px}
+.cui-bottom{bottom:0;border-top-width:1px}
+.boot-note{padding:16px;color:#d3e0f2}
+
+/* the top bar: sticky under the CUI line, so Save, the save state and the views never scroll away */
+header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);color:var(--sink);border-bottom:1px solid var(--sline);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.bar1{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:7px 14px;background:linear-gradient(180deg,#0b1a31,var(--sbg2));color:var(--sink)}
+.brand{margin:0;font-size:20px;font-weight:800;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;letter-spacing:.03em}
+.brand .mark{width:26px;height:26px;color:var(--steal);flex:none}
+.brand .bs{font-size:13px;font-weight:400;letter-spacing:0;color:var(--smut);padding-left:9px;border-left:1px solid var(--sedge)}
+.brand .ey{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--steal);background:#0c3a3a;color:#d6fbf6;font-size:12px;font-weight:700;letter-spacing:0}
+.brand .ey:empty{display:none}
+.bar1 .fld{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600}
+.bar1 input{font:inherit;font-weight:400;padding:2px 4px;border:1px solid var(--sedge);border-radius:4px;color:#111;background:#fff}
+.bar1 input[type=number]{width:5.2em}
+.bar1 input:disabled{background:#c9d1de;color:#555}
+.bar1 .grow{flex:1 1 0;min-width:0}
+.bar1 button{font:inherit;font-weight:600;padding:3px 10px;border:1px solid var(--sedge);border-radius:6px;background:#0e2140;color:var(--sink);cursor:pointer;white-space:nowrap}
+.bar1 button:hover{background:var(--gold);color:#000}
+.bar1 button[aria-pressed=true]{background:var(--gold);color:#000}
+.savest{font-weight:700;white-space:nowrap;padding:2px 8px;border-radius:3px}
+.savest.clean{color:#fff;border:1px solid rgba(255,255,255,.6)}
+.savest.dirty{color:#000;background:var(--gold)}
+.pulls{padding:2px 14px;font-size:12px;color:var(--smut);background:#071223;border-top:1px solid var(--sline);overflow-wrap:anywhere}
+.pulls .d{font-variant-numeric:tabular-nums}
+.msgrow{display:flex;align-items:flex-start}
+.msg{flex:1 1 auto;min-width:0;padding:0 12px;font-size:13px;overflow-wrap:anywhere}
+.msgx{flex:0 0 auto;margin:3px 12px 3px 6px;font:inherit;font-size:12px;font-weight:600;padding:1px 8px;border:1px solid var(--navy);border-radius:3px;/* on a message's light fill */
+  background:#fff;color:var(--navy);cursor:pointer;white-space:nowrap}
+.msgx:hover{background:var(--gold);color:#000}
+.msg-info,.msg-ok,.msg-warn,.msg-err{padding:4px 12px;border-left:5px solid}
+.msg-info{background:var(--soft);border-color:var(--navy2);color:#111}
+.msg-ok{color:#111}
+.msg-ok{background:#e9f6ec;border-color:var(--green)}
+.msg-err{background:#fde9e7;border-color:var(--red);color:#7a0000;font-weight:600}
+.msg-warn{background:#fff6d6;border-color:#b07d00;color:#4a3600;font-weight:600}
+/* the shell: the views in a menu down the left, the view beside it (§18). The menu stays on screen under the sticky top;
+   in a narrow window it is a row above the view. */
+.shell{display:flex;align-items:flex-start;min-width:0}
+.content{flex:1 1 0;min-width:0}
+/* 144px beside the sheet. At 1400 px and narrower the menu and the sheet's margins are tighter (the rule is at the end
+   of the screen rules): at 1366 px with a 15 px scrollbar, 144px left a tree 1177 px, and trees opened to CCaR run to
+   1195 px, so three of the fixture's lost their right-hand column to a box of their own (review UX-1) */
+nav.views{flex:0 0 144px;display:flex;flex-direction:column;gap:2px;padding:10px 6px;position:sticky;top:var(--topH, 96px);
+  max-height:calc(100vh - var(--topH, 96px) - var(--cuiH));overflow-y:auto}
+nav.views[hidden]{display:none}
+nav.views button{font:inherit;text-align:left;padding:6px 10px;border:1px solid transparent;border-radius:7px;background:none;color:#d3e0f2;cursor:pointer}
+nav.views button:hover{background:var(--spanel2);color:#fff}
+nav.views button[aria-pressed=true]{background:#12305a;border-color:var(--sline);color:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--steal)}
+@media (max-width:900px){
+  .shell{display:block}
+  nav.views{position:static;flex-direction:row;flex-wrap:wrap;max-height:none;padding:6px 10px}
+}
+
+/* the switches */
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin:8px 8px 0 0;padding:6px 12px;background:var(--spanel);color:var(--sink);border:1px solid var(--sline);border-radius:8px}
+.filters .fl{font-weight:700;color:#9fd0ff}
+.chk{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer}
+.chk input{width:16px;height:16px;margin:0}
+.shownline{flex-basis:100%;font-size:12px;color:var(--smut)}
+.l3.filtered{color:#8a3a00;font-weight:700}
+.shownline.filtered,.ovshown.filtered{color:#ffc27a;font-weight:700}
+
+/* every view */
+main{display:block;padding:6px 16px 28px;max-width:100%}
+/* every view but the Overview is on a light sheet, in v12's colours, as the workbook and the pictures print it */
+main.sheet{margin:8px 8px 12px 0;padding:6px 10px 28px;background:#fff;color:#111;border-radius:8px;border:1px solid var(--sline)}
+main:focus{outline:none}
+h2.title{margin:10px 0 4px;padding:5px 10px;background:var(--navy);color:#fff;font-size:16px;font-weight:700;overflow-wrap:anywhere}
+h3.sub,h4.sub{margin:14px 0 4px;color:var(--navy);font-size:14px}
+h4.sub{font-size:13px}
+.l2,.l3,.note{margin:3px 0;color:#333;overflow-wrap:anywhere}
+.l3{font-style:italic}
+.shown{margin:6px 0;padding:4px 8px;background:#fff4ce;border-left:5px solid var(--focus)}
+.none{color:#555;font-style:italic}
+.err{color:#7a0000;font-weight:600}
+.acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:6px 0}
+main button,main select,main input{font:inherit}
+main button{padding:3px 10px;border:1px solid var(--navy);border-radius:3px;background:#fff;color:var(--navy);cursor:pointer}
+main button:hover{background:var(--gold);color:#000}
+main button:disabled{border-color:#aaa;color:#777;background:#f3f3f3;cursor:default}
+main select{padding:2px 4px;border:1px solid var(--grid);border-radius:2px;background:#fff;max-width:100%}
+main input[type=text]{padding:2px 4px;border:1px solid var(--grid);border-radius:2px}
+main label{display:inline-flex;align-items:center;gap:6px}
+.count{margin:4px 0;font-weight:700}
+
+/* the keyboard's place is always visible, on the navy bars and on white alike (orange clears 3:1 on both) */
+:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+/* the month box's calendar button is a Tab stop inside the box itself, where the box no longer matches :focus */
+input[type=month]:focus-within{outline:3px solid var(--focus);outline-offset:1px}
+.tg:focus-visible{outline-offset:0}
+
+/* tables: a wide one scrolls inside its own box; the page itself never scrolls sideways */
+.tw{max-width:100%;overflow-x:auto;margin:2px 0 8px}
+/* a tree's column headings stay on screen as it scrolls (review S6). A box that scrolls sideways is the scroll container
+   its headings would stick to, so a tree that fits its box gets no such box and sticks under the sticky top; one wider
+   than the window scrolls inside a box of its own, as tall as the window leaves, with the headings at that box's top. */
+.tw.treew.fit{overflow:visible}
+.tw.treew.fit table.tree thead th{position:sticky;top:var(--topH, 140px);z-index:5}
+.tw.treew.box{max-height:calc(100vh - var(--topH, 140px) - var(--cuiH) - 12px);overflow:auto;scroll-padding-top:3em}
+.tw.treew.box table.tree thead th{position:sticky;top:0;z-index:5}
+table.grid{border-collapse:collapse;font-size:12px;background:#fff}
+.grid th,.grid td{border:1px solid var(--grid);padding:2px 6px;vertical-align:top}
+.grid thead tr.hd th,.grid tr.hd th{background:var(--gold);border:1px solid var(--box);border-top-width:2px;border-bottom-width:2px;font-weight:700;text-align:center;white-space:nowrap}
+.grid tr.hd th:first-child{border-left-width:2px}
+.grid tr.hd th:last-child{border-right-width:2px}
+.grid tr.hd th.lab{text-align:left}
+.grid tbody th{text-align:left;font-weight:600}
+.grid .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.grid td.cl{background:var(--closed)}
+.grid .plan{font-style:italic;color:var(--plan)}
+.grid .tot{font-weight:700}
+.grid .wrap{max-width:30em;overflow-wrap:anywhere}
+.grid th.lab{min-width:16em;max-width:30em;font-weight:400;white-space:normal;overflow-wrap:anywhere}
+.grid tr.total th,.grid tr.total td{background:var(--navy);color:#fff;font-weight:700;border-color:var(--navy)}
+.grid th.apg{vertical-align:middle;font-weight:700}
+.dag,.ddag,.sect{margin-left:2px;font-weight:700;color:#7a5a00}
+/* on a TOTAL row's navy the dark gold read 1.77:1 and could not be seen: the mark that says the total mixes in an entered,
+   every-service Authorized was a smudge (review SCR2-3). The gold of the header rows is about 9.8:1 on the navy. */
+.grid tr.total .dag,.grid tr.total .ddag,.grid tr.total .sect{color:var(--gold)}
+/* the BAE report (CONTRACT §14): a block it has no figure for, in the Settings table */
+.grid td.nofig{color:#555;font-style:italic}
+
+/* the block tables: v12's outline styles (PMO 11 pt bold navy; Title 10 pt bold; Plan Event 10 pt; CCaR 9 pt) */
+table.blk{font-size:12px}
+.blk tr.pmo th.lab,.blk th.lab.lv1{font-size:14px;font-weight:700;color:var(--navy)}
+.blk th.lab.lv2{font-weight:700;padding-left:22px}
+.blk th.lab.lv3{padding-left:40px}
+.blk th.lab.lv4{font-size:11px;padding-left:58px}
+.tg{display:inline;padding:0;margin:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+main .tg{border:0;background:none;padding:0;color:inherit}
+main .tg:hover{background:none;text-decoration:underline;color:inherit}
+.tg .arr{display:inline-block;width:1.1em;color:var(--navy2)}
+.leaf{padding-left:1.1em}
+.blk tr.band th.lab{color:var(--navy);font-weight:700}
+.blk tr.band td{font-weight:600}
+.blk tr.band:first-of-type th,.blk tr.band:first-of-type td{border-top:2px solid var(--box)}
+.blk tr.spacer td{border:0;height:8px;padding:0}
+.blk tr.strip td{background:var(--strip);font-weight:700;color:#000}
+/* a mark in a PMO block's strip (§14.5, review M4-5) takes the strip's black: the dark gold read about 4.3:1 on its blue */
+.blk tr.strip td .dag,.blk tr.strip td .ddag,.blk tr.strip td .sect{color:inherit}
+.bar{margin:14px 0 0;padding:4px 8px;background:var(--navy);color:#fff;font-weight:700;font-size:14px;overflow-wrap:anywhere}
+.bar.bar2{background:var(--navy2)}
+h3.bar{margin-top:16px}
+.blkctl{display:flex;justify-content:flex-start;gap:10px;padding:4px 0}
+.nabar{margin:6px 0 2px;padding:3px 8px;background:var(--navy);color:#fff;font-weight:700;font-size:13px}
+h3.nabar{font-size:13px}
+table.nalines{border-collapse:collapse;font-size:12px;width:100%}
+.nalines th{vertical-align:top;text-align:left;white-space:nowrap;padding:2px 8px;color:var(--navy);border-bottom:1px solid #ddd}
+.nalines td{padding:2px 8px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
+
+/* status: the word on its colour. Black on green and yellow, white on red: each clears 4.5:1 on screen. */
+.st{text-align:center;font-weight:700;white-space:nowrap}
+.st-green{background:var(--green);color:#000}
+.st-yellow{background:var(--yellow);color:#000}
+.st-red{background:var(--red);color:#fff}
+/* a status fill wins over the closed-month grey: otherwise an actual "Behind" in Oct is white words on grey */
+.grid td.st.st-green{background:var(--green)}
+.grid td.st.st-yellow{background:var(--yellow)}
+.grid td.st.st-red{background:var(--red)}
+.grid td.st-green,.grid td.st-yellow,.grid td.st-red{border-color:var(--grid)}
+/* a plan status keeps its fill and its readable ink, in italic: grey words on the fill could not be read */
+.grid td.st.plan{font-weight:400;font-style:italic}
+.grid td.st.plan.st-green,.grid td.st.plan.st-yellow{color:#000}
+.grid td.st.plan.st-red{color:#fff}
+table.legend{border-collapse:collapse;margin:10px 0 4px}
+.legend caption{text-align:left;font-weight:700;color:var(--navy);padding-bottom:2px}
+.legend td{padding:2px 8px;border:1px solid var(--grid)}
+.legend td.st{width:7em}
+ul.notes{margin:4px 0;padding-left:20px}
+ul.notes li{margin:2px 0;overflow-wrap:anywhere}
+
+/* slide blocks */
+section.slide{margin:12px 0 18px;padding:8px;border:1px solid var(--line);border-radius:4px}
+.slidebtns{display:flex;justify-content:flex-end;gap:6px}
+
+/* settings */
+input.pct{width:4.4em;text-align:right}
+input.amt{width:11em;text-align:right}
+.goals th[scope=row]{white-space:normal;min-width:12em;max-width:18em}
+.goals td{padding:1px 2px}
+.speclist{margin:4px 0;padding-left:20px}
+.speclist li{margin:3px 0}
+.flag{display:inline-block;margin-left:4px;padding:0 4px;border-radius:2px;background:var(--red);color:#fff;font-size:11px;font-weight:700}
+.budgets tr.unknown td{background:#fff4ce}
+.budgets select{max-width:16em}
+
+/* the import report and the rest */
+.report{font-size:12px;padding:6px 8px;background:#fafbfd;border:1px solid var(--line);overflow-wrap:anywhere}
+.report .rl{white-space:pre-wrap;margin:1px 0}
+.refused{margin:6px 0;padding:6px 10px;background:#fde9e7;border-left:5px solid var(--red)}
+.help{max-width:80em}
+.help li{margin:3px 0}
+.nodata{max-width:60em}
+section.chg{margin-bottom:18px}
+
+/* THE OVERVIEW (§18), on the dark shell. Its buttons and status counts restate main's own rules on dark. */
+main.ov{color:var(--sink);padding:10px 8px 28px 0}
+main.ov .ovhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+main.ov .grow{flex:1 1 0}
+.ovtitle{margin:0;font-size:20px;font-weight:700}
+.ovsub,.ovshown,.cardnote,.ovlab{color:var(--smut)}
+.ovshown{margin:4px 0 0;font-size:12px}
+main.ov button{border:1px solid var(--sedge);border-radius:6px;background:#0e2140;color:var(--sink)}
+main.ov button:hover{background:var(--gold);color:#000}
+.seg{display:inline-flex;gap:4px}
+main.ov .seg button{min-height:28px;padding:3px 14px}
+main.ov .seg button[aria-pressed=true]{background:#17376a;border-color:var(--steal);color:#fff;font-weight:700}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:12px 0}
+.tile,.card,.ovstatus{background:linear-gradient(180deg,var(--spanel2),var(--spanel));border:1px solid var(--sline);border-radius:10px;padding:12px 14px}
+.tile{display:flex;flex-direction:column;min-width:0}
+.tl{color:var(--smut);font-size:12px}
+.tv{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ts{color:#c3d3ea;font-size:12px;min-height:1.35em}
+main.ov .dag,main.ov .ddag,main.ov .sect{color:var(--gold);font-size:15px}
+.ovstatus{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.ovstatus .tl{font-size:13px;color:var(--sink);font-weight:700}
+.stc{display:inline-block;padding:1px 10px;border-radius:999px;font-size:12px}
+.stn{border:1px solid var(--sedge);color:var(--sink)}
+.ovstatus button{margin-left:auto}
+.ovnotes .note{color:var(--smut);margin:6px 0 0}
+.ovtwo{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}
+.card h3{margin:0 0 4px;font-size:14px}
+.cardnote{margin:0 0 8px;font-size:12px}
+.ovcharts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.ovc{margin:0;padding:8px;border:1px solid var(--sline);border-radius:8px;background:#081426;min-width:0}
+.ovc figcaption{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+main.ov .ovopen{border:0;background:none;padding:2px 0;font-weight:700;color:#9fd0ff;text-decoration:underline}
+main.ov .ovopen:hover{background:none;color:#fff}
+.ovpct{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.ovsvg{display:block;width:100%;height:auto}
+.ovsvg .gl{stroke:var(--sline);stroke-width:1}
+.ovsvg .ax{fill:var(--smut);font-size:9px}
+.ovsvg .ba{fill:var(--steal)}
+.ovsvg .bp{fill:rgba(63,155,255,.32);stroke:var(--sblue);stroke-width:1;stroke-dasharray:3 2}
+.ovsvg .gline{fill:none;stroke:#fff;stroke-width:1.5}
+.ovsvg .gdot{fill:#fff}
+.ovsvg .ovnone{fill:var(--sink);font-size:11px}
+.ovlab{margin:2px 0 0;font-size:11px;overflow-wrap:anywhere}
+.ovleg{margin:8px 0 0;font-size:12px;color:var(--smut)}
+.k{display:inline-block;width:11px;height:11px;border-radius:2px;margin:0 5px 0 12px;vertical-align:-1px}
+.ovleg .k:first-child,.ovaps .k{margin-left:0}
+.ka{background:var(--steal)}
+.kp{background:rgba(63,155,255,.32);border:1px dashed var(--sblue)}
+.kg{background:#fff;height:2px;vertical-align:3px}
+.ovap{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.donut{width:120px;height:120px;flex:none}
+.ovaps{border-collapse:collapse;font-size:13px;flex:1 1 150px}
+.ovaps th{text-align:left;font-weight:400;padding:4px 8px 4px 0}
+.ovaps td{text-align:right;padding:4px 0 4px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ovaps tr+tr th,.ovaps tr+tr td{border-top:1px solid var(--sline)}
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.ovtwo{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
+/* THE FRAME IN A NARROWER WINDOW (§18.2). Up to 1400 px the menu is 118px and the sheet's margins are tighter, so a tree
+   opened to CCaR keeps its full width beside the menu at 1366 px, a 15 px scrollbar included (review UX-1). */
+@media (max-width:1400px){
+  nav.views{flex-basis:118px;padding:10px 4px}
+  nav.views button{padding:6px 7px}
+  main.sheet{margin-right:4px;padding-left:6px;padding-right:6px}
+}
+/* at 900 px and narrower the menu is a row above the view and no longer supplies the left gutter: the Overview, the
+   switches and the sheet touched the window's left edge while the right kept 8 px (reviews RF-2, UX-4) */
+@media (max-width:900px){
+  nav.views{flex-basis:auto;padding:6px 10px}
+  nav.views button{padding:6px 10px}
+  .filters,main.sheet{margin-left:8px;margin-right:8px}
+  main.ov{padding-left:8px}
+}
+
+/* PRINTED, every page carries the CUI marking at its top and its bottom (§6 item 14). The two lines in the page are
+   printed once each, at the start and the end of the document, so a view printed with Ctrl+P had pages of CUI figures
+   with no marking between its first page and its last (review SCR2-2): the page's own margin boxes repeat it on every
+   page. The two lines stay too, for a browser that draws no margin boxes. */
+@page{margin:0.55in 0.4in;
+  @top-center{content:"CUI//REL TO US DoW";font:700 10pt Calibri,Carlito,Arial,sans-serif;color:#000}
+  @bottom-center{content:"CUI//REL TO US DoW";font:700 10pt Calibri,Carlito,Arial,sans-serif;color:#000}}
+/* the top bar is not printed, and with it went Data through and the import dates: a printed appropriation view said
+   nowhere what month its actuals ran to (review SCR2-2). This line says it on paper only. */
+.printhead{display:none}
+@media print{
+  /* a chart's name is a button on screen and its only name: hidden with the other buttons, the printed charts could
+     not be told apart (review UX-2). It prints as plain words. */
+  header.top,.filters,.slidebtns,.acts,nav.views,main.ov button:not(.ovopen){display:none}
+  main.ov .ovopen,main.ov .ovopen:hover{color:#000;text-decoration:none}
+  /* paper is white: the shell's dark frame is not printed, and the Overview prints dark words on white */
+  body{background:#fff}
+  .shell{display:block}
+  main.sheet{margin:0;border:0;border-radius:0}
+  main.ov{--sink:#000;--smut:#333;--spanel:#fff;--spanel2:#fff;--sline:#888;color:#000}
+  .ovc{background:#fff}
+  .ovsvg .gline{stroke:#000}.ovsvg .gdot{fill:#000}.kg{background:#000}
+  main.ov .dag,main.ov .ddag,main.ov .sect{color:#7a5a00}
+  /* colours fixed for the dark frame were left on white paper at 1.5:1, and the keys and status fills are backgrounds,
+     which a browser drops from print unless told to keep them (review UX-3) */
+  .ts{color:#333}
+  .shownline.filtered,.ovshown.filtered{color:#8a3a00}
+  .ovsvg .ba{fill:#0b6f67}.ka{background:#0b6f67}
+  .ovsvg .bp{fill:rgba(31,58,104,.14);stroke:#1F3A68}.kp{background:rgba(31,58,104,.14);border-color:#1F3A68}
+  main.ov .k,main.ov .stc,.ovsvg,.donut{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cui{position:static}
+  /* a column the window's height is a page's height on paper: the Summary printed a blank second page */
+  body{display:block;min-height:0}
+  .printhead{display:block;margin:0 16px 4px;font-size:11px;color:#000}
+  .tw.treew.box{max-height:none;overflow:visible}
+  table.tree thead th{position:static}
+}
