@@ -106,6 +106,7 @@ async function open(path) {
   p.on('download', d => w.downloads.push(d));
   pages.push(w);
   await p.goto(pathToFileURL(path).href);
+  await p.waitForSelector('#uiMain'); await p.evaluate(() => { const b = document.getElementById('uiManageBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); });   // these checks drive the controls a keeper of the plan uses: the Manage data bar is opened (CONTRACT §20)
   await p.waitForSelector('#uiMain');
   return w;
 }

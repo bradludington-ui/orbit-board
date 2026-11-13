@@ -20,7 +20,9 @@ is also its own database: **Save** writes your data and settings into the file i
 
 1. Put `apex.html` on the shared drive.
 2. Open it in Edge or Chrome (double-click, or drag it onto the browser).
-3. The first time, it says *No data yet*. Import a pull.
+3. The first time, it says *No data yet*, and the **Manage data** bar is open. Import a pull.
+4. A file that already holds a plan opens on **Find a requirement**, with Manage data closed. Click **Manage data**, top
+   right, for Data through, First FY, Import and Save.
 
 Save it under any name you like. Keep one copy per team or per purpose. Each copy holds its own data.
 
@@ -183,8 +185,15 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
 
 ## Reading the views
 
-The views are in the menu down the left side (a row across the top in a narrow window). The page opens on the
-**Overview**.
+The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**; *Browse*
+(By PMO and each appropriation); *Briefing* (Overview, Summary, Slide blocks); *Data checks* (Not Allocated, Import report,
+What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
+for the switches.
+
+- **Find a requirement** (Requirements) is where the page opens. Type part of a title, a CCaR number or a plan event, or
+  pick a PMO, an appropriation or an FY. Each requirement shows Planned (its CCaR plan), Awarded (what CCaR marks Actual
+  Execution), Still to award, and its **Projected award**: the earliest plan event date not yet awarded. *Was Aug 2026*
+  means that month has closed and it is not awarded. Click a name to list its plan events by month.
 
 - **Overview** works out nothing of its own. Its tiles are the Summary's Approved, Authorized, Obligated and Unobligated
   for the fiscal year you pick at its top right (or **All**), added up as the Summary's TOTAL is, with the same marks.

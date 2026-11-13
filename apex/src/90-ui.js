@@ -16,9 +16,15 @@ const UI_SVC = SP.SERVICES.concat([SP.SVC_UNKNOWN]);
 const UI_LANES = [['disc', 'Discretionary'], ['mand', 'Mandatory']];
 const UI_LEVELS = ['PMO', 'Title', 'Plan Event', 'CCaR'];
 const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
-const UI_VIEWS = [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks']]
-  .concat(SP.APS.map(a => [a.id, a.label]))
-  .concat([['pmos', 'PMOs'], ['na', 'Not Allocated'], ['report', 'Import report'], ['changes', 'What changed'], ['settings', 'Settings']]);
+// THE MENU (CONTRACT §20), grouped by what a reader is looking for. Find a requirement is first and is where the page opens.
+const UI_NAV = [
+  { h: '', items: [['find', 'Requirements']] },
+  { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])) },
+  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks']] },
+  { h: 'Data checks', items: [['na', 'Not Allocated'], ['report', 'Import report'], ['changes', 'What changed']] },
+  { h: 'Set up', items: [['settings', 'Settings']] },
+];
+const UI_VIEWS = UI_NAV.flatMap(g => g.items);
 const UI_CURVES = [
   ['om1', 'O&M, first year'], ['om2', 'O&M, second year or later (expired: fully obligated)'],
   ['p1', 'Procurement, first year'], ['p2', 'Procurement, second year'], ['p3', 'Procurement, third year'],
@@ -29,7 +35,11 @@ const UI_NODATA = 'Each file is a CCaR export laid out like v12’s Raw Data tab
 // what the page remembers between draws. None of it is saved in the file or in browser storage: only the switches are
 // this browser's to keep (§11), and they belong to the store.
 const ui = {
-  view: 'overview', back: 'overview',
+  view: 'find', back: 'find',
+  manage: false,            // the Manage data bar is open: by itself when the file holds no data, then as the person leaves it
+  filtOpen: null,           // the switches are open: null follows the Manage bar and whether a switch is off
+  find: { q: '', pmo: null, ap: null, fy: null, sel: '' },   // Find a requirement: the words typed, the three pickers, the one opened
+  reqs: null, reqFor: null, // the requirement list of the model on screen
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
@@ -422,6 +432,85 @@ function ui_ovDonut(byAp) {
   });
   return '<svg class="donut" viewBox="0 0 120 120" aria-hidden="true" focusable="false">' + arcs + '</svg>';
 }
+// ---------------------------------------------------------------------------------------------------------------
+// FIND A REQUIREMENT (CONTRACT §20): where the page opens. A box to type part of a title, a CCaR number or a plan event
+// in, three pickers, and each requirement's money and the month it is projected to award. SP.requirementsOf reads the
+// blocks' own counted rows: nothing here is worked out a second way.
+// ---------------------------------------------------------------------------------------------------------------
+const UI_FIND_MAX = 200, UI_FIND_ALL = '*';
+function ui_reqs(M) {
+  if (ui.reqFor !== M) { ui.reqs = SP.requirementsOf(M); ui.reqFor = M; }
+  return ui.reqs;
+}
+function ui_reqHay(r) {
+  if (!r.hay) Object.defineProperty(r, 'hay', { value: [r.title, r.ccar, r.pmo, r.apLabel, 'FY' + r.fy].concat(r.budgets, r.events.map(e => e.pe)).join('\n').toLowerCase(), enumerable: false });
+  return r.hay;
+}
+function ui_findList(M) {
+  const F = ui.find, words = String(F.q || '').toLowerCase().split(/\s+/).filter(Boolean);
+  return ui_reqs(M).filter(r => (F.pmo === null || r.pmoKey === F.pmo) && (F.ap === null || r.ap === F.ap) && (F.fy === null || String(r.fy) === F.fy)
+    && words.every(w => ui_reqHay(r).includes(w)));
+}
+// when it is projected to award, as its word on a colour: never the colour alone
+function ui_reqWhen(r) {
+  if (r.state === 'awarded') return '<span class="when st-green">Awarded</span>';
+  if (r.state === 'late') return '<span class="when st-red" title="Its projected month has closed and it is not awarded">Was ' + ui_e(SP.ymWords(r.next)) + '</span>';
+  if (r.state === 'planned') return '<span class="when w-plan">' + ui_e(SP.ymWords(r.next)) + '</span>';
+  return '<span class="when w-none" title="Nothing left to award carries a date">No date</span>';
+}
+function ui_findDetail(r) {
+  if (!r) return '<aside class="card finddet" id="uiFindDet"><p class="cardnote">Pick a requirement to see its plan events.</p></aside>';
+  const kv = (k, v) => '<div class="kv"><span>' + k + '</span><b>' + v + '</b></div>';
+  return '<aside class="card finddet" id="uiFindDet" aria-label="' + ui_e(r.title) + '"><h3>' + ui_e(r.title) + ' <span class="fccar">' + ui_e(r.ccar) + '</span></h3>'
+    + kv('Planned ($M)', ui_e(SP.fmtMText(r.planned))) + kv('Awarded ($M)', ui_e(SP.fmtMText(r.awarded))) + kv('Still to award ($M)', ui_e(SP.fmtMText(r.remaining)))
+    + kv('PMO', ui_e(r.pmo)) + kv('Appropriation', ui_e(r.apLabel) + ' FY' + r.fy)
+    + kv(r.budgets.length === 1 ? 'Budget' : 'Budgets', r.budgets.length ? r.budgets.map(ui_e).join('<br>') : '(none)')
+    + '<h3 class="fev">Plan events</h3><ul class="fevs">' + r.events.map(e => '<li><span class="fd">' + (e.ym ? ui_e(SP.ymWords(e.ym)) : 'No date') + '</span><span class="fp">' + ui_e(e.pe)
+      + (e.awarded ? ' <span class="when st-green">Awarded</span>' : e.late ? ' <span class="when st-red">Not awarded</span>' : '')
+      + (e.tag ? ' <span class="when w-none">' + ui_e(e.tag) + '</span>' : '') + '</span><span class="fa">' + ui_e(SP.fmtMText(e.cents)) + '</span></li>').join('') + '</ul>'
+    + '<div class="acts"><button type="button" data-act="view" data-v="' + ui_e(r.ap) + '" data-fkey="find:open">Open ' + ui_e(r.apLabel) + '</button></div></aside>';
+}
+function ui_findRes(M) {
+  const list = ui_findList(M), sel = list.find(r => r.key === ui.find.sel) || null;
+  const sum = f => list.reduce((s, r) => s + r[f], 0);
+  const count = '<p class="findcount" id="uiFindCount" role="status">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')
+    + (list.length ? ' · Planned ' + ui_e(SP.fmtMText(sum('planned'))) + ' · Awarded ' + ui_e(SP.fmtMText(sum('awarded'))) + ' · Still to award ' + ui_e(SP.fmtMText(sum('remaining'))) + ' ($M)' : '')
+    + (list.length > UI_FIND_MAX ? '. The first ' + UI_FIND_MAX + ' are listed: type more, or pick a PMO, an appropriation or an FY.' : '') + '</p>';
+  if (!list.length) return count + '<p class="none">No requirement matches. <button type="button" data-act="findclear" data-fkey="findclear">Clear the search</button></p>';
+  const all = ui_reqs(M);
+  const rows = list.slice(0, UI_FIND_MAX).map(r => '<tr data-rk="' + all.indexOf(r) + '"' + (sel === r ? ' class="cur"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="findsel" data-i="'
+    + all.indexOf(r) + '" data-fkey="findsel:' + all.indexOf(r) + '" aria-expanded="' + (sel === r ? 'true' : 'false') + '">' + ui_e(r.title) + '</button><span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.pmo) + '</span></th>'
+    + '<td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>' + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
+  return count + '<div class="findtwo"><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
+    + '<th scope="col" class="n">Planned ($M)</th><th scope="col" class="n">Awarded ($M)</th><th scope="col" class="n">Still to award ($M)</th><th scope="col">Projected award</th></tr></thead><tbody>'
+    + rows + '</tbody></table></div>' + ui_findDetail(sel) + '</div>';
+}
+function ui_findRedraw() {
+  const el = document.getElementById('uiFindRes'), M = ui_hasData() ? ui_model() : null;
+  if (el && M) { el.innerHTML = ui_findRes(M); ui_layout(); }
+}
+function ui_vFind(M) {
+  const all = ui_reqs(M), F = ui.find;
+  const pmos = [], seen = new Set();
+  for (const r of all) if (!seen.has(r.pmoKey)) { seen.add(r.pmoKey); pmos.push([r.pmoKey, r.pmo]); }
+  pmos.sort((a, b) => (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0));
+  const aps = SP.APS.filter(a => all.some(r => r.ap === a.id)).map(a => [a.id, a.label]);
+  const fys = [...new Set(all.map(r => r.fy))].sort((a, b) => a - b).map(f => [String(f), 'FY' + f]);
+  // a pick the plan no longer holds (a switch went off, a new pull came in) is dropped, never left filtering to nothing unseen
+  if (F.pmo !== null && !pmos.some(p => p[0] === F.pmo)) F.pmo = null;
+  if (F.ap !== null && !aps.some(p => p[0] === F.ap)) F.ap = null;
+  if (F.fy !== null && !fys.some(p => p[0] === F.fy)) F.fy = null;
+  const pick = (f, label, opts) => '<label>' + label + ' <select data-act="findf" data-f="' + f + '" data-fkey="findf:' + f + '"><option value="' + UI_FIND_ALL + '">All</option>'
+    + opts.map(([v, w]) => '<option value="=' + ui_e(v) + '"' + (F[f] === v ? ' selected' : '') + '>' + ui_e(w) + '</option>').join('') + '</select></label>';
+  return '<div class="ovhead"><h2 class="ovtitle">Find a requirement</h2><span class="ovsub">How much money it has, and when it is projected to award. Data through ' + ui_e(M.asOfLabel) + '.</span></div>'
+    + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
+    + '<div class="findbar"><input type="search" id="uiFindQ" data-fkey="findq" value="' + ui_e(F.q) + '" placeholder="Title, CCaR number or plan event" aria-label="Find a requirement by title, CCaR number or plan event" autocomplete="off">'
+    + pick('pmo', 'PMO', pmos) + pick('ap', 'Appropriation', aps) + pick('fy', 'FY', fys) + '</div>'
+    + '<div id="uiFindRes">' + ui_findRes(M) + '</div>'
+    + '<p class="cardnote findnote">Awarded is what CCaR marks Actual Execution. Projected award is the earliest plan event date in the CCaR pull that is not yet awarded; '
+    + '“Was” means that month has closed (Data through ' + ui_e(M.asOfLabel) + ') and it is not awarded.</p>';
+}
+
 // THE CHARTS, LINED UP (Brad, 12 Nov 2026: "line them up by appropriation and year order. Right now it's hard to find
 // exactly what you really want to see"). One row for each appropriation, in the order every list prints them, and one
 // column for each fiscal year shown, earliest first, so a block is always found at its appropriation's row under its
@@ -1299,8 +1388,23 @@ function ui_vHelp() {
       + 'pictures, with two exceptions that cover every service and lane: an entered Authorized, which is entered for an appropriation and FY as a whole and saved '
       + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, rows whose appropriation is not identified, '
       + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
+    + '<h3 class="sub">Finding a requirement</h3>' + li([
+      'The page opens on <strong>Find a requirement</strong> (Requirements in the menu). Type part of a title, a CCaR number or a plan event; every word typed must be '
+      + 'there. The three pickers narrow the list to one PMO, appropriation or fiscal year.',
+      'A requirement is a CCaR record (its title and CCaR number) in one appropriation and FY. <strong>Planned</strong> is its CCaR plan; <strong>Awarded</strong> is '
+      + 'what CCaR marks “Actual Execution”; <strong>Still to award</strong> is the difference.',
+      '<strong>Projected award</strong> is the earliest plan event date in the CCaR pull that is not yet awarded. “Was” means that month has closed (it is the Data '
+      + 'through month or earlier) and it is not awarded; “No date” means nothing left to award carries a date.',
+      'Click a requirement’s name to list its plan events by month.',
+      'It counts the rows every other view counts: the switches, First FY and the FY2025 O&amp;M OBBBA rule apply. The BAE report does not change it.',
+    ])
+    + '<h3 class="sub">Manage data</h3>' + li([
+      '<strong>Manage data</strong>, at the top right, opens the bar that holds Data through, First FY, Import, Save and Save a copy, and the line that says when each pull came in. '
+      + 'It is open by itself when the file holds no data. Someone who only reads the plan never needs it.',
+      'The <strong>Filter</strong> button above each view says which services and lanes are shown; click it for the switches. It stays open while a switch is off.',
+    ])
     + '<h3 class="sub">The Overview</h3>' + li([
-      'The page opens on the <strong>Overview</strong>. It works out nothing of its own: its tiles are the Summary’s Approved, Authorized, Obligated and '
+      'The <strong>Overview</strong>, under Briefing, works out nothing of its own: its tiles are the Summary’s Approved, Authorized, Obligated and '
       + 'Unobligated for the fiscal year picked (or every FY), added up as the Summary’s TOTAL is, with the same marks; its status counts are the Summary’s '
       + 'rows; and each small chart is a slide block’s own Obligation % and OSD goal by month, an actual through the Data through month and the plan after.',
       'Pick a fiscal year, or All, at its top right. A chart’s name opens that appropriation; Open the Summary opens the Summary.',
@@ -1398,17 +1502,24 @@ function ui_skeleton() {
     + '<div class="bar1">'
     + '<h1 class="brand" title="Appropriation Planning &amp; Execution">' + UI_MARK + '<span class="bn vh">APEX</span>'
     + '<span class="bs">Appropriation Planning &amp; Execution</span> <span class="ey" id="uiEy"></span></h1>'
+    + '<span class="asof" id="uiAsOfText"></span>'
+    + '<span class="grow"></span>'
+    + '<span class="savest" id="uiSave" role="status"></span>'
+    + '<button type="button" data-act="export" data-fkey="export">Export Excel</button>'
+    + '<button type="button" data-act="help" data-fkey="help" id="uiHelp" aria-pressed="false">Help</button>'
+    + '<button type="button" data-act="manage" data-fkey="manage" id="uiManageBtn" aria-expanded="false" aria-controls="uiManage">Manage data</button>'
+    + '</div>'
+    // THE MANAGE DATA BAR (§20): what the person who keeps the plan uses, out of a reader's way. Every control keeps its
+    // id and its action, so nothing about importing, saving or the two dates changes but where they sit.
+    + '<div class="manage" id="uiManage" hidden><div class="bar1 bar1m">'
     + '<label class="fld">Data through <input type="month" id="uiAsOf" data-fkey="asof" min="1990-01" max="2100-12"></label>'
     + '<label class="fld">First FY <input type="number" id="uiFirst" data-fkey="first" min="1990" max="2100" step="1"></label>'
     + '<span class="grow"></span>'
     + '<button type="button" data-act="import" data-fkey="import">Import CCaR pull…</button>'
     + '<button type="button" data-act="save" data-fkey="save">Save</button>'
     + '<button type="button" data-act="savecopy" data-fkey="savecopy">Save a copy…</button>'
-    + '<button type="button" data-act="export" data-fkey="export">Export Excel</button>'
-    + '<button type="button" data-act="help" data-fkey="help" id="uiHelp" aria-pressed="false">Help</button>'
-    + '<span class="savest" id="uiSave" role="status"></span>'
     + '</div>'
-    + '<div class="pulls" id="uiPulls"></div>'
+    + '<div class="pulls" id="uiPulls"></div></div>'
     + '<div class="msgrow"><div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
     + '<button type="button" class="msgx" id="uiMsgX" data-act="msgx" data-fkey="msgx" hidden>Dismiss</button></div>'
     + '</header>'
@@ -1423,6 +1534,7 @@ function ui_skeleton() {
     pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
     msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
+    asOfText: document.getElementById('uiAsOfText'), manage: document.getElementById('uiManage'), manageBtn: document.getElementById('uiManageBtn'),
   };
 }
 
@@ -1502,6 +1614,12 @@ function ui_drawTop(M) {
   const st = ui_saveText();
   E.save.textContent = st === 'saved' ? 'Saved' : st === 'downloaded' ? 'Downloaded, not in the file yet' : 'Unsaved changes';
   E.save.className = 'savest ' + (st === 'saved' ? 'clean' : 'dirty');
+  // a reader sees the month the figures run to and nothing to set; "Saved" is said only beside the Save button, and
+  // work not yet saved is said wherever the person is
+  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) : '';
+  E.manage.hidden = !ui.manage;
+  E.manageBtn.setAttribute('aria-expanded', ui.manage ? 'true' : 'false');
+  E.save.hidden = st === 'saved' && !ui.manage;
   E.help.setAttribute('aria-pressed', ui.view === 'help' ? 'true' : 'false');
   const P = ui_pulls();
   // "imported", never "pulled": the date is when the pull came into this page, which is not when CCaR made it (a pull
@@ -1533,8 +1651,10 @@ function ui_drawNav(has) {
   const E = ui.els;
   if (!has) { E.nav.innerHTML = ''; E.nav.hidden = true; return; }
   E.nav.hidden = false;
-  E.nav.innerHTML = UI_VIEWS.map(([id, label]) => '<button type="button" data-act="view" data-v="' + id + '" data-fkey="view:' + id + '" aria-pressed="'
-    + (ui.view === id ? 'true' : 'false') + '">' + ui_e(label) + '</button>').join('');
+  E.nav.innerHTML = UI_NAV.map(g => '<div class="navg" role="group"' + (g.h ? ' aria-label="' + ui_e(g.h) + '"' : '') + '>'
+    + (g.h ? '<div class="navh" aria-hidden="true">' + ui_e(g.h) + '</div>' : '')
+    + g.items.map(([id, label]) => '<button type="button" data-act="view" data-v="' + id + '" data-fkey="view:' + id + '" aria-pressed="'
+      + (ui.view === id ? 'true' : 'false') + '">' + ui_e(label) + '</button>').join('') + '</div>').join('');
 }
 function ui_drawFilters(M) {
   const E = ui.els;
@@ -1545,7 +1665,12 @@ function ui_drawFilters(M) {
     ? '<label class="chk"><input type="checkbox" data-act="svc" data-i="' + i + '" data-fkey="svc:' + i + '"' + (on(v.svc, s) ? ' checked' : '') + '> ' + ui_e(s) + '</label>' : '').join('');
   const lanes = UI_LANES.map(([l, w]) => '<label class="chk"><input type="checkbox" data-act="lane" data-l="' + l + '" data-fkey="lane:' + l + '"'
     + (on(v.lane, l) ? ' checked' : '') + '> ' + w + '</label>').join('');
-  E.filters.innerHTML = '<div class="filters" role="group" aria-label="Switches: which services and lanes are counted">'
+  // the switches sit behind one button that says what is shown (§20); they are open while the Manage bar is, and
+  // whenever a switch is off, so a filtered page never hides what filtered it
+  const open = ui.filtOpen === null ? (ui.manage || !M.shown.all) : (ui.filtOpen || !M.shown.all);
+  E.filters.innerHTML = '<button type="button" class="filtbtn' + (M.shown.all ? '' : ' filtered') + '" data-act="filt" data-fkey="filt" aria-expanded="' + (open ? 'true' : 'false')
+    + '" aria-controls="uiSwitches">Filter: ' + ui_e(M.shown.text) + '</button>'
+    + '<div class="filters" id="uiSwitches" role="group" aria-label="Switches: which services and lanes are counted"' + (open ? '' : ' hidden') + '>'
     + '<span class="fl" aria-hidden="true">Services</span>' + svc + '<span class="fl" aria-hidden="true">Lanes</span>' + lanes
     + '<span class="shownline' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</span></div>';
 }
@@ -1555,6 +1680,7 @@ function ui_drawMain(M) {
   if (!ui_hasData()) return ui_vNoData();
   if (!M) return '<p class="err">The figures could not be worked out: ' + ui_e(ui.modelErr || 'unknown reason') + '</p>'
     + (v === 'settings' ? ui_vSettings(null) : v === 'report' ? ui_vReport() : '');
+  if (v === 'find') return ui_vFind(M);
   if (v === 'overview') return ui_vOverview(M);
   if (v === 'summary') return ui_vSummary(M);
   if (v === 'slides') return ui_vSlides(M);
@@ -1564,7 +1690,7 @@ function ui_drawMain(M) {
   if (v === 'report') return ui_vReport(M);
   if (v === 'changes') return ui_vChanges(M);
   if (v === 'settings') return ui_vSettings(M);
-  return ui_vOverview(M);
+  return ui_vFind(M);
 }
 
 function ui_render() {
@@ -1585,7 +1711,7 @@ function ui_render() {
   catch (e) { html = '<p class="err">This view could not be drawn: ' + ui_e((e && e.message) || e) + '</p>'; }
   // the Overview is drawn on the dark shell; every other view on a light sheet, in v12's colours, as the workbook and the
   // pictures print it (§18)
-  ui.els.main.className = has && M && ui.view === 'overview' ? 'ov' : 'sheet';
+  ui.els.main.className = has && M && (ui.view === 'overview' || ui.view === 'find') ? 'ov' : 'sheet';
   ui.els.main.innerHTML = html;
   ui_layout();
   // the keyboard goes back to the control it was on; if that control is gone, to the one the action named (ui.focusTo),
@@ -1645,7 +1771,7 @@ async function ui_import(fileList) {
       if (r && r.ok) {
         ui.refused = null;
         ui_invalidate();
-        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'overview';
+        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'find';
       }
       ui_say((r && r.message) || 'The plan was not taken.', r && r.ok ? 'ok' : 'err');
       ui_render();
@@ -1674,7 +1800,7 @@ async function ui_import(fileList) {
     }
     ui.refused = null;
     ui_invalidate();
-    if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'overview';
+    if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'find';
     // an import that refused a file or placed rows that look misfiled is not a plain success, and does not look like one
     ui_say((r && r.message) || 'Imported.', r && r.warn ? 'warn' : 'ok');
     ui_render();
@@ -1876,6 +2002,27 @@ function ui_onClick(ev) {
       if (moved) ui_toTop();
       break;
     }
+    case 'manage':
+      ui.manage = !ui.manage;
+      ui_render();
+      break;
+    case 'filt':
+      ui.filtOpen = t.getAttribute('aria-expanded') !== 'true';
+      ui_render();
+      break;
+    case 'findsel':
+      {
+        // a requirement's key holds characters an attribute cannot carry, so the row names its place in the list
+        const r = (ui.reqs || [])[Number(t.getAttribute('data-i'))];
+        if (r) ui.find.sel = ui.find.sel === r.key ? '' : r.key;
+      }
+      ui_render();
+      break;
+    case 'findclear':
+      ui.find = { q: '', pmo: null, ap: null, fy: null, sel: '' };
+      ui.focusTo = 'findq';
+      ui_render();
+      break;
     case 'ovfy': {
       const f = t.getAttribute('data-fy');
       ui.ovFy = f === 'all' ? 'all' : Number(f);
@@ -1883,7 +2030,7 @@ function ui_onClick(ev) {
       break;
     }
     case 'help':
-      if (ui.view === 'help') ui.view = ui.back || 'overview';
+      if (ui.view === 'help') ui.view = ui.back || 'find';
       else { ui.back = ui.view; ui.view = 'help'; }
       ui_render();
       ui_toTop();
@@ -1946,6 +2093,12 @@ function ui_onChange(ev) {
   if (t === ui.els.first) { ui_firstChanged(); return; }
   const act = t.getAttribute && t.getAttribute('data-act');
   switch (act) {
+    case 'findf': {
+      const f = t.getAttribute('data-f');
+      // "All" is its own choice, never the empty key: (no PMO) is a PMO a reader can pick, and its key is ''
+      if (f === 'pmo' || f === 'ap' || f === 'fy') { ui.find[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
+      return;
+    }
     case 'svc': case 'lane': {
       const v = ui_copy(ui_view()) || {};
       if (act === 'svc') { const s = UI_SVC[Number(t.getAttribute('data-i'))]; if (!s) return; (v.svc = v.svc || {})[s] = !!t.checked; }
@@ -2000,9 +2153,12 @@ function ui_boot() {
     catch (e) { r = { ok: false, message: 'The saved data could not be opened: ' + ((e && e.message) || e) }; }
   } else r = { ok: false, message: 'The store is not available yet (SP.storeInit is missing), so nothing can be imported or saved.' };
   ui_skeleton();
+  ui.manage = !ui_hasData();
   const app = ui.els.app;
   app.addEventListener('click', ui_onClick);
   app.addEventListener('change', ui_onChange);
+  // typing in Find a requirement redraws the list alone: the box keeps the keyboard and its caret
+  app.addEventListener('input', ev => { if (ev.target && ev.target.id === 'uiFindQ') { ui.find.q = ev.target.value; ui_findRedraw(); } });
   app.addEventListener('keydown', ui_onKey);
   app.addEventListener('focusout', ev => { if (ui.els && ev.target === ui.els.asOf) ui_asOfLeft(); });
   if (ui_fn('onStateChange')) { try { SP.onStateChange(ui_stateChanged); } catch (e) {} }

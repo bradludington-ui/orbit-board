@@ -302,6 +302,58 @@ main.ov .ovopen:hover{background:none;color:#fff}
   main.ov{padding-left:8px}
 }
 
+/* THE QUIET FRAME (§20): a reader's top bar holds the name, the month the figures run to, Export and Help; what the
+   person who keeps the plan uses is in the Manage data bar beneath, open only when asked for (or when there is no data) */
+.asof{color:var(--smut);font-size:13px;white-space:nowrap}
+.savest[hidden]{display:none}
+.manage[hidden]{display:none}
+.bar1m{background:#071223;border-top:1px solid var(--sline)}
+#uiManageBtn[aria-expanded=true]{background:#17376a;border-color:var(--steal);color:#fff}
+.navg{display:flex;flex-direction:column;gap:2px}
+.navh{margin:10px 10px 2px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#a3b7d3;font-weight:700}
+@media (max-width:900px){.navg{flex-direction:row;flex-wrap:wrap;align-items:center}.navh{margin:0 4px 0 8px}}
+.filtbtn{margin:8px 8px 0 0;font:inherit;font-size:12px;padding:3px 10px;min-height:24px;border:1px solid var(--sedge);border-radius:6px;background:#0e2140;color:var(--smut);cursor:pointer;text-align:left}
+.filtbtn:hover{background:var(--gold);color:#000}
+.filtbtn.filtered{color:#ffc27a;font-weight:700}
+.filtbtn[aria-expanded=true]{color:var(--sink)}
+.filters[hidden]{display:none}
+
+/* FIND A REQUIREMENT (§20) */
+.findbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0 6px}
+main.ov .findbar input[type=search]{flex:1 1 320px;min-width:0;font:inherit;font-size:15px;padding:7px 12px;border:1px solid var(--sedge);border-radius:8px;background:#fff;color:#111}
+main.ov .findbar label{color:var(--smut);gap:6px;white-space:nowrap}
+main.ov .findbar select{font:inherit;padding:4px 6px;min-height:28px;border:1px solid var(--sedge);border-radius:6px;background:#fff;color:#111;max-width:16em}
+.findcount{margin:4px 0 8px;color:var(--sink);font-size:13px}
+.findtwo{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(0,1fr);gap:12px;align-items:start}
+.fsheet{background:#fff;color:#111;border-radius:8px;border:1px solid var(--sline);margin:0}
+.findt{width:100%}
+main.ov .findt .tg{color:var(--navy);font-weight:700;text-align:left;border:0;background:none;padding:2px 0}
+main.ov .findt .tg:hover{background:none;color:var(--navy);text-decoration:underline}
+.findt th.lab{min-width:14em}
+.findt .fsub{display:block;font-size:11px;color:#444;font-weight:400}
+.findt tr.cur th,.findt tr.cur td{background:#e3edfb}
+.findt td.fw{white-space:nowrap}
+.when{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.when.w-plan{background:#dbe7fb;color:#12305a;border:1px solid #6f8fc4}
+.when.w-none{background:#eee;color:#333;border:1px solid #777}
+/* the one opened stays on screen while the list scrolls */
+.finddet{position:sticky;top:calc(var(--topH, 96px) + 8px)}
+@media (max-width:1100px){.finddet{position:static}}
+.finddet h3{margin:0 0 6px;font-size:15px;overflow-wrap:anywhere}
+.finddet .fccar{color:var(--smut);font-weight:400;font-size:13px}
+.finddet h3.fev{margin-top:12px;font-size:13px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--sline);font-size:13px}
+.kv span{color:var(--smut);white-space:nowrap}
+.kv b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fevs{list-style:none;margin:0;padding:0}
+.fevs li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--sline);font-size:13px}
+.fevs .fd{flex:0 0 68px;color:var(--gold);font-weight:700}
+.fevs .fp{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.fevs .fa{font-variant-numeric:tabular-nums;white-space:nowrap}
+.finddet .acts{margin-top:10px}
+.findnote{margin-top:10px}
+@media (max-width:1100px){.findtwo{grid-template-columns:minmax(0,1fr)}}
+
 /* PRINTED, every page carries the CUI marking at its top and its bottom (§6 item 14). The two lines in the page are
    printed once each, at the start and the end of the document, so a view printed with Ctrl+P had pages of CUI figures
    with no marking between its first page and its last (review SCR2-2): the page's own margin boxes repeat it on every
@@ -315,7 +367,9 @@ main.ov .ovopen:hover{background:none;color:#fff}
 @media print{
   /* a chart's name is a button on screen and its only name: hidden with the other buttons, the printed charts could
      not be told apart (review UX-2). It prints as plain words. */
-  header.top,.filters,.slidebtns,.acts,nav.views,main.ov button:not(.ovopen){display:none}
+  header.top,.filters,.filtbtn,.findbar,.slidebtns,.acts,nav.views,main.ov button:not(.ovopen):not(.tg){display:none}
+  /* a requirement's name is a button: on paper it is kept, as plain words */
+  main.ov .findt .tg{color:#000}
   main.ov .ovopen,main.ov .ovopen:hover{color:#000;text-decoration:none}
   /* paper is white: the shell's dark frame is not printed, and the Overview prints dark words on white */
   body{background:#fff}

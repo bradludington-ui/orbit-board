@@ -44,8 +44,12 @@ try {
     p.on('pageerror', e => p.errs.push(e.message));
     p.on('dialog', d => d.accept().catch(() => {}));
     await p.goto(pathToFileURL(file).href);
+    await p.waitForSelector('#uiMain'); await p.evaluate(() => { const b = document.getElementById('uiManageBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); });   // these checks drive the controls a keeper of the plan uses: the Manage data bar is opened (CONTRACT §20)
     await p.waitForSelector('#uiMain');
     await p.setInputFiles('#uiFile', [join(FX, 'pull-all.xlsx'), join(FX, 'bae.xlsx')]);
+    // the page opens on Find a requirement (CONTRACT §20); these checks are the Overview's
+    await p.waitForSelector('[data-act=view][data-v=overview]', { timeout: 60000 });
+    await p.click('[data-act=view][data-v=overview]');
     await p.waitForSelector('#uiMain .tiles', { timeout: 60000 });
     await p.fill('#uiAsOf', '2026-10'); await p.dispatchEvent('#uiAsOf', 'change');
     await p.waitForTimeout(400);

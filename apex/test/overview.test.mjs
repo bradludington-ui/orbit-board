@@ -47,6 +47,9 @@ async function boot(files, opt = {}) {
     T.SP.applyImport(await T.SP.parseFiles(files, { now: NOW }));
     T.SP.setSettings({ asOf: opt.asOf || '2026-10' });
     await settle(40);
+    // the page opens on Find a requirement (CONTRACT §20; apex/test/find.test.mjs); these checks are the Overview's
+    T.opened = (doc.querySelector('#uiNav [aria-pressed=true]') || { getAttribute: () => '' }).getAttribute('data-v');
+    await T.view('overview');
   }
   return T;
 }
@@ -77,9 +80,9 @@ try {
     const T = await boot([{ name: 'om.csv', data: csv(OM) }, { name: 'sp.csv', data: csv(SPR) }]);
     let m = T.main();
     const nav = [...T.doc.querySelectorAll('#uiNav button')];
-    C.eq('the menu lists the Overview first, then the views as before', nav.map(b => b.textContent),
-      ['Overview', 'Summary', 'Slide blocks', 'O&M', 'Full Fund', 'Initial Spares', 'OPN', 'PMOs', 'Not Allocated', 'Import report', 'What changed', 'Settings']);
-    C.chk('an import opens on the Overview', nav[0].getAttribute('aria-pressed') === 'true' && m.className === 'ov' && !!m.querySelector('.tiles'));
+    C.eq('the menu lists every view, grouped by what a reader is looking for', nav.map(b => b.textContent),
+      ['Requirements', 'By PMO', 'O&M', 'Full Fund', 'Initial Spares', 'OPN', 'Overview', 'Summary', 'Slide blocks', 'Not Allocated', 'Import report', 'What changed', 'Settings']);
+    C.chk('the Overview is a view on the dark frame, with its tiles', T.opened === 'find' && T.doc.querySelector('#uiNav [data-v=overview]').getAttribute('aria-pressed') === 'true' && m.className === 'ov' && !!m.querySelector('.tiles'));
     C.chk('the menu is beside the view, outside the sticky top', !T.doc.getElementById('uiTop').contains(T.doc.getElementById('uiNav'))
       && T.doc.getElementById('uiShell').contains(T.doc.getElementById('uiNav')) && T.doc.getElementById('uiShell').contains(m));
     // the execution year is FY2027 (Data through Oct-2026): the Overview opens on it
