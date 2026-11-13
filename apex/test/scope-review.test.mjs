@@ -137,7 +137,7 @@ try {
     await p.emulateMedia({ media: null });
     const scr = await p.evaluate(() => ({ ts: getComputedStyle(document.querySelector('.ts')).color, ba: getComputedStyle(document.querySelector('.ovsvg rect.ba')).fill,
       hidden: getComputedStyle(document.querySelector('main.ov .seg button')).display }));
-    C.eq('on screen nothing changed: the tile’s lower line, the actual bar and the FY buttons are as before', scr, { ts: 'rgb(195, 211, 234)', ba: 'rgb(47, 214, 200)', hidden: 'block' });
+    C.eq('on screen nothing changed: the tile’s lower line, the actual bar and the FY buttons are as before', scr, { ts: 'rgb(59, 69, 83)', ba: 'rgb(5, 87, 149)', hidden: 'block' });     // §25: ORBIT's Harbor muted ink and blue
     C.eq('print: no script error', p.errs, []);
     await p.context().close();
   }

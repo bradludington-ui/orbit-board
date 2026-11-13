@@ -1792,3 +1792,19 @@ show any real positive use in our dashboard. Just creates confusion."*
   that keeps them, an unreadable Amount, every view, the workbook.
 - The oracle has the rule on its own (`leave_out`, `--keep-zero`) and `test/fixture.test.mjs` holds it to the generator's
   record with those rows taken away. Comparisons with a build before this section keep them.
+
+## 25. The page wears ORBIT's colours (Brad, 13 Nov 2026)
+
+Brad: *"Let's also update to follow the same color scheme as ORBIT."* ORBIT's default palette is Harbor, and the page takes
+it in place of §18's dark shell.
+
+- **The frame**: ground `#c4ccd6`, panels `#d9dfe7` and `#c9d0da`, lines `#aeb7c3`, control edges `#627185`, ink `#182029`,
+  muted ink `#3b4553`, the navy accent `#25394d` (bars, pressed buttons, total rows) with `#eaf0f6` on it, and blue
+  `#055795` for what is done, for links (`#0b4f8a`) and for the mark's satellite. Ochre `#7a4a08` says *unsaved* and
+  *filtered*; wine `#8c1d3f` says *late*. The Overview's appropriations are Harbor's blue, ochre, violet and wine.
+- **The tables on the page** keep their layout; their bars and total rows are the navy accent, their header rows `#cbd9e8`,
+  their cells `#eef1f5`, closed months `#ced5de`.
+- **Unchanged, on purpose:** the status colours (green, yellow, red, each with its word) and everything the workbook and
+  the saved pictures print, which stay the slides' colours (§8, §9), and the printed page (black on white).
+- The stylesheet's token names are the ones its rules were written with (`--sbg`, `--navy`, `--gold` …); only their values
+  moved, in `:root` of `src/style.css`.
