@@ -115,7 +115,7 @@ function ui_state() { return SP.state && typeof SP.state === 'object' ? SP.state
 let ui_keptMemo = null;
 function ui_kept(raw, kind) {
   if (!raw || typeof SP.keepYears !== 'function') return raw;
-  const st = ui_state(), key = JSON.stringify(st && st.settings && Array.isArray(st.settings.leftOut) ? st.settings.leftOut : SP.LEFT_OUT_DEFAULT);
+  const st = ui_state(), key = JSON.stringify([st && st.settings && Array.isArray(st.settings.leftOut) ? st.settings.leftOut : SP.LEFT_OUT_DEFAULT, SP.keepZeroOf(st && st.settings)]);
   if (!ui_keptMemo || ui_keptMemo.key !== key) ui_keptMemo = { key, map: new WeakMap() };
   if (!ui_keptMemo.map.has(raw)) {
     let out = raw;
@@ -1494,7 +1494,7 @@ function ui_vSettings(M) {
 }
 
 function ui_vHelp() {
-  const li = a => '<ul>' + a.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+  const li = a => '<ul>' + a.filter(x => x !== '').map(x => '<li>' + x + '</li>').join('') + '</ul>';
   return '<h2 class="title">Help</h2><div class="help">'
     + '<h3 class="sub">What this is</h3><p>APEX (Appropriation Planning &amp; Execution) replaces the Spend Plan Workbook (v12). In November 2026 it was first called the SFCB Spend Plan, then SCOPE. Import the CCaR pull; every product the workbook made is drawn here, '
     + 'and <strong>Export Excel</strong> writes them as a workbook of values. The file is its own database: <strong>Save</strong> writes the data and the settings into this file.</p>'
@@ -1518,6 +1518,9 @@ function ui_vHelp() {
     + '<h3 class="sub">Which rows count</h3>' + li([
       'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, it is not ' + (ui_lo25() ? 'O&amp;M FY' + SP.OBBBA_FY
       : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding') + ', and the switches show its service and lane.',
+      // §24: the placeholders
+      SP.keepZeroOf(ui_settings()) ? '' : '<strong>A plan event of $0.00 is left out</strong> (Brad, 13 Nov 2026): a CCaR pull row whose Amount is exactly zero is a placeholder. '
+      + 'It adds nothing to any dollar figure, and it is in no list, count, calendar or sheet. The files and the saved plan still hold them, and the Import report says how many there are.',
       // §23: O&M FY2025 left out entirely, in place of §15's rule on its OBBBA funding, which it covers
       ui_lo25() ? '<strong>O&amp;M FY' + SP.OBBBA_FY + ' is left out entirely</strong> (Brad, 13 Nov 2026): none of its CCaR pull rows and none of the BAE report’s rows for it is '
       + 'shown or counted on any view, in the workbook or in a picture. The files and the saved plan still hold them, and the Import report says how many rows that is. '

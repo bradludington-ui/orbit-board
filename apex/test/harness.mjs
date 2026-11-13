@@ -54,7 +54,7 @@ export function loadTool({ modules = null, state = null, html = null, url = 'fil
     },
   });
   const w = dom.window;
-  if (leftOutDefault !== undefined && w.SP) w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice();
+  if (leftOutDefault !== undefined && w.SP) { w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice(); w.SP.KEEP_ZERO_DEFAULT = true; }   // §24: and keeps the $0.00 plan events
   return {
     window: w,
     SP: w.SP,

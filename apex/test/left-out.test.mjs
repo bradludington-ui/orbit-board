@@ -1,4 +1,4 @@
-// A year left out entirely (CONTRACT §23): O&M FY2025 by default. A small invented plan, every expectation worked by hand:
+// A year left out entirely (CONTRACT §23: O&M FY2025 by default) and the plan events of $0.00 left out (§24). A small invented plan, every expectation worked by hand:
 // the model, the comparison of two pulls, every screen, and the workbook hold nothing of it; the Import report alone says
 // how many rows were left out; the saved plan still holds them; and settings.leftOut decides which year it is.
 //
@@ -31,8 +31,12 @@ const OM = [
   row(2025, 'QL0002', 'Oldmoney Beta', B_OLD, 'Q2', '2027-01-12', '1500000', NA),
   row(2026, 'QL0003', 'Quill One', B_OM, 'Q3', '2025-12-01', '2000000', EX),
   row(2027, 'QL0004', 'Quill Two', B_OM, 'Q4', '2027-03-10', '3000000', NA),
+  // §24 placeholders, $0.00: one more plan event of Quill Two, and a requirement that is nothing else
+  row(2027, 'QL0004', 'Quill Two', B_OM, 'Q4 option', '2027-05-10', '0', NA),
+  row(2027, 'QL0006', 'Placeholder Line', B_OM, 'Q6', '', '$0.00', NA),
 ];
-const SPR = [row(2025, 'QL0005', 'Quill Spare', B_SP, 'Q5', '2025-06-02', '1000000', EX)];
+// … and Initial Spares FY2026 holds nothing but a $0.00 placeholder, so it has no block
+const SPR = [row(2025, 'QL0005', 'Quill Spare', B_SP, 'Q5', '2025-06-02', '1000000', EX), row(2026, 'QL0007', 'Placeholder Spare', B_SP, 'Q7', '2026-12-01', '0.00', NA)];
 // the same pull with only its O&M FY2025 rows changed: a comparison must show nothing
 const OM2 = OM.map(r => (r.FY === 2025 ? Object.assign({}, r, { Amount: String(Number(r.Amount) + 250000) }) : r));
 // a report: O&M FY2025 9.0M / 8.0M (left out), O&M FY2026 2.5M / 2.4M, O&M FY2027 3.5M / 3.0M, Spares FY2025 1.2M / 1.1M
@@ -74,8 +78,8 @@ try {
   C.eq('a pull that differs only in O&M FY2025 rows shows no change', [dif.om.totals.approved, Object.keys(dif.om.byBlock)], [[D(5e6), D(5e6)], ['om|2026', 'om|2027']]);
   C.eq('… and with nothing left out the same two pulls differ by 0.5M', difAll.om.totals.approved, [D(10.5e6), D(11e6)]);
   // the lines for the Import report
-  C.eq('the Import report’s one line', SP.leftOutLines(Mb), ['O&M FY2025: 2 CCaR pull rows and 1 BAE report row. They are in no figure, block, list, picture or sheet; the files and the saved plan still hold them.']);
-  C.eq('… and none when nothing was left out', SP.leftOutLines(Mall), []);
+  C.eq('the Import report’s line on the year', SP.leftOutLines(Mb).slice(0, 1), ['O&M FY2025: 2 CCaR pull rows and 1 BAE report row. They are in no figure, block, list, picture or sheet; the files and the saved plan still hold them.']);
+  C.eq('… and none when nothing was left out', SP.leftOutLines(SP.buildModel(P.pulls, Object.assign({}, S, { leftOut: [], keepZero: true }), V)), []);
   // the workbook
   const spec = SP.excelSpec(Mb, P.pulls, S, { report: P.report, bae: P.bae, today: '2026-11-09' });
   const cells = sh => sh.rows.flatMap(r => (r.cells || r).map(c => (c && typeof c === 'object' ? c.v : c))).filter(v => v !== null && v !== undefined);
@@ -87,6 +91,19 @@ try {
   const named = Object.entries(byName).filter(([, v]) => v.some(x => /O&M FY2025/.test(String(x)))).map(([n]) => n);
   C.eq('only the Import Report sheet names O&M FY2025, in the section’s one line', [named, byName['Import Report'].filter(x => /O&M FY2025/.test(String(x)))],
     [['Import Report'], ['  O&M FY2025: 2 CCaR pull rows and 1 BAE report row. They are in no figure, block, list, picture or sheet; the files and the saved plan still hold them.']]);
+  // ============================================================================================ §24 plan events of $0.00
+  C.eq('the model says how many $0.00 plan events it left out, per appropriation', M.zeroOut, [{ ap: 'om', rows: 2 }, { ap: 'sp', rows: 1 }]);
+  C.chk('no requirement, plan event or block is a placeholder', !/Placeholder|Q4 option/.test(J(M)) && !keys(M).includes('sp|2026') && SP.requirementsOf(M).find(r => r.title === 'Quill Two').events.length === 1);
+  const Mz = SP.buildModel(P.pulls, Object.assign({}, S, { keepZero: true }), V);
+  C.eq('kept by the setting, they are back: a block, two requirements and a plan event, and not a dollar more',
+    [keys(Mz), SP.requirementsOf(Mz).map(r => r.title).filter(x => /Placeholder/.test(x)).sort(), SP.requirementsOf(Mz).find(r => r.title === 'Quill Two').events.length, Mz.summary.total.approved, Mz.zeroOut, Mz.rowsByAp],
+    [['om|2026', 'om|2027', 'sp|2025', 'sp|2026'], ['Placeholder Line', 'Placeholder Spare'], 2, M.summary.total.approved, undefined, { om: 4, sp: 2 }]);
+  C.eq('the Import report’s line on them, after the year’s', SP.leftOutLines(M)[1],
+    'Plan events of $0.00 (placeholders): 3 CCaR pull rows (O&M 2, Initial Spares 1). They add nothing to any dollar figure and are in no list, count or sheet; the files and the saved plan still hold them.');
+  C.chk('no sheet of the workbook holds a placeholder', !Object.values(byName).some(v => v.some(x => /Placeholder|Q4 option/.test(String(x)))));
+  { const bad = await SP.parseFiles([{ name: 'om.csv', data: csv([row(2027, 'QL0008', 'Unread Amount', B_OM, 'Q8', '2027-02-01', 'n/a', NA), row(2027, 'QL0009', 'Real One', B_OM, 'Q9', '2027-02-01', '100', NA)]) }], { now: NOW });
+    const Mb2 = SP.buildModel(bad.pulls, S, V);
+    C.eq('a row whose Amount does not read is not a $0.00 row: it is kept, and reported as unreadable', [Mb2.rowsByAp, Mb2.zeroOut, Mb2.excluded.unreadable.rows], [{ om: 2 }, undefined, 1]); }
   tt.close();
 
   // ============================================================================================ every screen
@@ -101,16 +118,17 @@ try {
   for (const v of views) {
     doc.querySelector('[data-act=view][data-v="' + v + '"]').dispatchEvent(new W.MouseEvent('click', { bubbles: true })); await settle(30);
     const m = doc.getElementById('uiMain'), text = m.textContent;
-    if (/Oldmoney|Oldline/.test(text) || m.querySelector('[data-bk="om|2025"]') || (v !== 'report' && /O&M FY2025/.test(text))) seen.push(v);
+    if (/Oldmoney|Oldline|Placeholder|Q4 option/.test(text) || m.querySelector('[data-bk="om|2025"]') || (v !== 'report' && /O&M FY2025/.test(text))) seen.push(v);
   }
-  C.eq('no view shows a requirement, a budget, a block or a word of O&M FY2025 (Settings’ budget list included)', seen, []);
+  C.eq('no view shows a requirement, a budget, a block or a word of O&M FY2025 (Settings’ budget list included), or a $0.00 placeholder', seen, []);
   doc.getElementById('uiHelp').dispatchEvent(new W.MouseEvent('click', { bubbles: true })); await settle(30);
   const help = doc.getElementById('uiMain').textContent;
   C.chk('Help says O&M FY2025 is left out entirely, in place of the rule on its OBBBA funding', /O&M FY2025 is left out entirely \(Brad, 13 Nov 2026\)/.test(help) && !/FY2025 O&M OBBBA funding is left out/.test(help), help.slice(0, 80));
+  C.chk('Help says a plan event of $0.00 is left out', /A plan event of \$0\.00 is left out/.test(help));
   doc.querySelector('[data-act=view][data-v="report"]').dispatchEvent(new W.MouseEvent('click', { bubbles: true })); await settle(30);
   const sec = doc.querySelector('#uiMain section.leftout');
   C.eq('the Import report alone says what was left out', sec && [sec.querySelector('h3').textContent, sec.textContent.includes('O&M FY2025: 2 CCaR pull rows and 1 BAE report row.')], ['Left out of APEX entirely', true]);
-  C.chk('the saved plan still holds the rows', t2.SP.state.pulls.current.om.rows.length === 4 && t2.SP.state.bae.current.rows.length === 4 && !('leftOut' in t2.SP.state.settings));
+  C.chk('the saved plan still holds the rows', t2.SP.state.pulls.current.om.rows.length === 6 && t2.SP.state.pulls.current.sp.rows.length === 2 && !('keepZero' in t2.SP.state.settings) && t2.SP.state.bae.current.rows.length === 4 && !('leftOut' in t2.SP.state.settings));
   C.eq('no script error', t2.errors.filter(e => !/^Not implemented/.test(String(e))), []);
   t2.close();
 } catch (e) {

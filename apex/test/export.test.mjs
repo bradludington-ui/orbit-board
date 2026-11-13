@@ -625,7 +625,9 @@ try {
       const data = rows.slice(1).filter(r => !isBlank(r));
       C.eq(w + ': one row per row of the pull', data.length, X.rowsByAp[ap]);
       // §23: O&M FY2025 is left out entirely, so the raw data sheet holds none of its rows
-      const mine = manifest.gen1.filter(i => i.ap === ap && !(i.ap === 'om' && i.fy === 2025));
+      // §24: nor any plan event of $0.00
+      const zero24 = i => i.cents === 0 && !(i.bad && i.bad.length);
+      const mine = manifest.gen1.filter(i => i.ap === ap && !(i.ap === 'om' && i.fy === 2025) && !zero24(i));
       const wantCents = mine.reduce((s, i) => s + (i.cents === null ? 0 : i.cents), 0);
       let gotCents = 0, countedCents = 0;
       const bad = [];
@@ -696,7 +698,7 @@ try {
       C.chk(sc.name + ' Settings: the special CCaRs', ST.some(x => x.v(0) === 'PP 2000') && ST.some(x => x.v(0) === 'JSF6654'));
       const bh = ST.findIndex(x => x.v(0) === 'Name' && x.v(1) === 'Rows');
       const budgets = bh < 0 ? [] : ST.slice(bh + 1).filter(r => !isBlank(r));
-      const wantBud = new Set(manifest.gen1.filter(i => !(i.ap === 'om' && i.fy === 2025)).map(i => normKey(i.budget)));     // §23
+      const wantBud = new Set(manifest.gen1.filter(i => !(i.ap === 'om' && i.fy === 2025) && !(i.ap && i.cents === 0 && !(i.bad && i.bad.length))).map(i => normKey(i.budget)));     // §23, §24
       C.eq(sc.name + ' Settings: one budget row per budget name', budgets.length, wantBud.size);
     }
 
