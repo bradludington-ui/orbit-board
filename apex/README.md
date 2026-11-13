@@ -290,6 +290,10 @@ The filter bar has a box for each service and one for each lane (Discretionary a
     If you leave the box with a year not finished, or empty, it goes back to the month in use and the message line says so.
 - **First FY** is the oldest money year shown. It starts at FY2025. Money for earlier years is counted nowhere, and the
   Summary's notes say how much there is.
+- **O&M FY2025 is left out entirely** (Brad, 13 Nov 2026): none of its CCaR pull rows and none of the BAE report's rows
+  for it is shown or counted on any view, in the workbook or in a picture. The files and the saved plan still hold them;
+  the Import report says how many rows were left out, and nothing else names it. FY2025 of every other appropriation is
+  unchanged. This covers the rule below, which now has no O&M FY2025 row left to act on.
 - **FY2025 O&M OBBBA funding is left out** of every figure, block, list and picture, whatever the switches show (Brad, 11
   Nov 2026: *"Just leave FY25 OBBBA funding out. Although it's active technically, it's not a reporting year."*, and then
   *"Yes, leave out OBBBA funding for O&M but leave it in for Spares."*). A row is FY2025 O&M OBBBA funding when its

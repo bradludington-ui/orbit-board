@@ -329,7 +329,8 @@ try {
   for (const sc of SCEN) {
     const X = oracle(['--scenario', sc.name, '--fixture', tmp.dir], sc.name);
     const view = viewFor(sc.svcOff, sc.lanes);
-    const M = SP.buildModel(sc.store.current, settingsFor(sc.asOf, sc.first), view);
+    // §23: the obbba scenarios keep O&M FY2025 (the oracle's left_out=[]), so the §15 and §17 rules are still exercised
+    const M = SP.buildModel(sc.store.current, Object.assign(settingsFor(sc.asOf, sc.first), /obbba/.test(sc.name) ? { leftOut: [] } : {}), view);
     models[sc.name] = M;
     C.chk(sc.name + ': the oracle and the scenario agree on what was asked', X.asOf === sc.asOf && X.firstFY === sc.first);
     compare(sc.name, M, X);
@@ -391,7 +392,7 @@ try {
     C.chk('settings: Authorized entered is used and marked entered', b.authorized === 12345678901 && b.authorizedEntered === true);
     C.chk('settings: Authorized entered as 0 is entered, not "not entered"', M.blocks.find(x => x.key === 'ff|2025').authorizedEntered === true);
     C.chk('settings: the extra special CCaR makes CC: items', M.naAll.some(i => i.key === 'CC:' + normKey(extraCcar)));
-    C.chk('settings: Authorized-not-entered note names the blocks, not "any block"', M.summary.notes.some(n => /^Authorized was not entered for O&M FY2025, /.test(n)));
+    C.chk('settings: Authorized-not-entered note names the blocks, not "any block"', M.summary.notes.some(n => /^Authorized was not entered for O&M FY2027, /.test(n)));
     // the overridden budget's service, switched off: its rows leave every figure
     const X2 = oracle(['--files', join(tmp.dir, 'pull-all.xlsx'), '--asof', '2026-10', '--first', '2025', '--settings', sfile, '--svc-off', 'USAF ANG', '--lanes', 'mand'], 'settings-off');
     const M2 = SP.buildModel(store1.current, s, viewFor(['USAF ANG'], ['mand']));
@@ -499,7 +500,7 @@ try {
     const has14 = o => NO14.filter(k => o && typeof o === 'object' && k in o);
     for (const sc of SCEN) {
       const M = models[sc.name], J0 = JSON.stringify(M);
-      const s = settingsFor(sc.asOf, sc.first), v = viewFor(sc.svcOff, sc.lanes);
+      const s = Object.assign(settingsFor(sc.asOf, sc.first), /obbba/.test(sc.name) ? { leftOut: [] } : {}), v = viewFor(sc.svcOff, sc.lanes);
       const notReports = [null, undefined, { rows: 'not a list' }, [], 'a report', 0];
       C.chk(sc.name + ': a fourth argument that is no report gives the no-report model, character for character',
         notReports.every(x => JSON.stringify(SP.buildModel(sc.store.current, s, v, x)) === J0));

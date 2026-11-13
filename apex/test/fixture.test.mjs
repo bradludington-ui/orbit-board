@@ -26,6 +26,8 @@ import { scratchDir, checks } from './harness.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MAKE = join(HERE, 'fixture', 'make_fixture.py');
 const ORACLE = join(HERE, 'fixture', 'oracle.py');
+// §23: every oracle run below is given '--left-out' with no value, so nothing is left out and each expectation the manifest
+// makes stands as it was; the left-out rule itself is checked once, against the manifest, in its own block at the end.
 const T = checks('fixture + oracle');
 // Objects are compared with their keys sorted (the order a dict is written in means nothing); arrays keep their order,
 // because the order of a Not Allocated list is part of §5. eq() calls this.chk, so the collector is wrapped.
@@ -63,7 +65,7 @@ function makeFixture(dir, seed) {
 }
 function oracle(dir, scenario) {
   const out = join(dir, 'exp', scenario + '.json');
-  const r = py([ORACLE, '--scenario', scenario, '--fixture', dir, '--out', out]);
+  const r = py([ORACLE, '--left-out', '--scenario', scenario, '--fixture', dir, '--out', out]);
   if (r.status !== 0) { chk('oracle ran: ' + scenario, false, r.stderr.slice(-600)); return null; }
   return JSON.parse(readFileSync(out, 'utf8'));
 }
@@ -679,6 +681,37 @@ try {
     'asof-2026-03': { asOf: '2026-03', first: 2025 }, 'first-2024': { asOf: '2026-10', first: 2024 } };
   for (const [s, o] of Object.entries(sets)) if (ex[s]) { againstManifest(s, ex[s], fromManifest(g1, o)); structure(s, ex[s]); }
 
+  // §23 A YEAR LEFT OUT ENTIRELY. The oracle run as the tool runs by default (no --left-out: O&M FY2025 is left out), against
+  // the generator's own record with those rows taken away here, never by either program: every figure, block and count is
+  // what a pull that never held them would give, and the oracle says how many rows it left out.
+  {
+    const dflt = (s, extra = []) => { const out = join(A, 'exp', 'left-' + s + '.json');
+      const r = py([ORACLE, '--scenario', s, '--fixture', A, ...extra, '--out', out]);
+      if (r.status !== 0) { chk('oracle ran with its default left-out: ' + s, false, r.stderr.slice(-600)); return null; }
+      return JSON.parse(readFileSync(out, 'utf8')); };
+    const gone = r => r.ap === 'om' && r.fy === 2025, kept = g1.filter(r => !gone(r));
+    chk('the fixture has O&M FY2025 rows to leave out, and O&M rows of other years to keep', g1.filter(gone).length >= 20 && kept.some(r => r.ap === 'om'));
+    for (const s of ['all', 'usaf-off', 'mand-only', 'first-2024']) {
+      const e = dflt(s);
+      if (!e) continue;
+      againstManifest('§23 ' + s, e, fromManifest(kept, sets[s])); structure('§23 ' + s, e);
+      chk('§23 ' + s + ': no block, figure or count of O&M FY2025', !('om|2025' in e.blocks) && !JSON.stringify(e.excluded).includes('om|2025'));
+      eq('§23 ' + s + ': the oracle says what it left out', e.leftOut, [{ ap: 'om', fy: 2025, rows: g1.filter(gone).length, reportRows: 0 }]);
+    }
+    const eb = dflt('bae-all'), R = man.bae.gen1.filter(r => r.kind === 'data' && r.ap === 'om' && r.fy === 2025);
+    if (eb) {
+      chk('the fixture’s report has O&M FY2025 rows to leave out', R.length >= 3);
+      eq('§23 bae-all: the report’s rows left out are counted too', eb.leftOut, [{ ap: 'om', fy: 2025, rows: g1.filter(gone).length, reportRows: R.length }]);
+      chk('§23 bae-all: no report figure for O&M FY2025, and its total row still checks', !('om|2025' in eb.bae.byBlock) && eb.bae.total.ok === true,
+        JSON.stringify([Object.keys(eb.bae.byBlock), eb.bae.total]));
+      eq('§23 bae-all: the report’s readable in-scope rows are the manifest’s without them',
+        eb.bae.rows.in, man.bae.gen1.filter(r => r.kind === 'data' && !r.bad.length && r.scope === 'in' && !(r.ap === 'om' && r.fy === 2025)).length);
+    }
+    // nothing left out when the list is empty: the run every other check here reads
+    const e0 = dflt('all', ['--left-out']);
+    if (e0) chk('§23: with nothing on the list the oracle leaves nothing out', 'om|2025' in e0.blocks && e0.leftOut === undefined);
+  }
+
   if (ex.all) {
     const a = ex.all;
     // the cases, read back as the contract says they must read
@@ -889,7 +922,7 @@ try {
   const ENT = { 'om|2026': 39876543210, 'sp|2025': 8000000000 };
   const plainRun = (dir, name, args) => {
     const out = join(dir, 'exp', 'plain-' + name + '.json');
-    const r = py([ORACLE, '--files', join(dir, 'pull-all.xlsx'), ...args, '--out', out]);
+    const r = py([ORACLE, '--left-out', '--files', join(dir, 'pull-all.xlsx'), ...args, '--out', out]);
     return r.status === 0 ? JSON.parse(readFileSync(out, 'utf8')) : (chk('plain run ' + name, false, r.stderr.slice(-400)), null);
   };
   const PLAN = ['n', 'curve', 'goal', 'unprog', 'execAfterAsOf', 'cols', 'cum', 'obl', 'goalC', 'statusC', 'pmos', 'titles', 'pes', 'ccars', 'na'];
@@ -1004,7 +1037,7 @@ try {
     const named = join(S.dir, 'Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000.xlsx');
     writeFileSync(named, readFileSync(join(A, 'bae.xlsx')));
     const out = join(S.dir, 'stamp.json');
-    const r = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), named, '--out', out]);
+    const r = py([ORACLE, '--left-out', '--files', join(A, 'pull-all.xlsx'), named, '--out', out]);
     const j = r.status === 0 ? JSON.parse(readFileSync(out, 'utf8')) : null;
     eq('the report\'s date is read from its file name', j && j.bae && [j.bae.stamp, j.bae.file], ['2026-01-31 12:00', 'Report__BAE_ALL_Services_USAF_and_DoN_2026-01-31_120000.xlsx']);
     eq('…and only the name changed: the same figures as bae-all', j && exB['bae-all'] && JSON.stringify(j.blocks) === JSON.stringify(exB['bae-all'].blocks), true);
@@ -1281,7 +1314,7 @@ try {
     const r1 = py(['-c', RENAME_PY, join(dir, 'obbba2', 'pull-om.xlsx'), join(rd, 'pull-om.xlsx'), JSON.stringify(rows)]);
     if (r1.status !== 0) { chk(tag + ': the renamed plan was written', false, r1.stderr.slice(-300)); return null; }
     const out = join(rd, 'plain.json');
-    const r2 = py([ORACLE, '--files', join(rd, 'pull-om.xlsx'), join(dir, 'obbba2', 'pull-ff.csv'), join(dir, 'obbba2', 'pull-sp.xlsx'),
+    const r2 = py([ORACLE, '--left-out', '--files', join(rd, 'pull-om.xlsx'), join(dir, 'obbba2', 'pull-ff.csv'), join(dir, 'obbba2', 'pull-sp.xlsx'),
       '--first', String(o.first), ...(o.svcOff ? ['--svc-off', ...o.svcOff] : []), '--out', out]);
     if (r2.status !== 0) { chk(tag + ': the renamed plan ran', false, r2.stderr.slice(-300)); return null; }
     return JSON.parse(readFileSync(out, 'utf8'));
@@ -1348,7 +1381,7 @@ try {
       const r1 = py(['-c', FLEXCOL_PY, join(A, 'obbba2', 'bae.xlsx'), join(d, 'bae.xlsx'), mode]);
       if (r1.status !== 0) { chk('the report copy (' + mode + ') was written', false, r1.stderr.slice(-300)); return null; }
       const out = join(d, 'exp.json');
-      const r2 = py([ORACLE, '--files', join(A, 'obbba2', 'pull-om.xlsx'), join(A, 'obbba2', 'pull-ff.csv'), join(A, 'obbba2', 'pull-sp.xlsx'), join(d, 'bae.xlsx'), '--out', out]);
+      const r2 = py([ORACLE, '--left-out', '--files', join(A, 'obbba2', 'pull-om.xlsx'), join(A, 'obbba2', 'pull-ff.csv'), join(A, 'obbba2', 'pull-sp.xlsx'), join(d, 'bae.xlsx'), '--out', out]);
       return r2.status === 0 ? JSON.parse(readFileSync(out, 'utf8')) : (chk('the oracle read the report copy (' + mode + ')', false, r2.stderr.slice(-300)), null);
     };
     const dropped = run('drop'), dup = run('dup');
@@ -1363,15 +1396,15 @@ try {
 
   // ---------------------------------------------------------------------------- refusals (§3: nothing changes)
   {
-    const r1 = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), join(A, 'pull-all.xlsx'), '--out', join(S.dir, 'r1.json')]);
+    const r1 = py([ORACLE, '--left-out', '--files', join(A, 'pull-all.xlsx'), join(A, 'pull-all.xlsx'), '--out', join(S.dir, 'r1.json')]);
     const j1 = existsSync(join(S.dir, 'r1.json')) ? JSON.parse(readFileSync(join(S.dir, 'r1.json'), 'utf8')) : {};
     chk('a file given twice is refused', r1.status === 3 && /twice/.test(j1.refused || ''), (j1.refused || r1.stderr).slice(0, 200));
-    const r2 = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), join(A, 'pull-om.xlsx'), '--out', join(S.dir, 'r2.json')]);
+    const r2 = py([ORACLE, '--left-out', '--files', join(A, 'pull-all.xlsx'), join(A, 'pull-om.xlsx'), '--out', join(S.dir, 'r2.json')]);
     const j2 = existsSync(join(S.dir, 'r2.json')) ? JSON.parse(readFileSync(join(S.dir, 'r2.json'), 'utf8')) : {};
     chk('O&M from two sheets is refused, naming both', r2.status === 3 && /O&M Raw Data/.test(j2.refused || '') && /Report/.test(j2.refused || ''),
       (j2.refused || r2.stderr).slice(0, 300));
     // §14.1: two report sheets in one import refuse the whole import, naming both
-    const r3 = py([ORACLE, '--files', join(A, 'pull-all.xlsx'), join(A, 'bae.xlsx'), join(A, 'gen2', 'bae.xlsx'), '--out', join(S.dir, 'r3.json')]);
+    const r3 = py([ORACLE, '--left-out', '--files', join(A, 'pull-all.xlsx'), join(A, 'bae.xlsx'), join(A, 'gen2', 'bae.xlsx'), '--out', join(S.dir, 'r3.json')]);
     const j3 = existsSync(join(S.dir, 'r3.json')) ? JSON.parse(readFileSync(join(S.dir, 'r3.json'), 'utf8')) : {};
     chk('two BAE reports in one import are refused, naming both', r3.status === 3 && (j3.refused || '').split('bae.xlsx').length === 3,
       (j3.refused || r3.stderr).slice(0, 300));

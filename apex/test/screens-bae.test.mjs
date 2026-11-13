@@ -466,7 +466,8 @@ try {
     m = await T.view('changes');
     const lis = [...m.querySelectorAll('ul.notes li')].map(e => flat(e.textContent));
     C.chk('What changed: the import is named with its BAE report', lis.length === 1 && lis[0].endsWith(': O&M, Full Fund, Initial Spares, OPN, BAE report ('
-      + (X.bae.rows.in + X.bae.rows.flyaway + X.bae.rows.noap) + ' readable rows)'), J(lis));
+      // §23: the list of imports counts the rows the FILE held, so the oracle's count plus the report rows it left out
+      + (X.bae.rows.in + X.bae.rows.flyaway + X.bae.rows.noap + (X.leftOut || []).reduce((s, l) => s + l.reportRows, 0)) + ' readable rows)'), J(lis));
     C.chk('What changed: only one BAE report so far', /Only one BAE report so far\./.test(flat(m.querySelector('section.chg[data-ap=bae]') && m.querySelector('section.chg[data-ap=bae]').textContent)));
     T.click(T.doc.querySelector('[data-act=help]'));
     await settle();
@@ -797,7 +798,8 @@ try {
         const parsed = await t.SP.parseFiles(fs.map(n => ({ name: n.split('/').pop(), data: ab(join(FX, n)) })), { now: ['2026-11-09T12:00:00.000Z', '2026-11-16T12:00:00.000Z'][i] });
         await t.SP.applyImport(parsed);
       }
-      t.SP.setSettings({ asOf: '2026-10' });
+      // §23: the code before left no year out, so the two are compared with nothing left out
+      t.SP.setSettings({ asOf: '2026-10', leftOut: [] });
       const st = JSON.parse(J(t.SP.state));
       st.savedAt = '2026-11-16T12:30:00.000Z';
       t.close();

@@ -192,6 +192,8 @@ function st_checkSettings(s) {
   if (s.firstFY !== undefined && !Number.isInteger(s.firstFY)) return 'its First FY is not a year';
   for (const k of ['goals', 'authorized', 'budgets']) if (s[k] !== undefined && !st_isObj(s[k])) return 'its ' + k + ' setting is not a table';
   if (s.special !== undefined && !(Array.isArray(s.special) && s.special.every(x => typeof x === 'string'))) return 'its special CCaRs are not a list of names';
+  // §23: absent in every plan that never set it (the tool's default applies); a list of 'appropriation|year' where it is there
+  if (s.leftOut !== undefined && !(Array.isArray(s.leftOut) && s.leftOut.every(x => typeof x === 'string'))) return 'its list of years left out is not a list';
   return '';
 }
 // THE LAST IMPORT REPORT, in the shapes the Import report view and the workbook's Import Report sheet read. Checked only

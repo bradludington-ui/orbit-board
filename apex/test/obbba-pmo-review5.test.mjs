@@ -23,7 +23,8 @@ import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadTool, pageHtml, checks, scratchDir } from './harness.mjs';
+import { loadTool, pageHtml, checks, scratchDir, keepEveryYear } from './harness.mjs';
+keepEveryYear();   // §23: these checks are of O&M FY2025 rows, which the tool leaves out entirely unless settings.leftOut says otherwise
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const READ = join(HERE, 'export-read.py');

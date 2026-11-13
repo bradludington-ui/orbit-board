@@ -1734,3 +1734,37 @@ meant every CCaR number, *"Only those three"*.
 
 - `test/pmo-calendar.test.mjs`, *the Special CCaRs, one line each*: an invented number over two years, two appropriations, two
   titles and two PMOs, every cell worked by hand, before and after it is listed.
+
+## 23. O&M FY2025 is left out entirely (Brad, 13 Nov 2026)
+
+Brad: *"No FY2025 O&M data should be shown or included. This is a pot of funding that was active last year under an odd
+situation. All FY25 O&M can be removed from this dashboard. It is considered active but I don't want it visible and
+confusing people."*
+
+- **The rule.** Every CCaR pull row of the O&M pull whose FY is 2025, and every BAE report row whose budget is O&M's and
+  whose FY is 2025, is taken out before anything is worked out. Nothing after that can hold one: no figure, block, PMO tab,
+  requirement, Not Allocated line, note, picture, comparison of two pulls or two reports, and no sheet of the workbook, its
+  raw data, BAE Report and Settings budget list included. A row whose FY does not read is kept (it is unreadable, and
+  reported as such). FY2025 of every other appropriation is unchanged.
+- **Where.** `settings.leftOut`, a list of `'ap|fy'`; absent, it is `SP.LEFT_OUT_DEFAULT` (`['om|2025']`), so every plan
+  saved before this has the rule without being changed. `SP.leftOutOf(settings)` reads it. The rows are taken out at the
+  door of `SP.buildModel`, `SP.diffPulls`, `SP.diffBae`, `SP.baeTally` and `SP.excelSpec`, and of the one screen list read
+  straight from the rows (Settings' budgets): `SP.keepYears(pulls, bae, settings)`. There is no control for it on the page.
+- **The file keeps its rows.** The saved plan and the files are untouched; the list of imports still counts the rows a
+  file held.
+- **The one place it is named**: the Import report (view and sheet), under *Left out of APEX entirely*, one line per
+  appropriation and year with the number of pull rows and report rows (`model.leftOut`, `SP.leftOutLines`), so the rows a
+  file holds and the rows the tool works from can be reconciled. The report's own total row is still checked against every
+  row it holds.
+- **§15 and §17.** FY2025 O&M OBBBA funding is a part of O&M FY2025, so under the default those rules have no row left to
+  act on and none of their notes is drawn; Help states this section's rule in their place. They stand as written when the
+  list does not hold `om|2025`. OBBBA funding of every other appropriation counts like any other money, and the Import
+  report still lists it (§17.2).
+
+### 23.1 Tests
+
+- `test/left-out.test.mjs`: a small invented plan, every expectation worked by hand: the model, the report, the comparison,
+  every view, Help, the workbook's sheets, the saved plan, and the list deciding the year.
+- `test/fixture/oracle.py` has the rule on its own (`leave_out`, default `om|2025`), and `test/fixture.test.mjs` holds it
+  to the generator's record with those rows taken away. The scenarios of §12 and §14 run under the default; the obbba
+  scenarios, and every comparison with a build before this section, run with an empty list.

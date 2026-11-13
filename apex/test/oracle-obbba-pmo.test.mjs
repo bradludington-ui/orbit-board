@@ -246,7 +246,8 @@ try {
       const ro = py([join(HERE, 'fixture', 'oracle.py'), '--scenario', sc.name, '--fixture', FX, '--out', outX]);
       if (ro.status !== 0) throw new Error('the oracle failed: ' + ro.stderr.slice(-800));
       const X = JSON.parse(readFileSync(outX, 'utf8'));
-      const state = await planOf(sc.imports, { asOf: sc.asOf || '2026-10', firstFY: sc.first || 2025 });
+      // §23: the obbba scenarios keep O&M FY2025 (the oracle's left_out=[]); the others leave it out, as the oracle does
+      const state = await planOf(sc.imports, Object.assign({ asOf: sc.asOf || '2026-10', firstFY: sc.first || 2025 }, /obbba/.test(sc.name) ? { leftOut: [] } : {}));
       const T = await boot(state);
       C.eq(sc.name + ': the page boots on the plan with no script errors', T.errors(), []);
       // the switches, through the page's own boxes

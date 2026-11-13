@@ -545,14 +545,17 @@ try {
       // §16.2 the PMO column: where a counting row's money goes, as the oracle works it out; blank on a row that does not count
       const goes = new Map(X.bae.pmoColumn.map(([rn, g]) => [rn, g === '' ? null : g]));
       const data = rows.slice(1).filter(r => !isBlank(r));
-      C.eq(w + ': one row per row of the report, its total row included, in file order', data.length, FILE.length - 1);
+      // §23: the report's O&M FY2025 rows are left out entirely, so the sheet holds every other row, in file order, with no gap
+      const leftRow = it => it.kind === 'data' && it.ap === 'om' && it.fy === 2025, nLeft = gen1.filter(leftRow).length;
+      C.chk(w + ': the report has O&M FY2025 rows, and the sheet has none of them', nLeft >= 3 && !data.some(r => /O&M/.test(String(r.v(nh))) && r.v(1) === 2025));
+      C.eq(w + ': one row per row of the report that is not left out, its total row included, in file order', data.length, FILE.length - 1 - nLeft);
       const bad = [];
       let n = 0;
-      for (const it of gen1) {
+      for (const it of gen1.filter(x => !leftRow(x))) {
         const row = data[n++], fr = FILE.find(f => f.r === it.row);
         if (!row || !fr) { bad.push('row ' + it.row + ' missing'); continue; }
         // in file order: the sheet's n-th data row is the file's n-th, and the file has no blank row between them
-        if (row.r !== it.row) bad.push('row ' + it.row + ' written at ' + row.r);
+        if (row.r !== n + 1) bad.push('row ' + it.row + ' written at ' + row.r + ', want ' + (n + 1));
         if (it.kind === 'total') {
           if (row.v(0) !== null || row.v(1) !== null) bad.push('the total row has a name or FY');
           if (!(typeof row.v(2) === 'number' && Math.abs(row.v(2) - Math.round(it.approved * 100) / 100) < 1e-6)) bad.push('the total row’s Approved ' + row.v(2));
@@ -761,22 +764,22 @@ try {
   // ============================================================================================ a plan just under half
   // review P4-9: a block flagged as under half is never said to be 50% of the report's Approved. §14.5's example rounds to
   // a whole percent (3.57% is "4%"), and a plan from 49.5% up to half rounded to 50: "is 50% of the BAE report's Approved"
-  // under "under half". One row of a report, sized against the fixture's own O&M FY2025 plan, at 49.99%, 49.49% and 40%.
+  // under "under half". One row of a report, sized against the fixture's own O&M FY2026 plan (§23: O&M FY2025 is left out), at 49.99%, 49.49% and 40%.
   {
     const s = SP.defaultSettings(TODAY);
     s.asOf = '2026-10'; s.firstFY = 2025;
-    const P = SP.buildModel(parsed.pulls, s, SP.defaultView()).blocks.find(b => b.key === 'om|2025').approved;
+    const P = SP.buildModel(parsed.pulls, s, SP.defaultView()).blocks.find(b => b.key === 'om|2026').approved;
     const H = ['Budget Name', 'Budget FY Numeric', 'Budget Approved Amount', 'Budget Authorized Amount'];
     for (const [ratio, word] of [[0.4999, 'under 50%'], [0.4949, '49%'], [0.4, '40%']]) {
       const appr = Math.ceil(P / ratio);
-      const bae = { headers: H, cols: H, rows: [{ c: ['USAF O&M Invented Probe Line Discretionary AV', 2025, appr, appr], x: {}, src: [0, 'Sheet1', 2] }],
+      const bae = { headers: H, cols: H, rows: [{ c: ['USAF O&M Invented Probe Line Discretionary AV', 2026, appr, appr], x: {}, src: [0, 'Sheet1', 2] }],
         file: 'invented.xlsx', sheet: 'Sheet1', stamp: null, total: null, importedAt: NOW };
       const M = SP.buildModel(parsed.pulls, s, SP.defaultView(), bae);
-      const b = M.blocks.find(x => x.key === 'om|2025');
+      const b = M.blocks.find(x => x.key === 'om|2026');
       if (!C.chk('P4-9 ' + word + ': the fixture sizes a flagged block at that ratio', b && b.planShort && Math.abs(b.planned / b.approved - ratio) < 1e-6, b && b.planned / b.approved)) continue;
-      C.chk('P4-9 ' + word + ': the Summary’s note says the plan is ' + word + ' of the report’s Approved', M.summary.notes.includes('O&M FY2025: the CCaR plan ($' + mSent(b.planned)
+      C.chk('P4-9 ' + word + ': the Summary’s note says the plan is ' + word + ' of the report’s Approved', M.summary.notes.includes('O&M FY2026: the CCaR plan ($' + mSent(b.planned)
         + 'M) is ' + word + ' of the BAE report’s Approved ($' + mSent(b.approved) + 'M); Obl % is measured against the report’s figure.'), M.summary.notes.filter(n => /CCaR plan \(/.test(n)).join(' / '));
-      C.chk('P4-9 ' + word + ': … and so does the Import Report', SP.baeModelLines(M).includes('    O&M FY2025: the CCaR plan ' + usd(b.planned) + ' is ' + word
+      C.chk('P4-9 ' + word + ': … and so does the Import Report', SP.baeModelLines(M).includes('    O&M FY2026: the CCaR plan ' + usd(b.planned) + ' is ' + word
         + ' of the report’s Approved ' + usd(b.approved) + '.'), SP.baeModelLines(M).filter(l => /% of/.test(l)).join(' / '));
     }
   }
@@ -826,6 +829,7 @@ try {
     for (const cs of CASES) {
       const mkS = (S) => {
         const s = S.defaultSettings(TODAY);
+        s.leftOut = [];     // §23: the code before left no year out, so the two are compared with nothing left out
         if (cs.asOf) s.asOf = cs.asOf;
         if (cs.first) s.firstFY = cs.first;
         if (cs.auth) s.authorized = JSON.parse(JSON.stringify(cs.auth));

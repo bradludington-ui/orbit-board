@@ -329,11 +329,12 @@ await P.fill('#uiAsOf', '2026-10');
 C.chk('Data through 2026-10: back to FY2027', await until(P, () => document.querySelector('#uiEy').textContent === 'FY2027'));
 await P.fill('#uiFirst', '2026');
 await P.press('#uiFirst', 'Tab');
-await until(P, () => !document.querySelector('tr[data-bk="om|2025"]'));
-C.chk('First FY 2026: FY2025 blocks leave the Summary', !(await P.$('tr[data-bk="om|2025"]')) && !!(await P.$('tr[data-bk="om|2026"]')));
+// §23: O&M FY2025 is left out entirely, so the FY2025 block watched here is Initial Spares'
+await until(P, () => !document.querySelector('tr[data-bk="sp|2025"]'));
+C.chk('First FY 2026: FY2025 blocks leave the Summary', !(await P.$('tr[data-bk="sp|2025"]')) && !!(await P.$('tr[data-bk="om|2026"]')));
 await P.fill('#uiFirst', '2025');
 await P.press('#uiFirst', 'Tab');
-C.chk('First FY 2025: FY2025 blocks come back', await until(P, () => !!document.querySelector('tr[data-bk="om|2025"]')));
+C.chk('First FY 2025: FY2025 blocks come back, and O&M FY2025 does not (§23)', await until(P, () => !!document.querySelector('tr[data-bk="sp|2025"]')) && !(await P.$('tr[data-bk="om|2025"]')));
 await P.fill('#uiFirst', '1066');
 await P.press('#uiFirst', 'Tab');
 C.chk('First FY 1066 is refused with a reason', /First FY must be a year/.test(await text(P, '#uiMsg')) && (await P.inputValue('#uiFirst')) === '2025');
