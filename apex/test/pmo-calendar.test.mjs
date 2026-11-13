@@ -149,6 +149,58 @@ try {
   C.eq('no script error', T.errors(), []);
   T.t.close();
 
+  // ============================================================================================ the Special CCaRs, one line each
+  // CONTRACT §22. An invented number, RL 0100, is spread over two fiscal years, two appropriations, two titles and two PMOs:
+  //   O&M FY2026     Rollo Main   1.0M awarded Dec 2025 (Prior Yr)
+  //   O&M FY2027     Rollo Main   2.0M awarded Oct 2026; 0.4M planned Mar 2027
+  //   O&M FY2027     Rollo Extra  0.6M planned Mar 2027
+  //   Spares FY2027  Rollo Main   0.5M planned Jun 2027, Propulsion
+  // and RL 0200 (Plain One, 0.3M planned Jan 2027) is an ordinary requirement. Rolled: Prior 1.0, Oct 2.0, Mar 1.0, Jun 0.5 = 4.5M.
+  {
+    const om = [
+      row(2026, 'RL 0100', 'Rollo Main', B_OM, 'R1', '2025-12-01', '1000000', EX),
+      row(2027, 'RL 0100', 'Rollo Main', B_OM, 'R2', '2026-10-06', '2000000', EX),
+      row(2027, 'RL 0100', 'Rollo Main', B_OM, 'R3', '2027-03-02', '400000', NA),
+      row(2027, 'RL 0100', 'Rollo Extra', B_OM, 'R4', '2027-03-20', '600000', NA),
+      row(2027, 'RL 0200', 'Plain One', B_OM, 'R5', '2027-01-11', '300000', NA),
+    ];
+    const sp = [row(2027, 'RL 0100', 'Rollo Main', B_SP, 'R6', '2027-06-01', '500000', NA, 'Propulsion (PP)')];
+    const T = await boot(pageHtml({}));
+    T.SP.applyImport(await T.SP.parseFiles([{ name: 'om.csv', data: csv(om) }, { name: 'sp.csv', data: csv(sp) }], { now: NOW }));
+    T.SP.setSettings({ asOf: '2026-10' }); await settle(40);
+    const look = () => { const m2 = T.main(), hd = [...m2.querySelectorAll('.calt thead th')].map(th => th.textContent);
+      return [...m2.querySelectorAll('.calt tbody tr')].map(tr => (tr.classList.contains('calg') ? ['#' + tr.textContent]
+        : [(tr.querySelector('.tg') || tr.querySelector('th')).textContent, ...[...tr.children].slice(1, -1).map((td, i) => [...td.querySelectorAll('.cchip')].map(c => hd[i + 1] + ':' + c.getAttribute('data-k') + ':' + c.getAttribute('data-c'))).flat(),
+          '=' + tr.lastElementChild.getAttribute('data-c')])); };
+    const tot = () => [...T.main().querySelectorAll('.calt tr.calt-tot td')].map(td => Number(td.getAttribute('data-c')));
+    await T.view('cal');
+    const before = look(), totBefore = tot();
+    C.eq('a CCaR number not on Settings’ list is a line per requirement, as before', before.slice(0, -1).map(r => r[0]),
+      ['#Air Vehicle (AV)', 'Rollo Main', 'Plain One', 'Rollo Extra', 'Rollo Main', '#Propulsion (PP)', 'Rollo Main']);
+    T.SP.setSettings({ special: ['XX 9999', 'rl  0100'] }); await settle(40);
+    await T.view('cal');
+    const after = look();
+    C.eq('on the list, it is one line at the top with every year, appropriation, title and PMO added together; the rest is unchanged', after.slice(0, -1), [
+      ['#Special CCaRs, one line each (the list is in Settings)'],
+      ['RL 0100', 'Prior Yr:c-aw:' + D(1e6), 'Oct:c-aw:' + D(2e6), 'Mar:c-plan:' + D(1e6), 'Jun:c-plan:' + D(0.5e6), '=' + D(4.5e6)],
+      ['#Air Vehicle (AV)'],
+      ['Plain One', 'Jan:c-plan:' + D(0.3e6), '=' + D(0.3e6)],
+    ]);
+    C.eq('the Total row does not move', tot(), totBefore);
+    { const M2 = modelOf(T), all = M2.cols.map(c => M2.blocks.reduce((s, b) => s + b.cols[c.index], 0)), got = tot().slice(0, -1);
+      C.eq('… and is still the blocks’ own columns (No date, empty here, is not drawn)', [got, all.slice(got.length)], [all.slice(0, got.length), [0]]); }
+    const sub = T.main().querySelector('.calt tr[data-sp] .fsub').textContent;
+    C.chk('the line says what it adds up: both titles, each appropriation and year, the PMOs', /Rollo Main \(\+1 more\)/.test(sub) && /O&M FY2026/.test(sub) && /O&M FY2027/.test(sub) && /Initial Spares FY2027/.test(sub) && /2 PMOs/.test(sub));
+    C.chk('the count says how many requirements are on the special line', /5 requirements, 4 of them on 1 Special CCaR line/.test(T.doc.getElementById('uiCalCount').textContent));
+    C.chk('a listed number the plan does not hold draws no line', T.main().querySelectorAll('.calt tr[data-sp]').length === 1);
+    await (async () => { const s = T.main().querySelector('select[data-act=calf][data-f=fy]'); s.value = [...s.options].find(o => o.textContent === 'FY2026').value; s.dispatchEvent(new T.W.Event('change', { bubbles: true })); await settle(); })();
+    C.eq('the pickers narrow the line too: FY2026 alone', look().slice(0, -1), [['#Special CCaRs, one line each (the list is in Settings)'], ['RL 0100', 'Prior Yr:c-aw:' + D(1e6), '=' + D(1e6)]]);
+    T.click(T.main().querySelector('.calt tr[data-sp] .tg')); await settle();
+    C.eq('its number opens every part of it on Find a requirement', [T.pressed(), T.doc.getElementById('uiFindQ').value, T.rows().length], ['find', 'RL 0100', 4]);
+    C.eq('no script error', T.errors(), []);
+    T.t.close();
+  }
+
   // ============================================================================================ the office is remembered
   {
     const tt = loadTool({ html: pageHtml({}), url: 'http://localhost/apex.html' });   // jsdom gives file:// no storage; an http origin has it
