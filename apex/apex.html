@@ -81,11 +81,13 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);col
    of the screen rules): at 1366 px with a 15 px scrollbar, 144px left a tree 1177 px, and trees opened to CCaR run to
    1195 px, so three of the fixture's lost their right-hand column to a box of their own (review UX-1) */
 nav.views{flex:0 0 144px;display:flex;flex-direction:column;gap:2px;padding:10px 6px;position:sticky;top:var(--topH, 96px);
-  max-height:calc(100vh - var(--topH, 96px) - var(--cuiH));overflow-y:auto}
+  max-height:calc(100vh - var(--topH, 96px) - var(--cuiH));overflow-y:auto;
+  /* the menu is ORBIT's dark blue (Brad, 13 Nov 2026: "would like to see that dark blue on the menu") */
+  background:var(--acc);color:var(--onAcc);border-radius:0 8px 8px 0;margin:8px 8px 12px 0;align-self:flex-start}
 nav.views[hidden]{display:none}
-nav.views button{font:inherit;text-align:left;padding:6px 10px;border:1px solid transparent;border-radius:7px;background:none;color:var(--sink);cursor:pointer}
-nav.views button:hover{background:var(--spanel2);color:var(--sink)}
-nav.views button[aria-pressed=true]{background:var(--ssel);border-color:var(--sedge);color:var(--sink);font-weight:700;box-shadow:inset 3px 0 0 var(--steal)}
+nav.views button{font:inherit;text-align:left;padding:6px 10px;border:1px solid transparent;border-radius:7px;background:none;color:var(--onAcc);cursor:pointer}
+nav.views button:hover{background:#3a536c;color:#fff}
+nav.views button[aria-pressed=true]{background:var(--onAcc);border-color:var(--onAcc);color:var(--acc);font-weight:700;box-shadow:inset 3px 0 0 var(--steal)}
 @media (max-width:900px){
   .shell{display:block}
   nav.views{position:static;flex-direction:row;flex-wrap:wrap;max-height:none;padding:6px 10px}
@@ -322,7 +324,7 @@ main.ov .ovopen:hover{background:none;color:var(--sink)}
 .bar1m{background:var(--sdeep);border-top:1px solid var(--sline)}
 #uiManageBtn[aria-expanded=true]{background:var(--acc);border-color:var(--acc);color:var(--onAcc)}
 .navg{display:flex;flex-direction:column;gap:2px}
-.navh{margin:10px 10px 2px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--smut);font-weight:700}
+.navh{margin:10px 10px 2px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#b9c8d9;font-weight:700}
 @media (max-width:900px){.navg{flex-direction:row;flex-wrap:wrap;align-items:center}.navh{margin:0 4px 0 8px}}
 .filtbtn{margin:8px 8px 0 0;font:inherit;font-size:12px;padding:3px 10px;min-height:24px;border:1px solid var(--sedge);border-radius:6px;background:var(--sbtn);color:var(--smut);cursor:pointer;text-align:left}
 .filtbtn:hover{background:var(--gold);color:#000}
@@ -389,6 +391,12 @@ main.ov .plist .tg:hover,main.ov .calt .tg:hover{background:none;color:var(--sin
 .calt .fsub{display:block;font-size:11px;color:var(--smut)}
 .calt td.cl,.calt th.cl{background:var(--sdeep)}
 .calt tr.calg th{text-align:left;color:var(--slink);font-weight:700;background:var(--spanel2)}
+/* every other line under a heading is shaded (Brad, 13 Nov 2026), a closed month a shade deeper, so a line reads across */
+.calt tbody tr[data-rk] th,.calt tbody tr[data-rk] td,.calt tbody tr[data-sp] th,.calt tbody tr[data-sp] td{background:var(--cell)}
+.calt tbody tr[data-rk] td.cl,.calt tbody tr[data-sp] td.cl{background:#dbe1e9}
+.calt tbody tr.alt th,.calt tbody tr.alt td{background:var(--spanel2)}
+.calt tbody tr.alt td.cl{background:#b4bfcd}
+.calt tr.calg th{background:var(--strip)}
 .calt tr.calsp th{color:var(--ochre)}
 .calt tr.calsp .calspn{font-weight:400;opacity:.8}
 .calt tr.calt-tot th,.calt tr.calt-tot td{font-weight:700;border-top:1px solid var(--sedge);font-variant-numeric:tabular-nums}
@@ -8569,18 +8577,18 @@ function ui_vCal(M) {
   }).filter(Boolean);
   const rest = list.filter(r => spOf(r) < 0);
   const shown = rest.slice(0, UI_CAL_MAX);
-  let body = '', lastPmo = null;
+  let body = '', lastPmo = null, zeb = 0;     // zeb: every other line under a heading is shaded, so a line is followed across the months
   if (rolled.length) {
     body += '<tr class="calg calsp"><th scope="colgroup" colspan="' + (cols.length + 2) + '">Special CCaRs, one line each <span class="calspn">(the list is in Settings)</span></th></tr>';
     for (const x of rolled) {
-      body += '<tr data-sp="' + ui_e(x.key) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
+      body += '<tr data-sp="' + ui_e(x.key) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
         + ui_e(x.ccar) + '</button><span class="fsub">' + ui_e(x.title) + ' · ' + ui_e(x.where.join(', ')) + (x.pmos.length > 1 ? ' · ' + x.pmos.length + ' PMOs' : ' · ' + ui_e(x.pmos[0])) + '</span></th>'
         + cols.map(c => cell(x, c)).join('') + '<td class="n tot" data-c="' + x.planned + '">' + ui_e(SP.fmtMText(x.planned)) + '</td></tr>';
     }
   }
   for (const r of [...shown].sort((a, b) => (a.pmo < b.pmo ? -1 : a.pmo > b.pmo ? 1 : 0))) {
-    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; }
-    body += '<tr data-rk="' + all.indexOf(r) + '"><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
+    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; zeb = 0; }
+    body += '<tr data-rk="' + all.indexOf(r) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
       + cols.map(c => cell(r, c)).join('') + '<td class="n tot" data-c="' + r.planned + '">' + ui_e(SP.fmtMText(r.planned)) + '</td></tr>';
   }
   return head + '<p class="findcount" id="uiCalCount" role="status">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')

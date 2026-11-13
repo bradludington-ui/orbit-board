@@ -125,6 +125,10 @@ try {
     ['#Propulsion (PP)'],
     ['Tessa E', 'Jun:c-plan:' + D(1e6)],
   ]);
+  // every other line under a heading is shaded, starting again under each heading (Brad, 13 Nov 2026)
+  C.eq('every other requirement line under an office is shaded, and the shading starts again under the next office',
+    [...T.main().querySelectorAll('.calt tbody tr')].filter(tr => !tr.classList.contains('calt-tot')).map(tr => (tr.classList.contains('calg') ? '#' : tr.classList.contains('alt') ? 'alt' : '-')),
+    ['#', '-', 'alt', '-', 'alt', '-', 'alt', '#', '-']);
   const totRow = () => [...T.main().querySelectorAll('.calt tr.calt-tot td')].map(td => Number(td.getAttribute('data-c')));
   //                         Prior  Oct     Nov Dec     Jan Feb     Mar     Apr May Jun     Jul Aug Sep Next No date  Total
   C.eq('the Total row, worked by hand', totRow(), [D(2.5e6), D(4e6), 0, D(2e6), 0, D(2e6), D(5e6), 0, 0, D(1e6), 0, 0, 0, 0, D(0.7e6), D(17.2e6)]);

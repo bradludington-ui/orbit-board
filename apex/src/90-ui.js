@@ -627,18 +627,18 @@ function ui_vCal(M) {
   }).filter(Boolean);
   const rest = list.filter(r => spOf(r) < 0);
   const shown = rest.slice(0, UI_CAL_MAX);
-  let body = '', lastPmo = null;
+  let body = '', lastPmo = null, zeb = 0;     // zeb: every other line under a heading is shaded, so a line is followed across the months
   if (rolled.length) {
     body += '<tr class="calg calsp"><th scope="colgroup" colspan="' + (cols.length + 2) + '">Special CCaRs, one line each <span class="calspn">(the list is in Settings)</span></th></tr>';
     for (const x of rolled) {
-      body += '<tr data-sp="' + ui_e(x.key) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
+      body += '<tr data-sp="' + ui_e(x.key) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
         + ui_e(x.ccar) + '</button><span class="fsub">' + ui_e(x.title) + ' · ' + ui_e(x.where.join(', ')) + (x.pmos.length > 1 ? ' · ' + x.pmos.length + ' PMOs' : ' · ' + ui_e(x.pmos[0])) + '</span></th>'
         + cols.map(c => cell(x, c)).join('') + '<td class="n tot" data-c="' + x.planned + '">' + ui_e(SP.fmtMText(x.planned)) + '</td></tr>';
     }
   }
   for (const r of [...shown].sort((a, b) => (a.pmo < b.pmo ? -1 : a.pmo > b.pmo ? 1 : 0))) {
-    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; }
-    body += '<tr data-rk="' + all.indexOf(r) + '"><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
+    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; zeb = 0; }
+    body += '<tr data-rk="' + all.indexOf(r) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
       + cols.map(c => cell(r, c)).join('') + '<td class="n tot" data-c="' + r.planned + '">' + ui_e(SP.fmtMText(r.planned)) + '</td></tr>';
   }
   return head + '<p class="findcount" id="uiCalCount" role="status">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')

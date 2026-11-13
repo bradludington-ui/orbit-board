@@ -1808,3 +1808,7 @@ it in place of §18's dark shell.
   the saved pictures print, which stay the slides' colours (§8, §9), and the printed page (black on white).
 - The stylesheet's token names are the ones its rules were written with (`--sbg`, `--navy`, `--gold` …); only their values
   moved, in `:root` of `src/style.css`.
+- **The menu is the navy accent** (Brad, 13 Nov 2026: *"would like to see that dark blue on the menu"*): `#25394d` with
+  `#eaf0f6` on it; the view on screen is the light one, with the blue bar at its left.
+- **The Award calendar shades every other line** (Brad, the same day), starting again under each heading, a closed month a
+  shade deeper, so a requirement's line can be followed across the months (`tr.alt`).
