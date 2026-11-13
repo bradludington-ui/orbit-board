@@ -1629,3 +1629,54 @@ Brad: *"Let's change the name to APEX — Appropriation Planning & Execution. Le
 - Tests: the name checks (`overview`, `ui`, `export`, `e2e`, `save`, `import-safety`) expect APEX; `overview` checks the
   top bar's words, that the logo is drawn in the page, and that the name is there as text.
 
+## 20. Simpler for a reader: Find a requirement, and the quiet frame (Brad, 13 Nov 2026)
+
+Brad: *"I need it to be intuitive and easy to navigate for someone who just pulled up the file."* The people who open it are
+*"finance and program managers on a day to day basis. They want to see how much money they have for a requirement and when
+it's projected to award by finance."* He chose, of three mockups, to open on **Find a requirement**, confirmed that a
+requirement is a CCaR record with its plan events, that Awarded is what CCaR marks Actual Execution and Projected award is the
+plan event's date in the pull, and kept the Overview under Briefing.
+
+### 20.1 Requirements (`SP.requirementsOf(model)`)
+
+- A requirement is the counted rows of one block (appropriation and FY) that share a PMO, a Title and a CCaR number. The rows
+  are the block's own (`block.rows`, kept off the model's enumerable keys so the model as JSON is unchanged): the switches,
+  First FY and §15/§17 apply as they do to every figure. A BAE report changes nothing here.
+- **Planned** is their sum; **Awarded** the rows whose status is Actual Execution (§4.5's Obligated); **Still to award** the
+  difference. A block's requirements add up to its CCaR plan and its Obligated.
+- **Plan events**: its rows by plan event, month and status, earliest month first, no date last. One is **late** when it is not
+  awarded and its month is the Data through month or earlier.
+- **Projected award** (`next`, `state`): the earliest month among its plan events not yet awarded. `awarded` when nothing is
+  left; `late` when that month has closed ("Was Aug 2026"); `nodate` when nothing left carries a date; else `planned`.
+
+### 20.2 Find a requirement
+
+- The view the page opens on, and where an import lands. A search box (every word typed must be in the title, CCaR number,
+  PMO, appropriation, FY, a budget or a plan event; typing redraws the list alone, so the box keeps the keyboard), and
+  pickers for PMO, Appropriation and FY, each with All first.
+- The list: Requirement (its name is a button; CCaR number and PMO beneath), Appropriation and FY, Planned, Awarded, Still to
+  award ($M, as the tables print it), Projected award as its words on a colour. A count line adds up what is listed. At most
+  200 are listed, and the line says so.
+- Picking one lists beside it its money, PMO, appropriation, budgets and plan events by month, and a button that opens its
+  appropriation.
+
+### 20.3 The quiet frame
+
+- The top bar holds the name, "Data through {Mon-YYYY}" as words, the save state (shown only when there is work not saved, or
+  the Manage bar is open), **Export Excel**, **Help** and **Manage data**.
+- **Manage data** opens a bar holding Data through, First FY, Import, Save, Save a copy and the pulls line. Every control
+  keeps its id and its action. The bar is open by itself when the file holds no data, and then as the person leaves it.
+- The switches sit behind a **Filter** button that says what is shown. They are open while the Manage bar is, and always
+  while a switch is off.
+- The menu is grouped: Requirements; Browse (By PMO, each appropriation); Briefing (Overview, Summary, Slide blocks); Data
+  checks (Not Allocated, Import report, What changed); Set up (Settings).
+- No figure, view, sheet or picture changes.
+
+### 20.4 Tests
+
+- `test/find.test.mjs`: a small invented plan with every requirement, plan event, state and total worked by hand; the list
+  held to the Summary of the same page; the search, the pickers, the detail; a reader's file (Manage closed, switches behind
+  Filter); with a BAE report.
+- Browser tests that drive the top bar's controls open the Manage bar first. Comparisons of the switches with older builds
+  compare the row of switches.
+

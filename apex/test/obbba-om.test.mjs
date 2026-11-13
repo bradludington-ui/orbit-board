@@ -624,7 +624,7 @@ try {
     const same = (what, f) => { const a = f(A), b = f(Bp); C.chk('no OBBBA word: ' + what + ' is drawn as before §17', a === b, a.length + ' vs ' + b.length + ' characters, first difference at ' + [...a].findIndex((ch, i) => ch !== b[i])); };
     // the top's frame (the name, the menu's place) is APEX's since CONTRACT §18: what the top SAYS is compared
     same('the top (its pulls line and its message)', T => T.doc.getElementById('uiPulls').innerHTML + '|' + T.doc.getElementById('uiMsg').innerHTML);
-    same('the switches', T => T.doc.getElementById('uiFilters').innerHTML);
+    same('the switches', T => T.doc.querySelector('#uiFilters .filters').innerHTML   /* the row of switches; since CONTRACT §20 a button sits above it */);
     for (const v of ['summary', 'slides', 'om', 'ff', 'sp', 'opn', 'na', 'report', 'changes', 'settings']) {
       await A.view(v); await Bp.view(v);
       if (v === 'changes') {

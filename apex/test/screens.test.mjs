@@ -66,6 +66,7 @@ try {
   p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   p.on('dialog', d => { dialogs.push(d.type() + ': ' + d.message()); d.dismiss().catch(() => {}); });
   await p.goto(pageFile('sfcb-spend-plan.html', STATE));
+  await p.waitForSelector('#uiMain'); await p.evaluate(() => { const b = document.getElementById('uiManageBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); });   // these checks drive the controls a keeper of the plan uses: the Manage data bar is opened (CONTRACT §20)
   // APEX opens on the Overview (CONTRACT §18); these checks read the Summary
   await p.waitForSelector('[data-act=view][data-v=summary]');
   await p.click('[data-act=view][data-v=summary]');
@@ -282,6 +283,7 @@ try {
   const qd = [];
   q.on('dialog', d => { qd.push(d.type()); d.dismiss().catch(() => {}); });
   await q.goto(pageFile('downloads.html', STATE));
+  await q.waitForSelector('#uiMain'); await q.evaluate(() => { const b = document.getElementById('uiManageBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); });   // these checks drive the controls a keeper of the plan uses: the Manage data bar is opened (CONTRACT §20)
   // APEX opens on the Overview (CONTRACT §18); these checks read the Summary
   await q.waitForSelector('[data-act=view][data-v=summary]');
   await q.click('[data-act=view][data-v=summary]');

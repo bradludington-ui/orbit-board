@@ -517,6 +517,9 @@ SP.treeRows = function treeRows(tree, maxLevel) {
 function eng_block(rows, ap, fy, cx, S, auth) {
   const b = eng_figures(rows, ap, fy, cx, S, auth);
   b.tree = eng_tree(rows);
+  // the counted rows themselves, for SP.requirementsOf (§20): kept off the model's own keys, so the model as JSON, which the
+  // tests and the saved comparisons read, is what it was
+  Object.defineProperty(b, 'rows', { value: rows, enumerable: false });
   b.pmoRows = b.tree.map(n => ({ pmo: n.key, label: n.label, code: SP.pmoCode(n.label), cols: n.cols, total: n.total }));
   b.na = eng_na(rows, S);
   return b;
@@ -1849,3 +1852,62 @@ SP.overviewOf = function overviewOf(M, fy) {
   }));
   return { fys, fy: pick, rows, total, marks, status, noGoal, noPct, none, stale, byAp, charts };
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// REQUIREMENTS (CONTRACT §20). Brad, 13 Nov 2026: the people who open this are finance and program managers who "want to
+// see how much money they have for a requirement and when it's projected to award by finance". A requirement is a CCaR
+// record (its title and CCaR number) in one appropriation and FY, with its plan events beneath it. Nothing here is a new
+// rule: the rows are each block's counted rows (the switches, First FY and FY2025 O&M OBBBA funding apply as they do to
+// every figure), Planned is their sum as a tree's Total is, Awarded is the rows CCaR marks Actual Execution (§4.5's
+// Obligated), and a plan event's date is the pull's own Date.
+//   -> [{ key, ap, apLabel, fy, pmo, pmoKey, title, ccar, budgets, planned, awarded, remaining, n,
+//         state: 'awarded'|'planned'|'late'|'nodate', next: 'YYYY-MM'|null,
+//         events: [{pe, ym: 'YYYY-MM'|null, cents, awarded: bool, tag: ''|'Unprogrammed'|'Forecast', late: bool}] }]
+// in the order of the blocks, then by title and CCaR number.
+//   next: the earliest month of a plan event not yet awarded; state 'late' when that month has closed (it is the Data
+//   through month or earlier), 'nodate' when nothing left to award carries a date, 'awarded' when nothing is left.
+// ---------------------------------------------------------------------------------------------------------------
+SP.requirementsOf = function requirementsOf(M) {
+  const out = [];
+  const asOf = M && typeof M.asOf === 'string' ? M.asOf : '';
+  for (const b of (M && M.blocks) || []) {
+    const by = new Map();
+    for (const r of b.rows || []) {
+      const d = r.d, k = d.k.pmo + '\u0000' + d.k.title + '\u0000' + d.k.ccar;
+      let q = by.get(k);
+      if (!q) by.set(k, (q = { pmoKey: d.k.pmo, sp: [new Map(), new Map(), new Map()], budgets: new Map(), planned: 0, awarded: 0, n: 0, ev: new Map() }));
+      eng_tally(q.sp[0], eng_txt(d.pmo)); eng_tally(q.sp[1], eng_txt(d.title)); eng_tally(q.sp[2], eng_txt(d.ccar));
+      const bn = eng_txt(d.budget).trim();
+      if (bn) q.budgets.set(SP.normKey(bn), bn);
+      q.planned += r.cents; q.n++;
+      const exec = d.status === 'exec';
+      if (exec) q.awarded += r.cents;
+      const ym = r.col !== ENG_NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}/.test(d.date) ? d.date.slice(0, 7) : null;
+      const ek = d.k.pe + '\u0000' + (ym || '') + '\u0000' + (exec ? 1 : 0) + '\u0000' + d.status;
+      let e = q.ev.get(ek);
+      if (!e) q.ev.set(ek, (e = { sp: new Map(), ym, cents: 0, awarded: exec, tag: d.status === 'unprog' ? 'Unprogrammed' : d.status === 'fcst' ? 'Forecast' : '' }));
+      eng_tally(e.sp, eng_txt(d.pe)); e.cents += r.cents;
+    }
+    const list = [];
+    for (const [k, q] of by) {
+      const events = [...q.ev.values()].map(e => ({ pe: eng_major(e.sp, ENG_BLANK.pe), ym: e.ym, cents: e.cents, awarded: e.awarded, tag: e.tag,
+        late: !e.awarded && e.ym !== null && asOf !== '' && e.ym <= asOf }))
+        .sort((x, y) => (x.ym === null) - (y.ym === null) || eng_cmp(x.ym || '', y.ym || '') || eng_cmp(x.pe, y.pe) || (y.awarded - x.awarded));
+      const open = events.filter(e => !e.awarded), dated = open.filter(e => e.ym !== null);
+      const next = dated.length ? dated[0].ym : null;
+      const state = !open.length ? 'awarded' : next === null ? 'nodate' : (asOf !== '' && next <= asOf) ? 'late' : 'planned';
+      list.push({ key: b.key + '|' + k, ap: b.ap, apLabel: b.apLabel, fy: b.fy, pmoKey: q.pmoKey, pmo: eng_major(q.sp[0], ENG_BLANK.pmo),
+        title: eng_major(q.sp[1], ENG_BLANK.title), ccar: eng_major(q.sp[2], ENG_BLANK.ccar), budgets: [...q.budgets.values()].sort(eng_cmp),
+        planned: q.planned, awarded: q.awarded, remaining: q.planned - q.awarded, n: q.n, state, next, events });
+    }
+    list.sort((x, y) => eng_cmp(x.title, y.title) || eng_cmp(x.ccar, y.ccar) || eng_cmp(x.pmo, y.pmo));
+    for (const x of list) out.push(x);
+  }
+  return out;
+};
+// 'YYYY-MM' -> 'Feb 2027', the month a reader looks for (the tables' Mon-YYYY is the as-of label's)
+SP.ymWords = function ymWords(ym) {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(ym || ''));
+  return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? SP.CAL_MONTHS[Number(m[2]) - 1] + ' ' + m[1] : '';
+};
+

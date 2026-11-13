@@ -331,6 +331,7 @@ try {
       p.on('pageerror', e => errors.push(e.message));
       p.on('dialog', d => d.dismiss().catch(() => {}));
       await p.goto(pathToFileURL(file).href);
+      await p.waitForSelector('#uiMain'); await p.evaluate(() => { const b = document.getElementById('uiManageBtn'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); });   // these checks drive the controls a keeper of the plan uses: the Manage data bar is opened (CONTRACT §20)
       // APEX opens on the Overview (CONTRACT §18); these checks read the Summary
       await p.waitForSelector('[data-act=view][data-v=summary]');
       await p.click('[data-act=view][data-v=summary]');

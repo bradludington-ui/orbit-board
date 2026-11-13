@@ -691,7 +691,7 @@ try {
     const same16 = (what, v) => same(what, T => html16(T, v));
     // the top's frame (the name, the menu's place) is APEX's since CONTRACT §18: what the top SAYS is compared
     same('the top (its pulls line and its message)', T => T.doc.getElementById('uiPulls').innerHTML + '|' + T.doc.getElementById('uiMsg').innerHTML);
-    same('the switches', T => T.doc.getElementById('uiFilters').innerHTML);
+    same('the switches', T => T.doc.querySelector('#uiFilters .filters').innerHTML   /* the row of switches; since CONTRACT §20 a button sits above it */);
     // the pages compared hold the plan: its blocks on the Summary, both reports and both pulls on What changed
     await A.view('summary');
     C.eq('no FY2025 OBBBA row: the page compared holds the plan’s blocks', [...A.main().querySelectorAll('table.top tr[data-bk]')].map(r => r.getAttribute('data-bk')),
