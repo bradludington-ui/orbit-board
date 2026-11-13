@@ -1680,3 +1680,36 @@ plan event's date in the pull, and kept the Overview under Briefing.
 - Browser tests that drive the top bar's controls open the Manage bar first. Comparisons of the switches with older builds
   compare the row of switches.
 
+## 21. My PMO and the Award calendar (Brad, 13 Nov 2026)
+
+The other two of the three mockups, built at Brad's word after Find a requirement. Both read `SP.requirementsOf` (§20.1) and
+work out nothing else; each plan event now carries `col`, its column in `model.cols`. A requirement's name in either opens it
+on Find a requirement with nothing narrowing the list.
+
+### 21.1 My PMO
+
+- One office, never all. It opens on the office remembered in this browser (`localStorage` `sfcbsp.pmo`, never the file), else
+  the first office that has a name; (no PMO) can be picked. An FY picker, All first.
+- **Tiles**: Planned, Awarded (and its share of Planned), Still to award (and how many are not fully awarded), and how many
+  requirements are past their projected date with the money of the plan events that are.
+- **Projected to award in the next three months**: plan events not awarded whose month is one of the three after the Data
+  through month, earliest first. **Past its projected date, not yet awarded**: the late plan events (§20.1). An empty list
+  says so, and the first names its months.
+- **Every requirement** of the office, as Find a requirement lists it.
+
+### 21.2 Award calendar
+
+- In the menu it is **Calendar**: the full name does not fit the narrow menu of a 1366 px window (review UX-1).
+- The execution year by month: the model's own columns (Prior Yr, Oct to Sep, the next-year column, and No date when
+  something listed has none), then Total. Closed months are shaded and the Data through month is marked.
+- Pickers for PMO, Appropriation and FY, All first. Rows are requirements under their office. A cell holds up to three
+  amounts: awarded (✓), not awarded and past its date (!), projected; each says what it is in words for a screen reader. A
+  zero amount is not drawn.
+- The Total row adds every requirement listed, by column: with nothing narrowing the list it is the blocks' own columns
+  added up. At most 300 rows are drawn; the totals are of all of them, and the count line says so.
+
+### 21.3 Tests
+
+- `test/pmo-calendar.test.mjs`: the plan of `find.test.mjs`, every tile, list, cell and total worked by hand; the calendar's
+  totals held to the blocks' columns; the pickers; the way to Find a requirement; the switches; the remembered office.
+

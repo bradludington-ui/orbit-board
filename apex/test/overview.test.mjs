@@ -81,7 +81,7 @@ try {
     let m = T.main();
     const nav = [...T.doc.querySelectorAll('#uiNav button')];
     C.eq('the menu lists every view, grouped by what a reader is looking for', nav.map(b => b.textContent),
-      ['Requirements', 'By PMO', 'O&M', 'Full Fund', 'Initial Spares', 'OPN', 'Overview', 'Summary', 'Slide blocks', 'Not Allocated', 'Import report', 'What changed', 'Settings']);
+      ['Requirements', 'My PMO', 'Calendar', 'By PMO', 'O&M', 'Full Fund', 'Initial Spares', 'OPN', 'Overview', 'Summary', 'Slide blocks', 'Not Allocated', 'Import report', 'What changed', 'Settings']);
     C.chk('the Overview is a view on the dark frame, with its tiles', T.opened === 'find' && T.doc.querySelector('#uiNav [data-v=overview]').getAttribute('aria-pressed') === 'true' && m.className === 'ov' && !!m.querySelector('.tiles'));
     C.chk('the menu is beside the view, outside the sticky top', !T.doc.getElementById('uiTop').contains(T.doc.getElementById('uiNav'))
       && T.doc.getElementById('uiShell').contains(T.doc.getElementById('uiNav')) && T.doc.getElementById('uiShell').contains(m));

@@ -1862,7 +1862,8 @@ SP.overviewOf = function overviewOf(M, fy) {
 // Obligated), and a plan event's date is the pull's own Date.
 //   -> [{ key, ap, apLabel, fy, pmo, pmoKey, title, ccar, budgets, planned, awarded, remaining, n,
 //         state: 'awarded'|'planned'|'late'|'nodate', next: 'YYYY-MM'|null,
-//         events: [{pe, ym: 'YYYY-MM'|null, cents, awarded: bool, tag: ''|'Unprogrammed'|'Forecast', late: bool}] }]
+//         events: [{pe, ym: 'YYYY-MM'|null, col, cents, awarded: bool, tag: ''|'Unprogrammed'|'Forecast', late: bool}] }]
+//   (col is the event's column in model.cols: Prior Yr, Oct to Sep of the execution year, the next-year column, No date)
 // in the order of the blocks, then by title and CCaR number.
 //   next: the earliest month of a plan event not yet awarded; state 'late' when that month has closed (it is the Data
 //   through month or earlier), 'nodate' when nothing left to award carries a date, 'awarded' when nothing is left.
@@ -1885,12 +1886,12 @@ SP.requirementsOf = function requirementsOf(M) {
       const ym = r.col !== ENG_NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}/.test(d.date) ? d.date.slice(0, 7) : null;
       const ek = d.k.pe + '\u0000' + (ym || '') + '\u0000' + (exec ? 1 : 0) + '\u0000' + d.status;
       let e = q.ev.get(ek);
-      if (!e) q.ev.set(ek, (e = { sp: new Map(), ym, cents: 0, awarded: exec, tag: d.status === 'unprog' ? 'Unprogrammed' : d.status === 'fcst' ? 'Forecast' : '' }));
+      if (!e) q.ev.set(ek, (e = { sp: new Map(), ym, col: r.col, cents: 0, awarded: exec, tag: d.status === 'unprog' ? 'Unprogrammed' : d.status === 'fcst' ? 'Forecast' : '' }));
       eng_tally(e.sp, eng_txt(d.pe)); e.cents += r.cents;
     }
     const list = [];
     for (const [k, q] of by) {
-      const events = [...q.ev.values()].map(e => ({ pe: eng_major(e.sp, ENG_BLANK.pe), ym: e.ym, cents: e.cents, awarded: e.awarded, tag: e.tag,
+      const events = [...q.ev.values()].map(e => ({ pe: eng_major(e.sp, ENG_BLANK.pe), ym: e.ym, col: e.col, cents: e.cents, awarded: e.awarded, tag: e.tag,
         late: !e.awarded && e.ym !== null && asOf !== '' && e.ym <= asOf }))
         .sort((x, y) => (x.ym === null) - (y.ym === null) || eng_cmp(x.ym || '', y.ym || '') || eng_cmp(x.pe, y.pe) || (y.awarded - x.awarded));
       const open = events.filter(e => !e.awarded), dated = open.filter(e => e.ym !== null);
