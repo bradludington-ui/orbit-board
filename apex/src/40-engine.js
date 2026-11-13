@@ -1991,3 +1991,63 @@ SP.ymWords = function ymWords(ym) {
   return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? SP.CAL_MONTHS[Number(m[2]) - 1] + ' ' + m[1] : '';
 };
 
+
+// ---------------------------------------------------------------------------------------------------------------
+// §26 THE CHARTS' FIGURES (Brad, 13 Nov 2026, of six mockups: "I like a b c d and f"). Everything the Charts view draws
+// but the burn-up, which is the Overview's own (SP.overviewOf's charts). Worked out from SP.requirementsOf's requirements
+// and their plan events alone, so a chart can never say something the Award calendar, My PMO and Find a requirement do
+// not: a column here is the calendar's Total cell split three ways, an office's figures are My PMO's tiles, a late line is
+// My PMO's late list added up by requirement.
+//   reqs    SP.requirementsOf(M), or the part of it the pickers leave
+//   -> { n, cols: [{index, label, closed, awarded, late, projected, total}],       awards by month (B)
+//        next3: {from, to, cents, n},                                              not awarded, dated in the three months after Data through
+//        pmos: [{key, label, n, planned, awarded, pct, goal, status}],             the scoreboard (C), in name order
+//        late: [{req, cents, ym, age, n}], lateCents,                              late awards (D), most money first
+//        heat: {rows: [{key, label, cells: [cents per col], total}], max} }        the heat map (F)
+// goal: an office's requirements are of several appropriations and years, each with its own OSD goal for the Data through
+// month (its block's goal), so the office's goal is those goals weighted by each requirement's plan; a requirement whose
+// block has no goal (a year after the execution year) is left out of the office's pct, goal and status, and counted in n
+// and planned all the same. age: whole months from a late plan event's month to the Data through month (0: the month that
+// has just closed); a requirement's is its oldest late event's.
+// ---------------------------------------------------------------------------------------------------------------
+SP.chartsOf = function chartsOf(M, reqs) {
+  const R = Array.isArray(reqs) ? reqs : [];
+  const ymN = ym => { const m = /^(\d{4})-(\d{2})$/.exec(String(ym || '')); return m ? Number(m[1]) * 12 + Number(m[2]) - 1 : null; };
+  const asOfN = ymN(M.asOf);
+  const cols = M.cols.filter(c => c.id !== 'nodate' || R.some(r => r.events.some(e => e.ym === null)))
+    .map(c => ({ index: c.index, label: c.label, closed: !!c.closed, awarded: 0, late: 0, projected: 0, total: 0 }));
+  const colAt = new Map(cols.map((c, i) => [c.index, i]));
+  const goalOf = new Map(M.blocks.map(b => [b.key, typeof b.goal === 'number' && isFinite(b.goal) ? b.goal : null]));
+  const pm = new Map(), lateBy = new Map(), next3 = { from: null, to: null, cents: 0, n: 0 };
+  if (asOfN !== null) { const w = n => Math.floor(n / 12) + '-' + String(n % 12 + 1).padStart(2, '0'); next3.from = w(asOfN + 1); next3.to = w(asOfN + 3); }
+  for (const r of R) {
+    let p = pm.get(r.pmoKey);
+    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, cells: cols.map(() => 0), total: 0 });
+    p.n++; p.planned += r.planned; p.awarded += r.awarded;
+    const g = goalOf.get(r.ap + '|' + r.fy);
+    if (g !== null && g !== undefined && r.planned > 0) { p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += r.planned * g; }
+    for (const e of r.events) {
+      const i = colAt.get(e.col);
+      if (i !== undefined) { const c = cols[i]; c[e.awarded ? 'awarded' : e.late ? 'late' : 'projected'] += e.cents; c.total += e.cents; p.cells[i] += e.cents; p.total += e.cents; }
+      if (e.awarded) continue;
+      const n = ymN(e.ym);
+      if (e.late) {
+        let l = lateBy.get(r);
+        if (!l) lateBy.set(r, l = { req: r, cents: 0, ym: e.ym, age: 0, n: 0 });
+        l.cents += e.cents; l.n++;
+        if (e.ym !== null && (l.ym === null || e.ym < l.ym)) l.ym = e.ym;
+      } else if (n !== null && asOfN !== null && n > asOfN && n <= asOfN + 3) { next3.cents += e.cents; next3.n++; }
+    }
+  }
+  const late = [...lateBy.values()];
+  for (const l of late) { const n = ymN(l.ym); l.age = n === null || asOfN === null ? 0 : Math.max(0, asOfN - n); }
+  late.sort((a, b) => b.cents - a.cents || eng_cmp(a.req.title, b.req.title));
+  const pmos = [...pm.values()].sort((a, b) => eng_cmp(a.label, b.label));
+  return {
+    n: R.length, cols, next3,
+    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 ? p.gSum / p.gPlan : null;
+      return { key: p.key, label: p.label, n: p.n, planned: p.planned, awarded: p.awarded, pct, goal, status: SP.statusOf(pct, goal) }; }),
+    late, lateCents: late.reduce((s, l) => s + l.cents, 0),
+    heat: { rows: pmos.map(p => ({ key: p.key, label: p.label, cells: p.cells, total: p.total })), max: Math.max(0, ...pmos.flatMap(p => p.cells)) },
+  };
+};
