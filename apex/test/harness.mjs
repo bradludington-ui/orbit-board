@@ -27,6 +27,11 @@ export function pageHtml({ modules = null, state = null } = {}) {
   return html;
 }
 
+// §23: O&M FY2025 is left out entirely by default. The tests of the FY2025 O&M OBBBA rule (§15, §17) and of anything else
+// that needs O&M FY2025 rows call keepEveryYear() first: every tool they load afterwards leaves nothing out, which is the
+// tool with settings.leftOut = [].
+let leftOutDefault;
+export function keepEveryYear() { leftOutDefault = []; }
 export function loadTool({ modules = null, state = null, html = null, url = 'file:///tmp/apex.html', quiet = true } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
@@ -49,6 +54,7 @@ export function loadTool({ modules = null, state = null, html = null, url = 'fil
     },
   });
   const w = dom.window;
+  if (leftOutDefault !== undefined && w.SP) w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice();
   return {
     window: w,
     SP: w.SP,

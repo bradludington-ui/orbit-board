@@ -658,7 +658,7 @@ function eng_baeWhyKey(x, firstFY, V) {
 SP.baeTally = function baeTally(bae, settings, view) {
   const S = eng_settings(settings, false), V = eng_view(view);
   const t = { rows: 0, yes: 0, bad: 0, flyaway: 0, noap: 0, first: 0, obbba: 0, off: 0, firstFY: S.firstFY };
-  const B = eng_baeOf(bae);
+  const B = eng_baeOf(eng_keepBae(bae, settings).bae);
   if (!B) return t;
   const fc = SP.baeFlex02Col(B);
   for (const row of B.rows) { t.rows++; t[eng_baeWhyKey(SP.baeDerive(row, settings, undefined, fc), S.firstFY, V)]++; }
@@ -666,6 +666,46 @@ SP.baeTally = function baeTally(bae, settings, view) {
 };
 // the report a build is given, or null: a value that is not a report (no list of rows) is no report, as a pull that is
 // not one is no pull, so a damaged state never half-applies one
+// §23 AN APPROPRIATION'S YEAR LEFT OUT ENTIRELY (Brad, 13 Nov 2026: "No FY2025 O&M data should be shown or included … It is
+// considered active but I don't want it visible and confusing people"). settings.leftOut is a list of 'ap|fy' (absent: O&M
+// FY2025, SP.LEFT_OUT_DEFAULT). A CCaR pull row of that appropriation's pull and FY, and a BAE report row whose budget is
+// that appropriation's and whose FY is that year, are taken out HERE, at the door of every function that reads rows, so
+// nothing worked out after it (a figure, a block, a list, a note, a picture, a sheet, a comparison) can hold one. The rows
+// stay in the saved file untouched. A row whose FY does not read is kept: it is unreadable, and reported as such.
+SP.LEFT_OUT_DEFAULT = ['om|2025'];
+SP.leftOutOf = function leftOutOf(settings) {
+  const l = settings && typeof settings === 'object' && Array.isArray(settings.leftOut) ? settings.leftOut : SP.LEFT_OUT_DEFAULT;
+  return new Set(l.filter(x => typeof x === 'string' && /^[a-z]+\|\d{4}$/.test(x)));
+};
+// -> {pulls, out: {'ap|fy': rows}}: pulls is the one given when nothing is left out of it
+function eng_keepPulls(pulls, settings) {
+  const L = SP.leftOutOf(settings), out = {};
+  if (!L.size || !pulls || typeof pulls !== 'object') return { pulls, out };
+  let kept = pulls;
+  for (const ap of new Set([...L].map(k => k.slice(0, k.indexOf('|'))))) {
+    const p = pulls[ap];
+    if (!p || !Array.isArray(p.rows)) continue;
+    const rows = p.rows.filter(row => { const fy = SP.deriveRow(row, settings).fy, k = ap + '|' + fy;
+      if (Number.isInteger(fy) && L.has(k)) { out[k] = (out[k] || 0) + 1; return false; } return true; });
+    if (rows.length !== p.rows.length) { if (kept === pulls) kept = Object.assign({}, pulls); kept[ap] = Object.assign({}, p, { rows }); }
+  }
+  return { pulls: kept, out };
+}
+function eng_keepBae(bae, settings) {
+  const L = SP.leftOutOf(settings), out = {}, sum = { approved: 0, authorized: 0 };     // sum: of the readable rows taken out, for the total row's check
+  if (!L.size || !eng_baeOf(bae)) return { bae, out, sum };
+  const rows = bae.rows.filter(row => { const c = row && Array.isArray(row.c) ? row.c : [], name = eng_txt(c[0]).trim(), ap = name !== '' ? SP.apOfBudget(name) : null,
+    k = ap + '|' + c[1];
+    if (ap && Number.isInteger(c[1]) && L.has(k)) { out[k] = (out[k] || 0) + 1;
+      if (!(Array.isArray(row.bad) && row.bad.length) && Number.isSafeInteger(c[2]) && Number.isSafeInteger(c[3])) { sum.approved += c[2]; sum.authorized += c[3]; }
+      return false; } return true; });
+  return { bae: rows.length === bae.rows.length ? bae : Object.assign({}, bae, { rows }), out, sum };
+}
+// the pulls and the report as every reader of rows outside the model takes them (the workbook's raw sheets and its BAE
+// Report sheet): the same rows the model was worked out from
+SP.keepYears = function keepYears(pulls, bae, settings) {
+  return { pulls: eng_keepPulls(pulls, settings).pulls, bae: eng_keepBae(bae, settings).bae };
+};
 function eng_baeOf(bae) {
   return bae && typeof bae === 'object' && !Array.isArray(bae) && Array.isArray(bae.rows) ? bae : null;
 }
@@ -823,8 +863,9 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
   S.specialSet = new Set(S.special);
   const V = eng_view(view);
   const cx = eng_ctx(S);
-  const B = eng_baeOf(bae);
-  pulls = pulls && typeof pulls === 'object' ? pulls : {};
+  const keptB = eng_keepBae(bae, settings), keptP = eng_keepPulls(pulls, settings);     // §23
+  const B = eng_baeOf(keptB.bae);
+  pulls = keptP.pulls && typeof keptP.pulls === 'object' ? keptP.pulls : {};
   const rowsByAp = {};
   const excluded = { beforeFirst: { cents: 0, rows: 0, byFy: {}, rowsByFy: {} }, unidentified: { cents: 0, rows: 0 },
     unreadable: { rows: 0 }, obbba: { rows: 0, cents: 0, obligated: 0, blocks: [], budgets: [] } };
@@ -1146,7 +1187,11 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
     ...(wordLoaded ? { obbbaElsewhere: [...obElse.values()].sort((x, y) => ENG_AP_IDS.indexOf(x.ap) - ENG_AP_IDS.indexOf(y.ap) || x.fy - y.fy) } : {}),
     summary: { rows: blocks, total: B ? eng_baeTot(eng_tot(blocks), blocks) : eng_tot(blocks), notes: [] },
   };
-  if (B) model.bae = eng_baeModel(B, R, idx, { S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock, obLoaded,
+  // §23 what was left out entirely, for the Import report's one line: written only when a row was, so a plan with none is
+  // the model as it was
+  { const ks = [...new Set([...Object.keys(keptP.out), ...Object.keys(keptB.out)])].sort();
+    if (ks.length) model.leftOut = ks.map(k => { const i = k.indexOf('|'); return { ap: k.slice(0, i), fy: Number(k.slice(i + 1)), rows: keptP.out[k] || 0, reportRows: keptB.out[k] || 0 }; }); }
+  if (B) model.bae = eng_baeModel(B, R, idx, { leftSum: keptB.sum, S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock, obLoaded,
     split: splitAll, unassigned: unassignedAll, shareOf });
   model.summary.notes = eng_notes(model);
   return model;
@@ -1194,7 +1239,9 @@ function eng_baeModel(B, R, idx, K) {
     authorized: Number.isSafeInteger(tr.authorized) ? tr.authorized : null, rowNo: Number.isInteger(tr.rowNo) ? tr.rowNo : null } : null;
   let total = null;
   if (totalRow && totalRow.approved !== null && totalRow.authorized !== null) {
-    const diff = { approved: totalRow.approved - eng_sumOf(good, 'approved'), authorized: totalRow.authorized - eng_sumOf(good, 'authorized') };
+    // §23: the report's total row adds the rows left out entirely too, so they are added back for this check alone
+    const ls = K.leftSum || { approved: 0, authorized: 0 };
+    const diff = { approved: totalRow.approved - eng_sumOf(good, 'approved') - ls.approved, authorized: totalRow.authorized - eng_sumOf(good, 'authorized') - ls.authorized };
     total = { ok: Math.abs(diff.approved) <= 100 && Math.abs(diff.authorized) <= 100, diff };
   }
   // an (ap, fy) the report holds counting money for, from firstFY to the execution year, with no block in the pull:
@@ -1447,6 +1494,16 @@ SP.isObbbaNoBlock = function isObbbaNoBlock(M, key) {
 // §17.3 the rule as the section states it, and each pull budget the rule leaves out named by how it is marked: by its own
 // name, or because the BAE report marks it in its Budget Flex 02; the report's rows of it in two counts, named OBBBA and
 // marked in Budget Flex 02 only
+// §23 THE IMPORT REPORT'S ONE SECTION ON A YEAR LEFT OUT ENTIRELY, for the view and the sheet alike: the only place the tool
+// names it, so the rows a file holds and the rows the tool works from can be reconciled. [] when no row was left out.
+SP.LEFT_OUT_HEAD = 'Left out of APEX entirely';
+SP.leftOutLines = function leftOutLines(M) {
+  const L = M && Array.isArray(M.leftOut) ? M.leftOut : [];
+  const n = (x, one, many) => SP.fmtInt(x) + ' ' + (x === 1 ? one : many);
+  return L.map(l => (ENG_AP_LABEL[l.ap] || l.ap) + ' FY' + l.fy + ': ' + n(l.rows, 'CCaR pull row', 'CCaR pull rows')
+    + (l.reportRows ? ' and ' + n(l.reportRows, 'BAE report row', 'BAE report rows') : '')
+    + '. They are in no figure, block, list, picture or sheet; the files and the saved plan still hold them.');
+};
 SP.obbbaLines = function obbbaLines(M) {
   if (!SP.obbbaLoaded(M)) return [];
   const ob = M.excluded.obbba && M.excluded.obbba.rows > 0 ? M.excluded.obbba : null;
@@ -1682,6 +1739,7 @@ function eng_leafOut(o, l) {
 // largest change first: the largest of the change in amount, in obligated and in dollars moved between months
 function eng_bigFirst(a, b) { return b.size - a.size || eng_cmp(a.key, b.key); }
 SP.diffPulls = function diffPulls(prevPulls, curPulls, settings) {
+  prevPulls = eng_keepPulls(prevPulls, settings).pulls; curPulls = eng_keepPulls(curPulls, settings).pulls;     // §23
   const out = {};
   for (const ap of ENG_AP_IDS) {
     const p0 = prevPulls && prevPulls[ap], p1 = curPulls && curPulls[ap];
@@ -1762,6 +1820,7 @@ function eng_baeWho(bae) {
     label: (when || 'no date recorded') + (b.file ? ' (' + eng_txt(b.file) + ')' : '') };
 }
 SP.diffBae = function diffBae(prev, cur, settings) {
+  prev = eng_keepBae(prev, settings).bae; cur = eng_keepBae(cur, settings).bae;     // §23
   const a = eng_baeSide(prev, settings), b = eng_baeSide(cur, settings);
   const rank = ap => ENG_AP_IDS.indexOf(ap);
   const keys = new Map([...a.blocks.values(), ...b.blocks.values()].map(t => [t.ap + '|' + t.fy, t]));

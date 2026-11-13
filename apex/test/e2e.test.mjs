@@ -442,7 +442,8 @@ try {
   const m2 = /<script id="spState" type="application\/json">([\s\S]*?)<\/script>/.exec(disk2);
   const st2 = m2 ? JSON.parse(m2[1]) : null;
   C.chk('BAE: the saved file carries the report, every row, and no previous one', !!(st2 && st2.bae && st2.bae.current && st2.bae.previous === null
-    && st2.bae.current.rows.length === OB.bae.rows.in + OB.bae.rows.flyaway + OB.bae.rows.noap + OB.bae.rows.bad
+    // §23: the file keeps every row, the report's O&M FY2025 rows too; they are only left out of what is worked out
+    && st2.bae.current.rows.length === OB.bae.rows.in + OB.bae.rows.flyaway + OB.bae.rows.noap + OB.bae.rows.bad + (OB.leftOut || []).reduce((s, l) => s + l.reportRows, 0)
     && st2.bae.current.stamp === '2026-01-31 12:00'), st2 && st2.bae && J({ n: st2.bae.current && st2.bae.current.rows.length, prev: st2.bae.previous }));
   const E2 = await open(PAGE2);
   await until(E2.p, () => (b => { if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); return !!document.querySelector('#uiMain table.top'); })(document.querySelector('[data-act=view][data-v=summary]')));
@@ -505,6 +506,8 @@ try {
   await F.p.fill('#uiAsOf', '2026-10'); await F.p.dispatchEvent('#uiAsOf', 'change');
   await F.p.fill('#uiFirst', '2025'); await F.p.dispatchEvent('#uiFirst', 'change');
   await until(F.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
+  // §23: this plan keeps O&M FY2025 (settings.leftOut = [], as the oracle's obbba scenarios do), so §15 and §17 are still seen in the browser, and saved with the plan
+  await F.p.evaluate(() => SP.setSettings({ leftOut: [] })); await F.p.waitForTimeout(300);
   // restated from §2 and §15.4, every figure the oracle's
   const mT = c => { if (c === 0) return '0.00'; const a = Math.abs(c); let h = Math.floor(a / 1e6); if (a - h * 1e6 >= 500000) h++;
     const b = a < 500000 ? '<0.01' : String(Math.floor(h / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + String(h % 100).padStart(2, '0'); return c < 0 ? '(' + b + ')' : b; };
@@ -594,6 +597,8 @@ try {
   await G.p.fill('#uiAsOf', '2026-10'); await G.p.dispatchEvent('#uiAsOf', 'change');
   await G.p.fill('#uiFirst', '2025'); await G.p.dispatchEvent('#uiFirst', 'change');
   await until(G.p, () => document.querySelector('#uiAsOf').value === '2026-10' && document.querySelector('#uiFirst').value === '2025');
+  // §23: this plan keeps O&M FY2025 (settings.leftOut = [], as the oracle's obbba scenarios do), so §15 and §17 are still seen in the browser, and saved with the plan
+  await G.p.evaluate(() => SP.setSettings({ leftOut: [] })); await G.p.waitForTimeout(300);
   const usd = c => (c < 0 ? '-' : '') + '$' + String(Math.floor(Math.abs(c) / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + String(Math.abs(c) % 100).padStart(2, '0');
   const o2 = O2.excluded.obbba, byRep = o2.budgets.filter(t => t.by === 'report'), repCents = byRep.reduce((a, t) => a + t.cents, 0);
   const WHY2 = 'FY2025 O&M OBBBA funding (not a reporting year)', WHY2_FLEX = WHY2 + ', marked in Budget Flex 02';

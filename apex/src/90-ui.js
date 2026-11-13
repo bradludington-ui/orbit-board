@@ -108,6 +108,25 @@ function ui_hash(s) {
   return (h >>> 0).toString(36);
 }
 function ui_state() { return SP.state && typeof SP.state === 'object' ? SP.state : null; }
+// §23: a list a screen draws straight from the rows (Settings' budgets) reads them WITHOUT the years left out entirely
+// (SP.keepYears), as the model does at its own door: ui_pullsKept(). The model itself is always given the pulls and the
+// report whole, since it counts what it leaves out. Kept by the object and the list it was worked out from, so a redraw
+// does not read every row again.
+let ui_keptMemo = null;
+function ui_kept(raw, kind) {
+  if (!raw || typeof SP.keepYears !== 'function') return raw;
+  const st = ui_state(), key = JSON.stringify(st && st.settings && Array.isArray(st.settings.leftOut) ? st.settings.leftOut : SP.LEFT_OUT_DEFAULT);
+  if (!ui_keptMemo || ui_keptMemo.key !== key) ui_keptMemo = { key, map: new WeakMap() };
+  if (!ui_keptMemo.map.has(raw)) {
+    let out = raw;
+    try { out = kind === 'bae' ? SP.keepYears(null, raw, st && st.settings).bae : SP.keepYears(raw, null, st && st.settings).pulls; } catch (e) { out = raw; }
+    ui_keptMemo.map.set(raw, out);
+  }
+  return ui_keptMemo.map.get(raw);
+}
+// §23 whether O&M of the OBBBA year is left out entirely, so Help says that in place of §15's rule on its OBBBA funding
+function ui_lo25() { try { return SP.leftOutOf(ui_settings()).has('om|' + SP.OBBBA_FY); } catch (e) { return false; } }
+function ui_pullsKept() { return ui_kept(ui_pulls(), 'pulls') || {}; }
 function ui_pulls() {
   const st = ui_state();
   return st && st.pulls && st.pulls.current && typeof st.pulls.current === 'object' ? st.pulls.current : {};
@@ -967,6 +986,9 @@ function ui_vReport(M) {
   const oel = M && typeof SP.obbbaElsewhereLines === 'function' ? SP.obbbaElsewhereLines(M) : [];
   if (oel.length) out.push('<section class="obbba-else" aria-labelledby="ui-obbba-else-h"><h3 class="sub" id="ui-obbba-else-h">' + ui_e(SP.OBBBA_ELSEWHERE_HEAD) + '</h3>'
     + ui_lines(oel) + '</section>');
+  // §23 a year left out entirely: the one place it is named, so the files' rows can be reconciled
+  const lol = M && typeof SP.leftOutLines === 'function' ? SP.leftOutLines(M) : [];
+  if (lol.length) out.push('<section class="leftout" aria-labelledby="ui-leftout-h"><h3 class="sub" id="ui-leftout-h">' + ui_e(SP.LEFT_OUT_HEAD) + '</h3>' + ui_lines(lol) + '</section>');
   out.push(ui_baeRead(M));
   return out.join('');
 }
@@ -1140,7 +1162,7 @@ function ui_vChanges(M) {
   catch (e) { return out.concat(['<p class="err">What changed could not be worked out: ' + ui_e((e && e.message) || e) + '</p>', baeSec]).join(''); }
   const aps = Object.keys(D);
   if (!aps.length) { out.push('<p class="none">Only one pull so far. After the next import of an appropriation, this view shows what changed in it.</p>', baeSec); return out.join(''); }
-  if (ui_obbbaCompared((st && st.pulls && st.pulls.previous) || {}, ui_pulls(), aps)) out[1] = head(true);
+  if (ui_obbbaCompared(ui_kept((st && st.pulls && st.pulls.previous) || {}, 'pulls'), ui_pullsKept(), aps)) out[1] = head(true);     // §23: as the comparison reads them
   // A pull's section compares the pulls themselves (SP.diffPulls: every row, no switches), so its figure is the CCaR plan.
   // With a BAE report loaded, "Approved" on every other view is the report's (§14.3, answer 2), and headed "Approved" here
   // the plan read 423.70 for O&M FY2026 beside 520.28 on the Summary and in the BAE section below, one word for two
@@ -1441,7 +1463,8 @@ function ui_vSettings(M) {
     + '<button type="button" data-act="specreset" data-fkey="specreset">Reset to ' + ui_e(SP.SPECIAL_CCARS_DEFAULT.join(', ')) + '</button></p>');
   // budget names
   let bt = [];
-  try { bt = SP.budgetTable(ui_pulls(), S); } catch (e) { out.push('<p class="err">The budget names could not be read: ' + ui_e((e && e.message) || e) + '</p>'); }
+  // §23: a budget only a left-out year uses is not listed
+  try { bt = SP.budgetTable(ui_pullsKept(), S); } catch (e) { out.push('<p class="err">The budget names could not be read: ' + ui_e((e && e.message) || e) + '</p>'); }
   R.budgets = bt;
   out.push('<h3 class="sub">Budget names: service and lane</h3><p class="note">The rules read each Budget name. Choose a service or lane here only where a rule is wrong; '
     + '“By rule” takes the choice off again. A name no rule knows is marked.</p>'
@@ -1493,10 +1516,14 @@ function ui_vHelp() {
       'To move a plan into a new copy of this tool, import the saved plan’s .html file on its own: the page takes its pulls, earlier pulls, history and settings, '
       + 'and works every figure out again by its own rules. Save to keep it.'])
     + '<h3 class="sub">Which rows count</h3>' + li([
-      'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, it is not FY' + SP.OBBBA_FY
-      + ' O&amp;M OBBBA funding, and the switches show its service and lane.',
+      'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, it is not ' + (ui_lo25() ? 'O&amp;M FY' + SP.OBBBA_FY
+      : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding') + ', and the switches show its service and lane.',
+      // §23: O&M FY2025 left out entirely, in place of §15's rule on its OBBBA funding, which it covers
+      ui_lo25() ? '<strong>O&amp;M FY' + SP.OBBBA_FY + ' is left out entirely</strong> (Brad, 13 Nov 2026): none of its CCaR pull rows and none of the BAE report’s rows for it is '
+      + 'shown or counted on any view, in the workbook or in a picture. The files and the saved plan still hold them, and the Import report says how many rows that is. '
+      + 'FY' + SP.OBBBA_FY + ' of every other appropriation is unchanged, and OBBBA funding of every other appropriation counts like any other money.'
       // §15.1, §17.1: the fixed rule, stated always
-      '<strong>FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding is left out</strong> of every figure, block, list and picture, whatever the switches show: an O&amp;M '
+      : '<strong>FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding is left out</strong> of every figure, block, list and picture, whatever the switches show: an O&amp;M '
       + 'row whose FY is ' + SP.OBBBA_FY + ' and whose Budget (a BAE report row’s Budget Name) holds the word OBBBA; a BAE report row of O&amp;M FY' + SP.OBBBA_FY
       + ' whose Budget Flex 02 holds it; and the CCaR pull’s O&amp;M FY' + SP.OBBBA_FY + ' rows of a budget the BAE report marks so, while that report is loaded. '
       + 'FY' + SP.OBBBA_FY + ' is not a reporting year (Brad, 11 Nov 2026). It is a fixed rule, not a setting: OBBBA funding of every other appropriation '
@@ -1508,7 +1535,7 @@ function ui_vHelp() {
       + 'has no block. Under a later First FY they are before the First FY instead.',
       'The service and lane switches are this browser’s view, not saved in the file. They drive every figure and every list on every view, the export and the '
       + 'pictures, with two exceptions that cover every service and lane: an entered Authorized, which is entered for an appropriation and FY as a whole and saved '
-      + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, rows whose appropriation is not identified, '
+      + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, ' + (ui_lo25() ? '' : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, ') + 'rows whose appropriation is not identified, '
       + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
     + '<h3 class="sub">Finding a requirement</h3>' + li([
       'The page opens on <strong>Find a requirement</strong> (Requirements in the menu). Type part of a title, a CCaR number or a plan event; every word typed must be '
@@ -1518,7 +1545,7 @@ function ui_vHelp() {
       '<strong>Projected award</strong> is the earliest plan event date in the CCaR pull that is not yet awarded. “Was” means that month has closed (it is the Data '
       + 'through month or earlier) and it is not awarded; “No date” means nothing left to award carries a date.',
       'Click a requirement’s name to list its plan events by month.',
-      'It counts the rows every other view counts: the switches, First FY and the FY2025 O&amp;M OBBBA rule apply. The BAE report does not change it.',
+      'It counts the rows every other view counts: ' + (ui_lo25() ? 'the switches and First FY apply' : 'the switches, First FY and the FY2025 O&amp;M OBBBA rule apply') + '. The BAE report does not change it.',
     ])
     + '<h3 class="sub">My PMO and the Award calendar</h3>' + li([
       '<strong>My PMO</strong> is one office’s requirements: its Planned, Awarded and Still to award, what is projected to award in the three months after the Data through '
@@ -1559,7 +1586,7 @@ function ui_vHelp() {
       + 'its column headings. Its amounts are read as dollars; a new report replaces the one on screen whole, and <strong>What changed</strong> compares the two.',
       'Where it has figures for an appropriation and FY, <strong>Approved</strong> and <strong>Authorized</strong> in the Summary and the appropriation and PMO '
       + 'tables are the report’s, from its sustainment budgets: every budget whose name places it in O&amp;M, Full Fund, Initial Spares or OPN, except Full '
-      + 'Fund Flyaway and FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding. Obl %, Unobligated and Status are measured against that Approved. The switches reach the report’s budgets as they reach the pull’s rows.',
+      + 'Fund Flyaway and ' + (ui_lo25() ? 'O&amp;M FY' + SP.OBBBA_FY + ', which is left out entirely' : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding') + '. Obl %, Unobligated and Status are measured against that Approved. The switches reach the report’s budgets as they reach the pull’s rows.',
       'A PMO’s tab is built from its plan events (the rows whose PMO column names it; the (no PMO) tab is the plan events with no PMO). Its Approved and '
       + 'Authorized are the report’s figures for the budgets its plan events are assigned to, and its Obligated counts its plan events’ executed rows. A budget '
       + 'the plan events of several PMOs use is split among them by each one’s CCaR plan on it, to the cent. Report money no plan event uses (a budget no '

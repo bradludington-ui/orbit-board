@@ -423,7 +423,8 @@ try {
   const models = {}, plain = {};
   for (const sc of SCEN) {
     const X = oracle(['--scenario', sc.name, '--fixture', tmp.dir], sc.name);
-    const s = settingsFor(sc.asOf, sc.first, sc.auth), v = viewFor(sc.svcOff, sc.lanes);
+    // §23: the obbba scenarios keep O&M FY2025 (the oracle's left_out=[]), so the §15 and §17 rules are still exercised
+    const s = Object.assign(settingsFor(sc.asOf, sc.first, sc.auth), /obbba/.test(sc.name) ? { leftOut: [] } : {}), v = viewFor(sc.svcOff, sc.lanes);
     const M = SP.buildModel(sc.st.current, s, v, sc.st.bae.current);
     const M0 = SP.buildModel(asLeft(sc.st.current, sc.marks), s, v);
     models[sc.name] = M; plain[sc.name] = M0;
@@ -574,7 +575,7 @@ try {
     C.chk('no § without a report', M0.blocks.every(b => SP.approvedMark(b, M0) === '') && SP.authMarks(M0.summary.rows, M0).sect === false);
     // the Summary's notes (§14.5)
     const N = M.summary.notes.join('\n');
-    C.chk('notes: the report, its date, its rows and its total row checked', /^Approved and Authorized come from the BAE report of \S+.* \(bae\.xlsx\) wherever it has figures for a block: it holds 100 rows of sustainment budgets/m.test(N)
+    C.chk('notes: the report, its date, its rows and its total row checked', /^Approved and Authorized come from the BAE report of \S+.* \(bae\.xlsx\) wherever it has figures for a block: it holds 92 rows of sustainment budgets/m.test(N)
       && N.includes('Counted nowhere: 7 Flyaway (production) rows, 11 rows naming no appropriation and 1 row that could not be read.')
       && N.includes('Its total row agrees with the rows read.'), N);
     C.chk('notes: the blocks the report does not cover, marked §', N.includes('The BAE report has no figure for Full Fund FY2025 and Initial Spares FY2025: Approved there is the CCaR plan (marked §).'), N);

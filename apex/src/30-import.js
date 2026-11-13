@@ -1118,6 +1118,9 @@ function imp_baeNow(report, bae) {
   if (n > 0) out.obbba = n; else delete out.obbba;
   return out;
 }
+function imp_leftOutOm() {
+  try { return typeof SP.leftOutOf === 'function' && SP.leftOutOf(SP.state && SP.state.settings).has('om|' + SP.OBBBA_FY); } catch (e) { return false; }
+}
 function imp_baeLines(L, b, kept) {
   if (!b || typeof b !== 'object') return;
   const num = v => (typeof v === 'number' && isFinite(v) ? v : 0);
@@ -1140,7 +1143,8 @@ function imp_baeLines(L, b, kept) {
   // the kinds the figures leave out, FY2025 OBBBA funding among them when the report holds some (§15.3; review P5-6: named
   // without it, the sentence read as the whole list while $36.64M of the gap to the sustainment figure was OBBBA rows)
   L.push('  The readable rows hold Approved ' + usd(c.approved) + ' and Authorized ' + usd(c.authorized) + ': every budget in the report, '
-    + 'before Flyaway' + (num(b.obbba) > 0 ? ', FY' + SP.OBBBA_FY + ' O&M OBBBA funding' : '') + ' and the budgets that name no appropriation are left out.');
+    // §23: where O&M of that year is left out entirely, its OBBBA funding is not named apart: the Import report's own section says it
+    + 'before Flyaway' + (num(b.obbba) > 0 && !imp_leftOutOm() ? ', FY' + SP.OBBBA_FY + ' O&M OBBBA funding' : '') + ' and the budgets that name no appropriation are left out.');
   const ownC = arr(b.ownCols).map(String);
   if (cols.length === 4) L.push('  Columns: ' + SP.fmtInt(num(b.columns)) + ', every one kept as the file has it'
     + (ownC.length ? ', besides this tool’s own ' + imp_list(ownC) + ', which are worked out again on every load and not kept' : '') + '. Read: ' + cols.map(imp_q).join(', ')

@@ -894,6 +894,13 @@ function ex_reportSheet(M, pulls, meta) {
     ex_push(K, [{ v: SP.OBBBA_HEAD, s: EXS.lineB }]);
     for (const line of obl) ex_push(K, [{ v: '  ' + line, s: EXS.line }]);
   }
+  // §23 a year left out entirely: the view's section, line for line
+  const lol = SP.leftOutLines(M);
+  if (lol.length) {
+    ex_blank(K);
+    ex_push(K, [{ v: SP.LEFT_OUT_HEAD, s: EXS.lineB }]);
+    for (const line of lol) ex_push(K, [{ v: '  ' + line, s: EXS.line }]);
+  }
   // §17.3 the OBBBA money outside O&M, which counts like any other money: the view's list, line for line, when there is any
   const oel = typeof SP.obbbaElsewhereLines === 'function' ? SP.obbbaElsewhereLines(M) : [];
   if (oel.length) {
@@ -1076,6 +1083,8 @@ function ex_settingsSheet(M, pulls, settings) {
 SP.excelSpec = function excelSpec(model, pulls, settings, meta) {
   const M = model;
   if (!M || !Array.isArray(M.blocks)) throw new Error('The workbook needs a model; there is none to write.');
+  // §23: a year left out entirely is in no sheet, the raw data's and the BAE Report's included
+  { const k = SP.keepYears(pulls, meta && meta.bae, settings); pulls = k.pulls; if (meta && meta.bae) meta = Object.assign({}, meta, { bae: k.bae }); }
   pulls = pulls && typeof pulls === 'object' ? pulls : {};
   const sheets = [ex_summary(M), ex_slides(M)];
   for (const a of M.aps) sheets.push(ex_apSheet(M, a, pulls));

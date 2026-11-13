@@ -1649,6 +1649,57 @@ def apply_import(state, parsed):
         b['current'] = parsed['bae']
 
 
+# ------------------------------------------------------------------------------------------- §23 a year left out entirely
+LEFT_OUT_DEFAULT = ('om|2025',)
+
+
+def leave_out(state, left):
+    """§23: every CCaR pull row of a left-out (appropriation's pull, FY) and every BAE report row whose budget is that
+    appropriation's and whose FY is that year is taken out before anything is worked out; a row whose FY does not read is
+    kept. -> (the state without them, [{ap, fy, rows, reportRows}] for each key that lost a row, in key order)."""
+    left = set(left)
+    n_pull, n_rep = {}, {}
+
+    def pulls(ps):
+        out = {}
+        for ap, rows in ps.items():
+            keep = []
+            for r in rows:
+                k = '%s|%s' % (ap, r['fy'])
+                if isinstance(r['fy'], int) and k in left:
+                    n_pull[k] = n_pull.get(k, 0) + 1
+                else:
+                    keep.append(r)
+            out[ap] = keep
+        return out
+
+    def report(b, count):
+        if not b:
+            return b
+        keep = []
+        for x in b['rows']:
+            ap = ap_of_budget(x['name']) if x['name'] else None
+            k = '%s|%s' % (ap, x['fy'])
+            if ap and isinstance(x['fy'], int) and k in left:
+                if count:
+                    n_rep[k] = n_rep.get(k, 0) + 1
+            else:
+                keep.append(x)
+        return dict(b, rows=keep)
+
+    cur = pulls(state['current'])
+    counted = dict(n_pull)
+    prev = pulls(state['previous'])
+    n_pull.clear()
+    n_pull.update(counted)                      # the model reports the current pulls' rows only
+    bae = state.get('bae') or {'current': None, 'previous': None}
+    new = {'current': cur, 'previous': prev,
+           'bae': {'current': report(bae.get('current'), True), 'previous': report(bae.get('previous'), False)}}
+    said = [{'ap': k.split('|')[0], 'fy': int(k.split('|')[1]), 'rows': n_pull.get(k, 0), 'reportRows': n_rep.get(k, 0)}
+            for k in sorted(set(n_pull) | set(n_rep))]
+    return new, said
+
+
 def make_settings(args):
     s = {'asOf': args.asof, 'firstFY': args.first, 'goals': {k: list(v) for k, v in GOALS_DEFAULT.items()},
          'authorized': {}, 'special': list(SPECIAL_CCARS_DEFAULT), 'budgets': {}}
@@ -1699,21 +1750,22 @@ SCENARIOS = {
                             svc_off=['USN (USN CV)']),
     'bae-asof-2027-10': dict(files=['pull-all.xlsx', 'bae.xlsx'], asof='2027-10'),
     'bae-gen2': dict(files=['pull-all.xlsx', 'bae.xlsx'], then=['gen2/pull-om.xlsx', 'gen2/pull-ff.csv', 'gen2/bae.xlsx']),
+    # §23: every obbba scenario below keeps O&M FY2025 (left_out=[]), so the §15 and §17 rules are still exercised.
     # §15.5: FY2025 OBBBA funding is left out. obbba-first-2026 makes every FY2025 OBBBA row a row before First FY
     # instead (§4.3: condition 3 comes first).
-    'obbba': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv']),
-    'obbba-usaf-off': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv'], svc_off=['USAF']),
-    'obbba-first-2026': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv'], first=2026),
-    'bae-obbba': dict(files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx']),
+    'obbba': dict(left_out=[], files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv']),
+    'obbba-usaf-off': dict(left_out=[], files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv'], svc_off=['USAF']),
+    'obbba-first-2026': dict(left_out=[], files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv'], first=2026),
+    'bae-obbba': dict(left_out=[], files=['obbba/pull-om.xlsx', 'obbba/pull-ff.csv', 'obbba/bae.xlsx']),
     # §17.4: FY2025 O&M OBBBA funding, marked in its name or in Budget Flex 02. obbba2 is the pulls alone (a pull row is
     # judged by its own name); bae-obbba2 adds the report, whose Budget Flex 02 marks budgets the pulls' O&M FY2025 rows
     # use; bae-obbba2-first-2026 makes every FY2025 row a row before First FY; bae-obbba2-usaf-off turns a service off
     # that marked and left-out rows carry.
-    'obbba2': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx']),
-    'bae-obbba2': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx', 'obbba2/bae.xlsx']),
-    'bae-obbba2-first-2026': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx',
+    'obbba2': dict(left_out=[], files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx']),
+    'bae-obbba2': dict(left_out=[], files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx', 'obbba2/bae.xlsx']),
+    'bae-obbba2-first-2026': dict(left_out=[], files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx',
                                          'obbba2/bae.xlsx'], first=2026),
-    'bae-obbba2-usaf-off': dict(files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx',
+    'bae-obbba2-usaf-off': dict(left_out=[], files=['obbba2/pull-om.xlsx', 'obbba2/pull-ff.csv', 'obbba2/pull-sp.xlsx',
                                        'obbba2/bae.xlsx'], svc_off=['USAF']),
 }
 
@@ -1728,6 +1780,7 @@ def main(argv=None):
     ap.add_argument('--lanes', choices=['both', 'disc', 'mand'], default='both')
     ap.add_argument('--special', nargs='*')
     ap.add_argument('--settings', help='a JSON file with any of goals, authorized, special, budgets')
+    ap.add_argument('--left-out', nargs='*', dest='left_out', help="§23: 'ap|fy' left out entirely (default om|2025)")
     ap.add_argument('--scenario', choices=sorted(SCENARIOS))
     ap.add_argument('--fixture', help='the fixture directory a --scenario reads')
     ap.add_argument('--out', required=True)
@@ -1743,6 +1796,8 @@ def main(argv=None):
         args.first = sc.get('first', 2025)
         args.svc_off = sc.get('svc_off')
         args.lanes = sc.get('lanes', 'both')
+        if 'left_out' in sc and args.left_out is None:        # a --left-out given on the command line wins
+            args.left_out = sc['left_out']
     if not args.files:
         raise SystemExit('give --files or --scenario')
     settings = make_settings(args)
@@ -1763,7 +1818,11 @@ def main(argv=None):
             apply_import(state, parse_files(args.then))
         except Refused as e:
             refused_then = str(e)     # §3: a refused import changes nothing; the first import's state stands
+    left = list(LEFT_OUT_DEFAULT) if args.left_out is None else list(args.left_out)
+    state, said = leave_out(state, left)
     out = build(state, settings, view)
+    if said:
+        out['leftOut'] = said
     if args.then:
         out['diff'] = diff_pulls(state['previous'], state['current'], settings)
         if refused_then:
@@ -1772,7 +1831,7 @@ def main(argv=None):
             out['diffBae'] = diff_bae(state['bae']['previous'], state['bae']['current'], settings)
     out['input'] = {'files': [os.path.basename(f) for f in args.files],
                     'then': [os.path.basename(f) for f in (args.then or [])],
-                    'svcOff': sorted(args.svc_off or []), 'lanes': args.lanes}
+                    'svcOff': sorted(args.svc_off or []), 'lanes': args.lanes, 'leftOut': left}
     if sc_auth:
         out['input']['authorized'] = sc_auth
     _write(args.out, out)
