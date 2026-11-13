@@ -197,6 +197,9 @@ for the switches.
 - **My PMO** is one office: its Planned, Awarded and Still to award, what is projected to award in the three months after
   the Data through month, what is past its projected date and not awarded, then every requirement. The office you pick is
   remembered in your browser, not in the file.
+- **Charts** draws the same things, under the same three pickers: awards by month with the next three months added up, a
+  scoreboard of each office against the OSD goal, the late awards with the most money first, a heat map of where the
+  awards land by office and month, and each block's burn-up against its goal.
 - **Award calendar** lays the execution year out by month, by office. Each requirement's money sits in the month it is
   projected to award: awarded, projected, or not awarded and past its date. The Total row is the plan by month.
 

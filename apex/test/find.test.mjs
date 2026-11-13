@@ -189,7 +189,7 @@ try {
       && T.doc.getElementById('uiManageBtn').getAttribute('aria-expanded') === 'true' && T.doc.getElementById('uiAsOf').value === '2026-10'
       && /O&M imported/.test(T.doc.getElementById('uiPulls').textContent) && !T.doc.getElementById('uiSave').hidden);
     C.eq('the menu’s groups', [...T.doc.querySelectorAll('#uiNav .navg')].map(g => [g.getAttribute('aria-label') || '', g.querySelectorAll('button').length]),
-      [['', 3], ['Browse', 5], ['Briefing', 3], ['Data checks', 3], ['Set up', 1]]);
+      [['', 4], ['Browse', 5], ['Briefing', 3], ['Data checks', 3], ['Set up', 1]]);
     C.eq('a reader’s file: no script error', T.errors(), []);
     T.t.close();
   }

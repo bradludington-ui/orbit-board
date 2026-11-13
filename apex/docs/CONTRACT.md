@@ -1818,3 +1818,35 @@ it in place of §18's dark shell.
   (awarded a pale green with its tick, projected an outline, only a late one solid red with its "!"); the line under the
   pointer lit; and, on a window wide enough for the table, the month headings staying under the top bar while the list
   scrolls.
+
+## 26. Charts (Brad, 13 Nov 2026)
+
+Brad, of six mockups (A to F): *"I like a b c d and f."* A view of its own, **Charts**, fourth in the menu's first group,
+under the Award calendar's three pickers (PMO, Appropriation, FY). It draws what the Award calendar, My PMO and the
+Overview already say; nothing in it is worked out a second way.
+
+- **`SP.chartsOf(M, reqs)`** gives every figure but the burn-up's, from `SP.requirementsOf`'s requirements and their plan
+  events alone:
+  - *Awards by month* (B): each of the calendar's columns split into awarded, not awarded and past its date, and
+    projected; the three add to the calendar's Total cell. `next3`: what is not awarded and dated in the three months
+    after the Data through month.
+  - *PMO scoreboard* (C): each office's plan, awarded, and awarded as a share of plan, against the OSD goal: each
+    requirement's block's goal for the Data through month, weighted by the requirement's plan. Its status is
+    `SP.statusOf` of the two. A requirement whose block has no goal counts in the office's plan and count, and in neither
+    its share nor its goal. The share is of the **CCaR plan**, and the view says so (a block's Obligation % on the Summary is
+    of its Approved, which may be the BAE report's).
+  - *Late awards* (D): each requirement with a plan event not awarded whose month has closed: the money, the oldest such
+    month, and its age in whole months before the Data through month (0: the month just closed). Most money first; the
+    view lists twelve and says how many more and how much.
+  - *Workload heat map* (F): each office's part of each column, all three kinds together; the columns add to B's.
+- **Burn-up** (A): one per block, the months of `SP.overviewOf`'s charts (the slide block's Obligation %: actual through
+  the Data through month, the plan after) as a line against the OSD goal, with the gap in points and where the plan ends
+  in words. A block's figure, so it follows the Appropriation and FY pickers and not the PMO picker, and the view says so.
+- Every mark carries its words (a title and a figure), never its colour alone. An office opens My PMO on that office; a
+  requirement opens on Find a requirement; a block's name opens its appropriation.
+- E (what changed, as a waterfall) was not asked for and is not built.
+
+### 26.1 Tests
+
+- `test/charts.test.mjs`: the small plan of `pmo-calendar.test.mjs`, every figure of `SP.chartsOf` worked by hand, the page
+  held to it and to the Award calendar's Total row, the pickers, the ways on, the switches.

@@ -409,6 +409,49 @@ main.ov .calt .tg:hover,main.ov .calt .tg:focus-visible{color:var(--slink);text-
 .calt td .cchip{display:block;text-align:right}
 .calt td .cchip.c-aw:before{content:"\2713\00a0";float:left;opacity:.75}
 .calt td .cchip.c-late:before{content:"!\00a0";float:left}
+/* THE CHARTS VIEW (§26) */
+.chcard{margin:0 0 12px}.chcard h3{margin:0 0 2px;font-size:15px}
+.chtwo{display:grid;grid-template-columns:1fr 1fr;gap:12px}.chtwo .chcard{min-width:0}
+@media (max-width:1100px){.chtwo{grid-template-columns:1fr}}
+.chsvg{display:block;width:100%;height:auto;background:var(--cell);border:1px solid var(--sline);border-radius:6px}
+.chsvg text{font:11px Calibri,Carlito,"Segoe UI",Arial,sans-serif;fill:var(--sink)}
+.chsvg .ax{fill:var(--smut)}.chsvg .ax.now{fill:var(--sink);font-weight:700}.chsvg .gl{stroke:#cfd6de;stroke-width:1}
+.chsvg .chv{font-weight:600}
+.chb-awarded{fill:#00B050;background:#00B050}.chb-late{fill:var(--red);background:var(--red)}
+.chb-projected{fill:var(--strip);stroke:var(--sblue);stroke-width:1;stroke-dasharray:3 2;background:var(--strip);outline:1px dashed var(--sblue);outline-offset:-1px}
+.chnow{stroke:var(--steal);stroke-width:2}.chsvg .chnowt{fill:var(--slink);font-weight:700}
+.chkey{margin:6px 0 0;font-size:12px;color:var(--smut);display:flex;flex-wrap:wrap;gap:4px 16px}
+.chk i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.bk-act{background:var(--sblue)}.bk-plan{background:repeating-linear-gradient(90deg,var(--sblue) 0 3px,transparent 3px 6px)}.bk-goal{background:repeating-linear-gradient(90deg,var(--sink) 0 5px,transparent 5px 8px)}
+.cht{border-collapse:collapse;width:100%;font-size:12px}
+.cht th,.cht td{padding:5px 6px;border-bottom:1px solid #d5dbe3;text-align:left;vertical-align:middle}
+.cht thead th{color:var(--smut);font-weight:600;border-bottom:1px solid var(--sedge);white-space:nowrap}
+.cht td.n,.cht th.n{text-align:right;font-variant-numeric:tabular-nums}
+.cht th.lab{font-weight:400;min-width:11em;max-width:20em;overflow-wrap:anywhere}
+.cht .fsub{display:block;font-size:11px;color:#566273}
+main.ov .cht .tg{border:0;background:none;padding:2px 0;color:var(--sink);font-weight:600;text-align:left;text-decoration:none}
+main.ov .cht .tg:hover,main.ov .cht .tg:focus-visible{background:none;color:var(--slink);text-decoration:underline}
+.chbarc{white-space:nowrap;width:55%}
+.chtrack{display:inline-block;position:relative;width:60%;height:16px;background:#dfe5ec;border-radius:3px;vertical-align:middle}
+.chfill{position:absolute;left:0;top:0;bottom:0;background:var(--sblue);border-radius:3px}
+.chgoal{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--sink)}
+.chpct{display:inline-block;margin-left:8px;font-weight:700;font-variant-numeric:tabular-nums;vertical-align:middle}
+.chgl{margin-left:8px;color:var(--smut);font-size:11px;vertical-align:middle}
+.chlbar{display:inline-block;height:16px;border-radius:3px;vertical-align:middle;min-width:3px}
+.chlbar.a0{background:#e9b7c3}.chlbar.a1{background:#d98a9d}.chlbar.a2{background:#c25873}.chlbar.a3{background:#a8334f}.chlbar.a4{background:var(--wine)}
+.chdue{white-space:nowrap;color:var(--wine);font-weight:600}
+.chheat th,.chheat td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;border-left:1px solid #e0e5ec}
+.chheat th.lab{text-align:left;white-space:normal;border-left:0}.chheat thead th{text-align:center}
+.chheat thead th.cl{background:var(--sdeep)}.chheat thead th.now{color:var(--sink);box-shadow:inset 0 -3px 0 var(--steal)}
+.chheat td.hot{color:#fff}
+.chheat td.cl + td:not(.cl),.chheat thead th.cl + th:not(.cl){border-left:2px solid var(--steal)}
+.chheat td.tot{font-weight:600}
+.chburns{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.chburn{margin:0}
+.burn .bgoal{fill:none;stroke:var(--sink);stroke-width:1.5;stroke-dasharray:5 4}
+.burn .barea{fill:rgba(5,87,149,.16)}.burn .bact{fill:none;stroke:var(--sblue);stroke-width:2.5}.burn .bdot{fill:var(--sblue)}
+.burn .bplan{fill:none;stroke:var(--sblue);stroke-width:2;stroke-dasharray:2 4}.burn .bhit{fill:transparent}
+.chgap{font-weight:700}.chgap.behind{color:var(--wine)}
 /* on a window wide enough for the whole table the card does not scroll sideways, so the headings can stay under the top bar */
 @media (min-width:1101px){
   .calcard .tw{overflow:visible}
