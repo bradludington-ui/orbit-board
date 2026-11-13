@@ -193,6 +193,7 @@ function st_checkSettings(s) {
   for (const k of ['goals', 'authorized', 'budgets']) if (s[k] !== undefined && !st_isObj(s[k])) return 'its ' + k + ' setting is not a table';
   if (s.special !== undefined && !(Array.isArray(s.special) && s.special.every(x => typeof x === 'string'))) return 'its special CCaRs are not a list of names';
   // §23: absent in every plan that never set it (the tool's default applies); a list of 'appropriation|year' where it is there
+  if (s.keepZero !== undefined && typeof s.keepZero !== 'boolean') return 'its setting for $0.00 plan events is not yes or no';
   if (s.leftOut !== undefined && !(Array.isArray(s.leftOut) && s.leftOut.every(x => typeof x === 'string'))) return 'its list of years left out is not a list';
   return '';
 }

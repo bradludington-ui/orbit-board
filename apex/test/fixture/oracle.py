@@ -1653,12 +1653,12 @@ def apply_import(state, parsed):
 LEFT_OUT_DEFAULT = ('om|2025',)
 
 
-def leave_out(state, left):
+def leave_out(state, left, keep_zero=False):
     """§23: every CCaR pull row of a left-out (appropriation's pull, FY) and every BAE report row whose budget is that
     appropriation's and whose FY is that year is taken out before anything is worked out; a row whose FY does not read is
     kept. -> (the state without them, [{ap, fy, rows, reportRows}] for each key that lost a row, in key order)."""
     left = set(left)
-    n_pull, n_rep = {}, {}
+    n_pull, n_rep, n_zero = {}, {}, {}
 
     def pulls(ps):
         out = {}
@@ -1668,6 +1668,8 @@ def leave_out(state, left):
                 k = '%s|%s' % (ap, r['fy'])
                 if isinstance(r['fy'], int) and k in left:
                     n_pull[k] = n_pull.get(k, 0) + 1
+                elif not keep_zero and ap in AP_IDS and not r['bad'] and r['cents'] == 0:
+                    n_zero[ap] = n_zero.get(ap, 0) + 1      # §24: a plan event of $0.00, a placeholder
                 else:
                     keep.append(r)
             out[ap] = keep
@@ -1688,16 +1690,18 @@ def leave_out(state, left):
         return dict(b, rows=keep)
 
     cur = pulls(state['current'])
-    counted = dict(n_pull)
+    counted, zeroed = dict(n_pull), dict(n_zero)
     prev = pulls(state['previous'])
     n_pull.clear()
     n_pull.update(counted)                      # the model reports the current pulls' rows only
+    n_zero.clear()
+    n_zero.update(zeroed)
     bae = state.get('bae') or {'current': None, 'previous': None}
     new = {'current': cur, 'previous': prev,
            'bae': {'current': report(bae.get('current'), True), 'previous': report(bae.get('previous'), False)}}
     said = [{'ap': k.split('|')[0], 'fy': int(k.split('|')[1]), 'rows': n_pull.get(k, 0), 'reportRows': n_rep.get(k, 0)}
             for k in sorted(set(n_pull) | set(n_rep))]
-    return new, said
+    return new, said, [{'ap': ap, 'rows': n_zero[ap]} for ap in AP_IDS if n_zero.get(ap)]
 
 
 def make_settings(args):
@@ -1781,6 +1785,7 @@ def main(argv=None):
     ap.add_argument('--special', nargs='*')
     ap.add_argument('--settings', help='a JSON file with any of goals, authorized, special, budgets')
     ap.add_argument('--left-out', nargs='*', dest='left_out', help="§23: 'ap|fy' left out entirely (default om|2025)")
+    ap.add_argument('--keep-zero', action='store_true', dest='keep_zero', help='§24: keep the plan events of $0.00')
     ap.add_argument('--scenario', choices=sorted(SCENARIOS))
     ap.add_argument('--fixture', help='the fixture directory a --scenario reads')
     ap.add_argument('--out', required=True)
@@ -1819,10 +1824,12 @@ def main(argv=None):
         except Refused as e:
             refused_then = str(e)     # §3: a refused import changes nothing; the first import's state stands
     left = list(LEFT_OUT_DEFAULT) if args.left_out is None else list(args.left_out)
-    state, said = leave_out(state, left)
+    state, said, zeros = leave_out(state, left, args.keep_zero)
     out = build(state, settings, view)
     if said:
         out['leftOut'] = said
+    if zeros:
+        out['zeroOut'] = zeros
     if args.then:
         out['diff'] = diff_pulls(state['previous'], state['current'], settings)
         if refused_then:
@@ -1831,7 +1838,7 @@ def main(argv=None):
             out['diffBae'] = diff_bae(state['bae']['previous'], state['bae']['current'], settings)
     out['input'] = {'files': [os.path.basename(f) for f in args.files],
                     'then': [os.path.basename(f) for f in (args.then or [])],
-                    'svcOff': sorted(args.svc_off or []), 'lanes': args.lanes, 'leftOut': left}
+                    'svcOff': sorted(args.svc_off or []), 'lanes': args.lanes, 'leftOut': left, 'keepZero': bool(args.keep_zero)}
     if sc_auth:
         out['input']['authorized'] = sc_auth
     _write(args.out, out)

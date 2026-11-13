@@ -677,19 +677,31 @@ SP.leftOutOf = function leftOutOf(settings) {
   const l = settings && typeof settings === 'object' && Array.isArray(settings.leftOut) ? settings.leftOut : SP.LEFT_OUT_DEFAULT;
   return new Set(l.filter(x => typeof x === 'string' && /^[a-z]+\|\d{4}$/.test(x)));
 };
-// -> {pulls, out: {'ap|fy': rows}}: pulls is the one given when nothing is left out of it
+// §24 A PLAN EVENT OF $0.00 IS LEFT OUT (Brad, 13 Nov 2026: "exclude any plan events that have a $0.00 value. Those are there
+// as placeholders in our system … Just creates confusion"). A CCaR pull row of an identified appropriation whose Amount
+// reads as exactly zero is taken out at the same door as §23's rows, after them, so no list, count, block, tab, requirement or
+// sheet holds a placeholder. It adds nothing to any dollar figure, so no dollar moves. A row whose Amount does not read is
+// kept (it is unreadable, and reported as such). settings.keepZero === true keeps them (absent: SP.KEEP_ZERO_DEFAULT).
+SP.KEEP_ZERO_DEFAULT = false;
+SP.keepZeroOf = function keepZeroOf(settings) {
+  return settings && typeof settings === 'object' && typeof settings.keepZero === 'boolean' ? settings.keepZero : SP.KEEP_ZERO_DEFAULT === true;
+};
+// -> {pulls, out: {'ap|fy': rows}, zero: {ap: rows}}: pulls is the one given when nothing is left out of it
 function eng_keepPulls(pulls, settings) {
-  const L = SP.leftOutOf(settings), out = {};
-  if (!L.size || !pulls || typeof pulls !== 'object') return { pulls, out };
+  const L = SP.leftOutOf(settings), out = {}, zero = {}, dropZero = !SP.keepZeroOf(settings);
+  if ((!L.size && !dropZero) || !pulls || typeof pulls !== 'object') return { pulls, out, zero };
   let kept = pulls;
-  for (const ap of new Set([...L].map(k => k.slice(0, k.indexOf('|'))))) {
+  const lAps = new Set([...L].map(k => k.slice(0, k.indexOf('|'))));
+  for (const ap of ENG_AP_IDS) {
     const p = pulls[ap];
-    if (!p || !Array.isArray(p.rows)) continue;
-    const rows = p.rows.filter(row => { const fy = SP.deriveRow(row, settings).fy, k = ap + '|' + fy;
-      if (Number.isInteger(fy) && L.has(k)) { out[k] = (out[k] || 0) + 1; return false; } return true; });
+    if (!p || !Array.isArray(p.rows) || (!dropZero && !lAps.has(ap))) continue;
+    const rows = p.rows.filter(row => { const d = SP.deriveRow(row, settings), fy = d.fy, k = ap + '|' + fy;
+      if (Number.isInteger(fy) && L.has(k)) { out[k] = (out[k] || 0) + 1; return false; }
+      if (dropZero && !d.bad && d.cents === 0) { zero[ap] = (zero[ap] || 0) + 1; return false; }
+      return true; });
     if (rows.length !== p.rows.length) { if (kept === pulls) kept = Object.assign({}, pulls); kept[ap] = Object.assign({}, p, { rows }); }
   }
-  return { pulls: kept, out };
+  return { pulls: kept, out, zero };
 }
 function eng_keepBae(bae, settings) {
   const L = SP.leftOutOf(settings), out = {}, sum = { approved: 0, authorized: 0 };     // sum: of the readable rows taken out, for the total row's check
@@ -1190,7 +1202,10 @@ SP.buildModel = function buildModel(pulls, settings, view, bae) {
   // §23 what was left out entirely, for the Import report's one line: written only when a row was, so a plan with none is
   // the model as it was
   { const ks = [...new Set([...Object.keys(keptP.out), ...Object.keys(keptB.out)])].sort();
-    if (ks.length) model.leftOut = ks.map(k => { const i = k.indexOf('|'); return { ap: k.slice(0, i), fy: Number(k.slice(i + 1)), rows: keptP.out[k] || 0, reportRows: keptB.out[k] || 0 }; }); }
+    if (ks.length) model.leftOut = ks.map(k => { const i = k.indexOf('|'); return { ap: k.slice(0, i), fy: Number(k.slice(i + 1)), rows: keptP.out[k] || 0, reportRows: keptB.out[k] || 0 }; });
+    // §24 the $0.00 plan events left out, per appropriation in model order: written only when there is one
+    const zs = ENG_AP_IDS.filter(ap => keptP.zero[ap]);
+    if (zs.length) model.zeroOut = zs.map(ap => ({ ap, rows: keptP.zero[ap] })); }
   if (B) model.bae = eng_baeModel(B, R, idx, { leftSum: keptB.sum, S, cx, blocks, pmoLabel, bpmoOf, pullBudget, pullKeys, countedKeys, obbbaNoBlock, obLoaded,
     split: splitAll, unassigned: unassignedAll, shareOf });
   model.summary.notes = eng_notes(model);
@@ -1500,9 +1515,14 @@ SP.LEFT_OUT_HEAD = 'Left out of APEX entirely';
 SP.leftOutLines = function leftOutLines(M) {
   const L = M && Array.isArray(M.leftOut) ? M.leftOut : [];
   const n = (x, one, many) => SP.fmtInt(x) + ' ' + (x === 1 ? one : many);
-  return L.map(l => (ENG_AP_LABEL[l.ap] || l.ap) + ' FY' + l.fy + ': ' + n(l.rows, 'CCaR pull row', 'CCaR pull rows')
+  const Z = M && Array.isArray(M.zeroOut) ? M.zeroOut : [];
+  const lines = L.map(l => (ENG_AP_LABEL[l.ap] || l.ap) + ' FY' + l.fy + ': ' + n(l.rows, 'CCaR pull row', 'CCaR pull rows')
     + (l.reportRows ? ' and ' + n(l.reportRows, 'BAE report row', 'BAE report rows') : '')
     + '. They are in no figure, block, list, picture or sheet; the files and the saved plan still hold them.');
+  // §24: the placeholders, in one line
+  if (Z.length) lines.push('Plan events of $0.00 (placeholders): ' + n(Z.reduce((s, z) => s + z.rows, 0), 'CCaR pull row', 'CCaR pull rows') + ' ('
+    + Z.map(z => (ENG_AP_LABEL[z.ap] || z.ap) + ' ' + SP.fmtInt(z.rows)).join(', ') + '). They add nothing to any dollar figure and are in no list, count or sheet; the files and the saved plan still hold them.');
+  return lines;
 };
 SP.obbbaLines = function obbbaLines(M) {
   if (!SP.obbbaLoaded(M)) return [];

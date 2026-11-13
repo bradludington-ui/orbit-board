@@ -115,7 +115,7 @@ function ui_state() { return SP.state && typeof SP.state === 'object' ? SP.state
 let ui_keptMemo = null;
 function ui_kept(raw, kind) {
   if (!raw || typeof SP.keepYears !== 'function') return raw;
-  const st = ui_state(), key = JSON.stringify(st && st.settings && Array.isArray(st.settings.leftOut) ? st.settings.leftOut : SP.LEFT_OUT_DEFAULT);
+  const st = ui_state(), key = JSON.stringify([st && st.settings && Array.isArray(st.settings.leftOut) ? st.settings.leftOut : SP.LEFT_OUT_DEFAULT, SP.keepZeroOf(st && st.settings)]);
   if (!ui_keptMemo || ui_keptMemo.key !== key) ui_keptMemo = { key, map: new WeakMap() };
   if (!ui_keptMemo.map.has(raw)) {
     let out = raw;
@@ -395,7 +395,7 @@ function ui_topTable(rows, opts) {
 // apex/assets/gen.py, with its size dropped: drawn in the page itself, in the frame's ink, the satellite in its gold. The
 // name is also there as text for a screen reader and a search, since the drawing is hidden from both.
 const UI_MARK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 443.1 108" class="logo" aria-hidden="true" focusable="false"><mask id="a-w-ring" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/><circle cx="82.31" cy="24.76" r="13.4" fill="#000"/></mask><clipPath id="a-w-in"><circle cx="50" cy="50" r="36.5"/></clipPath><g transform="translate(0 0) scale(1.08)"><circle cx="50" cy="50" r="41" fill="none" stroke="currentColor" stroke-width="10" mask="url(#a-w-ring)"/><path clip-path="url(#a-w-in)" fill="currentColor" fill-rule="evenodd" d="M25.8 32.36 L28.68 32 L29.98 35.96 L31.99 32.43 L34.01 36.61 L36.02 32.86 L38.04 37.04 L40.06 33.3 L42.07 37.33 L44.09 33.87 L46.1 37.47 L48.12 34.59 L51.36 38.12 L48.84 41.07 L46.97 39.2 L44.95 42.8 L42.94 40.5 L40.92 44.24 L38.9 41.79 L36.89 45.54 L34.87 43.09 L32.86 46.4 L31.13 44.38 L28.68 46.76 L30.12 50 L38.76 52.88 L48.12 51.44 L51.72 48.2 L49 56 L42 58.5 L37 63 L39.2 62.6 L39 65.6 L41.2 63.4 L42.4 66 L44 62.8 L48.4 62.4 L48 68 L42 70.5 L38.5 75 L40.7 74.4 L40.9 77.4 L42.7 75 L44.3 77.2 L45.1 74 L47.8 73.4 L46.5 84 L48 100 L81 100 L78 82 L73 66 L68 54 L65.04 45.68 L62.16 34.88 L57.12 27.32 L51 22.28 L46.68 23.5 L42.36 21.34 L35.88 22.35 L30.12 23.36 L25.8 27.1 L24.72 29.84 Z M50.64 26.53 L44.23 27.82 L45.24 30.13 L49.42 29.26 Z M29.83 25.95 L27.82 26.82 L28.25 27.97 L30.19 27.25 Z"/><circle cx="82.31" cy="24.76" r="8.6" fill="var(--apex-accent, currentColor)"/></g><path fill="currentColor" d="M189.9 93 182.98 73.07H153.25L146.33 93H130L158.45 15H177.72L206.06 93ZM168.09 27.01 167.75 28.23Q167.2 30.22 166.43 32.77Q165.65 35.32 156.9 60.78H179.32L171.63 38.36L169.25 30.83Z M283.53 39.69Q283.53 47.22 280.09 53.14Q276.66 59.07 270.27 62.3Q263.87 65.54 255.07 65.54H235.7V93H219.37V15H254.41Q268.41 15 275.97 21.45Q283.53 27.9 283.53 39.69ZM267.08 39.97Q267.08 27.68 252.58 27.68H235.7V52.98H253.02Q259.78 52.98 263.43 49.63Q267.08 46.28 267.08 39.97Z M297.72 93V15H359.05V27.62H314.05V47.22H355.68V59.84H314.05V80.38H361.32V93Z M425.94 93 406.35 61.94 386.75 93H369.48L396.49 51.98L371.75 15H389.02L406.35 42.57L423.67 15H440.83L417.14 51.98L443.1 93Z"/></svg>';
-const UI_OV_AP = ['#2f8cff', '#2fd6c8', '#62e07d', '#f5b942'];
+const UI_OV_AP = ['#055795', '#6e4f00', '#4a2a7a', '#8c1d3f'];     // ORBIT's Harbor hues: blue, ochre, violet, wine
 function ui_ovFy(M) {
   const fys = [...new Set(M.summary.rows.map(r => r.fy))];
   if (ui.ovFy === 'all') return null;
@@ -627,18 +627,18 @@ function ui_vCal(M) {
   }).filter(Boolean);
   const rest = list.filter(r => spOf(r) < 0);
   const shown = rest.slice(0, UI_CAL_MAX);
-  let body = '', lastPmo = null;
+  let body = '', lastPmo = null, zeb = 0;     // zeb: every other line under a heading is shaded, so a line is followed across the months
   if (rolled.length) {
     body += '<tr class="calg calsp"><th scope="colgroup" colspan="' + (cols.length + 2) + '">Special CCaRs, one line each <span class="calspn">(the list is in Settings)</span></th></tr>';
     for (const x of rolled) {
-      body += '<tr data-sp="' + ui_e(x.key) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
+      body += '<tr data-sp="' + ui_e(x.key) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
         + ui_e(x.ccar) + '</button><span class="fsub">' + ui_e(x.title) + ' · ' + ui_e(x.where.join(', ')) + (x.pmos.length > 1 ? ' · ' + x.pmos.length + ' PMOs' : ' · ' + ui_e(x.pmos[0])) + '</span></th>'
         + cols.map(c => cell(x, c)).join('') + '<td class="n tot" data-c="' + x.planned + '">' + ui_e(SP.fmtMText(x.planned)) + '</td></tr>';
     }
   }
   for (const r of [...shown].sort((a, b) => (a.pmo < b.pmo ? -1 : a.pmo > b.pmo ? 1 : 0))) {
-    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; }
-    body += '<tr data-rk="' + all.indexOf(r) + '"><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
+    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; zeb = 0; }
+    body += '<tr data-rk="' + all.indexOf(r) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
       + cols.map(c => cell(r, c)).join('') + '<td class="n tot" data-c="' + r.planned + '">' + ui_e(SP.fmtMText(r.planned)) + '</td></tr>';
   }
   return head + '<p class="findcount" id="uiCalCount" role="status">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')
@@ -1494,7 +1494,7 @@ function ui_vSettings(M) {
 }
 
 function ui_vHelp() {
-  const li = a => '<ul>' + a.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+  const li = a => '<ul>' + a.filter(x => x !== '').map(x => '<li>' + x + '</li>').join('') + '</ul>';
   return '<h2 class="title">Help</h2><div class="help">'
     + '<h3 class="sub">What this is</h3><p>APEX (Appropriation Planning &amp; Execution) replaces the Spend Plan Workbook (v12). In November 2026 it was first called the SFCB Spend Plan, then SCOPE. Import the CCaR pull; every product the workbook made is drawn here, '
     + 'and <strong>Export Excel</strong> writes them as a workbook of values. The file is its own database: <strong>Save</strong> writes the data and the settings into this file.</p>'
@@ -1518,6 +1518,9 @@ function ui_vHelp() {
     + '<h3 class="sub">Which rows count</h3>' + li([
       'A row counts when its FY and Amount read, its appropriation is identified, its FY is at least <strong>First FY</strong>, it is not ' + (ui_lo25() ? 'O&amp;M FY' + SP.OBBBA_FY
       : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding') + ', and the switches show its service and lane.',
+      // §24: the placeholders
+      SP.keepZeroOf(ui_settings()) ? '' : '<strong>A plan event of $0.00 is left out</strong> (Brad, 13 Nov 2026): a CCaR pull row whose Amount is exactly zero is a placeholder. '
+      + 'It adds nothing to any dollar figure, and it is in no list, count, calendar or sheet. The files and the saved plan still hold them, and the Import report says how many there are.',
       // §23: O&M FY2025 left out entirely, in place of §15's rule on its OBBBA funding, which it covers
       ui_lo25() ? '<strong>O&amp;M FY' + SP.OBBBA_FY + ' is left out entirely</strong> (Brad, 13 Nov 2026): none of its CCaR pull rows and none of the BAE report’s rows for it is '
       + 'shown or counted on any view, in the workbook or in a picture. The files and the saved plan still hold them, and the Import report says how many rows that is. '

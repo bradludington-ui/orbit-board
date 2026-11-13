@@ -1768,3 +1768,47 @@ confusing people."*
 - `test/fixture/oracle.py` has the rule on its own (`leave_out`, default `om|2025`), and `test/fixture.test.mjs` holds it
   to the generator's record with those rows taken away. The scenarios of §12 and §14 run under the default; the obbba
   scenarios, and every comparison with a build before this section, run with an empty list.
+
+## 24. A plan event of $0.00 is left out (Brad, 13 Nov 2026)
+
+Brad: *"Let's also exclude any plan events that have a $0.00 value. Those are there as placeholders in our system but do not
+show any real positive use in our dashboard. Just creates confusion."*
+
+- **The rule.** A CCaR pull row of an identified appropriation whose Amount reads as exactly zero is taken out at the same
+  door as §23's rows, after them (`eng_keepPulls`; `SP.keepYears` for the workbook's raw sheets and Settings' budget list).
+  It is in no list, count, block, PMO tab, requirement, calendar, Not Allocated line, comparison or sheet. It adds nothing
+  to any dollar figure, so no dollar moves; an appropriation and FY holding nothing else has no block.
+- **Not a $0.00 row:** a row whose Amount does not read (kept, and reported as unreadable); a row of a pull whose
+  appropriation was not identified; rows that add up to zero between them. The BAE report's rows are not plan events and
+  are untouched.
+- **Where.** `settings.keepZero === true` keeps them; absent, `SP.KEEP_ZERO_DEFAULT` (false). There is no control for it on
+  the page. The saved plan and the files keep their rows.
+- **Named in one place**: the Import report's *Left out of APEX entirely* section, one line with the number of rows per
+  appropriation (`model.zeroOut`). Help states the rule.
+
+### 24.1 Tests
+
+- `test/left-out.test.mjs`: placeholders beside real money, a requirement and a block that are nothing else, the setting
+  that keeps them, an unreadable Amount, every view, the workbook.
+- The oracle has the rule on its own (`leave_out`, `--keep-zero`) and `test/fixture.test.mjs` holds it to the generator's
+  record with those rows taken away. Comparisons with a build before this section keep them.
+
+## 25. The page wears ORBIT's colours (Brad, 13 Nov 2026)
+
+Brad: *"Let's also update to follow the same color scheme as ORBIT."* ORBIT's default palette is Harbor, and the page takes
+it in place of §18's dark shell.
+
+- **The frame**: ground `#c4ccd6`, panels `#d9dfe7` and `#c9d0da`, lines `#aeb7c3`, control edges `#627185`, ink `#182029`,
+  muted ink `#3b4553`, the navy accent `#25394d` (bars, pressed buttons, total rows) with `#eaf0f6` on it, and blue
+  `#055795` for what is done, for links (`#0b4f8a`) and for the mark's satellite. Ochre `#7a4a08` says *unsaved* and
+  *filtered*; wine `#8c1d3f` says *late*. The Overview's appropriations are Harbor's blue, ochre, violet and wine.
+- **The tables on the page** keep their layout; their bars and total rows are the navy accent, their header rows `#cbd9e8`,
+  their cells `#eef1f5`, closed months `#ced5de`.
+- **Unchanged, on purpose:** the status colours (green, yellow, red, each with its word) and everything the workbook and
+  the saved pictures print, which stay the slides' colours (§8, §9), and the printed page (black on white).
+- The stylesheet's token names are the ones its rules were written with (`--sbg`, `--navy`, `--gold` …); only their values
+  moved, in `:root` of `src/style.css`.
+- **The menu is the navy accent** (Brad, 13 Nov 2026: *"would like to see that dark blue on the menu"*): `#25394d` with
+  `#eaf0f6` on it; the view on screen is the light one, with the blue bar at its left.
+- **The Award calendar shades every other line** (Brad, the same day), starting again under each heading, a closed month a
+  shade deeper, so a requirement's line can be followed across the months (`tr.alt`).

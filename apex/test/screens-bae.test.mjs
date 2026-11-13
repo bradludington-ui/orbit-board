@@ -799,7 +799,7 @@ try {
         await t.SP.applyImport(parsed);
       }
       // §23: the code before left no year out, so the two are compared with nothing left out
-      t.SP.setSettings({ asOf: '2026-10', leftOut: [] });
+      t.SP.setSettings({ asOf: '2026-10', leftOut: [], keepZero: true });     // §24: nor any $0.00 plan event
       const st = JSON.parse(J(t.SP.state));
       st.savedAt = '2026-11-16T12:30:00.000Z';
       t.close();

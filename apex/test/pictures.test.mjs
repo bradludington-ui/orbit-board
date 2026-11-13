@@ -315,7 +315,7 @@ try {
         for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
         const parsed = await SP.parseFiles([{ name: 'pull-all.xlsx', data: u.buffer }], { now: '2026-11-09T12:00:00.000Z' });
         const S = SP.defaultSettings('2026-11-09');
-        S.leftOut = [];     // §23: the code before left no year out, so the two are compared with nothing left out
+        S.leftOut = []; S.keepZero = true;     // §23, §24: the code before left no year and no $0.00 plan event out, so the two are compared with nothing left out
         const v = SP.defaultView(); v.svc.USAF = false;
         const out = [];
         for (const M of [SP.buildModel(parsed.pulls, S, SP.defaultView()), SP.buildModel(parsed.pulls, S, v)]) {

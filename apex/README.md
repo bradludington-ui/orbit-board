@@ -290,6 +290,8 @@ The filter bar has a box for each service and one for each lane (Discretionary a
     If you leave the box with a year not finished, or empty, it goes back to the month in use and the message line says so.
 - **First FY** is the oldest money year shown. It starts at FY2025. Money for earlier years is counted nowhere, and the
   Summary's notes say how much there is.
+- **A plan event of $0.00 is left out** (Brad, 13 Nov 2026): a CCaR pull row whose Amount is exactly zero is a placeholder.
+  It is in no list, count, calendar or sheet, and no dollar figure moves. The Import report says how many there are.
 - **O&M FY2025 is left out entirely** (Brad, 13 Nov 2026): none of its CCaR pull rows and none of the BAE report's rows
   for it is shown or counted on any view, in the workbook or in a picture. The files and the saved plan still hold them;
   the Import report says how many rows were left out, and nothing else names it. FY2025 of every other appropriation is
