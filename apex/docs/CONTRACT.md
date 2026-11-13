@@ -1713,3 +1713,24 @@ on Find a requirement with nothing narrowing the list.
 - `test/pmo-calendar.test.mjs`: the plan of `find.test.mjs`, every tile, list, cell and total worked by hand; the calendar's
   totals held to the blocks' columns; the pickers; the way to Find a requirement; the switches; the remembered office.
 
+## 22. The Award calendar: a Special CCaR is one line (Brad, 13 Nov 2026)
+
+Brad: *"On the calendar chart, let's roll everything into one line for …"*, naming three CCaR numbers; asked whether that
+meant every CCaR number, *"Only those three"*.
+
+- **Which numbers** is Settings' **Special CCaRs** (`settings.special`), the list that already makes each one item on the Not
+  Allocated lists. No CCaR number is written into the program beyond that list's two defaults; a third is added in Settings and
+  travels in the saved file.
+- **The line.** Each listed number that the requirements listed hold is one line, under the heading *Special CCaRs, one line
+  each*, above the offices, in the Settings list's order. Its cells are every requirement of that number added together,
+  whatever fiscal year, appropriation, title or PMO each is in (matched by `SP.normKey`, so case and spacing do not matter). It
+  names the number, the title (and how many more titles), each appropriation and year it adds up, and the PMO or how many.
+- **Nothing else moves.** Every other requirement keeps its own line under its office. The Total row is unchanged, and is still
+  the blocks' own columns. The three pickers narrow the line as they narrow the rest.
+- **Its number is a button**: Find a requirement, searched for that number, lists every part of it.
+- A listed number the plan does not hold draws no line.
+
+### 22.1 Tests
+
+- `test/pmo-calendar.test.mjs`, *the Special CCaRs, one line each*: an invented number over two years, two appropriations, two
+  titles and two PMOs, every cell worked by hand, before and after it is listed.

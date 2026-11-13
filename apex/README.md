@@ -200,6 +200,8 @@ for the switches.
 - **Award calendar** lays the execution year out by month, by office. Each requirement's money sits in the month it is
   projected to award: awarded, projected, or not awarded and past its date. The Total row is the plan by month.
 
+  A CCaR number listed under Settings, **Special CCaRs**, is one line at the top, with every fiscal year, appropriation and
+  title it has added together; to roll another number up, add it there.
 - **Overview** works out nothing of its own. Its tiles are the Summary's Approved, Authorized, Obligated and Unobligated
   for the fiscal year you pick at its top right (or **All**), added up as the Summary's TOTAL is, with the same marks.
   Its status counts are the Summary's rows. Each small chart is one slide block's Obligation % and OSD goal by month: an

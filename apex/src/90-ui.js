@@ -593,15 +593,38 @@ function ui_vCal(M) {
     return '<td class="' + (c.closed ? 'cl' : '') + '">' + chip('c-aw', 'Awarded', aw) + chip('c-late', 'Not awarded, past its date', lt) + chip('c-plan', 'Projected', pl) + '</td>';
   };
   const tot = cols.map(c => list.reduce((s, r) => s + r.events.reduce((x, e) => x + (e.col === c.index ? e.cents : 0), 0), 0));
-  const shown = list.slice(0, UI_CAL_MAX);
+  // THE SPECIAL CCaRs, ONE LINE EACH (Brad, 13 Nov 2026: "roll everything into one line for …", naming three CCaR numbers;
+  // asked which, "Only those three"). They are Settings' Special CCaRs, the list that already makes each one item on the Not
+  // Allocated lists: a number is never written into the program. Each is one line at the top, in the list's own order, with
+  // every fiscal year, appropriation, title and PMO it has among the requirements listed added together.
+  const spKeys = (Array.isArray(ui_settings().special) ? ui_settings().special : SP.SPECIAL_CCARS_DEFAULT).map(x => SP.normKey(x)).filter((k, i, a) => k !== '' && a.indexOf(k) === i);
+  const spOf = r => spKeys.indexOf(SP.normKey(r.ccar));
+  const rolled = spKeys.map(k => {
+    const mine = list.filter(r => SP.normKey(r.ccar) === k);
+    if (!mine.length) return null;
+    const titles = [...new Set(mine.map(r => r.title))], where = [...new Set(mine.map(r => r.apLabel + ' FY' + r.fy))], pmos = [...new Set(mine.map(r => r.pmo))];
+    return { key: k, ccar: mine[0].ccar, title: titles[0] + (titles.length > 1 ? ' (+' + (titles.length - 1) + ' more)' : ''), where, pmos, n: mine.length,
+      events: mine.flatMap(r => r.events), planned: mine.reduce((s, r) => s + r.planned, 0) };
+  }).filter(Boolean);
+  const rest = list.filter(r => spOf(r) < 0);
+  const shown = rest.slice(0, UI_CAL_MAX);
   let body = '', lastPmo = null;
+  if (rolled.length) {
+    body += '<tr class="calg calsp"><th scope="colgroup" colspan="' + (cols.length + 2) + '">Special CCaRs, one line each <span class="calspn">(the list is in Settings)</span></th></tr>';
+    for (const x of rolled) {
+      body += '<tr data-sp="' + ui_e(x.key) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
+        + ui_e(x.ccar) + '</button><span class="fsub">' + ui_e(x.title) + ' · ' + ui_e(x.where.join(', ')) + (x.pmos.length > 1 ? ' · ' + x.pmos.length + ' PMOs' : ' · ' + ui_e(x.pmos[0])) + '</span></th>'
+        + cols.map(c => cell(x, c)).join('') + '<td class="n tot" data-c="' + x.planned + '">' + ui_e(SP.fmtMText(x.planned)) + '</td></tr>';
+    }
+  }
   for (const r of [...shown].sort((a, b) => (a.pmo < b.pmo ? -1 : a.pmo > b.pmo ? 1 : 0))) {
     if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; }
     body += '<tr data-rk="' + all.indexOf(r) + '"><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
       + cols.map(c => cell(r, c)).join('') + '<td class="n tot" data-c="' + r.planned + '">' + ui_e(SP.fmtMText(r.planned)) + '</td></tr>';
   }
   return head + '<p class="findcount" id="uiCalCount" role="status">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')
-    + (list.length > UI_CAL_MAX ? '. The first ' + UI_CAL_MAX + ' are listed, and the totals are of all of them: pick a PMO, an appropriation or an FY.' : '') + '</p>'
+    + (rolled.length ? ', ' + SP.fmtInt(list.length - rest.length) + ' of them on ' + rolled.length + (rolled.length === 1 ? ' Special CCaR line' : ' Special CCaR lines') : '')
+    + (rest.length > UI_CAL_MAX ? '. The first ' + UI_CAL_MAX + ' of the others are listed, and the totals are of all of them: pick a PMO, an appropriation or an FY.' : '') + '</p>'
     + '<div class="card calcard"><div class="tw"><table class="calt"><thead><tr><th scope="col" class="lab">Requirement ($M)</th>'
     + cols.map(c => '<th scope="col" class="' + (c.closed ? 'cl' : '') + (c.index === M.asOfIndex ? ' now' : '') + '">' + ui_e(c.label) + '</th>').join('') + '<th scope="col">Total</th></tr></thead><tbody>'
     + body + '<tr class="calt-tot"><th scope="row" class="lab">Total</th>' + tot.map((v, i) => '<td class="' + (cols[i].closed ? 'cl' : '') + '" data-c="' + v + '">' + ui_e(SP.fmtM(v)) + '</td>').join('')
@@ -1502,6 +1525,8 @@ function ui_vHelp() {
       + 'month, and what is past its projected date and not awarded. The office you pick is remembered in this browser, not in the file.',
       '<strong>Award calendar</strong> lays the execution year out by month. Each requirement’s money sits in the month it is projected to award: awarded (✓), projected, or '
       + 'not awarded and past its date (!). Prior Yr is before the year’s October, the next-year column after its September. Its Total row is the plan by month.',
+      'A <strong>Special CCaR</strong> (Settings) is one line at the top of the calendar, in the Settings list’s order, with every fiscal year, appropriation and title it has '
+      + 'added together. To roll another CCaR number up, add it under Settings, Special CCaRs. Its number opens every part of it on Find a requirement.',
       'A requirement’s name in either opens it on Find a requirement.',
     ])
     + '<h3 class="sub">Manage data</h3>' + li([
@@ -2132,6 +2157,12 @@ function ui_onClick(ev) {
       if (r) { ui.find = { q: '', pmo: null, ap: null, fy: null, sel: r.key }; ui.view = 'find'; ui.focusTo = 'findq'; ui_render(); ui_toTop(); }
       break;
     }
+    case 'reqfind':
+      // a Special CCaR's line on the Award calendar: Find a requirement, searched for its number, so every part of it is listed
+      ui.find = { q: t.getAttribute('data-q') || '', pmo: null, ap: null, fy: null, sel: '' };
+      ui.view = 'find'; ui.focusTo = 'findq';
+      ui_render(); ui_toTop();
+      break;
     case 'findclear':
       ui.find = { q: '', pmo: null, ap: null, fy: null, sel: '' };
       ui.focusTo = 'findq';

@@ -377,6 +377,8 @@ main.ov .plist .tg:hover,main.ov .calt .tg:hover{background:none;color:#fff}
 .calt .fsub{display:block;font-size:11px;color:var(--smut)}
 .calt td.cl,.calt th.cl{background:#081223}
 .calt tr.calg th{text-align:left;color:#9fd0ff;font-weight:700;background:#0a1a33}
+.calt tr.calsp th{color:var(--gold)}
+.calt tr.calsp .calspn{font-weight:400;opacity:.8}
 .calt tr.calt-tot th,.calt tr.calt-tot td{font-weight:700;border-top:1px solid var(--sedge);font-variant-numeric:tabular-nums}
 .calt td.tot{text-align:right;font-variant-numeric:tabular-nums}
 .cchip{display:inline-block;margin:1px 0;padding:0 5px;border-radius:5px;font-weight:700;font-variant-numeric:tabular-nums;font-size:12px}
