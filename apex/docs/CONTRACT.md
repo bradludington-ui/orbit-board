@@ -1812,3 +1812,9 @@ it in place of §18's dark shell.
   `#eaf0f6` on it; the view on screen is the light one, with the blue bar at its left.
 - **The Award calendar shades every other line** (Brad, the same day), starting again under each heading, a closed month a
   shade deeper, so a requirement's line can be followed across the months (`tr.alt`).
+- **The Award calendar made calm** (Brad, 13 Nov 2026, of a long list on his screen: *"Seems overwhelming visually"*):
+  requirement names in plain ink, underlined only under the pointer or the keyboard; a soft stripe; the closed months
+  marked by one line after the Data through month in place of a darker band; figures right-aligned in quiet chips
+  (awarded a pale green with its tick, projected an outline, only a late one solid red with its "!"); the line under the
+  pointer lit; and, on a window wide enough for the table, the month headings staying under the top bar while the list
+  scrolls.

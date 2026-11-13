@@ -378,36 +378,55 @@ main.ov .findt .tg:hover{background:none;color:var(--navy);text-decoration:under
 .plist .fa{font-variant-numeric:tabular-nums;white-space:nowrap}
 .plist .fsub{display:block;font-size:11px;color:var(--smut)}
 main.ov .plist .tg,main.ov .calt .tg{border:0;background:none;padding:2px 0;color:var(--slink);font-weight:700;text-align:left;text-decoration:underline}
-main.ov .plist .tg:hover,main.ov .calt .tg:hover{background:none;color:var(--sink)}
+main.ov .plist .tg:hover{background:none;color:var(--sink)}
+main.ov .calt .tg:hover{background:none}
 .card[data-list=late] .fd{color:var(--wine)}
 .pmoall{margin:4px 0 6px;font-size:14px;color:var(--sink)}
 @media (max-width:1100px){.pmotwo{grid-template-columns:minmax(0,1fr)}}
 .calcard{padding:8px 10px}
+/* THE AWARD CALENDAR, made calm (Brad, 13 Nov 2026, of a long list on his screen: "Seems overwhelming visually"). What was
+   loud: every name a bold underlined link, a strong stripe crossed by a darker band for the closed months (a checkerboard),
+   solid chips in every cell, and month headings that scrolled away. Now: names in plain ink (underlined under the pointer or
+   the keyboard), a soft stripe, the closed months marked by ONE line after the Data through month, figures right-aligned
+   in quiet chips (awarded a pale green, projected an outline) with only a late one solid, and the month headings staying
+   under the top bar while the list scrolls. */
 .calt{border-collapse:collapse;width:100%;font-size:12px}
-.calt th,.calt td{padding:4px 4px;border-bottom:1px solid var(--sline);text-align:center;vertical-align:top;white-space:nowrap}
-.calt thead th{color:var(--smut);font-weight:600;border-bottom:1px solid var(--sedge);background:var(--spanel2);position:sticky;top:0}
+.calt th,.calt td{padding:5px 5px;border-bottom:1px solid #d5dbe3;text-align:right;vertical-align:top;white-space:nowrap}
+.calt td{border-left:1px solid #e0e5ec}
+.calt thead th{color:var(--smut);font-weight:600;text-align:center;border-bottom:1px solid var(--sedge);background:var(--spanel2);position:sticky;top:0;z-index:5}
+.calt thead th.lab{text-align:left}
 .calt thead th.now{color:var(--sink);box-shadow:inset 0 -3px 0 var(--steal)}
-.calt th.lab{text-align:left;white-space:normal;min-width:15em;max-width:22em;font-weight:400;overflow-wrap:anywhere}
-.calt .fsub{display:block;font-size:11px;color:var(--smut)}
-.calt td.cl,.calt th.cl{background:var(--sdeep)}
-.calt tr.calg th{text-align:left;color:var(--slink);font-weight:700;background:var(--spanel2)}
-/* every other line under a heading is shaded (Brad, 13 Nov 2026), a closed month a shade deeper, so a line reads across */
+.calt th.lab{text-align:left;white-space:normal;min-width:15em;max-width:26em;font-weight:400;overflow-wrap:anywhere}
+.calt .fsub{display:block;font-size:11px;color:#566273}
+.calt thead th.cl{background:var(--sdeep)}
+/* the closed months end at one line, in the heading and down every row */
+.calt td.cl + td:not(.cl),.calt thead th.cl + th:not(.cl){border-left:2px solid var(--steal)}
+.calt tr.calg th{text-align:left;color:var(--sink);font-weight:700;background:var(--strip);padding-top:6px;padding-bottom:6px}
 .calt tbody tr[data-rk] th,.calt tbody tr[data-rk] td,.calt tbody tr[data-sp] th,.calt tbody tr[data-sp] td{background:var(--cell)}
-.calt tbody tr[data-rk] td.cl,.calt tbody tr[data-sp] td.cl{background:#dbe1e9}
-.calt tbody tr.alt th,.calt tbody tr.alt td{background:var(--spanel2)}
-.calt tbody tr.alt td.cl{background:#b4bfcd}
-.calt tr.calg th{background:var(--strip)}
+.calt tbody tr.alt th,.calt tbody tr.alt td{background:#e2e7ee}
+.calt tbody tr[data-rk]:hover th,.calt tbody tr[data-rk]:hover td,.calt tbody tr[data-sp]:hover th,.calt tbody tr[data-sp]:hover td{background:var(--soft)}
 .calt tr.calsp th{color:var(--ochre)}
 .calt tr.calsp .calspn{font-weight:400;opacity:.8}
-.calt tr.calt-tot th,.calt tr.calt-tot td{font-weight:700;border-top:1px solid var(--sedge);font-variant-numeric:tabular-nums}
-.calt td.tot{text-align:right;font-variant-numeric:tabular-nums}
-.cchip{display:inline-block;margin:1px 0;padding:0 5px;border-radius:5px;font-weight:700;font-variant-numeric:tabular-nums;font-size:12px}
-.cchip.c-aw{background:var(--green);color:#000}
-.cchip.c-plan{background:var(--soft);color:var(--slink);border:1px dashed var(--sblue)}
-.cchip.c-late{background:var(--red);color:#fff}
-.calt td .cchip{display:block}
-.calt td .cchip.c-aw:before{content:"\2713\00a0"}
-.calt td .cchip.c-late:before{content:"!\00a0"}
+.calt tr.calt-tot th,.calt tr.calt-tot td{font-weight:700;border-top:2px solid var(--sedge);font-variant-numeric:tabular-nums;background:var(--spanel2)}
+.calt td.tot{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+main.ov .calt .tg{color:var(--sink);font-weight:600;text-decoration:none}
+main.ov .calt .tg:hover,main.ov .calt .tg:focus-visible{color:var(--slink);text-decoration:underline}
+.cchip{display:inline-block;margin:1px 0;padding:0 5px;border-radius:4px;font-weight:600;font-variant-numeric:tabular-nums;font-size:12px}
+.cchip.c-aw{background:#d3ecd9;color:#0c4f24}
+.cchip.c-plan{background:none;color:var(--sink);border:1px solid #a9bacb;font-weight:400}
+.cchip.c-late{background:var(--red);color:#fff;font-weight:700}
+.calt td .cchip{display:block;text-align:right}
+.calt td .cchip.c-aw:before{content:"\2713\00a0";float:left;opacity:.75}
+.calt td .cchip.c-late:before{content:"!\00a0";float:left}
+/* on a window wide enough for the whole table the card does not scroll sideways, so the headings can stay under the top bar */
+@media (min-width:1101px){
+  .calcard .tw{overflow:visible}
+  .calt thead th{top:var(--topH, 96px)}
+}
+/* narrower, the table scrolls sideways in its card, so the card scrolls up and down too and the headings stay at its top */
+@media (max-width:1100px){
+  .calcard .tw{max-height:calc(100vh - var(--topH, 96px) - var(--cuiH) - 24px);overflow:auto}
+}
 
 /* PRINTED, every page carries the CUI marking at its top and its bottom (§6 item 14). The two lines in the page are
    printed once each, at the start and the end of the document, so a view printed with Ctrl+P had pages of CUI figures
