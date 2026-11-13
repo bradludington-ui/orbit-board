@@ -141,6 +141,26 @@ try {
     C.eq('print: no script error', p.errs, []);
     await p.context().close();
   }
+  // ------------------------------------------------------------ the Award calendar's month headings stay in view (Brad, 13 Nov 2026)
+  // "Also need the header to stay static as we scroll." Wide, the page scrolls and the headings stay under the top bar;
+  // narrow, the table scrolls in its card and they stay at the card's top. Read after scrolling far into the list.
+  for (const [w, h] of [[1920, 900], [1366, 768], [1000, 800]]) {
+    const p = await open(w, h);
+    await p.click('[data-act=view][data-v=cal]'); await p.waitForSelector('.calt');
+    const m = await p.evaluate(async () => {
+      const tw = document.querySelector('.calcard .tw'), wide = innerWidth > 1100;
+      if (wide) window.scrollTo(0, 1500); else { tw.scrollIntoView(); tw.scrollTop = 1500; }
+      await new Promise(r => setTimeout(r, 200));
+      const hd = document.querySelector('.calt thead th:nth-child(3)').getBoundingClientRect(), bar = document.querySelector('header.top').getBoundingClientRect().bottom;
+      const below = [...document.querySelectorAll('.calt tbody tr')].find(r => r.getBoundingClientRect().top >= hd.bottom - 1);
+      return { wide, scrolled: wide ? scrollY : tw.scrollTop, top: Math.round(hd.top), want: Math.round(wide ? bar : tw.getBoundingClientRect().top), shown: hd.bottom < innerHeight, rowBelow: !!below,
+        firstRowGone: document.querySelector('.calt tbody tr').getBoundingClientRect().bottom < hd.top };
+    });
+    C.chk('at ' + w + ' px, scrolled far into the calendar, the month headings are still in view, ' + (m.wide ? 'under the top bar' : 'at the top of the card'),
+      m.scrolled >= 1000 && m.firstRowGone && m.shown && m.rowBelow && Math.abs(m.top - m.want) <= 2, J(m));
+    C.eq('calendar at ' + w + ' px: no script error', p.errs, []);
+    await p.context().close();
+  }
 } catch (e) {
   C.chk('the run stopped before the end: ' + String((e && e.stack) || e).split('\n').slice(0, 3).join(' | '), false);
 } finally {

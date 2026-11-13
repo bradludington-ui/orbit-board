@@ -414,6 +414,10 @@ main.ov .calt .tg:hover,main.ov .calt .tg:focus-visible{color:var(--slink);text-
   .calcard .tw{overflow:visible}
   .calt thead th{top:var(--topH, 96px)}
 }
+/* narrower, the table scrolls sideways in its card, so the card scrolls up and down too and the headings stay at its top */
+@media (max-width:1100px){
+  .calcard .tw{max-height:calc(100vh - var(--topH, 96px) - var(--cuiH) - 24px);overflow:auto}
+}
 
 /* PRINTED, every page carries the CUI marking at its top and its bottom (§6 item 14). The two lines in the page are
    printed once each, at the start and the end of the document, so a view printed with Ctrl+P had pages of CUI figures
