@@ -183,6 +183,11 @@ main .tg:hover{background:none;text-decoration:underline;color:inherit}
 .blk tr.band td{font-weight:600}
 .blk tr.band:first-of-type th,.blk tr.band:first-of-type td{border-top:2px solid var(--box)}
 .blk tr.spacer td{border:0;height:8px;padding:0}
+/* A BREAK ABOVE MONTHLY TOTALS (Brad, 16 Nov 2026: "between the last requirement listed and the first row titled Monthly
+   Totals, I need a break … not large"). The first row of the totals band, wherever a requirement row is right above it
+   (the slide blocks already have a spacer row there), gets a gap the colour of the page and a rule under the gap. It is
+   styling alone: the table's rows are as they were. */
+.blk tr:not(.band):not(.spacer) + tr.band th,.blk tr:not(.band):not(.spacer) + tr.band td{border-top:10px solid var(--spanel);box-shadow:inset 0 2px 0 var(--box)}
 .blk tr.strip td{background:var(--strip);font-weight:700;color:#000}
 /* a mark in a PMO block's strip (§14.5, review M4-5) takes the strip's black: the dark gold read about 4.3:1 on its blue */
 .blk tr.strip td .dag,.blk tr.strip td .ddag,.blk tr.strip td .sect{color:inherit}

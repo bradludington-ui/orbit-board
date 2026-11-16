@@ -1906,3 +1906,10 @@ one-line-per-month list under each block is a full-width table of two columns, a
 own, so it took a share of whatever a short line left over: its text began anywhere from 59 to 322 px in. The month is now
 one fixed column (6.5em) in every list, and the text starts at the same place in all of them.
 `test/scope-review.test.mjs` reads every list in Chromium on the views that draw them.
+
+## 32. A break above Monthly Totals (Brad, 16 Nov 2026)
+
+Brad: *"Between the last requirement listed and the first row titled Monthly Totals, I need a break or space input there.
+Not large but something that shows a break between the table."* On the appropriation views and the PMO tabs the first row
+of the totals band has a 10 px gap the colour of the page above it and a rule under the gap. It is styling alone (the
+slide blocks already had a spacer row there, and the table's rows are as they were).

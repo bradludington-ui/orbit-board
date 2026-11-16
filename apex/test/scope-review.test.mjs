@@ -176,6 +176,15 @@ try {
     const widths = [...new Set(seen.map(s => s[0]))], lefts = [...new Set(seen.map(s => s[1]))];
     C.chk('the fixture has Not Allocated lists with short lines and long ones', seen.length >= 6 && seen.some(s => s[2] < 60) && seen.some(s => s[2] > 200), J([seen.length, seen.map(s => s[2]).slice(0, 12)]));
     C.chk('every Not Allocated list has the same month column, so its text starts at the same place', widths.length === 1 && lefts.length === 1 && widths[0] < 120, J({ widths, lefts }));
+    // a break above Monthly Totals (Brad, 16 Nov 2026), on every block of an appropriation view and of a PMO's tab
+    const gaps = [];
+    for (const v of ['om', 'sp', 'pmos']) {
+      await p.click('#uiNav [data-act=view][data-v=' + v + ']'); await p.waitForTimeout(200);
+      gaps.push(...await p.evaluate(() => [...document.querySelectorAll('#uiMain table.blk')].map(t => { const first = t.querySelector('tr.band'), prev = first && first.previousElementSibling;
+        return first ? [first.querySelector('th').textContent, parseFloat(getComputedStyle(first.querySelector('th')).borderTopWidth), Math.round(first.getBoundingClientRect().top - (prev ? prev.getBoundingClientRect().bottom : 0)) >= 0,
+          parseFloat(getComputedStyle(first.nextElementSibling.querySelector('th')).borderTopWidth)] : null; }).filter(Boolean)));
+    }
+    C.chk('every block has a break of about 10 px above Monthly Totals, and none between the rows of the totals', gaps.length >= 6 && gaps.every(g => g[0] === 'Monthly Totals' && g[1] >= 8 && g[1] <= 14 && g[3] <= 2), J(gaps.slice(0, 4)));
     C.eq('Not Allocated lists: no script error', p.errs, []);
     await p.context().close();
   }
