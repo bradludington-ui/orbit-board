@@ -1873,3 +1873,9 @@ contracts into one line item … It should be based on the Special CCaR inputs i
   lines are grouped.
 - The same list drives the Award calendar's one line each (§22) and the Not Allocated lists' one item each; a number is
   added in Settings, never in the program.
+
+## 29. The page opens on the Summary (Brad, 16 Nov 2026)
+
+Brad: *"Let's default to the Summary section under Briefing when opened."* The page, a saved plan, and the page after a
+first import all open on the Summary (`UI_HOME`), in place of Find a requirement (§20). The menu's order is unchanged:
+Requirements is still first.

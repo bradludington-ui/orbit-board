@@ -16,7 +16,7 @@ const UI_SVC = SP.SERVICES.concat([SP.SVC_UNKNOWN]);
 const UI_LANES = [['disc', 'Discretionary'], ['mand', 'Mandatory']];
 const UI_LEVELS = ['PMO', 'Title', 'Plan Event', 'CCaR'];
 const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
-// THE MENU (CONTRACT §20), grouped by what a reader is looking for. Find a requirement is first and is where the page opens.
+// THE MENU (CONTRACT §20), grouped by what a reader is looking for. Find a requirement is first; the page opens on the Summary (UI_HOME, §29).
 const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
   { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])) },
@@ -34,8 +34,11 @@ const UI_NODATA = 'Each file is a CCaR export laid out like v12’s Raw Data tab
 
 // what the page remembers between draws. None of it is saved in the file or in browser storage: only the switches are
 // this browser's to keep (§11), and they belong to the store.
+// THE PAGE OPENS ON THE SUMMARY (Brad, 16 Nov 2026: "default to the Summary section under Briefing when opened"); until then it
+// opened on Find a requirement (§20), which is still first in the menu.
+const UI_HOME = 'summary';
 const ui = {
-  view: 'find', back: 'find',
+  view: UI_HOME, back: UI_HOME,
   manage: false,            // the Manage data bar is open: by itself when the file holds no data, then as the person leaves it
   filtOpen: null,           // the switches are open: null follows the Manage bar and whether a switch is off
   find: { q: '', pmo: null, ap: null, fy: null, sel: '' },   // Find a requirement: the words typed, the three pickers, the one opened
@@ -455,7 +458,7 @@ function ui_ovDonut(byAp) {
   return '<svg class="donut" viewBox="0 0 120 120" aria-hidden="true" focusable="false">' + arcs + '</svg>';
 }
 // ---------------------------------------------------------------------------------------------------------------
-// FIND A REQUIREMENT (CONTRACT §20): where the page opens. A box to type part of a title, a CCaR number or a plan event
+// FIND A REQUIREMENT (CONTRACT §20), first in the menu (the page opens on the Summary, §29). A box to type part of a title, a CCaR number or a plan event
 // in, three pickers, and each requirement's money and the month it is projected to award. SP.requirementsOf reads the
 // blocks' own counted rows: nothing here is worked out a second way.
 // ---------------------------------------------------------------------------------------------------------------
@@ -1680,7 +1683,7 @@ function ui_vHelp() {
       + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, ' + (ui_lo25() ? '' : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, ') + 'rows whose appropriation is not identified, '
       + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
     + '<h3 class="sub">Finding a requirement</h3>' + li([
-      'The page opens on <strong>Find a requirement</strong> (Requirements in the menu). Type part of a title, a CCaR number or a plan event; every word typed must be '
+      'The page opens on the <strong>Summary</strong>. <strong>Find a requirement</strong> is Requirements, first in the menu. Type part of a title, a CCaR number or a plan event; every word typed must be '
       + 'there. The three pickers narrow the list to one PMO, appropriation or fiscal year.',
       'A requirement is a CCaR record (its title and CCaR number) in one appropriation and FY. <strong>Planned</strong> is its CCaR plan; <strong>Awarded</strong> is '
       + 'what CCaR marks “Actual Execution”; <strong>Still to award</strong> is the difference.',
@@ -2077,7 +2080,7 @@ async function ui_import(fileList) {
       if (r && r.ok) {
         ui.refused = null;
         ui_invalidate();
-        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'find';
+        if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = UI_HOME;
       }
       ui_say((r && r.message) || 'The plan was not taken.', r && r.ok ? 'ok' : 'err');
       ui_render();
@@ -2106,7 +2109,7 @@ async function ui_import(fileList) {
     }
     ui.refused = null;
     ui_invalidate();
-    if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = 'find';
+    if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = UI_HOME;
     // an import that refused a file or placed rows that look misfiled is not a plain success, and does not look like one
     ui_say((r && r.message) || 'Imported.', r && r.warn ? 'warn' : 'ok');
     ui_render();

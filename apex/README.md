@@ -21,7 +21,7 @@ is also its own database: **Save** writes your data and settings into the file i
 1. Put `apex.html` on the shared drive.
 2. Open it in Edge or Chrome (double-click, or drag it onto the browser).
 3. The first time, it says *No data yet*, and the **Manage data** bar is open. Import a pull.
-4. A file that already holds a plan opens on **Find a requirement**, with Manage data closed. Click **Manage data**, top
+4. A file that already holds a plan opens on the **Summary**, with Manage data closed. Click **Manage data**, top
    right, for Data through, First FY, Import and Save.
 
 Save it under any name you like. Keep one copy per team or per purpose. Each copy holds its own data.
@@ -190,7 +190,7 @@ The views are in the menu down the left side (a row across the top in a narrow w
 What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
 for the switches.
 
-- **Find a requirement** (Requirements) is where the page opens. Type part of a title, a CCaR number or a plan event, or
+- **Find a requirement** (Requirements) is first in the menu; the page opens on the Summary. Type part of a title, a CCaR number or a plan event, or
   pick a PMO, an appropriation or an FY. Each requirement shows Planned (its CCaR plan), Awarded (what CCaR marks Actual
   Execution), Still to award, and its **Projected award**: the earliest plan event date not yet awarded. *Was Aug 2026*
   means that month has closed and it is not awarded. Click a name to list its plan events by month.
