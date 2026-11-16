@@ -1859,3 +1859,17 @@ Overview already say; nothing in it is worked out a second way.
 - *"The PMO selection is way off to the right. Let's bring that to the left or somewhere more quickly visible."* On My PMO
   the pickers are the first thing on the page, at the left, above the office's name, in a bar of their own; the PMO
   picker is labelled *Choose your PMO* and is larger than the other pickers.
+
+## 28. My PMO's two lists: a Special CCaR is one line a month (Brad, 16 Nov 2026)
+
+Brad, of a prime contract's plan events filling *Projected to award in the next three months*: *"group my large Prime
+contracts into one line item … It should be based on the Special CCaR inputs in the setup settings area."*
+
+- On both of My PMO's lists (the next three months, and past its projected date) the plan events of a CCaR number on
+  Settings' **Special CCaRs** list that fall in one month are one line: their money added together, the number of plan
+  events said, the appropriations and years they are of, and named by the title that carries the most of the line's money
+  (with how many more titles). Its name opens Find a requirement searched for the number, which lists every one.
+- Every other plan event keeps its own line. The tiles above, and every figure elsewhere, are unchanged: only the lists'
+  lines are grouped.
+- The same list drives the Award calendar's one line each (§22) and the Not Allocated lists' one item each; a number is
+  added in Settings, never in the program.
