@@ -579,8 +579,9 @@ function ui_vMyPmo(M) {
     + '<span class="fa" data-c="' + x.e.cents + '">' + ui_e(SP.fmtMText(x.e.cents)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">' + none + '</p>') + '</section>';
   const rows = mine.map(r => '<tr><th scope="row" class="lab">' + ui_reqBtn(r, all, 'pmoall') + '<span class="fsub">' + ui_e(r.ccar) + '</span></th><td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>'
     + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
-  return '<div class="ovhead"><h2 class="ovtitle">' + ui_e(P.pmos.find(p => p[0] === S.key)[1]) + '</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel) + '</span><span class="grow"></span>'
-    + '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys) + '</div></div>'
+  // the pickers come first, at the left, above the office's name (Brad, 16 Nov 2026)
+  return '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'Choose your PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys) + '</div>'
+    + '<div class="ovhead"><h2 class="ovtitle">' + ui_e(P.pmos.find(p => p[0] === S.key)[1]) + '</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel) + '</span></div>'
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
     + '<div class="tiles">'
     + tile('planned', 'Planned ($M)', ui_e(SP.fmtMText(planned)), SP.fmtInt(mine.length) + (mine.length === 1 ? ' requirement' : ' requirements'), planned)
