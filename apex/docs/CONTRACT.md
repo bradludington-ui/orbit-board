@@ -1850,3 +1850,12 @@ Overview already say; nothing in it is worked out a second way.
 
 - `test/charts.test.mjs`: the small plan of `pmo-calendar.test.mjs`, every figure of `SP.chartsOf` worked by hand, the page
   held to it and to the Award calendar's Total row, the pickers, the ways on, the switches.
+
+## 27. The menu's headings, and My PMO's pickers (Brad, 16 Nov 2026)
+
+- *"Make the headers in the left blue screen a little more bold so it's easy to quickly see how everything is grouped."* A
+  group's heading (Browse, Briefing, Data checks, Set up) is white, heavier and larger than before, over a rule that
+  parts it from the group above.
+- *"The PMO selection is way off to the right. Let's bring that to the left or somewhere more quickly visible."* On My PMO
+  the pickers are the first thing on the page, at the left, above the office's name, in a bar of their own; the PMO
+  picker is labelled *Choose your PMO* and is larger than the other pickers.

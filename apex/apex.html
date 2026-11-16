@@ -324,8 +324,10 @@ main.ov .ovopen:hover{background:none;color:var(--sink)}
 .bar1m{background:var(--sdeep);border-top:1px solid var(--sline)}
 #uiManageBtn[aria-expanded=true]{background:var(--acc);border-color:var(--acc);color:var(--onAcc)}
 .navg{display:flex;flex-direction:column;gap:2px}
-.navh{margin:10px 10px 2px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#b9c8d9;font-weight:700}
-@media (max-width:900px){.navg{flex-direction:row;flex-wrap:wrap;align-items:center}.navh{margin:0 4px 0 8px}}
+/* a group's heading stands out from its items (Brad, 16 Nov 2026: "a little more bold so it's easy to quickly see how
+   everything is grouped"): white, heavier and larger, over a rule that parts it from the group above */
+.navh{margin:12px 4px 3px;padding:9px 6px 0;border-top:1px solid #4d6781;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#fff;font-weight:800}
+@media (max-width:900px){.navg{flex-direction:row;flex-wrap:wrap;align-items:center}.navh{margin:0 4px 0 8px;padding:0;border-top:0}}
 .filtbtn{margin:8px 8px 0 0;font:inherit;font-size:12px;padding:3px 10px;min-height:24px;border:1px solid var(--sedge);border-radius:6px;background:var(--sbtn);color:var(--smut);cursor:pointer;text-align:left}
 .filtbtn:hover{background:var(--gold);color:#000}
 .filtbtn.filtered{color:var(--ochre);font-weight:700}
@@ -369,7 +371,11 @@ main.ov .findt .tg:hover{background:none;color:var(--navy);text-decoration:under
 @media (max-width:1100px){.findtwo{grid-template-columns:minmax(0,1fr)}}
 
 /* MY PMO and THE AWARD CALENDAR (§21) */
-.pmobar{margin:0}
+/* My PMO's pickers are the first thing on the page, at the left, where someone who opens the file now and then looks
+   first (Brad, 16 Nov 2026: "the PMO selection is way off to the right") */
+.pmobar{margin:2px 0 8px;padding:8px 12px;background:var(--spanel);border:1px solid var(--sline);border-left:4px solid var(--steal);border-radius:8px;gap:8px 18px}
+main.ov .pmobar label{color:var(--sink);font-weight:700;font-size:14px}
+main.ov .pmobar select{font-size:15px;font-weight:600;min-height:34px;padding:5px 8px;max-width:26em}
 .pmotwo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
 .plist{list-style:none;margin:0;padding:0}
 .plist li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--sline);font-size:13px}
@@ -8652,8 +8658,9 @@ function ui_vMyPmo(M) {
     + '<span class="fa" data-c="' + x.e.cents + '">' + ui_e(SP.fmtMText(x.e.cents)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">' + none + '</p>') + '</section>';
   const rows = mine.map(r => '<tr><th scope="row" class="lab">' + ui_reqBtn(r, all, 'pmoall') + '<span class="fsub">' + ui_e(r.ccar) + '</span></th><td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>'
     + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
-  return '<div class="ovhead"><h2 class="ovtitle">' + ui_e(P.pmos.find(p => p[0] === S.key)[1]) + '</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel) + '</span><span class="grow"></span>'
-    + '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys) + '</div></div>'
+  // the pickers come first, at the left, above the office's name (Brad, 16 Nov 2026)
+  return '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'Choose your PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys) + '</div>'
+    + '<div class="ovhead"><h2 class="ovtitle">' + ui_e(P.pmos.find(p => p[0] === S.key)[1]) + '</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel) + '</span></div>'
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
     + '<div class="tiles">'
     + tile('planned', 'Planned ($M)', ui_e(SP.fmtMText(planned)), SP.fmtInt(mine.length) + (mine.length === 1 ? ' requirement' : ' requirements'), planned)
