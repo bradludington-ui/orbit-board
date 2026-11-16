@@ -263,11 +263,11 @@ try {
     C.eq('defaultSettings: imported 31 Oct 2026, data through 2026-09', SP.defaultSettings('2026-10-31').asOf, '2026-09');
     C.eq('defaultSettings: firstFY 2025', s.firstFY, 2025);
     same('defaultSettings: the goal curves are v12’s', s.goals, GOALS);
-    same('defaultSettings: special CCaRs PP 2000 and JSF6654', s.special, ['PP 2000', 'JSF6654']);
+    same('defaultSettings: the special CCaRs, the third added by Brad on 16 Nov 2026', s.special, ['PP 2000', 'JSF6654', 'JSF6673']);
     same('defaultSettings: no Authorized, no overrides', [s.authorized, s.budgets], [{}, {}]);
     s.goals.om1[3] = 9; s.special.push('X');
     C.chk('defaultSettings: a copy, so editing it leaves the defaults alone',
-      SP.defaultSettings('2026-11-09').goals.om1[3] === 0.25 && SP.SPECIAL_CCARS_DEFAULT.length === 2);
+      SP.defaultSettings('2026-11-09').goals.om1[3] === 0.25 && SP.SPECIAL_CCARS_DEFAULT.length === 3);
     const v = SP.defaultView();
     same('defaultView: every service, the unknown one too, and both lanes', v, { svc: Object.fromEntries(SERVICES.map(x => [x, true])), lane: { disc: true, mand: true } });
   }

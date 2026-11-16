@@ -30,7 +30,7 @@ silent, ask the lead; do not invent a rule.
 - **Never copy a real name, figure, CCaR number or plan event into a committed file.**
 - Fixtures are synthetic and generated at test time into a temporary directory.
 
-There are two exceptions. The default special-CCaR list (`PP 2000`, `JSF6654`) is configuration Brad kept on purpose. The seven
+There are two exceptions. The default special-CCaR list (`PP 2000`, `JSF6654`, and `JSF6673` added at Brad's word on 16 Nov 2026) is configuration Brad kept on purpose. The seven
 PMO names are the office names.
 
 ## 1. Where it lives and how it is built
@@ -89,7 +89,7 @@ SP.RAW_HEADERS = ['FY','Month','CCaR No','Title','Budget','C/L','SB','Plan Event
   'OPR','PMT PID#','Contracting POC','Material Lead','PM/TPOC','Obligation Category','PMO','Sub-PMO','Category','Navy SI Code',
   'IPT','Spares WBS','Quantity','CLINs','AF EEIC','RCN','PSR','CSR','Contract Mod','Cost Element'];   // the 32, in this order
 SP.REQUIRED = ['FY','CCaR No','Title','Budget','Plan Event','Date','Amount','Alloc','PMO'];
-SP.SPECIAL_CCARS_DEFAULT = ['PP 2000','JSF6654'];
+SP.SPECIAL_CCARS_DEFAULT = ['PP 2000','JSF6654','JSF6673'];
 SP.MONTHS = ['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];
 SP.CUI = 'CUI//REL TO US DoW';
 SP.GOALS_DEFAULT = {   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them

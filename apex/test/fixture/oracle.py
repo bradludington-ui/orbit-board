@@ -112,7 +112,7 @@ RAW_HEADERS = ['FY', 'Month', 'CCaR No', 'Title', 'Budget', 'C/L', 'SB', 'Plan E
                'CLINs', 'AF EEIC', 'RCN', 'PSR', 'CSR', 'Contract Mod', 'Cost Element']
 REQUIRED = ['FY', 'CCaR No', 'Title', 'Budget', 'Plan Event', 'Date', 'Amount', 'Alloc', 'PMO']
 FORMULA_COLS = ['Svc (auto)', 'Inc (auto)']        # v12's own formula columns: ignored, never kept as extras
-SPECIAL_CCARS_DEFAULT = ['PP 2000', 'JSF6654']
+SPECIAL_CCARS_DEFAULT = ['PP 2000', 'JSF6654', 'JSF6673']
 GOALS_DEFAULT = {
     'om1': [0, .0833, .1667, .25, .3333, .4167, .5, .5833, .6667, .75, .8333, .9167, 1],
     'om2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

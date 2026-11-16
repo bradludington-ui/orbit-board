@@ -54,7 +54,9 @@ export function loadTool({ modules = null, state = null, html = null, url = 'fil
     },
   });
   const w = dom.window;
-  if (leftOutDefault !== undefined && w.SP) { w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice(); w.SP.KEEP_ZERO_DEFAULT = true; }   // §24: and keeps the $0.00 plan events
+  // §24: and keeps the $0.00 plan events; and the default Special CCaRs are the two the earlier builds had (a third was added
+  // on 16 Nov 2026), since these files compare the page with those builds
+  if (leftOutDefault !== undefined && w.SP) { w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice(); w.SP.KEEP_ZERO_DEFAULT = true; w.SP.SPECIAL_CCARS_DEFAULT = Object.freeze(['PP 2000', 'JSF6654']); }
   return {
     window: w,
     SP: w.SP,

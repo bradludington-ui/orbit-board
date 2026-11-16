@@ -339,7 +339,7 @@ the message line says nothing is unsaved.
   figure instead, where it has one (see *The BAE report of budgets*).
 - **The BAE report.** With one loaded, Settings names its file, its date and when it was imported.
 - **Special CCaRs.** In the Not Allocated lists, a special CCaR is one item, named by its title. The defaults are
-  `PP 2000` and `JSF6654`.
+  `PP 2000`, `JSF6654` and `JSF6673`.
 - **Budgets.** Every budget name, with its rows, dollars, service and lane. You can override the service or the lane of
   any budget.
 

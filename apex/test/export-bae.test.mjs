@@ -829,7 +829,7 @@ try {
     for (const cs of CASES) {
       const mkS = (S) => {
         const s = S.defaultSettings(TODAY);
-        s.leftOut = []; s.keepZero = true;     // §23, §24: the code before left no year and no $0.00 plan event out, so the two are compared with nothing left out
+        s.leftOut = []; s.keepZero = true; s.special = ['PP 2000', 'JSF6654'];     // and the two Special CCaRs the code before had by default     // §23, §24: the code before left no year and no $0.00 plan event out, so the two are compared with nothing left out
         if (cs.asOf) s.asOf = cs.asOf;
         if (cs.first) s.firstFY = cs.first;
         if (cs.auth) s.authorized = JSON.parse(JSON.stringify(cs.auth));

@@ -25,7 +25,7 @@ SP.RAW_HEADERS = ut_freeze(['FY','Month','CCaR No','Title','Budget','C/L','SB','
   'OPR','PMT PID#','Contracting POC','Material Lead','PM/TPOC','Obligation Category','PMO','Sub-PMO','Category','Navy SI Code',
   'IPT','Spares WBS','Quantity','CLINs','AF EEIC','RCN','PSR','CSR','Contract Mod','Cost Element']);   // the 32, in this order
 SP.REQUIRED = ut_freeze(['FY','CCaR No','Title','Budget','Plan Event','Date','Amount','Alloc','PMO']);
-SP.SPECIAL_CCARS_DEFAULT = ut_freeze(['PP 2000','JSF6654']);
+SP.SPECIAL_CCARS_DEFAULT = ut_freeze(['PP 2000','JSF6654','JSF6673']);     // the third added by Brad, 16 Nov 2026
 SP.MONTHS = ut_freeze(['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep']);
 SP.CUI = 'CUI//REL TO US DoW';
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
