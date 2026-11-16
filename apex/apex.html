@@ -193,8 +193,11 @@ h3.bar{margin-top:16px}
 .nabar{margin:6px 0 2px;padding:3px 8px;background:var(--navy);color:#fff;font-weight:700;font-size:13px}
 h3.nabar{font-size:13px}
 table.nalines{border-collapse:collapse;font-size:12px;width:100%}
-.nalines th{vertical-align:top;text-align:left;white-space:nowrap;padding:2px 8px;color:var(--navy);border-bottom:1px solid #ddd}
-.nalines td{padding:2px 8px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
+/* the month is one fixed column in every block's list (Brad, 16 Nov 2026: "after the month, it's hit or miss on how far out
+   it will be spaced"): the table is the full width, and with no width of its own the month's column took a share of what
+   a short line left over, so a block with one short line had its text far to the right */
+.nalines th{width:6.5em;vertical-align:top;text-align:left;white-space:nowrap;padding:2px 8px;color:var(--navy);border-bottom:1px solid #ddd}
+.nalines td{width:auto;padding:2px 8px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
 
 /* status: the word on its colour. Black on green and yellow, white on red: each clears 4.5:1 on screen. */
 .st{text-align:center;font-weight:700;white-space:nowrap}

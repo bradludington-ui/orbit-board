@@ -161,6 +161,24 @@ try {
     C.eq('calendar at ' + w + ' px: no script error', p.errs, []);
     await p.context().close();
   }
+  // ------------------------------------------------------------ the Not Allocated lists line up (Brad, 16 Nov 2026)
+  // "After the month, it's hit or miss on how far out it will be spaced." The month is one fixed column in every block's
+  // list, whatever the length of its lines: read on every view that draws the lists, where a block with one short line
+  // sits under blocks with long ones.
+  {
+    const p = await open(1600, 900), seen = [];
+    await p.fill('#uiAsOf', '2026-10'); await p.dispatchEvent('#uiAsOf', 'change'); await p.waitForTimeout(300);     // a month the fixture has Not Allocated money after
+    for (const v of ['slides', 'pmos', 'om', 'ff', 'sp', 'opn']) {
+      await p.click('#uiNav [data-act=view][data-v=' + v + ']'); await p.waitForTimeout(200);
+      seen.push(...await p.evaluate(() => [...document.querySelectorAll('#uiMain table.nalines')].map(t => { const th = t.querySelector('th'), td = t.querySelector('td');
+        return th && td ? [Math.round(th.getBoundingClientRect().width), Math.round(td.getBoundingClientRect().left - t.getBoundingClientRect().left), td.textContent.length] : null; }).filter(Boolean)));
+    }
+    const widths = [...new Set(seen.map(s => s[0]))], lefts = [...new Set(seen.map(s => s[1]))];
+    C.chk('the fixture has Not Allocated lists with short lines and long ones', seen.length >= 6 && seen.some(s => s[2] < 60) && seen.some(s => s[2] > 200), J([seen.length, seen.map(s => s[2]).slice(0, 12)]));
+    C.chk('every Not Allocated list has the same month column, so its text starts at the same place', widths.length === 1 && lefts.length === 1 && widths[0] < 120, J({ widths, lefts }));
+    C.eq('Not Allocated lists: no script error', p.errs, []);
+    await p.context().close();
+  }
 } catch (e) {
   C.chk('the run stopped before the end: ' + String((e && e.stack) || e).split('\n').slice(0, 3).join(' | '), false);
 } finally {

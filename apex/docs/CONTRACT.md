@@ -1898,3 +1898,11 @@ how useful that data is."*
 
 - `test/find.test.mjs`: `SP.uploadAge` by hand (today, yesterday, the 7/8 and 30/31 day edges across a month end, pulls of
   different days, a clock behind the import, nothing readable), and the pill on the page.
+
+## 31. The Not Allocated lists line up (Brad, 16 Nov 2026)
+
+Brad: *"The not allocated section spacing is off. After the month, it's hit or miss on how far out it will be spaced."* The
+one-line-per-month list under each block is a full-width table of two columns, and the month's column had no width of its
+own, so it took a share of whatever a short line left over: its text began anywhere from 59 to 322 px in. The month is now
+one fixed column (6.5em) in every list, and the text starts at the same place in all of them.
+`test/scope-review.test.mjs` reads every list in Chromium on the views that draw them.
