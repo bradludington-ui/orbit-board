@@ -2051,3 +2051,24 @@ SP.chartsOf = function chartsOf(M, reqs) {
     heat: { rows: pmos.map(p => ({ key: p.key, label: p.label, cells: p.cells, total: p.total })), max: Math.max(0, ...pmos.flatMap(p => p.cells)) },
   };
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// §30 HOW OLD THE DATA IS (Brad, 16 Nov 2026: "Include a data upload date that is visible at the top so we know when it
+// was last updated and the individual knows how useful that data is"). From the calendar days the CCaR pulls on screen
+// were imported (this computer's days, 'YYYY-MM-DD'), and today's.
+//   -> null with no day that reads, else {newest, oldest, age, ageOldest, level, text, more}
+// age: whole days from the newest import to today (never below 0); ageOldest: from the oldest. level, by the OLDEST pull,
+// since a figure is only as fresh as the oldest pull behind it: 'fresh' up to 7 days, 'aging' up to 30, 'old' past that.
+// text: "Data uploaded 16 Nov 2026 · today"; more: said only where the pulls came in on different days.
+// ---------------------------------------------------------------------------------------------------------------
+SP.uploadAge = function uploadAge(days, today) {
+  const dn = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || '')); return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) / 86400000 : null; };
+  const ok = (Array.isArray(days) ? days : []).filter(d => dn(d) !== null).sort(), t = dn(today);
+  if (!ok.length || t === null) return null;
+  const newest = ok[ok.length - 1], oldest = ok[0], age = Math.max(0, t - dn(newest)), ageOldest = Math.max(0, t - dn(oldest));
+  const words = d => Number(d.slice(8, 10)) + ' ' + SP.CAL_MONTHS[Number(d.slice(5, 7)) - 1] + ' ' + d.slice(0, 4);
+  const ago = n => (n === 0 ? 'today' : n === 1 ? 'yesterday' : SP.fmtInt(n) + ' days ago');
+  return { newest, oldest, age, ageOldest, level: ageOldest <= 7 ? 'fresh' : ageOldest <= 30 ? 'aging' : 'old',
+    text: 'Data uploaded ' + words(newest) + ' · ' + ago(age), more: oldest === newest ? '' : 'oldest pull ' + words(oldest) + ', ' + ago(ageOldest) };
+};
+

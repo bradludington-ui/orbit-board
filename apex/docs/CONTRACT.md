@@ -30,7 +30,7 @@ silent, ask the lead; do not invent a rule.
 - **Never copy a real name, figure, CCaR number or plan event into a committed file.**
 - Fixtures are synthetic and generated at test time into a temporary directory.
 
-There are two exceptions. The default special-CCaR list (`PP 2000`, `JSF6654`) is configuration Brad kept on purpose. The seven
+There are two exceptions. The default special-CCaR list (`PP 2000`, `JSF6654`, and `JSF6673` added at Brad's word on 16 Nov 2026) is configuration Brad kept on purpose. The seven
 PMO names are the office names.
 
 ## 1. Where it lives and how it is built
@@ -89,7 +89,7 @@ SP.RAW_HEADERS = ['FY','Month','CCaR No','Title','Budget','C/L','SB','Plan Event
   'OPR','PMT PID#','Contracting POC','Material Lead','PM/TPOC','Obligation Category','PMO','Sub-PMO','Category','Navy SI Code',
   'IPT','Spares WBS','Quantity','CLINs','AF EEIC','RCN','PSR','CSR','Contract Mod','Cost Element'];   // the 32, in this order
 SP.REQUIRED = ['FY','CCaR No','Title','Budget','Plan Event','Date','Amount','Alloc','PMO'];
-SP.SPECIAL_CCARS_DEFAULT = ['PP 2000','JSF6654'];
+SP.SPECIAL_CCARS_DEFAULT = ['PP 2000','JSF6654','JSF6673'];
 SP.MONTHS = ['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];
 SP.CUI = 'CUI//REL TO US DoW';
 SP.GOALS_DEFAULT = {   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
@@ -1879,3 +1879,37 @@ contracts into one line item … It should be based on the Special CCaR inputs i
 Brad: *"Let's default to the Summary section under Briefing when opened."* The page, a saved plan, and the page after a
 first import all open on the Summary (`UI_HOME`), in place of Find a requirement (§20). The menu's order is unchanged:
 Requirements is still first.
+
+## 30. When the data was uploaded, at the top (Brad, 16 Nov 2026)
+
+Brad: *"Include a data upload date that is visible at the top so we know when it was last updated and the individual knows
+how useful that data is."*
+
+- The top bar carries a pill beside the Data through month: **Data uploaded 16 Nov 2026 · today** (then *yesterday*, then
+  *N days ago*). The day is this computer's calendar day of the newest CCaR pull's import; where the pulls on screen came
+  in on different days it adds *(oldest pull 1 Oct 2026, 46 days ago)*.
+- Its colour is its age, **by the oldest pull**, since a figure is only as fresh as the oldest pull behind it: plain up to 7
+  days, ochre up to 30, wine past that. The words carry the same thing; the tooltip names each appropriation's import and,
+  past a week, says to import a newer pull.
+- `SP.uploadAge(days, today)` is the one working-out. The BAE report's import is not part of it (the line under the bar
+  still names it). With no pull there is no pill.
+
+### 30.1 Tests
+
+- `test/find.test.mjs`: `SP.uploadAge` by hand (today, yesterday, the 7/8 and 30/31 day edges across a month end, pulls of
+  different days, a clock behind the import, nothing readable), and the pill on the page.
+
+## 31. The Not Allocated lists line up (Brad, 16 Nov 2026)
+
+Brad: *"The not allocated section spacing is off. After the month, it's hit or miss on how far out it will be spaced."* The
+one-line-per-month list under each block is a full-width table of two columns, and the month's column had no width of its
+own, so it took a share of whatever a short line left over: its text began anywhere from 59 to 322 px in. The month is now
+one fixed column (6.5em) in every list, and the text starts at the same place in all of them.
+`test/scope-review.test.mjs` reads every list in Chromium on the views that draw them.
+
+## 32. A break above Monthly Totals (Brad, 16 Nov 2026)
+
+Brad: *"Between the last requirement listed and the first row titled Monthly Totals, I need a break or space input there.
+Not large but something that shows a break between the table."* On the appropriation views and the PMO tabs the first row
+of the totals band has a 10 px gap the colour of the page above it and a rule under the gap. It is styling alone (the
+slide blocks already had a spacer row there, and the table's rows are as they were).

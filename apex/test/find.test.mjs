@@ -89,6 +89,20 @@ try {
     C.eq('the page opens on the Summary', [T.pressed(), T.main().className, !!T.main().querySelector('table.top')], ['summary', 'sheet', true]);
     await T.view('find');
     C.eq('Find a requirement is one click away, first in the menu', [T.pressed(), T.main().className, !!T.doc.getElementById('uiFindQ'), T.doc.querySelector('#uiNav button').getAttribute('data-v')], ['find', 'ov', true, 'find']);
+    // ---------------------------------------------------------------- §30 when the data was uploaded, at the top
+    { const U = T.SP.uploadAge, pick = x => x && [x.newest, x.oldest, x.age, x.ageOldest, x.level, x.text, x.more];
+      C.eq('uploaded today', pick(U(['2026-11-16'], '2026-11-16')), ['2026-11-16', '2026-11-16', 0, 0, 'fresh', 'Data uploaded 16 Nov 2026 · today', '']);
+      C.eq('uploaded yesterday', pick(U(['2026-11-15', '2026-11-15'], '2026-11-16')).slice(2), [1, 1, 'fresh', 'Data uploaded 15 Nov 2026 · yesterday', '']);
+      C.eq('seven days is still fresh; eight is past a week', [U(['2026-11-09'], '2026-11-16').level, pick(U(['2026-11-08'], '2026-11-16')).slice(2, 6)], ['fresh', [8, 8, 'aging', 'Data uploaded 8 Nov 2026 · 8 days ago']]);
+      C.eq('thirty days is past a week; thirty-one is old, across a month end', [U(['2026-10-17'], '2026-11-16').level, pick(U(['2026-10-16'], '2026-11-16')).slice(2, 6)], ['aging', [31, 31, 'old', 'Data uploaded 16 Oct 2026 · 31 days ago']]);
+      C.eq('pulls of different days: the newest is named, the oldest said beside it, and the oldest decides the colour',
+        pick(U(['2026-11-14', '2026-10-01', '2026-11-16'], '2026-11-16')), ['2026-11-16', '2026-10-01', 0, 46, 'old', 'Data uploaded 16 Nov 2026 · today', 'oldest pull 1 Oct 2026, 46 days ago']);
+      C.eq('a clock behind the import never reads as a day in the future', pick(U(['2026-11-16'], '2026-11-15')).slice(2, 4), [0, 0]);
+      C.eq('no day that reads, no line', [U([], '2026-11-16'), U(['soon'], '2026-11-16'), U(['2026-11-16'], '')], [null, null, null]);
+      const el = T.doc.getElementById('uiUpd'), d = iso => { const x = new Date(iso); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+      const want = U([d(NOW)], d(new Date().toISOString()));
+      C.eq('the top bar says it, beside the Data through month, in the colour of its age', [el.hidden, el.textContent, el.className, el.previousElementSibling.id], [false, want.text, 'upd upd-' + want.level, 'uiAsOfText']);
+      C.chk('… and its tooltip names each pull’s import', /^O&M imported \d{4}-\d{2}-\d{2} .*; Initial Spares imported /.test(el.title), el.title); }
     const R = T.SP.requirementsOf(modelOf(T));
     C.eq('the requirements, each worked by hand: money, state and the next month to award',
       R.map(r => [r.ap + '|' + r.fy, r.title, r.ccar, r.planned, r.awarded, r.remaining, r.state, r.next]), WANT);

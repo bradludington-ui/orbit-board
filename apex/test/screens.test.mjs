@@ -208,13 +208,15 @@ try {
   await p.fill('#uiSpecNew', 'ZZ-9001');
   await p.press('#uiSpecNew', 'Enter');
   const specs = await p.$$eval('.speclist li span', l => l.map(e => e.textContent));
-  C.chk('S10: three special CCaRs to remove', specs.length === 3 && specs[2] === 'ZZ-9001', J(specs));
-  await p.focus('[data-act=specdel][data-i="2"]');
+  // the default list is three since 16 Nov 2026, so the one added is the fourth
+  C.chk('S10: four special CCaRs to remove', specs.length === 4 && specs[3] === 'ZZ-9001', J(specs));
+  await p.focus('[data-act=specdel][data-i="3"]');
   await p.keyboard.press('Enter');
-  C.chk('S10: removing the last one leaves the keyboard on the Remove before it', await p.evaluate(() => document.activeElement.getAttribute('data-fkey')) === 'specdel:1');
+  C.chk('S10: removing the last one leaves the keyboard on the Remove before it', await p.evaluate(() => document.activeElement.getAttribute('data-fkey')) === 'specdel:2');
   await p.focus('[data-act=specdel][data-i="0"]');
   await p.keyboard.press('Enter');
   C.chk('S10: removing the first leaves the keyboard on the Remove now in its place', await p.evaluate(() => document.activeElement.getAttribute('data-fkey')) === 'specdel:0');
+  await p.keyboard.press('Enter');
   await p.keyboard.press('Enter');
   C.chk('S10: removing the only one left leaves the keyboard on the box that adds one', await p.evaluate(() => document.activeElement.id) === 'uiSpecNew');
   await p.click('[data-act=specreset]');

@@ -40,6 +40,12 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);col
 .brand .bs{font-size:13px;font-weight:400;letter-spacing:0;color:var(--smut);padding-left:9px;border-left:1px solid var(--sedge)}
 .brand .ey{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--steal);background:var(--ssel);color:var(--slink);font-size:12px;font-weight:700;letter-spacing:0}
 .brand .ey:empty{display:none}
+/* §30 when the data was uploaded: a pill beside the Data through month, plain while it is a week old or less, ochre past a
+   week, wine past thirty days; its words say the same */
+.upd{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid var(--sedge);background:var(--cell);color:var(--sink);font-size:13px;font-weight:700;white-space:nowrap}
+.upd[hidden]{display:none}
+.upd-aging{background:#f3e6cf;border-color:var(--ochre);color:#5c3706}
+.upd-old{background:var(--wine);border-color:var(--wine);color:#fff}
 .bar1 .fld{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600}
 .bar1 input{font:inherit;font-weight:400;padding:2px 4px;border:1px solid var(--sedge);border-radius:4px;color:#111;background:#fff}
 .bar1 input[type=number]{width:5.2em}
@@ -168,6 +174,11 @@ main .tg:hover{background:none;text-decoration:underline;color:inherit}
 .blk tr.band td{font-weight:600}
 .blk tr.band:first-of-type th,.blk tr.band:first-of-type td{border-top:2px solid var(--box)}
 .blk tr.spacer td{border:0;height:8px;padding:0}
+/* A BREAK ABOVE MONTHLY TOTALS (Brad, 16 Nov 2026: "between the last requirement listed and the first row titled Monthly
+   Totals, I need a break … not large"). The first row of the totals band, wherever a requirement row is right above it
+   (the slide blocks already have a spacer row there), gets a gap the colour of the page and a rule under the gap. It is
+   styling alone: the table's rows are as they were. */
+.blk tr:not(.band):not(.spacer) + tr.band th,.blk tr:not(.band):not(.spacer) + tr.band td{border-top:10px solid var(--spanel);box-shadow:inset 0 2px 0 var(--box)}
 .blk tr.strip td{background:var(--strip);font-weight:700;color:#000}
 /* a mark in a PMO block's strip (§14.5, review M4-5) takes the strip's black: the dark gold read about 4.3:1 on its blue */
 .blk tr.strip td .dag,.blk tr.strip td .ddag,.blk tr.strip td .sect{color:inherit}
@@ -178,8 +189,11 @@ h3.bar{margin-top:16px}
 .nabar{margin:6px 0 2px;padding:3px 8px;background:var(--navy);color:#fff;font-weight:700;font-size:13px}
 h3.nabar{font-size:13px}
 table.nalines{border-collapse:collapse;font-size:12px;width:100%}
-.nalines th{vertical-align:top;text-align:left;white-space:nowrap;padding:2px 8px;color:var(--navy);border-bottom:1px solid #ddd}
-.nalines td{padding:2px 8px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
+/* the month is one fixed column in every block's list (Brad, 16 Nov 2026: "after the month, it's hit or miss on how far out
+   it will be spaced"): the table is the full width, and with no width of its own the month's column took a share of what
+   a short line left over, so a block with one short line had its text far to the right */
+.nalines th{width:6.5em;vertical-align:top;text-align:left;white-space:nowrap;padding:2px 8px;color:var(--navy);border-bottom:1px solid #ddd}
+.nalines td{width:auto;padding:2px 8px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
 
 /* status: the word on its colour. Black on green and yellow, white on red: each clears 4.5:1 on screen. */
 .st{text-align:center;font-weight:700;white-space:nowrap}
