@@ -156,16 +156,17 @@ try {
   // ============================================================================================ the Special CCaRs, one line each
   // CONTRACT §22. An invented number, RL 0100, is spread over two fiscal years, two appropriations, two titles and two PMOs:
   //   O&M FY2026     Rollo Main   1.0M awarded Dec 2025 (Prior Yr)
-  //   O&M FY2027     Rollo Main   2.0M awarded Oct 2026; 0.4M planned Mar 2027
+  //   O&M FY2027     Rollo Main   2.0M awarded Oct 2026; 0.2M planned Feb 2027; 0.4M planned Mar 2027
   //   O&M FY2027     Rollo Extra  0.6M planned Mar 2027
   //   Spares FY2027  Rollo Main   0.5M planned Jun 2027, Propulsion
-  // and RL 0200 (Plain One, 0.3M planned Jan 2027) is an ordinary requirement. Rolled: Prior 1.0, Oct 2.0, Mar 1.0, Jun 0.5 = 4.5M.
+  // and RL 0200 (Plain One, 0.3M planned Jan 2027) is an ordinary requirement. Rolled: Prior 1.0, Oct 2.0, Feb 0.2, Mar 1.0, Jun 0.5 = 4.7M.
   {
     const om = [
       row(2026, 'RL 0100', 'Rollo Main', B_OM, 'R1', '2025-12-01', '1000000', EX),
       row(2027, 'RL 0100', 'Rollo Main', B_OM, 'R2', '2026-10-06', '2000000', EX),
       row(2027, 'RL 0100', 'Rollo Main', B_OM, 'R3', '2027-03-02', '400000', NA),
       row(2027, 'RL 0100', 'Rollo Extra', B_OM, 'R4', '2027-03-20', '600000', NA),
+      row(2027, 'RL 0100', 'Rollo Main', B_OM, 'R7', '2027-02-09', '200000', NA),
       row(2027, 'RL 0200', 'Plain One', B_OM, 'R5', '2027-01-11', '300000', NA),
     ];
     const sp = [row(2027, 'RL 0100', 'Rollo Main', B_SP, 'R6', '2027-06-01', '500000', NA, 'Propulsion (PP)')];
@@ -186,7 +187,7 @@ try {
     const after = look();
     C.eq('on the list, it is one line at the top with every year, appropriation, title and PMO added together; the rest is unchanged', after.slice(0, -1), [
       ['#Special CCaRs, one line each (the list is in Settings)'],
-      ['RL 0100', 'Prior Yr:c-aw:' + D(1e6), 'Oct:c-aw:' + D(2e6), 'Mar:c-plan:' + D(1e6), 'Jun:c-plan:' + D(0.5e6), '=' + D(4.5e6)],
+      ['RL 0100', 'Prior Yr:c-aw:' + D(1e6), 'Oct:c-aw:' + D(2e6), 'Feb:c-plan:' + D(0.2e6), 'Mar:c-plan:' + D(1e6), 'Jun:c-plan:' + D(0.5e6), '=' + D(4.7e6)],
       ['#Air Vehicle (AV)'],
       ['Plain One', 'Jan:c-plan:' + D(0.3e6), '=' + D(0.3e6)],
     ]);
@@ -201,6 +202,26 @@ try {
     C.eq('the pickers narrow the line too: FY2026 alone', look().slice(0, -1), [['#Special CCaRs, one line each (the list is in Settings)'], ['RL 0100', 'Prior Yr:c-aw:' + D(1e6), '=' + D(1e6)]]);
     T.click(T.main().querySelector('.calt tr[data-sp] .tg')); await settle();
     C.eq('its number opens every part of it on Find a requirement', [T.pressed(), T.doc.getElementById('uiFindQ').value, T.rows().length], ['find', 'RL 0100', 4]);
+    // My PMO's two lists (CONTRACT §28): a Special CCaR is one line for each month. Data through Dec-2026 makes the next three
+    // months Jan to Mar 2027: Plain One's 0.3M in January, RL 0100's 0.2M in February and its two March plan events (0.4M and
+    // 0.6M), in Air Vehicle.
+    T.SP.setSettings({ asOf: '2026-12' }); await settle(40);
+    const soon = async () => [...(await T.view('mypmo')).querySelectorAll('[data-list=soon] .plist li')].map(li => [li.querySelector('.fd').textContent, li.querySelector('.tg').textContent,
+      li.querySelector('.fsub').textContent, Number(li.querySelector('.fa').getAttribute('data-c'))]);
+    C.eq('My PMO, next three months: the Special CCaR’s two March plan events are one line of 1.0, its February one a line of its own, and Plain One keeps its own', await soon(), [
+      ['Jan 2027', 'Plain One', 'RL 0200 · O&M FY2027 · R5', D(0.3e6)],
+      ['Feb 2027', 'Rollo Main', 'RL 0100 · O&M FY2027 · 1 plan event', D(0.2e6)],     // a month of its own: months are never added together
+      // named by the title carrying the most of the line's money: Rollo Extra's 0.6 over Rollo Main's 0.4
+      ['Mar 2027', 'Rollo Extra (+1 more)', 'RL 0100 · O&M FY2027 · 2 plan events, added together', D(1e6)]]);
+    C.eq('… and the tiles count as they did: Air Vehicle’s 4 requirements, 4.5 planned', (m2 => [m2.querySelector('.tile[data-tile=planned] .ts').textContent, Number(m2.querySelector('.tile[data-tile=planned] .tv').getAttribute('data-c'))])(T.main()), ['4 requirements', D(4.5e6)]);
+    T.click(T.main().querySelector('[data-list=soon] li[data-sp] .tg')); await settle();
+    C.eq('the line opens every part of it on Find a requirement', [T.pressed(), T.doc.getElementById('uiFindQ').value], ['find', 'RL 0100']);
+    T.SP.setSettings({ special: [] }); await settle(40);
+    C.eq('with the number off Settings’ list each plan event is a line again', await soon(), [
+      ['Jan 2027', 'Plain One', 'RL 0200 · O&M FY2027 · R5', D(0.3e6)],
+      ['Feb 2027', 'Rollo Main', 'RL 0100 · O&M FY2027 · R7', D(0.2e6)],
+      ['Mar 2027', 'Rollo Extra', 'RL 0100 · O&M FY2027 · R4', D(0.6e6)],
+      ['Mar 2027', 'Rollo Main', 'RL 0100 · O&M FY2027 · R3', D(0.4e6)]]);
     C.eq('no script error', T.errors(), []);
     T.t.close();
   }

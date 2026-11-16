@@ -85,7 +85,10 @@ try {
     T.SP.applyImport(await T.SP.parseFiles(files(null), { now: NOW }));
     T.SP.setSettings({ asOf: '2026-10' });
     await settle(40);
-    C.eq('the page opens on Find a requirement', [T.pressed(), T.main().className, !!T.doc.getElementById('uiFindQ')], ['find', 'ov', true]);
+    // the page opens on the Summary (Brad, 16 Nov 2026); Find a requirement is still first in the menu
+    C.eq('the page opens on the Summary', [T.pressed(), T.main().className, !!T.main().querySelector('table.top')], ['summary', 'sheet', true]);
+    await T.view('find');
+    C.eq('Find a requirement is one click away, first in the menu', [T.pressed(), T.main().className, !!T.doc.getElementById('uiFindQ'), T.doc.querySelector('#uiNav button').getAttribute('data-v')], ['find', 'ov', true, 'find']);
     const R = T.SP.requirementsOf(modelOf(T));
     C.eq('the requirements, each worked by hand: money, state and the next month to award',
       R.map(r => [r.ap + '|' + r.fy, r.title, r.ccar, r.planned, r.awarded, r.remaining, r.state, r.next]), WANT);
@@ -167,7 +170,9 @@ try {
   // ============================================================================================ a reader opens the saved file
   {
     const T = await boot(pageHtml({ state: saved }));
-    C.eq('a file that holds a plan opens on Find a requirement', [T.pressed(), T.rows().length], ['find', 7]);
+    C.eq('a file that holds a plan opens on the Summary, with its table drawn', [T.pressed(), !!T.main().querySelector('table.top')], ['summary', true]);
+    await T.view('find');
+    C.eq('… and Find a requirement lists its seven requirements', [T.pressed(), T.rows().length], ['find', 7]);
     C.chk('… with the Manage data bar closed: no dates to set, no Import, no Save in sight', T.doc.getElementById('uiManage').hidden
       && T.doc.getElementById('uiManageBtn').getAttribute('aria-expanded') === 'false' && T.doc.getElementById('uiManage').contains(T.doc.getElementById('uiAsOf'))
       && T.doc.getElementById('uiManage').contains(T.doc.querySelector('[data-act=save]')) && T.doc.getElementById('uiManage').contains(T.doc.querySelector('[data-act=import]')));
