@@ -1809,6 +1809,7 @@ function ui_skeleton() {
     + '<h1 class="brand" title="Appropriation Planning &amp; Execution">' + UI_MARK + '<span class="bn vh">APEX</span>'
     + '<span class="bs">Appropriation Planning &amp; Execution</span> <span class="ey" id="uiEy"></span></h1>'
     + '<span class="asof" id="uiAsOfText"></span>'
+    + '<span class="upd" id="uiUpd"></span>'
     + '<span class="grow"></span>'
     + '<span class="savest" id="uiSave" role="status"></span>'
     + '<button type="button" data-act="export" data-fkey="export">Export Excel</button>'
@@ -1837,7 +1838,7 @@ function ui_skeleton() {
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
-    pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
+    upd: document.getElementById('uiUpd'), pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
     msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
     asOfText: document.getElementById('uiAsOfText'), manage: document.getElementById('uiManage'), manageBtn: document.getElementById('uiManageBtn'),
@@ -1938,6 +1939,13 @@ function ui_drawTop(M) {
   const bits = shown.map(a => ui_e(a.label) + ' imported <span class="d" title="' + ui_e(ui_when(P[a.id].importedAt) || 'date unknown') + '">'
     + ui_e(when(P[a.id].importedAt) || 'date unknown') + '</span>');
   E.pulls.innerHTML = (bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.') + (B ? ui_baeTop(B, when) : '');
+  // §30 when the data was uploaded, and how long ago, beside the Data through month where every reader looks first
+  const up = SP.uploadAge(shown.map(a => ui_day(P[a.id].importedAt)), ui_today());
+  E.upd.hidden = !up;
+  E.upd.className = 'upd' + (up ? ' upd-' + up.level : '');
+  E.upd.textContent = up ? up.text + (up.more ? ' (' + up.more + ')' : '') : '';
+  E.upd.title = up ? shown.map(a => a.label + ' imported ' + (ui_when(P[a.id].importedAt) || 'date unknown')).join('; ')
+    + (up.level === 'fresh' ? '' : '. ' + (up.level === 'old' ? 'More than 30 days old' : 'More than a week old') + ': import a newer CCaR pull for current figures.') : '';
   // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
   if (E.printHead) {
     E.printHead.textContent = has ? 'APEX' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '

@@ -197,6 +197,8 @@ for the switches.
 - **My PMO** is one office: its Planned, Awarded and Still to award, what is projected to award in the three months after
   the Data through month, what is past its projected date and not awarded, then every requirement. The office you pick is
   remembered in your browser, not in the file.
+- **Data uploaded**, at the top beside the Data through month, says the day the CCaR pulls were imported and how long ago.
+  It turns ochre past a week and red past thirty days, judged by the oldest pull.
 - **Charts** draws the same things, under the same three pickers: awards by month with the next three months added up, a
   scoreboard of each office against the OSD goal, the late awards with the most money first, a heat map of where the
   awards land by office and month, and each block's burn-up against its goal.

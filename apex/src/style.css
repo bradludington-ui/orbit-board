@@ -40,6 +40,12 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);col
 .brand .bs{font-size:13px;font-weight:400;letter-spacing:0;color:var(--smut);padding-left:9px;border-left:1px solid var(--sedge)}
 .brand .ey{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--steal);background:var(--ssel);color:var(--slink);font-size:12px;font-weight:700;letter-spacing:0}
 .brand .ey:empty{display:none}
+/* §30 when the data was uploaded: a pill beside the Data through month, plain while it is a week old or less, ochre past a
+   week, wine past thirty days; its words say the same */
+.upd{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid var(--sedge);background:var(--cell);color:var(--sink);font-size:13px;font-weight:700;white-space:nowrap}
+.upd[hidden]{display:none}
+.upd-aging{background:#f3e6cf;border-color:var(--ochre);color:#5c3706}
+.upd-old{background:var(--wine);border-color:var(--wine);color:#fff}
 .bar1 .fld{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600}
 .bar1 input{font:inherit;font-weight:400;padding:2px 4px;border:1px solid var(--sedge);border-radius:4px;color:#111;background:#fff}
 .bar1 input[type=number]{width:5.2em}

@@ -1879,3 +1879,22 @@ contracts into one line item … It should be based on the Special CCaR inputs i
 Brad: *"Let's default to the Summary section under Briefing when opened."* The page, a saved plan, and the page after a
 first import all open on the Summary (`UI_HOME`), in place of Find a requirement (§20). The menu's order is unchanged:
 Requirements is still first.
+
+## 30. When the data was uploaded, at the top (Brad, 16 Nov 2026)
+
+Brad: *"Include a data upload date that is visible at the top so we know when it was last updated and the individual knows
+how useful that data is."*
+
+- The top bar carries a pill beside the Data through month: **Data uploaded 16 Nov 2026 · today** (then *yesterday*, then
+  *N days ago*). The day is this computer's calendar day of the newest CCaR pull's import; where the pulls on screen came
+  in on different days it adds *(oldest pull 1 Oct 2026, 46 days ago)*.
+- Its colour is its age, **by the oldest pull**, since a figure is only as fresh as the oldest pull behind it: plain up to 7
+  days, ochre up to 30, wine past that. The words carry the same thing; the tooltip names each appropriation's import and,
+  past a week, says to import a newer pull.
+- `SP.uploadAge(days, today)` is the one working-out. The BAE report's import is not part of it (the line under the bar
+  still names it). With no pull there is no pill.
+
+### 30.1 Tests
+
+- `test/find.test.mjs`: `SP.uploadAge` by hand (today, yesterday, the 7/8 and 30/31 day edges across a month end, pulls of
+  different days, a clock behind the import, nothing readable), and the pill on the page.

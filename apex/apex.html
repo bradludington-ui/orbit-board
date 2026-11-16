@@ -49,6 +49,12 @@ header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);col
 .brand .bs{font-size:13px;font-weight:400;letter-spacing:0;color:var(--smut);padding-left:9px;border-left:1px solid var(--sedge)}
 .brand .ey{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--steal);background:var(--ssel);color:var(--slink);font-size:12px;font-weight:700;letter-spacing:0}
 .brand .ey:empty{display:none}
+/* §30 when the data was uploaded: a pill beside the Data through month, plain while it is a week old or less, ochre past a
+   week, wine past thirty days; its words say the same */
+.upd{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid var(--sedge);background:var(--cell);color:var(--sink);font-size:13px;font-weight:700;white-space:nowrap}
+.upd[hidden]{display:none}
+.upd-aging{background:#f3e6cf;border-color:var(--ochre);color:#5c3706}
+.upd-old{background:var(--wine);border-color:var(--wine);color:#fff}
 .bar1 .fld{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600}
 .bar1 input{font:inherit;font-weight:400;padding:2px 4px;border:1px solid var(--sedge);border-radius:4px;color:#111;background:#fff}
 .bar1 input[type=number]{width:5.2em}
@@ -4606,6 +4612,26 @@ SP.chartsOf = function chartsOf(M, reqs) {
     late, lateCents: late.reduce((s, l) => s + l.cents, 0),
     heat: { rows: pmos.map(p => ({ key: p.key, label: p.label, cells: p.cells, total: p.total })), max: Math.max(0, ...pmos.flatMap(p => p.cells)) },
   };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// §30 HOW OLD THE DATA IS (Brad, 16 Nov 2026: "Include a data upload date that is visible at the top so we know when it
+// was last updated and the individual knows how useful that data is"). From the calendar days the CCaR pulls on screen
+// were imported (this computer's days, 'YYYY-MM-DD'), and today's.
+//   -> null with no day that reads, else {newest, oldest, age, ageOldest, level, text, more}
+// age: whole days from the newest import to today (never below 0); ageOldest: from the oldest. level, by the OLDEST pull,
+// since a figure is only as fresh as the oldest pull behind it: 'fresh' up to 7 days, 'aging' up to 30, 'old' past that.
+// text: "Data uploaded 16 Nov 2026 · today"; more: said only where the pulls came in on different days.
+// ---------------------------------------------------------------------------------------------------------------
+SP.uploadAge = function uploadAge(days, today) {
+  const dn = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || '')); return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) / 86400000 : null; };
+  const ok = (Array.isArray(days) ? days : []).filter(d => dn(d) !== null).sort(), t = dn(today);
+  if (!ok.length || t === null) return null;
+  const newest = ok[ok.length - 1], oldest = ok[0], age = Math.max(0, t - dn(newest)), ageOldest = Math.max(0, t - dn(oldest));
+  const words = d => Number(d.slice(8, 10)) + ' ' + SP.CAL_MONTHS[Number(d.slice(5, 7)) - 1] + ' ' + d.slice(0, 4);
+  const ago = n => (n === 0 ? 'today' : n === 1 ? 'yesterday' : SP.fmtInt(n) + ' days ago');
+  return { newest, oldest, age, ageOldest, level: ageOldest <= 7 ? 'fresh' : ageOldest <= 30 ? 'aging' : 'old',
+    text: 'Data uploaded ' + words(newest) + ' · ' + ago(age), more: oldest === newest ? '' : 'oldest pull ' + words(oldest) + ', ' + ago(ageOldest) };
 };
 
 // ===== 50-xlsx-write.js =====
@@ -9888,6 +9914,7 @@ function ui_skeleton() {
     + '<h1 class="brand" title="Appropriation Planning &amp; Execution">' + UI_MARK + '<span class="bn vh">APEX</span>'
     + '<span class="bs">Appropriation Planning &amp; Execution</span> <span class="ey" id="uiEy"></span></h1>'
     + '<span class="asof" id="uiAsOfText"></span>'
+    + '<span class="upd" id="uiUpd"></span>'
     + '<span class="grow"></span>'
     + '<span class="savest" id="uiSave" role="status"></span>'
     + '<button type="button" data-act="export" data-fkey="export">Export Excel</button>'
@@ -9916,7 +9943,7 @@ function ui_skeleton() {
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
-    pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
+    upd: document.getElementById('uiUpd'), pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
     msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
     asOfText: document.getElementById('uiAsOfText'), manage: document.getElementById('uiManage'), manageBtn: document.getElementById('uiManageBtn'),
@@ -10017,6 +10044,13 @@ function ui_drawTop(M) {
   const bits = shown.map(a => ui_e(a.label) + ' imported <span class="d" title="' + ui_e(ui_when(P[a.id].importedAt) || 'date unknown') + '">'
     + ui_e(when(P[a.id].importedAt) || 'date unknown') + '</span>');
   E.pulls.innerHTML = (bits.length ? 'Pulls: ' + bits.join(' · ') : 'No CCaR pull imported yet.') + (B ? ui_baeTop(B, when) : '');
+  // §30 when the data was uploaded, and how long ago, beside the Data through month where every reader looks first
+  const up = SP.uploadAge(shown.map(a => ui_day(P[a.id].importedAt)), ui_today());
+  E.upd.hidden = !up;
+  E.upd.className = 'upd' + (up ? ' upd-' + up.level : '');
+  E.upd.textContent = up ? up.text + (up.more ? ' (' + up.more + ')' : '') : '';
+  E.upd.title = up ? shown.map(a => a.label + ' imported ' + (ui_when(P[a.id].importedAt) || 'date unknown')).join('; ')
+    + (up.level === 'fresh' ? '' : '. ' + (up.level === 'old' ? 'More than 30 days old' : 'More than a week old') + ': import a newer CCaR pull for current figures.') : '';
   // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
   if (E.printHead) {
     E.printHead.textContent = has ? 'APEX' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
