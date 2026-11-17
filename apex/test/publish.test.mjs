@@ -242,7 +242,7 @@ try {
   C.chk('nothing is drawn off the page', P.pages.every(p => p.ops.every(o => o.t === 'text' ? o.x >= 0 && o.x <= 792 && o.y >= 0 && o.y <= 612
     : o.t === 'line' ? Math.min(o.x1, o.x2) >= 0 && Math.max(o.x1, o.x2) <= 792 : o.x >= 0 && o.x + o.w <= 792.01 && o.y >= 0 && o.y + o.h <= 612.01)));
   C.chk('no figure runs out of its cell to the left (a right-aligned figure’s width is inside the page’s left margin)',
-    P.pages.every(p => p.ops.every(o => o.t !== 'text' || o.align !== 'r' || o.x - SP.pdfTextWidth(o.s, o.size, o.bold) >= 30)));
+    P.pages.every(p => p.ops.every(o => o.t !== 'text' || o.align !== 'r' || o.x - SP.pdfTextWidth(o.s, o.size, o.bold) >= 18)));
   const p1 = P.pages[0];
   C.chk('page 1: the title, the appropriation, the band, who and when', has(p1, 'Tessa Program - Spend Plan') && has(p1, 'Operations & Maintenance') && has(p1, 'Execution status - FY2026, FY2027')
     && has(p1, 'Lead BFM: A. Lead | BFM: B. Analyst') && has(p1, 'Data as of: 17 Nov 2026  |  Data through Oct-2026'), J(texts(p1).slice(0, 8)));
@@ -250,10 +250,10 @@ try {
   // §33.7 the emblem sits in the band: the band runs out from behind it, from the emblem's blue into the band's colour
   const strips = p1.ops.filter(o => o.t === 'rect' && o.y === 57 && o.h === 12);
   C.eq('page 1: the band fades from the emblem’s blue to its own colour, in strips that lap, then runs on in one piece',
-    J([strips.length, strips[0].fill, strips[0].x, strips[29].fill, strips[1].x - strips[0].x < strips[0].w, strips[30].fill, strips[30].x + strips[30].w]), J([31, '#2A5BA8', 57, '#8EAADB', true, '#8EAADB', 762]));
+    J([strips.length, strips[0].fill, strips[0].x, strips[29].fill, strips[1].x - strips[0].x < strips[0].w, strips[30].fill, strips[30].x + strips[30].w]), J([31, '#2A5BA8', 45, '#8EAADB', true, '#8EAADB', 774]));
   C.chk('page 1: the emblem is drawn after the band, so it lies over the band’s start', p1.ops.findIndex(o => o.t === 'img') > p1.ops.indexOf(strips[30]));
   C.eq('every page carries the emblem at the top left: large on a page with the full header, small on the unfunded list',
-    J(P.pages.map(p => p.ops.filter(o => o.t === 'img').map(o => [o.x, o.w, o.h]))), J([[[30, 54, 27]], [[30, 54, 27]], [[30, 54, 27]], [[30, 20, 10]]]));
+    J(P.pages.map(p => p.ops.filter(o => o.t === 'img').map(o => [o.x, o.w, o.h]))), J([[[18, 54, 27]], [[18, 54, 27]], [[18, 54, 27]], [[18, 20, 10]]]));
   const blk27 = M.blocks.find(b => b.key === 'om|2027');
   C.chk('page 1: the stoplight prints the block’s own figures and status word, in its colour',
     has(p1, SP.fmtM(blk27.approved) + '†') && has(p1, SP.fmtPct(blk27.oblPct)) && p1.ops.some(o => o.t === 'text' && o.s === SP.statusWord(blk27.status) && o.bold), J(texts(p1)));
@@ -282,7 +282,7 @@ try {
   C.chk('with no unfunded list the last page and the notes say so; with no names or emblem none is printed',
     texts(P0.pages[P0.pages.length - 1]).includes('No unfunded list is loaded.') && texts(P0.pages[0]).some(s => /No unfunded list is loaded: Required equals Approved/.test(s))
     && !texts(P0.pages[0]).some(s => /BFM/.test(s)) && !P0.pages.some(p => p.ops.some(o => o.t === 'img')) && texts(P0.pages[0]).includes('Spend Plan')
-    && J(P0.pages[0].ops.filter(o => o.t === 'rect' && o.y === 57).map(o => [o.x, o.w, o.fill])) === J([[30, 732, '#8EAADB']]));
+    && J(P0.pages[0].ops.filter(o => o.t === 'rect' && o.y === 57).map(o => [o.x, o.w, o.fill])) === J([[18, 756, '#8EAADB']]));
   // a long section: no record's block of service rows is split across pages
   const big = { id: 'ap:om', kind: 'ap', ap: 'om', label: 'O&M', long: 'Operations & Maintenance', file: 'Big.pdf', stoplight: { rows: [], total: {}, pmoRows: [] }, ufr: [],
     sections: [{ ap: 'om', apLabel: 'O&M', fy: 2027, total: fig(0, 0, 0), svc: [0, 1, 2, 3, 4, 5].map(() => fig(0, 0, 0)), n: 40,
@@ -290,12 +290,19 @@ try {
         dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false })) }] }] };
   const PB = SP.publishPages(big, ctx).pages.slice(1, -1);
   C.chk('forty records take several pages', PB.length >= 5, String(PB.length));
-  C.chk('on each of them every record is whole: as many first rows (USAF) as Total rows, and each record’s number on one page only',
-    PB.every(p => texts(p).filter(s => s === 'USAF').length - 1 * (texts(p).includes('TOTAL') ? 1 : 0) === texts(p).filter(s => s === 'Total').length)
+  C.chk('on each of them every record is whole: as many first rows (USAF) as Total rows (one USAF is the header’s), and each record’s number on one page only',
+    PB.every(p => texts(p).filter(s => s === 'USAF').length - 1 === texts(p).filter(s => s === 'Total').length)
     && Array.from({ length: 40 }, (_, i) => PB.filter(p => texts(p).includes('CCaR K' + i)).length).every(n => n === 1));
-  C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 584.01)));
-  C.chk('a continued page says so', texts(PB[1]).some(s => /FY27 Spend Plan - Operations & Maintenance \(continued\)/.test(s)));
-  C.chk('and carries the small emblem, its heading starting to the right of it', PB[1].ops.some(o => o.t === 'img' && o.w === 20) && PB[1].ops.some(o => o.t === 'text' && /\(continued\)/.test(o.s) && o.x === 55));
+  C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 592.01)));
+  // the header with the summary, and the column headings, are on every page of a section
+  C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',
+    PB.every(p => p.ops.some(o => o.t === 'img' && o.w === 54) && has(p, 'Tessa Program - FY27 Spend Plan') && has(p, 'Operations & Maintenance') && has(p, 'TOTAL')
+      && texts(p).filter(s => s === 'USMC (F-35B)').length >= 1 && texts(p).some(s => /^Data as of: /.test(s))), J(PB.map(p => texts(p).slice(0, 3))));
+  C.chk('and the column headings, at the same place on each', PB.every(p => ['PMO', 'Requirement Title', 'Description', 'Award Date', 'Service', 'Delta (+/-)'].every(h => has(p, h)))
+    && new Set(PB.map(p => p.ops.find(o => o.t === 'text' && o.s === 'Requirement Title').y)).size === 1);
+  C.eq('the first page’s band is the plan’s name; each later page’s says continued', J([texts(PB[0]).includes('Consolidated Sustainment Spend Plan'), PB.slice(1).every(p => texts(p).includes('Consolidated Sustainment Spend Plan (continued)'))]), J([true, true]));
+  C.chk('the page is used to a quarter inch of its sides and down to the CUI line', PB.every(p => Math.min(...p.ops.filter(o => o.t === 'rect').map(o => o.x)) === 18 && Math.max(...p.ops.filter(o => o.t === 'rect').map(o => o.x + o.w)) === 774)
+    && Math.max(...PB.slice(0, -1).map(p => Math.max(...p.ops.filter(o => o.t === 'rect').map(o => o.y + o.h)))) > 540);
 
   // ---------------------------------------------------------------- §33.5 the PDF bytes, read by other programs
   const bytes = SP.publishPdf(om, ctx);
@@ -307,8 +314,8 @@ try {
   C.eq('four pages', pages.length, 4);
   C.chk('each page’s text holds the CUI marking twice', pages.every(s => s.split(SP.CUI).length === 3));
   C.chk('the text can be searched: the prime’s line, to the dollar, and the mark †', /Prime Alpha/.test(pages[2]) && /\$\s+6,500,000\s+\$\s+4,000,000\s+\$\s+3,000,000\s+\$\s+1,000,000\s+\$\s+\(2,500,000\)/.test(pages[2]) && /†/.test(pages[0]), pages[2].slice(0, 1500));
-  const py = spawnSync('python3', ['-c', 'import sys,pypdf\nr=pypdf.PdfReader(sys.argv[1])\nx=r.pages[0].images\nprint(len(r.pages), r.metadata.title, len(x), x[0].image.size if x else None, [float(v) for v in r.pages[1].mediabox[2:]])', join(tmp.dir, 'om.pdf')], { encoding: 'utf8' });
-  C.eq('pypdf reads the same: its pages, title, the emblem’s picture and the page size', py.stdout.trim() + py.stderr, '4 APEX Spend Plan - O&M 1 (40, 20) [792.0, 612.0]');
+  const py = spawnSync('python3', ['-c', 'import sys,pypdf\nr=pypdf.PdfReader(sys.argv[1])\nx=r.pages[0].images\nprint(len(r.pages), r.metadata.title, len(x), x[0].image.size if x else None, [float(v) for v in r.pages[1].mediabox[2:]], all(float(p.mediabox[2]) > float(p.mediabox[3]) and not p.get("/Rotate") for p in r.pages), r.trailer["/Root"]["/ViewerPreferences"]["/PickTrayByPDFSize"])', join(tmp.dir, 'om.pdf')], { encoding: 'utf8' });
+  C.eq('pypdf reads the same: its pages, title, the emblem’s picture, the page size, every page wider than tall and not turned, and the printing hint', py.stdout.trim() + py.stderr, '4 APEX Spend Plan - O&M 1 (40, 20) [792.0, 612.0] True True');
   const strange = SP.pdfBytes({ title: 'x', pages: [{ w: 200, h: 100, ops: [{ t: 'text', x: 10, y: 20, s: 'a(b)c\\d — “é” 例', size: 9 }] }] });
   writeFileSync(join(tmp.dir, 's.pdf'), strange);
   const st = spawnSync('pdftotext', [join(tmp.dir, 's.pdf'), '-'], { encoding: 'utf8' });

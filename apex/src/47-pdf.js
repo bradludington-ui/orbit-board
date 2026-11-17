@@ -190,7 +190,9 @@ SP.pdfBytes = function pdfBytes(doc) {
     kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pdf_n(W) + ' ' + pdf_n(H) + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>'
       + xo + ' >> /Contents ' + content + ' 0 R >>'));
   }
-  objs[0] = '<< /Type /Catalog /Pages 2 0 R >>';
+  // what a reader is told about printing: take the paper the page is (so a landscape page is printed landscape, never
+  // turned onto a portrait sheet and shrunk), and when printing both sides flip on the short edge, as landscape reads
+  objs[0] = '<< /Type /Catalog /Pages 2 0 R /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge >> >>';
   objs[1] = '<< /Type /Pages /Count ' + kids.length + ' /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] >>';
   // the file: every string is ASCII by construction (pdf_str), so a character is a byte; picture bytes go in as they are
   const parts = [];

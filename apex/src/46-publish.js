@@ -398,7 +398,9 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
 // Whole dollars, as the template prints them: each figure is rounded from its own exact cents, a total from its exact
 // sum, so a total can differ by a dollar from the rounded figures above it. The stoplight page says so.
 // ---------------------------------------------------------------------------------------------------------------
-const PB = Object.freeze({ W: 792, H: 612, L: 30, R: 762, bodyEnd: 584, rowH: 9.5,
+// THE PAGE IS USED TO ITS EDGES (Brad, 17 Nov 2026: "I want to maximize the landscape of each PDF"): a quarter-inch margin
+// left and right, which is as close as an office printer prints, and the body runs down to the CUI line.
+const PB = Object.freeze({ W: 792, H: 612, L: 18, R: 774, bodyEnd: 592, rowH: 9.5,
   band: '#8EAADB', deep: '#2A5BA8', rule: '#555555', soft: '#EEF1F5', head: '#CBD9E8', red: '#B00000', ink: '#000000', mut: '#444444',
   status: Object.freeze({ green: '#00B050', yellow: '#FFD700', red: '#C00000' }),
   statusInk: Object.freeze({ green: '#FFFFFF', yellow: '#000000', red: '#FFFFFF' }) });
@@ -532,7 +534,7 @@ SP.publishPages = function publishPages(doc, ctx) {
   for (const n of noteLines) for (const l of SP.pdfWrap(n, 7, false, PB.R - PB.L)) { need(10); T(PB.L, y + 7, l, { size: 7, color: PB.mut }); y += 9; }
 
   // ---- the spend plan sections ----
-  const X = [30, 88, 206, 326, 412, 472, 530, 588, 646, 704, 762];
+  const X = [18, 76, 204, 338, 424, 484, 542, 600, 658, 716, 774];
   const colHead = () => {
     const hs = [doc.kind === 'ap' ? 'PMO' : 'Group', 'Requirement Title', 'Description', 'Award Date', 'Service'].concat(FIG_HEAD);
     hs.forEach((h, i) => T((X[i] + X[i + 1]) / 2, y + 8.5, h, { size: 7, bold: true, align: 'c' }));
@@ -543,20 +545,27 @@ SP.publishPages = function publishPages(doc, ctx) {
   for (const sec of doc.sections) {
     const line1 = (prog ? prog + ' - ' : '') + fyy(sec.fy) + ' Spend Plan';
     const line2 = doc.kind === 'ap' ? doc.long : doc.label + ' - ' + (PB_AP_LONG[sec.ap] || sec.apLabel);
-    newPage();
-    // the section's own totals, top right, as the template has them
-    const tx = 438, lw = 54, cw = 54, nS = sec.svc.length, rh = 8.6;
-    FIG_HEAD.forEach((h, i) => T(tx + lw + cw * i + cw / 2, 31, h, { size: 6.5, bold: true, align: 'c' }));
-    for (let i = 0; i <= nS; i++) {
-      const tot = i === nS, f = tot ? sec.total : sec.svc[i], yy = 34 + rh * i;
-      Rc(tx, yy, lw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
-      T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' });
-      FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 }); });
-    }
-    header(line1, line2, doc.kind === 'ap' ? 'Consolidated Sustainment Spend Plan' : 'PMO Spend Plan - ' + sec.apLabel + ' FY' + sec.fy, tx - 8);
-    y = Math.max(y, 34 + rh * (nS + 1) + 6);
-    colHead();
-    const cont = () => { newPage(); T(mini(), 36, line1 + ' - ' + line2 + ' (continued)', { size: 9, bold: true }); y = 42; colHead(); };
+    // EVERY PAGE OF A SECTION CARRIES ITS FULL HEADER AND ITS COLUMN HEADINGS (Brad, 17 Nov 2026: "I always need the header at
+    // the top that has the summary information to be there. I also need the header labels to stay static"): the emblem,
+    // the titles, the band, who and when, the section's totals by service at the top right, then the column headings. A
+    // page after the first says "(continued)" in its band.
+    const tx = 450, lw = 54, cw = 54, nS = sec.svc.length, rh = 8.6;
+    const band = doc.kind === 'ap' ? 'Consolidated Sustainment Spend Plan' : 'PMO Spend Plan - ' + sec.apLabel + ' FY' + sec.fy;
+    const top = contd => {
+      newPage();
+      FIG_HEAD.forEach((h, i) => T(tx + lw + cw * i + cw / 2, 31, h, { size: 6.5, bold: true, align: 'c' }));
+      for (let i = 0; i <= nS; i++) {
+        const tot = i === nS, f = tot ? sec.total : sec.svc[i], yy = 34 + rh * i;
+        Rc(tx, yy, lw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
+        T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' });
+        FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 }); });
+      }
+      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8);
+      y = Math.max(y, 34 + rh * (nS + 1) + 6);
+      colHead();
+    };
+    top(false);
+    const cont = () => top(true);
     let run = null;                          // the group band being drawn on this page: {label, y0}
     const closeRun = () => {
       if (!run) return;
@@ -612,7 +621,7 @@ SP.publishPages = function publishPages(doc, ctx) {
 
   // ---- the unfunded list, filtered to this document ----
   const U = doc.ufr;
-  const ux = [30, 56, 80, 198, 258, 310, 352, 394, 436, 478, 520, 562, 612, 668, 710, 762];
+  const ux = [18, 44, 68, 210, 270, 322, 364, 406, 448, 490, 532, 574, 624, 680, 722, 774];
   const uHead = ['FY', 'Rank', 'Requirement Title', doc.kind === 'ap' ? 'PMO' : 'Appropriation', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total',
     'Funding Status', 'Exec Ready?', 'SFCB Action'];
   const uTop = contd => {

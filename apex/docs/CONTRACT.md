@@ -1989,6 +1989,17 @@ saved in the plan.
 
 Letter, landscape. Every page carries the CUI marking top and bottom, the document's name and "Page n of N".
 
+Brad, 17 Nov 2026: *"When printing out the PDF I need it to always be in landscape mode. I always need the header at the
+top that has the summary information to be there. I also need the header labels to stay static and I want to maximize the
+landscape of each PDF."* So:
+
+- **Landscape:** every page is 11 x 8.5 in, wider than tall and not turned, which is what a printer reads; the file also
+  asks the reader to take paper of the page's size and to flip on the short edge when printing both sides.
+- **The header on every page of a section:** the emblem, the titles, the band, who and when, and the section's totals by
+  service at the top right are on every page, not the first alone; a later page's band says "(continued)".
+- **The column headings** are under that header on every page, at the same place.
+- **The page is used to its edges:** a quarter-inch margin left and right, and the body runs down to the CUI line.
+
 1. **The stoplight page:** the title, the band, who and when, then the Summary's table for the document ($M, with the
    Summary's marks and status words), the legend, and how to read the plan.
 2. **A section per fiscal year,** each starting a new page: the section's totals by service at the top right, then
