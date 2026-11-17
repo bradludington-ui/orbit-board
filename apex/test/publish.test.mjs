@@ -163,6 +163,10 @@ try {
       [PP, [['Garnet Rework', 'TS0007', fig(D$(700000), 0, 0), ['Dec-2026'], false],
         ['New thing', 'TS0099', fig(0, 0, D$(400000)), [], true]]]]));
   const prime = secOf(om, 'om', 2027).groups[0].records[0];
+  // §33.10 a record's plan event titles, in the order they fall: what its description is until one is typed
+  C.eq('the prime’s plan events, earliest first, over both PMOs', J(prime.events), J(['P1', 'P2']));
+  C.eq('Tessa B’s: by date (5 Oct, then 20 Oct), the one with no date last', J(secOf(om, 'om', 2027).groups[1].records[1].events), J(['T2b', 'T2a', 'T2c']));
+  C.eq('a record that is only on the unfunded list has none', J(secOf(om, 'om', 2027).groups[1].records[0].events), J([]));
   C.eq('the prime, by service: USAF, ANG, AFRC, STOVL, USMC CV, USN',
     J(prime.svc), J([fig(D$(3000000.40), D$(3000000.40), D$(2000000)), fig(0, 0, 0), fig(0, 0, 0), fig(0, 0, D$(500000)), fig(0, 0, 0), fig(D$(1000000), 0, 0)]));
   C.eq('its description is the one saved for its CCaR number', prime.desc, 'The prime contract');
@@ -181,6 +185,7 @@ try {
     J([['1', 'JSF6654', AV, D$(2500000)], ['2', 'TS0002', AV, D$(300000)], ['3', 'TS0099', PP, D$(400000)], ['4', 'TS0007', AV, D$(100000)]]));
   // a PMO's document holds that PMO's data and nobody else's
   const av = doc('pmo:air vehicle (av)'), pp = doc('pmo:propulsion (pp)');
+  C.eq('in a PMO’s document the prime lists that PMO’s plan events only', J([secOf(av, 'om', 2027).groups[0].records[0].events, secOf(pp, 'om', 2027).groups[0].records[0].events]), J([['P1'], ['P2']]));
   // §33.9 the colour down the left side: Prime Contracts its own, each PMO its own, the same in every document
   const cols = d => d.sections.flatMap(x => x.groups.map(g => g.label + ' ' + g.color));
   C.eq('O&M: Prime Contracts, Air Vehicle and Propulsion each have their own colour', J([...new Set(cols(om))]), J(['Air Vehicle (AV) #B9D7B0', 'Prime Contracts #8EAADB', 'Propulsion (PP) #E9B9C4']));
@@ -239,7 +244,7 @@ try {
   const jpg = new Uint8Array(execFileSync('python3', ['-c', 'import sys,io\nfrom PIL import Image\nb=io.BytesIO(); Image.new("RGB",(40,20),(10,90,160)).save(b,"JPEG"); sys.stdout.buffer.write(b.getvalue())']));
   C.eq('a JPEG’s size is read from its frame header', J(SP.jpegInfo(jpg)), J({ w: 40, h: 20, n: 3 }));
   C.eq('and anything else is not a JPEG', SP.jpegInfo(new Uint8Array([1, 2, 3, 4])), null);
-  const ctx = { program: 'Tessa Program', lead: 'A. Lead', bfm: 'B. Analyst', asOfLabel: M.asOfLabel, today: '2026-11-17', uploaded: 'Data uploaded 9 Nov 2026.', emblem: jpg, model: M, bae: false,
+  const ctx = { program: 'Tessa Program', fm: { om: 'O. Lead', sp: 'S. Lead' }, asOfLabel: M.asOfLabel, today: '2026-11-17', uploaded: 'Data uploaded 9 Nov 2026.', emblem: jpg, model: M, bae: false,
     ufrFiles: [{ fy: 2027, name: 'UFR Tracker FY27.xlsx', day: '2026-11-14' }] };
   const P = SP.publishPages(om, ctx);
   const texts = p => p.ops.filter(o => o.t === 'text').map(o => o.s);
@@ -256,7 +261,7 @@ try {
     P.pages.every(p => p.ops.every(o => o.t !== 'text' || o.align !== 'r' || o.x - SP.pdfTextWidth(o.s, o.size, o.bold) >= 18)));
   const p1 = P.pages[0];
   C.chk('page 1: the title, the appropriation, the band, who and when', has(p1, 'Tessa Program - Spend Plan') && has(p1, 'Operations & Maintenance') && has(p1, 'Execution status - FY2026, FY2027')
-    && has(p1, 'Lead BFM: A. Lead | BFM: B. Analyst') && has(p1, 'Data as of: 17 Nov 2026  |  Data through Oct-2026'), J(texts(p1).slice(0, 8)));
+    && has(p1, 'O&M FM Lead: O. Lead') && has(p1, 'Data as of: 17 Nov 2026  |  Data through Oct-2026'), J(texts(p1).slice(0, 8)));
   C.chk('page 1: the emblem is placed, inside its 54 pt box, its shape kept', p1.ops.some(o => o.t === 'img' && o.name === 'emblem' && o.w === 54 && o.h === 27));
   // §33.7 the emblem sits in the band: the band runs out from behind it, from the emblem's blue into the band's colour
   const strips = p1.ops.filter(o => o.t === 'rect' && o.y === 57 && o.h === 12);
@@ -280,31 +285,44 @@ try {
   C.chk('the FY2027 page: the section’s totals, top right', has(p3, 'TOTAL') && has(p3, SP.fmtWhole(SEC_A + SEC_U)) && has(p3, SP.fmtWhole(SEC_A)));
   C.eq('the FY2027 page: six service rows and a Total for each of its five records', J([texts(p3).filter(s => s === 'USAF ANG').length, texts(p3).filter(s => s === 'Total').length]), J([6, 5]));
   C.eq('the FY2027 page: the left side is drawn in each group’s colour, top to bottom', J(p3.ops.filter(o => o.t === 'rect' && o.x === 18 && o.w === 58 && o.y > 100).map(o => o.fill)), J(['#8EAADB', '#B9D7B0', '#E9B9C4']));
+  const descX = 204 + 4;
+  C.eq('the FY2027 page: a record with no typed description lists its plan event titles, one to a line, in order (Tessa B)',
+    J(p3.ops.filter(o => o.t === 'text' && o.x === descX && /^T2/.test(o.s)).sort((a, b) => a.y - b.y).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
+  C.chk('and a typed description replaces the list (the prime): its plan events are not printed', has(p3, 'The prime contract') && !has(p3, 'P1') && !has(p3, 'P2'));
   const p4 = P.pages[3];
   C.chk('the last page: the unfunded list, filtered to this document, with its columns', has(p4, 'Unfunded requirements') && ['Rank', 'Requirement Title', 'PMO', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total', 'Funding Status', 'Exec Ready?', 'SFCB Action'].every(h => has(p4, h)));
   C.chk('the last page: a line’s amounts, status and action; the subtotal and the total', has(p4, 'O&M FY2027') && has(p4, 'New thing') && has(p4, 'TS0099') && has(p4, '400,000') && has(p4, 'Pending') && has(p4, 'Approved 12 Nov')
     && has(p4, 'Subtotal - O&M FY2027') && has(p4, 'Total unfunded') && texts(p4).filter(s => s === '3,300,000').length === 2, J(texts(p4)));
+  C.chk('every page of the O&M plan names the O&M FM Lead and no other', P.pages.slice(0, 3).every(p => has(p, 'O&M FM Lead: O. Lead')) && !P.pages.some(p => texts(p).some(s => /S\. Lead/.test(s))));
   const Ppp = SP.publishPages(pp, ctx);
+  C.chk('a PMO’s plan: its stoplight page names the FM Lead of each appropriation it covers; each section’s pages name their own',
+    has(Ppp.pages[0], 'FM Leads: O&M: O. Lead | Initial Spares: S. Lead') && has(Ppp.pages[1], 'O&M FM Lead: O. Lead') && has(Ppp.pages[2], 'Initial Spares FM Lead: S. Lead'), J(Ppp.pages.map(p => texts(p).filter(s => /Lead/.test(s)))));
   C.chk('a PMO’s document: one stoplight at the front, a page per appropriation and year, then its unfunded list',
     Ppp.pages.length === 4 && texts(Ppp.pages[0]).includes('Propulsion (PP) by appropriation and fiscal year') && texts(Ppp.pages[1]).includes('Propulsion (PP) - Operations & Maintenance')
     && texts(Ppp.pages[2]).includes('Propulsion (PP) - Initial Spares') && texts(Ppp.pages[2]).includes('PMO Spend Plan - Initial Spares FY2027') && texts(Ppp.pages[3]).includes('Unfunded requirements'),
     J(Ppp.pages.map(p => texts(p).slice(0, 4))));
   C.eq('only its first page is a stoplight', Ppp.pages.filter(p => texts(p).some(s => /^Execution status/.test(s))).length, 1);
-  const P0 = SP.publishPages(D0.docs[0], Object.assign({}, ctx, { ufrFiles: [], emblem: null, lead: '', bfm: '', program: '' }));
+  const P0 = SP.publishPages(D0.docs[0], Object.assign({}, ctx, { ufrFiles: [], emblem: null, fm: {}, program: '' }));
   C.chk('with no unfunded list the last page and the notes say so; with no names or emblem none is printed',
     texts(P0.pages[P0.pages.length - 1]).includes('No unfunded list is loaded.') && texts(P0.pages[0]).some(s => /No unfunded list is loaded: Required equals Approved/.test(s))
-    && !texts(P0.pages[0]).some(s => /BFM/.test(s)) && !P0.pages.some(p => p.ops.some(o => o.t === 'img')) && texts(P0.pages[0]).includes('Spend Plan')
+    && !texts(P0.pages[0]).some(s => /Lead/.test(s)) && !P0.pages.some(p => p.ops.some(o => o.t === 'img')) && texts(P0.pages[0]).includes('Spend Plan')
     && J(P0.pages[0].ops.filter(o => o.t === 'rect' && o.y === 57).map(o => [o.x, o.w, o.fill])) === J([[18, 756, '#8EAADB']]));
   // a long section: no record's block of service rows is split across pages
   const big = { id: 'ap:om', kind: 'ap', ap: 'om', label: 'O&M', long: 'Operations & Maintenance', file: 'Big.pdf', stoplight: { rows: [], total: {}, pmoRows: [] }, ufr: [],
     sections: [{ ap: 'om', apLabel: 'O&M', fy: 2027, total: fig(0, 0, 0), svc: [0, 1, 2, 3, 4, 5].map(() => fig(0, 0, 0)), n: 40,
       groups: [{ label: PP, prime: false, records: Array.from({ length: 40 }, (_, i) => ({ key: 'k' + i, ccar: 'K' + i, title: 'Record ' + i + ' ' + 'word '.repeat(i % 9), desc: 'd '.repeat(i * 3),
-        dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false })) }] }] };
+        dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false,
+        events: i === 3 ? Array.from({ length: 60 }, (_, j) => 'Event ' + j + ' of record three') : i === 4 ? ['A plan event title long enough that it has to wrap under itself in the description column'] : [] })) }] }] };
+  big.sections[0].groups[0].records[3].desc = ''; big.sections[0].groups[0].records[4].desc = '';
   const PB = SP.publishPages(big, ctx).pages.slice(1, -1);
   C.chk('forty records take several pages', PB.length >= 5, String(PB.length));
   C.chk('on each of them every record is whole: as many first rows (USAF) as Total rows (one USAF is the header’s), and each record’s number on one page only',
     PB.every(p => texts(p).filter(s => s === 'USAF').length - 1 === texts(p).filter(s => s === 'Total').length)
     && Array.from({ length: 40 }, (_, i) => PB.filter(p => texts(p).includes('CCaR K' + i)).length).every(n => n === 1));
+  const allT = PB.flatMap(p => p.ops.filter(o => o.t === 'text'));
+  C.chk('sixty plan events: the list stops inside forty lines and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 39 && allT.some(o => o.s === '+21 more plan events'),
+    String(allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length));
+  C.chk('a long plan event title wraps under itself, its later lines set in', allT.some(o => o.x === descX && /^A plan event title long enough/.test(o.s)) && allT.some(o => o.x === descX + 5 && /under itself|description column|wrap/.test(o.s)));
   C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 592.01)));
   // the header with the summary, and the column headings, are on every page of a section
   C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',
@@ -340,10 +358,11 @@ try {
   C.chk('a plan that never loaded a list or typed a word holds neither key', !('ufr' in SP.state) && !('publish' in SP.state));
   C.chk('setUfr keeps the list, by fiscal year', SP.setUfr(U, '2026-11-14T15:00:00.000Z') === true && SP.state.ufr['2027'].lines.length === 8 && SP.state.ufr['2027'].name === 'UFR Tracker FY27.xlsx' && SP.isDirty());
   C.chk('a refused read is not kept', SP.setUfr({ ok: false, why: 'x' }) === false);
-  C.chk('setPublish keeps descriptions (trimmed), the names and the emblem',
-    SP.setPublish({ desc: { ts0002: '  The   second  ', ts0003: 'x' }, lead: ' A. Lead ', bfm: 'B', program: 'Tessa Program', emblem: 'data:image/jpeg;base64,' + Buffer.from(jpg).toString('base64') }) === true
-    && J(SP.state.publish.desc) === J({ ts0002: 'The second', ts0003: 'x' }) && SP.state.publish.lead === 'A. Lead' && /^data:image\/jpeg/.test(SP.state.publish.emblem));
+  C.chk('setPublish keeps descriptions (trimmed), each appropriation’s FM Lead (and no name for anything that is not one) and the emblem',
+    SP.setPublish({ desc: { ts0002: '  The   second  ', ts0003: 'x' }, fm: { om: ' O.  Lead ', ff: 'F. Lead', zz: 'nobody' }, program: 'Tessa Program', emblem: 'data:image/jpeg;base64,' + Buffer.from(jpg).toString('base64') }) === true
+    && J(SP.state.publish.desc) === J({ ts0002: 'The second', ts0003: 'x' }) && J(SP.state.publish.fm) === J({ om: 'O. Lead', ff: 'F. Lead' }) && /^data:image\/jpeg/.test(SP.state.publish.emblem));
   C.chk('a blank description is taken away; the same thing twice is no change', SP.setPublish({ desc: { ts0003: '' } }) === true && !('ts0003' in SP.state.publish.desc) && SP.setPublish({ desc: { ts0003: '' } }) === false);
+  C.chk('an FM Lead cleared is taken away, and the last one takes the table with it', SP.setPublish({ fm: { ff: '' } }) === true && J(SP.state.publish.fm) === J({ om: 'O. Lead' }));
   C.chk('an emblem that is not a JPEG is not kept', SP.setPublish({ emblem: 'data:text/html;base64,AAAA' }) === false);
   C.chk('Print no emblem is kept as yes, and taken away as no; null puts the built-in emblem back',
     SP.setPublish({ noEmblem: true }) === true && SP.state.publish.noEmblem === true && SP.setPublish({ noEmblem: false }) === true && !('noEmblem' in SP.state.publish)
@@ -361,6 +380,7 @@ try {
     ['a list filed under another year', s => { s.ufr = { 2028: { fy: 2027, lines: [] } }; }, /unfunded list for FY2028.*fiscal year/],
     ['descriptions that are not text', s => { s.publish = { desc: { a: 5 } }; }, /descriptions are not text/],
     ['an emblem that is not a JPEG', s => { s.publish = { emblem: 'data:image/svg+xml;base64,AAAA' }; }, /emblem is not a JPEG/],
+    ['FM Leads that are not names', s => { s.publish = { fm: { om: 7 } }; }, /FM Leads are not names by appropriation/],
     ['a no-emblem setting that is not yes or no', s => { s.publish = { noEmblem: 'yes' }; }, /printing no emblem is not yes or no/]]) {
     const s = JSON.parse(J(good)); mut(s);
     const tb = loadTool({ modules: ['util', 'xlsx-read', 'import', 'engine', 'publish', 'pdf', 'store'], state: s });
@@ -390,10 +410,10 @@ try {
   C.eq('the page’s title', main().querySelector('h2.title').textContent, 'Publish spend plan');
   const docRows = () => [...main().querySelectorAll('#uiPubDocs tbody tr')].map(tr => [...tr.children].slice(0, 5).map(td => td.textContent));
   C.eq('the documents, before any unfunded list', J(docRows()), J([
-    ['APEX Spend Plan - O&M', 'Consolidated, every PMO · FY2026, FY2027', '4', '0', '4 missing'],
-    ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0', '1 missing'],
-    ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0', '3 missing'],
-    ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0', '3 missing']]));
+    ['APEX Spend Plan - O&M', 'Consolidated, every PMO · FY2026, FY2027', '4', '0', '0 typed, 4 list plan events'],
+    ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0', '0 typed, 1 list plan events'],
+    ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0', '0 typed, 3 list plan events'],
+    ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0', '0 typed, 3 list plan events']]));
   C.chk('with no list it says Required equals Approved', /No unfunded list is loaded: Required equals Approved/.test(main().querySelector('#uiUfrList').textContent));
   // the unfunded list, through the page's own file box
   const fileIn = main().querySelector('#uiUfrFile');
@@ -409,16 +429,19 @@ try {
     ['APEX Spend Plan - O&M', '6', '4'], ['APEX Spend Plan - Initial Spares', '1', '0'], ['APEX Spend Plan - OPN', '4', '4'], ['APEX Spend Plan - PMO AV', '4', '3'], ['APEX Spend Plan - PMO PP', '8', '5']]));
   C.chk('what to check is listed: the tracker’s own notes and the placements', main().querySelectorAll('#uiUfrNotes li').length === 5 + 3 + 4, String(main().querySelectorAll('#uiUfrNotes li').length));
   // a description typed is saved and counted
-  C.eq('descriptions: none written yet', main().querySelector('#uiPubDescN').textContent, '0 of 9 written');
+  C.eq('descriptions: none written yet', main().querySelector('#uiPubDescN').textContent, '0 of 9 typed; the rest list their plan events');
   const box = main().querySelector('input[data-act=pubdesc][data-k="jsf6654"]');
   box.value = 'The prime contract'; change(box); await settle();
   C.chk('a description typed is kept in the plan, by CCaR number', S2.state.publish && S2.state.publish.desc.jsf6654 === 'The prime contract');
-  C.eq('and counted', main().querySelector('#uiPubDescN').textContent, '1 of 9 written');
-  C.eq('and the O&M document has one fewer missing', docRows()[0][4], '4 missing');
+  C.eq('and counted', main().querySelector('#uiPubDescN').textContent, '1 of 9 typed; the rest list their plan events');
+  C.eq('and the O&M document has one fewer missing', docRows()[0][4], '1 typed, 4 list plan events');
   const missBox = main().querySelector('input[data-act=pubmiss]'); missBox.checked = true; change(missBox); await settle();
   C.eq('Show only the missing: eight rows', main().querySelectorAll('#uiPubDesc tbody tr').length, 8);
-  const lead = main().querySelector('input[data-act=pubhead][data-f=lead]'); lead.value = 'A. Lead'; change(lead); await settle();
-  C.chk('a name typed is kept', S2.state.publish.lead === 'A. Lead' && main().querySelector('input[data-act=pubhead][data-f=lead]').value === 'A. Lead');
+  C.eq('four FM Lead boxes, one for each appropriation, and no BFM box', J([[...main().querySelectorAll('input[data-act=pubfm]')].map(b => b.parentElement.textContent.trim()), /BFM/.test(main().textContent)]),
+    J([['O&M FM Lead', 'Full Fund FM Lead', 'Initial Spares FM Lead', 'OPN FM Lead'], false]));
+  const lead = main().querySelector('input[data-act=pubfm][data-ap=om]'); lead.value = 'O. Lead'; change(lead); await settle();
+  const lead2 = main().querySelector('input[data-act=pubfm][data-ap=opn]'); lead2.value = 'N. Lead'; change(lead2); await settle();
+  C.chk('a name typed is kept, under its appropriation', J(S2.state.publish.fm) === J({ om: 'O. Lead', opn: 'N. Lead' }) && main().querySelector('input[data-act=pubfm][data-ap=om]').value === 'O. Lead');
   // one fiscal year
   const fy26 = main().querySelector('input[data-act=pubfy][data-fy="2026"]'); fy26.checked = false; change(fy26); await settle();
   C.eq('FY2026 unticked: the documents cover FY2027 only', J(docRows().map(r => r[1].split(' · ')[1])), J(['FY2027', 'FY2027', 'FY2027', 'FY2027', 'FY2027']));
@@ -436,7 +459,7 @@ try {
   C.chk('Download PDF hands the browser a PDF by the document’s name', got.length === 1 && got[0].name === 'APEX Spend Plan - O&M.pdf' && got[0].mime === 'application/pdf' && Buffer.from(got[0].data.slice(0, 5)).toString() === '%PDF-', J(got.map(g => g.name)));
   writeFileSync(join(tmp.dir, 'ui.pdf'), got[0].data);
   const ut = spawnSync('pdftotext', ['-layout', join(tmp.dir, 'ui.pdf'), '-'], { encoding: 'utf8' }).stdout;
-  C.chk('with USN switched off on screen the PDF still counts USN: the prime’s Approved is 4,000,000 and Required 6,500,000', /\$\s+6,500,000\s+\$\s+4,000,000/.test(ut) && /Lead BFM: A\. Lead/.test(ut), ut.slice(0, 600));
+  C.chk('with USN switched off on screen the PDF still counts USN: the prime’s Approved is 4,000,000 and Required 6,500,000', /\$\s+6,500,000\s+\$\s+4,000,000/.test(ut) && /O&M FM Lead: O\. Lead/.test(ut) && !/N\. Lead/.test(ut), ut.slice(0, 600));
   // §33.7 the built-in emblem is printed unless the plan holds another or asks for none
   const embBytes = Buffer.from(S2.EMBLEM_DEFAULT.split(',')[1], 'base64');
   C.eq('the built-in emblem is a JPEG, 240 px square', J([/^data:image\/jpeg;base64,/.test(S2.EMBLEM_DEFAULT), S2.jpegInfo(new Uint8Array(embBytes))]), J([true, { w: 240, h: 240, n: 3 }]));

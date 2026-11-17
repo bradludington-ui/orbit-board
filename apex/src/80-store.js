@@ -264,7 +264,9 @@ function st_checkPublish(p) {
   if (p === undefined || p === null) return '';
   if (!st_isObj(p)) return 'its publishing settings are not a set of settings';
   if (p.desc !== undefined && !(st_isObj(p.desc) && Object.keys(p.desc).every(k => typeof p.desc[k] === 'string'))) return 'its descriptions are not text by CCaR record';
+  // lead and bfm: the two names the first day's build kept, read by nothing since the FM Leads replaced them; a plan that holds them still opens
   for (const t of ['program', 'lead', 'bfm']) if (p[t] !== undefined && typeof p[t] !== 'string') return 'its publishing ' + t + ' is not text';
+  if (p.fm !== undefined && !(st_isObj(p.fm) && Object.keys(p.fm).every(k => typeof p.fm[k] === 'string'))) return 'its FM Leads are not names by appropriation';
   if (p.emblem !== undefined && p.emblem !== null && !(typeof p.emblem === 'string' && ST_EMBLEM.test(p.emblem))) return 'its emblem is not a JPEG picture';
   if (p.noEmblem !== undefined && typeof p.noEmblem !== 'boolean') return 'its setting for printing no emblem is not yes or no';
   return '';
@@ -943,7 +945,7 @@ SP.removeUfr = function removeUfr(fy) {
   st_changed(false);
   return true;
 };
-// §33.6 the publishing settings: {program, lead, bfm, emblem, noEmblem, desc: {CCaR number (normKey): text}}. emblem: a
+// §33.6 the publishing settings: {program, fm: {om, ff, sp, opn: the appropriation's FM Lead}, emblem, noEmblem, desc: {CCaR number (normKey): text}}. emblem: a
 // picture loaded in place of the built-in one (null puts the built-in one back); noEmblem: true prints none. A description given as
 // '' is taken away; the others are replaced as given. Nothing changed is nothing to save.
 SP.setPublish = function setPublish(patch) {
@@ -951,7 +953,16 @@ SP.setPublish = function setPublish(patch) {
   const st = SP.state;
   const cur = st_isObj(st.publish) ? st.publish : {};
   const next = st_clone(cur);
-  for (const t of ['program', 'lead', 'bfm']) if (typeof patch[t] === 'string') { if (patch[t].trim() === '') delete next[t]; else next[t] = patch[t].trim(); }
+  if (typeof patch.program === 'string') { if (patch.program.trim() === '') delete next.program; else next.program = patch.program.trim(); }
+  if (st_isObj(patch.fm)) {
+    const f = st_isObj(next.fm) ? next.fm : {};
+    for (const k of Object.keys(patch.fm)) {
+      if (!['om', 'ff', 'sp', 'opn'].includes(k)) continue;
+      const v = typeof patch.fm[k] === 'string' ? patch.fm[k].replace(/\s+/g, ' ').trim() : '';
+      if (v === '') delete f[k]; else f[k] = v;
+    }
+    if (Object.keys(f).length) next.fm = f; else delete next.fm;
+  }
   if (patch.noEmblem === true) next.noEmblem = true; else if (patch.noEmblem === false) delete next.noEmblem;
   if (patch.emblem === null) delete next.emblem;
   else if (typeof patch.emblem === 'string' && ST_EMBLEM.test(patch.emblem)) next.emblem = patch.emblem;

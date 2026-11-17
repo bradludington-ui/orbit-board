@@ -946,7 +946,7 @@ function ui_pubCtx(Mp, P) {
     catch (e) { emblem = null; }
     if (emblem && !SP.jpegInfo(emblem)) emblem = null;
   }
-  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, lead: P.pub.lead || '', bfm: P.pub.bfm || '', asOfLabel: Mp.asOfLabel, today: ui_today(),
+  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(),
     uploaded: up ? up.text + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
@@ -967,8 +967,8 @@ function ui_vPublish(M) {
       + '<th scope="col">Unfunded lines</th><th scope="col">Descriptions</th><th scope="col">PDF</th></tr></thead><tbody>'
       + D.docs.map((d, i) => '<tr data-doc="' + ui_e(d.id) + '"><th scope="row">' + ui_e(d.file.replace(/\.pdf$/, '')) + '</th><td>'
         + ui_e((d.kind === 'ap' ? 'Consolidated, every PMO' : 'That PMO only, ' + [...new Set(d.sections.map(s => s.apLabel))].join(', ')) + ' · ' + [...new Set(d.sections.map(s => 'FY' + s.fy))].join(', '))
-        + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + SP.fmtInt(d.ufr.length) + '</td><td class="' + (d.missing ? 'pubwarn' : 'pubok') + '">'
-        + (d.missing ? SP.fmtInt(d.missing) + ' missing' : 'all written') + '</td><td><button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
+        + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + SP.fmtInt(d.ufr.length) + '</td><td>'
+        + (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td><button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
       + '</tbody></table></div>');
   }
   // the unfunded list
@@ -989,8 +989,10 @@ function ui_vPublish(M) {
   const val = k => ui_e(typeof P.pub[k] === 'string' ? P.pub[k] : '');
   out.push('<h3 class="sub">On every document (saved in this file)</h3><div class="acts pubhead">'
     + '<label>Program title <input type="text" data-act="pubhead" data-f="program" data-fkey="pubhead:program" value="' + val('program') + '" placeholder="' + UI_PUB_PROGRAM + '" size="24"></label>'
-    + '<label>Lead BFM <input type="text" data-act="pubhead" data-f="lead" data-fkey="pubhead:lead" value="' + val('lead') + '" size="22"></label>'
-    + '<label>BFM <input type="text" data-act="pubhead" data-f="bfm" data-fkey="pubhead:bfm" value="' + val('bfm') + '" size="22"></label></div>'
+    + '</div><div class="acts pubhead" role="group" aria-label="Appropriation FM Lead">'
+    + SP.APS.map(a => '<label>' + ui_e(a.label) + ' FM Lead <input type="text" data-act="pubfm" data-ap="' + a.id + '" data-fkey="pubfm:' + a.id + '" value="'
+      + ui_e(P.pub.fm && typeof P.pub.fm[a.id] === 'string' ? P.pub.fm[a.id] : '') + '" size="20"></label>').join('') + '</div>'
+    + '<p class="note">Each appropriation’s FM Lead is printed in the header of that appropriation’s pages.</p>'
     + '<p class="acts">' + (ui_pubEmblem(P) ? '<img class="pubemb" id="uiPubEmb" alt="The emblem printed at the top left of every page" src="' + ui_e(ui_pubEmblem(P)) + '">' : '<span class="none" id="uiPubEmb">No emblem is printed.</span>')
     + '<span id="uiPubEmbWhat">' + (P.pub.noEmblem === true ? '' : P.pub.emblem ? 'The emblem you loaded.' : 'The built-in emblem.') + '</span>'
     + '<button type="button" data-act="embpick" data-fkey="embpick">Load another emblem…</button>'
@@ -999,15 +1001,15 @@ function ui_vPublish(M) {
     + '<input type="file" id="uiEmbFile" data-act="embfile" accept="image/png,image/jpeg,.png,.jpg,.jpeg" hidden></p>');
   // descriptions
   const miss = D.records.filter(r => !r.desc).length, list = ui.pub.miss ? D.records.filter(r => !r.desc) : D.records;
-  out.push('<h3 class="sub" id="ui-pubdesc">Descriptions (saved in this file)</h3><p class="note">One short description per CCaR record, printed beside it on every spend plan. Type it here, or import a list '
-    + '(a sheet with a CCaR Record or CCaR No column and a Description column); an import fills only the records that have none.</p>'
-    + '<p class="acts"><span id="uiPubDescN">' + SP.fmtInt(D.records.length - miss) + ' of ' + SP.fmtInt(D.records.length) + ' written</span>'
-    + '<label class="chk"><input type="checkbox" data-act="pubmiss" data-fkey="pubmiss"' + (ui.pub.miss ? ' checked' : '') + '> Show only the ' + SP.fmtInt(miss) + ' missing</label>'
+  out.push('<h3 class="sub" id="ui-pubdesc">Descriptions (saved in this file)</h3><p class="note">A record’s description is its plan event titles, listed, unless you type one here: a typed description replaces the list on every spend plan. You can also import a list '
+    + '(a sheet with a CCaR Record or CCaR No column and a Description column); an import fills only the records with none typed.</p>'
+    + '<p class="acts"><span id="uiPubDescN">' + SP.fmtInt(D.records.length - miss) + ' of ' + SP.fmtInt(D.records.length) + ' typed; the rest list their plan events</span>'
+    + '<label class="chk"><input type="checkbox" data-act="pubmiss" data-fkey="pubmiss"' + (ui.pub.miss ? ' checked' : '') + '> Show only the ' + SP.fmtInt(miss) + ' with none typed</label>'
     + '<button type="button" data-act="descpick" data-fkey="descpick">Import descriptions…</button><input type="file" id="uiDescFile" data-act="descfile" accept=".xlsx,.csv" hidden></p>');
   out.push(list.length ? '<div class="tw"><table class="grid pubdesc" id="uiPubDesc" aria-describedby="ui-pubdesc"><thead><tr class="hd"><th scope="col">CCaR record</th><th scope="col">Requirement title</th>'
     + '<th scope="col">Description</th></tr></thead><tbody>' + list.map(r => '<tr><th scope="row">' + ui_e(r.ccar) + '</th><td>' + ui_e(r.title) + '</td><td><input type="text" class="pubd" data-act="pubdesc" data-k="'
-      + ui_e(r.key) + '" data-fkey="pubdesc:' + ui_e(r.key) + '" value="' + ui_e(r.desc) + '" maxlength="300" aria-label="' + ui_e('Description of ' + r.ccar + ', ' + r.title) + '"></td></tr>').join('')
-    + '</tbody></table></div>' : '<p class="none">' + (D.records.length ? 'Every record has a description.' : 'No CCaR record to describe.') + '</p>');
+      + ui_e(r.key) + '" data-fkey="pubdesc:' + ui_e(r.key) + '" value="' + ui_e(r.desc) + '" placeholder="Lists its plan events" maxlength="300" aria-label="' + ui_e('Description of ' + r.ccar + ', ' + r.title) + '"></td></tr>').join('')
+    + '</tbody></table></div>' : '<p class="none">' + (D.records.length ? 'Every record has a typed description.' : 'No CCaR record to describe.') + '</p>');
   return out.join('');
 }
 function ui_pubReady() { return ui.reg && ui.reg.pub ? ui.reg.pub : null; }
@@ -1894,7 +1896,7 @@ function ui_vHelp() {
       + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
       '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
-      'Descriptions, the program title, the BFM names and the emblem are typed or loaded once on that page and saved in this file.',
+      'A record’s Description lists its plan event titles, in date order, unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
     + '<h3 class="sub">Manage data</h3>' + li([
@@ -2647,6 +2649,7 @@ function ui_onChange(ev) {
     case 'pubmiss': ui.pub.miss = !!t.checked; ui_render(); return;
     case 'pubnoemb': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ noEmblem: !!t.checked }); ui_render(); } return;
     case 'pubdesc': if (ui_need('setPublish', 'Descriptions')) { SP.setPublish({ desc: { [t.getAttribute('data-k')]: t.value } }); ui_render(); } return;
+    case 'pubfm': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ fm: { [t.getAttribute('data-ap')]: t.value } }); ui_render(); } return;
     case 'pubhead': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ [t.getAttribute('data-f')]: t.value }); ui_render(); } return;
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');
