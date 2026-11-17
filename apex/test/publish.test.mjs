@@ -285,9 +285,18 @@ try {
   C.chk('the FY2027 page: the section’s totals, top right', has(p3, 'TOTAL') && has(p3, SP.fmtWhole(SEC_A + SEC_U)) && has(p3, SP.fmtWhole(SEC_A)));
   C.eq('the FY2027 page: six service rows and a Total for each of its five records', J([texts(p3).filter(s => s === 'USAF ANG').length, texts(p3).filter(s => s === 'Total').length]), J([6, 5]));
   C.eq('the FY2027 page: the left side is drawn in each group’s colour, top to bottom', J(p3.ops.filter(o => o.t === 'rect' && o.x === 18 && o.w === 58 && o.y > 100).map(o => o.fill)), J(['#8EAADB', '#B9D7B0', '#E9B9C4']));
-  const descX = 204 + 4;
-  C.eq('the FY2027 page: a record with no typed description lists its plan event titles, one to a line, in order (Tessa B)',
-    J(p3.ops.filter(o => o.t === 'text' && o.x === descX && /^T2/.test(o.s)).sort((a, b) => a.y - b.y).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
+  const descX = 204 + 4, evX = descX + 6;
+  const evOf = p => p.ops.filter(o => o.t === 'text' && o.x === evX).sort((a, b) => a.y - b.y);
+  C.eq('the FY2027 page: a record with no typed description lists its plan event titles, in order (Tessa B)', J(evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
+  C.chk('each title has its own bullet, level with it', evOf(p3).filter(o => /^T2/.test(o.s)).every(o => p3.ops.some(b => b.t === 'text' && b.s === '\u2022' && b.x === descX && b.y === o.y)));
+  { const ys = evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.y); C.chk('with a little air between one title and the next', Math.abs((ys[1] - ys[0]) - 9.2) < 0.01, J(ys)); }
+  // a prime with no typed description carries its Requirement Title over, never its plan events
+  const Pav = SP.publishPages(D0.docs.find(d => d.id === 'pmo:propulsion (pp)'), ctx).pages[1];
+  C.chk('a prime with nothing typed: its Description is its Requirement Title (so the title is printed twice) and its plan events are not listed',
+    texts(Pav).filter(x => x === 'Prime Alpha').length === 2 && !texts(Pav).includes('P2') && texts(Pav).includes('T7'), J(texts(Pav).filter(x => /Prime|P2|T7/.test(x))));
+  C.eq('the tag every title of a record begins with is left off the list; one that differs, or a single title with no tag, and they print as they are',
+    J([SP.publishEventNames(['OGC - CAD/PAD Shipping', 'ogc -  Seat Cartridges']), SP.publishEventNames(['OGC - Chem Bio Labor']), SP.publishEventNames(['OGC - A', 'LM - B']), SP.publishEventNames(['Plain title', 'OGC - B']), SP.publishEventNames(['Air Vehicle - long - name'])]),
+    J([['CAD/PAD Shipping', 'Seat Cartridges'], ['Chem Bio Labor'], ['OGC - A', 'LM - B'], ['Plain title', 'OGC - B'], ['Air Vehicle - long - name']]));
   C.chk('and a typed description replaces the list (the prime): its plan events are not printed', has(p3, 'The prime contract') && !has(p3, 'P1') && !has(p3, 'P2'));
   const p4 = P.pages[3];
   C.chk('the last page: the unfunded list, filtered to this document, with its columns', has(p4, 'Unfunded requirements') && ['Rank', 'Requirement Title', 'PMO', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total', 'Funding Status', 'Exec Ready?', 'SFCB Action'].every(h => has(p4, h)));
@@ -322,7 +331,9 @@ try {
   const allT = PB.flatMap(p => p.ops.filter(o => o.t === 'text'));
   C.chk('sixty plan events: the list stops inside forty lines and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 39 && allT.some(o => o.s === '+21 more plan events'),
     String(allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length));
-  C.chk('a long plan event title wraps under itself, its later lines set in', allT.some(o => o.x === descX && /^A plan event title long enough/.test(o.s)) && allT.some(o => o.x === descX + 5 && /under itself|description column|wrap/.test(o.s)));
+  { const w = allT.filter(o => o.x === evX && /plan event title long enough|under itself|description column/.test(o.s)).sort((a, b) => a.y - b.y);
+    C.chk('a long plan event title wraps squarely under itself, with one bullet for the whole title', w.length >= 2 && Math.abs(w[1].y - w[0].y - 7.4) < 0.01
+      && PB.flatMap(p => p.ops).filter(b => b.t === 'text' && b.s === '\u2022' && w.some(o => o.y === b.y)).length === 1, J(w.map(o => [o.s, o.y]))); }
   C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 592.01)));
   // the header with the summary, and the column headings, are on every page of a section
   C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',

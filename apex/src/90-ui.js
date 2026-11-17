@@ -1001,7 +1001,7 @@ function ui_vPublish(M) {
     + '<input type="file" id="uiEmbFile" data-act="embfile" accept="image/png,image/jpeg,.png,.jpg,.jpeg" hidden></p>');
   // descriptions
   const miss = D.records.filter(r => !r.desc).length, list = ui.pub.miss ? D.records.filter(r => !r.desc) : D.records;
-  out.push('<h3 class="sub" id="ui-pubdesc">Descriptions (saved in this file)</h3><p class="note">A record’s description is its plan event titles, listed, unless you type one here: a typed description replaces the list on every spend plan. You can also import a list '
+  out.push('<h3 class="sub" id="ui-pubdesc">Descriptions (saved in this file)</h3><p class="note">A record’s description is its plan event titles, listed (a prime contract’s is its Requirement Title), unless you type one here: a typed description replaces the list on every spend plan. You can also import a list '
     + '(a sheet with a CCaR Record or CCaR No column and a Description column); an import fills only the records with none typed.</p>'
     + '<p class="acts"><span id="uiPubDescN">' + SP.fmtInt(D.records.length - miss) + ' of ' + SP.fmtInt(D.records.length) + ' typed; the rest list their plan events</span>'
     + '<label class="chk"><input type="checkbox" data-act="pubmiss" data-fkey="pubmiss"' + (ui.pub.miss ? ' checked' : '') + '> Show only the ' + SP.fmtInt(miss) + ' with none typed</label>'
@@ -1896,7 +1896,7 @@ function ui_vHelp() {
       + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
       '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
-      'A record’s Description lists its plan event titles, in date order, unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
+      'A record’s Description is a bulleted list of its plan event titles, in date order (a prime contract’s is its Requirement Title), unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
     + '<h3 class="sub">Manage data</h3>' + li([

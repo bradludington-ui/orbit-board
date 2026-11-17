@@ -237,7 +237,8 @@ for the switches.
   - **Import unfunded list…** takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
     OPN tabs, read by their column titles; amounts in $K). Required is Approved plus the unfunded amount for that CCaR
     record. A record that is only on the unfunded list still appears, with Approved $0. Anything to check is listed.
-  - **Descriptions**: a record's Description column lists its plan event titles, in date order. To print your own
+  - **Descriptions**: a record's Description column is a bulleted list of its plan event titles, in date order; a
+    prime contract's is its Requirement Title. To print your own
     wording instead, type one for the CCaR record in the list, or import a sheet with a CCaR number column and a
     Description column. Typed descriptions are saved in the file and reused.
   - **On every document**: the program title, the FM Lead of each appropriation (four names; each is printed on its

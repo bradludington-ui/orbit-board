@@ -2040,13 +2040,20 @@ across all versions."* Prime Contracts has its own colour (the header band's blu
 so it is the same in every appropriation's document, in the PMO's own, and from one data pull to the next. A PMO the tool
 does not know takes one of four further colours by its name. Every colour is light enough for the black label to read.
 
-### 33.10 The description is the plan event titles, listed (Brad, 18 Nov 2026)
+### 33.10 The description (Brad, 18 Nov 2026)
 
-Brad: *"For the description, let's default to the Plan Event Title and have them listed."* A record's Description column
-lists the titles of its plan events, one to a line, in the order they fall (each by its earliest date; one with no date
-last, then by name). A long title wraps under itself. Past forty lines the list ends "+N more plan events". A description
-typed or imported for the CCaR record (§33.3) replaces the list. A record that is only on the unfunded list has no plan
-event, so its Description is blank unless one is typed. In a PMO's document a prime lists that PMO's plan events only.
+Unless a description is typed or imported for the CCaR record (§33.3), which always wins:
+
+- **A prime contract's description is its Requirement Title.** Brad, of a prime that listed sixty CLIN-level plan events:
+  *"My prime contracts are too wordy with all the CLIN information in there. Let's just carry the Requirement Title over
+  for those."* This holds in an appropriation's document and in a PMO's.
+- **Any other record's is its plan event titles, as a bulleted list** (*"let's default to the Plan Event Title and have
+  them listed"*; then, of the first layout, *"let's find a better way to list the Plan Events"*). In the order they fall
+  (each by its earliest date; one with no date last, then by name). Each title has its own bullet and wraps squarely under
+  itself, with a little space between titles. Where every title of the record begins with the same short tag and a dash
+  ("OGC - "), the tag is left off the list (`SP.publishEventNames`): the Requirement Title beside it already says it. Past
+  forty lines the list ends "+N more plan events".
+- A record that is only on the unfunded list has no plan event, so its Description is blank unless one is typed.
 
 ### 33.11 The FM Lead is the appropriation's (Brad, 18 Nov 2026)
 

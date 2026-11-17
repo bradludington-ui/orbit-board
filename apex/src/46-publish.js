@@ -449,6 +449,16 @@ function pb_mix(a, b, t) {
 }
 function pb_isoWords(iso) { return pb_dateWords(iso) || String(iso || ''); }
 
+// the plan event titles as a record's list prints them: where EVERY title begins with the same short tag and a dash
+// ("OGC - CAD/PAD Shipping", "OGC - CAD/PAD Seat Cartridges"), the tag is left off each. One title that differs, or a
+// title that is nothing but the tag, and they are printed as they are.
+SP.publishEventNames = function publishEventNames(events) {
+  const list = (events || []).map(e => String(e));
+  const tag = e => { const m = /^\s*([A-Za-z0-9&/]{1,10})\s+-\s+(\S.*)$/.exec(e); return m ? [m[1].toLowerCase(), m[2].trim()] : null; };
+  const t = list.map(tag);
+  if (!list.length || t.some(x => !x) || t.some(x => x[0] !== t[0][0])) return list;
+  return t.map(x => x[1]);
+};
 SP.publishPages = function publishPages(doc, ctx) {
   const C = ctx || {};
   const pages = [];
@@ -622,23 +632,33 @@ SP.publishPages = function publishPages(doc, ctx) {
       for (const r of g.records) {
         const nRows = r.svc.length + 1;
         const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
-        // THE DESCRIPTION IS THE RECORD'S PLAN EVENT TITLES, LISTED, unless one was typed (Brad, 18 Nov 2026: "For the description,
-        // let's default to the Plan Event Title and have them listed"). One to a line, in the order they fall; a long title
-        // wraps under itself; past forty lines the list ends by saying how many more there are.
-        const dW = X[3] - X[2] - 8, evH = 7.4, evMax = 40;
-        let evLines = null;
-        if (!r.desc && Array.isArray(r.events) && r.events.length) {
+        // THE DESCRIPTION (§33.10). Unless one was typed:
+        //   - a prime contract's is its Requirement Title (Brad, 18 Nov 2026, of a prime listing sixty CLIN-level plan events:
+        //     "My prime contracts are too wordy with all the CLIN information in there. Let's just carry the Requirement
+        //     Title over for those");
+        //   - any other record's is its plan event titles, as a bulleted list in the order they fall ("let's default to the
+        //     Plan Event Title and have them listed"; then, of the first layout, "let's find a better way to list the Plan
+        //     Events"). Each title has its own bullet and wraps squarely under itself, with a little air between titles, so
+        //     where one ends and the next begins is plain. The tag every title of the record begins with ("OGC - ") is
+        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). Past forty lines
+        //     the list ends by saying how many more there are.
+        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.8, evMax = 40;
+        const descText = r.desc || (g.prime ? r.title : '');
+        let evLines = null, evTall = 0;
+        if (!descText && Array.isArray(r.events) && r.events.length) {
           evLines = [];
-          let left = r.events.length;
-          for (const e of r.events) {
-            const ls = SP.pdfWrap(e, 6.3, false, dW - 5);
-            if (evLines.length + ls.length > evMax - 1 && left > 1) break;
-            ls.forEach((l, i) => evLines.push({ s: l, first: i === 0 }));
-            left--;
+          const names = SP.publishEventNames(r.events);
+          let left = names.length, n = 0;
+          for (const e of names) {
+            const ls = SP.pdfWrap(e, 6.3, false, dW - 7);
+            if (n + ls.length > evMax - 1 && left > 1) break;
+            if (evLines.length) evTall += evGap;
+            ls.forEach((l, i) => { evLines.push({ s: l, first: i === 0, dy: evTall }); evTall += evH; });
+            n += ls.length; left--;
           }
-          if (left > 0) evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), first: false, more: true });
+          if (left > 0) { evTall += evGap; evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), more: true, dy: evTall }); evTall += evH; }
         }
-        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6, evLines ? evLines.length * evH + 6 : 0);
+        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6, evLines ? evTall + 6 : 0);
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
         if (!run) run = { label: g.label, y0: y, color: g.color };
         // title and CCaR number
@@ -650,10 +670,13 @@ SP.publishPages = function publishPages(doc, ctx) {
         // description
         Rc(X[2], y, X[3] - X[2], h, { stroke: PB.rule, lw: 0.4 });
         if (evLines) {
-          const y0 = y + h / 2 - (evLines.length * evH) / 2 + 5.6;
-          evLines.forEach((l, i) => T(X[2] + (l.first || l.more ? 4 : 9), y0 + i * evH, l.s, { size: 6.3, color: l.more ? PB.mut : PB.ink }));
+          const y0 = y + h / 2 - evTall / 2 + 5.6;
+          for (const l of evLines) {
+            if (l.first) T(X[2] + 4, y0 + l.dy, '\u2022', { size: 6.3 });
+            T(X[2] + (l.more ? 4 : 10), y0 + l.dy, l.s, { size: 6.3, color: l.more ? PB.mut : PB.ink });
+          }
         } else {
-          const dl = SP.pdfWrap(r.desc, 6.5, false, dW, Math.max(1, Math.floor((h - 5) / 7.6)));
+          const dl = SP.pdfWrap(descText, 6.5, false, dW, Math.max(1, Math.floor((h - 5) / 7.6)));
           dl.forEach((l, i) => T((X[2] + X[3]) / 2, y + h / 2 - (dl.length * 7.6) / 2 + 5.8 + i * 7.6, l, { size: 6.5, align: 'c' }));
         }
         // award dates, in order, down then across
