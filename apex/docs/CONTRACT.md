@@ -1963,8 +1963,9 @@ $0.00 plan events left out (§24) apply as they do everywhere; an unfunded line 
 shown, and is counted on the page.
 
 - **A record** is a CCaR number inside an appropriation, a fiscal year and a PMO (a row with no CCaR number goes by its
-  title). Its Approved and Obligated are by service; its award dates are every dated plan event's own date, in order,
-  with "No date" last when one has none.
+  title). Its Approved and Obligated are by service; its award dates are the months of its dated plan events, each month once, in
+  order, written `Dec-2025` (Brad, 17 Nov 2026: *"let's just do the format of mmm-yyyy … leave out the actual day … this
+  will help negate any issues with having multiple days within the month"*), with "No date" last when an event has none.
 - **Prime Contracts** are the Special CCaRs. In an appropriation's document a prime is one record over every PMO; in a
   PMO's document it is that PMO's share.
 - **An unfunded line's PMO** is read by its name or its code ("AV" is Air Vehicle (AV)). The unfunded amount follows the

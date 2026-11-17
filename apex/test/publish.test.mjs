@@ -25,14 +25,15 @@ const row = (FY, ccar, Title, Budget, pe, Date, Amount, Alloc, PMO) => ({ FY, 'C
 const B = { usaf: 'USAF O&M- Tessa Base Discretionary', ang: 'USAF ANG O&M Tessa', stovl: 'USN STOVL O&M Tessa', usn: 'USN CV O&M Tessa', sp: 'USAF APN Spares Tessa Base Initial' };
 // THE PLAN (Data through Oct-2026; JSF6654 is a Special CCaR by default):
 //   O&M FY2027  JSF6654 Prime Alpha   AV: USAF 3,000,000.40 awarded 15 Oct 2026;  PP: USN 1,000,000.00 planned 10 Mar 2027
-//               TS0002  Tessa B       AV: USAF 5,000,000 planned 10 Mar 2027; ANG 500,000.60 awarded 5 Oct 2026; USAF 250,000 no date
+//               TS0002  Tessa B       AV: USAF 5,000,000 planned 20 Oct 2026; ANG 500,000.60 awarded 5 Oct 2026; USAF 250,000 no date
+//                                     (two days of one month: its award dates are Oct-2026 once, then No date)
 //               TS0007  Garnet Rework PP: STOVL 700,000 planned 1 Dec 2026
 //   O&M FY2026  TS0003  Tessa C       AV: USAF 2,000,000 awarded 1 Dec 2025
 //   Spares FY2027 TS0005 Tessa E      PP: USAF 1,000,000 planned 1 Jun 2027
 const OM = [
   row(2027, 'JSF6654', 'Prime Alpha', B.usaf, 'P1', '2026-10-15', '3000000.40', EX, AV),
   row(2027, 'JSF6654', 'Prime Alpha', B.usn, 'P2', '2027-03-10', '1000000', NA, PP),
-  row(2027, 'TS0002', 'Tessa B', B.usaf, 'T2a', '2027-03-10', '5000000', NA, AV),
+  row(2027, 'TS0002', 'Tessa B', B.usaf, 'T2a', '2026-10-20', '5000000', NA, AV),
   row(2027, 'TS0002', 'Tessa B', B.ang, 'T2b', '2026-10-05', '500000.60', EX, AV),
   row(2027, 'TS0002', 'Tessa B', B.usaf, 'T2c', '', '250000', NA, AV),
   row(2027, 'TS0007', 'Garnet Rework', B.stovl, 'T7', '2026-12-01', '700000', NA, PP),
@@ -153,12 +154,13 @@ try {
   const om = doc('ap:om');
   C.eq('the O&M document: each fiscal year its own section, earliest first', J(om.sections.map(s => [s.ap, s.fy, s.n])), J([['om', 2026, 1], ['om', 2027, 5]]));
   const A_PRIME = D$(3000000.40) + D$(1000000), A_TB = D$(5000000) + D$(500000.60) + D$(250000);
+  C.eq('an award date is its month, written Dec-2025', J(secOf(om, 'om', 2026).groups[0].records[0].dates), J(['Dec-2025']));
   C.eq('O&M FY2027: Prime Contracts first (the prime over both PMOs), then each PMO; Required = Approved + unfunded, Delta = Approved - Required',
     J(shape(secOf(om, 'om', 2027))), J([
-      ['Prime Contracts', [['Prime Alpha', 'JSF6654', fig(A_PRIME, D$(3000000.40), D$(2500000)), ['15 Oct 2026', '10 Mar 2027'], false]]],
+      ['Prime Contracts', [['Prime Alpha', 'JSF6654', fig(A_PRIME, D$(3000000.40), D$(2500000)), ['Oct-2026', 'Mar-2027'], false]]],
       [AV, [['Garnet Rework', 'TS0007', fig(0, 0, D$(100000)), [], true],
-        ['Tessa B', 'TS0002', fig(A_TB, D$(500000.60), D$(300000)), ['5 Oct 2026', '10 Mar 2027', 'No date'], false]]],
-      [PP, [['Garnet Rework', 'TS0007', fig(D$(700000), 0, 0), ['1 Dec 2026'], false],
+        ['Tessa B', 'TS0002', fig(A_TB, D$(500000.60), D$(300000)), ['Oct-2026', 'No date'], false]]],
+      [PP, [['Garnet Rework', 'TS0007', fig(D$(700000), 0, 0), ['Dec-2026'], false],
         ['New thing', 'TS0099', fig(0, 0, D$(400000)), [], true]]]]));
   const prime = secOf(om, 'om', 2027).groups[0].records[0];
   C.eq('the prime, by service: USAF, ANG, AFRC, STOVL, USMC CV, USN',
@@ -182,13 +184,13 @@ try {
   C.eq('the AV document: O&M FY2026 and FY2027', J(av.sections.map(s => [s.ap, s.fy])), J([['om', 2026], ['om', 2027]]));
   C.eq('AV, O&M FY2027: its share of the prime (with the unfunded line that names AV), then its own records',
     J(shape(secOf(av, 'om', 2027))), J([
-      ['Prime Contracts', [['Prime Alpha', 'JSF6654', fig(D$(3000000.40), D$(3000000.40), D$(2500000)), ['15 Oct 2026'], false]]],
-      [AV, [['Garnet Rework', 'TS0007', fig(0, 0, D$(100000)), [], true], ['Tessa B', 'TS0002', fig(A_TB, D$(500000.60), D$(300000)), ['5 Oct 2026', '10 Mar 2027', 'No date'], false]]]]));
+      ['Prime Contracts', [['Prime Alpha', 'JSF6654', fig(D$(3000000.40), D$(3000000.40), D$(2500000)), ['Oct-2026'], false]]],
+      [AV, [['Garnet Rework', 'TS0007', fig(0, 0, D$(100000)), [], true], ['Tessa B', 'TS0002', fig(A_TB, D$(500000.60), D$(300000)), ['Oct-2026', 'No date'], false]]]]));
   C.eq('PP: O&M FY2027 then Initial Spares FY2027; its share of the prime carries no unfunded amount',
     J(pp.sections.map(s => [s.ap, s.fy, shape(s)])), J([
-      ['om', 2027, [['Prime Contracts', [['Prime Alpha', 'JSF6654', fig(D$(1000000), 0, 0), ['10 Mar 2027'], false]]],
-        [PP, [['Garnet Rework', 'TS0007', fig(D$(700000), 0, 0), ['1 Dec 2026'], false], ['New thing', 'TS0099', fig(0, 0, D$(400000)), [], true]]]]],
-      ['sp', 2027, [[PP, [['Tessa E', 'TS0005', fig(D$(1000000), 0, 0), ['1 Jun 2027'], false]]]]]]));
+      ['om', 2027, [['Prime Contracts', [['Prime Alpha', 'JSF6654', fig(D$(1000000), 0, 0), ['Mar-2027'], false]]],
+        [PP, [['Garnet Rework', 'TS0007', fig(D$(700000), 0, 0), ['Dec-2026'], false], ['New thing', 'TS0099', fig(0, 0, D$(400000)), [], true]]]]],
+      ['sp', 2027, [[PP, [['Tessa E', 'TS0005', fig(D$(1000000), 0, 0), ['Jun-2027'], false]]]]]]));
   C.eq('a PMO’s unfunded list is its own lines', J([av.ufr.map(l => l.rank), pp.ufr.map(l => l.rank)]), J([['1', '2', '4'], ['3']]));
   C.eq('a PMO’s stoplight is its own rows, by appropriation then year', J(pp.stoplight.rows.map(r => [r.ap, r.fy, r.approved])), J([['om', 2027, D$(1700000)], ['sp', 2027, D$(1000000)]]));
   C.eq('the two PMOs’ sections of O&M FY2027 add to the appropriation’s', secOf(av, 'om', 2027).total.required + secOf(pp, 'om', 2027).total.required, secOf(om, 'om', 2027).total.required);
@@ -261,7 +263,7 @@ try {
   C.chk('the FY2027 page: its title lines and band', has(p3, 'Tessa Program - FY27 Spend Plan') && has(p3, 'Operations & Maintenance') && has(p3, 'Consolidated Sustainment Spend Plan'));
   C.chk('the FY2027 page: the columns of the template', ['PMO', 'Requirement Title', 'Description', 'Award Date', 'Service', 'Required', 'Approved', 'Obligated', 'Remaining', 'Delta (+/-)'].every(h => has(p3, h)));
   C.chk('the FY2027 page: Prime Contracts, then the divider, then each PMO', /Prime Contracts/.test(all(p3)) && has(p3, 'All Other O&M Contracts - separated by PMO') && /Air Vehicle \(AV\)/.test(all(p3)) && /Propulsion \(PP\)/.test(all(p3)), all(p3).slice(0, 400));
-  C.chk('the FY2027 page: the prime’s title, CCaR number, description and award dates', has(p3, 'Prime Alpha') && has(p3, 'CCaR JSF6654') && has(p3, 'The prime contract') && has(p3, '15 Oct 2026') && has(p3, '10 Mar 2027') && has(p3, 'No date'));
+  C.chk('the FY2027 page: the prime’s title, CCaR number, description and award dates', has(p3, 'Prime Alpha') && has(p3, 'CCaR JSF6654') && has(p3, 'The prime contract') && has(p3, 'Oct-2026') && has(p3, 'Mar-2027') && has(p3, 'No date'));
   C.chk('the FY2027 page: the prime’s Required, Approved, Obligated and Remaining in whole dollars', ['6,500,000', '4,000,000', '3,000,000', '1,000,000'].every(s => has(p3, s)), J(texts(p3).filter(s => /^[\d,()]+$/.test(s)).slice(0, 30)));
   C.chk('the FY2027 page: a Delta below zero is in parentheses and red', p3.ops.some(o => o.t === 'text' && o.s === '(2,500,000)' && o.color === '#B00000'));
   C.chk('the FY2027 page: the section’s totals, top right', has(p3, 'TOTAL') && has(p3, SP.fmtWhole(SEC_A + SEC_U)) && has(p3, SP.fmtWhole(SEC_A)));
@@ -285,7 +287,7 @@ try {
   const big = { id: 'ap:om', kind: 'ap', ap: 'om', label: 'O&M', long: 'Operations & Maintenance', file: 'Big.pdf', stoplight: { rows: [], total: {}, pmoRows: [] }, ufr: [],
     sections: [{ ap: 'om', apLabel: 'O&M', fy: 2027, total: fig(0, 0, 0), svc: [0, 1, 2, 3, 4, 5].map(() => fig(0, 0, 0)), n: 40,
       groups: [{ label: PP, prime: false, records: Array.from({ length: 40 }, (_, i) => ({ key: 'k' + i, ccar: 'K' + i, title: 'Record ' + i + ' ' + 'word '.repeat(i % 9), desc: 'd '.repeat(i * 3),
-        dates: Array.from({ length: (i * 7) % 40 }, (_, j) => (1 + j % 28) + ' Jan 2027'), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false })) }] }] };
+        dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false })) }] }] };
   const PB = SP.publishPages(big, ctx).pages.slice(1, -1);
   C.chk('forty records take several pages', PB.length >= 5, String(PB.length));
   C.chk('on each of them every record is whole: as many first rows (USAF) as Total rows, and each record’s number on one page only',

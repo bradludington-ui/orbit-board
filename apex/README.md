@@ -231,7 +231,7 @@ for the switches.
   **Copy picture** and **Save picture**.
 - **Publish PDFs.** Spend plans to send out, as PDF files made inside the page (CONTRACT §33). One for each
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
-  its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record a row per service of
+  its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
   Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
   presents. **Download PDF** saves one; **Download all** saves them in one zip. On the page:
   - **Import unfunded list…** takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and

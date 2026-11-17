@@ -4841,7 +4841,7 @@ SP.readUfr = function readUfr(wb, fileName) {
 //   doc: { id, kind: 'ap'|'pmo', ap, pmoKey, label, code, file, stoplight: {rows, total, pmoRows},
 //          sections: [{ap, apLabel, fy, total: Fig, groups: [{label, prime, records: [Rec]}], n}],
 //          ufr: [line + {pmoLabel}], nRecords, missing: n }
-//   Rec: { key, ccar, title, desc, dates: [text], svc: [Fig x 6 or 7], total: Fig, ufrOnly }
+//   Rec: { key, ccar, title, desc, dates: [text, each a month 'Dec-2025', in order, then 'No date'], svc: [Fig x 6 or 7], total: Fig, ufrOnly }
 //   Fig: { required, approved, obligated, remaining, delta }   whole cents
 // A record is a CCaR number inside an appropriation, a fiscal year and a PMO; under Prime Contracts in an appropriation's
 // document it is the CCaR number over every PMO, as the Award calendar's one line is (§22).
@@ -4852,6 +4852,13 @@ function pb_dateWords(iso) {
   return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? Number(m[3]) + ' ' + SP.CAL_MONTHS[Number(m[2]) - 1] + ' ' + m[1] : '';
 }
 SP.publishDateWords = pb_dateWords;
+// AN AWARD DATE IS ITS MONTH (Brad, 17 Nov 2026: "let's just do the format of mmm-yyyy. I'd like to leave out the actual day
+// … this will help negate any issues with having multiple days within the month"). 'YYYY-MM' -> 'Dec-2025'; a record's plan
+// events of one month are one entry.
+function pb_monthWords(ym) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(ym || ''));
+  return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : '';
+}
 function pb_fileSafe(s) { return String(s).replace(/[\\/:*?"<>|\u0000-\u001F]+/g, '-').replace(/\s+/g, ' ').trim(); }
 
 SP.publishData = function publishData(M, ufr, pub, opts) {
@@ -4899,7 +4906,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       if (si < 0) si = PB_NSVC;
       a.app[si] += r.cents;
       if (d.status === 'exec') a.obl[si] += r.cents;
-      if (r.col !== NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d.date)) a.dates.add(d.date.slice(0, 10));
+      if (r.col !== NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d.date)) a.dates.add(d.date.slice(0, 7));
       else a.nodate = true;
       a.rows++;
     }
@@ -4964,7 +4971,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     let A = 0, O = 0, U = 0;
     for (let i = 0; i < n; i++) { svc.push(pb_fig(app[i], obl[i], uf[i])); A += app[i]; O += obl[i]; U += uf[i]; }
     const ck = list[0].ccarKey;
-    const dl = [...dates].sort().map(pb_dateWords);
+    const dl = [...dates].sort().map(pb_monthWords);
     if (nodate && rows) dl.push('No date');
     return { key: ck, ccar: pb_major(ccar, ufrCcar || ''), title: pb_major(title, ufrTitle || '(no title)'), desc: descOf(ck), dates: dl,
       svc, total: pb_fig(A, O, U), ufrOnly: rows === 0, special: special.has(ck) && ck !== '' };
