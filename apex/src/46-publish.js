@@ -610,6 +610,28 @@ SP.publishPages = function publishPages(doc, ctx) {
       y = Math.max(y, 34 + rh * (nS + 1) + 6);
       colHead();
     };
+    // A BREAK PAGE OPENS EACH SECTION (Brad, 18 Nov 2026: "Let's add a break page in between appropriations and/or fiscal years
+    // in the pdf"). A page of its own that says which appropriation and fiscal year the pages after it are, with the
+    // section's size and totals, so a reader leafing through a printed plan sees where one ends and the next begins.
+    {
+      newPage(); pg.kind = 'break';
+      const cx = PB.W / 2;
+      if (C.emblem) emblemAt(cx - 60, 136, 120);
+      const y0 = C.emblem ? 290 : 230;
+      if (prog) T(cx, y0, prog, { size: 16, bold: true, align: 'c', color: PB.mut });
+      T(cx, y0 + 40, 'FY' + sec.fy + ' Spend Plan', { size: 34, bold: true, align: 'c' });
+      const bw = 520, bx = cx - bw / 2, n = 40, w = bw / 2 / n;
+      // the band, fading in from both ends to the emblem's blue at the middle
+      for (let i = 0; i < n; i++) { const c = pb_mix(PB.band, PB.deep, i / (n - 1)); Rc(bx + i * w, y0 + 56, w + 0.5, 30, { fill: c }); Rc(bx + bw - (i + 1) * w - 0.5, y0 + 56, w + 0.5, 30, { fill: c }); }
+      T(cx, y0 + 78, PB_AP_LONG[sec.ap] || sec.apLabel, { size: 20, bold: true, align: 'c', color: '#FFFFFF' });
+      if (doc.kind === 'pmo') T(cx, y0 + 108, doc.label, { size: 15, bold: true, align: 'c' });
+      const yy = y0 + (doc.kind === 'pmo' ? 132 : 112);
+      const w1 = whoText([sec.ap]);
+      if (w1) T(cx, yy, w1, { size: 10, align: 'c' });
+      T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
+        + '   |   Obligated $' + SP.fmtWhole(sec.total.obligated).replace(/^-$/, '0'), { size: 9, align: 'c', color: PB.mut });
+      T(cx, yy + (w1 ? 30 : 14), asOf, { size: 8, align: 'c', color: PB.mut });
+    }
     top(false);
     const cont = () => top(true);
     let run = null;                          // the group band being drawn on this page: {label, y0}

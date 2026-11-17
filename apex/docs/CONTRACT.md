@@ -2002,7 +2002,7 @@ landscape of each PDF."* So:
 
 1. **The stoplight page:** the title, the band, who and when, then the Summary's table for the document ($M, with the
    Summary's marks and status words), the legend, and how to read the plan.
-2. **A section per fiscal year,** each starting a new page: the section's totals by service at the top right, then
+2. **A section per fiscal year,** each opened by a break page (§33.12) and starting a new page: the section's totals by service at the top right, then
    PMO | Requirement Title (with its CCaR number) | Description | Award Date | Service | Required | Approved | Obligated |
    Remaining | Delta (+/-), a row per service and a Total per record. Prime Contracts first, then a line "All Other …
    Contracts", then each PMO. **A record's rows are never split across pages.** A Delta below zero is in parentheses, red.
@@ -2067,6 +2067,15 @@ names. I don't need the extra BFM input."* The page has four boxes (O&M, Full Fu
 the plan as `publish.fm`. A page about one appropriation prints that appropriation's ("O&M FM Lead: …"): every page of an
 appropriation's document, and each section of a PMO's. A PMO's stoplight page, which covers several, prints each of
 theirs. The Lead BFM and BFM boxes are gone; a plan that saved those two names still opens, and they are printed nowhere.
+
+### 33.12 A break page opens each section (Brad, 18 Nov 2026)
+
+Brad: *"Let's add a break page in between appropriations and/or fiscal years in the pdf."* Before the first page of every
+section (an appropriation's fiscal year; in a PMO's plan, each appropriation and fiscal year) there is a page of its own
+that says what follows: the emblem, the program title, "FY2027 Spend Plan" large, the appropriation in a band, the PMO in a
+PMO's plan, that appropriation's FM Lead, and one line of the section's size and totals (requirements, Required, Approved,
+Obligated). It carries the CUI marking and its page number like every page. The stoplight page stays first and the
+unfunded list last, with no break page of their own.
 
 ### 33.8 Tests
 
