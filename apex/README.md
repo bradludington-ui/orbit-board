@@ -197,6 +197,18 @@ the APEX file you used before.
 
 The old file is only read. Press **Save** afterwards.
 
+## Publishing a view-only copy
+
+To hand the dashboard to people who should only look: open **Manage data** and press **Publish view-only copy…**. It
+downloads a separate file; your own file is not changed.
+
+In that copy there is no Data checks, no Settings, no Manage data, no importing and no saving. Data through and First FY
+are shown as text. People can still use the Filter (services and lanes), the PMO, appropriation and fiscal-year pickers,
+Export Excel, the slide pictures and the spend plan PDFs.
+
+It is a lock on the page, not a security control: someone who edits the file's text by hand could undo it. Publish a new
+copy whenever the data changes; a copy does not update itself.
+
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*

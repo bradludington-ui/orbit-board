@@ -43,6 +43,14 @@ function st_isObj(o) { return !!o && typeof o === 'object' && !Array.isArray(o);
 function st_own(o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k); }
 
 SP.state = st_empty();
+// §35 A VIEW-ONLY COPY. Brad, 18 Nov 2026: "When I push it out for people to use, I don't want them to have access to
+// manipulate values or numbers … no buttons for imports and no ability to save. It would be a view only file." A copy made
+// by SP.viewOnlyHtml carries viewOnly: true in its plan. A page that opens such a plan changes nothing and saves nothing:
+// every function below that would is refused HERE, in the store, whatever the screen offers, so a control left on a view
+// by mistake still cannot move a figure. What stays is what only changes this browser's view: the service and lane
+// switches and the pickers. (It is a lock on the page, not on the file: someone who edits the file by hand can undo it.)
+SP.isViewOnly = function isViewOnly() { return !!SP.state && SP.state.viewOnly === true; };
+const ST_VIEW_ONLY = 'This is a view-only copy of APEX: nothing in it can be changed, imported or saved.';
 let st_dirty = false;
 // What this page's own file holds, so a change undone is no change (review SCR2-5): retyping the month Data through
 // already showed took January at the first digit and October at the second, and the page read "Unsaved changes", asking
@@ -236,6 +244,7 @@ function st_check(st) {
   if (st.lastImport !== undefined && st.lastImport !== null && !st_isObj(st.lastImport)) return 'its last import report is not a report';
   if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
   if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
+  if (st.viewOnly !== undefined && typeof st.viewOnly !== 'boolean') return 'its view-only mark is not yes or no';
   const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish);
   if (ub) return ub;
   return '';
@@ -555,6 +564,7 @@ function st_unidAt(st) {
 // DL-2, F4): the misfiled-row question keyed on the sheet's NAME alone.
 const ST_SHRINK = 0.5;
 SP.applyImport = function applyImport(parsed) {
+  if (SP.isViewOnly()) throw new Error(ST_VIEW_ONLY);
   if (!st_isObj(parsed) || !st_isObj(parsed.pulls)) throw new Error('There was nothing to import (the import gave no pulls), so nothing was changed.');
   const keys = Object.keys(parsed.pulls).filter(k => ST_PULL_KEYS.includes(k) && parsed.pulls[k] && Array.isArray(parsed.pulls[k].rows));
   // a BAE report of budgets (CONTRACT §14.7): it comes in alone or beside pulls, and never touches one
@@ -871,6 +881,7 @@ function st_pick(current, aps) {
 // copy's rules (CONTRACT §3). This page's own file is not touched: Save writes it, through the same checks as ever.
 //   text  the saved plan's HTML;  name  its file name, for the messages
 SP.takePlan = function takePlan(text, name) {
+  if (SP.isViewOnly()) return { ok: false, message: ST_VIEW_ONLY };
   const fname = String(name || 'that file');
   const f = st_readFile(text);
   if (f.why) return { ok: false, message: 'Nothing was taken: “' + fname + '” ' + f.why + '.' };
@@ -901,6 +912,7 @@ SP.takePlan = function takePlan(text, name) {
   const next = st_clone(inc);
   if (!Array.isArray(next.history)) next.history = [];
   if (next.lastImport === undefined) next.lastImport = null;
+  delete next.viewOnly;   // a plan taken out of a view-only copy (§35) is this page's plan, to keep working on
   st_baeFill(next);   // a plan saved before CONTRACT §14 is taken with no report, as it opens with none
   // the save time stays this page's: it is what this page's own file holds, and what Save checks that file against
   next.savedAt = st.savedAt === undefined ? null : st.savedAt;
@@ -924,6 +936,7 @@ SP.takePlan = function takePlan(text, name) {
 //   - the unfunded lists, by fiscal year (a year this page also holds is replaced by the file's).
 // Asked first when it would replace anything typed here. -> { ok, message }
 SP.takeSettings = function takeSettings(text, name) {
+  if (SP.isViewOnly()) return { ok: false, message: ST_VIEW_ONLY };
   const fname = String(name || 'that file');
   const f = st_readFile(text);
   if (f.why) return { ok: false, message: 'Nothing was taken: “' + fname + '” ' + f.why + '.' };
@@ -967,7 +980,7 @@ SP.takeSettings = function takeSettings(text, name) {
 // SETTINGS (saved in the file, so a change is unsaved work)
 // ---------------------------------------------------------------------------------------------------------------
 SP.setSettings = function setSettings(patch) {
-  if (!st_isObj(patch)) return;
+  if (!st_isObj(patch) || SP.isViewOnly()) return;
   const st = SP.state;
   const base = st_isObj(st.settings) ? st.settings
     : (typeof SP.defaultSettings === 'function' ? SP.defaultSettings(new Date().toISOString()) : {});
@@ -978,7 +991,7 @@ SP.setSettings = function setSettings(patch) {
 };
 // §33.6 the unfunded list of one fiscal year (SP.readUfr's result), kept whole; loading that year again replaces it
 SP.setUfr = function setUfr(parsed, nowIso) {
-  if (!parsed || parsed.ok !== true || !Number.isInteger(parsed.fy)) return false;
+  if (!parsed || parsed.ok !== true || !Number.isInteger(parsed.fy) || SP.isViewOnly()) return false;
   const st = SP.state;
   const all = st_isObj(st.ufr) ? st.ufr : {};
   all[String(parsed.fy)] = st_clone({ fy: parsed.fy, name: String(parsed.name || ''), importedAt: nowIso || new Date().toISOString(), unit: parsed.unit,
@@ -989,7 +1002,7 @@ SP.setUfr = function setUfr(parsed, nowIso) {
 };
 SP.removeUfr = function removeUfr(fy) {
   const st = SP.state;
-  if (!st_isObj(st.ufr) || !st_own(st.ufr, String(fy))) return false;
+  if (SP.isViewOnly() || !st_isObj(st.ufr) || !st_own(st.ufr, String(fy))) return false;
   delete st.ufr[String(fy)];
   if (!Object.keys(st.ufr).length) delete st.ufr;
   st_changed(false);
@@ -999,7 +1012,7 @@ SP.removeUfr = function removeUfr(fy) {
 // picture loaded in place of the built-in one (null puts the built-in one back); noEmblem: true prints none. A description given as
 // '' is taken away; the others are replaced as given. Nothing changed is nothing to save.
 SP.setPublish = function setPublish(patch) {
-  if (!st_isObj(patch)) return false;
+  if (!st_isObj(patch) || SP.isViewOnly()) return false;
   const st = SP.state;
   const cur = st_isObj(st.publish) ? st.publish : {};
   const next = st_clone(cur);
@@ -1028,6 +1041,19 @@ SP.setPublish = function setPublish(patch) {
   if (Object.keys(next).length) st.publish = next; else delete st.publish;
   st_changed(false);
   return true;
+};
+// §35 the page as a view-only copy: this page's plan as it is on screen (saved or not), marked view-only, and without what a
+// reader has no view of (the pulls it replaced, the report it replaced, the import history and the last import report:
+// the Data checks views are not in a view-only copy, and those are most of a file's size). This page is not changed.
+SP.viewOnlyHtml = function viewOnlyHtml(nowIso) {
+  const c = st_clone(SP.state);
+  c.viewOnly = true;
+  c.savedAt = nowIso || new Date().toISOString();
+  if (st_isObj(c.pulls)) c.pulls.previous = {};
+  if (st_isObj(c.bae)) c.bae.previous = null;
+  c.history = [];
+  c.lastImport = null;
+  return st_htmlFor(c);
 };
 SP.isDirty = function isDirty() { return st_dirty; };
 SP.onStateChange = function onStateChange(fn) {
@@ -1118,6 +1144,7 @@ function st_offerDownload(lead, reason, html, name, own) {
 }
 
 SP.saveFile = async function saveFile() {
+  if (SP.isViewOnly()) return { ok: false, message: ST_VIEW_ONLY };
   if (st_busy) return { ok: false, message: 'A save is already running; nothing else was written.' };
   st_busy = true;
   try { return await st_saveFile(); }
@@ -1294,6 +1321,7 @@ async function st_saveFile() {
 }
 
 SP.saveCopy = async function saveCopy() {
+  if (SP.isViewOnly()) return { ok: false, message: ST_VIEW_ONLY };
   if (st_busy) return { ok: false, message: 'A save is already running; nothing else was written.' };
   st_busy = true;
   try { return await st_saveCopy(); }

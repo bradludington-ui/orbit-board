@@ -25,6 +25,10 @@ const UI_NAV = [
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
 const UI_VIEWS = UI_NAV.flatMap(g => g.items);
+// A VIEW-ONLY COPY (CONTRACT §35) has no Data checks and no Set up: the menu is the reader's part of it
+const UI_NAV_HIDDEN_VO = ['Data checks', 'Set up'];
+function ui_vo() { return typeof SP.isViewOnly === 'function' && SP.isViewOnly(); }
+function ui_nav() { return ui_vo() ? UI_NAV.filter(g => !UI_NAV_HIDDEN_VO.includes(g.h)) : UI_NAV; }
 const UI_CURVES = [
   ['om1', 'O&M, first year'], ['om2', 'O&M, second year or later (expired: fully obligated)'],
   ['p1', 'Procurement, first year'], ['p2', 'Procurement, second year'], ['p3', 'Procurement, third year'],
@@ -951,7 +955,7 @@ function ui_pubCtx(Mp, P) {
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
 function ui_vPublish(M) {
-  const { Mp, P, D } = ui_pubData(M);
+  const { Mp, P, D } = ui_pubData(M), vo = ui_vo();
   ui.reg.pub = { D, Mp, P };
   const out = ['<h2 class="title">Publish spend plan</h2>',
     '<p class="l2">A PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). Each opens with its stoplight, '
@@ -978,13 +982,15 @@ function ui_vPublish(M) {
   out.push(fks.length ? '<ul class="speclist" id="uiUfrList">' + fks.map(k => {
     const f = P.ufr[k], tot = f.lines.reduce((n, l) => n + l.total, 0);
     return '<li>FY' + ui_e(k) + ': “' + ui_e(f.name || 'unnamed file') + '”, loaded ' + ui_e(ui_day(f.importedAt)) + ' · ' + SP.fmtInt(f.lines.length) + ' line' + (f.lines.length === 1 ? '' : 's') + ' · '
-      + ui_e(SP.fmtUsd(tot)) + ' <button type="button" data-act="ufrdel" data-fy="' + ui_e(k) + '" data-fkey="ufrdel:' + ui_e(k) + '">Remove</button></li>';
+      + ui_e(SP.fmtUsd(tot)) + (vo ? '' : ' <button type="button" data-act="ufrdel" data-fy="' + ui_e(k) + '" data-fkey="ufrdel:' + ui_e(k) + '">Remove</button>') + '</li>';
   }).join('') + '</ul>' : '<p class="none" id="uiUfrList">No unfunded list is loaded: Required equals Approved on every line.</p>');
-  out.push('<p class="acts"><button type="button" data-act="ufrpick" data-fkey="ufrpick">Import unfunded list…</button>'
+  if (!vo) out.push('<p class="acts"><button type="button" data-act="ufrpick" data-fkey="ufrpick">Import unfunded list…</button>'
     + '<input type="file" id="uiUfrFile" data-act="ufrfile" multiple accept=".xlsx" hidden></p>');
   const notes = fks.flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
     .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
   if (notes.length) out.push('<h4 class="sub">To check on the unfunded list (' + notes.length + ')</h4><ul class="speclist pubnotes" id="uiUfrNotes">' + notes.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>');
+  // a view-only copy (§35) publishes what it was given: the boxes below, which change the plan, are not in it
+  if (vo) return out.join('');
   // on every document
   const val = k => ui_e(typeof P.pub[k] === 'string' ? P.pub[k] : '');
   out.push('<h3 class="sub">On every document (saved in this file)</h3><div class="acts pubhead">'
@@ -1030,6 +1036,18 @@ async function ui_pubZip() {
     const bytes = await SP.zipFiles(R.D.docs.map(d => ({ name: d.file, data: SP.publishPdf(d, ctx) })));
     const name = SP.download('APEX spend plans - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + '.zip', bytes, 'application/zip');
     ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
+}
+// PUBLISH VIEW-ONLY COPY (CONTRACT §35): this dashboard as a file for others to look at, as a download. This page and its
+// own file are not touched.
+async function ui_viewCopy() {
+  if (!ui_hasData()) { ui_say('Import a CCaR pull first: there is nothing to publish yet.', 'err'); return; }
+  if (!ui_need('viewOnlyHtml', 'Publish view-only copy')) return;
+  await ui_busy('the view-only copy', async () => {
+    const M = ui_model();
+    const name = SP.download('APEX view only' + (M ? ' - data through ' + M.asOfLabel : '') + ' - ' + ui_today() + '.html', SP.viewOnlyHtml(), 'text/html');
+    ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE + ' It is a copy for viewing: no importing, saving, Settings or Data checks; the Filter and the pickers still work. '
+      + 'This page is unchanged' + (SP.isDirty() ? ', and still has unsaved changes of its own.' : '.'), 'ok');
   });
 }
 // IMPORT FROM LAST VERSION (CONTRACT §34): the APEX file used before. A page with no pull takes that plan whole, as it was
@@ -1839,6 +1857,9 @@ function ui_vSettings(M) {
 function ui_vHelp() {
   const li = a => '<ul>' + a.filter(x => x !== '').map(x => '<li>' + x + '</li>').join('') + '</ul>';
   return '<h2 class="title">Help</h2><div class="help">'
+    + (ui_vo() ? '<p class="note" id="uiVoHelp"><strong>This is a view-only copy.</strong> It shows the figures as they were when it was published. Nothing in it can be changed, imported or saved, '
+      + 'and it has no Settings or Data checks; the parts of this Help about those are for the person who keeps the plan. The Filter (services and lanes) and the pickers on each view still work, '
+      + 'and you can still export the workbook, the pictures and the spend plan PDFs.</p>' : '')
     + '<h3 class="sub">What this is</h3><p>APEX (Appropriation Planning &amp; Execution) replaces the Spend Plan Workbook (v12). In November 2026 it was first called the SFCB Spend Plan, then SCOPE. Import the CCaR pull; every product the workbook made is drawn here, '
     + 'and <strong>Export Excel</strong> writes them as a workbook of values. The file is its own database: <strong>Save</strong> writes the data and the settings into this file.</p>'
     + '<h3 class="sub">Importing</h3>' + li([
@@ -1914,6 +1935,12 @@ function ui_vHelp() {
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
       'A record’s Description is a bulleted list of its plan event titles, in date order (a prime contract’s is its Requirement Title), unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
+    ])
+    + '<h3 class="sub">Publishing a view-only copy</h3>' + li([
+      'To hand the dashboard to people who should only look, open <strong>Manage data</strong> and press <strong>Publish view-only copy…</strong>. It downloads a separate file; this one is not changed.',
+      'The copy has no Data checks, no Settings, no Manage data, no importing and no saving. Data through and First FY are shown as text.',
+      'People can still use the Filter (services and lanes) and the pickers on each view, and can export the workbook, the slide pictures and the spend plan PDFs.',
+      'It is a lock on the page, not a security control: someone who edits the file by hand could undo it. Publish a new copy whenever the data changes.',
     ])
     + '<h3 class="sub">Moving to a new version of APEX</h3>' + li([
       'Open the new APEX file, open <strong>Manage data</strong> and press <strong>Import from last version…</strong>, then pick the APEX file you used before. Nothing is typed again.',
@@ -2029,6 +2056,7 @@ function ui_skeleton() {
     + '<span class="bs">Appropriation Planning &amp; Execution</span> <span class="ey" id="uiEy"></span></h1>'
     + '<span class="asof" id="uiAsOfText"></span>'
     + '<span class="upd" id="uiUpd"></span>'
+    + '<span class="vobadge" id="uiVo" hidden title="This copy is for viewing. Nothing in it can be changed, imported or saved; the Filter and the pickers still work.">View only</span>'
     + '<span class="grow"></span>'
     + '<span class="savest" id="uiSave" role="status"></span>'
     + '<button type="button" data-act="export" data-fkey="export">Export Excel</button>'
@@ -2045,6 +2073,7 @@ function ui_skeleton() {
     + '<button type="button" data-act="lastpick" data-fkey="lastpick" title="Bring the settings, descriptions, FM Leads and unfunded lists across from the APEX file you used before">Import from last version…</button>'
     + '<button type="button" data-act="save" data-fkey="save">Save</button>'
     + '<button type="button" data-act="savecopy" data-fkey="savecopy">Save a copy…</button>'
+    + '<button type="button" data-act="viewcopy" data-fkey="viewcopy" title="A copy of this dashboard for others to look at: no importing, no saving, no settings, no Data checks. The Filter and the pickers still work.">Publish view-only copy…</button>'
     + '</div>'
     + '<div class="pulls" id="uiPulls"></div></div>'
     + '<div class="msgrow"><div class="msg" id="uiMsg" role="status" aria-live="polite"></div>'
@@ -2062,7 +2091,7 @@ function ui_skeleton() {
     upd: document.getElementById('uiUpd'), pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
     msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
-    asOfText: document.getElementById('uiAsOfText'), manage: document.getElementById('uiManage'), manageBtn: document.getElementById('uiManageBtn'),
+    vo: document.getElementById('uiVo'), asOfText: document.getElementById('uiAsOfText'), manage: document.getElementById('uiManage'), manageBtn: document.getElementById('uiManageBtn'),
   };
 }
 
@@ -2144,10 +2173,15 @@ function ui_drawTop(M) {
   E.save.className = 'savest ' + (st === 'saved' ? 'clean' : 'dirty');
   // a reader sees the month the figures run to and nothing to set; "Saved" is said only beside the Save button, and
   // work not yet saved is said wherever the person is
-  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) : '';
+  // in a view-only copy (§35) the two dates are said, never set: there is no Manage data bar to set them in
+  const vo = ui_vo();
+  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) + (vo ? ' · First FY ' + (Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : '')) : '') : '';
+  if (E.vo) E.vo.hidden = !vo;
+  if (vo) ui.manage = false;
+  E.manageBtn.hidden = vo;
   E.manage.hidden = !ui.manage;
   E.manageBtn.setAttribute('aria-expanded', ui.manage ? 'true' : 'false');
-  E.save.hidden = st === 'saved' && !ui.manage;
+  E.save.hidden = vo || (st === 'saved' && !ui.manage);
   E.help.setAttribute('aria-pressed', ui.view === 'help' ? 'true' : 'false');
   const P = ui_pulls();
   // "imported", never "pulled": the date is when the pull came into this page, which is not when CCaR made it (a pull
@@ -2186,7 +2220,7 @@ function ui_drawNav(has) {
   const E = ui.els;
   if (!has) { E.nav.innerHTML = ''; E.nav.hidden = true; return; }
   E.nav.hidden = false;
-  E.nav.innerHTML = UI_NAV.map(g => '<div class="navg" role="group"' + (g.h ? ' aria-label="' + ui_e(g.h) + '"' : '') + '>'
+  E.nav.innerHTML = ui_nav().map(g => '<div class="navg" role="group"' + (g.h ? ' aria-label="' + ui_e(g.h) + '"' : '') + '>'
     + (g.h ? '<div class="navh" aria-hidden="true">' + ui_e(g.h) + '</div>' : '')
     + g.items.map(([id, label]) => '<button type="button" data-act="view" data-v="' + id + '" data-fkey="view:' + id + '" aria-pressed="'
       + (ui.view === id ? 'true' : 'false') + '">' + ui_e(label) + '</button>').join('') + '</div>').join('');
@@ -2240,6 +2274,8 @@ function ui_render() {
   const inMain = !!(ae && ui.els.main.contains(ae));
   ui.reg = { nodes: new Map(), scopes: [], blocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
+  // a view-only copy has no way to a view its menu does not hold; were one asked for anyhow, it is the Summary
+  if (ui_vo() && ui.view !== 'help' && !ui_nav().some(g => g.items.some(([id]) => id === ui.view))) ui.view = UI_HOME;
   const M = has ? ui_model() : null;
   if (has && ui.modelErr && ui.view !== 'help') ui_say('The figures could not be worked out: ' + ui.modelErr, 'err');
   ui_drawTop(M);
@@ -2623,6 +2659,7 @@ function ui_onClick(ev) {
     case 'zip': ui_zip(); break;
     case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
     case 'pubzip': ui_pubZip(); break;
+    case 'viewcopy': ui_viewCopy(); break;
     case 'lastpick': { const f = document.getElementById('uiLastFile'); if (f) f.click(); break; }
     case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
     case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
@@ -2752,7 +2789,7 @@ function ui_boot() {
     catch (e) { r = { ok: false, message: 'The saved data could not be opened: ' + ((e && e.message) || e) }; }
   } else r = { ok: false, message: 'The store is not available yet (SP.storeInit is missing), so nothing can be imported or saved.' };
   ui_skeleton();
-  ui.manage = !ui_hasData();
+  ui.manage = !ui_hasData() && !ui_vo();
   const app = ui.els.app;
   app.addEventListener('click', ui_onClick);
   app.addEventListener('change', ui_onChange);
