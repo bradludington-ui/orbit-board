@@ -2002,7 +2002,7 @@ landscape of each PDF."* So:
 
 1. **The stoplight page:** the title, the band, who and when, then the Summary's table for the document ($M, with the
    Summary's marks and status words), the legend, and how to read the plan.
-2. **A section per fiscal year,** each starting a new page: the section's totals by service at the top right, then
+2. **A section per fiscal year,** each opened by a break page (§33.12) and starting a new page: the section's totals by service at the top right, then
    PMO | Requirement Title (with its CCaR number) | Description | Award Date | Service | Required | Approved | Obligated |
    Remaining | Delta (+/-), a row per service and a Total per record. Prime Contracts first, then a line "All Other …
    Contracts", then each PMO. **A record's rows are never split across pages.** A Delta below zero is in parentheses, red.
@@ -2040,13 +2040,25 @@ across all versions."* Prime Contracts has its own colour (the header band's blu
 so it is the same in every appropriation's document, in the PMO's own, and from one data pull to the next. A PMO the tool
 does not know takes one of four further colours by its name. Every colour is light enough for the black label to read.
 
-### 33.10 The description is the plan event titles, listed (Brad, 18 Nov 2026)
+### 33.10 The description (Brad, 18 Nov 2026)
 
-Brad: *"For the description, let's default to the Plan Event Title and have them listed."* A record's Description column
-lists the titles of its plan events, one to a line, in the order they fall (each by its earliest date; one with no date
-last, then by name). A long title wraps under itself. Past forty lines the list ends "+N more plan events". A description
-typed or imported for the CCaR record (§33.3) replaces the list. A record that is only on the unfunded list has no plan
-event, so its Description is blank unless one is typed. In a PMO's document a prime lists that PMO's plan events only.
+Unless a description is typed or imported for the CCaR record (§33.3), which always wins:
+
+- **A prime contract's description is its Requirement Title.** Brad, of a prime that listed sixty CLIN-level plan events:
+  *"My prime contracts are too wordy with all the CLIN information in there. Let's just carry the Requirement Title over
+  for those."* This holds in an appropriation's document and in a PMO's.
+- **Any other record's is its plan event titles, as a bulleted list** (*"let's default to the Plan Event Title and have
+  them listed"*; then, of the first layout, *"let's find a better way to list the Plan Events"*). In the order they fall
+  (each by its earliest date; one with no date last, then by name). Each title has its own bullet and wraps squarely under
+  itself, with a little space between titles. Where every title of the record begins with the same short tag and a dash
+  ("OGC - "), the tag is left off the list (`SP.publishEventNames`): the Requirement Title beside it already says it. The list
+  holds as many titles as fit the record's block; when some do not, its last line says "+N more plan events".
+- **A record's block is its rows and no taller.** Brad, of a record whose long list left a Total row five times the height
+  of the rows above it: *"I don't want the Total row to be extended."* Then, of rows made to share a taller block: *"Don't
+  adjust the row heights."* Every service row and the Total are one fixed height, so a block is exactly its rows. What sits
+  beside them is cut to fit and says so: the plan-event list (about six one-line titles) and the award months (sixteen,
+  in two columns) each end "+N more" when there are more. A typed description is cut to the block the same way.
+- A record that is only on the unfunded list has no plan event, so its Description is blank unless one is typed.
 
 ### 33.11 The FM Lead is the appropriation's (Brad, 18 Nov 2026)
 
@@ -2056,9 +2068,39 @@ the plan as `publish.fm`. A page about one appropriation prints that appropriati
 appropriation's document, and each section of a PMO's. A PMO's stoplight page, which covers several, prints each of
 theirs. The Lead BFM and BFM boxes are gone; a plan that saved those two names still opens, and they are printed nowhere.
 
+### 33.12 A break page opens each section (Brad, 18 Nov 2026)
+
+Brad: *"Let's add a break page in between appropriations and/or fiscal years in the pdf."* Before the first page of every
+section (an appropriation's fiscal year; in a PMO's plan, each appropriation and fiscal year) there is a page of its own
+that says what follows: the emblem, the program title, "FY2027 Spend Plan" large, the appropriation in a band, the PMO in a
+PMO's plan, that appropriation's FM Lead, and one line of the section's size and totals (requirements, Required, Approved,
+Obligated). It carries the CUI marking and its page number like every page. The stoplight page stays first and the
+unfunded list last, with no break page of their own.
+
 ### 33.8 Tests
 
 `test/publish.test.mjs`: a small invented plan and an invented tracker workbook, every expectation worked by hand: the
 reader (units, services, notes, refusals), the documents' figures, the pages, the PDF read back by poppler and pypdf, what
 the plan saves, and the page through its own controls, with a service switched off on screen.
+
+## 34. Import from last version (Brad, 18 Nov 2026)
+
+Brad: *"I also need a way to import information on the last dashboard. As we make new versions, I want to just import all
+the data from the last version so I don't have to type in authorized amounts in settings."*
+
+**Import from last version…** is in Manage data and on the empty page. It reads the APEX file used before (never changes
+it) and does one of two things:
+
+- **This page holds no pull:** the old plan is taken whole, as `SP.takePlan` always has: its pulls, settings, publishing
+  settings, unfunded lists, history. Newer pulls imported afterwards replace the old ones and keep the settings.
+- **This page already holds a pull:** `SP.takeSettings` takes only what a person typed or loaded by hand, and leaves this
+  page's pulls, BAE report, import history and last import report exactly as they are:
+  - the settings: Authorized amounts, goal curves, Special CCaRs, budget overrides, First FY, the years left out. **Data
+    through stays this page's**: it is the month this page's own data runs to.
+  - the publishing settings (§33): descriptions, FM Leads, program title, emblem.
+  - the unfunded lists by fiscal year; a year both hold becomes the file's, a year only this page holds is kept.
+
+It asks first when it would replace something typed on this page, naming what the file brings. Taking a file that holds
+nothing new changes nothing and says so. A file that is not an APEX plan, or whose plan cannot be read, is refused with the
+reason, as on opening. `test/last-version.test.mjs`.
 

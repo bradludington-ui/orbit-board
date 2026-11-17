@@ -246,15 +246,25 @@ try {
   C.eq('and anything else is not a JPEG', SP.jpegInfo(new Uint8Array([1, 2, 3, 4])), null);
   const ctx = { program: 'Tessa Program', fm: { om: 'O. Lead', sp: 'S. Lead' }, asOfLabel: M.asOfLabel, today: '2026-11-17', uploaded: 'Data uploaded 9 Nov 2026.', emblem: jpg, model: M, bae: false,
     ufrFiles: [{ fy: 2027, name: 'UFR Tracker FY27.xlsx', day: '2026-11-14' }] };
-  const P = SP.publishPages(om, ctx);
+  // each section opens with a break page (§33.12); the checks below that count on a page's place read the plan without them
+  const noBreak = R => ({ pages: R.pages.filter(p => p.kind !== 'break') });
+  const Pall = SP.publishPages(om, ctx), P = noBreak(Pall);
   const texts = p => p.ops.filter(o => o.t === 'text').map(o => o.s);
   const has = (p, s) => texts(p).includes(s);
   const all = p => texts(p).join(' ');     // a label that wraps in its cell is read across its lines
-  C.eq('O&M: a stoplight page, a page per fiscal year, the unfunded list', P.pages.length, 4);
+  C.eq('O&M: a stoplight page, then for each fiscal year a break page and its page, then the unfunded list', J(Pall.pages.map(p => p.kind || '')), J(['', 'break', '', 'break', '', '']));
+  const brk = Pall.pages.filter(p => p.kind === 'break');
+  C.chk('a break page says which fiscal year and appropriation follows, large, with the program above', J(brk.map(p => [has(p, 'FY2026 Spend Plan'), has(p, 'FY2027 Spend Plan'), has(p, 'Operations & Maintenance'), has(p, 'Tessa Program')])) === J([[true, false, true, true], [false, true, true, true]])
+    && brk.every(p => p.ops.find(o => o.t === 'text' && /Spend Plan$/.test(o.s) && o.size === 34 && o.align === 'c' && o.x === 396)));
+  C.chk('and the section’s size and totals, its FM Lead and the dates', texts(brk[1]).includes('5 requirements   |   Required $13,750,001   |   Approved $10,450,001   |   Obligated $3,500,001') && has(brk[1], 'O&M FM Lead: O. Lead')
+    && has(brk[1], 'Data as of: 17 Nov 2026  |  Data through Oct-2026'), J(texts(brk[1])));
+  C.chk('it carries the emblem, large and centred, and the CUI marking and page number like any page', brk.every(p => p.ops.some(o => o.t === 'img' && o.w === 120 && Math.abs(o.x + o.w / 2 - 396) < 0.01)
+    && texts(p).filter(x => x === SP.CUI).length === 2 && texts(p).some(x => /^Page \d of 6$/.test(x))));
+  C.eq('a break page sits immediately before the first page of its section', J(Pall.pages.map((p, i) => (p.kind === 'break' ? texts(Pall.pages[i + 1]).includes('Consolidated Sustainment Spend Plan') : null)).filter(x => x !== null)), J([true, true]));
   C.chk('every page is letter, landscape', P.pages.every(p => p.w === 792 && p.h === 612));
   C.chk('every page carries the CUI marking top and bottom', P.pages.every(p => p.ops.filter(o => o.t === 'text' && o.s === SP.CUI && o.align === 'c' && (o.y === 15 || o.y === 603)).length === 2));
   C.eq('every page says which page it is, and whose', J(P.pages.map(p => [texts(p).find(s => /^Page /.test(s)), has(p, 'APEX Spend Plan - O&M')])),
-    J([['Page 1 of 4', true], ['Page 2 of 4', true], ['Page 3 of 4', true], ['Page 4 of 4', true]]));
+    J([['Page 1 of 6', true], ['Page 3 of 6', true], ['Page 5 of 6', true], ['Page 6 of 6', true]]));
   C.chk('nothing is drawn off the page', P.pages.every(p => p.ops.every(o => o.t === 'text' ? o.x >= 0 && o.x <= 792 && o.y >= 0 && o.y <= 612
     : o.t === 'line' ? Math.min(o.x1, o.x2) >= 0 && Math.max(o.x1, o.x2) <= 792 : o.x >= 0 && o.x + o.w <= 792.01 && o.y >= 0 && o.y + o.h <= 612.01)));
   C.chk('no figure runs out of its cell to the left (a right-aligned figure’s width is inside the page’s left margin)',
@@ -285,16 +295,27 @@ try {
   C.chk('the FY2027 page: the section’s totals, top right', has(p3, 'TOTAL') && has(p3, SP.fmtWhole(SEC_A + SEC_U)) && has(p3, SP.fmtWhole(SEC_A)));
   C.eq('the FY2027 page: six service rows and a Total for each of its five records', J([texts(p3).filter(s => s === 'USAF ANG').length, texts(p3).filter(s => s === 'Total').length]), J([6, 5]));
   C.eq('the FY2027 page: the left side is drawn in each group’s colour, top to bottom', J(p3.ops.filter(o => o.t === 'rect' && o.x === 18 && o.w === 58 && o.y > 100).map(o => o.fill)), J(['#8EAADB', '#B9D7B0', '#E9B9C4']));
-  const descX = 204 + 4;
-  C.eq('the FY2027 page: a record with no typed description lists its plan event titles, one to a line, in order (Tessa B)',
-    J(p3.ops.filter(o => o.t === 'text' && o.x === descX && /^T2/.test(o.s)).sort((a, b) => a.y - b.y).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
+  const descX = 204 + 4, evX = descX + 6;
+  const evOf = p => p.ops.filter(o => o.t === 'text' && o.x === evX).sort((a, b) => a.y - b.y);
+  C.eq('the FY2027 page: a record with no typed description lists its plan event titles, in order (Tessa B)', J(evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
+  C.chk('each title has its own bullet, level with it', evOf(p3).filter(o => /^T2/.test(o.s)).every(o => p3.ops.some(b => b.t === 'text' && b.s === '\u2022' && b.x === descX && b.y === o.y)));
+  { const ys = evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.y); C.chk('with a little air between one title and the next', Math.abs((ys[1] - ys[0]) - 8.6) < 0.01, J(ys)); }
+  // a prime with no typed description carries its Requirement Title over, never its plan events
+  const Pav = noBreak(SP.publishPages(D0.docs.find(d => d.id === 'pmo:propulsion (pp)'), ctx)).pages[1];
+  C.chk('a prime with nothing typed: its Description is its Requirement Title (so the title is printed twice) and its plan events are not listed',
+    texts(Pav).filter(x => x === 'Prime Alpha').length === 2 && !texts(Pav).includes('P2') && texts(Pav).includes('T7'), J(texts(Pav).filter(x => /Prime|P2|T7/.test(x))));
+  C.eq('the tag every title of a record begins with is left off the list; one that differs, or a single title with no tag, and they print as they are',
+    J([SP.publishEventNames(['OGC - CAD/PAD Shipping', 'ogc -  Seat Cartridges']), SP.publishEventNames(['OGC - Chem Bio Labor']), SP.publishEventNames(['OGC - A', 'LM - B']), SP.publishEventNames(['Plain title', 'OGC - B']), SP.publishEventNames(['Air Vehicle - long - name'])]),
+    J([['CAD/PAD Shipping', 'Seat Cartridges'], ['Chem Bio Labor'], ['OGC - A', 'LM - B'], ['Plain title', 'OGC - B'], ['Air Vehicle - long - name']]));
   C.chk('and a typed description replaces the list (the prime): its plan events are not printed', has(p3, 'The prime contract') && !has(p3, 'P1') && !has(p3, 'P2'));
   const p4 = P.pages[3];
   C.chk('the last page: the unfunded list, filtered to this document, with its columns', has(p4, 'Unfunded requirements') && ['Rank', 'Requirement Title', 'PMO', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total', 'Funding Status', 'Exec Ready?', 'SFCB Action'].every(h => has(p4, h)));
   C.chk('the last page: a line’s amounts, status and action; the subtotal and the total', has(p4, 'O&M FY2027') && has(p4, 'New thing') && has(p4, 'TS0099') && has(p4, '400,000') && has(p4, 'Pending') && has(p4, 'Approved 12 Nov')
     && has(p4, 'Subtotal - O&M FY2027') && has(p4, 'Total unfunded') && texts(p4).filter(s => s === '3,300,000').length === 2, J(texts(p4)));
   C.chk('every page of the O&M plan names the O&M FM Lead and no other', P.pages.slice(0, 3).every(p => has(p, 'O&M FM Lead: O. Lead')) && !P.pages.some(p => texts(p).some(s => /S\. Lead/.test(s))));
-  const Ppp = SP.publishPages(pp, ctx);
+  const PppAll = SP.publishPages(pp, ctx), Ppp = noBreak(PppAll);
+  C.chk('a PMO’s plan: a break page before each appropriation and year, naming the PMO too', J(PppAll.pages.map(p => p.kind || '')) === J(['', 'break', '', 'break', '', ''])
+    && has(PppAll.pages[3], 'Initial Spares') && has(PppAll.pages[3], 'FY2027 Spend Plan') && has(PppAll.pages[3], 'Propulsion (PP)') && has(PppAll.pages[3], 'Initial Spares FM Lead: S. Lead'), J(texts(PppAll.pages[3])));
   C.chk('a PMO’s plan: its stoplight page names the FM Lead of each appropriation it covers; each section’s pages name their own',
     has(Ppp.pages[0], 'FM Leads: O&M: O. Lead | Initial Spares: S. Lead') && has(Ppp.pages[1], 'O&M FM Lead: O. Lead') && has(Ppp.pages[2], 'Initial Spares FM Lead: S. Lead'), J(Ppp.pages.map(p => texts(p).filter(s => /Lead/.test(s)))));
   C.chk('a PMO’s document: one stoplight at the front, a page per appropriation and year, then its unfunded list',
@@ -302,7 +323,7 @@ try {
     && texts(Ppp.pages[2]).includes('Propulsion (PP) - Initial Spares') && texts(Ppp.pages[2]).includes('PMO Spend Plan - Initial Spares FY2027') && texts(Ppp.pages[3]).includes('Unfunded requirements'),
     J(Ppp.pages.map(p => texts(p).slice(0, 4))));
   C.eq('only its first page is a stoplight', Ppp.pages.filter(p => texts(p).some(s => /^Execution status/.test(s))).length, 1);
-  const P0 = SP.publishPages(D0.docs[0], Object.assign({}, ctx, { ufrFiles: [], emblem: null, fm: {}, program: '' }));
+  const P0 = noBreak(SP.publishPages(D0.docs[0], Object.assign({}, ctx, { ufrFiles: [], emblem: null, fm: {}, program: '' })));
   C.chk('with no unfunded list the last page and the notes say so; with no names or emblem none is printed',
     texts(P0.pages[P0.pages.length - 1]).includes('No unfunded list is loaded.') && texts(P0.pages[0]).some(s => /No unfunded list is loaded: Required equals Approved/.test(s))
     && !texts(P0.pages[0]).some(s => /Lead/.test(s)) && !P0.pages.some(p => p.ops.some(o => o.t === 'img')) && texts(P0.pages[0]).includes('Spend Plan')
@@ -314,15 +335,23 @@ try {
         dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false,
         events: i === 3 ? Array.from({ length: 60 }, (_, j) => 'Event ' + j + ' of record three') : i === 4 ? ['A plan event title long enough that it has to wrap under itself in the description column'] : [] })) }] }] };
   big.sections[0].groups[0].records[3].desc = ''; big.sections[0].groups[0].records[4].desc = '';
-  const PB = SP.publishPages(big, ctx).pages.slice(1, -1);
+  const PB = noBreak(SP.publishPages(big, ctx)).pages.slice(1, -1);
   C.chk('forty records take several pages', PB.length >= 5, String(PB.length));
   C.chk('on each of them every record is whole: as many first rows (USAF) as Total rows (one USAF is the header’s), and each record’s number on one page only',
     PB.every(p => texts(p).filter(s => s === 'USAF').length - 1 === texts(p).filter(s => s === 'Total').length)
     && Array.from({ length: 40 }, (_, i) => PB.filter(p => texts(p).includes('CCaR K' + i)).length).every(n => n === 1));
   const allT = PB.flatMap(p => p.ops.filter(o => o.t === 'text'));
-  C.chk('sixty plan events: the list stops inside forty lines and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 39 && allT.some(o => o.s === '+21 more plan events'),
+  C.chk('sixty plan events: the list holds the six that fit the block and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 6 && allT.some(o => o.s === '+54 more plan events'),
     String(allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length));
-  C.chk('a long plan event title wraps under itself, its later lines set in', allT.some(o => o.x === descX && /^A plan event title long enough/.test(o.s)) && allT.some(o => o.x === descX + 5 && /under itself|description column|wrap/.test(o.s)));
+  { const w = allT.filter(o => o.x === evX && /plan event title long enough|under itself|description column/.test(o.s)).sort((a, b) => a.y - b.y);
+    C.chk('a long plan event title wraps squarely under itself, with one bullet for the whole title', w.length >= 2 && Math.abs(w[1].y - w[0].y - 7.4) < 0.01
+      && PB.flatMap(p => p.ops).filter(b => b.t === 'text' && b.s === '\u2022' && w.some(o => o.y === b.y)).length === 1, J(w.map(o => [o.s, o.y]))); }
+  // the Total row is never stretched: in every record, tall or not, its rows are all one height
+  { const rowsOf = p => { const m = new Map(); for (const o of p.ops) if (o.t === 'rect' && o.x === 424 && o.w === 60 && o.y > 100) { m.set(o.y, o.h); } return [...m].sort((a, b) => a[0] - b[0]).map(x => x[1]); };
+    const hs = PB.flatMap(rowsOf), blocks = []; for (let i = 0; i + 7 <= hs.length; i += 7) blocks.push(hs.slice(i, i + 7));
+    C.chk('in each of the forty records the six service rows and the Total row are the same height', blocks.length === 40 && blocks.every(b => b.every(v => Math.abs(v - b[0]) < 0.01)), J(blocks.slice(0, 5)));
+    C.chk('no list makes a block taller: every row of every record is the usual 9.5 pt, whatever is beside it', blocks.every(b => b.every(v => Math.abs(v - 9.5) < 0.01)), J([...new Set(hs.map(v => Math.round(v * 10) / 10))])); }
+  C.chk('award months past what two columns hold end “+N more” (record five has thirty-five: fifteen shown)', PB.flatMap(p => texts(p)).includes('+20 more'), J(PB.flatMap(p => texts(p)).filter(x => /^\+\d+ more$/.test(x))));
   C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 592.01)));
   // the header with the summary, and the column headings, are on every page of a section
   C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',
@@ -341,11 +370,11 @@ try {
   const pt = spawnSync('pdftotext', ['-layout', join(tmp.dir, 'om.pdf'), '-'], { encoding: 'utf8' });
   C.eq('poppler reads it with no complaint', J([pt.status, pt.stderr]), J([0, '']));
   const pages = pt.stdout.split('\f').filter(s => s.trim() !== '');
-  C.eq('four pages', pages.length, 4);
+  C.eq('six pages', pages.length, 6);
   C.chk('each page’s text holds the CUI marking twice', pages.every(s => s.split(SP.CUI).length === 3));
-  C.chk('the text can be searched: the prime’s line, to the dollar, and the mark †', /Prime Alpha/.test(pages[2]) && /\$\s+6,500,000\s+\$\s+4,000,000\s+\$\s+3,000,000\s+\$\s+1,000,000\s+\$\s+\(2,500,000\)/.test(pages[2]) && /†/.test(pages[0]), pages[2].slice(0, 1500));
+  C.chk('the text can be searched: the prime’s line, to the dollar, the mark †, and the break page’s heading', /Prime Alpha/.test(pages[4]) && /\$\s+6,500,000\s+\$\s+4,000,000\s+\$\s+3,000,000\s+\$\s+1,000,000\s+\$\s+\(2,500,000\)/.test(pages[4]) && /†/.test(pages[0]) && /FY2027 Spend Plan/.test(pages[3]), pages[4].slice(0, 1500));
   const py = spawnSync('python3', ['-c', 'import sys,pypdf\nr=pypdf.PdfReader(sys.argv[1])\nx=r.pages[0].images\nprint(len(r.pages), r.metadata.title, len(x), x[0].image.size if x else None, [float(v) for v in r.pages[1].mediabox[2:]], all(float(p.mediabox[2]) > float(p.mediabox[3]) and not p.get("/Rotate") for p in r.pages), r.trailer["/Root"]["/ViewerPreferences"]["/PickTrayByPDFSize"])', join(tmp.dir, 'om.pdf')], { encoding: 'utf8' });
-  C.eq('pypdf reads the same: its pages, title, the emblem’s picture, the page size, every page wider than tall and not turned, and the printing hint', py.stdout.trim() + py.stderr, '4 APEX Spend Plan - O&M 1 (40, 20) [792.0, 612.0] True True');
+  C.eq('pypdf reads the same: its pages, title, the emblem’s picture, the page size, every page wider than tall and not turned, and the printing hint', py.stdout.trim() + py.stderr, '6 APEX Spend Plan - O&M 1 (40, 20) [792.0, 612.0] True True');
   const strange = SP.pdfBytes({ title: 'x', pages: [{ w: 200, h: 100, ops: [{ t: 'text', x: 10, y: 20, s: 'a(b)c\\d — “é” 例', size: 9 }] }] });
   writeFileSync(join(tmp.dir, 's.pdf'), strange);
   const st = spawnSync('pdftotext', [join(tmp.dir, 's.pdf'), '-'], { encoding: 'utf8' });

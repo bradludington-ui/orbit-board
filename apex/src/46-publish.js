@@ -449,6 +449,16 @@ function pb_mix(a, b, t) {
 }
 function pb_isoWords(iso) { return pb_dateWords(iso) || String(iso || ''); }
 
+// the plan event titles as a record's list prints them: where EVERY title begins with the same short tag and a dash
+// ("OGC - CAD/PAD Shipping", "OGC - CAD/PAD Seat Cartridges"), the tag is left off each. One title that differs, or a
+// title that is nothing but the tag, and they are printed as they are.
+SP.publishEventNames = function publishEventNames(events) {
+  const list = (events || []).map(e => String(e));
+  const tag = e => { const m = /^\s*([A-Za-z0-9&/]{1,10})\s+-\s+(\S.*)$/.exec(e); return m ? [m[1].toLowerCase(), m[2].trim()] : null; };
+  const t = list.map(tag);
+  if (!list.length || t.some(x => !x) || t.some(x => x[0] !== t[0][0])) return list;
+  return t.map(x => x[1]);
+};
 SP.publishPages = function publishPages(doc, ctx) {
   const C = ctx || {};
   const pages = [];
@@ -600,6 +610,28 @@ SP.publishPages = function publishPages(doc, ctx) {
       y = Math.max(y, 34 + rh * (nS + 1) + 6);
       colHead();
     };
+    // A BREAK PAGE OPENS EACH SECTION (Brad, 18 Nov 2026: "Let's add a break page in between appropriations and/or fiscal years
+    // in the pdf"). A page of its own that says which appropriation and fiscal year the pages after it are, with the
+    // section's size and totals, so a reader leafing through a printed plan sees where one ends and the next begins.
+    {
+      newPage(); pg.kind = 'break';
+      const cx = PB.W / 2;
+      if (C.emblem) emblemAt(cx - 60, 136, 120);
+      const y0 = C.emblem ? 290 : 230;
+      if (prog) T(cx, y0, prog, { size: 16, bold: true, align: 'c', color: PB.mut });
+      T(cx, y0 + 40, 'FY' + sec.fy + ' Spend Plan', { size: 34, bold: true, align: 'c' });
+      const bw = 520, bx = cx - bw / 2, n = 40, w = bw / 2 / n;
+      // the band, fading in from both ends to the emblem's blue at the middle
+      for (let i = 0; i < n; i++) { const c = pb_mix(PB.band, PB.deep, i / (n - 1)); Rc(bx + i * w, y0 + 56, w + 0.5, 30, { fill: c }); Rc(bx + bw - (i + 1) * w - 0.5, y0 + 56, w + 0.5, 30, { fill: c }); }
+      T(cx, y0 + 78, PB_AP_LONG[sec.ap] || sec.apLabel, { size: 20, bold: true, align: 'c', color: '#FFFFFF' });
+      if (doc.kind === 'pmo') T(cx, y0 + 108, doc.label, { size: 15, bold: true, align: 'c' });
+      const yy = y0 + (doc.kind === 'pmo' ? 132 : 112);
+      const w1 = whoText([sec.ap]);
+      if (w1) T(cx, yy, w1, { size: 10, align: 'c' });
+      T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
+        + '   |   Obligated $' + SP.fmtWhole(sec.total.obligated).replace(/^-$/, '0'), { size: 9, align: 'c', color: PB.mut });
+      T(cx, yy + (w1 ? 30 : 14), asOf, { size: 8, align: 'c', color: PB.mut });
+    }
     top(false);
     const cont = () => top(true);
     let run = null;                          // the group band being drawn on this page: {label, y0}
@@ -621,24 +653,41 @@ SP.publishPages = function publishPages(doc, ctx) {
       }
       for (const r of g.records) {
         const nRows = r.svc.length + 1;
-        const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
-        // THE DESCRIPTION IS THE RECORD'S PLAN EVENT TITLES, LISTED, unless one was typed (Brad, 18 Nov 2026: "For the description,
-        // let's default to the Plan Event Title and have them listed"). One to a line, in the order they fall; a long title
-        // wraps under itself; past forty lines the list ends by saying how many more there are.
-        const dW = X[3] - X[2] - 8, evH = 7.4, evMax = 40;
-        let evLines = null;
-        if (!r.desc && Array.isArray(r.events) && r.events.length) {
+        // A RECORD'S BLOCK IS ITS ROWS AND NO TALLER (Brad, 18 Nov 2026: "I don't want the Total row to be extended"; then, of rows
+        // made to share a taller block, "Don't adjust the row heights"). Every row is PB.rowH, so the block is its service
+        // rows and its Total. What sits beside them is cut to fit that height, and says so: the award months past what two
+        // columns hold end "+N more", and so does the plan-event list.
+        const h = nRows * PB.rowH;
+        const dateFit = 2 * Math.max(1, Math.floor((h - 5) / dateH));
+        const shown = r.dates.length > dateFit ? r.dates.slice(0, dateFit - 1).concat(['+' + (r.dates.length - dateFit + 1) + ' more']) : r.dates;
+        // THE DESCRIPTION (§33.10). Unless one was typed:
+        //   - a prime contract's is its Requirement Title (Brad, 18 Nov 2026, of a prime listing sixty CLIN-level plan events:
+        //     "My prime contracts are too wordy with all the CLIN information in there. Let's just carry the Requirement
+        //     Title over for those");
+        //   - any other record's is its plan event titles, as a bulleted list in the order they fall ("let's default to the
+        //     Plan Event Title and have them listed"; then, of the first layout, "let's find a better way to list the Plan
+        //     Events"). Each title has its own bullet and wraps squarely under itself, with a little air between titles, so
+        //     where one ends and the next begins is plain. The tag every title of the record begins with ("OGC - ") is
+        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). The list holds
+        //     as many titles as fit the block; when some do not, its last line says how many more there are.
+        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.2, evRoom = h - 5;
+        const descText = r.desc || (g.prime ? r.title : '');
+        let evLines = null, evTall = 0;
+        if (!descText && Array.isArray(r.events) && r.events.length) {
           evLines = [];
-          let left = r.events.length;
-          for (const e of r.events) {
-            const ls = SP.pdfWrap(e, 6.3, false, dW - 5);
-            if (evLines.length + ls.length > evMax - 1 && left > 1) break;
-            ls.forEach((l, i) => evLines.push({ s: l, first: i === 0 }));
+          const names = SP.publishEventNames(r.events);
+          let left = names.length;
+          for (const e of names) {
+            const ls = SP.pdfWrap(e, 6.3, false, dW - 7);
+            // room for this title, and, unless it is the last, for the line that says how many are left
+            const need = (evLines.length ? evGap : 0) + ls.length * evH + (left > 1 ? evGap + evH : 0);
+            if (evTall + need > evRoom && evLines.length) break;
+            if (evLines.length) evTall += evGap;
+            ls.slice(0, Math.max(1, Math.floor((evRoom - evTall) / evH))).forEach((l, k) => { evLines.push({ s: l, first: k === 0, dy: evTall }); evTall += evH; });
             left--;
           }
-          if (left > 0) evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), first: false, more: true });
+          if (left > 0) { evTall += evGap; evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), more: true, dy: evTall }); evTall += evH; }
         }
-        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6, evLines ? evLines.length * evH + 6 : 0);
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
         if (!run) run = { label: g.label, y0: y, color: g.color };
         // title and CCaR number
@@ -650,10 +699,13 @@ SP.publishPages = function publishPages(doc, ctx) {
         // description
         Rc(X[2], y, X[3] - X[2], h, { stroke: PB.rule, lw: 0.4 });
         if (evLines) {
-          const y0 = y + h / 2 - (evLines.length * evH) / 2 + 5.6;
-          evLines.forEach((l, i) => T(X[2] + (l.first || l.more ? 4 : 9), y0 + i * evH, l.s, { size: 6.3, color: l.more ? PB.mut : PB.ink }));
+          const y0 = y + h / 2 - evTall / 2 + 5.6;
+          for (const l of evLines) {
+            if (l.first) T(X[2] + 4, y0 + l.dy, '\u2022', { size: 6.3 });
+            T(X[2] + (l.more ? 4 : 10), y0 + l.dy, l.s, { size: 6.3, color: l.more ? PB.mut : PB.ink });
+          }
         } else {
-          const dl = SP.pdfWrap(r.desc, 6.5, false, dW, Math.max(1, Math.floor((h - 5) / 7.6)));
+          const dl = SP.pdfWrap(descText, 6.5, false, dW, Math.max(1, Math.floor((h - 5) / 7.6)));
           dl.forEach((l, i) => T((X[2] + X[3]) / 2, y + h / 2 - (dl.length * 7.6) / 2 + 5.8 + i * 7.6, l, { size: 6.5, align: 'c' }));
         }
         // award dates, in order, down then across
@@ -663,11 +715,10 @@ SP.publishPages = function publishPages(doc, ctx) {
         shown.forEach((d, i) => T(X[3] + cwD * Math.floor(i / perCol) + cwD / 2, y + h / 2 - (used * dateH) / 2 + 5.6 + (i % perCol) * dateH, d, { size: 6, align: 'c' }));
         // the service rows and the Total
         for (let i = 0; i < nRows; i++) {
-          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], yy = y + PB.rowH * i;
-          const hh = tot ? h - PB.rowH * i : PB.rowH;         // the Total row takes what a tall block leaves
+          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = PB.rowH, yy = y + hh * i, pad = 0;
           for (let c = 4; c < 10; c++) Rc(X[c], yy, X[c + 1] - X[c], hh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
-          T((X[4] + X[5]) / 2, yy + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
-          FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + 6.9, f[k], { red: k === 'delta', bold: tot }));
+          T((X[4] + X[5]) / 2, yy + pad + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
+          FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + pad + 6.9, f[k], { red: k === 'delta', bold: tot }));
           if (tot) Ln(X[4], yy, X[10], yy, { stroke: PB.ink, lw: 0.9 });
         }
         y += h;
