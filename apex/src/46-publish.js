@@ -631,7 +631,13 @@ SP.publishPages = function publishPages(doc, ctx) {
       }
       for (const r of g.records) {
         const nRows = r.svc.length + 1;
-        const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
+        // A RECORD'S BLOCK IS ITS ROWS AND NO TALLER (Brad, 18 Nov 2026: "I don't want the Total row to be extended"; then, of rows
+        // made to share a taller block, "Don't adjust the row heights"). Every row is PB.rowH, so the block is its service
+        // rows and its Total. What sits beside them is cut to fit that height, and says so: the award months past what two
+        // columns hold end "+N more", and so does the plan-event list.
+        const h = nRows * PB.rowH;
+        const dateFit = 2 * Math.max(1, Math.floor((h - 5) / dateH));
+        const shown = r.dates.length > dateFit ? r.dates.slice(0, dateFit - 1).concat(['+' + (r.dates.length - dateFit + 1) + ' more']) : r.dates;
         // THE DESCRIPTION (§33.10). Unless one was typed:
         //   - a prime contract's is its Requirement Title (Brad, 18 Nov 2026, of a prime listing sixty CLIN-level plan events:
         //     "My prime contracts are too wordy with all the CLIN information in there. Let's just carry the Requirement
@@ -640,25 +646,26 @@ SP.publishPages = function publishPages(doc, ctx) {
         //     Plan Event Title and have them listed"; then, of the first layout, "let's find a better way to list the Plan
         //     Events"). Each title has its own bullet and wraps squarely under itself, with a little air between titles, so
         //     where one ends and the next begins is plain. The tag every title of the record begins with ("OGC - ") is
-        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). Past twelve lines
-        //     the list ends by saying how many more there are, so a block is never much taller than its seven rows.
-        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.8, evMax = 12;
+        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). The list holds
+        //     as many titles as fit the block; when some do not, its last line says how many more there are.
+        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.2, evRoom = h - 5;
         const descText = r.desc || (g.prime ? r.title : '');
         let evLines = null, evTall = 0;
         if (!descText && Array.isArray(r.events) && r.events.length) {
           evLines = [];
           const names = SP.publishEventNames(r.events);
-          let left = names.length, n = 0;
+          let left = names.length;
           for (const e of names) {
             const ls = SP.pdfWrap(e, 6.3, false, dW - 7);
-            if (n + ls.length > evMax - 1 && left > 1) break;
+            // room for this title, and, unless it is the last, for the line that says how many are left
+            const need = (evLines.length ? evGap : 0) + ls.length * evH + (left > 1 ? evGap + evH : 0);
+            if (evTall + need > evRoom && evLines.length) break;
             if (evLines.length) evTall += evGap;
-            ls.forEach((l, i) => { evLines.push({ s: l, first: i === 0, dy: evTall }); evTall += evH; });
-            n += ls.length; left--;
+            ls.slice(0, Math.max(1, Math.floor((evRoom - evTall) / evH))).forEach((l, k) => { evLines.push({ s: l, first: k === 0, dy: evTall }); evTall += evH; });
+            left--;
           }
           if (left > 0) { evTall += evGap; evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), more: true, dy: evTall }); evTall += evH; }
         }
-        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6, evLines ? evTall + 6 : 0);
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
         if (!run) run = { label: g.label, y0: y, color: g.color };
         // title and CCaR number
@@ -686,10 +693,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         shown.forEach((d, i) => T(X[3] + cwD * Math.floor(i / perCol) + cwD / 2, y + h / 2 - (used * dateH) / 2 + 5.6 + (i % perCol) * dateH, d, { size: 6, align: 'c' }));
         // the service rows and the Total
         for (let i = 0; i < nRows; i++) {
-          // THE TOTAL ROW IS NEVER STRETCHED (Brad, 18 Nov 2026, of a record whose long list left a Total row five times the
-          // height of the rows above it: "I don't want the Total row to be extended"). Where a list makes the block taller
-          // than its rows, every row shares the height equally, and the list itself is kept short (evMax) so they stay close.
-          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = h / nRows, yy = y + hh * i, pad = (hh - PB.rowH) / 2;
+          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = PB.rowH, yy = y + hh * i, pad = 0;
           for (let c = 4; c < 10; c++) Rc(X[c], yy, X[c + 1] - X[c], hh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
           T((X[4] + X[5]) / 2, yy + pad + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
           FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + pad + 6.9, f[k], { red: k === 'delta', bold: tot }));

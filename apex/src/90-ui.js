@@ -1032,6 +1032,22 @@ async function ui_pubZip() {
     ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
+// IMPORT FROM LAST VERSION (CONTRACT §34): the APEX file used before. A page with no pull takes that plan whole, as it was
+// (its pulls too, until newer ones are imported); a page that already holds a pull takes only what was typed into the
+// old one (settings, descriptions, FM Leads, unfunded lists) and keeps its own pulls.
+async function ui_lastImport(fileList) {
+  const f = fileList && fileList[0];
+  if (!f) return;
+  await ui_busy('the import from the last version', async () => {
+    const text = new TextDecoder('utf-8').decode(await f.arrayBuffer());
+    const whole = !ui_hasData();
+    if (!ui_need(whole ? 'takePlan' : 'takeSettings', 'Import from last version')) return;
+    const r = whole ? SP.takePlan(text, f.name) : SP.takeSettings(text, f.name);
+    if (r && r.ok) { ui.refused = null; ui_invalidate(); if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = UI_HOME; }
+    ui_say((r && r.message) || 'Nothing was taken.', r && r.ok ? 'ok' : 'err');
+    ui_render();
+  });
+}
 async function ui_ufrImport(fileList) {
   const files = [...(fileList || [])];
   if (!files.length) return;
@@ -1899,6 +1915,13 @@ function ui_vHelp() {
       'A record’s Description is a bulleted list of its plan event titles, in date order (a prime contract’s is its Requirement Title), unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
+    + '<h3 class="sub">Moving to a new version of APEX</h3>' + li([
+      'Open the new APEX file, open <strong>Manage data</strong> and press <strong>Import from last version…</strong>, then pick the APEX file you used before. Nothing is typed again.',
+      'If the new file holds no CCaR pull yet, the old plan is taken whole: its pulls, settings, Authorized amounts, descriptions, FM Leads and unfunded lists. Import the newer pulls afterwards and they replace the old ones.',
+      'If the new file already holds a pull, only what was typed into the old one is taken: the settings (Authorized amounts, goal curves, Special CCaRs, budget overrides, First FY), '
+      + 'the descriptions, FM Leads, program title and emblem, and the unfunded lists. The pulls and BAE report on screen are left as they are, and Data through stays where it is.',
+      'The old file is only read, never changed. Press <strong>Save</strong> afterwards to keep what was taken in the new file.',
+    ])
     + '<h3 class="sub">Manage data</h3>' + li([
       '<strong>Manage data</strong>, at the top right, opens the bar that holds Data through, First FY, Import, Save and Save a copy, and the line that says when each pull came in. '
       + 'It is open by itself when the file holds no data. Someone who only reads the plan never needs it.',
@@ -1970,6 +1993,7 @@ function ui_vNoData() {
     + (B ? '<p class="baewait">The BAE report “' + ui_e(String(B.file ?? '')) + '” is loaded. Its Approved and Authorized appear once a CCaR pull is '
       + 'imported: they fill the pull’s appropriation and FY blocks, and the report adds no block of its own.</p>' : '')
     + '<p class="acts"><button type="button" data-act="import" data-fkey="import2">Import CCaR pull…</button>'
+    + '<button type="button" data-act="lastpick" data-fkey="lastpick2">Import from last version…</button>'
     + '<button type="button" data-act="help" data-fkey="help2">Help</button></p>'
     // a first import that was refused is the one time someone is on this page needing the reason in full
     + (ui.refused ? '<div class="refused" role="note"><p><strong>The last import was refused, so nothing changed.</strong> ' + ui_e(ui.refused.message) + '</p>'
@@ -2018,6 +2042,7 @@ function ui_skeleton() {
     + '<label class="fld">First FY <input type="number" id="uiFirst" data-fkey="first" min="1990" max="2100" step="1"></label>'
     + '<span class="grow"></span>'
     + '<button type="button" data-act="import" data-fkey="import">Import CCaR pull…</button>'
+    + '<button type="button" data-act="lastpick" data-fkey="lastpick" title="Bring the settings, descriptions, FM Leads and unfunded lists across from the APEX file you used before">Import from last version…</button>'
     + '<button type="button" data-act="save" data-fkey="save">Save</button>'
     + '<button type="button" data-act="savecopy" data-fkey="savecopy">Save a copy…</button>'
     + '</div>'
@@ -2029,7 +2054,8 @@ function ui_skeleton() {
     + '<div class="shell" id="uiShell"><nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '<div class="content"><div id="uiFilters"></div>'
     + '<main id="uiMain" tabindex="-1"></main></div></div>'
-    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>';
+    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>'
+    + '<input type="file" id="uiLastFile" data-act="lastfile" accept=".html,.htm" hidden>';
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
@@ -2597,6 +2623,7 @@ function ui_onClick(ev) {
     case 'zip': ui_zip(); break;
     case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
     case 'pubzip': ui_pubZip(); break;
+    case 'lastpick': { const f = document.getElementById('uiLastFile'); if (f) f.click(); break; }
     case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
     case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
     case 'embpick': { const f = document.getElementById('uiEmbFile'); if (f) f.click(); break; }
@@ -2636,6 +2663,7 @@ function ui_onChange(ev) {
   if (t === ui.els.first) { ui_firstChanged(); return; }
   const act = t.getAttribute && t.getAttribute('data-act');
   switch (act) {
+    case 'lastfile': ui_lastImport(t.files); return;
     case 'ufrfile': ui_ufrImport(t.files); return;
     case 'descfile': ui_descImport(t.files); return;
     case 'embfile': ui_embImport(t.files); return;

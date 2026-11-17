@@ -913,6 +913,56 @@ SP.takePlan = function takePlan(text, name) {
     + ', import history, settings and last import report. Its figures are worked out by this copy of the tool. Save to keep it in this page’s file.' };
 };
 
+// §34 WHAT WAS TYPED INTO THE LAST VERSION, TAKEN INTO THIS ONE. Brad, 18 Nov 2026: "As we make new versions, I want to just
+// import all the data from the last version so I don't have to type in authorized amounts in settings." SP.takePlan takes
+// a saved plan whole, pulls and all, which is right for an empty page and wrong for one that already holds newer pulls:
+// they would be replaced by the old ones. This takes only what a person typed or loaded by hand and leaves this page's
+// pulls, BAE report, history and last import report exactly as they are:
+//   - the settings: Authorized amounts, goal curves, Special CCaRs, budget overrides, First FY, the years left out. Data
+//     through stays this page's when it holds a pull (it is the month THIS page's data runs to);
+//   - the publishing settings: descriptions, each appropriation's FM Lead, the program title, the emblem;
+//   - the unfunded lists, by fiscal year (a year this page also holds is replaced by the file's).
+// Asked first when it would replace anything typed here. -> { ok, message }
+SP.takeSettings = function takeSettings(text, name) {
+  const fname = String(name || 'that file');
+  const f = st_readFile(text);
+  if (f.why) return { ok: false, message: 'Nothing was taken: “' + fname + '” ' + f.why + '.' };
+  if (!f.state) return { ok: false, message: 'Nothing was taken: “' + fname + '” is a APEX file with no plan saved in it.' };
+  const why = st_check(f.state);
+  if (why) return { ok: false, message: 'Nothing was taken from “' + fname + '”: ' + why + '.' };
+  const inc = f.state, st = SP.state;
+  const hasSet = st_isObj(inc.settings), hasPub = st_isObj(inc.publish) && Object.keys(inc.publish).length > 0, hasUfr = st_isObj(inc.ufr) && Object.keys(inc.ufr).length > 0;
+  if (!hasSet && !hasPub && !hasUfr) return { ok: false, message: 'Nothing was taken: “' + fname + '” holds no settings, descriptions or unfunded list.' };
+  const hasPull = ST_PULL_KEYS.some(k => st_isObj(st.pulls.current[k]));
+  const next = hasSet ? st_clone(inc.settings) : null;
+  if (next && hasPull && st_isObj(st.settings) && typeof st.settings.asOf === 'string') next.asOf = st.settings.asOf;
+  const n = o => (st_isObj(o) ? Object.keys(o).length : 0);
+  const brings = [];
+  if (hasSet) brings.push('the settings (' + n(inc.settings.authorized) + ' Authorized amount' + (n(inc.settings.authorized) === 1 ? '' : 's') + ', goal curves, Special CCaRs, '
+    + n(inc.settings.budgets) + ' budget override' + (n(inc.settings.budgets) === 1 ? '' : 's') + ', First FY)');
+  if (hasPub) brings.push('the publishing settings (' + n(inc.publish.desc) + ' description' + (n(inc.publish.desc) === 1 ? '' : 's') + ', ' + n(inc.publish.fm) + ' FM Lead' + (n(inc.publish.fm) === 1 ? '' : 's')
+    + (inc.publish.emblem ? ', an emblem' : '') + ')');
+  if (hasUfr) brings.push('the unfunded list' + (n(inc.ufr) === 1 ? '' : 's') + ' for ' + st_list(Object.keys(inc.ufr).sort().map(k => 'FY' + k)));
+  const mineSet = st_isObj(st.settings) && (!next || st_setJson(st.settings) !== st_setJson(next));
+  const minePub = st_isObj(st.publish) && hasPub && JSON.stringify(st.publish) !== JSON.stringify(inc.publish);
+  const mineUfr = st_isObj(st.ufr) && hasUfr && Object.keys(inc.ufr).some(k => st_own(st.ufr, k) && JSON.stringify(st.ufr[k]) !== JSON.stringify(inc.ufr[k]));
+  if ((hasSet && mineSet) || minePub || mineUfr) {
+    const q = 'Take from “' + fname + '”: ' + brings.join('; ') + '?\n\nThey replace this page’s own' + (hasSet && mineSet ? ' settings' : '')
+      + (minePub ? (hasSet && mineSet ? ',' : '') + ' publishing settings' : '') + (mineUfr ? ((hasSet && mineSet) || minePub ? ' and' : '') + ' unfunded list for the same fiscal year' : '')
+      + '. This page’s pulls and BAE report are not changed' + (hasPull ? ', and Data through stays ' + (st.settings && st.settings.asOf) : '') + '.';
+    let yes = false;
+    try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
+    if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s settings, and “' + fname + '” was not read into it.' };
+  }
+  const before = JSON.stringify([st.settings, st.publish, st.ufr]);
+  if (next) st.settings = next;
+  if (hasPub) st.publish = st_clone(inc.publish);
+  if (hasUfr) { const u = st_isObj(st.ufr) ? st.ufr : {}; for (const k of Object.keys(inc.ufr)) u[k] = st_clone(inc.ufr[k]); st.ufr = u; }
+  if (JSON.stringify([st.settings, st.publish, st.ufr]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
+  st_changed(false);
+  return { ok: true, message: 'Took from “' + fname + '”: ' + brings.join('; ') + '. This page’s pulls and BAE report are as they were. Save to keep it in this page’s file.' };
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // SETTINGS (saved in the file, so a change is unsaved work)
 // ---------------------------------------------------------------------------------------------------------------

@@ -183,6 +183,20 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
   read.
 - **With no BAE report loaded, nothing changes**: every view, figure and sheet is as described in the rest of this guide.
 
+## Moving to a new version of APEX
+
+You do not type anything again. Open the new APEX file, open **Manage data**, press **Import from last version…** and pick
+the APEX file you used before.
+
+- If the new file holds no CCaR pull yet, the old plan comes across whole: its pulls, settings, Authorized amounts,
+  descriptions, FM Leads and unfunded lists. Import the newer pulls afterwards; they replace the old ones and the settings
+  stay.
+- If the new file already holds a pull, only what was typed into the old one comes across (the settings, with the
+  Authorized amounts; descriptions, FM Leads, program title and emblem; the unfunded lists). The pulls on screen and
+  Data through are left as they are.
+
+The old file is only read. Press **Save** afterwards.
+
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*

@@ -5293,7 +5293,13 @@ SP.publishPages = function publishPages(doc, ctx) {
       }
       for (const r of g.records) {
         const nRows = r.svc.length + 1;
-        const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
+        // A RECORD'S BLOCK IS ITS ROWS AND NO TALLER (Brad, 18 Nov 2026: "I don't want the Total row to be extended"; then, of rows
+        // made to share a taller block, "Don't adjust the row heights"). Every row is PB.rowH, so the block is its service
+        // rows and its Total. What sits beside them is cut to fit that height, and says so: the award months past what two
+        // columns hold end "+N more", and so does the plan-event list.
+        const h = nRows * PB.rowH;
+        const dateFit = 2 * Math.max(1, Math.floor((h - 5) / dateH));
+        const shown = r.dates.length > dateFit ? r.dates.slice(0, dateFit - 1).concat(['+' + (r.dates.length - dateFit + 1) + ' more']) : r.dates;
         // THE DESCRIPTION (§33.10). Unless one was typed:
         //   - a prime contract's is its Requirement Title (Brad, 18 Nov 2026, of a prime listing sixty CLIN-level plan events:
         //     "My prime contracts are too wordy with all the CLIN information in there. Let's just carry the Requirement
@@ -5302,25 +5308,26 @@ SP.publishPages = function publishPages(doc, ctx) {
         //     Plan Event Title and have them listed"; then, of the first layout, "let's find a better way to list the Plan
         //     Events"). Each title has its own bullet and wraps squarely under itself, with a little air between titles, so
         //     where one ends and the next begins is plain. The tag every title of the record begins with ("OGC - ") is
-        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). Past twelve lines
-        //     the list ends by saying how many more there are, so a block is never much taller than its seven rows.
-        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.8, evMax = 12;
+        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). The list holds
+        //     as many titles as fit the block; when some do not, its last line says how many more there are.
+        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.2, evRoom = h - 5;
         const descText = r.desc || (g.prime ? r.title : '');
         let evLines = null, evTall = 0;
         if (!descText && Array.isArray(r.events) && r.events.length) {
           evLines = [];
           const names = SP.publishEventNames(r.events);
-          let left = names.length, n = 0;
+          let left = names.length;
           for (const e of names) {
             const ls = SP.pdfWrap(e, 6.3, false, dW - 7);
-            if (n + ls.length > evMax - 1 && left > 1) break;
+            // room for this title, and, unless it is the last, for the line that says how many are left
+            const need = (evLines.length ? evGap : 0) + ls.length * evH + (left > 1 ? evGap + evH : 0);
+            if (evTall + need > evRoom && evLines.length) break;
             if (evLines.length) evTall += evGap;
-            ls.forEach((l, i) => { evLines.push({ s: l, first: i === 0, dy: evTall }); evTall += evH; });
-            n += ls.length; left--;
+            ls.slice(0, Math.max(1, Math.floor((evRoom - evTall) / evH))).forEach((l, k) => { evLines.push({ s: l, first: k === 0, dy: evTall }); evTall += evH; });
+            left--;
           }
           if (left > 0) { evTall += evGap; evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), more: true, dy: evTall }); evTall += evH; }
         }
-        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6, evLines ? evTall + 6 : 0);
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
         if (!run) run = { label: g.label, y0: y, color: g.color };
         // title and CCaR number
@@ -5348,10 +5355,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         shown.forEach((d, i) => T(X[3] + cwD * Math.floor(i / perCol) + cwD / 2, y + h / 2 - (used * dateH) / 2 + 5.6 + (i % perCol) * dateH, d, { size: 6, align: 'c' }));
         // the service rows and the Total
         for (let i = 0; i < nRows; i++) {
-          // THE TOTAL ROW IS NEVER STRETCHED (Brad, 18 Nov 2026, of a record whose long list left a Total row five times the
-          // height of the rows above it: "I don't want the Total row to be extended"). Where a list makes the block taller
-          // than its rows, every row shares the height equally, and the list itself is kept short (evMax) so they stay close.
-          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = h / nRows, yy = y + hh * i, pad = (hh - PB.rowH) / 2;
+          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = PB.rowH, yy = y + hh * i, pad = 0;
           for (let c = 4; c < 10; c++) Rc(X[c], yy, X[c + 1] - X[c], hh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
           T((X[4] + X[5]) / 2, yy + pad + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
           FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + pad + 6.9, f[k], { red: k === 'delta', bold: tot }));
@@ -8867,6 +8871,56 @@ SP.takePlan = function takePlan(text, name) {
     + ', import history, settings and last import report. Its figures are worked out by this copy of the tool. Save to keep it in this page’s file.' };
 };
 
+// §34 WHAT WAS TYPED INTO THE LAST VERSION, TAKEN INTO THIS ONE. Brad, 18 Nov 2026: "As we make new versions, I want to just
+// import all the data from the last version so I don't have to type in authorized amounts in settings." SP.takePlan takes
+// a saved plan whole, pulls and all, which is right for an empty page and wrong for one that already holds newer pulls:
+// they would be replaced by the old ones. This takes only what a person typed or loaded by hand and leaves this page's
+// pulls, BAE report, history and last import report exactly as they are:
+//   - the settings: Authorized amounts, goal curves, Special CCaRs, budget overrides, First FY, the years left out. Data
+//     through stays this page's when it holds a pull (it is the month THIS page's data runs to);
+//   - the publishing settings: descriptions, each appropriation's FM Lead, the program title, the emblem;
+//   - the unfunded lists, by fiscal year (a year this page also holds is replaced by the file's).
+// Asked first when it would replace anything typed here. -> { ok, message }
+SP.takeSettings = function takeSettings(text, name) {
+  const fname = String(name || 'that file');
+  const f = st_readFile(text);
+  if (f.why) return { ok: false, message: 'Nothing was taken: “' + fname + '” ' + f.why + '.' };
+  if (!f.state) return { ok: false, message: 'Nothing was taken: “' + fname + '” is a APEX file with no plan saved in it.' };
+  const why = st_check(f.state);
+  if (why) return { ok: false, message: 'Nothing was taken from “' + fname + '”: ' + why + '.' };
+  const inc = f.state, st = SP.state;
+  const hasSet = st_isObj(inc.settings), hasPub = st_isObj(inc.publish) && Object.keys(inc.publish).length > 0, hasUfr = st_isObj(inc.ufr) && Object.keys(inc.ufr).length > 0;
+  if (!hasSet && !hasPub && !hasUfr) return { ok: false, message: 'Nothing was taken: “' + fname + '” holds no settings, descriptions or unfunded list.' };
+  const hasPull = ST_PULL_KEYS.some(k => st_isObj(st.pulls.current[k]));
+  const next = hasSet ? st_clone(inc.settings) : null;
+  if (next && hasPull && st_isObj(st.settings) && typeof st.settings.asOf === 'string') next.asOf = st.settings.asOf;
+  const n = o => (st_isObj(o) ? Object.keys(o).length : 0);
+  const brings = [];
+  if (hasSet) brings.push('the settings (' + n(inc.settings.authorized) + ' Authorized amount' + (n(inc.settings.authorized) === 1 ? '' : 's') + ', goal curves, Special CCaRs, '
+    + n(inc.settings.budgets) + ' budget override' + (n(inc.settings.budgets) === 1 ? '' : 's') + ', First FY)');
+  if (hasPub) brings.push('the publishing settings (' + n(inc.publish.desc) + ' description' + (n(inc.publish.desc) === 1 ? '' : 's') + ', ' + n(inc.publish.fm) + ' FM Lead' + (n(inc.publish.fm) === 1 ? '' : 's')
+    + (inc.publish.emblem ? ', an emblem' : '') + ')');
+  if (hasUfr) brings.push('the unfunded list' + (n(inc.ufr) === 1 ? '' : 's') + ' for ' + st_list(Object.keys(inc.ufr).sort().map(k => 'FY' + k)));
+  const mineSet = st_isObj(st.settings) && (!next || st_setJson(st.settings) !== st_setJson(next));
+  const minePub = st_isObj(st.publish) && hasPub && JSON.stringify(st.publish) !== JSON.stringify(inc.publish);
+  const mineUfr = st_isObj(st.ufr) && hasUfr && Object.keys(inc.ufr).some(k => st_own(st.ufr, k) && JSON.stringify(st.ufr[k]) !== JSON.stringify(inc.ufr[k]));
+  if ((hasSet && mineSet) || minePub || mineUfr) {
+    const q = 'Take from “' + fname + '”: ' + brings.join('; ') + '?\n\nThey replace this page’s own' + (hasSet && mineSet ? ' settings' : '')
+      + (minePub ? (hasSet && mineSet ? ',' : '') + ' publishing settings' : '') + (mineUfr ? ((hasSet && mineSet) || minePub ? ' and' : '') + ' unfunded list for the same fiscal year' : '')
+      + '. This page’s pulls and BAE report are not changed' + (hasPull ? ', and Data through stays ' + (st.settings && st.settings.asOf) : '') + '.';
+    let yes = false;
+    try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
+    if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s settings, and “' + fname + '” was not read into it.' };
+  }
+  const before = JSON.stringify([st.settings, st.publish, st.ufr]);
+  if (next) st.settings = next;
+  if (hasPub) st.publish = st_clone(inc.publish);
+  if (hasUfr) { const u = st_isObj(st.ufr) ? st.ufr : {}; for (const k of Object.keys(inc.ufr)) u[k] = st_clone(inc.ufr[k]); st.ufr = u; }
+  if (JSON.stringify([st.settings, st.publish, st.ufr]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
+  st_changed(false);
+  return { ok: true, message: 'Took from “' + fname + '”: ' + brings.join('; ') + '. This page’s pulls and BAE report are as they were. Save to keep it in this page’s file.' };
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // SETTINGS (saved in the file, so a change is unsaved work)
 // ---------------------------------------------------------------------------------------------------------------
@@ -10288,6 +10342,22 @@ async function ui_pubZip() {
     ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
+// IMPORT FROM LAST VERSION (CONTRACT §34): the APEX file used before. A page with no pull takes that plan whole, as it was
+// (its pulls too, until newer ones are imported); a page that already holds a pull takes only what was typed into the
+// old one (settings, descriptions, FM Leads, unfunded lists) and keeps its own pulls.
+async function ui_lastImport(fileList) {
+  const f = fileList && fileList[0];
+  if (!f) return;
+  await ui_busy('the import from the last version', async () => {
+    const text = new TextDecoder('utf-8').decode(await f.arrayBuffer());
+    const whole = !ui_hasData();
+    if (!ui_need(whole ? 'takePlan' : 'takeSettings', 'Import from last version')) return;
+    const r = whole ? SP.takePlan(text, f.name) : SP.takeSettings(text, f.name);
+    if (r && r.ok) { ui.refused = null; ui_invalidate(); if (ui.view === 'help' || !UI_VIEWS.some(([id]) => id === ui.view)) ui.view = UI_HOME; }
+    ui_say((r && r.message) || 'Nothing was taken.', r && r.ok ? 'ok' : 'err');
+    ui_render();
+  });
+}
 async function ui_ufrImport(fileList) {
   const files = [...(fileList || [])];
   if (!files.length) return;
@@ -11155,6 +11225,13 @@ function ui_vHelp() {
       'A record’s Description is a bulleted list of its plan event titles, in date order (a prime contract’s is its Requirement Title), unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
+    + '<h3 class="sub">Moving to a new version of APEX</h3>' + li([
+      'Open the new APEX file, open <strong>Manage data</strong> and press <strong>Import from last version…</strong>, then pick the APEX file you used before. Nothing is typed again.',
+      'If the new file holds no CCaR pull yet, the old plan is taken whole: its pulls, settings, Authorized amounts, descriptions, FM Leads and unfunded lists. Import the newer pulls afterwards and they replace the old ones.',
+      'If the new file already holds a pull, only what was typed into the old one is taken: the settings (Authorized amounts, goal curves, Special CCaRs, budget overrides, First FY), '
+      + 'the descriptions, FM Leads, program title and emblem, and the unfunded lists. The pulls and BAE report on screen are left as they are, and Data through stays where it is.',
+      'The old file is only read, never changed. Press <strong>Save</strong> afterwards to keep what was taken in the new file.',
+    ])
     + '<h3 class="sub">Manage data</h3>' + li([
       '<strong>Manage data</strong>, at the top right, opens the bar that holds Data through, First FY, Import, Save and Save a copy, and the line that says when each pull came in. '
       + 'It is open by itself when the file holds no data. Someone who only reads the plan never needs it.',
@@ -11226,6 +11303,7 @@ function ui_vNoData() {
     + (B ? '<p class="baewait">The BAE report “' + ui_e(String(B.file ?? '')) + '” is loaded. Its Approved and Authorized appear once a CCaR pull is '
       + 'imported: they fill the pull’s appropriation and FY blocks, and the report adds no block of its own.</p>' : '')
     + '<p class="acts"><button type="button" data-act="import" data-fkey="import2">Import CCaR pull…</button>'
+    + '<button type="button" data-act="lastpick" data-fkey="lastpick2">Import from last version…</button>'
     + '<button type="button" data-act="help" data-fkey="help2">Help</button></p>'
     // a first import that was refused is the one time someone is on this page needing the reason in full
     + (ui.refused ? '<div class="refused" role="note"><p><strong>The last import was refused, so nothing changed.</strong> ' + ui_e(ui.refused.message) + '</p>'
@@ -11274,6 +11352,7 @@ function ui_skeleton() {
     + '<label class="fld">First FY <input type="number" id="uiFirst" data-fkey="first" min="1990" max="2100" step="1"></label>'
     + '<span class="grow"></span>'
     + '<button type="button" data-act="import" data-fkey="import">Import CCaR pull…</button>'
+    + '<button type="button" data-act="lastpick" data-fkey="lastpick" title="Bring the settings, descriptions, FM Leads and unfunded lists across from the APEX file you used before">Import from last version…</button>'
     + '<button type="button" data-act="save" data-fkey="save">Save</button>'
     + '<button type="button" data-act="savecopy" data-fkey="savecopy">Save a copy…</button>'
     + '</div>'
@@ -11285,7 +11364,8 @@ function ui_skeleton() {
     + '<div class="shell" id="uiShell"><nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '<div class="content"><div id="uiFilters"></div>'
     + '<main id="uiMain" tabindex="-1"></main></div></div>'
-    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>';
+    + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>'
+    + '<input type="file" id="uiLastFile" data-act="lastfile" accept=".html,.htm" hidden>';
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
@@ -11853,6 +11933,7 @@ function ui_onClick(ev) {
     case 'zip': ui_zip(); break;
     case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
     case 'pubzip': ui_pubZip(); break;
+    case 'lastpick': { const f = document.getElementById('uiLastFile'); if (f) f.click(); break; }
     case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
     case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
     case 'embpick': { const f = document.getElementById('uiEmbFile'); if (f) f.click(); break; }
@@ -11892,6 +11973,7 @@ function ui_onChange(ev) {
   if (t === ui.els.first) { ui_firstChanged(); return; }
   const act = t.getAttribute && t.getAttribute('data-act');
   switch (act) {
+    case 'lastfile': ui_lastImport(t.files); return;
     case 'ufrfile': ui_ufrImport(t.files); return;
     case 'descfile': ui_descImport(t.files); return;
     case 'embfile': ui_embImport(t.files); return;

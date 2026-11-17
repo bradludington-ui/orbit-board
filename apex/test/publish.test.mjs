@@ -289,7 +289,7 @@ try {
   const evOf = p => p.ops.filter(o => o.t === 'text' && o.x === evX).sort((a, b) => a.y - b.y);
   C.eq('the FY2027 page: a record with no typed description lists its plan event titles, in order (Tessa B)', J(evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
   C.chk('each title has its own bullet, level with it', evOf(p3).filter(o => /^T2/.test(o.s)).every(o => p3.ops.some(b => b.t === 'text' && b.s === '\u2022' && b.x === descX && b.y === o.y)));
-  { const ys = evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.y); C.chk('with a little air between one title and the next', Math.abs((ys[1] - ys[0]) - 9.2) < 0.01, J(ys)); }
+  { const ys = evOf(p3).filter(o => /^T2/.test(o.s)).map(o => o.y); C.chk('with a little air between one title and the next', Math.abs((ys[1] - ys[0]) - 8.6) < 0.01, J(ys)); }
   // a prime with no typed description carries its Requirement Title over, never its plan events
   const Pav = SP.publishPages(D0.docs.find(d => d.id === 'pmo:propulsion (pp)'), ctx).pages[1];
   C.chk('a prime with nothing typed: its Description is its Requirement Title (so the title is printed twice) and its plan events are not listed',
@@ -329,7 +329,7 @@ try {
     PB.every(p => texts(p).filter(s => s === 'USAF').length - 1 === texts(p).filter(s => s === 'Total').length)
     && Array.from({ length: 40 }, (_, i) => PB.filter(p => texts(p).includes('CCaR K' + i)).length).every(n => n === 1));
   const allT = PB.flatMap(p => p.ops.filter(o => o.t === 'text'));
-  C.chk('sixty plan events: the list stops inside twelve lines and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 11 && allT.some(o => o.s === '+49 more plan events'),
+  C.chk('sixty plan events: the list holds the six that fit the block and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 6 && allT.some(o => o.s === '+54 more plan events'),
     String(allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length));
   { const w = allT.filter(o => o.x === evX && /plan event title long enough|under itself|description column/.test(o.s)).sort((a, b) => a.y - b.y);
     C.chk('a long plan event title wraps squarely under itself, with one bullet for the whole title', w.length >= 2 && Math.abs(w[1].y - w[0].y - 7.4) < 0.01
@@ -338,7 +338,8 @@ try {
   { const rowsOf = p => { const m = new Map(); for (const o of p.ops) if (o.t === 'rect' && o.x === 424 && o.w === 60 && o.y > 100) { m.set(o.y, o.h); } return [...m].sort((a, b) => a[0] - b[0]).map(x => x[1]); };
     const hs = PB.flatMap(rowsOf), blocks = []; for (let i = 0; i + 7 <= hs.length; i += 7) blocks.push(hs.slice(i, i + 7));
     C.chk('in each of the forty records the six service rows and the Total row are the same height', blocks.length === 40 && blocks.every(b => b.every(v => Math.abs(v - b[0]) < 0.01)), J(blocks.slice(0, 5)));
-    C.chk('the record with sixty plan events: its twelve-line list sets the block’s height, shared by its seven rows (16.4 pt each); one with no list keeps the usual 9.5', blocks.some(b => Math.abs(b[0] - (12 * 7.4 + 11 * 1.8 + 6) / 7) < 0.01) && blocks.some(b => Math.abs(b[0] - 9.5) < 0.01), J([...new Set(blocks.map(b => Math.round(b[0] * 10) / 10))])); }
+    C.chk('no list makes a block taller: every row of every record is the usual 9.5 pt, whatever is beside it', blocks.every(b => b.every(v => Math.abs(v - 9.5) < 0.01)), J([...new Set(hs.map(v => Math.round(v * 10) / 10))])); }
+  C.chk('award months past what two columns hold end “+N more” (record five has thirty-five: fifteen shown)', PB.flatMap(p => texts(p)).includes('+20 more'), J(PB.flatMap(p => texts(p)).filter(x => /^\+\d+ more$/.test(x))));
   C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 592.01)));
   // the header with the summary, and the column headings, are on every page of a section
   C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',
