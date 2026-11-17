@@ -2104,3 +2104,40 @@ It asks first when it would replace something typed on this page, naming what th
 nothing new changes nothing and says so. A file that is not an APEX plan, or whose plan cannot be read, is refused with the
 reason, as on opening. `test/last-version.test.mjs`.
 
+## 35. A view-only copy (Brad, 18 Nov 2026)
+
+Brad: *"I need a button that allows me to essentially clone the entire dashboard and remove a few buttons. When I push it
+out for people to use, I don't want them to have access to manipulate values or numbers. When published for mass viewing,
+I'd like it to remove the entire Data Checks area and the Setup area. The data through month and first FY should be locked
+and not editable. There should be no buttons for imports and no ability to save. It would be a view only file. I still
+want them to have the ability to select services or select PMOs for filtering."*
+
+**Publish view-only copy…** (Manage data) downloads `APEX view only - data through {Mon-YYYY} - {date}.html`: this page's
+plan as it is on screen, marked `viewOnly: true`. The keeper's page and its own file are not changed.
+
+A page that opens such a plan:
+
+- **has no Data checks and no Set up** in its menu (Not Allocated, Import report, What changed and Settings are not
+  reachable; a view asked for anyhow is the Summary);
+- **has no Manage data**: no Import CCaR pull, Import from last version, Save, Save a copy or Publish view-only copy, and
+  no "Unsaved changes";
+- **says Data through and First FY as words** beside a "View only" mark; their boxes are not on screen;
+- **keeps what only changes the reader's own view**: the Filter's service and lane switches, and every picker (PMO,
+  appropriation, fiscal year) on My PMO, the Award calendar, Charts, Requirements and the rest;
+- **keeps what only reads**: Export Excel, the slide pictures, and Publish PDFs' downloads. On Publish PDFs the boxes that
+  change the plan (descriptions, FM Leads, program title, emblem, the unfunded-list import and Remove) are not drawn.
+
+**The lock is in the store as well as on the screen.** `SP.applyImport`, `takePlan`, `takeSettings`, `setSettings`,
+`setUfr`, `removeUfr`, `setPublish`, `saveFile` and `saveCopy` each refuse on a view-only plan, so a control left on a
+view by mistake still cannot move a figure or write a file. It is a lock on the page, not on the file: someone who edits
+the file's text by hand can undo it, so a view-only copy is for convenience and safety from accidents, not a control on
+who may see or alter the data.
+
+**What the copy leaves out:** the pulls and the BAE report this plan replaced, the import history and the last import
+report. A reader has no view of them, and they are most of a file's size.
+
+**A copy is not a dead end.** A full APEX takes the plan out of a view-only copy (Import from last version, or Import) and
+stays a full APEX: the mark is not carried.
+
+`test/view-only.test.mjs`.
+

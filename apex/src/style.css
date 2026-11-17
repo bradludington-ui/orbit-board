@@ -538,4 +538,7 @@ table.pubdesc input.pubd{width:100%;min-width:18em;box-sizing:border-box}
 .pubhead input{flex:1 1 auto;min-width:0;width:100%}
 img.pubemb{width:54px;height:54px;object-fit:contain;background:#fff;border:1px solid var(--sline);border-radius:6px}
 .pubnotes{max-height:14em;overflow:auto}
+/* §35 a view-only copy says so beside the dates */
+.vobadge{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--acc);color:#eaf0f6;font-weight:700;font-size:12px;white-space:nowrap}
+.vobadge[hidden]{display:none}
 
