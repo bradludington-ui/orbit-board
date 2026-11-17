@@ -530,6 +530,23 @@ main.ov .cht .tg:hover,main.ov .cht .tg:focus-visible{background:none;color:var(
   .tw.treew.box{max-height:none;overflow:visible}
   table.tree thead th{position:static}
 }
+/* §33 Publish spend plan */
+.pubbar .grow{flex:1 1 auto}
+.pubbar label.chk,.acts label.chk{display:inline-flex;align-items:center;gap:4px}
+button.primary{background:var(--acc);color:#eaf0f6;border-color:var(--acc);font-weight:700}
+button.primary:disabled{opacity:.5}
+table.pubdocs th[scope=row]{text-align:left;font-weight:700}
+table.pubdocs td,table.pubdocs th,table.pubdesc td,table.pubdesc th{padding:4px 8px}
+table.pubdocs td.n{text-align:right}
+.pubwarn{color:#7a4a08;font-weight:700}
+.pubok{color:#0c4f24;font-weight:700}
+table.pubdesc{width:100%}
+table.pubdesc th[scope=row]{text-align:left;white-space:nowrap}
+table.pubdesc input.pubd{width:100%;min-width:18em;box-sizing:border-box}
+.pubhead label{display:flex;align-items:center;gap:6px;flex:0 1 22em;min-width:0;max-width:100%;white-space:nowrap}
+.pubhead input{flex:1 1 auto;min-width:0;width:100%}
+img.pubemb{width:54px;height:54px;object-fit:contain;background:#fff;border:1px solid var(--sline);border-radius:6px}
+.pubnotes{max-height:14em;overflow:auto}
 </style>
 </head>
 <body>
@@ -4642,6 +4659,946 @@ SP.uploadAge = function uploadAge(days, today) {
     text: 'Data uploaded ' + words(newest) + ' · ' + ago(age), more: oldest === newest ? '' : 'oldest pull ' + words(oldest) + ', ' + ago(ageOldest) };
 };
 
+// ===== 46-publish.js =====
+// §33 PUBLISH SPEND PLAN (Brad, 16 and 17 Nov 2026). PDFs "that can be pushed out for each appropriation and each PMO by
+// appropriation", laid out like his Consolidated Template: per CCaR record a title, a description, its award dates and a
+// row per service of Required, Approved, Obligated, Remaining and Delta. His rules, in his words:
+//   - Required "is tracked separately": "the delta between what's in the spend plan and what's on our unfunded list becomes
+//     the total requirement value". So Required = Approved + the unfunded list's amount, Delta = Approved - Required.
+//   - Approved is the "CCaR amount in plan event"; Obligated is the rows CCaR marks Actual Execution, as everywhere in APEX.
+//   - One requirement is one CCaR record (its CCaR number).
+//   - "Primes should still sit in a Prime Contracts section first": the Special CCaRs of Settings.
+//   - A consolidated plan per appropriation with each fiscal year its own section; a plan per PMO holding only that PMO's
+//     data; the stoplight at the front of each, "filtered to what's being presented", one only for a PMO.
+//   - An unfunded line whose CCaR record has no plan event still appears (Approved $0), and each file ends with the
+//     unfunded list "filtered to what that spend plan file is presenting".
+// Three parts, each pure (nothing here reads the page, a clock or the store):
+//   SP.readUfr(workbook, fileName)        the UFR tracker workbook -> its lines (§33.1)
+//   SP.publishData(model, ufr, pub, opts) every document's figures (§33.2, §33.3)
+//   SP.publishPages(doc, ctx)             a document's pages, as SP.pdfBytes draws them (§33.4)
+// The model given is one built with every switch on: a published plan with a service switched off on somebody's screen
+// would be a smaller plan with nothing on it saying so.
+
+const PB_NSVC = SP.SERVICES.length;                    // 6, and index 6 is money no service column carries
+const PB_SVC_LABEL = Object.freeze(['USAF', 'USAF ANG', 'USAF AFRC', 'USMC (F-35B)', 'USMC (F-35C)', 'USN', 'Service not identified']);
+const PB_PRIME = 'Prime Contracts';
+function pb_zeros() { return new Array(PB_NSVC + 1).fill(0); }
+function pb_cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+function pb_tally(map, s) { map.set(s, (map.get(s) || 0) + 1); }
+// the spelling most rows use; a tie goes to the one that sorts first, so two people publishing the same data get the same title
+function pb_major(map, blank) {
+  let best = null, n = -1;
+  for (const [s, c] of map) if (s !== '' && (c > n || (c === n && s < best))) { best = s; n = c; }
+  return best === null ? blank : best;
+}
+function pb_txt(v) { return v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' ').trim(); }
+function pb_apLabel(ap) { const a = SP.APS.find(x => x.id === ap); return a ? a.label : String(ap); }
+const PB_AP_LONG = Object.freeze({ om: 'Operations & Maintenance', ff: 'Full Fund', sp: 'Initial Spares', opn: 'Other Procurement, Navy (OPN)' });
+SP.PUBLISH_SVC_LABELS = PB_SVC_LABEL;
+
+// ---------------------------------------------------------------------------------------------------------------
+// §33.1 THE UNFUNDED LIST. The UFR tracker is one workbook per fiscal year with a tab per appropriation (O&M, Full Fund,
+// Initial Spares, OPN); every other tab (SUMMARY, VISUALS, MASTER...) is left alone. Read by its TITLES, never by position:
+// the heading row is on row 8 of one tab and row 9 of the others, and O&M alone has ANG and AFRC columns.
+//   -> { ok: true, fy, unit, name, tabs: [{ap, sheet, lines, cents}], lines: [...], notes: [text], ignored: [sheet names] }
+//    | { ok: false, why }
+//   a line: { ap, fy, sheet, row, rank, title, pmo, ccar, cents: [7], total, status, exec, sfcb }
+// Amounts are in the unit the Total Amount heading names ($K on Brad's tracker), turned into whole cents.
+// A file is taken whole or not at all: a tracker read with one tab missing would understate every Required on it.
+// ---------------------------------------------------------------------------------------------------------------
+const PB_UFR_TITLE = /FY\s*(\d{4})\s+UNFUNDED\s+REQUIREMENTS/i;
+const PB_UFR_COLS = Object.freeze([['usaf', 0], ['ang', 1], ['afrc', 2], ['stovl', 3], ['usmc cv', 4], ['usn cv', 5]]);
+function pb_hkey(v) { return pb_txt(v).toLowerCase(); }
+function pb_ufrAp(sheetName, title) {
+  const n = pb_hkey(sheetName), t = pb_hkey(title);
+  if (n === 'o&m' || n === 'om') return 'om';
+  if (n === 'full fund' || n === 'ff') return 'ff';
+  if (n === 'initial spares' || n === 'spares') return 'sp';
+  if (n === 'opn') return 'opn';
+  if (/operations\s*&\s*maintenance|\(o&m\)/.test(t)) return 'om';
+  if (/full fund/.test(t)) return 'ff';
+  if (/initial spares/.test(t)) return 'sp';
+  if (/\(opn\)|other procurement/.test(t)) return 'opn';
+  return null;
+}
+// a cell -> whole cents of `unit` dollars; null when it holds something that is not an amount
+function pb_ufrAmt(v, unit) {
+  if (v === null || v === undefined || v === '') return 0;
+  let n;
+  if (typeof v === 'number') n = v;
+  else {
+    let t = String(v).trim().replace(/^−/, '-');
+    if (t === '' || t === '-' || t === '–' || t === '—') return 0;
+    let neg = false;
+    if (/^\(.*\)$/.test(t)) { neg = true; t = t.slice(1, -1); }
+    t = t.replace(/[$,\s]/g, '');
+    if (!/^-?(\d+\.?\d*|\.\d+)$/.test(t)) return null;
+    n = Number(t) * (neg ? -1 : 1);
+  }
+  if (!isFinite(n)) return null;
+  const c = Math.round(Number((n * unit * 100).toPrecision(15)));
+  return Number.isSafeInteger(c) ? (c === 0 ? 0 : c) : null;
+}
+function pb_usdText(c) { return SP.fmtUsd(c); }
+SP.readUfr = function readUfr(wb, fileName) {
+  const sheets = wb && Array.isArray(wb.sheets) ? wb.sheets : null;
+  if (!sheets) return { ok: false, why: 'it is not a workbook this page can read' };
+  const tabs = [], lines = [], notes = [], ignored = [];
+  let fy = null, unitAll = null;
+  for (const sh of sheets) {
+    const rows = Array.isArray(sh.rows) ? sh.rows : [];
+    const rno = i => (Array.isArray(sh.rowNo) && sh.rowNo[i]) || i + 1;
+    // the title line: within the first six rows, a cell that says FY#### UNFUNDED REQUIREMENTS
+    let title = '', tfy = null;
+    for (let i = 0; i < Math.min(rows.length, 6) && tfy === null; i++) {
+      for (const c of rows[i]) { const m = PB_UFR_TITLE.exec(pb_txt(c)); if (m) { tfy = Number(m[1]); title = pb_txt(c); break; } }
+    }
+    const ap = pb_ufrAp(sh.name, title);
+    if (tfy === null || !ap) { ignored.push(String(sh.name)); continue; }
+    // the heading row: the first, within thirty rows, that names both a Requirement Title and a CCaR Record
+    let hi = -1;
+    for (let i = 0; i < Math.min(rows.length, 30); i++) {
+      const ks = rows[i].map(pb_hkey);
+      if (ks.includes('requirement title') && ks.includes('ccar record')) { hi = i; break; }
+    }
+    const where = 'the “' + sh.name + '” tab';
+    if (hi < 0) return { ok: false, why: where + ' is titled as a UFR tracker but has no heading row naming Requirement Title and CCaR Record' };
+    if (tabs.some(t => t.ap === ap)) return { ok: false, why: 'two tabs are for ' + pb_apLabel(ap) + ' (“' + tabs.find(t => t.ap === ap).sheet + '” and “' + sh.name + '”)' };
+    if (fy !== null && tfy !== fy) return { ok: false, why: 'its tabs are for different fiscal years (FY' + fy + ' and FY' + tfy + '): load one tracker per fiscal year' };
+    fy = tfy;
+    const head = rows[hi].map(pb_hkey), col = {};
+    head.forEach((k, i) => {
+      const put = name => { if (col[name] === undefined) col[name] = i; };
+      if (k === 'rank') put('rank');
+      else if (k === 'requirement title') put('title');
+      else if (k === 'pmo') put('pmo');
+      else if (k === 'ccar record') put('ccar');
+      else if (k.startsWith('total amount')) put('total');
+      else if (k === 'funding status') put('status');
+      else if (k.startsWith('exec ready')) put('exec');
+      else if (k === 'sfcb action') put('sfcb');
+      else for (const [h, si] of PB_UFR_COLS) if (k === h) put('s' + si);
+    });
+    const svcCols = PB_UFR_COLS.filter(([, si]) => col['s' + si] !== undefined);
+    if (col.pmo === undefined) return { ok: false, why: where + ' has no PMO column' };
+    if (!svcCols.length) return { ok: false, why: where + ' has no service column (USAF, ANG, AFRC, STOVL, USMC CV, USN CV)' };
+    // the unit: what the Total Amount heading says, else what the rows above the headings say of their own figures
+    const unitOf = s => /\(\s*\$\s*k\s*\)/i.test(s) ? 1000 : /\(\s*\$\s*m\s*\)/i.test(s) ? 1000000 : null;
+    let unit = col.total !== undefined ? unitOf(pb_txt(rows[hi][col.total])) : null;
+    for (let i = 0; i < hi && unit === null; i++) for (const c of rows[i]) { const u = unitOf(pb_txt(c)); if (u) { unit = u; break; } }
+    if (unit === null) unit = 1;
+    if (unitAll !== null && unit !== unitAll) return { ok: false, why: 'its tabs give their amounts in different units' };
+    unitAll = unit;
+    let n = 0, sum = 0, end = -1;
+    for (let i = hi + 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (r.slice(0, 4).some(c => /^totals?$/.test(pb_hkey(c)))) { end = i; break; }
+      const cell = k => (col[k] === undefined ? '' : r[col[k]]);
+      const title2 = pb_txt(cell('title')), ccar = pb_txt(cell('ccar'));
+      const cents = pb_zeros();
+      let bad = null, any = false;
+      for (const [h, si] of svcCols) {
+        const a = pb_ufrAmt(cell('s' + si), unit);
+        if (a === null) { bad = bad || h.toUpperCase(); continue; }
+        cents[si] = a; if (a !== 0) any = true;
+      }
+      const tot = col.total === undefined ? 0 : pb_ufrAmt(cell('total'), unit);
+      if (tot === null) bad = bad || 'Total Amount';
+      if (!title2 && !ccar && !any && !tot && !bad) continue;                       // an empty row of the table
+      const at = sh.name + ' row ' + rno(i);
+      if (bad) notes.push(at + ': the ' + bad + ' cell is not an amount; it is counted as $0.');
+      let svcSum = 0;
+      for (const c of cents) svcSum += c;
+      if (svcSum === 0 && tot) {
+        cents[PB_NSVC] = tot; svcSum = tot;
+        notes.push(at + ': ' + pb_usdText(tot) + ' is in Total Amount with nothing under any service; it is shown as “' + PB_SVC_LABEL[PB_NSVC] + '”.');
+      } else if (tot && tot !== svcSum) {
+        notes.push(at + ': the services add to ' + pb_usdText(svcSum) + ', its Total Amount says ' + pb_usdText(tot) + '; the services are used.');
+      }
+      if (!ccar) notes.push(at + ' (“' + (title2 || 'no title') + '”) has no CCaR Record: it is listed by its title and cannot be matched to the spend plan.');
+      lines.push({ ap, fy: tfy, sheet: String(sh.name), row: rno(i), rank: pb_txt(cell('rank')), title: title2, pmo: pb_txt(cell('pmo')), ccar,
+        cents, total: svcSum, status: pb_txt(cell('status')), exec: pb_txt(cell('exec')), sfcb: pb_txt(cell('sfcb')) });
+      n++; sum += svcSum;
+    }
+    if (end >= 0 && col.total !== undefined) {
+      const t = pb_ufrAmt(rows[end][col.total], unit);
+      if (t !== null && t !== 0 && t !== sum) notes.push(sh.name + ': its TOTALS row says ' + pb_usdText(t) + ', its lines add to ' + pb_usdText(sum) + '.');
+    }
+    tabs.push({ ap, sheet: String(sh.name), lines: n, cents: sum });
+  }
+  if (!tabs.length) return { ok: false, why: 'no tab in it is a UFR tracker tab (a title reading “FY#### UNFUNDED REQUIREMENTS (UFR) TRACKER” over an appropriation’s table)' };
+  tabs.sort((a, b) => SP.APS.findIndex(x => x.id === a.ap) - SP.APS.findIndex(x => x.id === b.ap));
+  return { ok: true, fy, unit: unitAll, name: String(fileName || ''), tabs, lines, notes, ignored };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// §33.2 THE DOCUMENTS' FIGURES.
+//   M     a model built with every switch on
+//   ufr   the saved unfunded lists, { '<fy>': {fy, lines, ...} }, or nothing
+//   pub   { desc: { <CCaR number, normKey> : text } }
+//   opts  { fys: [years] }  the fiscal years to publish; absent: every year the model or the unfunded lists hold
+//   -> { fys, allFys, docs: [doc], records: [{key, ccar, title, desc, n}], flags: [text], ufrSkipped: [{fy, ap, n}] }
+//   doc: { id, kind: 'ap'|'pmo', ap, pmoKey, label, code, file, stoplight: {rows, total, pmoRows},
+//          sections: [{ap, apLabel, fy, total: Fig, groups: [{label, prime, records: [Rec]}], n}],
+//          ufr: [line + {pmoLabel}], nRecords, missing: n }
+//   Rec: { key, ccar, title, desc, dates: [text], svc: [Fig x 6 or 7], total: Fig, ufrOnly }
+//   Fig: { required, approved, obligated, remaining, delta }   whole cents
+// A record is a CCaR number inside an appropriation, a fiscal year and a PMO; under Prime Contracts in an appropriation's
+// document it is the CCaR number over every PMO, as the Award calendar's one line is (§22).
+// ---------------------------------------------------------------------------------------------------------------
+function pb_fig(app, obl, ufr) { return { required: app + ufr, approved: app, obligated: obl, remaining: app - obl, delta: -ufr }; }
+function pb_dateWords(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+  return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? Number(m[3]) + ' ' + SP.CAL_MONTHS[Number(m[2]) - 1] + ' ' + m[1] : '';
+}
+SP.publishDateWords = pb_dateWords;
+function pb_fileSafe(s) { return String(s).replace(/[\\/:*?"<>|\u0000-\u001F]+/g, '-').replace(/\s+/g, ' ').trim(); }
+
+SP.publishData = function publishData(M, ufr, pub, opts) {
+  const special = new Set(Array.isArray(M.special) ? M.special : []);
+  const NODATE = SP.COL_IDS.indexOf('nodate');
+  const desc = pub && pub.desc && typeof pub.desc === 'object' ? pub.desc : {};
+  const descOf = k => (k && Object.prototype.hasOwnProperty.call(desc, k) && typeof desc[k] === 'string' ? desc[k] : '');
+  // the PMOs: the model's, in its order, then any the tool knows by name, so "AV" on the tracker is Air Vehicle (AV)
+  const pmoLabel = new Map(), pmoOrder = [], byName = new Map();
+  const addPmo = (key, label) => {
+    if (!pmoLabel.has(key)) { pmoLabel.set(key, label); pmoOrder.push(key); }
+    if (!byName.has(SP.normKey(label))) byName.set(SP.normKey(label), key);
+    const code = SP.normKey(SP.pmoCode(label));
+    if (code && !byName.has(code)) byName.set(code, key);
+  };
+  for (const p of M.pmos || []) addPmo(p.key, p.label);
+  for (const name of SP.PMO_ORDER) addPmo(SP.normKey(name), name);
+  const leftOut = new Set(typeof SP.leftOutOf === 'function' ? SP.leftOutOf(opts && opts.settings) : []);
+  const ufrLines = [];
+  for (const k of Object.keys(ufr && typeof ufr === 'object' ? ufr : {}).sort()) {
+    const f = ufr[k];
+    if (f && Array.isArray(f.lines)) for (const l of f.lines) ufrLines.push(l);
+  }
+  const allFys = [...new Set((M.blocks || []).map(b => b.fy).concat(ufrLines.filter(l => l.fy >= M.firstFY).map(l => l.fy)))].sort((a, b) => a - b);
+  const want = opts && Array.isArray(opts.fys) ? new Set(opts.fys.map(Number)) : null;
+  const fys = allFys.filter(y => !want || want.has(y));
+  const fySet = new Set(fys);
+
+  // every counted row into its atom: appropriation, fiscal year, PMO, CCaR number (a row with no number goes by its title)
+  const atoms = new Map();
+  const atom = (ap, fy, pmoKey, ccarKey, titleKey) => {
+    const rk = ccarKey !== '' ? ccarKey : '\u0001' + titleKey;
+    const k = ap + '|' + fy + '|' + pmoKey + '|' + rk;
+    let a = atoms.get(k);
+    if (!a) atoms.set(k, (a = { k, ap, fy, pmoKey, rk, ccarKey, title: new Map(), ccar: new Map(), app: pb_zeros(), obl: pb_zeros(), ufr: pb_zeros(),
+      dates: new Set(), nodate: false, rows: 0, ufrLines: [], ufrTitle: '', ufrCcar: '' }));
+    return a;
+  };
+  for (const b of M.blocks || []) {
+    if (!fySet.has(b.fy)) continue;
+    for (const r of b.rows || []) {
+      const d = r.d, a = atom(b.ap, b.fy, d.k.pmo, d.k.ccar, d.k.title);
+      pb_tally(a.title, pb_txt(d.title)); pb_tally(a.ccar, pb_txt(d.ccar));
+      let si = SP.SERVICES.indexOf(d.svc);
+      if (si < 0) si = PB_NSVC;
+      a.app[si] += r.cents;
+      if (d.status === 'exec') a.obl[si] += r.cents;
+      if (r.col !== NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d.date)) a.dates.add(d.date.slice(0, 10));
+      else a.nodate = true;
+      a.rows++;
+    }
+  }
+  // the PMO each CCaR number sits under in the plan, per appropriation: what a line with an unknown PMO is placed by
+  const planPmo = new Map();
+  for (const a of atoms.values()) {
+    if (a.ccarKey === '') continue;
+    const k = a.ap + '|' + a.ccarKey;
+    if (!planPmo.has(k)) planPmo.set(k, new Set());
+    planPmo.get(k).add(a.pmoKey);
+  }
+  const flags = [], skipped = new Map(), ufrKept = [];
+  for (const l of ufrLines) {
+    if (l.fy < M.firstFY || leftOut.has(l.ap + '|' + l.fy) || !fySet.has(l.fy)) {
+      if (l.fy < M.firstFY || leftOut.has(l.ap + '|' + l.fy)) {
+        const k = l.ap + '|' + l.fy;
+        skipped.set(k, (skipped.get(k) || 0) + 1);
+      }
+      continue;
+    }
+    const ccarKey = SP.normKey(l.ccar), where = pb_apLabel(l.ap) + ' FY' + l.fy + ' “' + (l.title || '(no title)') + '”' + (l.ccar ? ' (CCaR ' + l.ccar + ')' : '');
+    const inPlan = planPmo.get(l.ap + '|' + ccarKey);
+    let pk = byName.get(SP.normKey(l.pmo));
+    if (pk === undefined && l.pmo) { const c = SP.normKey(SP.pmoCode(l.pmo)); if (c && byName.has(c)) pk = byName.get(c); }
+    if (pk === undefined) {
+      if (inPlan && inPlan.size === 1) {
+        pk = [...inPlan][0];
+        flags.push(where + ': its PMO “' + l.pmo + '” is not one APEX knows; it is placed under ' + pmoLabel.get(pk) + ', where the spend plan has that CCaR record.');
+      } else {
+        pk = SP.normKey(l.pmo);
+        addPmo(pk, l.pmo || '(no PMO)');
+        flags.push(where + ': its PMO “' + (l.pmo || '') + '” is not one APEX knows; it is listed under that name.');
+      }
+    } else if (inPlan && !inPlan.has(pk)) {
+      flags.push(where + ': the unfunded list says ' + pmoLabel.get(pk) + ', the spend plan has that CCaR record under '
+        + [...inPlan].map(x => pmoLabel.get(x)).join(' and ') + '; the unfunded amount is placed under ' + pmoLabel.get(pk) + '.');
+    }
+    const a = atom(l.ap, l.fy, pk, ccarKey, SP.normKey(l.title));
+    for (let i = 0; i <= PB_NSVC; i++) a.ufr[i] += l.cents[i] || 0;
+    if (!a.ufrTitle) { a.ufrTitle = l.title; a.ufrCcar = l.ccar; }
+    const line = Object.assign({}, l, { pmoKey: pk, pmoLabel: pmoLabel.get(pk) });
+    a.ufrLines.push(line); ufrKept.push(line);
+    if (!a.rows && !a.flagged) { a.flagged = true; flags.push(where + ': no plan event in the spend plan carries that CCaR record; it is shown with Approved $0.'); }
+  }
+  const ufrSkipped = [...skipped].map(([k, n]) => { const i = k.indexOf('|'); return { ap: k.slice(0, i), fy: Number(k.slice(i + 1)), n }; });
+
+  // records out of atoms. `merge` joins atoms of several PMOs (a prime in an appropriation's document)
+  const record = list => {
+    const title = new Map(), ccar = new Map(), dates = new Set(), app = pb_zeros(), obl = pb_zeros(), uf = pb_zeros();
+    let nodate = false, rows = 0, ufrTitle = '', ufrCcar = '';
+    for (const a of list) {
+      for (const [s, c] of a.title) title.set(s, (title.get(s) || 0) + c);
+      for (const [s, c] of a.ccar) ccar.set(s, (ccar.get(s) || 0) + c);
+      for (const d of a.dates) dates.add(d);
+      for (let i = 0; i <= PB_NSVC; i++) { app[i] += a.app[i]; obl[i] += a.obl[i]; uf[i] += a.ufr[i]; }
+      nodate = nodate || a.nodate; rows += a.rows;
+      if (!ufrTitle) { ufrTitle = a.ufrTitle; ufrCcar = a.ufrCcar; }
+    }
+    const unknown = app[PB_NSVC] !== 0 || obl[PB_NSVC] !== 0 || uf[PB_NSVC] !== 0;
+    const n = unknown ? PB_NSVC + 1 : PB_NSVC, svc = [];
+    let A = 0, O = 0, U = 0;
+    for (let i = 0; i < n; i++) { svc.push(pb_fig(app[i], obl[i], uf[i])); A += app[i]; O += obl[i]; U += uf[i]; }
+    const ck = list[0].ccarKey;
+    const dl = [...dates].sort().map(pb_dateWords);
+    if (nodate && rows) dl.push('No date');
+    return { key: ck, ccar: pb_major(ccar, ufrCcar || ''), title: pb_major(title, ufrTitle || '(no title)'), desc: descOf(ck), dates: dl,
+      svc, total: pb_fig(A, O, U), ufrOnly: rows === 0, special: special.has(ck) && ck !== '' };
+  };
+  const recSort = (x, y) => pb_cmp(SP.normKey(x.title), SP.normKey(y.title)) || pb_cmp(x.key, y.key);
+  const sumFig = recs => {
+    const n = recs.some(r => r.svc.length > PB_NSVC) ? PB_NSVC + 1 : PB_NSVC, svc = [];
+    for (let i = 0; i < n; i++) svc.push(pb_fig(0, 0, 0));
+    const tot = pb_fig(0, 0, 0), add = (t, f) => { for (const k of ['required', 'approved', 'obligated', 'remaining', 'delta']) t[k] += f[k]; };
+    for (const r of recs) { r.svc.forEach((f, i) => add(svc[i], f)); add(tot, r.total); }
+    return { svc, total: tot };
+  };
+  // one section: the atoms of an appropriation and fiscal year, either every PMO's (pmoKey null) or one PMO's
+  const section = (ap, fy, pmoKey) => {
+    const mine = [...atoms.values()].filter(a => a.ap === ap && a.fy === fy && (pmoKey === null || a.pmoKey === pmoKey));
+    if (!mine.length) return null;
+    const groups = [];
+    const primes = new Map();
+    for (const a of mine) if (a.ccarKey !== '' && special.has(a.ccarKey)) { if (!primes.has(a.ccarKey)) primes.set(a.ccarKey, []); primes.get(a.ccarKey).push(a); }
+    if (primes.size) groups.push({ label: PB_PRIME, prime: true, records: [...primes.values()].map(record).sort(recSort) });
+    for (const pk of pmoOrder) {
+      const rest = mine.filter(a => a.pmoKey === pk && !(a.ccarKey !== '' && special.has(a.ccarKey)));
+      if (rest.length) groups.push({ label: pmoLabel.get(pk), prime: false, pmoKey: pk, records: rest.map(a => record([a])).sort(recSort) });
+    }
+    const all = groups.flatMap(g => g.records), s = sumFig(all);
+    return { ap, apLabel: pb_apLabel(ap), fy, groups, total: s.total, svc: s.svc, n: all.length };
+  };
+  const ufrSort = (x, y) => SP.APS.findIndex(a => a.id === x.ap) - SP.APS.findIndex(a => a.id === y.ap) || x.fy - y.fy
+    || (Number(x.rank) || 1e9) - (Number(y.rank) || 1e9) || pb_cmp(SP.normKey(x.title), SP.normKey(y.title)) || x.row - y.row;
+  const stopTotal = rows => {
+    const t = { approved: 0, authorized: 0, obligated: 0, unobligated: 0 };
+    for (const r of rows) { t.approved += r.approved; t.authorized += r.authorized; t.obligated += r.obligated; t.unobligated += r.unobligated; }
+    t.oblPct = t.approved !== 0 ? t.obligated / t.approved : null;
+    return t;
+  };
+  const docs = [], names = new Set();
+  const finish = d => {
+    d.nRecords = d.sections.reduce((n, s) => n + s.n, 0);
+    const seen = new Set(); let missing = 0;
+    for (const s of d.sections) for (const g of s.groups) for (const r of g.records) {
+      if (r.key === '' || seen.has(r.key)) continue;
+      seen.add(r.key); if (!r.desc) missing++;
+    }
+    d.missing = missing;
+    let f = pb_fileSafe(d.file), i = 2;
+    while (names.has(f.toLowerCase())) f = pb_fileSafe(d.file) + ' (' + (i++) + ')';
+    names.add(f.toLowerCase()); d.file = f + '.pdf';
+    if (d.sections.length) docs.push(d);
+  };
+  for (const a of SP.APS) {
+    const sections = fys.map(fy => section(a.id, fy, null)).filter(Boolean);
+    const blocks = ((M.aps || []).find(x => x.ap === a.id) || { blocks: [] }).blocks.filter(b => fySet.has(b.fy));
+    const pmoRows = [];
+    for (const p of M.pmos || []) for (const r of p.rows) if (r.ap === a.id && fySet.has(r.fy)) pmoRows.push(Object.assign({ pmoLabel: p.label }, r));
+    finish({ id: 'ap:' + a.id, kind: 'ap', ap: a.id, pmoKey: null, label: a.label, long: PB_AP_LONG[a.id] || a.label, code: a.label, file: 'APEX Spend Plan - ' + a.label,
+      sections, stoplight: { rows: blocks, total: stopTotal(blocks), pmoRows },
+      ufr: ufrKept.filter(l => l.ap === a.id).sort(ufrSort) });
+  }
+  for (const pk of pmoOrder) {
+    const sections = [];
+    for (const a of SP.APS) for (const fy of fys) { const s = section(a.id, fy, pk); if (s) sections.push(s); }
+    if (!sections.length) continue;
+    const p = (M.pmos || []).find(x => x.key === pk);
+    const rows = p ? p.rows.filter(r => fySet.has(r.fy)).slice().sort((x, y) => SP.APS.findIndex(a => a.id === x.ap) - SP.APS.findIndex(a => a.id === y.ap) || x.fy - y.fy) : [];
+    const label = pmoLabel.get(pk), code = SP.pmoCode(label);
+    finish({ id: 'pmo:' + pk, kind: 'pmo', ap: null, pmoKey: pk, label, long: label, code, file: 'APEX Spend Plan - PMO ' + (code || label),
+      sections, stoplight: { rows, total: stopTotal(rows), pmoRows: [] },
+      ufr: ufrKept.filter(l => l.pmoKey === pk).sort(ufrSort) });
+  }
+  // every CCaR record published, once, for the Descriptions list: by title, then number
+  const recs = new Map();
+  for (const d of docs) if (d.kind === 'ap') for (const s of d.sections) for (const g of s.groups) for (const r of g.records) {
+    if (r.key === '') continue;
+    const q = recs.get(r.key);
+    if (!q) recs.set(r.key, { key: r.key, ccar: r.ccar, title: r.title, desc: r.desc, n: 1 }); else q.n++;
+  }
+  const records = [...recs.values()].sort((x, y) => pb_cmp(SP.normKey(x.title), SP.normKey(y.title)) || pb_cmp(x.key, y.key));
+  return { fys, allFys, docs, records, flags, ufrSkipped, ufrLines: ufrKept.length };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// §33.4 THE PAGES. Letter, landscape, in points. Every page carries the CUI marking top and bottom, the document's name
+// and "Page n of N". A record's block of service rows is never split across pages.
+//   ctx: { program, lead, bfm, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
+//          bae (a BAE report is loaded), marks: {text for each mark printed}, ufrFiles: [{fy, name, day}] }
+// Whole dollars, as the template prints them: each figure is rounded from its own exact cents, a total from its exact
+// sum, so a total can differ by a dollar from the rounded figures above it. The stoplight page says so.
+// ---------------------------------------------------------------------------------------------------------------
+const PB = Object.freeze({ W: 792, H: 612, L: 30, R: 762, bodyEnd: 584, rowH: 9.5,
+  band: '#8EAADB', deep: '#2A5BA8', rule: '#555555', soft: '#EEF1F5', head: '#CBD9E8', red: '#B00000', ink: '#000000', mut: '#444444',
+  status: Object.freeze({ green: '#00B050', yellow: '#FFD700', red: '#C00000' }),
+  statusInk: Object.freeze({ green: '#FFFFFF', yellow: '#000000', red: '#FFFFFF' }) });
+// whole dollars: 123456789 cents -> '1,234,568'; negative in parentheses; zero '-'
+SP.fmtWhole = function fmtWhole(cents) {
+  if (typeof cents !== 'number' || !isFinite(cents)) return '';
+  const d = Math.round(Math.abs(cents) / 100);
+  if (d === 0) return '-';
+  const s = String(d).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return cents < 0 ? '(' + s + ')' : s;
+};
+// a colour between two, t from 0 (the first) to 1 (the second)
+function pb_mix(a, b, t) {
+  const h = (c, i) => parseInt(c.slice(1 + i * 2, 3 + i * 2), 16);
+  return '#' + [0, 1, 2].map(i => Math.round(h(a, i) + (h(b, i) - h(a, i)) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+function pb_isoWords(iso) { return pb_dateWords(iso) || String(iso || ''); }
+
+SP.publishPages = function publishPages(doc, ctx) {
+  const C = ctx || {};
+  const pages = [];
+  let pg = null, y = 0;
+  const T = (x, yy, s, o) => pg.ops.push(Object.assign({ t: 'text', x, y: yy, s: String(s) }, o || {}));
+  const Rc = (x, yy, w, h, o) => pg.ops.push(Object.assign({ t: 'rect', x, y: yy, w, h }, o || {}));
+  const Ln = (x1, y1, x2, y2, o) => pg.ops.push(Object.assign({ t: 'line', x1, y1, x2, y2, stroke: PB.rule, lw: 0.4 }, o || {}));
+  const newPage = () => { pg = { w: PB.W, h: PB.H, ops: [] }; pages.push(pg); y = 24; };
+  const fyy = fy => 'FY' + String(fy % 100).padStart(2, '0');
+  const prog = pb_txt(C.program);
+  const docLine = doc.kind === 'ap' ? doc.long : doc.label;
+  const who = [pb_txt(C.lead) ? 'Lead BFM: ' + pb_txt(C.lead) : '', pb_txt(C.bfm) ? 'BFM: ' + pb_txt(C.bfm) : ''].filter(Boolean).join(' | ');
+  const asOf = ['Data as of: ' + pb_isoWords(C.today), C.asOfLabel ? 'Data through ' + C.asOfLabel : ''].filter(Boolean).join('  |  ');
+
+  // on a page with no full header (a continued page, the unfunded list) the emblem is small, at the top left, and the
+  // page's heading starts to its right: "the top left of every spend plan" is every page of it
+  const emblemAt = (x, yy, box) => {
+    const info = SP.jpegInfo(C.emblem) || { w: 1, h: 1 }, k = Math.min(box / info.w, box / info.h);
+    pg.ops.push({ t: 'img', name: 'emblem', x: x + (box - info.w * k) / 2, y: yy + (box - info.h * k) / 2, w: info.w * k, h: info.h * k });
+  };
+  const mini = () => { if (!C.emblem) return PB.L; emblemAt(PB.L, 21, 20); return PB.L + 25; };
+  // the full header: emblem, two title lines, the band, who and when. `right` is where the title area ends
+  const header = (line1, line2, bandText, right) => {
+    const hasEmb = !!C.emblem;
+    const xl = hasEmb ? PB.L + 62 : PB.L, cx = (xl + right) / 2;
+    T(cx, 37, line1, { size: 12, bold: true, align: 'c' });
+    T(cx, 51, line2, { size: 12, bold: true, align: 'c' });
+    if (hasEmb) {
+      // THE EMBLEM SITS IN THE BAND, not beside it (Brad, 17 Nov 2026: "make it fit seamlessly so that it doesn't stick out like
+      // a sore thumb with color fading"). The band runs out from behind the emblem, starting in the emblem's own blue and
+      // fading into the band's colour over its first 150 points, so the two read as one piece. The fade is thin strips, each
+      // lapping the next by half a point: two that only touch show a hairline between them in some readers.
+      const x0 = PB.L + 27, fade = 150, n = 30, w = fade / n;
+      for (let i = 0; i < n; i++) Rc(x0 + i * w, 57, w + 0.5, 12, { fill: pb_mix(PB.deep, PB.band, i / (n - 1)) });
+      Rc(x0 + fade, 57, right - x0 - fade, 12, { fill: PB.band });
+      emblemAt(PB.L, 24, 54);
+    } else Rc(xl, 57, right - xl, 12, { fill: PB.band });
+    T(cx, 66, bandText, { size: 8.5, bold: true, align: 'c' });
+    if (who) T(xl, 79, who, { size: 7 });
+    T(xl, who ? 88 : 79, asOf, { size: 7 });
+    y = 98;
+  };
+  const money = (x, w, yy, cents, o) => {
+    const s = SP.fmtWhole(cents), col = o && o.red && cents < 0 ? PB.red : PB.ink, size = (o && o.size) || 6.5, bold = !!(o && o.bold);
+    if (s !== '-' && !(o && o.bare)) T(x + 2.5, yy, '$', { size, bold, color: col });
+    T(x + w - 2.5, yy, s, { size, bold, color: col, align: 'r' });
+  };
+  const FIGS = ['required', 'approved', 'obligated', 'remaining', 'delta'];
+  const FIG_HEAD = ['Required', 'Approved', 'Obligated', 'Remaining', 'Delta (+/-)'];
+
+  // ---- the stoplight page ----
+  newPage();
+  header((prog ? prog + ' - ' : '') + 'Spend Plan', docLine, 'Execution status' + (doc.sections.length ? ' - ' + [...new Set(doc.sections.map(s => 'FY' + s.fy))].join(', ') : ''), PB.R);
+  const need = h => { if (y + h > PB.bodyEnd) { newPage(); T(mini(), 36, docLine + ' - execution status (continued)', { size: 9, bold: true }); y = 46; } };
+  const stopTable = (title, cols, rows) => {
+    need(30);
+    T(PB.L, y + 8, title, { size: 8, bold: true }); y += 12;
+    const headRow = () => {
+      let x = PB.L;
+      for (const c of cols) { Rc(x, y, c.w, 12, { fill: PB.head, stroke: PB.rule, lw: 0.4 }); T(x + c.w / 2, y + 8.5, c.h, { size: 7, bold: true, align: 'c' }); x += c.w; }
+      y += 12;
+    };
+    headRow();
+    for (const r of rows) {
+      if (y + 11 > PB.bodyEnd) { need(1e9); headRow(); }
+      let x = PB.L;
+      for (const c of cols) {
+        const v = c.v(r);
+        if (c.status) {
+          const st = r.status;
+          Rc(x, y, c.w, 11, { fill: st && PB.status[st] ? PB.status[st] : (r.total ? PB.soft : null), stroke: PB.rule, lw: 0.4 });
+          if (st && PB.status[st]) T(x + c.w / 2, y + 8, SP.statusWord(st), { size: 7, bold: true, align: 'c', color: PB.statusInk[st] });
+        } else {
+          Rc(x, y, c.w, 11, { fill: r.total ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
+          if (c.left) T(x + 4, y + 8, v, { size: 7, bold: true }); else T(x + c.w - 4, y + 8, v, { size: 7, bold: !!r.total, align: 'r' });
+        }
+        x += c.w;
+      }
+      y += 11;
+    }
+    y += 10;
+  };
+  const marks = new Set();
+  const mApp = r => { const m = r.total ? '' : SP.approvedMark(r, C.model); if (m) marks.add(m); return SP.fmtM(r.approved) + m; };
+  const mAuth = r => { const m = r.total ? '' : SP.authMark(r, C.model); if (m) marks.add(m); return SP.fmtM(r.authorized) + m; };
+  const figCols = [
+    { h: 'Approved ($M)', w: 78, v: mApp }, { h: 'Authorized ($M)', w: 78, v: mAuth }, { h: 'Obligated ($M)', w: 78, v: r => SP.fmtM(r.obligated) },
+    { h: 'Unobligated ($M)', w: 82, v: r => SP.fmtM(r.unobligated) }, { h: 'Obl %', w: 56, v: r => (r.oblPct === null || r.oblPct === undefined ? '' : SP.fmtPct(r.oblPct)) },
+    { h: 'OSD Goal %', w: 60, v: r => (r.total || r.goal === null || r.goal === undefined ? '' : SP.fmtPct(r.goal)) },
+    { h: 'Delta (pp)', w: 56, v: r => (r.total || r.delta === null || r.delta === undefined ? '' : SP.fmtDelta(r.delta)) },
+    { h: 'Status', w: 64, status: true, v: () => '' }];
+  const S = doc.stoplight;
+  const totalRow = Object.assign({ total: true, fyText: 'Total', apLabel: 'Total', pmoLabel: 'Total' }, S.total);
+  if (!S.rows.length) { T(PB.L, y + 8, 'No plan event in the spend plan is under this ' + (doc.kind === 'pmo' ? 'PMO' : 'appropriation') + ': there is no execution status to show.', { size: 8 }); y += 20; }
+  else if (doc.kind === 'ap') {
+    stopTable(doc.label + ' by fiscal year', [{ h: 'FY', w: 60, left: true, v: r => (r.total ? 'Total' : 'FY' + r.fy) }].concat(figCols), S.rows.concat([totalRow]));
+    if (S.pmoRows.length) stopTable('Each PMO in ' + doc.label, [{ h: 'PMO', w: 170, left: true, v: r => r.pmoLabel }, { h: 'FY', w: 40, left: true, v: r => 'FY' + r.fy }]
+      .concat(figCols.filter(c => c.h !== 'Authorized ($M)' && c.h !== 'Unobligated ($M)')), S.pmoRows);
+  } else {
+    stopTable(doc.label + ' by appropriation and fiscal year', [{ h: 'Appropriation', w: 90, left: true, v: r => (r.total ? 'Total' : r.apLabel) },
+      { h: 'FY', w: 40, left: true, v: r => (r.total ? '' : 'FY' + r.fy) }].concat(figCols), S.rows.concat([totalRow]));
+  }
+  const noteLines = [];
+  noteLines.push(SP.STATUS_LEGEND_TEXT);
+  for (const m of ['†', '‡', '§']) if (marks.has(m)) noteLines.push(m + ' ' + SP.markText(m, C.model));
+  if (C.bae) noteLines.push('On this page Approved and Authorized are the BAE report’s where it covers a block, as on the APEX Summary. The spend plan pages list the CCaR plan events.');
+  if (C.uploaded) noteLines.push(C.uploaded);
+  noteLines.push('How to read the spend plan pages: Approved is the CCaR amount in the record’s plan events; Obligated is what CCaR marks Actual Execution; '
+    + 'Remaining = Approved - Obligated; Required = Approved + the unfunded list’s amount for that CCaR record; Delta = Approved - Required.');
+  noteLines.push('Figures on the spend plan pages are whole dollars, each rounded from its exact cents, so a total can differ by a dollar from the figures above it.');
+  noteLines.push((C.ufrFiles && C.ufrFiles.length ? 'Unfunded list: ' + C.ufrFiles.map(f => 'FY' + f.fy + ' loaded ' + pb_isoWords(f.day) + (f.name ? ' (' + f.name + ')' : '')).join('; ') + '.'
+    : 'No unfunded list is loaded: Required equals Approved on every line.'));
+  for (const n of noteLines) for (const l of SP.pdfWrap(n, 7, false, PB.R - PB.L)) { need(10); T(PB.L, y + 7, l, { size: 7, color: PB.mut }); y += 9; }
+
+  // ---- the spend plan sections ----
+  const X = [30, 88, 206, 326, 412, 472, 530, 588, 646, 704, 762];
+  const colHead = () => {
+    const hs = [doc.kind === 'ap' ? 'PMO' : 'Group', 'Requirement Title', 'Description', 'Award Date', 'Service'].concat(FIG_HEAD);
+    hs.forEach((h, i) => T((X[i] + X[i + 1]) / 2, y + 8.5, h, { size: 7, bold: true, align: 'c' }));
+    Ln(PB.L, y + 12, PB.R, y + 12, { stroke: PB.ink, lw: 0.8 });
+    y += 13;
+  };
+  const dateH = 7.4;
+  for (const sec of doc.sections) {
+    const line1 = (prog ? prog + ' - ' : '') + fyy(sec.fy) + ' Spend Plan';
+    const line2 = doc.kind === 'ap' ? doc.long : doc.label + ' - ' + (PB_AP_LONG[sec.ap] || sec.apLabel);
+    newPage();
+    // the section's own totals, top right, as the template has them
+    const tx = 438, lw = 54, cw = 54, nS = sec.svc.length, rh = 8.6;
+    FIG_HEAD.forEach((h, i) => T(tx + lw + cw * i + cw / 2, 31, h, { size: 6.5, bold: true, align: 'c' }));
+    for (let i = 0; i <= nS; i++) {
+      const tot = i === nS, f = tot ? sec.total : sec.svc[i], yy = 34 + rh * i;
+      Rc(tx, yy, lw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
+      T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' });
+      FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 }); });
+    }
+    header(line1, line2, doc.kind === 'ap' ? 'Consolidated Sustainment Spend Plan' : 'PMO Spend Plan - ' + sec.apLabel + ' FY' + sec.fy, tx - 8);
+    y = Math.max(y, 34 + rh * (nS + 1) + 6);
+    colHead();
+    const cont = () => { newPage(); T(mini(), 36, line1 + ' - ' + line2 + ' (continued)', { size: 9, bold: true }); y = 42; colHead(); };
+    let run = null;                          // the group band being drawn on this page: {label, y0}
+    const closeRun = () => {
+      if (!run) return;
+      const h = y - run.y0;
+      Rc(X[0], run.y0, X[1] - X[0], h, { fill: PB.band, stroke: PB.rule, lw: 0.4 });
+      const ls = SP.pdfWrap(run.label, 7, true, X[1] - X[0] - 6, Math.max(1, Math.floor((h - 4) / 8.2)));
+      ls.forEach((l, i) => T((X[0] + X[1]) / 2, run.y0 + h / 2 - (ls.length * 8.2) / 2 + 6.4 + i * 8.2, l, { size: 7, bold: true, align: 'c' }));
+      run = null;
+    };
+    let dividerDone = false;
+    for (const g of sec.groups) {
+      if (!g.prime && !dividerDone && sec.groups.some(q => q.prime)) {
+        dividerDone = true;
+        if (y + 13 + 70 > PB.bodyEnd) cont();
+        T(PB.L, y + 9, 'All Other ' + sec.apLabel + ' Contracts' + (doc.kind === 'ap' ? ' - separated by PMO' : ''), { size: 7.5, bold: true });
+        y += 13;
+      }
+      for (const r of g.records) {
+        const nRows = r.svc.length + 1;
+        const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
+        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6);
+        if (y + h > PB.bodyEnd) { closeRun(); cont(); }
+        if (!run) run = { label: g.label, y0: y };
+        // title and CCaR number
+        const tl = SP.pdfWrap(r.title, 7, true, X[2] - X[1] - 8, Math.max(1, Math.floor((h - 14) / 8.2)));
+        const th = tl.length * 8.2 + (r.ccar ? 8 : 0);
+        Rc(X[1], y, X[2] - X[1], h, { stroke: PB.rule, lw: 0.4 });
+        tl.forEach((l, i) => T((X[1] + X[2]) / 2, y + h / 2 - th / 2 + 6.4 + i * 8.2, l, { size: 7, bold: true, align: 'c' }));
+        if (r.ccar) T((X[1] + X[2]) / 2, y + h / 2 - th / 2 + 6.4 + tl.length * 8.2, 'CCaR ' + r.ccar, { size: 6, align: 'c', color: PB.mut });
+        // description
+        Rc(X[2], y, X[3] - X[2], h, { stroke: PB.rule, lw: 0.4 });
+        const dl = SP.pdfWrap(r.desc, 6.5, false, X[3] - X[2] - 8, Math.max(1, Math.floor((h - 5) / 7.6)));
+        dl.forEach((l, i) => T((X[2] + X[3]) / 2, y + h / 2 - (dl.length * 7.6) / 2 + 5.8 + i * 7.6, l, { size: 6.5, align: 'c' }));
+        // award dates, in order, down then across
+        Rc(X[3], y, X[4] - X[3], h, { stroke: PB.rule, lw: 0.4 });
+        const perCol = Math.max(1, Math.floor((h - 5) / dateH)), nc = Math.max(1, Math.ceil(shown.length / perCol)), cwD = (X[4] - X[3]) / nc;
+        const used = Math.min(perCol, shown.length);
+        shown.forEach((d, i) => T(X[3] + cwD * Math.floor(i / perCol) + cwD / 2, y + h / 2 - (used * dateH) / 2 + 5.6 + (i % perCol) * dateH, d, { size: 6, align: 'c' }));
+        // the service rows and the Total
+        for (let i = 0; i < nRows; i++) {
+          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], yy = y + PB.rowH * i;
+          const hh = tot ? h - PB.rowH * i : PB.rowH;         // the Total row takes what a tall block leaves
+          for (let c = 4; c < 10; c++) Rc(X[c], yy, X[c + 1] - X[c], hh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
+          T((X[4] + X[5]) / 2, yy + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
+          FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + 6.9, f[k], { red: k === 'delta', bold: tot }));
+          if (tot) Ln(X[4], yy, X[10], yy, { stroke: PB.ink, lw: 0.9 });
+        }
+        y += h;
+      }
+      closeRun();
+    }
+  }
+
+  // ---- the unfunded list, filtered to this document ----
+  const U = doc.ufr;
+  const ux = [30, 56, 80, 198, 258, 310, 352, 394, 436, 478, 520, 562, 612, 668, 710, 762];
+  const uHead = ['FY', 'Rank', 'Requirement Title', doc.kind === 'ap' ? 'PMO' : 'Appropriation', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total',
+    'Funding Status', 'Exec Ready?', 'SFCB Action'];
+  const uTop = contd => {
+    newPage();
+    const ex = mini();
+    T(ex, 35, 'Unfunded requirements' + (contd ? ' (continued)' : ''), { size: 11, bold: true });
+    T(ex, 45, (doc.kind === 'ap' ? doc.long : doc.label) + ': the unfunded list, filtered to what this spend plan presents. Whole dollars.', { size: 7, color: PB.mut });
+    y = 56;
+    uHead.forEach((h, i) => { Rc(ux[i], y, ux[i + 1] - ux[i], 12, { fill: PB.head, stroke: PB.rule, lw: 0.4 }); T((ux[i] + ux[i + 1]) / 2, y + 8.3, h, { size: 6, bold: true, align: 'c' }); });
+    y += 12;
+  };
+  uTop(false);
+  if (!U.length) {
+    T(PB.L, y + 12, C.ufrFiles && C.ufrFiles.length ? 'The unfunded list holds no line for what this spend plan presents.' : 'No unfunded list is loaded.', { size: 8 });
+  } else {
+    const sumRow = (label, ls, strong) => {
+      if (y + 11 > PB.bodyEnd) uTop(true);
+      Rc(ux[0], y, ux[5] - ux[0], 11, { fill: PB.soft, stroke: PB.rule, lw: 0.4 });
+      T(ux[5] - 4, y + 7.8, label, { size: 6.5, bold: true, align: 'r' });
+      for (let i = 0; i < 7; i++) {
+        const v = i < 6 ? ls.reduce((n, l) => n + l.cents[i], 0) : ls.reduce((n, l) => n + l.total, 0);
+        Rc(ux[5 + i], y, ux[6 + i] - ux[5 + i], 11, { fill: PB.soft, stroke: PB.rule, lw: 0.4 });
+        money(ux[5 + i], ux[6 + i] - ux[5 + i], y + 7.8, v, { bare: true, bold: true, size: 6 });
+      }
+      Rc(ux[12], y, ux[15] - ux[12], 11, { fill: PB.soft, stroke: PB.rule, lw: 0.4 });
+      if (strong) Ln(ux[0], y, ux[15], y, { stroke: PB.ink, lw: 0.9 });
+      y += 11;
+    };
+    let cur = null, part = [];
+    const closePart = () => { if (cur !== null && part.length) sumRow('Subtotal - ' + cur, part, false); part = []; };
+    for (const l of U) {
+      const k = pb_apLabel(l.ap) + ' FY' + l.fy;
+      if (k !== cur) {
+        closePart(); cur = k;
+        if (y + 11 + 12 > PB.bodyEnd) uTop(true);
+        Rc(ux[0], y, ux[15] - ux[0], 11, { fill: PB.band, stroke: PB.rule, lw: 0.4 });
+        T(ux[0] + 4, y + 7.8, k, { size: 7, bold: true }); y += 11;
+      }
+      const tl = SP.pdfWrap(l.title || '(no title)', 6.3, false, ux[3] - ux[2] - 6, 3);
+      const sl = SP.pdfWrap(l.status, 6, false, ux[13] - ux[12] - 4, 3), al = SP.pdfWrap(l.sfcb, 6, false, ux[15] - ux[14] - 4, 3);
+      const pl = SP.pdfWrap(doc.kind === 'ap' ? l.pmoLabel : pb_apLabel(l.ap), 6, false, ux[4] - ux[3] - 4, 3);
+      const h = Math.max(10, Math.max(tl.length, sl.length, al.length, pl.length) * 7.2 + 3.5);
+      if (y + h > PB.bodyEnd) { uTop(true); Rc(ux[0], y, ux[15] - ux[0], 11, { fill: PB.band, stroke: PB.rule, lw: 0.4 }); T(ux[0] + 4, y + 7.8, k + ' (continued)', { size: 7, bold: true }); y += 11; }
+      for (let i = 0; i < 15; i++) Rc(ux[i], y, ux[i + 1] - ux[i], h, { stroke: PB.rule, lw: 0.4 });
+      const mid = y + 7.2;
+      T((ux[0] + ux[1]) / 2, mid, 'FY' + String(l.fy % 100).padStart(2, '0'), { size: 6, align: 'c' });
+      T((ux[1] + ux[2]) / 2, mid, l.rank, { size: 6, align: 'c' });
+      tl.forEach((s, i) => T(ux[2] + 3, mid + i * 7.2, s, { size: 6.3 }));
+      pl.forEach((s, i) => T(ux[3] + 2, mid + i * 7.2, s, { size: 6 }));
+      T(ux[4] + 2, mid, SP.pdfWrap(l.ccar, 6, false, ux[5] - ux[4] - 4, 1)[0] || '', { size: 6 });
+      for (let i = 0; i < 6; i++) money(ux[5 + i], ux[6 + i] - ux[5 + i], mid, l.cents[i], { bare: true, size: 6 });
+      money(ux[11], ux[12] - ux[11], mid, l.total, { bare: true, size: 6, bold: true });
+      sl.forEach((s, i) => T(ux[12] + 2, mid + i * 7.2, s, { size: 6 }));
+      T((ux[13] + ux[14]) / 2, mid, SP.pdfWrap(l.exec, 6, false, ux[14] - ux[13] - 4, 1)[0] || '', { size: 6, align: 'c' });
+      al.forEach((s, i) => T(ux[14] + 2, mid + i * 7.2, s, { size: 6 }));
+      part.push(l); y += h;
+    }
+    closePart();
+    sumRow('Total unfunded', U, true);
+    if (U.some(l => l.cents[PB_NSVC])) { y += 4; T(PB.L, y + 7, 'A Total larger than its services holds an amount the tracker gave under no service.', { size: 6.5, color: PB.mut }); }
+  }
+
+  // ---- the frame of every page ----
+  const N = pages.length, cui = String(C.cui === undefined ? SP.CUI : C.cui), name = doc.file.replace(/\.pdf$/i, '');
+  pages.forEach((p, i) => {
+    p.ops.push({ t: 'text', x: PB.W / 2, y: 15, s: cui, size: 8, bold: true, align: 'c' });
+    p.ops.push({ t: 'text', x: PB.W / 2, y: 603, s: cui, size: 8, bold: true, align: 'c' });
+    p.ops.push({ t: 'text', x: PB.L, y: 603, s: name, size: 6.5, color: PB.mut });
+    p.ops.push({ t: 'text', x: PB.R, y: 603, s: 'Page ' + (i + 1) + ' of ' + N, size: 6.5, color: PB.mut, align: 'r' });
+  });
+  return { title: name, pages, images: C.emblem ? { emblem: C.emblem } : {} };
+};
+SP.publishPdf = function publishPdf(doc, ctx) { return SP.pdfBytes(SP.publishPages(doc, ctx)); };
+
+// ---------------------------------------------------------------------------------------------------------------
+// §33.6 A LIST OF DESCRIPTIONS, from a file. Brad: each CCaR record "has a short description in it. That could be pulled
+// from a separate import or typed. Once typed, I'd want it saved". Any sheet whose heading row names a CCaR number and a
+// description is read; a number given twice keeps its first description that is not blank.
+//   wb: {sheets: [{name, rows}]}   ->  { ok: true, map: {normKey(CCaR number): text}, n, sheet } | { ok: false, why }
+// ---------------------------------------------------------------------------------------------------------------
+const PB_DESC_CCAR = ['ccar record', 'ccar no', 'ccar no.', 'ccar number', 'ccar #', 'ccar'];
+const PB_DESC_TEXT = ['short description', 'description', 'ccar description', 'record description'];
+SP.readDescriptions = function readDescriptions(wb) {
+  const sheets = wb && Array.isArray(wb.sheets) ? wb.sheets : [];
+  for (const sh of sheets) {
+    const rows = Array.isArray(sh.rows) ? sh.rows : [];
+    for (let i = 0; i < Math.min(rows.length, 30); i++) {
+      const ks = rows[i].map(pb_hkey);
+      const ci = PB_DESC_CCAR.map(k => ks.indexOf(k)).find(x => x >= 0), di = PB_DESC_TEXT.map(k => ks.indexOf(k)).find(x => x >= 0);
+      if (ci === undefined || di === undefined) continue;
+      const map = {};
+      let n = 0;
+      for (let j = i + 1; j < rows.length; j++) {
+        const k = SP.normKey(rows[j][ci]), t = pb_txt(rows[j][di]);
+        if (k === '' || t === '' || Object.prototype.hasOwnProperty.call(map, k)) continue;
+        map[k] = t; n++;
+      }
+      return { ok: true, map, n, sheet: String(sh.name || '') };
+    }
+  }
+  return { ok: false, why: 'no sheet in it has a heading row naming both a CCaR number (CCaR Record or CCaR No) and a Description' };
+};
+
+// ===== 47-pdf.js =====
+// §33.5 THE PDF WRITER. A PDF made inside the page, with no library and no network: pages of text, rules, filled boxes and
+// (at most a few) JPEG pictures. The text is real text in the two standard fonts every PDF reader carries (Helvetica and
+// Helvetica-Bold), so a published spend plan can be searched and copied from, and a ten-page document is tens of
+// kilobytes, where a picture of each page would be megabytes and unreadable to a screen reader.
+//
+// Two rules:
+//   - A width is measured from the font's own table (PDF_W below), never guessed: a right-aligned dollar figure that is
+//     two points off sits over the rule beside it. The table is Helvetica's advance widths in thousandths of the type
+//     size, for the WinAnsi codes 32 to 255 (measured from Liberation Sans, which is metric-compatible by design).
+//   - A character the font's encoding cannot hold is written as '?', never dropped: a title that lost a character in
+//     silence would read as a different title.
+//
+//   SP.pdfTextWidth(text, size, bold) -> points
+//   SP.pdfWrap(text, size, bold, maxWidth, maxLines) -> [lines]   (the last line ends '...' when the text did not fit)
+//   SP.pdfBytes({title, pages: [{w, h, ops}], images: {name: Uint8Array of a JPEG}}) -> Uint8Array
+//     ops, with x and y in points from the page's TOP LEFT (the writer turns y over, as PDF counts from the bottom):
+//       {t: 'rect', x, y, w, h, fill, stroke, lw}          fill and stroke are '#RRGGBB' or absent
+//       {t: 'line', x1, y1, x2, y2, stroke, lw}
+//       {t: 'text', x, y, s, size, bold, color, align}     y is the baseline; align 'l' (default), 'c' or 'r' about x
+//       {t: 'img', x, y, w, h, name}
+// The same input gives the same bytes: nothing here reads a clock.
+
+const PDF_W = Object.freeze({
+  reg: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,0,556,0,222,556,333,1000,556,556,333,1000,667,333,1000,0,611,0,0,222,222,333,333,350,556,1000,333,1000,500,333,944,0,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,552,400,549,333,333,333,576,537,333,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,549,611,556,556,556,556,500,556,500],
+  bold: [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,0,556,0,278,556,500,1000,556,556,333,1000,667,333,1000,0,611,0,0,278,278,500,500,350,556,1000,333,1000,556,333,944,0,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,552,400,549,333,333,333,576,556,333,333,333,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,549,611,611,611,611,611,556,611,556],
+});
+// the characters WinAnsi keeps at 128 to 159, where Unicode has them elsewhere
+const PDF_HIGH = Object.freeze({ 0x20AC: 128, 0x201A: 130, 0x0192: 131, 0x201E: 132, 0x2026: 133, 0x2020: 134, 0x2021: 135, 0x02C6: 136,
+  0x2030: 137, 0x0160: 138, 0x2039: 139, 0x0152: 140, 0x017D: 142, 0x2018: 145, 0x2019: 146, 0x201C: 147, 0x201D: 148, 0x2022: 149,
+  0x2013: 150, 0x2014: 151, 0x02DC: 152, 0x2122: 153, 0x0161: 154, 0x203A: 155, 0x0153: 156, 0x017E: 158, 0x0178: 159 });
+// text -> its WinAnsi codes. A tab, a line break and a no-break space are a space; anything the encoding lacks is '?'
+function pdf_codes(text) {
+  const out = [];
+  for (const ch of String(text === null || text === undefined ? '' : text)) {
+    const cp = ch.codePointAt(0);
+    let b;
+    if (cp === 9 || cp === 10 || cp === 13 || cp === 0xA0) b = 32;
+    else if (cp >= 32 && cp <= 126) b = cp;
+    else if (cp >= 161 && cp <= 255) b = cp;
+    else if (Object.prototype.hasOwnProperty.call(PDF_HIGH, cp)) b = PDF_HIGH[cp];
+    else if (cp < 32 || cp === 127) continue;            // a control character draws nothing
+    else b = 63;
+    out.push(b);
+  }
+  return out;
+}
+function pdf_w(codes, size, bold) {
+  const T = bold ? PDF_W.bold : PDF_W.reg;
+  let w = 0;
+  for (const b of codes) w += T[b - 32] || 0;
+  return w * size / 1000;
+}
+SP.pdfTextWidth = function pdfTextWidth(text, size, bold) { return pdf_w(pdf_codes(text), size, !!bold); };
+
+// Wrap on spaces; a single word wider than the line is broken where it fills it (a CCaR title with no space must not run
+// into the next column). With maxLines, what did not fit is cut and the last line ends '...', so the reader sees it was.
+SP.pdfWrap = function pdfWrap(text, size, bold, maxW, maxLines) {
+  const words = String(text === null || text === undefined ? '' : text).replace(/\s+/g, ' ').trim().split(' ').filter(x => x !== '');
+  const W = s => SP.pdfTextWidth(s, size, bold);
+  const lines = [];
+  let cur = '';
+  const push = s => { lines.push(s); };
+  for (let word of words) {
+    for (;;) {
+      const tryLine = cur ? cur + ' ' + word : word;
+      if (W(tryLine) <= maxW) { cur = tryLine; break; }
+      if (cur) { push(cur); cur = ''; continue; }
+      // the word alone is too wide: take as many characters as fit (at least one, or a narrow column would loop for ever)
+      let n = 1;
+      const chars = [...word];
+      while (n < chars.length && W(chars.slice(0, n + 1).join('')) <= maxW) n++;
+      push(chars.slice(0, n).join(''));
+      word = chars.slice(n).join('');
+      if (!word) break;
+    }
+  }
+  if (cur) push(cur);
+  if (maxLines && lines.length > maxLines) {
+    const kept = lines.slice(0, maxLines);
+    let last = kept[maxLines - 1];
+    while (last && W(last + '...') > maxW) last = last.slice(0, -1);
+    kept[maxLines - 1] = last.replace(/\s+$/, '') + '...';
+    return kept;
+  }
+  return lines;
+};
+
+function pdf_n(x) {
+  if (typeof x !== 'number' || !isFinite(x)) throw new Error('pdfBytes: a position or size is not a number');
+  const s = (Math.round(x * 100) / 100).toFixed(2).replace(/\.?0+$/, '');
+  return s === '-0' || s === '' ? '0' : s;
+}
+function pdf_rgb(hex, what) {
+  const m = /^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(String(hex));
+  if (!m) throw new Error('pdfBytes: ' + what + ' is not a colour written #RRGGBB');
+  return [1, 2, 3].map(i => String(Math.round(parseInt(m[i], 16) / 255 * 1000) / 1000)).join(' ');
+}
+// a text string as PDF writes it: ( ) and \ escaped, and every code above 126 as \ooo, so the stream stays plain ASCII
+function pdf_str(codes) {
+  let s = '(';
+  for (const b of codes) {
+    if (b === 40 || b === 41 || b === 92) s += '\\' + String.fromCharCode(b);
+    else if (b > 126) s += '\\' + b.toString(8).padStart(3, '0');
+    else s += String.fromCharCode(b);
+  }
+  return s + ')';
+}
+// A JPEG's width, height and number of colour components, read from its frame header (SOF0 to SOF15, less the three
+// markers in that range that are not frame headers). Anything else is not a JPEG this writer can place.
+SP.jpegInfo = function jpegInfo(u8) {
+  if (!u8 || u8.length < 4 || u8[0] !== 0xFF || u8[1] !== 0xD8) return null;
+  let i = 2;
+  while (i + 9 < u8.length) {
+    if (u8[i] !== 0xFF) return null;
+    const m = u8[i + 1];
+    if (m === 0xFF) { i++; continue; }
+    if (m === 0xD8 || (m >= 0xD0 && m <= 0xD7) || m === 0x01) { i += 2; continue; }
+    const len = (u8[i + 2] << 8) | u8[i + 3];
+    if (len < 2) return null;
+    if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) {
+      const h = (u8[i + 5] << 8) | u8[i + 6], w = (u8[i + 7] << 8) | u8[i + 8], n = u8[i + 9];
+      return w > 0 && h > 0 && (n === 1 || n === 3) ? { w, h, n } : null;
+    }
+    i += 2 + len;
+  }
+  return null;
+};
+
+SP.pdfBytes = function pdfBytes(doc) {
+  if (!doc || !Array.isArray(doc.pages) || !doc.pages.length) throw new Error('pdfBytes: a document needs at least one page');
+  const imgs = doc.images && typeof doc.images === 'object' ? doc.images : {};
+  const imgNames = Object.keys(imgs).filter(k => Object.prototype.hasOwnProperty.call(imgs, k));
+  const imgInfo = {};
+  imgNames.forEach((k, i) => {
+    const info = SP.jpegInfo(imgs[k]);
+    if (!info) throw new Error('pdfBytes: the picture "' + k + '" is not a JPEG this writer can place');
+    imgInfo[k] = Object.assign({ id: 'Im' + (i + 1) }, info);
+  });
+  // objects: 1 catalog, 2 pages, 3 Helvetica, 4 Helvetica-Bold, 5 info, then the pictures, then a page and its content each
+  const objs = [];                         // each: a string, or {dict, bytes} for a stream with binary data
+  const add = o => { objs.push(o); return objs.length; };
+  add(null); add(null);
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  add('<< /Title ' + pdf_str(pdf_codes(doc.title || '')) + ' /Producer (APEX) >>');
+  const imgObj = {};
+  for (const k of imgNames) {
+    const f = imgInfo[k];
+    imgObj[k] = add({ dict: '<< /Type /XObject /Subtype /Image /Width ' + f.w + ' /Height ' + f.h + ' /ColorSpace /'
+      + (f.n === 1 ? 'DeviceGray' : 'DeviceRGB') + ' /BitsPerComponent 8 /Filter /DCTDecode /Length ' + imgs[k].length + ' >>', bytes: imgs[k] });
+  }
+  const xo = imgNames.length ? ' /XObject << ' + imgNames.map(k => '/' + imgInfo[k].id + ' ' + imgObj[k] + ' 0 R').join(' ') + ' >>' : '';
+  const kids = [];
+  for (const pg of doc.pages) {
+    const H = pg.h, W = pg.w;
+    if (!(W > 0 && H > 0) || !Array.isArray(pg.ops)) throw new Error('pdfBytes: a page needs a width, a height and a list of ops');
+    // the page's drawing, with the fill colour, stroke colour and line width written only when they change: a spend plan
+    // page is two thousand cells, and saying each one's colours again made a thirteen-page document half a megabyte
+    const c = [];
+    let fill = '', stroke = '', lw = '';
+    const setFill = hex => { const v = pdf_rgb(hex, 'a colour'); if (v !== fill) { fill = v; c.push(v + ' rg'); } };
+    const setStroke = (hex, w) => {
+      const v = pdf_rgb(hex, 'a stroke'), ww = pdf_n(w || 0.5);
+      if (v !== stroke) { stroke = v; c.push(v + ' RG'); }
+      if (ww !== lw) { lw = ww; c.push(ww + ' w'); }
+    };
+    for (const o of pg.ops) {
+      if (o.t === 'rect') {
+        if (!o.fill && !o.stroke) continue;
+        if (o.fill) setFill(o.fill);
+        if (o.stroke) setStroke(o.stroke, o.lw);
+        c.push(pdf_n(o.x) + ' ' + pdf_n(H - o.y - o.h) + ' ' + pdf_n(o.w) + ' ' + pdf_n(o.h) + ' re ' + (o.fill && o.stroke ? 'B' : o.fill ? 'f' : 'S'));
+      } else if (o.t === 'line') {
+        setStroke(o.stroke || '#000000', o.lw);
+        c.push(pdf_n(o.x1) + ' ' + pdf_n(H - o.y1) + ' m ' + pdf_n(o.x2) + ' ' + pdf_n(H - o.y2) + ' l S');
+      } else if (o.t === 'text') {
+        const codes = pdf_codes(o.s);
+        if (!codes.length) continue;
+        const size = o.size || 8, bold = !!o.bold, w = pdf_w(codes, size, bold);
+        const x = o.align === 'r' ? o.x - w : o.align === 'c' ? o.x - w / 2 : o.x;
+        setFill(o.color || '#000000');
+        c.push('BT /' + (bold ? 'F2' : 'F1') + ' ' + pdf_n(size) + ' Tf ' + pdf_n(x) + ' ' + pdf_n(H - o.y) + ' Td ' + pdf_str(codes) + ' Tj ET');
+      } else if (o.t === 'img') {
+        if (!imgInfo[o.name]) throw new Error('pdfBytes: a page places the picture "' + o.name + '", which was not given');
+        c.push('q ' + pdf_n(o.w) + ' 0 0 ' + pdf_n(o.h) + ' ' + pdf_n(o.x) + ' ' + pdf_n(H - o.y - o.h) + ' cm /' + imgInfo[o.name].id + ' Do Q');
+      } else throw new Error('pdfBytes: an op of kind ' + JSON.stringify(o.t) + ' is not one this writer draws');
+    }
+    const body = c.join('\n') + '\n';
+    const content = add('<< /Length ' + body.length + ' >>\nstream\n' + body + 'endstream');
+    kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pdf_n(W) + ' ' + pdf_n(H) + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>'
+      + xo + ' >> /Contents ' + content + ' 0 R >>'));
+  }
+  objs[0] = '<< /Type /Catalog /Pages 2 0 R >>';
+  objs[1] = '<< /Type /Pages /Count ' + kids.length + ' /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] >>';
+  // the file: every string is ASCII by construction (pdf_str), so a character is a byte; picture bytes go in as they are
+  const parts = [];
+  let at = 0;
+  const put = s => { const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 0xFF; parts.push(u); at += u.length; };
+  const raw = u => { parts.push(u); at += u.length; };
+  put('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const offs = [];
+  objs.forEach((o, i) => {
+    offs.push(at);
+    put((i + 1) + ' 0 obj\n');
+    if (typeof o === 'string') put(o + '\n');
+    else { put(o.dict + '\nstream\n'); raw(o.bytes); put('\nendstream\n'); }
+    put('endobj\n');
+  });
+  const xref = at;
+  put('xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' + offs.map(n => String(n).padStart(10, '0') + ' 00000 n \n').join(''));
+  put('trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R /Info 5 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+  const out = new Uint8Array(at);
+  let p = 0;
+  for (const u of parts) { out.set(u, p); p += u.length; }
+  return out;
+};
+
+// ===== 48-emblem.js =====
+// §33.7 THE EMBLEM printed at the top left of every published spend plan, unless the plan holds another or asks for none.
+// Brad sent it on 17 Nov 2026: "Here is the logo that I want at the top left of every spend plan. Please incorporate it but
+// make it fit seamlessly so that it doesn't stick out like a sore thumb with color fading." It is his file drawn at 240 px
+// on white at SP.EMBLEM_FADE of its strength (its black reads as slate beside the header band, which fades out from behind
+// it), kept as a JPEG because that is the one kind of picture the PDF writer places as it is. A picture loaded on the
+// Publish page is softened by the same amount.
+SP.EMBLEM_FADE = 0.72;
+SP.EMBLEM_DEFAULT = 'data:image/jpeg;base64,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';
+
 // ===== 50-xlsx-write.js =====
 // §7 XLSX-WRITE — the .xlsx writer and the zip (CONTRACT §7).
 //
@@ -7133,6 +8090,37 @@ function st_check(st) {
   if (st.lastImport !== undefined && st.lastImport !== null && !st_isObj(st.lastImport)) return 'its last import report is not a report';
   if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
   if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
+  const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish);
+  if (ub) return ub;
+  return '';
+}
+// §33.6 THE UNFUNDED LISTS AND THE PUBLISHING SETTINGS, in the shapes SP.publishData and SP.publishPages read. Absent in
+// every plan saved before §33 and in one that never loaded a list or typed a description, which is not a fault. One that
+// has them must hold them whole: a line whose amounts are not seven whole numbers would print a Required nobody typed.
+function st_checkUfr(u) {
+  if (u === undefined || u === null) return '';
+  if (!st_isObj(u)) return 'its unfunded lists are not a table by fiscal year';
+  for (const k of Object.keys(u)) {
+    const f = u[k], no = 'its unfunded list for FY' + k + ' is not in the shape this page reads (';
+    if (!st_isObj(f) || !Number.isInteger(f.fy) || String(f.fy) !== k) return no + 'its fiscal year is not a year)';
+    if (!Array.isArray(f.lines)) return no + 'it has no list of lines)';
+    for (const l of f.lines) {
+      if (!st_isObj(l) || typeof l.ap !== 'string' || !Number.isInteger(l.fy)) return no + 'a line names no appropriation or fiscal year)';
+      if (!(Array.isArray(l.cents) && l.cents.length === 7 && l.cents.every(Number.isSafeInteger)) || !Number.isSafeInteger(l.total)) return no + 'a line’s amounts are not whole cents by service)';
+      for (const t of ['title', 'pmo', 'ccar', 'rank', 'status', 'exec', 'sfcb']) if (typeof l[t] !== 'string') return no + 'a line’s ' + t + ' is not text)';
+    }
+    for (const t of ['notes', 'tabs', 'ignored']) if (f[t] !== undefined && !Array.isArray(f[t])) return no + 'its ' + t + ' is not a list)';
+  }
+  return '';
+}
+const ST_EMBLEM = /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/;
+function st_checkPublish(p) {
+  if (p === undefined || p === null) return '';
+  if (!st_isObj(p)) return 'its publishing settings are not a set of settings';
+  if (p.desc !== undefined && !(st_isObj(p.desc) && Object.keys(p.desc).every(k => typeof p.desc[k] === 'string'))) return 'its descriptions are not text by CCaR record';
+  for (const t of ['program', 'lead', 'bfm']) if (p[t] !== undefined && typeof p[t] !== 'string') return 'its publishing ' + t + ' is not text';
+  if (p.emblem !== undefined && p.emblem !== null && !(typeof p.emblem === 'string' && ST_EMBLEM.test(p.emblem))) return 'its emblem is not a JPEG picture';
+  if (p.noEmblem !== undefined && typeof p.noEmblem !== 'boolean') return 'its setting for printing no emblem is not yes or no';
   return '';
 }
 // THE BAE REPORTS (CONTRACT §14.1, §14.7), in the shapes the engine and the screens read. A file saved before §14 has none,
@@ -7790,6 +8778,50 @@ SP.setSettings = function setSettings(patch) {
   st.settings = next;
   st_changed(true);
 };
+// §33.6 the unfunded list of one fiscal year (SP.readUfr's result), kept whole; loading that year again replaces it
+SP.setUfr = function setUfr(parsed, nowIso) {
+  if (!parsed || parsed.ok !== true || !Number.isInteger(parsed.fy)) return false;
+  const st = SP.state;
+  const all = st_isObj(st.ufr) ? st.ufr : {};
+  all[String(parsed.fy)] = st_clone({ fy: parsed.fy, name: String(parsed.name || ''), importedAt: nowIso || new Date().toISOString(), unit: parsed.unit,
+    tabs: parsed.tabs || [], lines: parsed.lines || [], notes: parsed.notes || [], ignored: parsed.ignored || [] });
+  st.ufr = all;
+  st_changed(false);
+  return true;
+};
+SP.removeUfr = function removeUfr(fy) {
+  const st = SP.state;
+  if (!st_isObj(st.ufr) || !st_own(st.ufr, String(fy))) return false;
+  delete st.ufr[String(fy)];
+  if (!Object.keys(st.ufr).length) delete st.ufr;
+  st_changed(false);
+  return true;
+};
+// §33.6 the publishing settings: {program, lead, bfm, emblem, noEmblem, desc: {CCaR number (normKey): text}}. emblem: a
+// picture loaded in place of the built-in one (null puts the built-in one back); noEmblem: true prints none. A description given as
+// '' is taken away; the others are replaced as given. Nothing changed is nothing to save.
+SP.setPublish = function setPublish(patch) {
+  if (!st_isObj(patch)) return false;
+  const st = SP.state;
+  const cur = st_isObj(st.publish) ? st.publish : {};
+  const next = st_clone(cur);
+  for (const t of ['program', 'lead', 'bfm']) if (typeof patch[t] === 'string') { if (patch[t].trim() === '') delete next[t]; else next[t] = patch[t].trim(); }
+  if (patch.noEmblem === true) next.noEmblem = true; else if (patch.noEmblem === false) delete next.noEmblem;
+  if (patch.emblem === null) delete next.emblem;
+  else if (typeof patch.emblem === 'string' && ST_EMBLEM.test(patch.emblem)) next.emblem = patch.emblem;
+  if (st_isObj(patch.desc)) {
+    const d = st_isObj(next.desc) ? next.desc : {};
+    for (const k of Object.keys(patch.desc)) {
+      const v = typeof patch.desc[k] === 'string' ? patch.desc[k].replace(/\s+/g, ' ').trim() : '';
+      if (v === '') delete d[k]; else d[k] = v;
+    }
+    if (Object.keys(d).length) next.desc = d; else delete next.desc;
+  }
+  if (JSON.stringify(next) === JSON.stringify(cur)) return false;
+  if (Object.keys(next).length) st.publish = next; else delete st.publish;
+  st_changed(false);
+  return true;
+};
 SP.isDirty = function isDirty() { return st_dirty; };
 SP.onStateChange = function onStateChange(fn) {
   if (typeof fn !== 'function') return () => {};
@@ -8133,7 +9165,7 @@ const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
 const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
   { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])) },
-  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks']] },
+  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['publish', 'Publish PDFs']] },
   { h: 'Data checks', items: [['na', 'Not Allocated'], ['report', 'Import report'], ['changes', 'What changed']] },
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
@@ -8161,6 +9193,7 @@ const ui = {
   pmo: { key: undefined, fy: null },                   // My PMO: the office (undefined until picked or remembered) and the FY
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
+  pub: { fys: null, miss: false }, pubM: null,   // Publish spend plan (§33): the years ticked (null: every year), only records with no description, its own model
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
   pmoKey: null,             // the PMO picked on the PMOs view, by its normKey, so a rebuilt model keeps the choice
@@ -8284,7 +9317,7 @@ function ui_model() {
   catch (e) { ui.modelErr = (e && e.message) || String(e); ui.model = null; }
   return ui.model;
 }
-function ui_invalidate() { ui.model = null; ui.modelErr = null; }
+function ui_invalidate() { ui.model = null; ui.modelErr = null; ui.pubM = null; }
 
 // ---------------------------------------------------------------------------------------------------------------
 // THE MESSAGE LINE: every result and every error is said here, with its reason; nothing is swallowed
@@ -9022,6 +10055,188 @@ function ui_vSlides(M) {
       + ui_naLines(M, b.na) + '</section>');
   });
   return out.join('');
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
+// is typed once and kept in the plan (descriptions, the names and the emblem on every document).
+// ---------------------------------------------------------------------------------------------------------------
+// a published plan counts every service and lane, whatever this browser's switches: with a switch off it builds its own model
+function ui_pubModel(M) {
+  if (M && M.shown && M.shown.all) return M;
+  if (!ui.pubM) ui.pubM = SP.buildModel(ui_pulls(), ui_settings(), SP.defaultView(), ui_bae());
+  return ui.pubM;
+}
+function ui_pubState() {
+  const st = ui_state() || {};
+  return { ufr: st.ufr && typeof st.ufr === 'object' ? st.ufr : {}, pub: st.publish && typeof st.publish === 'object' ? st.publish : {} };
+}
+const UI_PUB_PROGRAM = 'F-35 Sustainment';
+function ui_pubData(M) {
+  const P = ui_pubState(), Mp = ui_pubModel(M);
+  return { Mp, P, D: SP.publishData(Mp, P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
+}
+// the emblem a document prints: none if the plan says so, else the one loaded, else the built-in one (§33.7)
+function ui_pubEmblem(P) {
+  if (P.pub.noEmblem === true) return null;
+  return typeof P.pub.emblem === 'string' ? P.pub.emblem : (typeof SP.EMBLEM_DEFAULT === 'string' ? SP.EMBLEM_DEFAULT : null);
+}
+function ui_pubCtx(Mp, P) {
+  const pulls = ui_pulls(), shown = SP.APS.filter(a => pulls[a.id]);
+  const up = SP.uploadAge(shown.map(a => ui_day(pulls[a.id].importedAt)), ui_today());
+  let emblem = null;
+  const src = ui_pubEmblem(P);
+  if (src) {
+    try { const b = atob(src.slice(src.indexOf(',') + 1)); emblem = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) emblem[i] = b.charCodeAt(i); }
+    catch (e) { emblem = null; }
+    if (emblem && !SP.jpegInfo(emblem)) emblem = null;
+  }
+  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, lead: P.pub.lead || '', bfm: P.pub.bfm || '', asOfLabel: Mp.asOfLabel, today: ui_today(),
+    uploaded: up ? up.text + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
+    ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
+}
+function ui_vPublish(M) {
+  const { Mp, P, D } = ui_pubData(M);
+  ui.reg.pub = { D, Mp, P };
+  const out = ['<h2 class="title">Publish spend plan</h2>',
+    '<p class="l2">A PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). Each opens with its stoplight, '
+    + 'lists Prime Contracts first, and ends with the unfunded list for what it presents. Every service and lane is counted, whatever the Filter above says.</p>'];
+  const ticked = y => ui.pub.fys === null || ui.pub.fys.includes(y);
+  out.push('<div class="acts pmobar pubbar" role="group" aria-label="What to publish"><span class="fl">Fiscal years</span>'
+    + D.allFys.map(y => '<label class="chk"><input type="checkbox" data-act="pubfy" data-fy="' + y + '" data-fkey="pubfy:' + y + '"' + (ticked(y) ? ' checked' : '') + '> FY' + y + '</label>').join('')
+    + '<span class="grow"></span><button type="button" class="primary" data-act="pubzip" data-fkey="pubzip"' + (D.docs.length ? '' : ' disabled') + '>Download all ' + D.docs.length
+    + ' PDF' + (D.docs.length === 1 ? '' : 's') + ' (.zip)</button></div>');
+  if (!D.docs.length) out.push('<p class="none">Nothing to publish for the fiscal years ticked.</p>');
+  else {
+    out.push('<div class="tw"><table class="grid pubdocs" id="uiPubDocs"><thead><tr class="hd"><th scope="col">Document</th><th scope="col">Covers</th><th scope="col">CCaR records</th>'
+      + '<th scope="col">Unfunded lines</th><th scope="col">Descriptions</th><th scope="col">PDF</th></tr></thead><tbody>'
+      + D.docs.map((d, i) => '<tr data-doc="' + ui_e(d.id) + '"><th scope="row">' + ui_e(d.file.replace(/\.pdf$/, '')) + '</th><td>'
+        + ui_e((d.kind === 'ap' ? 'Consolidated, every PMO' : 'That PMO only, ' + [...new Set(d.sections.map(s => s.apLabel))].join(', ')) + ' · ' + [...new Set(d.sections.map(s => 'FY' + s.fy))].join(', '))
+        + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + SP.fmtInt(d.ufr.length) + '</td><td class="' + (d.missing ? 'pubwarn' : 'pubok') + '">'
+        + (d.missing ? SP.fmtInt(d.missing) + ' missing' : 'all written') + '</td><td><button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
+      + '</tbody></table></div>');
+  }
+  // the unfunded list
+  const fks = Object.keys(P.ufr).sort();
+  out.push('<h3 class="sub" id="ui-pubufr">Unfunded list</h3><p class="note">The UFR tracker workbook, one per fiscal year: its O&amp;M, Full Fund, Initial Spares and OPN tabs are read, by their column titles. '
+    + 'Required on a spend plan is Approved plus the unfunded amount for that CCaR record.</p>');
+  out.push(fks.length ? '<ul class="speclist" id="uiUfrList">' + fks.map(k => {
+    const f = P.ufr[k], tot = f.lines.reduce((n, l) => n + l.total, 0);
+    return '<li>FY' + ui_e(k) + ': “' + ui_e(f.name || 'unnamed file') + '”, loaded ' + ui_e(ui_day(f.importedAt)) + ' · ' + SP.fmtInt(f.lines.length) + ' line' + (f.lines.length === 1 ? '' : 's') + ' · '
+      + ui_e(SP.fmtUsd(tot)) + ' <button type="button" data-act="ufrdel" data-fy="' + ui_e(k) + '" data-fkey="ufrdel:' + ui_e(k) + '">Remove</button></li>';
+  }).join('') + '</ul>' : '<p class="none" id="uiUfrList">No unfunded list is loaded: Required equals Approved on every line.</p>');
+  out.push('<p class="acts"><button type="button" data-act="ufrpick" data-fkey="ufrpick">Import unfunded list…</button>'
+    + '<input type="file" id="uiUfrFile" data-act="ufrfile" multiple accept=".xlsx" hidden></p>');
+  const notes = fks.flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
+    .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
+  if (notes.length) out.push('<h4 class="sub">To check on the unfunded list (' + notes.length + ')</h4><ul class="speclist pubnotes" id="uiUfrNotes">' + notes.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>');
+  // on every document
+  const val = k => ui_e(typeof P.pub[k] === 'string' ? P.pub[k] : '');
+  out.push('<h3 class="sub">On every document (saved in this file)</h3><div class="acts pubhead">'
+    + '<label>Program title <input type="text" data-act="pubhead" data-f="program" data-fkey="pubhead:program" value="' + val('program') + '" placeholder="' + UI_PUB_PROGRAM + '" size="24"></label>'
+    + '<label>Lead BFM <input type="text" data-act="pubhead" data-f="lead" data-fkey="pubhead:lead" value="' + val('lead') + '" size="22"></label>'
+    + '<label>BFM <input type="text" data-act="pubhead" data-f="bfm" data-fkey="pubhead:bfm" value="' + val('bfm') + '" size="22"></label></div>'
+    + '<p class="acts">' + (ui_pubEmblem(P) ? '<img class="pubemb" id="uiPubEmb" alt="The emblem printed at the top left of every page" src="' + ui_e(ui_pubEmblem(P)) + '">' : '<span class="none" id="uiPubEmb">No emblem is printed.</span>')
+    + '<span id="uiPubEmbWhat">' + (P.pub.noEmblem === true ? '' : P.pub.emblem ? 'The emblem you loaded.' : 'The built-in emblem.') + '</span>'
+    + '<button type="button" data-act="embpick" data-fkey="embpick">Load another emblem…</button>'
+    + (P.pub.emblem ? '<button type="button" data-act="embdel" data-fkey="embdel">Use the built-in emblem</button>' : '')
+    + '<label class="chk"><input type="checkbox" data-act="pubnoemb" data-fkey="pubnoemb"' + (P.pub.noEmblem === true ? ' checked' : '') + '> Print no emblem</label>'
+    + '<input type="file" id="uiEmbFile" data-act="embfile" accept="image/png,image/jpeg,.png,.jpg,.jpeg" hidden></p>');
+  // descriptions
+  const miss = D.records.filter(r => !r.desc).length, list = ui.pub.miss ? D.records.filter(r => !r.desc) : D.records;
+  out.push('<h3 class="sub" id="ui-pubdesc">Descriptions (saved in this file)</h3><p class="note">One short description per CCaR record, printed beside it on every spend plan. Type it here, or import a list '
+    + '(a sheet with a CCaR Record or CCaR No column and a Description column); an import fills only the records that have none.</p>'
+    + '<p class="acts"><span id="uiPubDescN">' + SP.fmtInt(D.records.length - miss) + ' of ' + SP.fmtInt(D.records.length) + ' written</span>'
+    + '<label class="chk"><input type="checkbox" data-act="pubmiss" data-fkey="pubmiss"' + (ui.pub.miss ? ' checked' : '') + '> Show only the ' + SP.fmtInt(miss) + ' missing</label>'
+    + '<button type="button" data-act="descpick" data-fkey="descpick">Import descriptions…</button><input type="file" id="uiDescFile" data-act="descfile" accept=".xlsx,.csv" hidden></p>');
+  out.push(list.length ? '<div class="tw"><table class="grid pubdesc" id="uiPubDesc" aria-describedby="ui-pubdesc"><thead><tr class="hd"><th scope="col">CCaR record</th><th scope="col">Requirement title</th>'
+    + '<th scope="col">Description</th></tr></thead><tbody>' + list.map(r => '<tr><th scope="row">' + ui_e(r.ccar) + '</th><td>' + ui_e(r.title) + '</td><td><input type="text" class="pubd" data-act="pubdesc" data-k="'
+      + ui_e(r.key) + '" data-fkey="pubdesc:' + ui_e(r.key) + '" value="' + ui_e(r.desc) + '" maxlength="300" aria-label="' + ui_e('Description of ' + r.ccar + ', ' + r.title) + '"></td></tr>').join('')
+    + '</tbody></table></div>' : '<p class="none">' + (D.records.length ? 'Every record has a description.' : 'No CCaR record to describe.') + '</p>');
+  return out.join('');
+}
+function ui_pubReady() { return ui.reg && ui.reg.pub ? ui.reg.pub : null; }
+async function ui_pubDownload(i) {
+  const R = ui_pubReady(), d = R && R.D.docs[i];
+  if (!d) return;
+  await ui_busy('the PDF', async () => {
+    const name = SP.download(d.file, SP.publishPdf(d, ui_pubCtx(R.Mp, R.P)), 'application/pdf');
+    ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
+}
+async function ui_pubZip() {
+  const R = ui_pubReady();
+  if (!R || !R.D.docs.length) return;
+  await ui_busy('the PDFs', async () => {
+    ui_say('Writing ' + R.D.docs.length + ' PDFs…', 'info');
+    const ctx = ui_pubCtx(R.Mp, R.P);
+    const bytes = await SP.zipFiles(R.D.docs.map(d => ({ name: d.file, data: SP.publishPdf(d, ctx) })));
+    const name = SP.download('APEX spend plans - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + '.zip', bytes, 'application/zip');
+    ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
+}
+async function ui_ufrImport(fileList) {
+  const files = [...(fileList || [])];
+  if (!files.length) return;
+  await ui_busy('the unfunded list', async () => {
+    const said = [];
+    let bad = false;
+    for (const f of files) {
+      let r;
+      try { r = SP.readUfr(await SP.readXlsx(new Uint8Array(await f.arrayBuffer())), f.name); }
+      catch (e) { r = { ok: false, why: (e && e.message) || String(e) }; }
+      if (!r.ok) { bad = true; said.push('“' + f.name + '” was not imported: ' + r.why + '. Nothing was changed by it.'); continue; }
+      const had = !!ui_pubState().ufr[String(r.fy)];
+      SP.setUfr(r, new Date().toISOString());
+      said.push('“' + f.name + '”: the FY' + r.fy + ' unfunded list, ' + SP.fmtInt(r.lines.length) + ' line' + (r.lines.length === 1 ? '' : 's') + ' from ' + r.tabs.map(t => t.sheet).join(', ')
+        + (had ? ', replacing the FY' + r.fy + ' list loaded before' : '') + (r.notes.length ? '; ' + r.notes.length + ' to check, listed below' : '') + '.');
+    }
+    ui_say(said.join(' '), bad ? 'err' : 'ok');
+    ui_render();
+  });
+}
+async function ui_descImport(fileList) {
+  const f = fileList && fileList[0];
+  if (!f) return;
+  await ui_busy('the descriptions', async () => {
+    let r;
+    try {
+      const wb = /\.csv$/i.test(f.name) ? { sheets: [{ name: f.name, rows: SP.readCsv(await f.text()) }] } : await SP.readXlsx(new Uint8Array(await f.arrayBuffer()));
+      r = SP.readDescriptions(wb);
+    } catch (e) { r = { ok: false, why: (e && e.message) || String(e) }; }
+    if (!r.ok) { ui_say('“' + f.name + '” was not imported: ' + r.why + '. Nothing was changed.', 'err'); return; }
+    const have = ui_pubState().pub.desc || {}, patch = {};
+    let kept = 0;
+    for (const k of Object.keys(r.map)) { if (typeof have[k] === 'string' && have[k] !== '') { if (have[k] !== r.map[k]) kept++; } else patch[k] = r.map[k]; }
+    const n = Object.keys(patch).length;
+    if (n) SP.setPublish({ desc: patch });
+    ui_say('“' + f.name + '”: ' + SP.fmtInt(n) + ' description' + (n === 1 ? '' : 's') + ' taken'
+      + (kept ? '; ' + SP.fmtInt(kept) + ' record' + (kept === 1 ? '' : 's') + ' already had a different one, left as written' : '') + '.', 'ok');
+    ui_render();
+  });
+}
+// the emblem: whatever picture is loaded is drawn onto white at no more than 240 px a side, softened as the built-in one is
+// (SP.EMBLEM_FADE, §33.7), and kept as a JPEG, the one kind of picture the PDF writer places as it is
+async function ui_embImport(fileList) {
+  const f = fileList && fileList[0];
+  if (!f) return;
+  await ui_busy('the emblem', async () => {
+    const url = URL.createObjectURL(f);
+    try {
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('“' + f.name + '” is not a picture this browser can read')); im.src = url; });
+      const k = Math.min(1, 240 / Math.max(img.naturalWidth, img.naturalHeight, 1));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      const g = c.getContext('2d');
+      g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height);
+      g.globalAlpha = typeof SP.EMBLEM_FADE === 'number' ? SP.EMBLEM_FADE : 1; g.drawImage(img, 0, 0, c.width, c.height);
+      const data = c.toDataURL('image/jpeg', 0.92);
+      SP.setPublish({ emblem: data, noEmblem: false });
+      if (ui_pubState().pub.emblem !== data) throw new Error('the picture could not be kept');
+      ui_say('The emblem is loaded and will be printed at the top left of every page. It is saved in this file with the next Save.', 'ok');
+      ui_render();
+    } finally { URL.revokeObjectURL(url); }
+  });
 }
 
 function ui_vAp(M, ap) {
@@ -9817,6 +11032,16 @@ function ui_vHelp() {
       + 'added together. To roll another CCaR number up, add it under Settings, Special CCaRs. Its number opens every part of it on Find a requirement.',
       'A requirement’s name in either opens it on Find a requirement.',
     ])
+    + '<h3 class="sub">Publishing spend plans</h3>' + li([
+      '<strong>Publish PDFs</strong> makes a PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). '
+      + 'Each opens with its stoplight, lists Prime Contracts first (the Special CCaRs of Settings) and ends with the unfunded list for what it presents.',
+      'Each CCaR record has a row per service: Approved is the CCaR amount in its plan events, Obligated is what CCaR marks Actual Execution, Remaining is Approved less Obligated, '
+      + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
+      '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
+      + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
+      'Descriptions, the program title, the BFM names and the emblem are typed or loaded once on that page and saved in this file.',
+      'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
+    ])
     + '<h3 class="sub">Manage data</h3>' + li([
       '<strong>Manage data</strong>, at the top right, opens the bar that holds Data through, First FY, Import, Save and Save a copy, and the line that says when each pull came in. '
       + 'It is open by itself when the file holds no data. Someone who only reads the plan never needs it.',
@@ -10114,6 +11339,7 @@ function ui_drawMain(M) {
   if (v === 'overview') return ui_vOverview(M);
   if (v === 'summary') return ui_vSummary(M);
   if (v === 'slides') return ui_vSlides(M);
+  if (v === 'publish') return ui_vPublish(M);
   if (UI_AP_LABEL[v]) return ui_vAp(M, v);
   if (v === 'pmos') return ui_vPmos(M);
   if (v === 'na') return ui_vNa(M);
@@ -10512,6 +11738,17 @@ function ui_onClick(ev) {
     case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b'))); break;
     case 'savepic': ui_picture('save', Number(t.getAttribute('data-b'))); break;
     case 'zip': ui_zip(); break;
+    case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
+    case 'pubzip': ui_pubZip(); break;
+    case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
+    case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
+    case 'embpick': { const f = document.getElementById('uiEmbFile'); if (f) f.click(); break; }
+    case 'embdel': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ emblem: null }); ui_say('The built-in emblem is printed again.', 'ok'); ui_render(); } break;
+    case 'ufrdel': {
+      const fy = t.getAttribute('data-fy');
+      if (ui_need('removeUfr', 'Remove') && SP.removeUfr(fy)) { ui_say('The FY' + fy + ' unfunded list was removed. Required on FY' + fy + ' lines is Approved again.', 'ok'); ui_render(); }
+      break;
+    }
     case 'naclear': ui.naF = { ap: '', fy: '', pmo: '', pmoLabel: '' }; ui_render(); break;
     case 'diff': {
       const k = ui.reg.diff[Number(t.getAttribute('data-i'))];
@@ -10542,6 +11779,20 @@ function ui_onChange(ev) {
   if (t === ui.els.first) { ui_firstChanged(); return; }
   const act = t.getAttribute && t.getAttribute('data-act');
   switch (act) {
+    case 'ufrfile': ui_ufrImport(t.files); return;
+    case 'descfile': ui_descImport(t.files); return;
+    case 'embfile': ui_embImport(t.files); return;
+    case 'pubfy': {
+      const R = ui_pubReady(), all = R ? R.D.allFys : [], y = Number(t.getAttribute('data-fy'));
+      const cur = new Set(ui.pub.fys === null ? all : ui.pub.fys);
+      if (t.checked) cur.add(y); else cur.delete(y);
+      ui.pub.fys = all.every(x => cur.has(x)) ? null : all.filter(x => cur.has(x));
+      ui_render(); return;
+    }
+    case 'pubmiss': ui.pub.miss = !!t.checked; ui_render(); return;
+    case 'pubnoemb': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ noEmblem: !!t.checked }); ui_render(); } return;
+    case 'pubdesc': if (ui_need('setPublish', 'Descriptions')) { SP.setPublish({ desc: { [t.getAttribute('data-k')]: t.value } }); ui_render(); } return;
+    case 'pubhead': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ [t.getAttribute('data-f')]: t.value }); ui_render(); } return;
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');
       if (f === 'pmo' || f === 'ap' || f === 'fy') { ui[act === 'chf' ? 'ch' : 'cal'][f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }

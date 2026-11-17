@@ -186,7 +186,7 @@ FY. Import it beside the CCaR pull to fill the stoplight tables with the budgets
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*
-(By PMO and each appropriation); *Briefing* (Overview, Summary, Slide blocks); *Data checks* (Not Allocated, Import report,
+(By PMO and each appropriation); *Briefing* (Overview, Summary, Slide blocks, Publish PDFs); *Data checks* (Not Allocated, Import report,
 What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
 for the switches.
 
@@ -229,6 +229,19 @@ for the switches.
 - **Slide blocks.** Each appropriation and FY as a slide block. It shows the PMO rows by month, then Monthly Totals,
   Cumulative Totals, Obligation %, OSD Goal % and OSD Status. Under each block is its Not Allocated list. Each block has
   **Copy picture** and **Save picture**.
+- **Publish PDFs.** Spend plans to send out, as PDF files made inside the page (CONTRACT §33). One for each
+  appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
+  its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record a row per service of
+  Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
+  presents. **Download PDF** saves one; **Download all** saves them in one zip. On the page:
+  - **Import unfunded list…** takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
+    OPN tabs, read by their column titles; amounts in $K). Required is Approved plus the unfunded amount for that CCaR
+    record. A record that is only on the unfunded list still appears, with Approved $0. Anything to check is listed.
+  - **Descriptions**: one per CCaR record, typed in the list or imported from a sheet with a CCaR number column and a
+    Description column. They are saved in the file and reused.
+  - **On every document**: the program title, Lead BFM and BFM names, and the emblem (the built-in one, softened and set
+    into the header band; load another or tick Print no emblem).
+  - The fiscal years ticked are the ones published. Every service and lane is counted, whatever the Filter says.
 - **O&M, Full Fund, Initial Spares, OPN.** The FY table, then each FY's tree: PMO, Title, Plan Event and CCaR. Press a row
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Not Allocated list.

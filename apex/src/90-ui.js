@@ -20,7 +20,7 @@ const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
 const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
   { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])) },
-  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks']] },
+  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['publish', 'Publish PDFs']] },
   { h: 'Data checks', items: [['na', 'Not Allocated'], ['report', 'Import report'], ['changes', 'What changed']] },
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
@@ -48,6 +48,7 @@ const ui = {
   pmo: { key: undefined, fy: null },                   // My PMO: the office (undefined until picked or remembered) and the FY
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
+  pub: { fys: null, miss: false }, pubM: null,   // Publish spend plan (§33): the years ticked (null: every year), only records with no description, its own model
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
   pmoKey: null,             // the PMO picked on the PMOs view, by its normKey, so a rebuilt model keeps the choice
@@ -171,7 +172,7 @@ function ui_model() {
   catch (e) { ui.modelErr = (e && e.message) || String(e); ui.model = null; }
   return ui.model;
 }
-function ui_invalidate() { ui.model = null; ui.modelErr = null; }
+function ui_invalidate() { ui.model = null; ui.modelErr = null; ui.pubM = null; }
 
 // ---------------------------------------------------------------------------------------------------------------
 // THE MESSAGE LINE: every result and every error is said here, with its reason; nothing is swallowed
@@ -909,6 +910,188 @@ function ui_vSlides(M) {
       + ui_naLines(M, b.na) + '</section>');
   });
   return out.join('');
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
+// is typed once and kept in the plan (descriptions, the names and the emblem on every document).
+// ---------------------------------------------------------------------------------------------------------------
+// a published plan counts every service and lane, whatever this browser's switches: with a switch off it builds its own model
+function ui_pubModel(M) {
+  if (M && M.shown && M.shown.all) return M;
+  if (!ui.pubM) ui.pubM = SP.buildModel(ui_pulls(), ui_settings(), SP.defaultView(), ui_bae());
+  return ui.pubM;
+}
+function ui_pubState() {
+  const st = ui_state() || {};
+  return { ufr: st.ufr && typeof st.ufr === 'object' ? st.ufr : {}, pub: st.publish && typeof st.publish === 'object' ? st.publish : {} };
+}
+const UI_PUB_PROGRAM = 'F-35 Sustainment';
+function ui_pubData(M) {
+  const P = ui_pubState(), Mp = ui_pubModel(M);
+  return { Mp, P, D: SP.publishData(Mp, P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
+}
+// the emblem a document prints: none if the plan says so, else the one loaded, else the built-in one (§33.7)
+function ui_pubEmblem(P) {
+  if (P.pub.noEmblem === true) return null;
+  return typeof P.pub.emblem === 'string' ? P.pub.emblem : (typeof SP.EMBLEM_DEFAULT === 'string' ? SP.EMBLEM_DEFAULT : null);
+}
+function ui_pubCtx(Mp, P) {
+  const pulls = ui_pulls(), shown = SP.APS.filter(a => pulls[a.id]);
+  const up = SP.uploadAge(shown.map(a => ui_day(pulls[a.id].importedAt)), ui_today());
+  let emblem = null;
+  const src = ui_pubEmblem(P);
+  if (src) {
+    try { const b = atob(src.slice(src.indexOf(',') + 1)); emblem = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) emblem[i] = b.charCodeAt(i); }
+    catch (e) { emblem = null; }
+    if (emblem && !SP.jpegInfo(emblem)) emblem = null;
+  }
+  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, lead: P.pub.lead || '', bfm: P.pub.bfm || '', asOfLabel: Mp.asOfLabel, today: ui_today(),
+    uploaded: up ? up.text + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
+    ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
+}
+function ui_vPublish(M) {
+  const { Mp, P, D } = ui_pubData(M);
+  ui.reg.pub = { D, Mp, P };
+  const out = ['<h2 class="title">Publish spend plan</h2>',
+    '<p class="l2">A PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). Each opens with its stoplight, '
+    + 'lists Prime Contracts first, and ends with the unfunded list for what it presents. Every service and lane is counted, whatever the Filter above says.</p>'];
+  const ticked = y => ui.pub.fys === null || ui.pub.fys.includes(y);
+  out.push('<div class="acts pmobar pubbar" role="group" aria-label="What to publish"><span class="fl">Fiscal years</span>'
+    + D.allFys.map(y => '<label class="chk"><input type="checkbox" data-act="pubfy" data-fy="' + y + '" data-fkey="pubfy:' + y + '"' + (ticked(y) ? ' checked' : '') + '> FY' + y + '</label>').join('')
+    + '<span class="grow"></span><button type="button" class="primary" data-act="pubzip" data-fkey="pubzip"' + (D.docs.length ? '' : ' disabled') + '>Download all ' + D.docs.length
+    + ' PDF' + (D.docs.length === 1 ? '' : 's') + ' (.zip)</button></div>');
+  if (!D.docs.length) out.push('<p class="none">Nothing to publish for the fiscal years ticked.</p>');
+  else {
+    out.push('<div class="tw"><table class="grid pubdocs" id="uiPubDocs"><thead><tr class="hd"><th scope="col">Document</th><th scope="col">Covers</th><th scope="col">CCaR records</th>'
+      + '<th scope="col">Unfunded lines</th><th scope="col">Descriptions</th><th scope="col">PDF</th></tr></thead><tbody>'
+      + D.docs.map((d, i) => '<tr data-doc="' + ui_e(d.id) + '"><th scope="row">' + ui_e(d.file.replace(/\.pdf$/, '')) + '</th><td>'
+        + ui_e((d.kind === 'ap' ? 'Consolidated, every PMO' : 'That PMO only, ' + [...new Set(d.sections.map(s => s.apLabel))].join(', ')) + ' · ' + [...new Set(d.sections.map(s => 'FY' + s.fy))].join(', '))
+        + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + SP.fmtInt(d.ufr.length) + '</td><td class="' + (d.missing ? 'pubwarn' : 'pubok') + '">'
+        + (d.missing ? SP.fmtInt(d.missing) + ' missing' : 'all written') + '</td><td><button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
+      + '</tbody></table></div>');
+  }
+  // the unfunded list
+  const fks = Object.keys(P.ufr).sort();
+  out.push('<h3 class="sub" id="ui-pubufr">Unfunded list</h3><p class="note">The UFR tracker workbook, one per fiscal year: its O&amp;M, Full Fund, Initial Spares and OPN tabs are read, by their column titles. '
+    + 'Required on a spend plan is Approved plus the unfunded amount for that CCaR record.</p>');
+  out.push(fks.length ? '<ul class="speclist" id="uiUfrList">' + fks.map(k => {
+    const f = P.ufr[k], tot = f.lines.reduce((n, l) => n + l.total, 0);
+    return '<li>FY' + ui_e(k) + ': “' + ui_e(f.name || 'unnamed file') + '”, loaded ' + ui_e(ui_day(f.importedAt)) + ' · ' + SP.fmtInt(f.lines.length) + ' line' + (f.lines.length === 1 ? '' : 's') + ' · '
+      + ui_e(SP.fmtUsd(tot)) + ' <button type="button" data-act="ufrdel" data-fy="' + ui_e(k) + '" data-fkey="ufrdel:' + ui_e(k) + '">Remove</button></li>';
+  }).join('') + '</ul>' : '<p class="none" id="uiUfrList">No unfunded list is loaded: Required equals Approved on every line.</p>');
+  out.push('<p class="acts"><button type="button" data-act="ufrpick" data-fkey="ufrpick">Import unfunded list…</button>'
+    + '<input type="file" id="uiUfrFile" data-act="ufrfile" multiple accept=".xlsx" hidden></p>');
+  const notes = fks.flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
+    .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
+  if (notes.length) out.push('<h4 class="sub">To check on the unfunded list (' + notes.length + ')</h4><ul class="speclist pubnotes" id="uiUfrNotes">' + notes.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>');
+  // on every document
+  const val = k => ui_e(typeof P.pub[k] === 'string' ? P.pub[k] : '');
+  out.push('<h3 class="sub">On every document (saved in this file)</h3><div class="acts pubhead">'
+    + '<label>Program title <input type="text" data-act="pubhead" data-f="program" data-fkey="pubhead:program" value="' + val('program') + '" placeholder="' + UI_PUB_PROGRAM + '" size="24"></label>'
+    + '<label>Lead BFM <input type="text" data-act="pubhead" data-f="lead" data-fkey="pubhead:lead" value="' + val('lead') + '" size="22"></label>'
+    + '<label>BFM <input type="text" data-act="pubhead" data-f="bfm" data-fkey="pubhead:bfm" value="' + val('bfm') + '" size="22"></label></div>'
+    + '<p class="acts">' + (ui_pubEmblem(P) ? '<img class="pubemb" id="uiPubEmb" alt="The emblem printed at the top left of every page" src="' + ui_e(ui_pubEmblem(P)) + '">' : '<span class="none" id="uiPubEmb">No emblem is printed.</span>')
+    + '<span id="uiPubEmbWhat">' + (P.pub.noEmblem === true ? '' : P.pub.emblem ? 'The emblem you loaded.' : 'The built-in emblem.') + '</span>'
+    + '<button type="button" data-act="embpick" data-fkey="embpick">Load another emblem…</button>'
+    + (P.pub.emblem ? '<button type="button" data-act="embdel" data-fkey="embdel">Use the built-in emblem</button>' : '')
+    + '<label class="chk"><input type="checkbox" data-act="pubnoemb" data-fkey="pubnoemb"' + (P.pub.noEmblem === true ? ' checked' : '') + '> Print no emblem</label>'
+    + '<input type="file" id="uiEmbFile" data-act="embfile" accept="image/png,image/jpeg,.png,.jpg,.jpeg" hidden></p>');
+  // descriptions
+  const miss = D.records.filter(r => !r.desc).length, list = ui.pub.miss ? D.records.filter(r => !r.desc) : D.records;
+  out.push('<h3 class="sub" id="ui-pubdesc">Descriptions (saved in this file)</h3><p class="note">One short description per CCaR record, printed beside it on every spend plan. Type it here, or import a list '
+    + '(a sheet with a CCaR Record or CCaR No column and a Description column); an import fills only the records that have none.</p>'
+    + '<p class="acts"><span id="uiPubDescN">' + SP.fmtInt(D.records.length - miss) + ' of ' + SP.fmtInt(D.records.length) + ' written</span>'
+    + '<label class="chk"><input type="checkbox" data-act="pubmiss" data-fkey="pubmiss"' + (ui.pub.miss ? ' checked' : '') + '> Show only the ' + SP.fmtInt(miss) + ' missing</label>'
+    + '<button type="button" data-act="descpick" data-fkey="descpick">Import descriptions…</button><input type="file" id="uiDescFile" data-act="descfile" accept=".xlsx,.csv" hidden></p>');
+  out.push(list.length ? '<div class="tw"><table class="grid pubdesc" id="uiPubDesc" aria-describedby="ui-pubdesc"><thead><tr class="hd"><th scope="col">CCaR record</th><th scope="col">Requirement title</th>'
+    + '<th scope="col">Description</th></tr></thead><tbody>' + list.map(r => '<tr><th scope="row">' + ui_e(r.ccar) + '</th><td>' + ui_e(r.title) + '</td><td><input type="text" class="pubd" data-act="pubdesc" data-k="'
+      + ui_e(r.key) + '" data-fkey="pubdesc:' + ui_e(r.key) + '" value="' + ui_e(r.desc) + '" maxlength="300" aria-label="' + ui_e('Description of ' + r.ccar + ', ' + r.title) + '"></td></tr>').join('')
+    + '</tbody></table></div>' : '<p class="none">' + (D.records.length ? 'Every record has a description.' : 'No CCaR record to describe.') + '</p>');
+  return out.join('');
+}
+function ui_pubReady() { return ui.reg && ui.reg.pub ? ui.reg.pub : null; }
+async function ui_pubDownload(i) {
+  const R = ui_pubReady(), d = R && R.D.docs[i];
+  if (!d) return;
+  await ui_busy('the PDF', async () => {
+    const name = SP.download(d.file, SP.publishPdf(d, ui_pubCtx(R.Mp, R.P)), 'application/pdf');
+    ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
+}
+async function ui_pubZip() {
+  const R = ui_pubReady();
+  if (!R || !R.D.docs.length) return;
+  await ui_busy('the PDFs', async () => {
+    ui_say('Writing ' + R.D.docs.length + ' PDFs…', 'info');
+    const ctx = ui_pubCtx(R.Mp, R.P);
+    const bytes = await SP.zipFiles(R.D.docs.map(d => ({ name: d.file, data: SP.publishPdf(d, ctx) })));
+    const name = SP.download('APEX spend plans - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + '.zip', bytes, 'application/zip');
+    ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
+}
+async function ui_ufrImport(fileList) {
+  const files = [...(fileList || [])];
+  if (!files.length) return;
+  await ui_busy('the unfunded list', async () => {
+    const said = [];
+    let bad = false;
+    for (const f of files) {
+      let r;
+      try { r = SP.readUfr(await SP.readXlsx(new Uint8Array(await f.arrayBuffer())), f.name); }
+      catch (e) { r = { ok: false, why: (e && e.message) || String(e) }; }
+      if (!r.ok) { bad = true; said.push('“' + f.name + '” was not imported: ' + r.why + '. Nothing was changed by it.'); continue; }
+      const had = !!ui_pubState().ufr[String(r.fy)];
+      SP.setUfr(r, new Date().toISOString());
+      said.push('“' + f.name + '”: the FY' + r.fy + ' unfunded list, ' + SP.fmtInt(r.lines.length) + ' line' + (r.lines.length === 1 ? '' : 's') + ' from ' + r.tabs.map(t => t.sheet).join(', ')
+        + (had ? ', replacing the FY' + r.fy + ' list loaded before' : '') + (r.notes.length ? '; ' + r.notes.length + ' to check, listed below' : '') + '.');
+    }
+    ui_say(said.join(' '), bad ? 'err' : 'ok');
+    ui_render();
+  });
+}
+async function ui_descImport(fileList) {
+  const f = fileList && fileList[0];
+  if (!f) return;
+  await ui_busy('the descriptions', async () => {
+    let r;
+    try {
+      const wb = /\.csv$/i.test(f.name) ? { sheets: [{ name: f.name, rows: SP.readCsv(await f.text()) }] } : await SP.readXlsx(new Uint8Array(await f.arrayBuffer()));
+      r = SP.readDescriptions(wb);
+    } catch (e) { r = { ok: false, why: (e && e.message) || String(e) }; }
+    if (!r.ok) { ui_say('“' + f.name + '” was not imported: ' + r.why + '. Nothing was changed.', 'err'); return; }
+    const have = ui_pubState().pub.desc || {}, patch = {};
+    let kept = 0;
+    for (const k of Object.keys(r.map)) { if (typeof have[k] === 'string' && have[k] !== '') { if (have[k] !== r.map[k]) kept++; } else patch[k] = r.map[k]; }
+    const n = Object.keys(patch).length;
+    if (n) SP.setPublish({ desc: patch });
+    ui_say('“' + f.name + '”: ' + SP.fmtInt(n) + ' description' + (n === 1 ? '' : 's') + ' taken'
+      + (kept ? '; ' + SP.fmtInt(kept) + ' record' + (kept === 1 ? '' : 's') + ' already had a different one, left as written' : '') + '.', 'ok');
+    ui_render();
+  });
+}
+// the emblem: whatever picture is loaded is drawn onto white at no more than 240 px a side, softened as the built-in one is
+// (SP.EMBLEM_FADE, §33.7), and kept as a JPEG, the one kind of picture the PDF writer places as it is
+async function ui_embImport(fileList) {
+  const f = fileList && fileList[0];
+  if (!f) return;
+  await ui_busy('the emblem', async () => {
+    const url = URL.createObjectURL(f);
+    try {
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('“' + f.name + '” is not a picture this browser can read')); im.src = url; });
+      const k = Math.min(1, 240 / Math.max(img.naturalWidth, img.naturalHeight, 1));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      const g = c.getContext('2d');
+      g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height);
+      g.globalAlpha = typeof SP.EMBLEM_FADE === 'number' ? SP.EMBLEM_FADE : 1; g.drawImage(img, 0, 0, c.width, c.height);
+      const data = c.toDataURL('image/jpeg', 0.92);
+      SP.setPublish({ emblem: data, noEmblem: false });
+      if (ui_pubState().pub.emblem !== data) throw new Error('the picture could not be kept');
+      ui_say('The emblem is loaded and will be printed at the top left of every page. It is saved in this file with the next Save.', 'ok');
+      ui_render();
+    } finally { URL.revokeObjectURL(url); }
+  });
 }
 
 function ui_vAp(M, ap) {
@@ -1704,6 +1887,16 @@ function ui_vHelp() {
       + 'added together. To roll another CCaR number up, add it under Settings, Special CCaRs. Its number opens every part of it on Find a requirement.',
       'A requirement’s name in either opens it on Find a requirement.',
     ])
+    + '<h3 class="sub">Publishing spend plans</h3>' + li([
+      '<strong>Publish PDFs</strong> makes a PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). '
+      + 'Each opens with its stoplight, lists Prime Contracts first (the Special CCaRs of Settings) and ends with the unfunded list for what it presents.',
+      'Each CCaR record has a row per service: Approved is the CCaR amount in its plan events, Obligated is what CCaR marks Actual Execution, Remaining is Approved less Obligated, '
+      + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
+      '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
+      + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
+      'Descriptions, the program title, the BFM names and the emblem are typed or loaded once on that page and saved in this file.',
+      'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
+    ])
     + '<h3 class="sub">Manage data</h3>' + li([
       '<strong>Manage data</strong>, at the top right, opens the bar that holds Data through, First FY, Import, Save and Save a copy, and the line that says when each pull came in. '
       + 'It is open by itself when the file holds no data. Someone who only reads the plan never needs it.',
@@ -2001,6 +2194,7 @@ function ui_drawMain(M) {
   if (v === 'overview') return ui_vOverview(M);
   if (v === 'summary') return ui_vSummary(M);
   if (v === 'slides') return ui_vSlides(M);
+  if (v === 'publish') return ui_vPublish(M);
   if (UI_AP_LABEL[v]) return ui_vAp(M, v);
   if (v === 'pmos') return ui_vPmos(M);
   if (v === 'na') return ui_vNa(M);
@@ -2399,6 +2593,17 @@ function ui_onClick(ev) {
     case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b'))); break;
     case 'savepic': ui_picture('save', Number(t.getAttribute('data-b'))); break;
     case 'zip': ui_zip(); break;
+    case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
+    case 'pubzip': ui_pubZip(); break;
+    case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
+    case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
+    case 'embpick': { const f = document.getElementById('uiEmbFile'); if (f) f.click(); break; }
+    case 'embdel': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ emblem: null }); ui_say('The built-in emblem is printed again.', 'ok'); ui_render(); } break;
+    case 'ufrdel': {
+      const fy = t.getAttribute('data-fy');
+      if (ui_need('removeUfr', 'Remove') && SP.removeUfr(fy)) { ui_say('The FY' + fy + ' unfunded list was removed. Required on FY' + fy + ' lines is Approved again.', 'ok'); ui_render(); }
+      break;
+    }
     case 'naclear': ui.naF = { ap: '', fy: '', pmo: '', pmoLabel: '' }; ui_render(); break;
     case 'diff': {
       const k = ui.reg.diff[Number(t.getAttribute('data-i'))];
@@ -2429,6 +2634,20 @@ function ui_onChange(ev) {
   if (t === ui.els.first) { ui_firstChanged(); return; }
   const act = t.getAttribute && t.getAttribute('data-act');
   switch (act) {
+    case 'ufrfile': ui_ufrImport(t.files); return;
+    case 'descfile': ui_descImport(t.files); return;
+    case 'embfile': ui_embImport(t.files); return;
+    case 'pubfy': {
+      const R = ui_pubReady(), all = R ? R.D.allFys : [], y = Number(t.getAttribute('data-fy'));
+      const cur = new Set(ui.pub.fys === null ? all : ui.pub.fys);
+      if (t.checked) cur.add(y); else cur.delete(y);
+      ui.pub.fys = all.every(x => cur.has(x)) ? null : all.filter(x => cur.has(x));
+      ui_render(); return;
+    }
+    case 'pubmiss': ui.pub.miss = !!t.checked; ui_render(); return;
+    case 'pubnoemb': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ noEmblem: !!t.checked }); ui_render(); } return;
+    case 'pubdesc': if (ui_need('setPublish', 'Descriptions')) { SP.setPublish({ desc: { [t.getAttribute('data-k')]: t.value } }); ui_render(); } return;
+    case 'pubhead': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ [t.getAttribute('data-f')]: t.value }); ui_render(); } return;
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');
       if (f === 'pmo' || f === 'ap' || f === 'fy') { ui[act === 'chf' ? 'ch' : 'cal'][f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
