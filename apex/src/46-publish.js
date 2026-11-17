@@ -33,6 +33,23 @@ function pb_txt(v) { return v === null || v === undefined ? '' : String(v).repla
 function pb_apLabel(ap) { const a = SP.APS.find(x => x.id === ap); return a ? a.label : String(ap); }
 const PB_AP_LONG = Object.freeze({ om: 'Operations & Maintenance', ff: 'Full Fund', sp: 'Initial Spares', opn: 'Other Procurement, Navy (OPN)' });
 SP.PUBLISH_SVC_LABELS = PB_SVC_LABEL;
+// §33.9 THE COLOUR DOWN THE LEFT SIDE (Brad, 17 Nov 2026: "Let's vary the Prime Contract and PMO colors on the left side.
+// Let's keep them uniform or standardized across all versions"). Prime Contracts has its own colour and each PMO has its
+// own, the same in every document and every time: a PMO's is fixed by its place in the tool's own list of PMOs, never by
+// which PMOs happen to be in the plan, so Propulsion is the same colour in the O&M plan, in its own plan and next year. A
+// PMO the tool does not know takes one of four further colours by its name, so it too is the same wherever it is printed.
+// Every colour is light enough for the black label on it to read (each clears 7:1 against black).
+const PB_PRIME_COLOR = '#8EAADB';                       // the header band's blue: the primes lead the plan
+const PB_PMO_COLORS = Object.freeze(['#B9D7B0', '#EBD79B', '#CDBFE3', '#A8D5D3', '#F0C2A6', '#E9B9C4', '#C9D29B']);   // in SP.PMO_ORDER's order
+const PB_OTHER_COLORS = Object.freeze(['#D3D7DC', '#D9C9B4', '#BFD0E6', '#DADFB6']);
+SP.publishColor = function publishColor(pmoKey, prime) {
+  if (prime) return PB_PRIME_COLOR;
+  const k = SP.normKey(pmoKey), i = SP.PMO_ORDER.findIndex(n => SP.normKey(n) === k);
+  if (i >= 0) return PB_PMO_COLORS[i % PB_PMO_COLORS.length];
+  let h = 0;
+  for (let j = 0; j < k.length; j++) h = (h * 31 + k.charCodeAt(j)) % 9973;
+  return PB_OTHER_COLORS[h % PB_OTHER_COLORS.length];
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // §33.1 THE UNFUNDED LIST. The UFR tracker is one workbook per fiscal year with a tab per appropriation (O&M, Full Fund,
@@ -329,10 +346,10 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     const groups = [];
     const primes = new Map();
     for (const a of mine) if (a.ccarKey !== '' && special.has(a.ccarKey)) { if (!primes.has(a.ccarKey)) primes.set(a.ccarKey, []); primes.get(a.ccarKey).push(a); }
-    if (primes.size) groups.push({ label: PB_PRIME, prime: true, records: [...primes.values()].map(record).sort(recSort) });
+    if (primes.size) groups.push({ label: PB_PRIME, prime: true, color: SP.publishColor('', true), records: [...primes.values()].map(record).sort(recSort) });
     for (const pk of pmoOrder) {
       const rest = mine.filter(a => a.pmoKey === pk && !(a.ccarKey !== '' && special.has(a.ccarKey)));
-      if (rest.length) groups.push({ label: pmoLabel.get(pk), prime: false, pmoKey: pk, records: rest.map(a => record([a])).sort(recSort) });
+      if (rest.length) groups.push({ label: pmoLabel.get(pk), prime: false, pmoKey: pk, color: SP.publishColor(pk, false), records: rest.map(a => record([a])).sort(recSort) });
     }
     const all = groups.flatMap(g => g.records), s = sumFig(all);
     return { ap, apLabel: pb_apLabel(ap), fy, groups, total: s.total, svc: s.svc, n: all.length };
@@ -570,7 +587,7 @@ SP.publishPages = function publishPages(doc, ctx) {
     const closeRun = () => {
       if (!run) return;
       const h = y - run.y0;
-      Rc(X[0], run.y0, X[1] - X[0], h, { fill: PB.band, stroke: PB.rule, lw: 0.4 });
+      Rc(X[0], run.y0, X[1] - X[0], h, { fill: run.color || PB.band, stroke: PB.rule, lw: 0.4 });
       const ls = SP.pdfWrap(run.label, 7, true, X[1] - X[0] - 6, Math.max(1, Math.floor((h - 4) / 8.2)));
       ls.forEach((l, i) => T((X[0] + X[1]) / 2, run.y0 + h / 2 - (ls.length * 8.2) / 2 + 6.4 + i * 8.2, l, { size: 7, bold: true, align: 'c' }));
       run = null;
@@ -588,7 +605,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
         const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6);
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
-        if (!run) run = { label: g.label, y0: y };
+        if (!run) run = { label: g.label, y0: y, color: g.color };
         // title and CCaR number
         const tl = SP.pdfWrap(r.title, 7, true, X[2] - X[1] - 8, Math.max(1, Math.floor((h - 14) / 8.2)));
         const th = tl.length * 8.2 + (r.ccar ? 8 : 0);

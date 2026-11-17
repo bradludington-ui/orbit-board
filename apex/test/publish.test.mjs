@@ -181,6 +181,17 @@ try {
     J([['1', 'JSF6654', AV, D$(2500000)], ['2', 'TS0002', AV, D$(300000)], ['3', 'TS0099', PP, D$(400000)], ['4', 'TS0007', AV, D$(100000)]]));
   // a PMO's document holds that PMO's data and nobody else's
   const av = doc('pmo:air vehicle (av)'), pp = doc('pmo:propulsion (pp)');
+  // §33.9 the colour down the left side: Prime Contracts its own, each PMO its own, the same in every document
+  const cols = d => d.sections.flatMap(x => x.groups.map(g => g.label + ' ' + g.color));
+  C.eq('O&M: Prime Contracts, Air Vehicle and Propulsion each have their own colour', J([...new Set(cols(om))]), J(['Air Vehicle (AV) #B9D7B0', 'Prime Contracts #8EAADB', 'Propulsion (PP) #E9B9C4']));
+  C.eq('and a PMO’s own document uses the same ones', J([[...new Set(cols(av))], [...new Set(cols(pp))]]), J([['Air Vehicle (AV) #B9D7B0', 'Prime Contracts #8EAADB'], ['Prime Contracts #8EAADB', 'Propulsion (PP) #E9B9C4']]));
+  C.eq('the seven PMOs the tool knows and Prime Contracts are eight different colours, fixed by the tool’s list',
+    new Set(SP.PMO_ORDER.map(n => SP.publishColor(SP.normKey(n), false)).concat([SP.publishColor('', true)])).size, 8);
+  C.chk('a PMO the tool does not know has a colour by its name: the same each time, however it is spelled, and none of those eight',
+    SP.publishColor('Mystery Office', false) === SP.publishColor(' mystery  office ', false) && !SP.PMO_ORDER.map(n => SP.publishColor(n, false)).concat([SP.publishColor('', true)]).includes(SP.publishColor('Mystery Office', false)));
+  const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  C.chk('the black label reads on every one of them (7:1 or better)', SP.PMO_ORDER.map(n => SP.publishColor(n, false)).concat([SP.publishColor('', true), SP.publishColor('a', false), SP.publishColor('b', false), SP.publishColor('c', false), SP.publishColor('d', false)])
+    .every(h => (lum(h) + 0.05) / 0.05 >= 7));
   C.eq('the AV document: O&M FY2026 and FY2027', J(av.sections.map(s => [s.ap, s.fy])), J([['om', 2026], ['om', 2027]]));
   C.eq('AV, O&M FY2027: its share of the prime (with the unfunded line that names AV), then its own records',
     J(shape(secOf(av, 'om', 2027))), J([
@@ -268,6 +279,7 @@ try {
   C.chk('the FY2027 page: a Delta below zero is in parentheses and red', p3.ops.some(o => o.t === 'text' && o.s === '(2,500,000)' && o.color === '#B00000'));
   C.chk('the FY2027 page: the section’s totals, top right', has(p3, 'TOTAL') && has(p3, SP.fmtWhole(SEC_A + SEC_U)) && has(p3, SP.fmtWhole(SEC_A)));
   C.eq('the FY2027 page: six service rows and a Total for each of its five records', J([texts(p3).filter(s => s === 'USAF ANG').length, texts(p3).filter(s => s === 'Total').length]), J([6, 5]));
+  C.eq('the FY2027 page: the left side is drawn in each group’s colour, top to bottom', J(p3.ops.filter(o => o.t === 'rect' && o.x === 18 && o.w === 58 && o.y > 100).map(o => o.fill)), J(['#8EAADB', '#B9D7B0', '#E9B9C4']));
   const p4 = P.pages[3];
   C.chk('the last page: the unfunded list, filtered to this document, with its columns', has(p4, 'Unfunded requirements') && ['Rank', 'Requirement Title', 'PMO', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total', 'Funding Status', 'Exec Ready?', 'SFCB Action'].every(h => has(p4, h)));
   C.chk('the last page: a line’s amounts, status and action; the subtotal and the total', has(p4, 'O&M FY2027') && has(p4, 'New thing') && has(p4, 'TS0099') && has(p4, '400,000') && has(p4, 'Pending') && has(p4, 'Approved 12 Nov')

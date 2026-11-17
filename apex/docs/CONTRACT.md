@@ -2032,6 +2032,14 @@ band runs out from behind it, starting in the emblem's blue and fading into the 
 every page (small on a continued page and on the unfunded list). The page can load another picture, softened the same
 way, or print none.
 
+### 33.9 The colour down the left side
+
+Brad, 17 Nov 2026: *"Let's vary the Prime Contract and PMO colors on the left side. Let's keep them uniform or standardized
+across all versions."* Prime Contracts has its own colour (the header band's blue) and each PMO its own
+(`SP.publishColor`). A PMO's colour is fixed by its place in the tool's list of PMOs, never by which PMOs are in the plan,
+so it is the same in every appropriation's document, in the PMO's own, and from one data pull to the next. A PMO the tool
+does not know takes one of four further colours by its name. Every colour is light enough for the black label to read.
+
 ### 33.8 Tests
 
 `test/publish.test.mjs`: a small invented plan and an invented tracker workbook, every expectation worked by hand: the
