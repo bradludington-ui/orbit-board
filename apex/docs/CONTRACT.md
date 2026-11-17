@@ -2052,7 +2052,10 @@ Unless a description is typed or imported for the CCaR record (§33.3), which al
   (each by its earliest date; one with no date last, then by name). Each title has its own bullet and wraps squarely under
   itself, with a little space between titles. Where every title of the record begins with the same short tag and a dash
   ("OGC - "), the tag is left off the list (`SP.publishEventNames`): the Requirement Title beside it already says it. Past
-  forty lines the list ends "+N more plan events".
+  twelve lines the list ends "+N more plan events".
+- **The Total row is never stretched** (Brad, 18 Nov 2026: *"I don't want the Total row to be extended"*). Where a list
+  makes a record's block taller than its seven rows, every row shares the height equally; the twelve-line limit keeps
+  them close to their usual height.
 - A record that is only on the unfunded list has no plan event, so its Description is blank unless one is typed.
 
 ### 33.11 The FM Lead is the appropriation's (Brad, 18 Nov 2026)

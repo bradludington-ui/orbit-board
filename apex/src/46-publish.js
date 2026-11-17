@@ -640,9 +640,9 @@ SP.publishPages = function publishPages(doc, ctx) {
         //     Plan Event Title and have them listed"; then, of the first layout, "let's find a better way to list the Plan
         //     Events"). Each title has its own bullet and wraps squarely under itself, with a little air between titles, so
         //     where one ends and the next begins is plain. The tag every title of the record begins with ("OGC - ") is
-        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). Past forty lines
-        //     the list ends by saying how many more there are.
-        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.8, evMax = 40;
+        //     said once by the Requirement Title beside it and is left off the list (SP.publishEventNames). Past twelve lines
+        //     the list ends by saying how many more there are, so a block is never much taller than its seven rows.
+        const dW = X[3] - X[2] - 8, evH = 7.4, evGap = 1.8, evMax = 12;
         const descText = r.desc || (g.prime ? r.title : '');
         let evLines = null, evTall = 0;
         if (!descText && Array.isArray(r.events) && r.events.length) {
@@ -686,11 +686,13 @@ SP.publishPages = function publishPages(doc, ctx) {
         shown.forEach((d, i) => T(X[3] + cwD * Math.floor(i / perCol) + cwD / 2, y + h / 2 - (used * dateH) / 2 + 5.6 + (i % perCol) * dateH, d, { size: 6, align: 'c' }));
         // the service rows and the Total
         for (let i = 0; i < nRows; i++) {
-          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], yy = y + PB.rowH * i;
-          const hh = tot ? h - PB.rowH * i : PB.rowH;         // the Total row takes what a tall block leaves
+          // THE TOTAL ROW IS NEVER STRETCHED (Brad, 18 Nov 2026, of a record whose long list left a Total row five times the
+          // height of the rows above it: "I don't want the Total row to be extended"). Where a list makes the block taller
+          // than its rows, every row shares the height equally, and the list itself is kept short (evMax) so they stay close.
+          const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = h / nRows, yy = y + hh * i, pad = (hh - PB.rowH) / 2;
           for (let c = 4; c < 10; c++) Rc(X[c], yy, X[c + 1] - X[c], hh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
-          T((X[4] + X[5]) / 2, yy + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
-          FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + 6.9, f[k], { red: k === 'delta', bold: tot }));
+          T((X[4] + X[5]) / 2, yy + pad + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
+          FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + pad + 6.9, f[k], { red: k === 'delta', bold: tot }));
           if (tot) Ln(X[4], yy, X[10], yy, { stroke: PB.ink, lw: 0.9 });
         }
         y += h;
