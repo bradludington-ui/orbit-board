@@ -236,6 +236,37 @@ function st_check(st) {
   if (st.lastImport !== undefined && st.lastImport !== null && !st_isObj(st.lastImport)) return 'its last import report is not a report';
   if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
   if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
+  const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish);
+  if (ub) return ub;
+  return '';
+}
+// §33.6 THE UNFUNDED LISTS AND THE PUBLISHING SETTINGS, in the shapes SP.publishData and SP.publishPages read. Absent in
+// every plan saved before §33 and in one that never loaded a list or typed a description, which is not a fault. One that
+// has them must hold them whole: a line whose amounts are not seven whole numbers would print a Required nobody typed.
+function st_checkUfr(u) {
+  if (u === undefined || u === null) return '';
+  if (!st_isObj(u)) return 'its unfunded lists are not a table by fiscal year';
+  for (const k of Object.keys(u)) {
+    const f = u[k], no = 'its unfunded list for FY' + k + ' is not in the shape this page reads (';
+    if (!st_isObj(f) || !Number.isInteger(f.fy) || String(f.fy) !== k) return no + 'its fiscal year is not a year)';
+    if (!Array.isArray(f.lines)) return no + 'it has no list of lines)';
+    for (const l of f.lines) {
+      if (!st_isObj(l) || typeof l.ap !== 'string' || !Number.isInteger(l.fy)) return no + 'a line names no appropriation or fiscal year)';
+      if (!(Array.isArray(l.cents) && l.cents.length === 7 && l.cents.every(Number.isSafeInteger)) || !Number.isSafeInteger(l.total)) return no + 'a line’s amounts are not whole cents by service)';
+      for (const t of ['title', 'pmo', 'ccar', 'rank', 'status', 'exec', 'sfcb']) if (typeof l[t] !== 'string') return no + 'a line’s ' + t + ' is not text)';
+    }
+    for (const t of ['notes', 'tabs', 'ignored']) if (f[t] !== undefined && !Array.isArray(f[t])) return no + 'its ' + t + ' is not a list)';
+  }
+  return '';
+}
+const ST_EMBLEM = /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/;
+function st_checkPublish(p) {
+  if (p === undefined || p === null) return '';
+  if (!st_isObj(p)) return 'its publishing settings are not a set of settings';
+  if (p.desc !== undefined && !(st_isObj(p.desc) && Object.keys(p.desc).every(k => typeof p.desc[k] === 'string'))) return 'its descriptions are not text by CCaR record';
+  for (const t of ['program', 'lead', 'bfm']) if (p[t] !== undefined && typeof p[t] !== 'string') return 'its publishing ' + t + ' is not text';
+  if (p.emblem !== undefined && p.emblem !== null && !(typeof p.emblem === 'string' && ST_EMBLEM.test(p.emblem))) return 'its emblem is not a JPEG picture';
+  if (p.noEmblem !== undefined && typeof p.noEmblem !== 'boolean') return 'its setting for printing no emblem is not yes or no';
   return '';
 }
 // THE BAE REPORTS (CONTRACT §14.1, §14.7), in the shapes the engine and the screens read. A file saved before §14 has none,
@@ -892,6 +923,50 @@ SP.setSettings = function setSettings(patch) {
   if (JSON.stringify(next) === JSON.stringify(st.settings)) return;   // nothing changed: nothing to save
   st.settings = next;
   st_changed(true);
+};
+// §33.6 the unfunded list of one fiscal year (SP.readUfr's result), kept whole; loading that year again replaces it
+SP.setUfr = function setUfr(parsed, nowIso) {
+  if (!parsed || parsed.ok !== true || !Number.isInteger(parsed.fy)) return false;
+  const st = SP.state;
+  const all = st_isObj(st.ufr) ? st.ufr : {};
+  all[String(parsed.fy)] = st_clone({ fy: parsed.fy, name: String(parsed.name || ''), importedAt: nowIso || new Date().toISOString(), unit: parsed.unit,
+    tabs: parsed.tabs || [], lines: parsed.lines || [], notes: parsed.notes || [], ignored: parsed.ignored || [] });
+  st.ufr = all;
+  st_changed(false);
+  return true;
+};
+SP.removeUfr = function removeUfr(fy) {
+  const st = SP.state;
+  if (!st_isObj(st.ufr) || !st_own(st.ufr, String(fy))) return false;
+  delete st.ufr[String(fy)];
+  if (!Object.keys(st.ufr).length) delete st.ufr;
+  st_changed(false);
+  return true;
+};
+// §33.6 the publishing settings: {program, lead, bfm, emblem, noEmblem, desc: {CCaR number (normKey): text}}. emblem: a
+// picture loaded in place of the built-in one (null puts the built-in one back); noEmblem: true prints none. A description given as
+// '' is taken away; the others are replaced as given. Nothing changed is nothing to save.
+SP.setPublish = function setPublish(patch) {
+  if (!st_isObj(patch)) return false;
+  const st = SP.state;
+  const cur = st_isObj(st.publish) ? st.publish : {};
+  const next = st_clone(cur);
+  for (const t of ['program', 'lead', 'bfm']) if (typeof patch[t] === 'string') { if (patch[t].trim() === '') delete next[t]; else next[t] = patch[t].trim(); }
+  if (patch.noEmblem === true) next.noEmblem = true; else if (patch.noEmblem === false) delete next.noEmblem;
+  if (patch.emblem === null) delete next.emblem;
+  else if (typeof patch.emblem === 'string' && ST_EMBLEM.test(patch.emblem)) next.emblem = patch.emblem;
+  if (st_isObj(patch.desc)) {
+    const d = st_isObj(next.desc) ? next.desc : {};
+    for (const k of Object.keys(patch.desc)) {
+      const v = typeof patch.desc[k] === 'string' ? patch.desc[k].replace(/\s+/g, ' ').trim() : '';
+      if (v === '') delete d[k]; else d[k] = v;
+    }
+    if (Object.keys(d).length) next.desc = d; else delete next.desc;
+  }
+  if (JSON.stringify(next) === JSON.stringify(cur)) return false;
+  if (Object.keys(next).length) st.publish = next; else delete st.publish;
+  st_changed(false);
+  return true;
 };
 SP.isDirty = function isDirty() { return st_dirty; };
 SP.onStateChange = function onStateChange(fn) {

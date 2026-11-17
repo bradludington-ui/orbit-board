@@ -1913,3 +1913,136 @@ Brad: *"Between the last requirement listed and the first row titled Monthly Tot
 Not large but something that shows a break between the table."* On the appropriation views and the PMO tabs the first row
 of the totals band has a 10 px gap the colour of the page above it and a rule under the gap. It is styling alone (the
 slide blocks already had a spacer row there, and the table's rows are as they were).
+
+## 33. Publish spend plan (Brad, 16 and 17 Nov 2026)
+
+Brad: *"I need to generate PDFs that can be pushed out for each appropriation and each PMO by appropriation. I need it to
+look like this"* (his Excel Consolidated Template). *"It should ultimately be one link added to our menu on the left."*
+The menu item is **Publish PDFs**, under Briefing; the page is titled Publish spend plan. His rules, each in his words:
+
+- Required *"is tracked separately"*: *"the delta between what's in the spend plan and what's on our unfunded list becomes
+  the total requirement value"*. **Required = Approved + the unfunded list's amount; Delta = Approved - Required;
+  Remaining = Approved - Obligated.**
+- Approved is the *"CCaR amount in plan event"*; Obligated is the rows CCaR marks Actual Execution, as everywhere (§4.5).
+- One requirement is one CCaR record (its CCaR number).
+- *"Primes should still sit in a Prime Contracts section first"*: the Special CCaRs of Settings.
+- A consolidated plan per appropriation, *"each year as its own section"*; a plan per PMO holding *"only … PMO data and
+  nobody else's"*.
+- *"The stoplight chart would be added at the front of each spend plan … filtered to what's being presented"*; *"for the
+  PMO, you only need the one stoplight at the front"*.
+- An unfunded line whose CCaR record has no plan event still appears (*"some CCaR records only have an unfunded action
+  for the year"*), with Approved $0.
+- *"A consolidated list of unfundeds at the end of each file, filtered to what that spend plan file is presenting"*, with
+  the tracker's Funding Status, Exec Ready? and SFCB Action columns. Every line counts as unfunded whatever its status
+  (the status is *"internal for us to track if it's been approved for funding"*).
+- Whole dollars, as the template prints them; real PDF files, made inside the page.
+
+### 33.1 The unfunded list (`SP.readUfr(workbook, fileName)`)
+
+The UFR tracker is one workbook per fiscal year. A tab is read when its first six rows hold a title reading
+`FY#### UNFUNDED REQUIREMENTS` and it is for an appropriation: by its name (O&M, Full Fund, Initial Spares, OPN), else by
+the title's own words. Every other tab is left alone and named. Columns are found by their titles, in the first row
+within thirty that names both Requirement Title and CCaR Record: Rank, Requirement Title, PMO, CCaR Record, Total Amount,
+USAF, ANG, AFRC, STOVL, USMC CV, USN CV, Funding Status, Exec Ready?, SFCB Action. A title with a line break in it is
+read all the same. PMO and at least one service column are required. Rows are read down to the row that says TOTALS.
+
+- **The unit** is what the Total Amount heading says (`($K)` on Brad's tracker, so each figure is times 1,000), else what
+  the rows above the headings say, else dollars. Amounts become whole cents.
+- **The services** map to the template's rows: USAF, ANG and AFRC as they are; STOVL is USMC (F-35B); USMC CV is USMC
+  (F-35C); USN CV is USN. A Total Amount with nothing under any service is kept under "Service not identified".
+- **A file is taken whole or not at all.** Refused, naming why: tabs of different fiscal years, two tabs for one
+  appropriation, a tracker tab with no heading row, no PMO column or no service column, no tracker tab at all.
+- **Notes, kept with the list and shown on the page:** services that do not add to Total Amount (the services are used),
+  a cell that is not an amount (counted as $0), a line with no CCaR Record, a TOTALS row that disagrees with its lines.
+
+### 33.2 The documents' figures (`SP.publishData(model, ufr, pub, opts)`)
+
+The model given is one built with **every service and lane on**, whatever this browser's switches: a published plan with
+a service switched off would be a smaller plan with nothing on it saying so. First FY, the years left out (§23) and the
+$0.00 plan events left out (§24) apply as they do everywhere; an unfunded line of a year APEX shows no figures for is not
+shown, and is counted on the page.
+
+- **A record** is a CCaR number inside an appropriation, a fiscal year and a PMO (a row with no CCaR number goes by its
+  title). Its Approved and Obligated are by service; its award dates are the months of its dated plan events, each month once, in
+  order, written `Dec-2025` (Brad, 17 Nov 2026: *"let's just do the format of mmm-yyyy … leave out the actual day … this
+  will help negate any issues with having multiple days within the month"*), with "No date" last when an event has none.
+- **Prime Contracts** are the Special CCaRs. In an appropriation's document a prime is one record over every PMO; in a
+  PMO's document it is that PMO's share.
+- **An unfunded line's PMO** is read by its name or its code ("AV" is Air Vehicle (AV)). The unfunded amount follows the
+  unfunded list's PMO; where the spend plan has that CCaR record under another PMO, the page says so. A PMO the tool does
+  not know is placed where the spend plan has the record, if it has it under exactly one PMO; else it is listed under the
+  name given.
+- **Documents:** one per appropriation that has a record, in the tool's order, then one per PMO. Sections are by fiscal
+  year (an appropriation's) or by appropriation then fiscal year (a PMO's). A section's totals are its records added.
+- **The stoplight** is the Summary's rows for the document: an appropriation's blocks and each PMO's row of them, or a
+  PMO's own rows.
+- `opts.fys` limits the fiscal years; the page's tick boxes set it.
+
+### 33.3 Descriptions and what is on every document
+
+One short description per CCaR number, typed on the page or taken from a list (`SP.readDescriptions`: a sheet whose
+heading row names a CCaR Record or CCaR No and a Description); an import fills only records that have none, and says how
+many it left as written. The program title (F-35 Sustainment unless typed), Lead BFM and BFM are typed once. All of it is
+saved in the plan.
+
+### 33.4 The pages (`SP.publishPages(doc, ctx)`)
+
+Letter, landscape. Every page carries the CUI marking top and bottom, the document's name and "Page n of N".
+
+Brad, 17 Nov 2026: *"When printing out the PDF I need it to always be in landscape mode. I always need the header at the
+top that has the summary information to be there. I also need the header labels to stay static and I want to maximize the
+landscape of each PDF."* So:
+
+- **Landscape:** every page is 11 x 8.5 in, wider than tall and not turned, which is what a printer reads; the file also
+  asks the reader to take paper of the page's size and to flip on the short edge when printing both sides.
+- **The header on every page of a section:** the emblem, the titles, the band, who and when, and the section's totals by
+  service at the top right are on every page, not the first alone; a later page's band says "(continued)".
+- **The column headings** are under that header on every page, at the same place.
+- **The page is used to its edges:** a quarter-inch margin left and right, and the body runs down to the CUI line.
+
+1. **The stoplight page:** the title, the band, who and when, then the Summary's table for the document ($M, with the
+   Summary's marks and status words), the legend, and how to read the plan.
+2. **A section per fiscal year,** each starting a new page: the section's totals by service at the top right, then
+   PMO | Requirement Title (with its CCaR number) | Description | Award Date | Service | Required | Approved | Obligated |
+   Remaining | Delta (+/-), a row per service and a Total per record. Prime Contracts first, then a line "All Other …
+   Contracts", then each PMO. **A record's rows are never split across pages.** A Delta below zero is in parentheses, red.
+3. **The unfunded list,** filtered to the document, by appropriation and year with subtotals and a total.
+
+Figures on the spend plan pages are whole dollars, each rounded from its exact cents, a total from its exact sum; the
+stoplight page says a total can differ by a dollar from the figures above it.
+
+### 33.5 The PDF writer (`SP.pdfBytes`)
+
+Written in the page with no library: real text in Helvetica and Helvetica-Bold (searchable, small), rules, filled boxes
+and JPEG pictures. Widths come from the font's own table. A character the encoding lacks is written "?", never dropped.
+The same input gives the same bytes.
+
+### 33.6 Saved in the plan
+
+`state.ufr` (the unfunded lists by fiscal year; loading a year again replaces it) and `state.publish` (descriptions, the
+names, an emblem loaded, "print no emblem"). Both are absent in a plan that never used them, so a plan saved before §33
+opens as it did. A plan whose list or settings are damaged is refused on opening, as any other damaged part is.
+
+### 33.7 The emblem
+
+Brad sent the program's emblem: *"Here is the logo that I want at the top left of every spend plan. Please incorporate it
+but make it fit seamlessly so that it doesn't stick out like a sore thumb with color fading."* It is built in
+(`SP.EMBLEM_DEFAULT`), drawn at 72% of its strength so its black reads as slate, and it sits **in** the header band: the
+band runs out from behind it, starting in the emblem's blue and fading into the band's colour. It is at the top left of
+every page (small on a continued page and on the unfunded list). The page can load another picture, softened the same
+way, or print none.
+
+### 33.9 The colour down the left side
+
+Brad, 17 Nov 2026: *"Let's vary the Prime Contract and PMO colors on the left side. Let's keep them uniform or standardized
+across all versions."* Prime Contracts has its own colour (the header band's blue) and each PMO its own
+(`SP.publishColor`). A PMO's colour is fixed by its place in the tool's list of PMOs, never by which PMOs are in the plan,
+so it is the same in every appropriation's document, in the PMO's own, and from one data pull to the next. A PMO the tool
+does not know takes one of four further colours by its name. Every colour is light enough for the black label to read.
+
+### 33.8 Tests
+
+`test/publish.test.mjs`: a small invented plan and an invented tracker workbook, every expectation worked by hand: the
+reader (units, services, notes, refusals), the documents' figures, the pages, the PDF read back by poppler and pypdf, what
+the plan saves, and the page through its own controls, with a service switched off on screen.
+
