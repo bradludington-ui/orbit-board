@@ -946,7 +946,7 @@ function ui_pubCtx(Mp, P) {
     catch (e) { emblem = null; }
     if (emblem && !SP.jpegInfo(emblem)) emblem = null;
   }
-  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, lead: P.pub.lead || '', bfm: P.pub.bfm || '', asOfLabel: Mp.asOfLabel, today: ui_today(),
+  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(),
     uploaded: up ? up.text + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
@@ -989,8 +989,10 @@ function ui_vPublish(M) {
   const val = k => ui_e(typeof P.pub[k] === 'string' ? P.pub[k] : '');
   out.push('<h3 class="sub">On every document (saved in this file)</h3><div class="acts pubhead">'
     + '<label>Program title <input type="text" data-act="pubhead" data-f="program" data-fkey="pubhead:program" value="' + val('program') + '" placeholder="' + UI_PUB_PROGRAM + '" size="24"></label>'
-    + '<label>Lead BFM <input type="text" data-act="pubhead" data-f="lead" data-fkey="pubhead:lead" value="' + val('lead') + '" size="22"></label>'
-    + '<label>BFM <input type="text" data-act="pubhead" data-f="bfm" data-fkey="pubhead:bfm" value="' + val('bfm') + '" size="22"></label></div>'
+    + '</div><div class="acts pubhead" role="group" aria-label="Appropriation FM Lead">'
+    + SP.APS.map(a => '<label>' + ui_e(a.label) + ' FM Lead <input type="text" data-act="pubfm" data-ap="' + a.id + '" data-fkey="pubfm:' + a.id + '" value="'
+      + ui_e(P.pub.fm && typeof P.pub.fm[a.id] === 'string' ? P.pub.fm[a.id] : '') + '" size="20"></label>').join('') + '</div>'
+    + '<p class="note">Each appropriation’s FM Lead is printed in the header of that appropriation’s pages.</p>'
     + '<p class="acts">' + (ui_pubEmblem(P) ? '<img class="pubemb" id="uiPubEmb" alt="The emblem printed at the top left of every page" src="' + ui_e(ui_pubEmblem(P)) + '">' : '<span class="none" id="uiPubEmb">No emblem is printed.</span>')
     + '<span id="uiPubEmbWhat">' + (P.pub.noEmblem === true ? '' : P.pub.emblem ? 'The emblem you loaded.' : 'The built-in emblem.') + '</span>'
     + '<button type="button" data-act="embpick" data-fkey="embpick">Load another emblem…</button>'
@@ -1894,7 +1896,7 @@ function ui_vHelp() {
       + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
       '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
-      'A record’s Description lists its plan event titles, in date order, unless you type a description for its CCaR record on that page. Typed descriptions, the program title, the BFM names and the emblem are saved in this file.',
+      'A record’s Description lists its plan event titles, in date order, unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
     + '<h3 class="sub">Manage data</h3>' + li([
@@ -2647,6 +2649,7 @@ function ui_onChange(ev) {
     case 'pubmiss': ui.pub.miss = !!t.checked; ui_render(); return;
     case 'pubnoemb': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ noEmblem: !!t.checked }); ui_render(); } return;
     case 'pubdesc': if (ui_need('setPublish', 'Descriptions')) { SP.setPublish({ desc: { [t.getAttribute('data-k')]: t.value } }); ui_render(); } return;
+    case 'pubfm': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ fm: { [t.getAttribute('data-ap')]: t.value } }); ui_render(); } return;
     case 'pubhead': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ [t.getAttribute('data-f')]: t.value }); ui_render(); } return;
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');

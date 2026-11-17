@@ -423,7 +423,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
 // ---------------------------------------------------------------------------------------------------------------
 // §33.4 THE PAGES. Letter, landscape, in points. Every page carries the CUI marking top and bottom, the document's name
 // and "Page n of N". A record's block of service rows is never split across pages.
-//   ctx: { program, lead, bfm, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
+//   ctx: { program, fm: {om, ff, sp, opn: each appropriation's FM Lead}, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
 //          bae (a BAE report is loaded), marks: {text for each mark printed}, ufrFiles: [{fy, name, day}] }
 // Whole dollars, as the template prints them: each figure is rounded from its own exact cents, a total from its exact
 // sum, so a total can differ by a dollar from the rounded figures above it. The stoplight page says so.
@@ -460,7 +460,12 @@ SP.publishPages = function publishPages(doc, ctx) {
   const fyy = fy => 'FY' + String(fy % 100).padStart(2, '0');
   const prog = pb_txt(C.program);
   const docLine = doc.kind === 'ap' ? doc.long : doc.label;
-  const who = [pb_txt(C.lead) ? 'Lead BFM: ' + pb_txt(C.lead) : '', pb_txt(C.bfm) ? 'BFM: ' + pb_txt(C.bfm) : ''].filter(Boolean).join(' | ');
+  // THE FM LEAD IS THE APPROPRIATION'S (Brad, 18 Nov 2026: "let's switch to Appropriation FM Lead. I have a different name for
+  // each Appropriation, so I need to input four names. I don't need the extra BFM input"). A page about one appropriation
+  // names that appropriation's FM Lead; a PMO's stoplight page, which covers several, names each of theirs.
+  const fmOf = ap => pb_txt(C.fm && typeof C.fm === 'object' ? C.fm[ap] : '');
+  const whoOf = aps => { const one = aps.length === 1; return aps.filter(ap => fmOf(ap)).map(ap => (one ? pb_apLabel(ap) + ' FM Lead: ' : pb_apLabel(ap) + ': ') + fmOf(ap)); };
+  const whoText = aps => { const w = whoOf(aps); return !w.length ? '' : aps.length === 1 ? w[0] : 'FM Leads: ' + w.join(' | '); };
   const asOf = ['Data as of: ' + pb_isoWords(C.today), C.asOfLabel ? 'Data through ' + C.asOfLabel : ''].filter(Boolean).join('  |  ');
 
   // on a page with no full header (a continued page, the unfunded list) the emblem is small, at the top left, and the
@@ -471,7 +476,7 @@ SP.publishPages = function publishPages(doc, ctx) {
   };
   const mini = () => { if (!C.emblem) return PB.L; emblemAt(PB.L, 21, 20); return PB.L + 25; };
   // the full header: emblem, two title lines, the band, who and when. `right` is where the title area ends
-  const header = (line1, line2, bandText, right) => {
+  const header = (line1, line2, bandText, right, who) => {
     const hasEmb = !!C.emblem;
     const xl = hasEmb ? PB.L + 62 : PB.L, cx = (xl + right) / 2;
     T(cx, 37, line1, { size: 12, bold: true, align: 'c' });
@@ -501,7 +506,8 @@ SP.publishPages = function publishPages(doc, ctx) {
 
   // ---- the stoplight page ----
   newPage();
-  header((prog ? prog + ' - ' : '') + 'Spend Plan', docLine, 'Execution status' + (doc.sections.length ? ' - ' + [...new Set(doc.sections.map(s => 'FY' + s.fy))].join(', ') : ''), PB.R);
+  header((prog ? prog + ' - ' : '') + 'Spend Plan', docLine, 'Execution status' + (doc.sections.length ? ' - ' + [...new Set(doc.sections.map(s => 'FY' + s.fy))].join(', ') : ''), PB.R,
+    whoText(doc.kind === 'ap' ? [doc.ap] : SP.APS.map(a => a.id).filter(ap => doc.sections.some(x => x.ap === ap))));
   const need = h => { if (y + h > PB.bodyEnd) { newPage(); T(mini(), 36, docLine + ' - execution status (continued)', { size: 9, bold: true }); y = 46; } };
   const stopTable = (title, cols, rows) => {
     need(30);
@@ -590,7 +596,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' });
         FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 }); });
       }
-      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8);
+      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8, whoText([sec.ap]));
       y = Math.max(y, 34 + rh * (nS + 1) + 6);
       colHead();
     };

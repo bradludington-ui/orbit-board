@@ -1982,7 +1982,7 @@ shown, and is counted on the page.
 
 A record's description is its plan event titles (§33.10) unless one is typed. One short description per CCaR number can be typed on the page or taken from a list (`SP.readDescriptions`: a sheet whose
 heading row names a CCaR Record or CCaR No and a Description); an import fills only records that have none, and says how
-many it left as written. The program title (F-35 Sustainment unless typed), Lead BFM and BFM are typed once. All of it is
+many it left as written. The program title (F-35 Sustainment unless typed) and each appropriation's FM Lead (§33.11) are typed once. All of it is
 saved in the plan.
 
 ### 33.4 The pages (`SP.publishPages(doc, ctx)`)
@@ -2047,6 +2047,14 @@ lists the titles of its plan events, one to a line, in the order they fall (each
 last, then by name). A long title wraps under itself. Past forty lines the list ends "+N more plan events". A description
 typed or imported for the CCaR record (§33.3) replaces the list. A record that is only on the unfunded list has no plan
 event, so its Description is blank unless one is typed. In a PMO's document a prime lists that PMO's plan events only.
+
+### 33.11 The FM Lead is the appropriation's (Brad, 18 Nov 2026)
+
+Brad: *"Let's switch to Appropriation FM Lead. I have a different name for each Appropriation, so I need to input four
+names. I don't need the extra BFM input."* The page has four boxes (O&M, Full Fund, Initial Spares, OPN FM Lead), saved in
+the plan as `publish.fm`. A page about one appropriation prints that appropriation's ("O&M FM Lead: …"): every page of an
+appropriation's document, and each section of a PMO's. A PMO's stoplight page, which covers several, prints each of
+theirs. The Lead BFM and BFM boxes are gone; a plan that saved those two names still opens, and they are printed nowhere.
 
 ### 33.8 Tests
 

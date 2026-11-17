@@ -5085,7 +5085,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
 // ---------------------------------------------------------------------------------------------------------------
 // §33.4 THE PAGES. Letter, landscape, in points. Every page carries the CUI marking top and bottom, the document's name
 // and "Page n of N". A record's block of service rows is never split across pages.
-//   ctx: { program, lead, bfm, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
+//   ctx: { program, fm: {om, ff, sp, opn: each appropriation's FM Lead}, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
 //          bae (a BAE report is loaded), marks: {text for each mark printed}, ufrFiles: [{fy, name, day}] }
 // Whole dollars, as the template prints them: each figure is rounded from its own exact cents, a total from its exact
 // sum, so a total can differ by a dollar from the rounded figures above it. The stoplight page says so.
@@ -5122,7 +5122,12 @@ SP.publishPages = function publishPages(doc, ctx) {
   const fyy = fy => 'FY' + String(fy % 100).padStart(2, '0');
   const prog = pb_txt(C.program);
   const docLine = doc.kind === 'ap' ? doc.long : doc.label;
-  const who = [pb_txt(C.lead) ? 'Lead BFM: ' + pb_txt(C.lead) : '', pb_txt(C.bfm) ? 'BFM: ' + pb_txt(C.bfm) : ''].filter(Boolean).join(' | ');
+  // THE FM LEAD IS THE APPROPRIATION'S (Brad, 18 Nov 2026: "let's switch to Appropriation FM Lead. I have a different name for
+  // each Appropriation, so I need to input four names. I don't need the extra BFM input"). A page about one appropriation
+  // names that appropriation's FM Lead; a PMO's stoplight page, which covers several, names each of theirs.
+  const fmOf = ap => pb_txt(C.fm && typeof C.fm === 'object' ? C.fm[ap] : '');
+  const whoOf = aps => { const one = aps.length === 1; return aps.filter(ap => fmOf(ap)).map(ap => (one ? pb_apLabel(ap) + ' FM Lead: ' : pb_apLabel(ap) + ': ') + fmOf(ap)); };
+  const whoText = aps => { const w = whoOf(aps); return !w.length ? '' : aps.length === 1 ? w[0] : 'FM Leads: ' + w.join(' | '); };
   const asOf = ['Data as of: ' + pb_isoWords(C.today), C.asOfLabel ? 'Data through ' + C.asOfLabel : ''].filter(Boolean).join('  |  ');
 
   // on a page with no full header (a continued page, the unfunded list) the emblem is small, at the top left, and the
@@ -5133,7 +5138,7 @@ SP.publishPages = function publishPages(doc, ctx) {
   };
   const mini = () => { if (!C.emblem) return PB.L; emblemAt(PB.L, 21, 20); return PB.L + 25; };
   // the full header: emblem, two title lines, the band, who and when. `right` is where the title area ends
-  const header = (line1, line2, bandText, right) => {
+  const header = (line1, line2, bandText, right, who) => {
     const hasEmb = !!C.emblem;
     const xl = hasEmb ? PB.L + 62 : PB.L, cx = (xl + right) / 2;
     T(cx, 37, line1, { size: 12, bold: true, align: 'c' });
@@ -5163,7 +5168,8 @@ SP.publishPages = function publishPages(doc, ctx) {
 
   // ---- the stoplight page ----
   newPage();
-  header((prog ? prog + ' - ' : '') + 'Spend Plan', docLine, 'Execution status' + (doc.sections.length ? ' - ' + [...new Set(doc.sections.map(s => 'FY' + s.fy))].join(', ') : ''), PB.R);
+  header((prog ? prog + ' - ' : '') + 'Spend Plan', docLine, 'Execution status' + (doc.sections.length ? ' - ' + [...new Set(doc.sections.map(s => 'FY' + s.fy))].join(', ') : ''), PB.R,
+    whoText(doc.kind === 'ap' ? [doc.ap] : SP.APS.map(a => a.id).filter(ap => doc.sections.some(x => x.ap === ap))));
   const need = h => { if (y + h > PB.bodyEnd) { newPage(); T(mini(), 36, docLine + ' - execution status (continued)', { size: 9, bold: true }); y = 46; } };
   const stopTable = (title, cols, rows) => {
     need(30);
@@ -5252,7 +5258,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' });
         FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 }); });
       }
-      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8);
+      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8, whoText([sec.ap]));
       y = Math.max(y, 34 + rh * (nS + 1) + 6);
       colHead();
     };
@@ -8187,7 +8193,9 @@ function st_checkPublish(p) {
   if (p === undefined || p === null) return '';
   if (!st_isObj(p)) return 'its publishing settings are not a set of settings';
   if (p.desc !== undefined && !(st_isObj(p.desc) && Object.keys(p.desc).every(k => typeof p.desc[k] === 'string'))) return 'its descriptions are not text by CCaR record';
+  // lead and bfm: the two names the first day's build kept, read by nothing since the FM Leads replaced them; a plan that holds them still opens
   for (const t of ['program', 'lead', 'bfm']) if (p[t] !== undefined && typeof p[t] !== 'string') return 'its publishing ' + t + ' is not text';
+  if (p.fm !== undefined && !(st_isObj(p.fm) && Object.keys(p.fm).every(k => typeof p.fm[k] === 'string'))) return 'its FM Leads are not names by appropriation';
   if (p.emblem !== undefined && p.emblem !== null && !(typeof p.emblem === 'string' && ST_EMBLEM.test(p.emblem))) return 'its emblem is not a JPEG picture';
   if (p.noEmblem !== undefined && typeof p.noEmblem !== 'boolean') return 'its setting for printing no emblem is not yes or no';
   return '';
@@ -8866,7 +8874,7 @@ SP.removeUfr = function removeUfr(fy) {
   st_changed(false);
   return true;
 };
-// §33.6 the publishing settings: {program, lead, bfm, emblem, noEmblem, desc: {CCaR number (normKey): text}}. emblem: a
+// §33.6 the publishing settings: {program, fm: {om, ff, sp, opn: the appropriation's FM Lead}, emblem, noEmblem, desc: {CCaR number (normKey): text}}. emblem: a
 // picture loaded in place of the built-in one (null puts the built-in one back); noEmblem: true prints none. A description given as
 // '' is taken away; the others are replaced as given. Nothing changed is nothing to save.
 SP.setPublish = function setPublish(patch) {
@@ -8874,7 +8882,16 @@ SP.setPublish = function setPublish(patch) {
   const st = SP.state;
   const cur = st_isObj(st.publish) ? st.publish : {};
   const next = st_clone(cur);
-  for (const t of ['program', 'lead', 'bfm']) if (typeof patch[t] === 'string') { if (patch[t].trim() === '') delete next[t]; else next[t] = patch[t].trim(); }
+  if (typeof patch.program === 'string') { if (patch.program.trim() === '') delete next.program; else next.program = patch.program.trim(); }
+  if (st_isObj(patch.fm)) {
+    const f = st_isObj(next.fm) ? next.fm : {};
+    for (const k of Object.keys(patch.fm)) {
+      if (!['om', 'ff', 'sp', 'opn'].includes(k)) continue;
+      const v = typeof patch.fm[k] === 'string' ? patch.fm[k].replace(/\s+/g, ' ').trim() : '';
+      if (v === '') delete f[k]; else f[k] = v;
+    }
+    if (Object.keys(f).length) next.fm = f; else delete next.fm;
+  }
   if (patch.noEmblem === true) next.noEmblem = true; else if (patch.noEmblem === false) delete next.noEmblem;
   if (patch.emblem === null) delete next.emblem;
   else if (typeof patch.emblem === 'string' && ST_EMBLEM.test(patch.emblem)) next.emblem = patch.emblem;
@@ -10160,7 +10177,7 @@ function ui_pubCtx(Mp, P) {
     catch (e) { emblem = null; }
     if (emblem && !SP.jpegInfo(emblem)) emblem = null;
   }
-  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, lead: P.pub.lead || '', bfm: P.pub.bfm || '', asOfLabel: Mp.asOfLabel, today: ui_today(),
+  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(),
     uploaded: up ? up.text + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
@@ -10203,8 +10220,10 @@ function ui_vPublish(M) {
   const val = k => ui_e(typeof P.pub[k] === 'string' ? P.pub[k] : '');
   out.push('<h3 class="sub">On every document (saved in this file)</h3><div class="acts pubhead">'
     + '<label>Program title <input type="text" data-act="pubhead" data-f="program" data-fkey="pubhead:program" value="' + val('program') + '" placeholder="' + UI_PUB_PROGRAM + '" size="24"></label>'
-    + '<label>Lead BFM <input type="text" data-act="pubhead" data-f="lead" data-fkey="pubhead:lead" value="' + val('lead') + '" size="22"></label>'
-    + '<label>BFM <input type="text" data-act="pubhead" data-f="bfm" data-fkey="pubhead:bfm" value="' + val('bfm') + '" size="22"></label></div>'
+    + '</div><div class="acts pubhead" role="group" aria-label="Appropriation FM Lead">'
+    + SP.APS.map(a => '<label>' + ui_e(a.label) + ' FM Lead <input type="text" data-act="pubfm" data-ap="' + a.id + '" data-fkey="pubfm:' + a.id + '" value="'
+      + ui_e(P.pub.fm && typeof P.pub.fm[a.id] === 'string' ? P.pub.fm[a.id] : '') + '" size="20"></label>').join('') + '</div>'
+    + '<p class="note">Each appropriation’s FM Lead is printed in the header of that appropriation’s pages.</p>'
     + '<p class="acts">' + (ui_pubEmblem(P) ? '<img class="pubemb" id="uiPubEmb" alt="The emblem printed at the top left of every page" src="' + ui_e(ui_pubEmblem(P)) + '">' : '<span class="none" id="uiPubEmb">No emblem is printed.</span>')
     + '<span id="uiPubEmbWhat">' + (P.pub.noEmblem === true ? '' : P.pub.emblem ? 'The emblem you loaded.' : 'The built-in emblem.') + '</span>'
     + '<button type="button" data-act="embpick" data-fkey="embpick">Load another emblem…</button>'
@@ -11108,7 +11127,7 @@ function ui_vHelp() {
       + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
       '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
-      'A record’s Description lists its plan event titles, in date order, unless you type a description for its CCaR record on that page. Typed descriptions, the program title, the BFM names and the emblem are saved in this file.',
+      'A record’s Description lists its plan event titles, in date order, unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
     + '<h3 class="sub">Manage data</h3>' + li([
@@ -11861,6 +11880,7 @@ function ui_onChange(ev) {
     case 'pubmiss': ui.pub.miss = !!t.checked; ui_render(); return;
     case 'pubnoemb': if (ui_need('setPublish', 'Emblem')) { SP.setPublish({ noEmblem: !!t.checked }); ui_render(); } return;
     case 'pubdesc': if (ui_need('setPublish', 'Descriptions')) { SP.setPublish({ desc: { [t.getAttribute('data-k')]: t.value } }); ui_render(); } return;
+    case 'pubfm': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ fm: { [t.getAttribute('data-ap')]: t.value } }); ui_render(); } return;
     case 'pubhead': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ [t.getAttribute('data-f')]: t.value }); ui_render(); } return;
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');

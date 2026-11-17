@@ -240,7 +240,8 @@ for the switches.
   - **Descriptions**: a record's Description column lists its plan event titles, in date order. To print your own
     wording instead, type one for the CCaR record in the list, or import a sheet with a CCaR number column and a
     Description column. Typed descriptions are saved in the file and reused.
-  - **On every document**: the program title, Lead BFM and BFM names, and the emblem (the built-in one, softened and set
+  - **On every document**: the program title, the FM Lead of each appropriation (four names; each is printed on its
+    own appropriation's pages), and the emblem (the built-in one, softened and set
     into the header band; load another or tick Print no emblem).
   - The fiscal years ticked are the ones published. Every service and lane is counted, whatever the Filter says.
 - **O&M, Full Fund, Initial Spares, OPN.** The FY table, then each FY's tree: PMO, Title, Plan Event and CCaR. Press a row
