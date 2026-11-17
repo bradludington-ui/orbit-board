@@ -163,6 +163,10 @@ try {
       [PP, [['Garnet Rework', 'TS0007', fig(D$(700000), 0, 0), ['Dec-2026'], false],
         ['New thing', 'TS0099', fig(0, 0, D$(400000)), [], true]]]]));
   const prime = secOf(om, 'om', 2027).groups[0].records[0];
+  // §33.10 a record's plan event titles, in the order they fall: what its description is until one is typed
+  C.eq('the prime’s plan events, earliest first, over both PMOs', J(prime.events), J(['P1', 'P2']));
+  C.eq('Tessa B’s: by date (5 Oct, then 20 Oct), the one with no date last', J(secOf(om, 'om', 2027).groups[1].records[1].events), J(['T2b', 'T2a', 'T2c']));
+  C.eq('a record that is only on the unfunded list has none', J(secOf(om, 'om', 2027).groups[1].records[0].events), J([]));
   C.eq('the prime, by service: USAF, ANG, AFRC, STOVL, USMC CV, USN',
     J(prime.svc), J([fig(D$(3000000.40), D$(3000000.40), D$(2000000)), fig(0, 0, 0), fig(0, 0, 0), fig(0, 0, D$(500000)), fig(0, 0, 0), fig(D$(1000000), 0, 0)]));
   C.eq('its description is the one saved for its CCaR number', prime.desc, 'The prime contract');
@@ -181,6 +185,7 @@ try {
     J([['1', 'JSF6654', AV, D$(2500000)], ['2', 'TS0002', AV, D$(300000)], ['3', 'TS0099', PP, D$(400000)], ['4', 'TS0007', AV, D$(100000)]]));
   // a PMO's document holds that PMO's data and nobody else's
   const av = doc('pmo:air vehicle (av)'), pp = doc('pmo:propulsion (pp)');
+  C.eq('in a PMO’s document the prime lists that PMO’s plan events only', J([secOf(av, 'om', 2027).groups[0].records[0].events, secOf(pp, 'om', 2027).groups[0].records[0].events]), J([['P1'], ['P2']]));
   // §33.9 the colour down the left side: Prime Contracts its own, each PMO its own, the same in every document
   const cols = d => d.sections.flatMap(x => x.groups.map(g => g.label + ' ' + g.color));
   C.eq('O&M: Prime Contracts, Air Vehicle and Propulsion each have their own colour', J([...new Set(cols(om))]), J(['Air Vehicle (AV) #B9D7B0', 'Prime Contracts #8EAADB', 'Propulsion (PP) #E9B9C4']));
@@ -280,6 +285,10 @@ try {
   C.chk('the FY2027 page: the section’s totals, top right', has(p3, 'TOTAL') && has(p3, SP.fmtWhole(SEC_A + SEC_U)) && has(p3, SP.fmtWhole(SEC_A)));
   C.eq('the FY2027 page: six service rows and a Total for each of its five records', J([texts(p3).filter(s => s === 'USAF ANG').length, texts(p3).filter(s => s === 'Total').length]), J([6, 5]));
   C.eq('the FY2027 page: the left side is drawn in each group’s colour, top to bottom', J(p3.ops.filter(o => o.t === 'rect' && o.x === 18 && o.w === 58 && o.y > 100).map(o => o.fill)), J(['#8EAADB', '#B9D7B0', '#E9B9C4']));
+  const descX = 204 + 4;
+  C.eq('the FY2027 page: a record with no typed description lists its plan event titles, one to a line, in order (Tessa B)',
+    J(p3.ops.filter(o => o.t === 'text' && o.x === descX && /^T2/.test(o.s)).sort((a, b) => a.y - b.y).map(o => o.s)), J(['T2b', 'T2a', 'T2c']));
+  C.chk('and a typed description replaces the list (the prime): its plan events are not printed', has(p3, 'The prime contract') && !has(p3, 'P1') && !has(p3, 'P2'));
   const p4 = P.pages[3];
   C.chk('the last page: the unfunded list, filtered to this document, with its columns', has(p4, 'Unfunded requirements') && ['Rank', 'Requirement Title', 'PMO', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total', 'Funding Status', 'Exec Ready?', 'SFCB Action'].every(h => has(p4, h)));
   C.chk('the last page: a line’s amounts, status and action; the subtotal and the total', has(p4, 'O&M FY2027') && has(p4, 'New thing') && has(p4, 'TS0099') && has(p4, '400,000') && has(p4, 'Pending') && has(p4, 'Approved 12 Nov')
@@ -299,12 +308,18 @@ try {
   const big = { id: 'ap:om', kind: 'ap', ap: 'om', label: 'O&M', long: 'Operations & Maintenance', file: 'Big.pdf', stoplight: { rows: [], total: {}, pmoRows: [] }, ufr: [],
     sections: [{ ap: 'om', apLabel: 'O&M', fy: 2027, total: fig(0, 0, 0), svc: [0, 1, 2, 3, 4, 5].map(() => fig(0, 0, 0)), n: 40,
       groups: [{ label: PP, prime: false, records: Array.from({ length: 40 }, (_, i) => ({ key: 'k' + i, ccar: 'K' + i, title: 'Record ' + i + ' ' + 'word '.repeat(i % 9), desc: 'd '.repeat(i * 3),
-        dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false })) }] }] };
+        dates: Array.from({ length: (i * 7) % 40 }, (_, j) => 'Jan-' + (2027 + j)), svc: [0, 1, 2, 3, 4, 5].map(() => fig(100, 0, 0)), total: fig(600, 0, 0), ufrOnly: false,
+        events: i === 3 ? Array.from({ length: 60 }, (_, j) => 'Event ' + j + ' of record three') : i === 4 ? ['A plan event title long enough that it has to wrap under itself in the description column'] : [] })) }] }] };
+  big.sections[0].groups[0].records[3].desc = ''; big.sections[0].groups[0].records[4].desc = '';
   const PB = SP.publishPages(big, ctx).pages.slice(1, -1);
   C.chk('forty records take several pages', PB.length >= 5, String(PB.length));
   C.chk('on each of them every record is whole: as many first rows (USAF) as Total rows (one USAF is the header’s), and each record’s number on one page only',
     PB.every(p => texts(p).filter(s => s === 'USAF').length - 1 === texts(p).filter(s => s === 'Total').length)
     && Array.from({ length: 40 }, (_, i) => PB.filter(p => texts(p).includes('CCaR K' + i)).length).every(n => n === 1));
+  const allT = PB.flatMap(p => p.ops.filter(o => o.t === 'text'));
+  C.chk('sixty plan events: the list stops inside forty lines and says how many more there are', allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length === 39 && allT.some(o => o.s === '+21 more plan events'),
+    String(allT.filter(o => /^Event \d+ of record three$/.test(o.s)).length));
+  C.chk('a long plan event title wraps under itself, its later lines set in', allT.some(o => o.x === descX && /^A plan event title long enough/.test(o.s)) && allT.some(o => o.x === descX + 5 && /under itself|description column|wrap/.test(o.s)));
   C.chk('and nothing is drawn below the body', PB.every(p => p.ops.every(o => o.t !== 'rect' || o.y + o.h <= 592.01)));
   // the header with the summary, and the column headings, are on every page of a section
   C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',
@@ -390,10 +405,10 @@ try {
   C.eq('the page’s title', main().querySelector('h2.title').textContent, 'Publish spend plan');
   const docRows = () => [...main().querySelectorAll('#uiPubDocs tbody tr')].map(tr => [...tr.children].slice(0, 5).map(td => td.textContent));
   C.eq('the documents, before any unfunded list', J(docRows()), J([
-    ['APEX Spend Plan - O&M', 'Consolidated, every PMO · FY2026, FY2027', '4', '0', '4 missing'],
-    ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0', '1 missing'],
-    ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0', '3 missing'],
-    ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0', '3 missing']]));
+    ['APEX Spend Plan - O&M', 'Consolidated, every PMO · FY2026, FY2027', '4', '0', '0 typed, 4 list plan events'],
+    ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0', '0 typed, 1 list plan events'],
+    ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0', '0 typed, 3 list plan events'],
+    ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0', '0 typed, 3 list plan events']]));
   C.chk('with no list it says Required equals Approved', /No unfunded list is loaded: Required equals Approved/.test(main().querySelector('#uiUfrList').textContent));
   // the unfunded list, through the page's own file box
   const fileIn = main().querySelector('#uiUfrFile');
@@ -409,12 +424,12 @@ try {
     ['APEX Spend Plan - O&M', '6', '4'], ['APEX Spend Plan - Initial Spares', '1', '0'], ['APEX Spend Plan - OPN', '4', '4'], ['APEX Spend Plan - PMO AV', '4', '3'], ['APEX Spend Plan - PMO PP', '8', '5']]));
   C.chk('what to check is listed: the tracker’s own notes and the placements', main().querySelectorAll('#uiUfrNotes li').length === 5 + 3 + 4, String(main().querySelectorAll('#uiUfrNotes li').length));
   // a description typed is saved and counted
-  C.eq('descriptions: none written yet', main().querySelector('#uiPubDescN').textContent, '0 of 9 written');
+  C.eq('descriptions: none written yet', main().querySelector('#uiPubDescN').textContent, '0 of 9 typed; the rest list their plan events');
   const box = main().querySelector('input[data-act=pubdesc][data-k="jsf6654"]');
   box.value = 'The prime contract'; change(box); await settle();
   C.chk('a description typed is kept in the plan, by CCaR number', S2.state.publish && S2.state.publish.desc.jsf6654 === 'The prime contract');
-  C.eq('and counted', main().querySelector('#uiPubDescN').textContent, '1 of 9 written');
-  C.eq('and the O&M document has one fewer missing', docRows()[0][4], '4 missing');
+  C.eq('and counted', main().querySelector('#uiPubDescN').textContent, '1 of 9 typed; the rest list their plan events');
+  C.eq('and the O&M document has one fewer missing', docRows()[0][4], '1 typed, 4 list plan events');
   const missBox = main().querySelector('input[data-act=pubmiss]'); missBox.checked = true; change(missBox); await settle();
   C.eq('Show only the missing: eight rows', main().querySelectorAll('#uiPubDesc tbody tr').length, 8);
   const lead = main().querySelector('input[data-act=pubhead][data-f=lead]'); lead.value = 'A. Lead'; change(lead); await settle();

@@ -1980,7 +1980,7 @@ shown, and is counted on the page.
 
 ### 33.3 Descriptions and what is on every document
 
-One short description per CCaR number, typed on the page or taken from a list (`SP.readDescriptions`: a sheet whose
+A record's description is its plan event titles (§33.10) unless one is typed. One short description per CCaR number can be typed on the page or taken from a list (`SP.readDescriptions`: a sheet whose
 heading row names a CCaR Record or CCaR No and a Description); an import fills only records that have none, and says how
 many it left as written. The program title (F-35 Sustainment unless typed), Lead BFM and BFM are typed once. All of it is
 saved in the plan.
@@ -2039,6 +2039,14 @@ across all versions."* Prime Contracts has its own colour (the header band's blu
 (`SP.publishColor`). A PMO's colour is fixed by its place in the tool's list of PMOs, never by which PMOs are in the plan,
 so it is the same in every appropriation's document, in the PMO's own, and from one data pull to the next. A PMO the tool
 does not know takes one of four further colours by its name. Every colour is light enough for the black label to read.
+
+### 33.10 The description is the plan event titles, listed (Brad, 18 Nov 2026)
+
+Brad: *"For the description, let's default to the Plan Event Title and have them listed."* A record's Description column
+lists the titles of its plan events, one to a line, in the order they fall (each by its earliest date; one with no date
+last, then by name). A long title wraps under itself. Past forty lines the list ends "+N more plan events". A description
+typed or imported for the CCaR record (§33.3) replaces the list. A record that is only on the unfunded list has no plan
+event, so its Description is blank unless one is typed. In a PMO's document a prime lists that PMO's plan events only.
 
 ### 33.8 Tests
 

@@ -196,7 +196,7 @@ SP.readUfr = function readUfr(wb, fileName) {
 //   doc: { id, kind: 'ap'|'pmo', ap, pmoKey, label, code, file, stoplight: {rows, total, pmoRows},
 //          sections: [{ap, apLabel, fy, total: Fig, groups: [{label, prime, records: [Rec]}], n}],
 //          ufr: [line + {pmoLabel}], nRecords, missing: n }
-//   Rec: { key, ccar, title, desc, dates: [text, each a month 'Dec-2025', in order, then 'No date'], svc: [Fig x 6 or 7], total: Fig, ufrOnly }
+//   Rec: { key, ccar, title, desc (the one typed, or ''), events: [its plan events' titles, in date order], dates: [text, each a month 'Dec-2025', in order, then 'No date'], svc: [Fig x 6 or 7], total: Fig, ufrOnly }
 //   Fig: { required, approved, obligated, remaining, delta }   whole cents
 // A record is a CCaR number inside an appropriation, a fiscal year and a PMO; under Prime Contracts in an appropriation's
 // document it is the CCaR number over every PMO, as the Award calendar's one line is (§22).
@@ -249,7 +249,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     const k = ap + '|' + fy + '|' + pmoKey + '|' + rk;
     let a = atoms.get(k);
     if (!a) atoms.set(k, (a = { k, ap, fy, pmoKey, rk, ccarKey, title: new Map(), ccar: new Map(), app: pb_zeros(), obl: pb_zeros(), ufr: pb_zeros(),
-      dates: new Set(), nodate: false, rows: 0, ufrLines: [], ufrTitle: '', ufrCcar: '' }));
+      dates: new Set(), nodate: false, rows: 0, pes: new Map(), ufrLines: [], ufrTitle: '', ufrCcar: '' }));
     return a;
   };
   for (const b of M.blocks || []) {
@@ -263,6 +263,11 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       if (d.status === 'exec') a.obl[si] += r.cents;
       if (r.col !== NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d.date)) a.dates.add(d.date.slice(0, 7));
       else a.nodate = true;
+      // its plan events, each with its spellings and its earliest date: the description a record prints by default (§33.10)
+      { let e = a.pes.get(d.k.pe); if (!e) a.pes.set(d.k.pe, (e = { sp: new Map(), first: '' }));
+        pb_tally(e.sp, pb_txt(d.pe));
+        const dt = r.col !== NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d.date) ? d.date.slice(0, 10) : '';
+        if (dt && (e.first === '' || dt < e.first)) e.first = dt; }
       a.rows++;
     }
   }
@@ -311,12 +316,17 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
 
   // records out of atoms. `merge` joins atoms of several PMOs (a prime in an appropriation's document)
   const record = list => {
-    const title = new Map(), ccar = new Map(), dates = new Set(), app = pb_zeros(), obl = pb_zeros(), uf = pb_zeros();
+    const title = new Map(), ccar = new Map(), dates = new Set(), app = pb_zeros(), obl = pb_zeros(), uf = pb_zeros(), pes = new Map();
     let nodate = false, rows = 0, ufrTitle = '', ufrCcar = '';
     for (const a of list) {
       for (const [s, c] of a.title) title.set(s, (title.get(s) || 0) + c);
       for (const [s, c] of a.ccar) ccar.set(s, (ccar.get(s) || 0) + c);
       for (const d of a.dates) dates.add(d);
+      for (const [k, e] of a.pes) {
+        let q = pes.get(k); if (!q) pes.set(k, (q = { sp: new Map(), first: '' }));
+        for (const [sp, c] of e.sp) q.sp.set(sp, (q.sp.get(sp) || 0) + c);
+        if (e.first && (q.first === '' || e.first < q.first)) q.first = e.first;
+      }
       for (let i = 0; i <= PB_NSVC; i++) { app[i] += a.app[i]; obl[i] += a.obl[i]; uf[i] += a.ufr[i]; }
       nodate = nodate || a.nodate; rows += a.rows;
       if (!ufrTitle) { ufrTitle = a.ufrTitle; ufrCcar = a.ufrCcar; }
@@ -328,7 +338,10 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     const ck = list[0].ccarKey;
     const dl = [...dates].sort().map(pb_monthWords);
     if (nodate && rows) dl.push('No date');
-    return { key: ck, ccar: pb_major(ccar, ufrCcar || ''), title: pb_major(title, ufrTitle || '(no title)'), desc: descOf(ck), dates: dl,
+    // the plan events' titles, in the order they fall (the earliest date of each; one with no date last), then by name
+    const events = [...pes.values()].map(e => ({ name: pb_major(e.sp, '(no plan event)'), first: e.first }))
+      .sort((x, y) => (x.first === '') - (y.first === '') || pb_cmp(x.first, y.first) || pb_cmp(SP.normKey(x.name), SP.normKey(y.name))).map(e => e.name);
+    return { key: ck, ccar: pb_major(ccar, ufrCcar || ''), title: pb_major(title, ufrTitle || '(no title)'), desc: descOf(ck), events, dates: dl,
       svc, total: pb_fig(A, O, U), ufrOnly: rows === 0, special: special.has(ck) && ck !== '' };
   };
   const recSort = (x, y) => pb_cmp(SP.normKey(x.title), SP.normKey(y.title)) || pb_cmp(x.key, y.key);
@@ -370,7 +383,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       if (r.key === '' || seen.has(r.key)) continue;
       seen.add(r.key); if (!r.desc) missing++;
     }
-    d.missing = missing;
+    d.missing = missing; d.nDesc = seen.size;
     let f = pb_fileSafe(d.file), i = 2;
     while (names.has(f.toLowerCase())) f = pb_fileSafe(d.file) + ' (' + (i++) + ')';
     names.add(f.toLowerCase()); d.file = f + '.pdf';
@@ -603,7 +616,23 @@ SP.publishPages = function publishPages(doc, ctx) {
       for (const r of g.records) {
         const nRows = r.svc.length + 1;
         const maxDates = 78, shown = r.dates.length > maxDates ? r.dates.slice(0, maxDates - 1).concat(['+' + (r.dates.length - maxDates + 1) + ' more']) : r.dates;
-        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6);
+        // THE DESCRIPTION IS THE RECORD'S PLAN EVENT TITLES, LISTED, unless one was typed (Brad, 18 Nov 2026: "For the description,
+        // let's default to the Plan Event Title and have them listed"). One to a line, in the order they fall; a long title
+        // wraps under itself; past forty lines the list ends by saying how many more there are.
+        const dW = X[3] - X[2] - 8, evH = 7.4, evMax = 40;
+        let evLines = null;
+        if (!r.desc && Array.isArray(r.events) && r.events.length) {
+          evLines = [];
+          let left = r.events.length;
+          for (const e of r.events) {
+            const ls = SP.pdfWrap(e, 6.3, false, dW - 5);
+            if (evLines.length + ls.length > evMax - 1 && left > 1) break;
+            ls.forEach((l, i) => evLines.push({ s: l, first: i === 0 }));
+            left--;
+          }
+          if (left > 0) evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), first: false, more: true });
+        }
+        const h = Math.max(nRows * PB.rowH, Math.ceil(shown.length / 2) * dateH + 6, evLines ? evLines.length * evH + 6 : 0);
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
         if (!run) run = { label: g.label, y0: y, color: g.color };
         // title and CCaR number
@@ -614,8 +643,13 @@ SP.publishPages = function publishPages(doc, ctx) {
         if (r.ccar) T((X[1] + X[2]) / 2, y + h / 2 - th / 2 + 6.4 + tl.length * 8.2, 'CCaR ' + r.ccar, { size: 6, align: 'c', color: PB.mut });
         // description
         Rc(X[2], y, X[3] - X[2], h, { stroke: PB.rule, lw: 0.4 });
-        const dl = SP.pdfWrap(r.desc, 6.5, false, X[3] - X[2] - 8, Math.max(1, Math.floor((h - 5) / 7.6)));
-        dl.forEach((l, i) => T((X[2] + X[3]) / 2, y + h / 2 - (dl.length * 7.6) / 2 + 5.8 + i * 7.6, l, { size: 6.5, align: 'c' }));
+        if (evLines) {
+          const y0 = y + h / 2 - (evLines.length * evH) / 2 + 5.6;
+          evLines.forEach((l, i) => T(X[2] + (l.first || l.more ? 4 : 9), y0 + i * evH, l.s, { size: 6.3, color: l.more ? PB.mut : PB.ink }));
+        } else {
+          const dl = SP.pdfWrap(r.desc, 6.5, false, dW, Math.max(1, Math.floor((h - 5) / 7.6)));
+          dl.forEach((l, i) => T((X[2] + X[3]) / 2, y + h / 2 - (dl.length * 7.6) / 2 + 5.8 + i * 7.6, l, { size: 6.5, align: 'c' }));
+        }
         // award dates, in order, down then across
         Rc(X[3], y, X[4] - X[3], h, { stroke: PB.rule, lw: 0.4 });
         const perCol = Math.max(1, Math.floor((h - 5) / dateH)), nc = Math.max(1, Math.ceil(shown.length / perCol)), cwD = (X[4] - X[3]) / nc;
