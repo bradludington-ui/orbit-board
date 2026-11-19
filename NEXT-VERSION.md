@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.15** (built, awaiting Brad's merge). Next: **v2.16** (item 133).
+Current version: **v2.16** (item 148; built, awaiting Brad's merge). Next: **v2.17** (item 133).
 
 ## Open
 
@@ -16,8 +16,8 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   five-year text; the Priority Drill's narrow columns; the five-year workbook's "Allocated" renamed Funded). v2.16: item 133.
   Each version merges on his word.
   **v2.14 shipped** (items 140, 141, 129, 124; ledger U63, U64, U35; see Shipped); v2.15 gained items 142 to 146, found while
-  building and reviewing it. **v2.15 is built** (items 137–139 and 142–146, and the small fixes; see Shipped › v2.15) on
-  `ccr-aef4e698-poiml3`, and waits on Brad's word to merge. **v2.16 is item 133**, the last of the three.
+  building and reviewing it. **v2.15 shipped** (merged 9 Nov 2026, `e3804cf`). **v2.16 is item 148** (Brad's "Go", 19 Nov 2026:
+  the five-year spend plan's wrong names, reported from the real board), so **item 133 is v2.17**, the last of the three.
 - **The handoff's 40 decisions** (`recovery/v213/HANDOFF.md`, section 8): *"Accept all recommendations"*, v2.12's eight
   questions among them. What only Brad can do (credentials, the security team, the evidence package) comes back to him as a list.
 - **Save on his work computer writes into the file**, so item 141's main path is writing the imported board into a new file.
@@ -431,41 +431,6 @@ Evidence for each: `notes-W4.md` › Known gaps.
   so a mutation would be equivalent. A list walked by place because an element has no id is not stamped `rep` (`customMend` repairs
   those on opening). Evidence: `notes-RV-D.md` › Mutations, D2.
 
-#### 148. The five-year spend plan puts one year's figures under another requirement's name (Brad, 19 Nov 2026, from the real board)
-**What Brad sees.** *"Doesn't look like the requirements are staying consistent with naming and allocations. GEX/GATES is somehow
-being confused with the Option Year requirement in the five year spend plan export."* On the board, FY28 O&M, PSM: GEX/GATES
-(JSF6649) is $58,580, IAC (JSF6647) about $3.76M, LM Air Vehicle Annualized Sustainment - Option Year (JSF6654) about $2.56B; the
-RECORD panel agrees. In the FYDP Spend Plan workbook (FY28-FY32, the working plan) the FY28 column prints $2,560.209M on the
-GEX/GATES line, GEX's $0.059M on the IAC line, IAC a second time with no CCaR record carrying $3.760M, and $0 on the LM line. FY29 reads
-right. Full Fund's lines may be paired the same way (the "JSF" and "No CCaR record" Andromeda lines).
-
-**Why (reproduced, 19 Nov, on main `3486997`).** `fydpBookApp` joins the five years of a plan by requirement ID alone
-(`reqs[r.id]`) and names each line from the latest year that holds that ID. A requirement added on the board is numbered within its
-own year (`newReqSeq`, `reqNewId`): FY28's NEW-1 and FY29's NEW-1 are two different requirements unless one was rolled from the
-other. So every added requirement whose number another requirement holds in another year is merged with it: that year's dollars
-print under the other one's name and CCaR record. Repro: FY27 add LM ($2,560,000,000) then GEX ($58,580); FY28 blank, add GEX then LM.
-The model prints "GEX/GATES :: FY27 2560000000" and "LM Option Year :: FY27 58580". Each year's projection (`cycProjOf`), which is
-also what a lock stores, carries neither `custom` nor the requirement's `prior` link, so the export cannot tell the cases apart.
-The board, the per-year workbooks and the RECORD panel are right; the FYDP Spend Plan workbook and the five-year panel (one model)
-are not. No figure is lost or invented: the money is on the wrong line, so every line total is wrong and the block TOTAL is right.
-
-**Proposed fix.**
-- `cycProjOf` records, per requirement, whether it was added (`custom`) and its link (`prior: {fy, id}`) -- locks taken from then on
-  carry them.
-- `fydpBookApp` keys a line by the work, not the number: a board-data ID is itself; an added requirement takes the line of what its
-  link names (a board-data ID; or an added one in a held year, through its own line; or one before the window, keyed by that year and
-  ID); with no link, it joins an earlier year's line only under the v2.07 rule for a rolled year (same ID, same title, same office,
-  the same CCaR work, `ccarSameWork`), and otherwise is a line of its own, keyed by its year and ID. Two requirements of one year
-  never share a line.
-- A lock taken before the fix carries no flags: an ID shaped `NEW-…` is read as added, and with no link the rolled-year rule decides.
-  At worst one requirement prints as two lines; it can no longer print another's dollars.
-- Check: the repro above, both directions, a requirement carried by From another year (one line, five years), a rolled year (one
-  line), two copies of one FY28 requirement in FY29 (two lines), a lock taken before the fix, and every line total and the TOTAL
-  against each year's projection. Search the other readers that join years by ID (`cycCmpData` compares one year at a time and is
-  not affected).
-- **Workaround until it ships:** the board, the RECORD panel and the year-by-year workbooks are right. Do not brief the FYDP Spend Plan
-  workbook's per-line figures; its block TOTALs are right.
-
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -523,6 +488,83 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.16 — 19 Nov 2026: the five-year spend plan joins the years by the work, never by the requirement number (item 148) -- built on Brad's "Go" of 19 Nov; merge waits on his word
+
+**What Brad saw** (19 Nov 2026, photos of the real board): in the FYDP Spend Plan workbook, FY28 O&M, PSM, GEX/GATES (JSF6649) carried
+$2,560.209M -- the LM Air Vehicle Annualized Sustainment - Option Year's FY28 figure -- IAC carried GEX's $0.059M, IAC was listed a
+second time with no CCaR record, and LM read $0; the board and the RECORD panel had GEX at $58,580. *"GEX/GATES is somehow being
+confused with the Option Year requirement in the five year spend plan export."*
+
+**Why.** An added requirement is numbered within its own year (`newReqSeq`, `reqNewId`), and `fydpBookApp` joined the five years by
+that number, naming each line from the latest year. FY28's NEW-n (LM) and FY29's NEW-n (GEX) were one line. Each year's projection
+(`cycProjOf`, also what a lock stores) carried neither whether a requirement was added nor its link, so nothing could tell them apart.
+The board and every one-year workbook were right; the five-year workbook, the five-year panel (the same model) and the AI review
+request (which listed another year's figures by number) were not. Block TOTALs were right: the money was on the wrong lines.
+
+**What changed.**
+- `cycProjOf` records `custom` (an added requirement) and `prior` (what it continues) on each row; a lock taken from now on carries
+  them.
+- `fydpLineKeys(X, Y)` decides, per held year, which line each requirement is on: a board-data id is itself; an added requirement is
+  first matched to the nearest earlier held year's requirement of the same id by the rolled-year rule (`yrCopySame`'s: same link,
+  title, office and CCaR work -- a year started as a copy keeps every id and link); otherwise its link names the line (a board-data
+  id; an added one in a held year, through its own line; one before the window by its year and id); otherwise it is a line of its own.
+  Two requirements of one year never share a line. `fydpBookApp` keys its lines by it. A projection taken before v2.16 carries no
+  flags: an id shaped `NEW-` is read as added, so crossed numbers are never one line -- at worst one requirement prints as two lines.
+- `fydpSameIn(K, y0, id, y)` names the same work in another year; `aiRequestText` and the AI answer's read-back use it.
+- `BUILD` is `v2.16 (19 Nov 2026)`.
+
+**Decided in the build (Brad can reverse):** the version number -- item 148 ships as v2.16 and item 133 becomes v2.17; an added
+requirement with no link, added separately in two years, prints as two lines (ORBIT cannot know they are the same work; "From another
+year" is how to join them); a requirement renamed between years without a link prints as two lines too (the rolled-year rule needs the
+same title).
+
+**Checks.** audit-recon "v2.16 — the five-year plan joins the years by the work, never by the number (item 148)": Brad's case both
+ways, a requirement carried From another year (one line, with another number in each year), a rolled year (one line), two copies of
+one requirement in one year (two lines), a board-data requirement, each year's lines against that year's projection, a lock taken
+before v2.16, the O&M tab of the workbook itself, and the AI review request. On main `3486997` it fails on Brad's case, the old lock,
+the workbook and the AI review; the rest are CONTROLs. **Mutations:** 6 new (`v216-148-*`) and `v204-112-years-window` retargeted (the
+new function sits between the two its find spanned); 7 of 7 CAUGHT (`recovery/v215/proved-v216.jsonl`). One first SURVIVED
+(`v216-148-proj-no-link`): the fixture's carried requirement had the same number in both years, so the rolled-year rule joined it with
+or without its link; a filler now numbers it differently. 3,806 targets, each once. <<GATE RESULTS>>
+
+**The item as logged:**
+
+#### 148 (as logged). The five-year spend plan puts one year's figures under another requirement's name (Brad, 19 Nov 2026, from the real board)
+**What Brad sees.** *"Doesn't look like the requirements are staying consistent with naming and allocations. GEX/GATES is somehow
+being confused with the Option Year requirement in the five year spend plan export."* On the board, FY28 O&M, PSM: GEX/GATES
+(JSF6649) is $58,580, IAC (JSF6647) about $3.76M, LM Air Vehicle Annualized Sustainment - Option Year (JSF6654) about $2.56B; the
+RECORD panel agrees. In the FYDP Spend Plan workbook (FY28-FY32, the working plan) the FY28 column prints $2,560.209M on the
+GEX/GATES line, GEX's $0.059M on the IAC line, IAC a second time with no CCaR record carrying $3.760M, and $0 on the LM line. FY29 reads
+right. Full Fund's lines may be paired the same way (the "JSF" and "No CCaR record" Andromeda lines).
+
+**Why (reproduced, 19 Nov, on main `3486997`).** `fydpBookApp` joins the five years of a plan by requirement ID alone
+(`reqs[r.id]`) and names each line from the latest year that holds that ID. A requirement added on the board is numbered within its
+own year (`newReqSeq`, `reqNewId`): FY28's NEW-1 and FY29's NEW-1 are two different requirements unless one was rolled from the
+other. So every added requirement whose number another requirement holds in another year is merged with it: that year's dollars
+print under the other one's name and CCaR record. Repro: FY27 add LM ($2,560,000,000) then GEX ($58,580); FY28 blank, add GEX then LM.
+The model prints "GEX/GATES :: FY27 2560000000" and "LM Option Year :: FY27 58580". Each year's projection (`cycProjOf`), which is
+also what a lock stores, carries neither `custom` nor the requirement's `prior` link, so the export cannot tell the cases apart.
+The board, the per-year workbooks and the RECORD panel are right; the FYDP Spend Plan workbook and the five-year panel (one model)
+are not. No figure is lost or invented: the money is on the wrong line, so every line total is wrong and the block TOTAL is right.
+
+**Proposed fix.**
+- `cycProjOf` records, per requirement, whether it was added (`custom`) and its link (`prior: {fy, id}`) -- locks taken from then on
+  carry them.
+- `fydpBookApp` keys a line by the work, not the number: a board-data ID is itself; an added requirement takes the line of what its
+  link names (a board-data ID; or an added one in a held year, through its own line; or one before the window, keyed by that year and
+  ID); with no link, it joins an earlier year's line only under the v2.07 rule for a rolled year (same ID, same title, same office,
+  the same CCaR work, `ccarSameWork`), and otherwise is a line of its own, keyed by its year and ID. Two requirements of one year
+  never share a line.
+- A lock taken before the fix carries no flags: an ID shaped `NEW-…` is read as added, and with no link the rolled-year rule decides.
+  At worst one requirement prints as two lines; it can no longer print another's dollars.
+- Check: the repro above, both directions, a requirement carried by From another year (one line, five years), a rolled year (one
+  line), two copies of one FY28 requirement in FY29 (two lines), a lock taken before the fix, and every line total and the TOTAL
+  against each year's projection. Search the other readers that join years by ID (`cycCmpData` compares one year at a time and is
+  not affected).
+- **Workaround until it ships:** the board, the RECORD panel and the year-by-year workbooks are right. Do not brief the FYDP Spend Plan
+  workbook's per-line figures; its block TOTALs are right.
+
 
 ### v2.15 — 9 Nov 2026: the context bar never wraps, a package keeps this board's PPBE cycle, retag moves every appropriation that locked it, the requirement list follows the copy that opens, Save records every appropriation it wrote, the other storage writes counted, two tabs on one appropriation, and the small fixes (items 137–139, 142–146; items 131 and 135 in part; the handoff's decisions 18 a, 19, 20; v2.12's question 1) -- built on Brad's go of 3 Nov; merge waits on his word
 

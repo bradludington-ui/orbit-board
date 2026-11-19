@@ -5225,6 +5225,26 @@ board, 200 of 200 CAUGHT (`recovery/v215/proved-INT.jsonl`); the review's 54 tog
 `proved-RVALL.jsonl`. 54 of 54 CAUGHT, none by a block that threw. **The final gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); every browser check but layout's carried D x8 (savetarget, fileimport, storagefull, pmosave, pmoyears, pointer, keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, csp; standards 0 new findings); all 244 v2.15 mutations and retargets proved together on the final tree, 244 of 244 CAUGHT (`recovery/v215/proved-FINAL.jsonl`); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; trace matrix 77 cells; fuzz seed 890551538; verify-file self-test held; suites 36.4 min). No sweep (Brad's rule of 20 Oct). audit-board,
 audit-import and audit-recon need `--max-old-space-size=8192`.
 
+### v2.16 (item 148): the five-year spend plan joins the years by the work, never by the requirement number
+
+Brad, 19 Nov 2026, from the real board: *"GEX/GATES is somehow being confused with the Option Year requirement in the five year spend
+plan export."* FY28's LM Option Year and FY29's GEX/GATES were both NEW-n, and `fydpBookApp` joined the years by id: FY28's $2.56B
+printed on the GEX/GATES line. `NEXT-VERSION.md` › Shipped › v2.16 has the detail.
+
+- **An added requirement's id is its own year's number.** Never join years by it. `fydpLineKeys(X, Y)` is the one rule for which
+  requirement in each year is the same work: a board-data id is itself; an added one is first the nearest earlier year's requirement
+  of the same id by the rolled-year rule (`yrCopySame`'s: same link, title, office, CCaR work), then what its link names, then a line
+  of its own; two requirements of one year never share a line. `fydpSameIn` answers "this requirement, in that year". The five-year
+  workbook, its panel and the AI review request read it; **a new reader that spans years reads it too.**
+- **`cycProjOf` rows carry `custom` and `prior`** (only on an added requirement), so locks taken from v2.16 carry them. A projection
+  without them reads an id shaped `NEW-` as added: crossed numbers are never one line, at worst one requirement is two lines.
+- **A fixture must give a link something to do.** The first check passed with the link dropped from the projection: the carried
+  requirement had the same number in both years, so the rolled-year rule joined it anyway. A filler now numbers it differently.
+
+**Checks.** audit-recon "v2.16 — the five-year plan joins the years by the work, never by the number (item 148)" (fails on main
+`3486997`: Brad's case, a lock before v2.16, the workbook, the AI review); 6 `v216-148-*` mutations and `v204-112-years-window`
+retargeted, 7 of 7 CAUGHT; 3,806 targets. <<GATE RESULTS>>
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
