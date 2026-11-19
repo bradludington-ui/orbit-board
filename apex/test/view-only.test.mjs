@@ -37,6 +37,14 @@ try {
   A.SP.setSettings({ asOf: '2026-10', firstFY: 2026, authorized: { 'om|2027': 350000000 } });
   A.SP.setPublish({ desc: { ts0001: 'A description' }, fm: { om: 'O. Lead' } });
   await settle(40);
+  // §36 the lists of what is not yet obligated are headed Unobligated Requirements; the CCaR status keeps its own name
+  { const sl = await A.view('slides');
+    C.chk('under a slide block the list is headed Unobligated Requirements', [...sl.querySelectorAll('.nabar')].length >= 1 && [...sl.querySelectorAll('.nabar')].every(b => b.textContent === 'Unobligated Requirements'));
+    C.chk('nothing on the slides view says Not Allocated Requirements', !/Not Allocated Requirements/.test(sl.textContent));
+    C.eq('the Data checks item and its view say Unobligated', J([A.doc.querySelector('[data-act=view][data-v=na]').textContent, (await A.view('na')).querySelector('h2.title').textContent]),
+      J(['Unobligated', 'Unobligated Requirements - every appropriation and FY']));
+    C.chk('a row’s Status still says Not Allocated: that is CCaR’s word for the row', [...A.main().querySelectorAll('table.na tbody tr')].some(tr => /Not Allocated/.test(tr.textContent)));
+    await A.view('summary'); }
   const got = [];
   A.SP.download = (name, data, mime) => { got.push({ name, data, mime }); return name; };
   const btn = A.doc.querySelector('#uiManage button[data-act=viewcopy]');

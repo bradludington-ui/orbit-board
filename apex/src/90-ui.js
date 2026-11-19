@@ -21,7 +21,7 @@ const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
   { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])) },
   { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['publish', 'Publish PDFs']] },
-  { h: 'Data checks', items: [['na', 'Not Allocated'], ['report', 'Import report'], ['changes', 'What changed']] },
+  { h: 'Data checks', items: [['na', 'Unobligated'], ['report', 'Import report'], ['changes', 'What changed']] },
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
 const UI_VIEWS = UI_NAV.flatMap(g => g.items);
@@ -332,7 +332,7 @@ function ui_levelPick(scope, label) {
 
 // the §5 items as a table: the appropriation views
 function ui_naTable(M, items, withBlock) {
-  if (!items.length) return '<p class="none">No Not Allocated requirements.</p>';
+  if (!items.length) return '<p class="none">No ' + ui_e(SP.UNOB_WORD) + ' requirements.</p>';
   const head = (withBlock ? '<th scope="col">Appropriation</th><th scope="col">FY</th>' : '')
     + '<th scope="col">Column</th><th scope="col">Item</th><th scope="col">Status</th><th scope="col">CCaR(s)</th><th scope="col">PMO(s)</th>'
     + (withBlock ? '<th scope="col">Title(s)</th>' : '') + '<th scope="col" class="n">$M</th>';
@@ -345,7 +345,10 @@ function ui_naTable(M, items, withBlock) {
 // the §5 one-line-per-month text: the slides and the PMO blocks, as v12 and the workbook print it
 function ui_naLines(M, items) {
   const lines = SP.naLines(items, M.cols);
-  return '<div class="nabar">Not Allocated Requirements</div>'
+  // UNOBLIGATED REQUIREMENTS, not "Not Allocated Requirements" (Brad, 19 Nov 2026: "Seems to be some confusion"). The list is
+  // every counted row not marked Actual Execution, which is what is not yet obligated; "Not Allocated" is one CCaR status
+  // among those rows, and stays the name of that status wherever a status is said.
+  return '<div class="nabar">' + ui_e(SP.UNOB_HEAD) + '</div>'
     + (lines.length ? '<table class="nalines"><tbody>' + lines.map(l => '<tr><th scope="row">' + ui_e(l.label) + '</th><td>' + ui_e(l.text) + '</td></tr>').join('')
       + '</tbody></table>' : '<p class="none">None.</p>');
 }
@@ -1160,7 +1163,7 @@ function ui_vAp(M, ap) {
       + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + (rows.length ? rows.join('') : '<tr><td colspan="' + ui_ncols(M) + '" class="none">No rows shown.</td></tr>')
       + ui_band(M, b) + '</tbody></table></div>'
-      + '<h3 class="nabar">Not Allocated Requirements — ' + ui_e(label) + ' FY' + ui_e(b.fy) + '</h3>' + ui_naTable(M, b.na, false) + '</section>');
+      + '<h3 class="nabar">' + ui_e(SP.UNOB_HEAD) + ' — ' + ui_e(label) + ' FY' + ui_e(b.fy) + '</h3>' + ui_naTable(M, b.na, false) + '</section>');
   }
   return out.join('');
 }
@@ -1267,13 +1270,13 @@ function ui_vNa(M) {
     + '</select></label>'
     + '<button type="button" data-act="naclear" data-fkey="naclear">Clear filters</button></div>';
   const lost = [lostAp ? UI_AP_LABEL[F.ap] || F.ap : '', lostFy ? 'FY' + F.fy : '', lostPmo ? P.label : ''].filter(Boolean);
-  return '<h2 class="title">Not Allocated Requirements - every appropriation and FY</h2>'
+  return '<h2 class="title">' + ui_e(SP.UNOB_HEAD) + ' - every appropriation and FY</h2>'
     + ui_shown(M, 'Only rows those switches show are listed.')
     + '<p class="l2">Rows that count and are not marked Actual Execution, grouped by column, status and plan event (a special CCaR is one item).'
     + ' Largest first within each column; items of $0 are left out.</p>' + filt
     + (P ? '<p class="note">' + ui_e(P.label) + '’s own items, as its PMO tab lists them: where other PMOs share a plan event, only '
       + ui_e(P.label) + '’s rows are counted.</p>' : '')
-    + (lost.length ? '<p class="note lost" data-lost="' + ui_e(lost.join('|')) + '">The filter chosen, ' + ui_e(lost.join(', ')) + ', has no Not Allocated item that counts '
+    + (lost.length ? '<p class="note lost" data-lost="' + ui_e(lost.join('|')) + '">The filter chosen, ' + ui_e(lost.join(', ')) + ', has no ' + ui_e(SP.UNOB_WORD) + ' item that counts '
       + 'with these switches. It stays chosen, so the list comes back when they show it; Clear filters takes it off.</p>' : '')
     // $0.00M, never "$-M": fmtM's lone dash is a table cell's zero, and in a sentence it reads as a figure left out (S11, review SCR2-8)
     + '<p class="count" aria-live="polite">' + ui_e(SP.fmtInt(items.length)) + ' of ' + ui_e(SP.fmtInt(src.length)) + ' items, $' + ui_e(SP.fmtMText(cents)) + 'M</p>'
@@ -1816,7 +1819,7 @@ function ui_vSettings(M) {
   // special CCaRs
   const sp = Array.isArray(S.special) ? S.special : [];
   R.special = sp.slice();
-  out.push('<h3 class="sub">Special CCaRs</h3><p class="note">On the Not Allocated lists, a special CCaR is one item, named by its title, whatever plan events it carries.</p>'
+  out.push('<h3 class="sub">Special CCaRs</h3><p class="note">On the ' + ui_e(SP.UNOB_WORD) + ' lists, a special CCaR is one item, named by its title, whatever plan events it carries.</p>'
     + (sp.length ? '<ul class="speclist">' + sp.map((s, i) => '<li><span>' + ui_e(s) + '</span> <button type="button" data-act="specdel" data-i="' + i + '" data-fkey="specdel:' + i
       + '" aria-label="Remove ' + ui_e(s) + '">Remove</button></li>').join('') + '</ul>' : '<p class="none">None.</p>')
     + '<p class="acts"><label>Add a CCaR <input type="text" id="uiSpecNew" data-fkey="specnew" maxlength="200"></label>'
@@ -1996,8 +1999,8 @@ function ui_vHelp() {
       'A block the report has no figure for keeps the CCaR plan as Approved, marked §. A block whose plan is under half the report’s Approved is named in the '
       + 'Summary’s notes and the Import report. An Authorized typed in Settings wins over the report for its block; clear it to go back to the report’s.',
       'With no BAE report loaded, nothing on any view changes.'])
-    + '<h3 class="sub">Not Allocated</h3>' + li([
-      'Every counted row not marked Actual Execution, grouped by column, status and plan event. A special CCaR (Settings) is one item, named by its title.',
+    + '<h3 class="sub">Unobligated Requirements</h3>' + li([
+      'Until November 2026 these lists were headed Not Allocated Requirements. Every counted row not marked Actual Execution, grouped by column, status and plan event. A special CCaR (Settings) is one item, named by its title.',
       'Unprogrammed, Forecast and other statuses are tagged. Items of $0 are left out. There is no limit on the number of items.'])
     + '<h3 class="sub">Where this differs from v12, on purpose</h3>' + li([
       'Detail rows are built from the data, so nothing falls out: no fixed row list, no 80-character cut, and names differing only in capitals or spaces are one row.',
@@ -2005,7 +2008,7 @@ function ui_vHelp() {
       'Prior Yr, the next-year column and No date are shown on every block, O&amp;M included.',
       'A Budget name no rule knows is “Service not identified”, not USAF: OPN and the Navy APN CONG lines go to USN.',
       'One set of switches drives everything, and there are new lane switches (Discretionary, Mandatory).',
-      'Status is worked out every time and always has its word. The Not Allocated lists have no cap, tag their statuses, and every PMO has one.',
+      'Status is worked out every time and always has its word. The Unobligated Requirements lists have no cap, tag their statuses, and every PMO has one.',
       'There are no row limits. Goals come from Settings; O&amp;M in its second year uses the expired curve; v12’s −93.33% typo is gone.',
       'Each slide block lists every PMO with money. The CCaR row shows its number. Authorized can be entered. The CUI marking is on every screen, sheet and picture.'])
     + '<h3 class="sub">Keyboard</h3><p>Tab moves through every control; Enter or Space presses a button or opens a row; arrow keys change a list choice.</p></div>';

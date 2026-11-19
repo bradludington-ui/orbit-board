@@ -20,7 +20,8 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { loadTool, checks, scratchDir } from './harness.mjs';
+import { loadTool, checks, scratchDir, oldUnobligatedHeadings } from './harness.mjs';
+oldUnobligatedHeadings();   // this file compares the workbook with builds from before 19 Nov 2026
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..');

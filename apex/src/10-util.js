@@ -28,6 +28,13 @@ SP.REQUIRED = ut_freeze(['FY','CCaR No','Title','Budget','Plan Event','Date','Am
 SP.SPECIAL_CCARS_DEFAULT = ut_freeze(['PP 2000','JSF6654','JSF6673']);     // the third added by Brad, 16 Nov 2026
 SP.MONTHS = ut_freeze(['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep']);
 SP.CUI = 'CUI//REL TO US DoW';
+// THE LISTS OF WHAT IS NOT YET OBLIGATED ARE HEADED "UNOBLIGATED REQUIREMENTS" (Brad, 19 Nov 2026: "Instead of saying Not
+// Allocated Requirements below charts can we now call it Unobligated Requirements. Seems to be some confusion"). They hold
+// every counted row not marked Actual Execution; "Not Allocated" is one CCaR status among those rows and stays the name
+// of that status. The words are here, once, so the screens and the workbook cannot head the same list two ways (and so the
+// tests that compare with builds from before the change can read the old words).
+SP.UNOB_WORD = 'Unobligated';
+SP.UNOB_HEAD = 'Unobligated Requirements';
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated

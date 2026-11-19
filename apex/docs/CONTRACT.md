@@ -2141,3 +2141,16 @@ stays a full APEX: the mark is not carried.
 
 `test/view-only.test.mjs`.
 
+## 36. "Unobligated Requirements" (Brad, 19 Nov 2026)
+
+Brad: *"Instead of saying Not Allocated Requirements below charts can we now call it Unobligated Requirements. Seems to be
+some confusion."* The lists of §5 hold every counted row not marked Actual Execution, which is what is not yet obligated;
+"Not Allocated" is only one of the CCaR statuses among those rows. So the heading is **Unobligated Requirements** wherever
+a list is headed: under each slide block, on the appropriation views and the PMO tabs, the Data checks view (its menu item
+is **Unobligated**), and in the workbook (the bar under each block, and the sheet, now named **Unobligated**). Earlier
+sections of this contract say "Not Allocated" for these lists; read them as this heading.
+
+Nothing but the words changed: the items, their order and their figures are as they were. A row's Status still reads
+"Not Allocated" where that is its CCaR status, and so does the tag rule of §5. The words are `SP.UNOB_HEAD` and
+`SP.UNOB_WORD`, in one place, so the screens and the workbook cannot head one list two ways.
+
