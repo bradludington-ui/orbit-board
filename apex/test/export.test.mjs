@@ -407,7 +407,7 @@ try {
       // §8.2's line 2, restated. v12's "Each block is sized for a 13.33 in x 4.5 in slide region" was never so of the sheet
       // (review XP-3); the shape is measured below, against what this line says of it.
       C.eq(sc.name + ' Slides: line 2 says how to make the picture, and what a copied block is', rows[1].v(0),
-        'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture or Save pictures.'
+        'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and carry no CUI marking: Slide blocks > Copy picture or Save pictures.'
         + ' To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line under OSD Status'
         + ' and use Copy as Picture; it is wider for its height than that region, so size it by its width.');
       C.eq(sc.name + ' Slides: line 3 is the shown text', rows[2].v(0), SX);

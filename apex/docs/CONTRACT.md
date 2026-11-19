@@ -478,7 +478,7 @@ The tool must reproduce v12 in everything this list does not name. The v12 proof
 11. Each slide block's PMO rows are every PMO with money, not a typed list.
 12. The CCaR row shows its number.
 13. Authorized can be entered.
-14. The CUI marking is on every screen, sheet and picture.
+14. The CUI marking is on every screen and sheet. (A picture carried it too until §41 took it out, at Brad's word.)
 
 ## 7. The .xlsx writer (`50-xlsx-write.js`)
 
@@ -587,7 +587,7 @@ never fits a row's height to a merged cell (review XP2-1, XP2-4).
 ### 8.2 Slide Snapshots
 
 - **Title:** `Slide Snapshots - picture-ready blocks for PowerPoint`.
-- **Line 2:** `The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture or
+- **Line 2:** `The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and carry no CUI marking: Slide blocks > Copy picture or
   Save pictures. To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line under
   OSD Status and use Copy as Picture; it is wider for its height than that region, so size it by its width.`
   (v12's line said each block was sized for that region. It never was: a block here is about 19 x 3.4 in, 5.7 : 1, against the
@@ -2254,3 +2254,25 @@ each of whose words begins (three letters or more for the first), or is begun by
   note says so.
 
 `test/publish.test.mjs`.
+
+## 41. Pictures of a PMO's blocks; no CUI marking on a picture
+
+Brad, 19 Nov 2026: *"Need to add screen captures for the PMO charts. Right now I only have it for the appropriation
+level spend plan charts. Also, need to remove the CUI statement from the screen captures. It will be on the slides the
+images are put on."* This changes §6 item 14 and §10 for pictures.
+
+- **No CUI marking is drawn on any picture.** The two 30 px bands it stood in are left white, so a table sits where it
+  did. `SP.PIC_CUI = true` draws it as before; only a test comparing with an older build sets it. The workbook's Slide
+  Snapshots sheet keeps its CUI lines, and its line 2 now says the pictures *carry no CUI marking* (`SP.PIC_CUI_WORDS`).
+- **A PMO's block has a picture**: `SP.blockCanvas(block, model, {pmo})`, and the same third argument on `SP.blockPng`
+  and `SP.copyBlockPicture`. Title `PMO: {label} - {Ap} FY{fy} - Spend Plan (slide-ready)`; first column headed
+  *Requirement Title*; one row per requirement title of that PMO in the block (the tree's Title level, in the model's
+  order), each with its total and months; then the block's own Monthly Totals, Cumulative Totals, Obligation %, OSD
+  Goal % and OSD Status, exactly as an appropriation's picture draws them.
+- **Its size.** 2000 px wide. 675 px high when its rows fit; with more rows it keeps its width's scale and is as tall
+  as they need. An appropriation's picture is unchanged: always 2000 x 675, shrunk to fit.
+- **Where.** By PMO has Copy picture and Save picture on each block. Save all pictures adds every PMO block under
+  `By PMO/PMO {code} - {Ap} FY{fy}.png` (`SP.pictureName`). Slide blocks says so.
+- A filtered picture still says what it shows.
+
+`test/pictures.test.mjs`, `test/pmo-pictures.test.mjs`.

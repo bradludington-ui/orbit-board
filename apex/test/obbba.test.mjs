@@ -554,7 +554,10 @@ try {
     const zf = join(tmp.dir, 'pics.zip');
     writeFileSync(zf, Buffer.from(await zip.arrayBuffer()));
     const zn = py(['-c', 'import sys, zipfile, json; print(json.dumps(zipfile.ZipFile(sys.argv[1]).namelist()))', zf]);
-    C.eq('pictures: one per block, none for O&M FY2025', JSON.parse(zn.stdout || 'null'), ['O&M FY2026.png', 'Full Fund FY2025.png', 'Initial Spares FY2025.png', 'Initial Spares FY2026.png']);
+    const zl = JSON.parse(zn.stdout || '[]');
+    C.eq('pictures: one per block, none for O&M FY2025', zl.filter(n => !n.includes('/')), ['O&M FY2026.png', 'Full Fund FY2025.png', 'Initial Spares FY2025.png', 'Initial Spares FY2026.png']);
+    // §41: each PMO's blocks are in the By PMO folder, and none of those is O&M FY2025 either
+    C.chk('pictures: the PMO blocks are in the By PMO folder, none for O&M FY2025', zl.filter(n => n.includes('/')).length > 0 && zl.filter(n => n.includes('/')).every(n => /^By PMO\/PMO .+ - .+ FY\d{4}\.png$/.test(n) && !/O&M FY2025/.test(n)), J(zl));
     C.eq('no script error on the screens', T.errors(), []);
     T.t.close();
 

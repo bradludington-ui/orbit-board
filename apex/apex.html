@@ -666,6 +666,11 @@ SP.UNOB_WORD = 'Unobligated';
 SP.UNOB_HEAD = 'Unobligated Requirements';
 // §39 the unfunded list is imported in Settings. A test that compares Settings with a build from before then turns this off.
 SP.UFR_IN_SETTINGS = true;
+// §41 a picture carries no CUI marking, and the Slide Snapshots sheet says so. A test that compares the workbook with a
+// build from before then puts the old words back.
+SP.PIC_CUI_WORDS = 'carry no CUI marking';
+SP.PMO_PICTURES = true;    // false: the screens without §41's PMO picture buttons and words, for a comparison with an older build
+SP.PIC_CUI = false;        // true draws the marking in a picture's two bands, as before §41: only a comparison with an older build asks for it
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated
@@ -7141,13 +7146,13 @@ function ex_summary(M) {
 // Line 2. It said "Each block is sized for a 13.33 in x 4.5 in slide region", which v12 said and was never so: a block
 // here is about 19 x 3.4 in (5.7 : 1, review XP-3), a 70-wide label column and the money columns. The dashboard's
 // pictures are drawn to that region; a block copied from this sheet is not, and the line says so.
-const EX_SLIDES_HOW = 'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture'
+const ex_slidesHow = () => 'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and ' + SP.PIC_CUI_WORDS + ': Slide blocks > Copy picture'
   + ' or Save pictures. To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line'
   + ' under OSD Status and use Copy as Picture; it is wider for its height than that region, so size it by its width.';
 function ex_slides(M) {
   const K = ex_blockSheet('Slide Snapshots', M);
   ex_title(K, 'Slide Snapshots - picture-ready blocks for PowerPoint');
-  ex_subLine(K, EX_SLIDES_HOW);
+  ex_subLine(K, ex_slidesHow());
   ex_shownLine(K, M);
   // rule 6 with a BAE report loaded: the blocks below add up the plan while the Summary's Approved is the report's. The
   // Slide blocks view said so and this sheet did not (review P4-6); one sentence, SP.SLIDES_PLAN_NOTE, for both
@@ -7870,7 +7875,20 @@ function pic_wrap(ctx, text, maxW) {
 }
 
 // cell: {t: text, align: 'l'|'r'|'c', font, ink, fill, swatch?: status colour (a plan status)}
-function pic_layout(ctx, block, model) {
+// §41 A PMO'S BLOCK. opt.pmo is the PMO (model.pmos[i]) whose block this is: its rows are that PMO's requirement titles
+// in the block (the tree's Title level, as By PMO opens), under the same totals band. An appropriation's block lists PMOs.
+function pic_rowsOf(block, opt) {
+  if (!(opt && opt.pmo)) return block.pmoRows || [];
+  const out = [];
+  for (const n of block.tree || []) { if (n && n.kind === 'pmo') for (const c of n.children || []) out.push(c); else if (n) out.push(n); }
+  return out;
+}
+SP.pictureName = function pictureName(block, opt) {
+  const base = (block && block.apLabel ? block.apLabel : '') + ' FY' + (block ? block.fy : '');
+  return opt && opt.pmo ? 'PMO ' + (opt.pmo.code || opt.pmo.label || '') + ' - ' + base : base;
+};
+function pic_layout(ctx, block, model, opt) {
+  const isPmo = !!(opt && opt.pmo);
   const T = PIC_T;
   const V = pic_cols(model);
   const nNum = V.length + 2;                 // Total, the columns, Total
@@ -7879,10 +7897,10 @@ function pic_layout(ctx, block, model) {
   const closedFill = c => (c.closed ? PIC.closed : null);
   const rows = [];
   // the header
-  rows.push({ kind: 'head', cells: [cell('PMO', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold), cell('Total', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)]
+  rows.push({ kind: 'head', cells: [cell(isPmo ? 'Requirement Title' : 'PMO', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold), cell('Total', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)]
     .concat(V.map(c => cell(c.label, 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)), [cell('Total', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)]) });
   // the PMO rows: every PMO with money in the block (§6 item 11), never a typed list
-  for (const p of block.pmoRows || []) {
+  for (const p of pic_rowsOf(block, opt)) {
     rows.push({ kind: 'pmo', cells: [cell(p.label, 'l', fPmoB, PIC.navy), cell(pic_money(p.total), 'r', fPmoB, PIC.navy)]
       .concat(V.map(c => cell(pic_money(p.cols[c.index]), 'r', fPmoB, PIC.navy, closedFill(c))), [cell(pic_money(p.total), 'r', fPmoB, PIC.navy)]) });
   }
@@ -7942,7 +7960,8 @@ function pic_layout(ctx, block, model) {
     r.h = Math.max(T.rowH, lab.lines.length * lh + 6);
     r.lh = lh;
   }
-  const title = (block.apLabel || '') + ' FY' + block.fy + ' - Spend Plan (PMO Summary, slide-ready)';
+  const title = isPmo ? 'PMO: ' + (opt.pmo.label || '') + ' - ' + (block.apLabel || '') + ' FY' + block.fy + ' - Spend Plan (slide-ready)'
+    : (block.apLabel || '') + ' FY' + block.fy + ' - Spend Plan (PMO Summary, slide-ready)';
   ctx.font = pic_font(T.fTitle, true);
   const tableW = widths.reduce((a, b) => a + b, 0);
   const natW = Math.max(tableW, ctx.measureText(title).width + 2 * T.padX + 8);
@@ -7953,12 +7972,18 @@ function pic_layout(ctx, block, model) {
   const shown = model.shown && !model.shown.all ? String(model.shown.text || '') : '';
   const top = PIC_CUI_BAND + (shown ? PIC_SHOWN_H : 0) + 4;
   const region = { x: PIC_MARGIN, y: top, w: PIC_W - 2 * PIC_MARGIN, h: PIC_H - PIC_CUI_BAND - 4 - top };
-  let scale = region.w / natW;
-  if (natH * scale > region.h) scale = region.h / natH;
+  let scale = region.w / natW, picH = PIC_H;
+  // an appropriation's block has a row per PMO and is shrunk to the slide region's height (§10). A PMO's block has a row
+  // per requirement, as many as the PMO has: shrunk to that height it could not be read, so it keeps its width's scale
+  // and the picture is as tall as its rows need (§41)
+  if (natH * scale > region.h) {
+    if (isPmo) { region.h = Math.ceil(natH * scale); picH = top + region.h + 4 + PIC_CUI_BAND; }
+    else scale = region.h / natH;
+  }
   const ox = region.x + (region.w - natW * scale) / 2, oy = region.y + (region.h - natH * scale) / 2;
-  return { title, rows, widths, natW, natH, scale, ox, oy, region, shown, nCols: nNum + 1,
+  return { title, rows, widths, natW, natH, scale, ox, oy, region, shown, nCols: nNum + 1, picH,
     box: { x: ox, y: oy, w: natW * scale, h: natH * scale },
-    cui: { top: { y: 0, h: PIC_CUI_BAND }, bottom: { y: PIC_H - PIC_CUI_BAND, h: PIC_CUI_BAND } } };
+    edge: { top: { y: 0, h: PIC_CUI_BAND }, bottom: { y: picH - PIC_CUI_BAND, h: PIC_CUI_BAND } } };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -7993,21 +8018,25 @@ function pic_text(ctx, c, x, y, w, h, lines, lh) {
   });
 }
 
-SP.blockCanvas = function blockCanvas(block, model) {
+SP.blockCanvas = function blockCanvas(block, model, opt) {
   if (!block || !model || !Array.isArray(model.cols)) throw new Error('There is no block to draw.');
   const cv = document.createElement('canvas');
   cv.width = PIC_W; cv.height = PIC_H;
   const ctx = cv.getContext && cv.getContext('2d');
   if (!ctx) throw new Error('This browser cannot draw pictures (it has no canvas), so no picture was made.');
+  const L = pic_layout(ctx, block, model, opt);
+  if (L.picH !== PIC_H) cv.height = L.picH;      // sizing a canvas clears it and resets its state: done before anything is drawn
   ctx.fillStyle = PIC.white;
-  ctx.fillRect(0, 0, PIC_W, PIC_H);
-  const L = pic_layout(ctx, block, model);
-  // the CUI marking, top and bottom, outside the table's region (§6 item 14)
-  ctx.fillStyle = '#000000';
-  ctx.font = pic_font(PIC_CUI_PX, true);
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(SP.CUI, PIC_W / 2, PIC_CUI_BAND / 2);
-  ctx.fillText(SP.CUI, PIC_W / 2, PIC_H - PIC_CUI_BAND / 2);
+  ctx.fillRect(0, 0, PIC_W, L.picH);
+  // NO CUI MARKING ON A PICTURE (§41; Brad, 19 Nov 2026: "need to remove the CUI statement from the screen captures. It
+  // will be on the slides the images are put on"). The bands it stood in are left white, so the table sits where it did.
+  if (SP.PIC_CUI === true) {
+    ctx.fillStyle = '#000000';
+    ctx.font = pic_font(PIC_CUI_PX, true);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(SP.CUI, PIC_W / 2, PIC_CUI_BAND / 2);
+    ctx.fillText(SP.CUI, PIC_W / 2, L.picH - PIC_CUI_BAND / 2);
+  }
   // what the picture shows, when not everything is shown (§4.3): a slide is a product too
   if (L.shown) {
     ctx.fillStyle = PIC.filtered;
@@ -8111,11 +8140,11 @@ function pic_dataUrlBlob(url) {
   for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
   return new Blob([pic_withDpi(a)], { type: 'image/png' });
 }
-SP.blockPng = function blockPng(block, model) {
+SP.blockPng = function blockPng(block, model, opt) {
   return new Promise((resolve, reject) => {
     let cv;
-    try { cv = SP.blockCanvas(block, model); } catch (e) { reject(e); return; }
-    const fail = () => new Error('The picture of ' + block.apLabel + ' FY' + block.fy + ' could not be made into a PNG.');
+    try { cv = SP.blockCanvas(block, model, opt); } catch (e) { reject(e); return; }
+    const fail = () => new Error('The picture of ' + SP.pictureName(block, opt) + ' could not be made into a PNG.');
     if (typeof cv.toDataURL === 'function') {
       let b = null;
       try { b = pic_dataUrlBlob(cv.toDataURL('image/png')); } catch (e) { b = null; }
@@ -8132,14 +8161,14 @@ SP.blockPng = function blockPng(block, model) {
 // The clipboard. The PNG goes to the clipboard as a PROMISE: Safari honours a write only when it starts in the click
 // itself, and drawing first would end that. Where the browser refuses (no permission, an old browser, a locked-down
 // profile), the reason is said in plain words and Save picture, which always works, is offered instead.
-SP.copyBlockPicture = async function copyBlockPicture(block, model) {
-  const name = (block && block.apLabel ? block.apLabel + ' FY' + block.fy : 'this block');
+SP.copyBlockPicture = async function copyBlockPicture(block, model, opt) {
+  const name = (block && block.apLabel ? SP.pictureName(block, opt) : 'this block');
   const instead = ' Use Save picture to keep it as a file instead.';
   const cb = typeof navigator !== 'undefined' ? navigator.clipboard : null;
   if (!cb || typeof cb.write !== 'function' || typeof ClipboardItem !== 'function') {
     return { ok: false, message: 'This browser does not let a page put a picture on the clipboard, so the picture of ' + name + ' was not copied.' + instead };
   }
-  const png = SP.blockPng(block, model);
+  const png = SP.blockPng(block, model, opt);
   png.catch(() => {});      // the failure is reported once, below, never as an unhandled rejection besides
   try {
     await cb.write([new ClipboardItem({ 'image/png': png })]);
@@ -8151,7 +8180,9 @@ SP.copyBlockPicture = async function copyBlockPicture(block, model) {
     return { ok: false, message: 'The picture of ' + name + ' was not copied: ' + why + '.' + instead };
   }
   // The browser re-encodes a clipboard picture and may drop its 150 dpi (review XP-7), so the size is said, not promised
-  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x 675 px, drawn for 13.33 x 4.5 in): paste it into the slide;'
+  let tall = PIC_H;
+  if (opt && opt.pmo) { try { tall = SP.blockCanvas(block, model, opt).height; } catch (e) { tall = PIC_H; } }
+  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x ' + tall + ' px, drawn for 13.33 x ' + (tall === PIC_H ? '4.5' : (tall / 150).toFixed(2)) + ' in): paste it into the slide;'
     + ' if it comes in larger, set its width to 13.33 in.' };
 };
 
@@ -8159,6 +8190,8 @@ SP.allPicturesZip = async function allPicturesZip(model) {
   if (!model || !Array.isArray(model.blocks) || !model.blocks.length) throw new Error('There is no block to draw, so no pictures were made.');
   const files = [];
   for (const b of model.blocks) files.push({ name: b.apLabel + ' FY' + b.fy + '.png', data: await SP.blockPng(b, model) });
+  // and every PMO's blocks, in a folder of their own (§41)
+  for (const p of model.pmos || []) for (const b of p.blocks || []) files.push({ name: 'By PMO/' + SP.pictureName(b, { pmo: p }) + '.png', data: await SP.blockPng(b, model, { pmo: p }) });
   return new Blob([await SP.zipFiles(files)], { type: 'application/zip' });
 };
 
@@ -10443,7 +10476,9 @@ function ui_vSlides(M) {
   const R = ui.reg;
   const out = ['<h2 class="title">Slide Snapshots - picture-ready blocks for PowerPoint</h2>',
     '<p class="l2">Each block is sized for a 13.33 in x 4.5 in slide region. <strong>Copy picture</strong> puts a block on the clipboard;'
-    + ' <strong>Save picture</strong> saves it as a PNG. The picture runs from the block’s title through OSD Status.</p>',
+    + ' <strong>Save picture</strong> saves it as a PNG. The picture runs from the block’s title through OSD Status' + (SP.PMO_PICTURES === false ? '.' : ', and carries no CUI marking: the slide it goes on is marked.') + '</p>',
+    SP.PMO_PICTURES === false ? '' : '<p class="note" id="uiPmoPicNote">Each PMO’s blocks have the same two buttons on <button type="button" class="tg" data-act="view" data-v="pmos" data-fkey="slides:pmos">By PMO</button>;'
+    + ' Save all pictures holds them too, in a folder named By PMO.</p>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
     // rule 6 (§14.3): with a BAE report loaded the Summary's Approved is the report's, and a block here still adds up the
     // plan; said once, so a slide's Total is not taken for a figure that disagrees with the Summary. The Slide Snapshots
@@ -10850,7 +10885,12 @@ function ui_vPmos(M) {
     // report loaded, § and † on a block the report has no figure for, as in the table above; none with no report (M4-5)
     const sp = SP.pmoStripParts(b, M);
     const strip = ui_e(sp.head) + sp.parts.map(([w, c, mk]) => '&nbsp; | &nbsp;' + w + ' ' + ui_e(SP.fmtMText(c)) + 'M' + (mk ? ui_markSpan(mk, M) : '')).join('');
+    // §41 a picture of this PMO's block, as the Slide blocks page gives one of each appropriation's
+    const pi = R.pblocks.length, pn = SP.pictureName ? SP.pictureName(b, { pmo: P }) : P.label + ' ' + b.apLabel + ' FY' + b.fy;
+    R.pblocks.push({ pmo: P, block: b });
     out.push('<section class="blk-sec" aria-label="' + ui_e(b.apLabel + ' FY' + b.fy) + '">'
+      + (SP.PMO_PICTURES === false ? '' : '<div class="slidebtns"><button type="button" data-act="copypic" data-p="' + pi + '" data-fkey="cpp:' + ui_e(b.key) + '" aria-label="Copy picture of ' + ui_e(pn) + '">Copy picture</button>'
+      + '<button type="button" data-act="savepic" data-p="' + pi + '" data-fkey="spp:' + ui_e(b.key) + '" aria-label="Save picture of ' + ui_e(pn) + '">Save picture</button></div>')
       + '<div class="bar bar2">' + ui_e(b.apLabel) + ' - FY' + ui_e(b.fy) + '</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
       + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
@@ -11966,7 +12006,7 @@ function ui_render() {
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
-  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
+  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
   // a view-only copy has no way to a view its menu does not hold; were one asked for anyhow, it is the Summary
   if (ui_vo() && ui.view !== 'help' && !ui_nav().some(g => g.items.some(([id]) => id === ui.view))) ui.view = UI_HOME;
@@ -12228,20 +12268,22 @@ function ui_budgetChanged(el, what) {
   ui_setSettings({ budgets: all }, 'Budget “' + (b.name || '(blank)') + '”: ' + (what === 'svc' ? 'service ' + (cur.svc || 'by rule') : 'lane ' + (cur.lane ? SP.LANE_WORDS[cur.lane] : 'by rule')) + '.');
 }
 
-async function ui_picture(kind, i) {
-  const M = ui_model(), b = ui.reg.blocks[i];
+async function ui_picture(kind, i, pi) {
+  const M = ui_model(), pb = pi === null || pi === undefined ? null : ui.reg.pblocks[pi];
+  const b = pb ? pb.block : ui.reg.blocks[i], opt = pb ? { pmo: pb.pmo } : undefined;
   if (!M || !b) return;
+  const what = pb ? SP.pictureName(b, opt) : b.apLabel + ' FY' + b.fy;
   if (kind === 'copy') {
     if (!ui_need('copyBlockPicture', 'Copy picture')) return;
     await ui_busy('copying the picture', async () => {
-      ui_say('Drawing ' + b.apLabel + ' FY' + b.fy + '…', 'info');
-      ui_result(await SP.copyBlockPicture(b, M), 'The picture of ' + b.apLabel + ' FY' + b.fy + ' is on the clipboard.');
+      ui_say('Drawing ' + what + '…', 'info');
+      ui_result(await SP.copyBlockPicture(b, M, opt), 'The picture of ' + what + ' is on the clipboard.');
     });
   } else {
     if (!ui_need('blockPng', 'Save picture')) return;
     await ui_busy('saving the picture', async () => {
-      const blob = await SP.blockPng(b, M);
-      const name = SP.download(ui_pictureName(b), blob, 'image/png');
+      const blob = await SP.blockPng(b, M, opt);
+      const name = SP.download(pb ? what + '.png' : ui_pictureName(b), blob, 'image/png');
       ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
     });
   }
@@ -12251,11 +12293,12 @@ async function ui_zip() {
   if (!M) return;
   if (!ui_need('allPicturesZip', 'Save all pictures')) return;
   await ui_busy('saving the pictures', async () => {
-    ui_say('Drawing ' + M.blocks.length + ' pictures…', 'info');
+    const nPic = M.blocks.length + (M.pmos || []).reduce((n, p) => n + p.blocks.length, 0);
+    ui_say('Drawing ' + nPic + ' pictures…', 'info');
     const blob = await SP.allPicturesZip(M);
     const name = SP.download('APEX pictures FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + ui_today()
       + (M.shown.all ? '' : ' [filtered]') + '.zip', blob, 'application/zip');
-    ui_say('Saved “' + name + '” (' + M.blocks.length + ' pictures) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+    ui_say('Saved “' + name + '” (' + nPic + ' pictures) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
 
@@ -12353,8 +12396,8 @@ function ui_onClick(ev) {
       ui_render();
       break;
     }
-    case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b'))); break;
-    case 'savepic': ui_picture('save', Number(t.getAttribute('data-b'))); break;
+    case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b')), t.hasAttribute('data-p') ? Number(t.getAttribute('data-p')) : null); break;
+    case 'savepic': ui_picture('save', Number(t.getAttribute('data-b')), t.hasAttribute('data-p') ? Number(t.getAttribute('data-p')) : null); break;
     case 'zip': ui_zip(); break;
     case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
     case 'pubzip': ui_pubZip(); break;

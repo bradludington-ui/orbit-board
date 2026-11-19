@@ -69,7 +69,20 @@ function pic_wrap(ctx, text, maxW) {
 }
 
 // cell: {t: text, align: 'l'|'r'|'c', font, ink, fill, swatch?: status colour (a plan status)}
-function pic_layout(ctx, block, model) {
+// §41 A PMO'S BLOCK. opt.pmo is the PMO (model.pmos[i]) whose block this is: its rows are that PMO's requirement titles
+// in the block (the tree's Title level, as By PMO opens), under the same totals band. An appropriation's block lists PMOs.
+function pic_rowsOf(block, opt) {
+  if (!(opt && opt.pmo)) return block.pmoRows || [];
+  const out = [];
+  for (const n of block.tree || []) { if (n && n.kind === 'pmo') for (const c of n.children || []) out.push(c); else if (n) out.push(n); }
+  return out;
+}
+SP.pictureName = function pictureName(block, opt) {
+  const base = (block && block.apLabel ? block.apLabel : '') + ' FY' + (block ? block.fy : '');
+  return opt && opt.pmo ? 'PMO ' + (opt.pmo.code || opt.pmo.label || '') + ' - ' + base : base;
+};
+function pic_layout(ctx, block, model, opt) {
+  const isPmo = !!(opt && opt.pmo);
   const T = PIC_T;
   const V = pic_cols(model);
   const nNum = V.length + 2;                 // Total, the columns, Total
@@ -78,10 +91,10 @@ function pic_layout(ctx, block, model) {
   const closedFill = c => (c.closed ? PIC.closed : null);
   const rows = [];
   // the header
-  rows.push({ kind: 'head', cells: [cell('PMO', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold), cell('Total', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)]
+  rows.push({ kind: 'head', cells: [cell(isPmo ? 'Requirement Title' : 'PMO', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold), cell('Total', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)]
     .concat(V.map(c => cell(c.label, 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)), [cell('Total', 'c', pic_font(T.fHead, true), PIC.ink, PIC.gold)]) });
   // the PMO rows: every PMO with money in the block (§6 item 11), never a typed list
-  for (const p of block.pmoRows || []) {
+  for (const p of pic_rowsOf(block, opt)) {
     rows.push({ kind: 'pmo', cells: [cell(p.label, 'l', fPmoB, PIC.navy), cell(pic_money(p.total), 'r', fPmoB, PIC.navy)]
       .concat(V.map(c => cell(pic_money(p.cols[c.index]), 'r', fPmoB, PIC.navy, closedFill(c))), [cell(pic_money(p.total), 'r', fPmoB, PIC.navy)]) });
   }
@@ -141,7 +154,8 @@ function pic_layout(ctx, block, model) {
     r.h = Math.max(T.rowH, lab.lines.length * lh + 6);
     r.lh = lh;
   }
-  const title = (block.apLabel || '') + ' FY' + block.fy + ' - Spend Plan (PMO Summary, slide-ready)';
+  const title = isPmo ? 'PMO: ' + (opt.pmo.label || '') + ' - ' + (block.apLabel || '') + ' FY' + block.fy + ' - Spend Plan (slide-ready)'
+    : (block.apLabel || '') + ' FY' + block.fy + ' - Spend Plan (PMO Summary, slide-ready)';
   ctx.font = pic_font(T.fTitle, true);
   const tableW = widths.reduce((a, b) => a + b, 0);
   const natW = Math.max(tableW, ctx.measureText(title).width + 2 * T.padX + 8);
@@ -152,12 +166,18 @@ function pic_layout(ctx, block, model) {
   const shown = model.shown && !model.shown.all ? String(model.shown.text || '') : '';
   const top = PIC_CUI_BAND + (shown ? PIC_SHOWN_H : 0) + 4;
   const region = { x: PIC_MARGIN, y: top, w: PIC_W - 2 * PIC_MARGIN, h: PIC_H - PIC_CUI_BAND - 4 - top };
-  let scale = region.w / natW;
-  if (natH * scale > region.h) scale = region.h / natH;
+  let scale = region.w / natW, picH = PIC_H;
+  // an appropriation's block has a row per PMO and is shrunk to the slide region's height (§10). A PMO's block has a row
+  // per requirement, as many as the PMO has: shrunk to that height it could not be read, so it keeps its width's scale
+  // and the picture is as tall as its rows need (§41)
+  if (natH * scale > region.h) {
+    if (isPmo) { region.h = Math.ceil(natH * scale); picH = top + region.h + 4 + PIC_CUI_BAND; }
+    else scale = region.h / natH;
+  }
   const ox = region.x + (region.w - natW * scale) / 2, oy = region.y + (region.h - natH * scale) / 2;
-  return { title, rows, widths, natW, natH, scale, ox, oy, region, shown, nCols: nNum + 1,
+  return { title, rows, widths, natW, natH, scale, ox, oy, region, shown, nCols: nNum + 1, picH,
     box: { x: ox, y: oy, w: natW * scale, h: natH * scale },
-    cui: { top: { y: 0, h: PIC_CUI_BAND }, bottom: { y: PIC_H - PIC_CUI_BAND, h: PIC_CUI_BAND } } };
+    edge: { top: { y: 0, h: PIC_CUI_BAND }, bottom: { y: picH - PIC_CUI_BAND, h: PIC_CUI_BAND } } };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -192,21 +212,25 @@ function pic_text(ctx, c, x, y, w, h, lines, lh) {
   });
 }
 
-SP.blockCanvas = function blockCanvas(block, model) {
+SP.blockCanvas = function blockCanvas(block, model, opt) {
   if (!block || !model || !Array.isArray(model.cols)) throw new Error('There is no block to draw.');
   const cv = document.createElement('canvas');
   cv.width = PIC_W; cv.height = PIC_H;
   const ctx = cv.getContext && cv.getContext('2d');
   if (!ctx) throw new Error('This browser cannot draw pictures (it has no canvas), so no picture was made.');
+  const L = pic_layout(ctx, block, model, opt);
+  if (L.picH !== PIC_H) cv.height = L.picH;      // sizing a canvas clears it and resets its state: done before anything is drawn
   ctx.fillStyle = PIC.white;
-  ctx.fillRect(0, 0, PIC_W, PIC_H);
-  const L = pic_layout(ctx, block, model);
-  // the CUI marking, top and bottom, outside the table's region (§6 item 14)
-  ctx.fillStyle = '#000000';
-  ctx.font = pic_font(PIC_CUI_PX, true);
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(SP.CUI, PIC_W / 2, PIC_CUI_BAND / 2);
-  ctx.fillText(SP.CUI, PIC_W / 2, PIC_H - PIC_CUI_BAND / 2);
+  ctx.fillRect(0, 0, PIC_W, L.picH);
+  // NO CUI MARKING ON A PICTURE (§41; Brad, 19 Nov 2026: "need to remove the CUI statement from the screen captures. It
+  // will be on the slides the images are put on"). The bands it stood in are left white, so the table sits where it did.
+  if (SP.PIC_CUI === true) {
+    ctx.fillStyle = '#000000';
+    ctx.font = pic_font(PIC_CUI_PX, true);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(SP.CUI, PIC_W / 2, PIC_CUI_BAND / 2);
+    ctx.fillText(SP.CUI, PIC_W / 2, L.picH - PIC_CUI_BAND / 2);
+  }
   // what the picture shows, when not everything is shown (§4.3): a slide is a product too
   if (L.shown) {
     ctx.fillStyle = PIC.filtered;
@@ -310,11 +334,11 @@ function pic_dataUrlBlob(url) {
   for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
   return new Blob([pic_withDpi(a)], { type: 'image/png' });
 }
-SP.blockPng = function blockPng(block, model) {
+SP.blockPng = function blockPng(block, model, opt) {
   return new Promise((resolve, reject) => {
     let cv;
-    try { cv = SP.blockCanvas(block, model); } catch (e) { reject(e); return; }
-    const fail = () => new Error('The picture of ' + block.apLabel + ' FY' + block.fy + ' could not be made into a PNG.');
+    try { cv = SP.blockCanvas(block, model, opt); } catch (e) { reject(e); return; }
+    const fail = () => new Error('The picture of ' + SP.pictureName(block, opt) + ' could not be made into a PNG.');
     if (typeof cv.toDataURL === 'function') {
       let b = null;
       try { b = pic_dataUrlBlob(cv.toDataURL('image/png')); } catch (e) { b = null; }
@@ -331,14 +355,14 @@ SP.blockPng = function blockPng(block, model) {
 // The clipboard. The PNG goes to the clipboard as a PROMISE: Safari honours a write only when it starts in the click
 // itself, and drawing first would end that. Where the browser refuses (no permission, an old browser, a locked-down
 // profile), the reason is said in plain words and Save picture, which always works, is offered instead.
-SP.copyBlockPicture = async function copyBlockPicture(block, model) {
-  const name = (block && block.apLabel ? block.apLabel + ' FY' + block.fy : 'this block');
+SP.copyBlockPicture = async function copyBlockPicture(block, model, opt) {
+  const name = (block && block.apLabel ? SP.pictureName(block, opt) : 'this block');
   const instead = ' Use Save picture to keep it as a file instead.';
   const cb = typeof navigator !== 'undefined' ? navigator.clipboard : null;
   if (!cb || typeof cb.write !== 'function' || typeof ClipboardItem !== 'function') {
     return { ok: false, message: 'This browser does not let a page put a picture on the clipboard, so the picture of ' + name + ' was not copied.' + instead };
   }
-  const png = SP.blockPng(block, model);
+  const png = SP.blockPng(block, model, opt);
   png.catch(() => {});      // the failure is reported once, below, never as an unhandled rejection besides
   try {
     await cb.write([new ClipboardItem({ 'image/png': png })]);
@@ -350,7 +374,9 @@ SP.copyBlockPicture = async function copyBlockPicture(block, model) {
     return { ok: false, message: 'The picture of ' + name + ' was not copied: ' + why + '.' + instead };
   }
   // The browser re-encodes a clipboard picture and may drop its 150 dpi (review XP-7), so the size is said, not promised
-  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x 675 px, drawn for 13.33 x 4.5 in): paste it into the slide;'
+  let tall = PIC_H;
+  if (opt && opt.pmo) { try { tall = SP.blockCanvas(block, model, opt).height; } catch (e) { tall = PIC_H; } }
+  return { ok: true, message: 'The picture of ' + name + ' is on the clipboard (2000 x ' + tall + ' px, drawn for 13.33 x ' + (tall === PIC_H ? '4.5' : (tall / 150).toFixed(2)) + ' in): paste it into the slide;'
     + ' if it comes in larger, set its width to 13.33 in.' };
 };
 
@@ -358,5 +384,7 @@ SP.allPicturesZip = async function allPicturesZip(model) {
   if (!model || !Array.isArray(model.blocks) || !model.blocks.length) throw new Error('There is no block to draw, so no pictures were made.');
   const files = [];
   for (const b of model.blocks) files.push({ name: b.apLabel + ' FY' + b.fy + '.png', data: await SP.blockPng(b, model) });
+  // and every PMO's blocks, in a folder of their own (§41)
+  for (const p of model.pmos || []) for (const b of p.blocks || []) files.push({ name: 'By PMO/' + SP.pictureName(b, { pmo: p }) + '.png', data: await SP.blockPng(b, model, { pmo: p }) });
   return new Blob([await SP.zipFiles(files)], { type: 'application/zip' });
 };

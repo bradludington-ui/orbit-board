@@ -422,11 +422,14 @@ example. Your browser puts it in its downloads folder, or asks where to save it,
   message says so; use **Save picture**. If a pasted picture comes in larger than the slide region, set its width to
   13.33 in (a browser may drop the picture's resolution on the clipboard).
 - **Save picture** saves one block as a PNG.
-- **Save all pictures (.zip)** saves every block, one PNG each.
+- **Save all pictures (.zip)** saves every block, one PNG each, and every PMO's blocks in a folder named *By PMO*.
+- **By PMO** has the same Copy picture and Save picture on each of a PMO's blocks. A PMO's picture lists that PMO's
+  requirement titles over the same totals, goal and status rows.
 
 Each picture is 2000 × 675 pixels: 13.33 × 4.5 inches at 150 dpi, the slide region. A saved picture says 150 dpi, so
 PowerPoint places it at that size. It runs from the block's title through
-OSD Status, and is marked CUI at the top and the bottom.
+OSD Status. It carries no CUI marking: the slide it goes on is marked. A PMO's picture is the same width; with more
+requirements than fit that height it is taller, so the type stays readable.
 
 The workbook's Slide Snapshots sheet has the same blocks. To copy one from there with Copy as Picture, select it from the
 CUI line above its title through the CUI line under OSD Status: a picture of a cell range does not carry the sheet's
@@ -530,7 +533,7 @@ way is wider for its height than the slide region; size it by its width.
 11. **Each slide block lists every PMO with money,** not a typed list.
 12. **The CCaR row shows its number.**
 13. **Authorized can be entered.**
-14. **The CUI marking is on every screen, sheet and picture.**
+14. **The CUI marking is on every screen and sheet.** Pictures for slides carry none: the slide is marked.
 
 Two smaller differences, from the same rules:
 
@@ -543,7 +546,7 @@ Two smaller differences, from the same rules:
 
 The data is CUI//REL TO US DoW. The marking is at the top and bottom of every screen, of every printed page of a view (Ctrl+P;
 a printed view also says Data through and the import dates, which the top bar says on screen), on every sheet of the export
-(header and footer, and above and below each Slide Snapshots block), and on every picture. A copy of this file that holds data is CUI. Keep it, and everything exported from it,
+(header and footer, and above and below each Slide Snapshots block). A picture for a slide carries no marking: the slide it goes on must be marked. A copy of this file that holds data is CUI. Keep it, and everything exported from it,
 where CUI may be kept.
 
 ## For maintainers
