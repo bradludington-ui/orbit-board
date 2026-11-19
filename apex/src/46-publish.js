@@ -833,3 +833,75 @@ SP.readDescriptions = function readDescriptions(wb) {
   return { ok: false, why: 'no sheet in it has a heading row naming both a CCaR number (CCaR Record or CCaR No) and a Description' };
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// §37 THE UNFUNDED LIST ON SCREEN (Brad, 19 Nov 2026: "we need to create a UFR section under Browse. Once I upload the UFR
+// listing, I want the list to be seen there with other features like filtering, PMO filter, etc."). Everything the
+// Unfunded (UFR) view draws, worked out here so the view only draws. Nothing is a new rule: a line's PMO and its place in
+// the spend plan are SP.publishData's (the same record a published plan puts it on), so the screen and the PDFs cannot
+// say different things about one unfunded line.
+//   Mfull   the model with every switch on (as SP.publishData takes)
+//   view    this browser's switches: a service switched off is left out of every amount, column and total here, as it is
+//           on every other view. The lanes do not apply: the tracker has none.
+//   F       { pmo, ap, fy, status, q }   each null/'' for all (there is no Exec ready picker: Brad, 19 Nov 2026, "No need for an
+//           exec filter"; the Exec ready? column and the Exec ready tile stay)
+//   -> { files: [{fy, name, at}], all (lines before the pickers), n, svc: [{i, label}], picks: {pmos, aps, fys, statuses},
+//        groups: [{ap, apLabel, fy, lines}], lines: [line + {amt: [cents by shown service], sum, plan: null | {approved, obligated}}],
+//        total: {amt, sum}, tiles: {sum, n, aps, exec: {sum, n}, sfcb: {sum, n}, only}, byPmo: [{key, label, sum, color}],
+//        bySvc: [{label, sum}], skipped }
+// "Exec ready" counts a line whose Exec Ready? cell begins with Y; "SFCB approved" one whose SFCB Action says approv(ed).
+// ---------------------------------------------------------------------------------------------------------------
+const PB_UFR_SVC = Object.freeze(['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'No service']);
+// whole thousands of dollars, as the tracker is kept: 1234567800 cents -> '12,346'; negative in parentheses; zero '-'
+SP.fmtK = function fmtK(cents) {
+  if (typeof cents !== 'number' || !isFinite(cents)) return '';
+  const k = Math.round(Math.abs(cents) / 100000);
+  if (k === 0) return '-';
+  const t = String(k).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return cents < 0 ? '(' + t + ')' : t;
+};
+SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
+  const f = F || {};
+  const D = SP.publishData(Mfull, ufr, pub, { settings });
+  const on = i => { const name = i < PB_NSVC ? SP.SERVICES[i] : SP.SVC_UNKNOWN; return !(view && view.svc && view.svc[name] === false); };
+  // the record each line sits on in the spend plan, as an appropriation's published plan has it
+  const recs = new Map();
+  for (const d of D.docs) if (d.kind === 'ap') for (const sec of d.sections) for (const g of sec.groups) for (const r of g.records)
+    recs.set(sec.ap + '|' + sec.fy + '|' + (g.prime ? '*' : g.pmoKey) + '|' + (r.key !== '' ? r.key : '\u0001' + SP.normKey(r.title)), r);
+  const special = new Set(Array.isArray(Mfull.special) ? Mfull.special : []);
+  const svcIdx = [];
+  const raw = D.docs.filter(d => d.kind === 'ap').flatMap(d => d.ufr);
+  for (let i = 0; i <= PB_NSVC; i++) if (on(i) && (i < PB_NSVC || raw.some(l => l.cents[PB_NSVC]))) svcIdx.push(i);
+  const all = raw.map(l => {
+    const ck = SP.normKey(l.ccar), prime = ck !== '' && special.has(ck);
+    const r = recs.get(l.ap + '|' + l.fy + '|' + (prime ? '*' : l.pmoKey) + '|' + (ck !== '' ? ck : '\u0001' + SP.normKey(l.title)));
+    const amt = svcIdx.map(i => l.cents[i] || 0);
+    let plan = null;
+    if (r && !r.ufrOnly) { plan = { approved: 0, obligated: 0 }; r.svc.forEach((x, i) => { if (on(i)) { plan.approved += x.approved; plan.obligated += x.obligated; } }); }
+    return Object.assign({}, l, { amt, sum: amt.reduce((a, b) => a + b, 0), plan, prime,
+      execReady: /^\s*y/i.test(l.exec), sfcbApproved: /approv/i.test(l.sfcb), id: l.ap + '|' + l.fy + '|' + l.sheet + '|' + l.row });
+  });
+  const uniq = (list, key, label) => { const m = new Map(); for (const x of list) { const k = key(x); if (k !== '' && k !== null && k !== undefined && !m.has(k)) m.set(k, label(x)); } return [...m]; };
+  const picks = {
+    pmos: uniq(all, l => l.pmoKey, l => l.pmoLabel).sort((a, b) => pb_cmp(SP.normKey(a[1]), SP.normKey(b[1]))),
+    aps: SP.APS.filter(a => all.some(l => l.ap === a.id)).map(a => [a.id, a.label]),
+    fys: uniq(all, l => String(l.fy), l => 'FY' + l.fy).sort((a, b) => Number(a[0]) - Number(b[0])),
+    statuses: uniq(all, l => l.status, l => l.status).sort((a, b) => pb_cmp(SP.normKey(a[0]), SP.normKey(b[0]))),
+  };
+  const q = SP.normKey(f.q);
+  const lines = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
+    && (f.status === null || f.status === undefined || f.status === '' || l.status === f.status)
+    && (q === '' || SP.normKey(l.title).includes(q) || SP.normKey(l.ccar).includes(q)));
+  const sumOf = ls => ls.reduce((n, l) => n + l.sum, 0);
+  const groups = [];
+  for (const l of lines) { const g = groups[groups.length - 1]; if (g && g.ap === l.ap && g.fy === l.fy) g.lines.push(l); else groups.push({ ap: l.ap, apLabel: pb_apLabel(l.ap), fy: l.fy, lines: [l] }); }
+  const byPmo = picks.pmos.map(([key, label]) => ({ key, label, sum: sumOf(lines.filter(l => l.pmoKey === key)), color: SP.publishColor(key, false) })).filter(x => x.sum !== 0)
+    .sort((a, b) => b.sum - a.sum || pb_cmp(a.label, b.label));
+  const files = Object.keys(ufr && typeof ufr === 'object' ? ufr : {}).sort().map(k => ({ fy: ufr[k].fy, name: ufr[k].name || '', at: ufr[k].importedAt || '' }));
+  return { files, all: all.length, n: lines.length, svc: svcIdx.map(i => ({ i, label: PB_UFR_SVC[i] })), picks, groups, lines,
+    total: { amt: svcIdx.map((_, k) => lines.reduce((n, l) => n + l.amt[k], 0)), sum: sumOf(lines) },
+    tiles: { sum: sumOf(lines), n: lines.length, aps: new Set(lines.map(l => l.ap)).size, exec: { sum: sumOf(lines.filter(l => l.execReady)), n: lines.filter(l => l.execReady).length },
+      sfcb: { sum: sumOf(lines.filter(l => l.sfcbApproved)), n: lines.filter(l => l.sfcbApproved).length }, only: lines.filter(l => !l.plan).length },
+    byPmo, bySvc: svcIdx.map((i, k) => ({ label: PB_UFR_SVC[i], sum: lines.reduce((n, l) => n + l.amt[k], 0) })),
+    skipped: D.ufrSkipped.reduce((n, x) => n + x.n, 0) };
+};
+

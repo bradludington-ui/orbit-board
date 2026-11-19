@@ -229,7 +229,7 @@ function checkBand(where, rows, i, L, X, x) {
 // §5's lines as the sheet prints them: the bar, then 'Oct:' + text (a long month continues on rows with no label)
 function readNa(rows, i) {
   const out = [];
-  if (!rows[i] || rows[i].v(0) !== 'Not Allocated Requirements') return { out: null, next: i };
+  if (!rows[i] || rows[i].v(0) !== 'Unobligated Requirements') return { out: null, next: i };
   let j = i + 1;
   for (; j < rows.length && !isBlank(rows[j]); j++) {
     const lab = rows[j].v(0), text = rows[j].v(1);
@@ -255,7 +255,7 @@ function wantNa(na, L) {
 }
 function checkNa(where, rows, i, na, L) {
   const { out, next } = readNa(rows, i);
-  if (!C.chk(where + ': the Not Allocated bar follows the band', out !== null, 'row ' + (rows[i] && rows[i].r) + ' reads ' + show(rows[i] && rows[i].v(0)))) return i;
+  if (!C.chk(where + ': the Unobligated Requirements bar follows the band', out !== null, 'row ' + (rows[i] && rows[i].r) + ' reads ' + show(rows[i] && rows[i].v(0)))) return i;
   const want = wantNa(na, L);
   const d = JSON.stringify(out) === JSON.stringify(want);
   C.chk(where + ': the Not Allocated lines', d, d ? '' : 'got ' + JSON.stringify(out).slice(0, 400) + ' want ' + JSON.stringify(want).slice(0, 400));
@@ -317,7 +317,7 @@ try {
     const pmoLabels = tabSorted(Object.keys(X.pmoTabs));
     const rawAps = AP_ORDER.filter(ap => X.rowsByAp[ap] !== undefined);
     C.eq(sc.name + ': the sheets, in order', names, ['Summary', 'Slide Snapshots'].concat(apsWith.map(ap => AP_LABEL[ap]),
-      pmoLabels.map(l => 'PMO ' + X.pmoCodes[l]), ['Not Allocated'], rawAps.map(ap => RAW_SHEET[ap]), ['Import Report', 'Settings']));
+      pmoLabels.map(l => 'PMO ' + X.pmoCodes[l]), ['Unobligated'], rawAps.map(ap => RAW_SHEET[ap]), ['Import Report', 'Settings']));
 
     // ------------------------------------------------------------------------------- every sheet: CUI, page, gridlines
     const pb = [];
@@ -590,7 +590,7 @@ try {
 
     // ------------------------------------------------------------------------------- §8.7 Not Allocated
     {
-      const S = sheetView(B, 'Not Allocated'), rows = S.rows;
+      const S = sheetView(B, 'Unobligated'), rows = S.rows;
       C.eq(sc.name + ' Not Allocated: line 2 is the shown text', rows[1].v(0), SX);
       const h = rows.findIndex(r => r.v(0) === 'Appropriation');
       C.eq(sc.name + ' Not Allocated: the header', h < 0 ? null : [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => rows[h].v(i)),
@@ -780,7 +780,7 @@ try {
     const sl = spec.sheets.find(x => x.name === 'Slide Snapshots').rows;
     const bar = b.apLabel + ' FY' + b.fy + ' - Spend Plan (PMO Summary, slide-ready)';
     const at = sl.findIndex(r => r.cells[0] && r.cells[0].v === bar);
-    const na = sl.findIndex((r, i) => i > at && r.cells[0] && r.cells[0].v === 'Not Allocated Requirements');
+    const na = sl.findIndex((r, i) => i > at && r.cells[0] && r.cells[0].v === 'Unobligated Requirements');
     const lines = [];
     for (let i = na + 1; i < sl.length && sl[i].cells.length; i++) lines.push(sl[i]);
     const want = SP.naLines(many, allModel.cols)[0];

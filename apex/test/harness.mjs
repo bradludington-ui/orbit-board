@@ -31,7 +31,12 @@ export function pageHtml({ modules = null, state = null } = {}) {
 // that needs O&M FY2025 rows call keepEveryYear() first: every tool they load afterwards leaves nothing out, which is the
 // tool with settings.leftOut = [].
 let leftOutDefault;
-export function keepEveryYear() { leftOutDefault = []; }
+export function keepEveryYear() { leftOutDefault = []; oldHeadings = true; }
+// The lists of what is not yet obligated were headed "Not Allocated Requirements" until 19 Nov 2026. A test that compares
+// the page or the workbook with a build from before then calls oldHeadings() (keepEveryYear does too): every tool it loads
+// afterwards heads those lists as that build did, and nothing else about it changes.
+let oldHeadings = false;
+export function oldUnobligatedHeadings() { oldHeadings = true; }
 export function loadTool({ modules = null, state = null, html = null, url = 'file:///tmp/apex.html', quiet = true } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
@@ -56,6 +61,7 @@ export function loadTool({ modules = null, state = null, html = null, url = 'fil
   const w = dom.window;
   // §24: and keeps the $0.00 plan events; and the default Special CCaRs are the two the earlier builds had (a third was added
   // on 16 Nov 2026), since these files compare the page with those builds
+  if (oldHeadings && w.SP) { w.SP.UNOB_WORD = 'Not Allocated'; w.SP.UNOB_HEAD = 'Not Allocated Requirements'; }
   if (leftOutDefault !== undefined && w.SP) { w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice(); w.SP.KEEP_ZERO_DEFAULT = true; w.SP.SPECIAL_CCARS_DEFAULT = Object.freeze(['PP 2000', 'JSF6654']); }
   return {
     window: w,

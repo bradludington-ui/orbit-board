@@ -375,7 +375,7 @@ function ex_band(K, M, b) {
 // §5's one line per month, under its bar. A month longer than EX_NA_CHUNK continues on the next row with its label
 // blank, so every item is printed whole and none is clipped by a row height.
 function ex_na(K, M, items) {
-  ex_bar(K, 'Not Allocated Requirements', EXS.barNa, 19.5);
+  ex_bar(K, SP.UNOB_HEAD, EXS.barNa, 19.5);
   const lines = SP.naLines(items, M.cols);
   const tw = ex_widthOf(K, 1, K.W - 1);
   const row = (label, text) => {
@@ -618,12 +618,12 @@ function ex_pmoTabs(pmos) {
 // §8.7 THE OTHER SHEETS
 // ---------------------------------------------------------------------------------------------------------------
 function ex_naSheet(M) {
-  const K = ex_sheet('Not Allocated', [16, 7.934, 11.027, 60, 22, 18, 32, 48, 13.047]);
-  ex_title(K, 'Not Allocated - every item, by appropriation and FY (largest first within each month)');
+  const K = ex_sheet(SP.UNOB_WORD, [16, 7.934, 11.027, 60, 22, 18, 32, 48, 13.047]);
+  ex_title(K, SP.UNOB_WORD + ' - every item, by appropriation and FY (largest first within each month)');
   ex_shownLine(K, M);
   const hr = ex_headRow(K, ['Appropriation', 'FY', 'Column', 'Item', 'Status', 'CCaR(s)', 'PMO(s)', 'Title(s)', '$M'], 24);
   K.sh.freeze = 'A' + (hr + 1);
-  if (!M.naAll.length) { ex_span(K, 'No Not Allocated items.', EXS.text, 0, K.W - 1); return K.sh; }
+  if (!M.naAll.length) { ex_span(K, 'No ' + SP.UNOB_WORD + ' items.', EXS.text, 0, K.W - 1); return K.sh; }
   for (const it of M.naAll) {
     const col = M.cols[it.colIndex];
     ex_push(K, [{ v: it.apLabel, s: EXS.lText }, { v: it.fy, s: EXS.lFyY }, { v: col ? col.label : it.col, s: EXS.lText },
@@ -1055,7 +1055,7 @@ function ex_settingsSheet(M, pulls, settings) {
     }
   }
   ex_blank(K);
-  ex_push(K, [{ v: 'Special CCaRs (a Not Allocated item under one of these is named by its Title)', s: EXS.h11 }]);
+  ex_push(K, [{ v: 'Special CCaRs (' + (/^[aeiou]/i.test(SP.UNOB_WORD) ? 'an ' : 'a ') + SP.UNOB_WORD + ' item under one of these is named by its Title)', s: EXS.h11 }]);
   const sp = Array.isArray(s.special) ? s.special : SP.SPECIAL_CCARS_DEFAULT;
   if (!sp.length) ex_push(K, [{ v: 'None.', s: EXS.line }]);
   for (const x of sp) ex_push(K, [{ v: String(x ?? ''), s: EXS.line }]);

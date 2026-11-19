@@ -9,7 +9,7 @@ CUI//REL TO US DoW applies to any copy that holds data.
 ## What it is
 
 APEX replaces the *SFCB FY26 Spend Plan Workbook v12*. You import the CCaR pull. The tool draws every
-product the workbook made: the Summary, the slide blocks, the four appropriation tabs, the PMO tabs and the Not Allocated
+product the workbook made: the Summary, the slide blocks, the four appropriation tabs, the PMO tabs and the Unobligated Requirements
 lists. **Export Excel** writes them all as a workbook of values.
 
 It is one file: `apex.html` (`sfcb-spend-plan.html`, then `scope.html`, before the renames; a copy saved under the old name still opens and
@@ -212,7 +212,7 @@ copy whenever the data changes; a copy does not update itself.
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*
-(By PMO and each appropriation); *Briefing* (Overview, Summary, Slide blocks, Publish PDFs); *Data checks* (Not Allocated, Import report,
+(By PMO, each appropriation, and Unfunded); *Briefing* (Overview, Summary, Slide blocks, Publish PDFs); *Data checks* (Unobligated, Import report,
 What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
 for the switches.
 
@@ -253,7 +253,7 @@ for the switches.
   mark its rows carry (†, ‡, and § with a BAE report loaded), and a line under the table says what each mark means, as the
   workbook does.
 - **Slide blocks.** Each appropriation and FY as a slide block. It shows the PMO rows by month, then Monthly Totals,
-  Cumulative Totals, Obligation %, OSD Goal % and OSD Status. Under each block is its Not Allocated list. Each block has
+  Cumulative Totals, Obligation %, OSD Goal % and OSD Status. Under each block is its Unobligated Requirements list (headed Not Allocated Requirements until November 2026). Each block has
   **Copy picture** and **Save picture**.
 - **Publish PDFs.** Spend plans to send out, as PDF files made inside the page (CONTRACT §33). One for each
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
@@ -273,8 +273,13 @@ for the switches.
   - The fiscal years ticked are the ones published. Every service and lane is counted, whatever the Filter says.
 - **O&M, Full Fund, Initial Spares, OPN.** The FY table, then each FY's tree: PMO, Title, Plan Event and CCaR. Press a row
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
-- **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Not Allocated list.
-- **Not Allocated.** Every item in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
+- **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Unobligated Requirements list.
+- **Unfunded.** The UFR tracker's lines, once it has been imported on Publish PDFs: by appropriation and fiscal year, in
+  rank order, in $K. Pick a PMO, appropriation, fiscal year or Funding status, or type part of a title or CCaR
+  number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
+  requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
+  Unfunded only. The same view is in a view-only copy.
+- **Unobligated.** Every item not yet obligated, in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
   that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count. A
   filter stays chosen when the switches leave it nothing to show (it says so, and its list comes back when they show it);
   **Clear filters** takes it off. The PMO picked on **PMOs** stays picked the same way.
@@ -382,7 +387,7 @@ the message line says nothing is unsaved.
   in its place, marked †. A total that adds one in is marked † too. With a BAE report loaded, a blank box uses the report's
   figure instead, where it has one (see *The BAE report of budgets*).
 - **The BAE report.** With one loaded, Settings names its file, its date and when it was imported.
-- **Special CCaRs.** In the Not Allocated lists, a special CCaR is one item, named by its title. The defaults are
+- **Special CCaRs.** In the Unobligated Requirements lists, a special CCaR is one item, named by its title. The defaults are
   `PP 2000`, `JSF6654` and `JSF6673`.
 - **Budgets.** Every budget name, with its rows, dollars, service and lane. You can override the service or the lane of
   any budget.
@@ -392,7 +397,7 @@ the message line says nothing is unsaved.
 **Export Excel** downloads a workbook named `APEX FY2027 - data through Oct-2026 - 2026-11-09.xlsx`, for
 example. Your browser puts it in its downloads folder, or asks where to save it, as it does the pictures.
 
-- It holds the Summary, Slide Snapshots, a sheet per appropriation, a tab per PMO, Not Allocated, the raw data sheets,
+- It holds the Summary, Slide Snapshots, a sheet per appropriation, a tab per PMO, Unobligated, the raw data sheets,
   the Import Report and Settings.
 - It holds values only, no formulas. Money is in $M.
 - It uses v12's look. Every sheet is marked CUI at the top and the bottom, and prints on letter, landscape. The report
@@ -489,7 +494,7 @@ way is wider for its height than the slide region; size it by its width.
 - **Which rows count:** a row counts when its FY and Amount can be read, its appropriation is known, its FY is at least
   First FY, it is not FY2025 O&M OBBBA funding (see *Data through and First FY*), and the switches show its service and
   lane.
-- **Not Allocated** lists every counted row that is not *Actual Execution*.
+- **Unobligated Requirements** lists every counted row that is not *Actual Execution*.
   - Items are grouped by column, status and plan event. Each item shows its dollars, largest first within each month.
   - Unprogrammed, Forecast and other statuses are tagged.
   - Items of $0 are left out. There is no limit on the number of items.
@@ -508,7 +513,7 @@ way is wider for its height than the slide region; size it by its width.
 6. **One set of switches drives everything.** v12 applied its filter in some places and not others. The lane switches are
    new.
 7. **Status is worked out every time, with words.** v12's status fills were painted by hand.
-8. **Not Allocated:** no cap, no $0 items, largest first, statuses tagged, Prior, next year and No date listed, filtered by
+8. **Unobligated Requirements** (v12's Not Allocated list): no cap, no $0 items, largest first, statuses tagged, Prior, next year and No date listed, filtered by
    the switches, and a list for every PMO. v12 listed only Not Allocated rows in the year, stopped at 60 items a month
    (12 on PMO PSM), and gave a list to PMO PSM only.
 9. **There are no row limits.**

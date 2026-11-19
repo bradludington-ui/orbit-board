@@ -2141,3 +2141,52 @@ stays a full APEX: the mark is not carried.
 
 `test/view-only.test.mjs`.
 
+## 36. "Unobligated Requirements" (Brad, 19 Nov 2026)
+
+Brad: *"Instead of saying Not Allocated Requirements below charts can we now call it Unobligated Requirements. Seems to be
+some confusion."* The lists of §5 hold every counted row not marked Actual Execution, which is what is not yet obligated;
+"Not Allocated" is only one of the CCaR statuses among those rows. So the heading is **Unobligated Requirements** wherever
+a list is headed: under each slide block, on the appropriation views and the PMO tabs, the Data checks view (its menu item
+is **Unobligated**), and in the workbook (the bar under each block, and the sheet, now named **Unobligated**). Earlier
+sections of this contract say "Not Allocated" for these lists; read them as this heading.
+
+Nothing but the words changed: the items, their order and their figures are as they were. A row's Status still reads
+"Not Allocated" where that is its CCaR status, and so does the tag rule of §5. The words are `SP.UNOB_HEAD` and
+`SP.UNOB_WORD`, in one place, so the screens and the workbook cannot head one list two ways.
+
+## 37. Unfunded (UFR), under Browse (Brad, 19 Nov 2026)
+
+Brad: *"We need to create a UFR section under Browse. Once I upload the UFR listing, I want the list to be seen there with
+other features like filtering, PMO filter, etc."* He saw a mockup drawn inside a view-only copy and answered: amounts in
+**$K**; the import button and the "To check" notes **stay where they are** (Publish PDFs), not on this page; *"I like the
+rest [as] it is designed."*
+
+The menu item is **Unfunded**, the last under Browse; the page is titled Unfunded requirements (UFR). It is in a view-only
+copy too (§35), and works the same there. Top to bottom:
+
+- **Pickers, first on the page:** Choose your PMO, Appropriation, FY, Funding status, a Find box (part of a title or of
+  a CCaR number), and Clear filters. Funding status offers the values in the tracker's own column. There is no Exec ready
+  picker (Brad, 19 Nov 2026: *"No need for an exec filter"*); the Exec ready? column and the Exec ready tile stay. A choice the list no longer holds is taken off, never left hiding every line.
+- **Four tiles:** Total unfunded; Exec ready (lines whose Exec Ready? begins with Y); SFCB approved (lines whose SFCB
+  Action says approved); Not in the spend plan (lines with no plan event).
+- **Two charts:** unfunded by PMO, largest first, each bar in the PMO's published colour (§33.9); unfunded by service.
+- **The list,** by appropriation and fiscal year, in rank order: Rank, Requirement (title and CCaR number), PMO, a column
+  per service, Total, Funding status, Exec ready?, SFCB action, and Approved in plan (or "Unfunded only"). A total row.
+- **A line pressed** opens beside its spend plan: Approved, Obligated, Remaining, Required (Approved plus this unfunded
+  amount) and Delta, with a button to open it in Requirements. One line is open at a time.
+
+Rules (`SP.ufrView`):
+
+- **Amounts are whole $K** (`SP.fmtK`), as the tracker is kept.
+- **The pickers and the Find box narrow the list, and everything follows:** the count, the tiles, both charts, the total.
+- **A service switched off in the Filter is left out of every amount, column and total,** and of Approved in plan, as on
+  every other view. The lane switches do not apply: the tracker has no lanes.
+- **A line's PMO and its place in the spend plan are the published plans'** (`SP.publishData`): its PMO is read by name or
+  code; a prime contract's record is over every PMO; a line with no plan event under its record is "Unfunded only". So
+  the screen and the PDFs cannot say different things about one line.
+- A line of a year APEX shows no figures for is not shown, and the note under the list counts it.
+- An amount the tracker gave under no service has a column of its own, "No service".
+- Nothing on this page changes the plan.
+
+`test/ufr-view.test.mjs`.
+

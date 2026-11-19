@@ -541,4 +541,18 @@ img.pubemb{width:54px;height:54px;object-fit:contain;background:#fff;border:1px 
 /* §35 a view-only copy says so beside the dates */
 .vobadge{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--acc);color:#eaf0f6;font-weight:700;font-size:12px;white-space:nowrap}
 .vobadge[hidden]{display:none}
+/* §37 Unfunded (UFR) */
+.ubars li{align-items:center}
+.ubars .fp{flex:1 1 40%}
+.ubar{flex:0 0 42%;height:12px;background:var(--sline);border-radius:3px;overflow:hidden}
+.ubar > span{display:block;height:100%;border:1px solid #6b7889;box-sizing:border-box;border-radius:3px}
+.ubars .fa{flex:0 0 5.5em;text-align:right}
+table.ufrt tr.ugrp th{background:#8EAADB;color:#000;text-align:left;padding:4px 8px}
+table.ufrt td.urank,table.ufrt td.uexec{text-align:center}
+table.ufrt td.utot{font-weight:700}
+table.ufrt td.uonly{color:var(--wine);font-weight:700;white-space:nowrap}
+table.ufrt tr.udetail td{padding:8px 10px}
+table.ufrt tr.band th{text-align:right}
+.usw{display:inline-block;width:10px;height:10px;border-radius:2px;border:1px solid #6b7889;margin-right:6px;vertical-align:-1px}
+.ufrbar input[type=search]{max-width:100%}
 
