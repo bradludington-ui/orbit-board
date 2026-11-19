@@ -35,6 +35,8 @@ SP.CUI = 'CUI//REL TO US DoW';
 // tests that compare with builds from before the change can read the old words).
 SP.UNOB_WORD = 'Unobligated';
 SP.UNOB_HEAD = 'Unobligated Requirements';
+// §39 the unfunded list is imported in Settings. A test that compares Settings with a build from before then turns this off.
+SP.UFR_IN_SETTINGS = true;
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated

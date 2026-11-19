@@ -231,6 +231,23 @@ try {
   C.chk('an unknown PMO on a record the plan does not have is listed under its own name, with a document',
     odd.flags.some(f => /New thing.*listed under that name/.test(f)) && odd.docs.some(d => d.kind === 'pmo' && d.label === 'Mystery Office'), J(odd.docs.map(d => d.label)));
 
+  // a short form of a PMO's name (§40; Brad, 19 Nov 2026: "PROP" made a block of its own and was left off the PMO's PDF)
+  const shortD = SP.publishData(M, { 2027: { fy: 2027, lines: [Object.assign({}, L[2], { pmo: 'PROP' })] } }, null, {});
+  const grpOf = (d, title) => d.sections.flatMap(s => s.groups).filter(g => g.records.some(r => r.title === title)).map(g => g.pmoKey);
+  const omDoc = shortD.docs.find(d => d.id === 'ap:om'), ppDoc = shortD.docs.find(d => d.id === 'pmo:propulsion (pp)');
+  C.eq('“PROP” on the tracker is Propulsion (PP): no document and no block of its own', J([shortD.docs.filter(d => d.kind === 'pmo').map(d => d.label), shortD.docs.flatMap(d => d.sections.flatMap(s => s.groups.map(g => g.pmoKey))).includes('prop')]),
+    J([D0.docs.filter(d => d.kind === 'pmo').map(d => d.label), false]));
+  C.eq('the line sits in the appropriation’s existing Propulsion block, once', J(grpOf(omDoc, L[2].title)), J(['propulsion (pp)']));
+  C.chk('and it is on Propulsion’s own PDF: in its block and in its unfunded list', !!ppDoc && J(grpOf(ppDoc, L[2].title)) === J(['propulsion (pp)']) && ppDoc.ufr.length === 1 && ppDoc.ufr[0].pmoLabel === 'Propulsion (PP)', J(ppDoc && ppDoc.ufr));
+  C.eq('what was read is said, once', J(shortD.flags.filter(f => /PROP/.test(f))), J(['The unfunded list’s PMO “PROP” is read as Propulsion (PP).']));
+  const shortPlan = SP.publishData(M, { 2027: { fy: 2027, lines: [Object.assign({}, L[1], { pmo: 'PROP' })] } }, null, {});
+  C.chk('a short form that disagrees with where the plan has the record: the plan wins, and it is said', shortPlan.flags.length === 1 && /Tessa B.*“PROP” reads as Propulsion \(PP\), but the spend plan has that CCaR record under Air Vehicle \(AV\); it is placed there\./.test(shortPlan.flags[0])
+    && J(grpOf(shortPlan.docs.find(d => d.id === 'ap:om'), L[1].title)) === J(['air vehicle (av)']), J(shortPlan.flags));
+  const sf = t.window.eval('pb_pmoShort'), keys = SP.PMO_ORDER.map(n => SP.normKey(n)), lab = new Map(SP.PMO_ORDER.map(n => [SP.normKey(n), n]));
+  C.eq('short forms: a beginning of one word of one PMO’s name is that PMO; a word in several names, or under three letters, is none',
+    J(['PROP', 'Prop.', 'Propulsion PMO', 'Training', 'Maint Sys', 'Combat Data', 'Product Support', 'Systems', 'PS', 'Mystery Office', ''].map(x => { const k = sf(x, keys, lab); return k === undefined ? null : lab.get(k); })),
+    J(['Propulsion (PP)', 'Propulsion (PP)', 'Propulsion (PP)', 'Training Systems (TSS)', 'Maintenance Systems (MxS)', 'Combat Data Systems (CDS)', 'Product Support Management (PSM)', null, null, null, null]));
+
   // ---------------------------------------------------------------- §33.5 the PDF writer's measures
   C.eq('a width from the font’s table: four digits at 10 pt', SP.pdfTextWidth('1234', 10, false), 22.24);
   C.eq('bold is its own table', SP.pdfTextWidth('Total', 10, true), (611 + 611 + 333 + 556 + 278) / 100);
@@ -443,8 +460,15 @@ try {
     ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0', '0 typed, 1 list plan events'],
     ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0', '0 typed, 3 list plan events'],
     ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0', '0 typed, 3 list plan events']]));
-  C.chk('with no list it says Required equals Approved', /No unfunded list is loaded: Required equals Approved/.test(main().querySelector('#uiUfrList').textContent));
-  // the unfunded list, through the page's own file box
+  C.chk('with no list it says Required equals Approved', /No unfunded list is loaded: Required equals Approved/.test(main().querySelector('#uiPubUfr').textContent));
+  // the unfunded list is imported in Settings (CONTRACT §39): Publish PDFs shows what is loaded and opens Settings
+  C.chk('Publish PDFs has no import button, no Remove and no file box; it has a button that opens Settings',
+    !main().querySelector('[data-act=ufrpick]') && !main().querySelector('[data-act=ufrdel]') && !main().querySelector('#uiUfrFile') && !!main().querySelector('button[data-act=view][data-v=settings]'));
+  click(main().querySelector('button[data-act=view][data-v=settings]')); await settle();
+  C.chk('that button opens Settings, where the Unfunded list section has the import button, after Special CCaRs and before the budget names', (() => {
+    const hs = [...main().querySelectorAll('h3.sub')].map(h => h.textContent), i = hs.indexOf('Unfunded list');
+    return /^Settings/.test(main().querySelector('h2').textContent) && i > 0 && hs[i - 1] === 'Special CCaRs' && /^Budget names/.test(hs[i + 1]) && main().querySelector('button[data-act=ufrpick]').textContent === 'Import unfunded list…'
+      && /No unfunded list is loaded/.test(main().querySelector('#uiUfrList').textContent) && !main().querySelector('#uiUfrNotes'); })(), [...main().querySelectorAll('h3.sub')].map(h => h.textContent).join(' | '));
   const fileIn = main().querySelector('#uiUfrFile');
   const buf = readFileSync(join(tmp.dir, 'ufr.xlsx'));
   Object.defineProperty(fileIn, 'files', { value: [{ name: 'UFR Tracker FY27.xlsx', arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) }], configurable: true });
@@ -454,9 +478,13 @@ try {
   C.chk('importing the tracker keeps it in the plan and marks the plan unsaved', !!S2.state.ufr && S2.state.ufr['2027'].lines.length === 8 && S2.isDirty());
   C.chk('the page lists it: its year, file, lines and total', /FY2027: “UFR Tracker FY27\.xlsx”, loaded \d{4}-\d\d-\d\d · 8 lines · \$3,349,345\.60/.test(main().querySelector('#uiUfrList').textContent), main().querySelector('#uiUfrList').textContent);
   C.chk('the message says what came in', /the FY2027 unfunded list, 8 lines from O&M, OPN; 5 to check/.test(doc2.querySelector('.msg').textContent), doc2.querySelector('.msg').textContent);
+  C.chk('what to check is listed in Settings: the tracker’s own notes and the placements', main().querySelectorAll('#uiUfrNotes li').length === 5 + 3 + 4, String(main().querySelectorAll('#uiUfrNotes li').length));
+  C.chk('Settings has Remove beside the list', main().querySelectorAll('#uiUfrList button[data-act=ufrdel]').length === 1);
+  click(doc2.querySelector('#uiNav [data-act=view][data-v="publish"]')); await settle();
+  C.chk('Publish PDFs lists the same list, with no Remove, and says how many things there are to check in Settings', /FY2027: “UFR Tracker FY27\.xlsx”, loaded \d{4}-\d\d-\d\d · 8 lines · \$3,349,345\.60/.test(main().querySelector('#uiPubUfr').textContent)
+    && !main().querySelector('[data-act=ufrdel]') && !main().querySelector('#uiUfrNotes') && /^12 to check on the unfunded list, listed in Settings\.$/.test(main().querySelector('#uiPubUfrN').textContent), main().querySelector('#uiPubUfr').textContent);
   C.eq('the documents now carry the unfunded lines, and OPN has a document of its own (unfunded only)', J(docRows().map(r => [r[0], r[2], r[3]])), J([
     ['APEX Spend Plan - O&M', '6', '4'], ['APEX Spend Plan - Initial Spares', '1', '0'], ['APEX Spend Plan - OPN', '4', '4'], ['APEX Spend Plan - PMO AV', '4', '3'], ['APEX Spend Plan - PMO PP', '8', '5']]));
-  C.chk('what to check is listed: the tracker’s own notes and the placements', main().querySelectorAll('#uiUfrNotes li').length === 5 + 3 + 4, String(main().querySelectorAll('#uiUfrNotes li').length));
   // a description typed is saved and counted
   C.eq('descriptions: none written yet', main().querySelector('#uiPubDescN').textContent, '0 of 9 typed; the rest list their plan events');
   const box = main().querySelector('input[data-act=pubdesc][data-k="jsf6654"]');
@@ -514,8 +542,11 @@ try {
   const zl = spawnSync('python3', ['-c', 'import sys,zipfile\nz=zipfile.ZipFile(sys.argv[1]); print(z.testzip(), sorted(z.namelist()))', join(tmp.dir, 'all.zip')], { encoding: 'utf8' });
   C.eq('the zip holds the five PDFs, whole', zl.stdout.trim(), "None ['APEX Spend Plan - Initial Spares.pdf', 'APEX Spend Plan - O&M.pdf', 'APEX Spend Plan - OPN.pdf', 'APEX Spend Plan - PMO AV.pdf', 'APEX Spend Plan - PMO PP.pdf']");
   // removing the list
+  click(doc2.querySelector('#uiNav [data-act=view][data-v="settings"]')); await settle();
   click(main().querySelector('button[data-act=ufrdel]')); await settle();
-  C.chk('Remove takes the list out of the plan and the page', !S2.state.ufr && /No unfunded list is loaded/.test(main().querySelector('#uiUfrList').textContent));
+  C.chk('Remove, in Settings, takes the list out of the plan and the page', !S2.state.ufr && /No unfunded list is loaded/.test(main().querySelector('#uiUfrList').textContent));
+  click(doc2.querySelector('#uiNav [data-act=view][data-v="publish"]')); await settle();
+  C.chk('and Publish PDFs says none is loaded', /No unfunded list is loaded/.test(main().querySelector('#uiPubUfr').textContent) && !main().querySelector('#uiPubUfrN'));
   C.eq('no script error on the page', J(tt.errors.filter(e => !/^Not implemented: (Window's scrollTo\(\) method|HTMLInputElement\.prototype\.click|HTMLCanvasElement)/.test(String(e)))), '[]');
   tt.close();
 } catch (e) {

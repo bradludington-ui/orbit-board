@@ -924,7 +924,7 @@ function ui_vSlides(M) {
 // ---------------------------------------------------------------------------------------------------------------
 // UNFUNDED (UFR) (CONTRACT §37): the unfunded list, under Browse. The pickers and the Find box narrow the list, and the
 // tiles, the two charts and the total follow; the Filter's services apply as on every view. Amounts are $K, as the tracker
-// is kept. Nothing here changes the plan: the list is imported on Publish PDFs.
+// is kept. Nothing here changes the plan: the list is imported in Settings (§39).
 function ui_ufrData(M) {
   const P = ui_pubState(), U = ui.ufr;
   const V = SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
@@ -981,7 +981,7 @@ function ui_ufrBody(M, V) {
 function ui_vUfr(M) {
   const V = ui_ufrData(M), U = ui.ufr, vo = ui_vo();
   if (!V.files.length) return '<div class="ovhead"><h2 class="ovtitle">Unfunded requirements (UFR)</h2></div><p class="none" id="uiUfrEmpty">No unfunded list is loaded'
-    + (vo ? ' in this copy.' : '. Import the UFR tracker on <button type="button" class="tg" data-act="view" data-v="publish" data-fkey="ufr:publish">Publish PDFs</button>, and it is listed here.') + '</p>';
+    + (vo ? ' in this copy.' : '. Import the UFR tracker in <button type="button" class="tg" data-act="view" data-v="settings" data-fkey="ufr:settings">Settings</button>, and it is listed here.') + '</p>';
   const sel = (f, label, opts, cur) => ui_pickSel('ufrf', cur, f, label, opts);
   const filtered = U.pmo !== null || U.ap !== null || U.fy !== null || U.status !== null || U.q !== '';
   return '<div class="findbar pmobar ufrbar">' + sel('pmo', 'Choose your PMO', V.picks.pmos, U.pmo) + sel('ap', 'Appropriation', V.picks.aps, U.ap) + sel('fy', 'FY', V.picks.fys, U.fy)
@@ -1012,6 +1012,29 @@ function ui_pubModel(M) {
   if (M && M.shown && M.shown.all) return M;
   if (!ui.pubM) ui.pubM = SP.buildModel(ui_pulls(), ui_settings(), SP.defaultView(), ui_bae());
   return ui.pubM;
+}
+// THE UNFUNDED LIST (§33.3, §39): the lists loaded, and for the keeper of the plan the import button, Remove and what to
+// check. Drawn in Settings with its controls and on Publish PDFs as what is loaded.
+function ui_ufrNotes(P, D) {
+  return Object.keys(P.ufr).sort().flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
+    .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
+}
+function ui_ufrBlock(P, D, o) {
+  const fks = Object.keys(P.ufr).sort(), out = [];
+  out.push('<h3 class="sub" id="' + (o.edit ? 'ui-setufr' : 'ui-pubufr') + '">Unfunded list</h3><p class="note">The UFR tracker workbook, one per fiscal year: its O&amp;M, Full Fund, Initial Spares and OPN tabs are read, by their column titles. '
+    + 'Required on a spend plan is Approved plus the unfunded amount for that CCaR record.' + (o.edit ? ' The list is shown under Browse, Unfunded, and printed on the published PDFs.' : '') + '</p>');
+  out.push(fks.length ? '<ul class="speclist" id="' + o.id + '">' + fks.map(k => {
+    const f = P.ufr[k], tot = f.lines.reduce((n, l) => n + l.total, 0);
+    return '<li>FY' + ui_e(k) + ': “' + ui_e(f.name || 'unnamed file') + '”, loaded ' + ui_e(ui_day(f.importedAt)) + ' · ' + SP.fmtInt(f.lines.length) + ' line' + (f.lines.length === 1 ? '' : 's') + ' · '
+      + ui_e(SP.fmtUsd(tot)) + (o.edit ? ' <button type="button" data-act="ufrdel" data-fy="' + ui_e(k) + '" data-fkey="ufrdel:' + ui_e(k) + '">Remove</button>' : '') + '</li>';
+  }).join('') + '</ul>' : '<p class="none" id="' + o.id + '">No unfunded list is loaded: Required equals Approved on every line.</p>');
+  if (o.edit) out.push('<p class="acts"><button type="button" data-act="ufrpick" data-fkey="ufrpick">Import unfunded list…</button>'
+    + '<input type="file" id="uiUfrFile" data-act="ufrfile" multiple accept=".xlsx" hidden></p>');
+  if (o.notes) {
+    const notes = ui_ufrNotes(P, D);
+    if (notes.length) out.push('<h4 class="sub">To check on the unfunded list (' + notes.length + ')</h4><ul class="speclist pubnotes" id="uiUfrNotes">' + notes.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>');
+  }
+  return out.join('');
 }
 function ui_pubState() {
   const st = ui_state() || {};
@@ -1062,20 +1085,14 @@ function ui_vPublish(M) {
         + (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td><button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
       + '</tbody></table></div>');
   }
-  // the unfunded list
-  const fks = Object.keys(P.ufr).sort();
-  out.push('<h3 class="sub" id="ui-pubufr">Unfunded list</h3><p class="note">The UFR tracker workbook, one per fiscal year: its O&amp;M, Full Fund, Initial Spares and OPN tabs are read, by their column titles. '
-    + 'Required on a spend plan is Approved plus the unfunded amount for that CCaR record.</p>');
-  out.push(fks.length ? '<ul class="speclist" id="uiUfrList">' + fks.map(k => {
-    const f = P.ufr[k], tot = f.lines.reduce((n, l) => n + l.total, 0);
-    return '<li>FY' + ui_e(k) + ': “' + ui_e(f.name || 'unnamed file') + '”, loaded ' + ui_e(ui_day(f.importedAt)) + ' · ' + SP.fmtInt(f.lines.length) + ' line' + (f.lines.length === 1 ? '' : 's') + ' · '
-      + ui_e(SP.fmtUsd(tot)) + (vo ? '' : ' <button type="button" data-act="ufrdel" data-fy="' + ui_e(k) + '" data-fkey="ufrdel:' + ui_e(k) + '">Remove</button>') + '</li>';
-  }).join('') + '</ul>' : '<p class="none" id="uiUfrList">No unfunded list is loaded: Required equals Approved on every line.</p>');
-  if (!vo) out.push('<p class="acts"><button type="button" data-act="ufrpick" data-fkey="ufrpick">Import unfunded list…</button>'
-    + '<input type="file" id="uiUfrFile" data-act="ufrfile" multiple accept=".xlsx" hidden></p>');
-  const notes = fks.flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
-    .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
-  if (notes.length) out.push('<h4 class="sub">To check on the unfunded list (' + notes.length + ')</h4><ul class="speclist pubnotes" id="uiUfrNotes">' + notes.map(n => '<li>' + ui_e(n) + '</li>').join('') + '</ul>');
+  // the unfunded list: what is loaded. It is imported, removed and checked in Settings (Brad, 19 Nov 2026: "Let's move it
+  // to the Setup section"); a view-only copy has no Settings, so its notes stay here
+  out.push(ui_ufrBlock(P, D, { edit: false, notes: vo, id: 'uiPubUfr' }));
+  if (!vo) {
+    const nn = ui_ufrNotes(P, D).length;
+    out.push('<p class="acts"><button type="button" data-act="view" data-v="settings" data-fkey="pubtoset">Import or remove a list in Settings</button>'
+      + (nn ? ' <span class="note" id="uiPubUfrN">' + SP.fmtInt(nn) + ' to check on the unfunded list, listed in Settings.</span>' : '') + '</p>');
+  }
   // a view-only copy (§35) publishes what it was given: the boxes below, which change the plan, are not in it
   if (vo) return out.join('');
   // on every document
@@ -1914,6 +1931,8 @@ function ui_vSettings(M) {
   // §23: a budget only a left-out year uses is not listed
   try { bt = SP.budgetTable(ui_pullsKept(), S); } catch (e) { out.push('<p class="err">The budget names could not be read: ' + ui_e((e && e.message) || e) + '</p>'); }
   R.budgets = bt;
+  // the unfunded list is imported here (§39)
+  if (M && !ui_vo() && ui_fn('publishData') && SP.UFR_IN_SETTINGS !== false) { const X = ui_pubData(M); out.push(ui_ufrBlock(X.P, X.D, { edit: true, notes: true, id: 'uiUfrList' })); }
   out.push('<h3 class="sub">Budget names: service and lane</h3><p class="note">The rules read each Budget name. Choose a service or lane here only where a rule is wrong; '
     + '“By rule” takes the choice off again. A name no rule knows is marked.</p>'
     // §14.2: a budget's report rows go by its override as its pull rows do; the table lists the pull's names only
@@ -2014,7 +2033,7 @@ function ui_vHelp() {
       'A requirement’s name in either opens it on Find a requirement.',
     ])
     + '<h3 class="sub">The unfunded list</h3>' + li([
-      '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (on Publish PDFs): by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
+      '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (in Settings): by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
       'The pickers (PMO, appropriation, fiscal year, Funding status) and the Find box narrow the list; the tiles, the two charts and the total follow. A service switched off in the Filter is left out of every amount.',
       'Press a requirement to see it beside its spend plan: Approved, Obligated, Remaining, and Required (Approved plus the unfunded amount). A line with no plan event in the spend plan says Unfunded only.',
       'Exec ready counts the lines whose Exec Ready? says yes; SFCB approved counts those whose SFCB Action says approved.',
@@ -2024,7 +2043,7 @@ function ui_vHelp() {
       + 'Each opens with its stoplight, lists Prime Contracts first (the Special CCaRs of Settings) and ends with the unfunded list for what it presents.',
       'Each CCaR record has a row per service: Approved is the CCaR amount in its plan events, Obligated is what CCaR marks Actual Execution, Remaining is Approved less Obligated, '
       + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
-      '<strong>Import unfunded list…</strong> takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
+      '<strong>Import unfunded list…</strong>, in Settings under Set up, takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
       'A record’s Description is a bulleted list of its plan event titles, in date order (a prime contract’s is its Requirement Title), unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
       'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',

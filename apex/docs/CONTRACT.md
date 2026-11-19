@@ -2218,3 +2218,39 @@ to a row.
 Not changed: the figures, the words, the workbook, the PDFs, printing, and every window wider than 640 px.
 
 `test/phone.test.mjs` (the layout is measured in Chromium at 390, 360, 641 and 1366 px).
+
+## 39. The unfunded list is imported in Settings
+
+Brad, 19 Nov 2026: *"Let's move it to the Setup section."* This replaces §33.3's and §37's place for it.
+
+- **Settings** (under Set up) has the section **Unfunded list**: the lists loaded (year, file, day loaded, lines, total),
+  **Remove** beside each, **Import unfunded list…**, and **To check on the unfunded list**. It sits after Special CCaRs.
+- **Publish PDFs** shows which lists are loaded, a button that opens Settings, and how many things there are to check.
+  It no longer imports or removes a list.
+- **Unfunded**, with no list loaded, points to Settings.
+- **A view-only copy** has no Settings: Publish PDFs there shows the lists loaded and what to check, as before, and
+  nothing imports or removes a list.
+
+What is read, what is kept and what is checked are unchanged.
+
+`test/publish.test.mjs`, `test/ufr-view.test.mjs`, `test/view-only.test.mjs`.
+
+## 40. A short form of a PMO's name on the unfunded list
+
+Brad, 19 Nov 2026: a tracker line whose PMO read "PROP" was printed in a block of its own at the end of the
+appropriation's PDF, and was not on Propulsion's own PDF.
+
+A tracker line's PMO is matched, in this order: a PMO's name; its code ("PP"); then **a short form** (`pb_pmoShort`):
+the text, without anything in brackets and without the words PMO, office, team, program or IPT, is read as the one PMO
+each of whose words begins (three letters or more for the first), or is begun by, a word of that PMO's name, in order.
+"PROP" and "Propulsion PMO" are Propulsion (PP); "Maint Sys" is Maintenance Systems (MxS). A text that fits two PMOs
+("Systems"), or none, is not a short form, and §33.3's rule for an unknown PMO applies as before.
+
+- The line then sits in that PMO's existing block on the appropriation's PDF and is on that PMO's own PDF, and the
+  Unfunded view lists it under that PMO.
+- What was read is said once per spelling under "To check on the unfunded list": *The unfunded list's PMO "PROP" is
+  read as Propulsion (PP).*
+- Where the spend plan has that CCaR record under one PMO and the short form reads as another, the plan wins and the
+  note says so.
+
+`test/publish.test.mjs`.

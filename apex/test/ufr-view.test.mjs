@@ -104,9 +104,9 @@ try {
   const nav = A.doc.querySelector('[data-act=view][data-v="ufr"]');
   C.chk('one item in the menu, the last under Browse', !!nav && nav.textContent === 'Unfunded' && nav.closest('.navg').getAttribute('aria-label') === 'Browse' && nav === nav.closest('.navg').lastElementChild);
   let m = await A.view('ufr');
-  C.chk('before a tracker is loaded the page says so, and where to import it', /No unfunded list is loaded\. Import the UFR tracker on Publish PDFs/.test(m.querySelector('#uiUfrEmpty').textContent)
-    && !!m.querySelector('#uiUfrEmpty button[data-act=view][data-v=publish]'), m.textContent);
-  C.chk('there is no import button on this page: it stays on Publish PDFs', !m.querySelector('[data-act=ufrpick]') && !m.querySelector('input[type=file]'));
+  C.chk('before a tracker is loaded the page says so, and where to import it', /No unfunded list is loaded\. Import the UFR tracker in Settings/.test(m.querySelector('#uiUfrEmpty').textContent)
+    && !!m.querySelector('#uiUfrEmpty button[data-act=view][data-v=settings]'), m.textContent);
+  C.chk('there is no import button on this page: it is in Settings (CONTRACT §39)', !m.querySelector('[data-act=ufrpick]') && !m.querySelector('input[type=file]'));
   SP.setUfr(UFR, '2026-11-14T15:00:00.000Z'); await settle(40);
   m = A.main();
   C.eq('the title, and which tracker and how many lines', J([m.querySelector('.ovtitle').textContent, m.querySelector('#uiUfrSub').textContent]), J(['Unfunded requirements (UFR)', 'FY2027 UFR tracker, loaded 2026-11-14 · 5 lines']));

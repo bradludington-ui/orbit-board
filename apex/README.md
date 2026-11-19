@@ -259,10 +259,11 @@ for the switches.
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
   its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
   Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
-  presents. **Download PDF** saves one; **Download all** saves them in one zip. On the page:
-  - **Import unfunded list…** takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
+  presents. **Download PDF** saves one; **Download all** saves them in one zip. On the page, and in Settings:
+  - **Import unfunded list…**, in **Settings** under Set up, takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
     OPN tabs, read by their column titles; amounts in $K). Required is Approved plus the unfunded amount for that CCaR
-    record. A record that is only on the unfunded list still appears, with Approved $0. Anything to check is listed.
+    record. A record that is only on the unfunded list still appears, with Approved $0. Anything to check is listed
+    there too. Publish PDFs shows which list is loaded.
   - **Descriptions**: a record's Description column is a bulleted list of its plan event titles, in date order; a
     prime contract's is its Requirement Title. To print your own
     wording instead, type one for the CCaR record in the list, or import a sheet with a CCaR number column and a
@@ -274,7 +275,7 @@ for the switches.
 - **O&M, Full Fund, Initial Spares, OPN.** The FY table, then each FY's tree: PMO, Title, Plan Event and CCaR. Press a row
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Unobligated Requirements list.
-- **Unfunded.** The UFR tracker's lines, once it has been imported on Publish PDFs: by appropriation and fiscal year, in
+- **Unfunded.** The UFR tracker's lines, once it has been imported in Settings: by appropriation and fiscal year, in
   rank order, in $K. Pick a PMO, appropriation, fiscal year or Funding status, or type part of a title or CCaR
   number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
