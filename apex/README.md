@@ -392,6 +392,13 @@ the message line says nothing is unsaved.
 - **Budgets.** Every budget name, with its rows, dollars, service and lane. You can override the service or the lane of
   any budget.
 
+## On a phone
+
+APEX opens on a phone as the same page. On a narrow screen the menu folds behind a **Menu** button that names the view you
+are on: press it, pick a view, and it folds again. The top bar scrolls away as you read; the CUI line and the Menu button
+stay. Wide tables scroll sideways inside their own box and keep their first column in place, so you can always see which
+row a figure belongs to. Nothing about the figures changes, and on a computer the page looks as it always has.
+
 ## Export Excel
 
 **Export Excel** downloads a workbook named `APEX FY2027 - data through Oct-2026 - 2026-11-09.xlsx`, for

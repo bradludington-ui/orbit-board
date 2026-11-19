@@ -67,6 +67,7 @@ const ui = {
   els: null,
   focusTo: null,            // the data-fkey the keyboard goes to when its own control is gone after the next draw
   asOfHint: false,          // the message line holds the note about a Data through still being typed
+  navOpen: false,           // the phone's menu, open or folded (§38); never saved
   topH: 0,                  // the sticky top's height as last measured: what a top that grows has just covered
 };
 
@@ -668,7 +669,7 @@ function ui_vCal(M) {
   const shown = rest.slice(0, UI_CAL_MAX);
   let body = '', lastPmo = null, zeb = 0;     // zeb: every other line under a heading is shaded, so a line is followed across the months
   if (rolled.length) {
-    body += '<tr class="calg calsp"><th scope="colgroup" colspan="' + (cols.length + 2) + '">Special CCaRs, one line each <span class="calspn">(the list is in Settings)</span></th></tr>';
+    body += '<tr class="calg calsp"><th scope="colgroup" colspan="' + (cols.length + 2) + '"><span class="calgl">Special CCaRs, one line each <span class="calspn">(the list is in Settings)</span></span></th></tr>';
     for (const x of rolled) {
       body += '<tr data-sp="' + ui_e(x.key) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.ccar) + '" data-fkey="calsp:' + ui_e(x.key) + '">'
         + ui_e(x.ccar) + '</button><span class="fsub">' + ui_e(x.title) + ' · ' + ui_e(x.where.join(', ')) + (x.pmos.length > 1 ? ' · ' + x.pmos.length + ' PMOs' : ' · ' + ui_e(x.pmos[0])) + '</span></th>'
@@ -676,7 +677,7 @@ function ui_vCal(M) {
     }
   }
   for (const r of [...shown].sort((a, b) => (a.pmo < b.pmo ? -1 : a.pmo > b.pmo ? 1 : 0))) {
-    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '">' + ui_e(r.pmo) + '</th></tr>'; lastPmo = r.pmoKey; zeb = 0; }
+    if (r.pmoKey !== lastPmo) { body += '<tr class="calg"><th scope="colgroup" colspan="' + (cols.length + 2) + '"><span class="calgl">' + ui_e(r.pmo) + '</span></th></tr>'; lastPmo = r.pmoKey; zeb = 0; }
     body += '<tr data-rk="' + all.indexOf(r) + '"' + (zeb++ % 2 ? ' class="alt"' : '') + '><th scope="row" class="lab">' + ui_reqBtn(r, all, 'cal') + '<span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + '</span></th>'
       + cols.map(c => cell(r, c)).join('') + '<td class="n tot" data-c="' + r.planned + '">' + ui_e(SP.fmtMText(r.planned)) + '</td></tr>';
   }
@@ -2172,7 +2173,8 @@ function ui_skeleton() {
     + '<button type="button" class="msgx" id="uiMsgX" data-act="msgx" data-fkey="msgx" hidden>Dismiss</button></div>'
     + '</header>'
     + '<div class="printhead" id="uiPrintHead" aria-hidden="true"></div>'
-    + '<div class="shell" id="uiShell"><nav class="views" id="uiNav" aria-label="Views"></nav>'
+    + '<div class="shell" id="uiShell"><button type="button" class="navbtn" id="uiNavBtn" data-act="navtoggle" data-fkey="navtoggle" aria-controls="uiNav" aria-expanded="false" hidden></button>'
+    + '<nav class="views" id="uiNav" aria-label="Views"></nav>'
     + '<div class="content"><div id="uiFilters"></div>'
     + '<main id="uiMain" tabindex="-1"></main></div></div>'
     + '<input type="file" id="uiFile" multiple accept=".xlsx,.csv,.html,.htm" hidden>'
@@ -2180,7 +2182,7 @@ function ui_skeleton() {
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
     first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
-    upd: document.getElementById('uiUpd'), pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'),
+    upd: document.getElementById('uiUpd'), pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'), navBtn: document.getElementById('uiNavBtn'), shell: document.getElementById('uiShell'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
     msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
     vo: document.getElementById('uiVo'), asOfText: document.getElementById('uiAsOfText'), manage: document.getElementById('uiManage'), manageBtn: document.getElementById('uiManageBtn'),
@@ -2202,7 +2204,10 @@ function ui_layout() {
   if (!E || !E.top || !E.main) return;
   try {
     const cui = document.querySelector('.cui-top');
-    const topH = Math.ceil((cui ? cui.offsetHeight : 0) + E.top.offsetHeight);
+    // on a phone (§38) the top bar scrolls away with the page and only the CUI line and the Menu button stay: what is
+    // pinned is what is measured, or every heading that sticks under the top would hang a bar's height down the screen
+    const pinned = ui_topPinned();
+    const topH = Math.ceil((cui ? cui.offsetHeight : 0) + (pinned ? E.top.offsetHeight : (E.navBtn && !E.navBtn.hidden ? E.navBtn.offsetHeight : 0)));
     let headH = 0;
     for (const tw of E.main.querySelectorAll('.tw.treew')) {
       const t = tw.querySelector('table');
@@ -2243,7 +2248,26 @@ function ui_unhide(prev) {
 }
 // a new view starts at its top: the old view's scroll offset, cut to the new page's height, opened it mid-page or at its
 // bottom with its title and filters thousands of pixels above the window (review S4)
-function ui_toTop() { try { window.scrollTo(0, 0); } catch (e) { /* nothing to scroll */ } }
+function ui_topPinned() {
+  try { const E = ui.els; return !E || !E.top || getComputedStyle(E.top).position === 'sticky'; } catch (e) { return true; }
+}
+// to the start of the view. On a phone that is the Menu button under the CUI line, not the top bar above it: a reader who
+// has scrolled the top bar away is not sent back through it on every change of view (§38).
+function ui_toTop() {
+  try {
+    const E = ui.els;
+    if (!ui_topPinned() && E.shell) {
+      // only a reader already past the top bar is held there. The place is found again after the frame: the page's own
+      // message can change the top bar's height once this has run
+      const cui = document.querySelector('.cui-top'), ch = cui ? cui.offsetHeight : 0;
+      const go = () => { try { window.scrollTo(0, Math.max(0, Math.round(E.shell.getBoundingClientRect().top + window.scrollY - ch))); } catch (e) {} };
+      if (ui.pastTop) { go(); (typeof requestAnimationFrame === 'function' ? requestAnimationFrame : f => setTimeout(f, 16))(go); }
+      else window.scrollTo(0, 0);
+      return;
+    }
+    window.scrollTo(0, 0);
+  } catch (e) { /* nothing to scroll */ }
+}
 
 // 'saved' | 'unsaved' | 'downloaded': a Save that could only download leaves this page's own file without the work (S8)
 function ui_saveText() {
@@ -2310,6 +2334,16 @@ function ui_baeTop(B, when) {
 }
 function ui_drawNav(has) {
   const E = ui.els;
+  // ON A PHONE (§38) the menu is folded behind one button that names the view on screen: open, the menu took half the
+  // screen before any figure. The button is in the page at every width and shown by the stylesheet at 640 px and narrower.
+  if (E.navBtn) {
+    E.navBtn.hidden = !has;
+    const cur = UI_VIEWS.find(x => x[0] === ui.view);
+    E.navBtn.setAttribute('aria-expanded', ui.navOpen ? 'true' : 'false');
+    E.navBtn.innerHTML = '<span class="nbm" aria-hidden="true">\u2630</span><span class="nbl">Menu</span><span class="nbv">' + ui_e(cur ? cur[1] : '') + '</span>'
+      + '<span class="nbc" aria-hidden="true">' + (ui.navOpen ? '\u25B4' : '\u25BE') + '</span>';
+  }
+  if (E.shell) E.shell.classList.toggle('navopen', !!ui.navOpen);
   if (!has) { E.nav.innerHTML = ''; E.nav.hidden = true; return; }
   E.nav.hidden = false;
   E.nav.innerHTML = ui_nav().map(g => '<div class="navg" role="group"' + (g.h ? ' aria-label="' + ui_e(g.h) + '"' : '') + '>'
@@ -2362,6 +2396,9 @@ function ui_drawMain(M) {
 function ui_render() {
   ui.pending = false;
   if (!ui.els) return;
+  // asked before the view is redrawn: while it is redrawn the page is short and the browser scrolls it back to its top,
+  // so afterwards every reader looks like one who had never scrolled (§38)
+  try { const cui = document.querySelector('.cui-top'); ui.pastTop = !!(ui.els.navBtn && !ui.els.navBtn.hidden && !ui_topPinned() && ui.els.navBtn.getBoundingClientRect().top <= (cui ? cui.offsetHeight : 0) + 1); } catch (e) { ui.pastTop = false; }
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
@@ -2666,10 +2703,15 @@ function ui_onClick(ev) {
     case 'view': {
       const v = t.getAttribute('data-v'), moved = v !== ui.view;
       ui.view = v;
+      ui.navOpen = false;   // a view chosen from the phone's menu folds it again
       ui_render();
       if (moved) ui_toTop();
       break;
     }
+    case 'navtoggle':
+      ui.navOpen = !ui.navOpen;
+      ui_render();
+      break;
     case 'manage':
       ui.manage = !ui.manage;
       ui_render();
