@@ -556,3 +556,56 @@ table.ufrt tr.band th{text-align:right}
 .usw{display:inline-block;width:10px;height:10px;border-radius:2px;border:1px solid #6b7889;margin-right:6px;vertical-align:-1px}
 .ufrbar input[type=search]{max-width:100%}
 
+
+/* §38 ON A PHONE (640 px and narrower). Brad, 19 Nov 2026: "I like how it looks now but is there a way the UI when seen on a
+   phone is good?" The same page, the same colours; what changes is what a small screen cannot afford. Measured at 390 px
+   before this: the top bar and the open menu filled the first 400 px of an 844 px screen and the top bar stayed pinned
+   over 170 px of it; the Calendar and Charts scrolled the whole page sideways; tiles ran one to a row. */
+/* a hidden label inside a table cell was placed against the page, not its scrolling box, and widened the page by the
+   table's whole width (Calendar: 422 px of sideways scroll at 390 px). The box is now what it is placed against. */
+.tw{position:relative}
+.navbtn{display:none}
+@media (max-width:640px){
+  /* the top bar scrolls away; the CUI line and the Menu button stay */
+  header.top{position:static;box-shadow:none}
+  .bar1{padding:6px 10px;gap:5px 8px}
+  .brand .bs{display:none}
+  .navbtn:not([hidden]){display:flex;align-items:center;gap:8px;position:sticky;top:var(--cuiH);z-index:30;width:100%;min-height:44px;margin:0;padding:6px 14px;
+    font:inherit;font-weight:700;text-align:left;border:0;border-bottom:1px solid #4d6781;background:var(--acc);color:var(--onAcc);cursor:pointer;
+    box-shadow:0 1px 3px rgba(24,32,41,.25)}
+  .navbtn .nbm{font-size:18px;line-height:1}
+  .navbtn .nbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+  .navbtn .nbv{flex:1 1 0;min-width:0;text-align:right;font-size:15px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navbtn .nbc{font-size:12px}
+  /* the menu is folded until asked for; open, it is a list with a finger's height to each item */
+  nav.views{display:none}
+  .shell.navopen nav.views:not([hidden]){display:flex;flex-direction:column;flex-wrap:nowrap;gap:0;position:sticky;top:calc(var(--cuiH) + 44px);z-index:29;
+    max-height:calc(100vh - var(--cuiH) - var(--cuiH) - 44px);overflow-y:auto;margin:0;padding:4px 8px 10px;border-radius:0 0 10px 10px;box-shadow:0 6px 14px rgba(24,32,41,.35)}
+  .shell.navopen .navg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;align-items:stretch}
+  .shell.navopen .navh{grid-column:1 / -1;margin:8px 4px 2px;padding:6px 0 0;border-top:1px solid #4d6781}
+  .shell.navopen .navg:first-child .navh{border-top:0}
+  .shell.navopen nav.views button{min-height:42px;padding:8px 10px}
+  /* a finger's height on what is pressed */
+  #uiMain button,#uiMain select,#uiMain input[type=text],#uiMain input[type=search],.filtbtn,.bar1 button,.msgx{min-height:36px}
+  #uiMain select,#uiMain input[type=text],#uiMain input[type=search]{font-size:16px;max-width:100%}   /* 16 px: a phone does not zoom the page to type */
+  .filtbtn{display:block;width:calc(100% - 16px)}
+  .filters .chk{min-height:36px}.filters .chk input{width:20px;height:20px}
+  /* tiles two to a row, not one: four tiles are one screen less of scrolling */
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+  .tile{padding:9px 10px}
+  .tv{font-size:20px}
+  /* rows of a table keep their height: only the figure a finger presses grows */
+  #uiMain table button,#uiMain table select{min-height:30px}
+  /* the PMO scoreboard is a table with no scrolling box of its own: it widened the page by 25 px */
+  .chcard{overflow-x:auto}
+  /* scrolled sideways, a wide table keeps its first column: the row a figure belongs to stays on screen */
+  .calt th.lab{position:sticky;left:0;z-index:4;min-width:9.5em;max-width:9.5em;box-shadow:1px 0 0 var(--sedge)}
+  .calt thead th.lab{z-index:6}
+  .calt tr.calg th{position:static}
+  .calt tr.calg .calgl{position:sticky;left:8px;display:inline-block}
+  table.tree th.lab{position:sticky;left:0;z-index:3;box-shadow:1px 0 0 var(--sedge);max-width:11.5em;white-space:normal;overflow-wrap:anywhere}
+  table.tree thead th.lab{z-index:6}
+  /* a row with no fill of its own shows the table's; pinned, its first cell needs that fill itself or the figures
+     scrolling under it show through */
+  table.tree tr[class*="lv"] > th.lab,table.tree tr.band > th.lab{background:var(--cell)}
+}

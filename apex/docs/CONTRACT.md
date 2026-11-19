@@ -2190,3 +2190,31 @@ Rules (`SP.ufrView`):
 
 `test/ufr-view.test.mjs`.
 
+
+## 38. On a phone
+
+Brad, 19 Nov 2026: *"Possible to make it phone friendly viewable? I like how it looks now but is there a way the UI when
+seen on a phone is good?"* The page is the same page with the same colours. At **640 px and narrower** only what a small
+screen cannot afford changes; a wider window is exactly as before.
+
+Measured at 390 px before this: the top bar and the open menu filled the first 400 px of the screen, the top bar stayed
+pinned over about 170 px of it, the Calendar scrolled the whole page 422 px sideways and Charts 25 px, and tiles ran one
+to a row.
+
+- **The menu is folded behind one button**, "Menu", which names the view on screen (`#uiNavBtn`, in the page at every
+  width, shown by the stylesheet). Pressed, the menu opens as a list two items wide, each a finger high; a view chosen
+  folds it again. Whether it is open is never saved.
+- **The top bar scrolls away.** The CUI line and the Menu button stay pinned. `--topH` is what is pinned, so headings
+  that stick under the top stick under exactly that.
+- **A change of view** leaves a reader who has scrolled past the top bar at the Menu button, not back at the top bar.
+  Where the reader was is decided before the view is redrawn.
+- **Nothing scrolls the page sideways.** A wide table scrolls in its own box (`.tw`, which hidden labels are now placed
+  against: one placed against the page widened it by the table's width). The PMO scoreboard scrolls in its card.
+- **A wide table keeps its first column** while it is scrolled sideways: the spend-plan tree's row names and the
+  Calendar's requirement, with the Calendar's PMO headings kept in view.
+- **Tiles are two to a row.** What is pressed is at least 36 px high (30 px inside a table, so rows keep their height);
+  pickers and the Find boxes are 16 px type, so a phone does not zoom the page to type.
+
+Not changed: the figures, the words, the workbook, the PDFs, printing, and every window wider than 640 px.
+
+`test/phone.test.mjs` (the layout is measured in Chromium at 390, 360, 641 and 1366 px).

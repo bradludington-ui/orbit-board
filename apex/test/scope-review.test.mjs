@@ -37,6 +37,12 @@ try {
   writeFileSync(file, pageHtml({}));
   // a REAL scrollbar, as Windows draws it: Playwright hides scrollbars unless told not to, which is how UX-1 passed the suite
   browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'], ignoreDefaultArgs: ['--hide-scrollbars'] });
+  // on a phone-wide window the menu is folded behind the Menu button (CONTRACT §38): it is opened first, as a person would
+  const go = async (p, v) => {
+    await p.waitForSelector('#uiNav [data-act=view][data-v=' + v + ']', { state: 'attached', timeout: 60000 });
+    if (await p.evaluate(() => { const b = document.getElementById('uiNavBtn'), n = document.getElementById('uiNav'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(n).display === 'none'; })) await p.click('#uiNavBtn');
+    await p.click('#uiNav [data-act=view][data-v=' + v + ']');
+  };
   const open = async (w, h) => {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, timezoneId: 'America/New_York' });
     const p = await ctx.newPage();
@@ -48,14 +54,13 @@ try {
     await p.waitForSelector('#uiMain');
     await p.setInputFiles('#uiFile', [join(FX, 'pull-all.xlsx'), join(FX, 'bae.xlsx')]);
     // the page opens on Find a requirement (CONTRACT §20); these checks are the Overview's
-    await p.waitForSelector('[data-act=view][data-v=overview]', { timeout: 60000 });
-    await p.click('[data-act=view][data-v=overview]');
+    await go(p, 'overview');
     await p.waitForSelector('#uiMain .tiles', { timeout: 60000 });
     await p.fill('#uiAsOf', '2026-10'); await p.dispatchEvent('#uiAsOf', 'change');
     await p.waitForTimeout(400);
     return p;
   };
-  const view = async (p, v) => { await p.click('#uiNav [data-act=view][data-v=' + v + ']'); await p.waitForTimeout(250); };
+  const view = async (p, v) => { await go(p, v); await p.waitForTimeout(250); };
 
   // ================================================================================================= UX-1: 1366 px
   {
@@ -146,7 +151,7 @@ try {
   // narrow, the table scrolls in its card and they stay at the card's top. Read after scrolling far into the list.
   for (const [w, h] of [[1920, 900], [1366, 768], [1000, 800]]) {
     const p = await open(w, h);
-    await p.click('[data-act=view][data-v=cal]'); await p.waitForSelector('.calt');
+    await go(p, 'cal'); await p.waitForSelector('.calt');
     const m = await p.evaluate(async () => {
       const tw = document.querySelector('.calcard .tw'), wide = innerWidth > 1100;
       if (wide) window.scrollTo(0, 1500); else { tw.scrollIntoView(); tw.scrollTop = 1500; }
@@ -169,7 +174,7 @@ try {
     const p = await open(1600, 900), seen = [];
     await p.fill('#uiAsOf', '2026-10'); await p.dispatchEvent('#uiAsOf', 'change'); await p.waitForTimeout(300);     // a month the fixture has Not Allocated money after
     for (const v of ['slides', 'pmos', 'om', 'ff', 'sp', 'opn']) {
-      await p.click('#uiNav [data-act=view][data-v=' + v + ']'); await p.waitForTimeout(200);
+      await go(p, v); await p.waitForTimeout(200);
       seen.push(...await p.evaluate(() => [...document.querySelectorAll('#uiMain table.nalines')].map(t => { const th = t.querySelector('th'), td = t.querySelector('td');
         return th && td ? [Math.round(th.getBoundingClientRect().width), Math.round(td.getBoundingClientRect().left - t.getBoundingClientRect().left), td.textContent.length] : null; }).filter(Boolean)));
     }
@@ -179,7 +184,7 @@ try {
     // a break above Monthly Totals (Brad, 16 Nov 2026), on every block of an appropriation view and of a PMO's tab
     const gaps = [];
     for (const v of ['om', 'sp', 'pmos']) {
-      await p.click('#uiNav [data-act=view][data-v=' + v + ']'); await p.waitForTimeout(200);
+      await go(p, v); await p.waitForTimeout(200);
       gaps.push(...await p.evaluate(() => [...document.querySelectorAll('#uiMain table.blk')].map(t => { const first = t.querySelector('tr.band'), prev = first && first.previousElementSibling;
         return first ? [first.querySelector('th').textContent, parseFloat(getComputedStyle(first.querySelector('th')).borderTopWidth), Math.round(first.getBoundingClientRect().top - (prev ? prev.getBoundingClientRect().bottom : 0)) >= 0,
           parseFloat(getComputedStyle(first.nextElementSibling.querySelector('th')).borderTopWidth)] : null; }).filter(Boolean)));
