@@ -3710,7 +3710,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.15 (9 Nov 2026)';
+const BUILD='v2.16 (19 Nov 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -25753,8 +25753,15 @@ function cycProjOf(){
     const alloc=(S.fsrc||{})[id]? fund.slice() : svcAlloc(it).slice();
     const ask=it.ask.slice();
     const g=grpOf(it);
-    reqs.push({id, title:dispTitle(it), grp:g, ccar:ccarOf(it)||'', pid:pidOf(it)||'',
-               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc, d, m, fund});
+    const row={id, title:dispTitle(it), grp:g, ccar:ccarOf(it)||'', pid:pidOf(it)||'',
+               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc, d, m, fund};
+    // v2.16 (item 148): WHICH WORK THIS IS, ACROSS YEARS. An added requirement's id is its own year's number (newReqSeq), so
+    // FY28's NEW-1 and FY29's NEW-1 can be two different requirements; the five-year plan joined the years by id and printed one
+    // requirement's dollars under the other's name. The projection says it was added, and what it continues (its link), so
+    // fydpLineKeys can join the years by the work. Only on an added one: a board-data id is the same work in every year.
+    if(it.custom) row.custom=true;
+    if(it.prior && it.prior.id!=null) row.prior={fy:+it.prior.fy, id:String(it.prior.id)};
+    reqs.push(row);
     if(!pmo[g]) pmo[g]={ask:SVC.map(_=>0), alloc:SVC.map(_=>0), fund:SVC.map(_=>0), n:0};
     pmo[g].n++;
     SVC.forEach((sv,i)=>{ pmo[g].ask[i]+=ask[i]||0; pmo[g].alloc[i]+=alloc[i]||0; pmo[g].fund[i]+=fund[i]; });
@@ -26825,8 +26832,62 @@ function fydpBookYears(D){
   for(let y=b; y<=b+4; y++) out.push(y);
   return out;
 }
+// v2.16 (item 148): ONE LINE PER PIECE OF WORK, NEVER PER NUMBER. Brad, 19 Nov 2026, from the real board: "GEX/GATES is somehow being
+// confused with the Option Year requirement in the five year spend plan export." FY28's LM Option Year was NEW-n and FY29's GEX/GATES
+// was NEW-n: joined by id, FY28's $2.56B printed on the GEX/GATES line, under FY29's name and CCaR record. fydpLineKeys says, per held
+// year, which line each requirement is: {y: {id: key}}.
+// - a board-data id is the same work in every year: 'id|'+id;
+// - else an added requirement that continues another (its link, prior) takes that one's line: a board-data id's, an added one's in a held
+//   year through its own key, or one before the window keyed by its year and id (so two years continuing it share one line);
+// - first, a rolled year: the nearest earlier held year's requirement of the same id is this one when it is the same work by
+//   yrCopySame's rule (the same link, title, office and CCaR work) -- a year started as a copy keeps every id and every link;
+// - anything else is its own line ('new|'+year+'|'+id), and two requirements of one year never share one.
+// A projection taken before v2.16 says nothing of either: an id shaped NEW- is read as added, and with no link the rolled-year rule
+// decides, so at worst one requirement prints as two lines -- never with another's dollars.
+function fydpProjAdded(r){ return !!(r && (r.custom===true || (r.custom===undefined && /^NEW-/.test(String(r.id))))); }
+function fydpLineKeys(X, Y){
+  const K=Object.create(null);
+  const held=(Y||[]).filter(function(y){ return !!(X && X.proj && X.proj[y] && Array.isArray(X.proj[y].reqs)); })
+    .slice().sort(function(a,b){ return a-b; });
+  const linkOf=function(r){ return (r && r.prior && r.prior.id!=null)? +r.prior.fy+'|'+String(r.prior.id) : ''; };
+  held.forEach(function(y, yi){
+    const kk=K[y]=Object.create(null), used=Object.create(null);
+    X.proj[y].reqs.forEach(function(r){
+      const id=String(r.id); let k='';
+      if(!fydpProjAdded(r)) k='id|'+id;
+      else {
+        // a rolled year first: it keeps the id AND the link, so the nearest earlier held year's requirement of that id, with the
+        // same link, title, office and CCaR work, is this one (yrCopySame's rule) -- even where its link's line is taken this year
+        for(let j=yi-1; j>=0; j--){
+          const e=held[j], pr=(X.proj[e].reqs||[]).filter(function(x){ return String(x.id)===id; })[0];
+          if(!pr) continue;
+          if(fydpProjAdded(pr) && linkOf(pr)===linkOf(r) && String(pr.title||'')===String(r.title||'')
+             && String(pr.grp||'')===String(r.grp||'') && ccarSameWork(pr.ccar, r.ccar)) k=K[e][id]||'';
+          break;
+        }
+        if((!k || used[k]) && linkOf(r)){
+          const pid=String(r.prior.id), pfy=+r.prior.fy;
+          if(!/^NEW-/.test(pid)) k='id|'+pid;
+          else if(K[pfy] && K[pfy][pid]) k=K[pfy][pid];
+          else k='new|'+pfy+'|'+pid;
+        }
+      }
+      if(!k || used[k]) k='new|'+y+'|'+id;
+      used[k]=1; kk[id]=k;
+    });
+  });
+  return K;
+}
+// the requirement in year y that is the same work as requirement `id` of year y0 ('' when that year holds none)
+function fydpSameIn(K, y0, id, y){
+  const k=K[y0] && K[y0][String(id)]; if(!k || !K[y]) return '';
+  if(+y===+y0) return String(id);
+  const m=K[y]; for(const x in m){ if(m[x]===k) return x; }
+  return '';
+}
 function fydpBookApp(X, Y){
   const reqs=Object.create(null), order=[];
+  const LK=fydpLineKeys(X, Y);     // v2.16 (item 148): the line each year's requirement belongs on
   const upl=Object.create(null);     // v2.12 (item 134): each held year's UPL by lane, from that year's projection
   const held=Y.filter(function(y){ return !!(X && X.proj && X.proj[y] && Array.isArray(X.proj[y].reqs)); });
   held.forEach(function(y){
@@ -26840,8 +26901,9 @@ function fydpBookApp(X, Y){
     sv.forEach(function(s, i){ const f=fydpSvcFold(s); if(upl[y].svc.indexOf(f)<0) upl[y].svc.push(f);
       ['d','m'].forEach(function(k){ upl[y][k][f]=(upl[y][k][f]||0)+LU[k][i]; }); });
     P.reqs.forEach(function(r){
-      if(!reqs[r.id]){ reqs[r.id]={id:r.id, title:'', ccar:'', fy:Object.create(null)}; order.push(r.id); }
-      const q=reqs[r.id];
+      const lk=(LK[y] && LK[y][String(r.id)]) || ('new|'+y+'|'+r.id);
+      if(!reqs[lk]){ reqs[lk]={id:r.id, title:'', ccar:'', fy:Object.create(null)}; order.push(lk); }
+      const q=reqs[lk]; q.id=r.id;
       q.title=String(r.title||r.id); q.ccar=String(r.ccar||'').replace(/\s+/g,' ').trim();   // the latest year's naming
       q.fy[y]={grp:String(r.grp||''), svc:sv, ask:(r.ask||[]).map(function(v){ return +v||0; }),
                alloc:(r.fund||r.alloc||[]).map(function(v){ return +v||0; })};
@@ -39823,9 +39885,12 @@ function aiFig(r, m){
 // THE REQUEST: instructions, then the data, in one file a person can upload or paste.
 function aiRequestText(){
   const D=fydpData('working'), T=tiers(), MR=masterRanks();
+  // v2.16 (item 148): another year's figures are the same WORK's, never the same number's (fydpLineKeys)
+  const LK=fydpLineKeys(D, D.held);
   const reqs=(S.order||[]).map(function(id){ const it=itemById(id); if(!it) return null;
     const years={};
-    D.held.forEach(function(y){ const r=((D.proj[y]||{}).reqs||[]).filter(function(x){ return x.id===id; })[0]; if(!r) return;
+    D.held.forEach(function(y){ const yid=fydpSameIn(LK, MS.cur, id, y);
+      const r=yid? ((D.proj[y]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null; if(!r) return;
       years[y]={ask:aiFig(r,'ask'), alloc:aiFig(r,'alloc'), fund:aiFig(r,'fund'), unf:aiFig(r,'unf')}; });
     const o={id:id, rank:MR[id]||null, title:dispTitle(it), recordName:recName(it)||'', pmo:grpOf(it)||'', ccar:ccarOf(it)||'',
       missionCritical:!!S.mc[id], description:((S.desc||{})[id]||''), impact:((S.cons||{})[id]||''), years:years};
@@ -39907,7 +39972,9 @@ function aiRead(raw){
       if(f.figure!=null){ r.figure=(typeof f.figure==='number' && isFinite(f.figure))? f.figure : NaN;
         if(isNaN(r.figure)){ r.checks.push('the figure is not a number'); r.ok=false; } }
       if(r.year!==null && r.measure && D.held.indexOf(r.year)>=0){
-        const pr=((D.proj[r.year]||{}).reqs||[]).filter(function(x){ return x.id===r.id; })[0];
+        // v2.16 (item 148): the same work in that year, as the request named it (fydpLineKeys), never the same number
+        const yid=fydpSameIn(fydpLineKeys(D, D.held), MS.cur, r.id, r.year);
+        const pr=yid? ((D.proj[r.year]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null;
         r.board=pr? aiFig(pr, r.measure) : 0;
         if(r.figure!==null && !isNaN(r.figure) && Math.round(r.figure)!==Math.round(r.board)){
           r.checks.push('the board says '+fM(r.board)+', not '+fM(r.figure)); r.ok=false; }

@@ -6870,8 +6870,9 @@ const MUTATIONS = [
   // ==== end v2.04 (item 111) ====
   // ==== v2.04 (item 112): the five-year spend plan workbook ====
   { id: 'v204-112-years-window', area: "fydpBookYears", what: "the workbook runs six years, not the base year and the next four",
-    find: "  for(let y=b; y<=b+4; y++) out.push(y);\n  return out;\n}\nfunction fydpBookApp",
-    repl: "  for(let y=b; y<=b+5; y++) out.push(y);\n  return out;\n}\nfunction fydpBookApp" },
+    // v2.16 (item 148): retargeted -- fydpLineKeys now sits between fydpBookYears and fydpBookApp; the same defect
+    find: "  for(let y=b; y<=b+4; y++) out.push(y);\n  return out;\n}\n// v2.16 (item 148): ONE LINE PER PIECE OF WORK",
+    repl: "  for(let y=b; y<=b+5; y++) out.push(y);\n  return out;\n}\n// v2.16 (item 148): ONE LINE PER PIECE OF WORK" },
   { id: 'v204-112-order-not-1n', area: "fydpBookLines", what: "the requirements are listed in reverse, not 1-N",
     find: "  const ids=M.order.filter(function(id){ return fydpBookHas(M, id, Y, f); });",
     repl: "  const ids=M.order.slice().reverse().filter(function(id){ return fydpBookHas(M, id, Y, f); });" },
@@ -11492,6 +11493,20 @@ const MUTATIONS = [
   { id: 'v215-rv-d-name-own', area: 'impFileFailSay', what: 'a failed Write into this board’s own file draws the file’s name as markup',
     find: `but “'+at+'” is this board’s own file`, repl: `but “'+(r.at||'')+'” is this board’s own file` },
   // ==== end v2.15 review RV-D ====
+  // ==== v2.16 (item 148): the five-year plan joins the years by the work, never by the number ====
+  { id: 'v216-148-joined-by-number', area: 'fydpBookApp', what: 'the five-year plan joins the years by requirement number again: an added requirement numbered NEW-1 in two years is one line, one year’s dollars under the other’s name (Brad’s GEX/GATES and LM Option Year)',
+    find: "      const lk=(LK[y] && LK[y][String(r.id)]) || ('new|'+y+'|'+r.id);", repl: "      const lk=String(r.id);" },
+  { id: 'v216-148-proj-no-link', area: 'cycProjOf', what: 'a year’s projection forgets what an added requirement continues, so a requirement brought in From another year starts a line of its own every year',
+    find: "    if(it.prior && it.prior.id!=null) row.prior={fy:+it.prior.fy, id:String(it.prior.id)};", repl: "" },
+  { id: 'v216-148-rolled-no-title', area: 'fydpLineKeys', what: 'two added requirements of one number in two years are joined by the rolled-year rule without their names, so LM’s year-1 dollars print on the GEX line',
+    find: "          if(fydpProjAdded(pr) && linkOf(pr)===linkOf(r) && String(pr.title||'')===String(r.title||'')", repl: "          if(fydpProjAdded(pr) && linkOf(pr)===linkOf(r)" },
+  { id: 'v216-148-shared-line', area: 'fydpLineKeys', what: 'two requirements of one year can share a line: a second copy continuing the same requirement is added into the first copy’s figures',
+    find: "      if(!k || used[k]) k='new|'+y+'|'+id;", repl: "      if(!k) k='new|'+y+'|'+id;" },
+  { id: 'v216-148-old-lock-board-ids', area: 'fydpProjAdded', what: 'a projection taken before v2.16 (no added flag) reads every NEW- id as a board-data requirement, the same work in every year, and crosses the numbers again',
+    find: "function fydpProjAdded(r){ return !!(r && (r.custom===true || (r.custom===undefined && /^NEW-/.test(String(r.id))))); }", repl: "function fydpProjAdded(r){ return !!(r && r.custom===true); }" },
+  { id: 'v216-148-ai-by-number', area: 'aiRequestText', what: 'the AI review request lists another year’s figures for the requirement of the same number, not the same work',
+    find: "    D.held.forEach(function(y){ const yid=fydpSameIn(LK, MS.cur, id, y);", repl: "    D.held.forEach(function(y){ const yid=String(id);" },
+  // ==== end v2.16 (item 148) ====
 
 ];
 
