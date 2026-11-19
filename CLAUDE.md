@@ -5243,7 +5243,7 @@ printed on the GEX/GATES line. `NEXT-VERSION.md` › Shipped › v2.16 has the d
 
 **Checks.** audit-recon "v2.16 — the five-year plan joins the years by the work, never by the number (item 148)" (fails on main
 `3486997`: Brad's case, a lock before v2.16, the workbook, the AI review); 6 `v216-148-*` mutations and `v204-112-years-window`
-retargeted, 7 of 7 CAUGHT; 3,806 targets. <<GATE RESULTS>>
+retargeted, 7 of 7 CAUGHT; 3,806 targets. **The gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; fuzz seed 587323430; verify-file self-test held; suites 33.4 min). Its trace line read "? populated cells" (the stage's captured output came back empty, the stage ok); `npm run trace` on the same tree: 77 populated cells, every link holds.
 
 ## Colour: one token, one job
 

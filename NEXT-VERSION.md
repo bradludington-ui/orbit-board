@@ -526,7 +526,7 @@ before v2.16, the O&M tab of the workbook itself, and the AI review request. On 
 the workbook and the AI review; the rest are CONTROLs. **Mutations:** 6 new (`v216-148-*`) and `v204-112-years-window` retargeted (the
 new function sits between the two its find spanned); 7 of 7 CAUGHT (`recovery/v215/proved-v216.jsonl`). One first SURVIVED
 (`v216-148-proj-no-link`): the fixture's carried requirement had the same number in both years, so the rolled-year rule joined it with
-or without its link; a filler now numbers it differently. 3,806 targets, each once. <<GATE RESULTS>>
+or without its link; a filler now numbers it differently. 3,806 targets, each once. **The gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; fuzz seed 587323430; verify-file self-test held; suites 33.4 min). Its trace line read "? populated cells" (the stage's captured output came back empty, the stage ok); `npm run trace` on the same tree: 77 populated cells, every link holds.
 
 **The item as logged:**
 
