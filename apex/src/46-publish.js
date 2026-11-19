@@ -216,6 +216,26 @@ function pb_monthWords(ym) {
 }
 function pb_fileSafe(s) { return String(s).replace(/[\\/:*?"<>|\u0000-\u001F]+/g, '-').replace(/\s+/g, ' ').trim(); }
 
+// the one PMO a short form names (§40), or undefined: "PROP" is Propulsion (PP), "Training" is Training Systems (TSS).
+// The words of a PMO's name, without its code in brackets; a word such as "Systems", in three names, names none.
+function pb_pmoShort(text, keys, labels) {
+  const t = String(text || '').toLowerCase().replace(/\([^)]*\)/g, ' ').replace(/[^a-z0-9 ]+/g, ' ').trim().split(/\s+/).filter(x => x && !/^(pmo|office|team|program|ipt)$/.test(x));
+  if (!t.length || t[0].length < 3) return undefined;
+  const hit = [];
+  for (const k of keys) {
+    const w = String(labels.get(k) || '').toLowerCase().replace(/\([^)]*\)/g, ' ').replace(/[^a-z0-9 ]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+    // every word given begins, or is begun by, a word of the name, in the name's order
+    let at = 0, ok = true;
+    for (const x of t) {
+      let f = -1;
+      for (let i = at; i < w.length; i++) if (w[i].startsWith(x) || (w[i].length >= 4 && x.startsWith(w[i]))) { f = i; break; }
+      if (f < 0) { ok = false; break; }
+      at = f + 1;
+    }
+    if (ok) hit.push(k);
+  }
+  return hit.length === 1 ? hit[0] : undefined;
+}
 SP.publishData = function publishData(M, ufr, pub, opts) {
   const special = new Set(Array.isArray(M.special) ? M.special : []);
   const NODATE = SP.COL_IDS.indexOf('nodate');
@@ -279,7 +299,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     if (!planPmo.has(k)) planPmo.set(k, new Set());
     planPmo.get(k).add(a.pmoKey);
   }
-  const flags = [], skipped = new Map(), ufrKept = [];
+  const flags = [], skipped = new Map(), ufrKept = [], looseSaid = new Set();
   for (const l of ufrLines) {
     if (l.fy < M.firstFY || leftOut.has(l.ap + '|' + l.fy) || !fySet.has(l.fy)) {
       if (l.fy < M.firstFY || leftOut.has(l.ap + '|' + l.fy)) {
@@ -292,6 +312,11 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     const inPlan = planPmo.get(l.ap + '|' + ccarKey);
     let pk = byName.get(SP.normKey(l.pmo));
     if (pk === undefined && l.pmo) { const c = SP.normKey(SP.pmoCode(l.pmo)); if (c && byName.has(c)) pk = byName.get(c); }
+    // A SHORT FORM OF A PMO'S NAME. Brad, 19 Nov 2026: a tracker line whose PMO read "PROP" was listed in a block of its
+    // own at the end, not with Propulsion. A name that is neither a PMO's name nor its code is read as the one PMO a word
+    // of whose name it begins (three letters or more), or whose name's word it begins with; two that fit is no match.
+    let loose = false;
+    if (pk === undefined && l.pmo) { const g = pb_pmoShort(l.pmo, pmoOrder, pmoLabel); if (g !== undefined) { pk = g; loose = true; } }
     if (pk === undefined) {
       if (inPlan && inPlan.size === 1) {
         pk = [...inPlan][0];
@@ -301,9 +326,17 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
         addPmo(pk, l.pmo || '(no PMO)');
         flags.push(where + ': its PMO “' + (l.pmo || '') + '” is not one APEX knows; it is listed under that name.');
       }
+    } else if (loose && inPlan && inPlan.size === 1 && !inPlan.has(pk)) {
+      // the plan knows better than a short form: the record is where the plan has it
+      const was = pk; pk = [...inPlan][0]; loose = false;
+      flags.push(where + ': its PMO “' + l.pmo + '” reads as ' + pmoLabel.get(was) + ', but the spend plan has that CCaR record under ' + pmoLabel.get(pk) + '; it is placed there.');
     } else if (inPlan && !inPlan.has(pk)) {
       flags.push(where + ': the unfunded list says ' + pmoLabel.get(pk) + ', the spend plan has that CCaR record under '
         + [...inPlan].map(x => pmoLabel.get(x)).join(' and ') + '; the unfunded amount is placed under ' + pmoLabel.get(pk) + '.');
+    }
+    if (loose && !looseSaid.has(SP.normKey(l.pmo) + '|' + pk)) {
+      looseSaid.add(SP.normKey(l.pmo) + '|' + pk);
+      flags.push('The unfunded list’s PMO “' + l.pmo + '” is read as ' + pmoLabel.get(pk) + '.');
     }
     const a = atom(l.ap, l.fy, pk, ccarKey, SP.normKey(l.title));
     for (let i = 0; i <= PB_NSVC; i++) a.ufr[i] += l.cents[i] || 0;
