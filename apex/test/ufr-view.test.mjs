@@ -81,13 +81,14 @@ try {
   C.eq('unfunded by PMO, largest first, each in its plan colour', J(v0.byPmo.map(x => [x.label, x.sum, x.color])), J([[AV, K(2900), '#B9D7B0'], [PP, K(650), '#E9B9C4']]));
   C.eq('unfunded by service', J(v0.bySvc.map(x => [x.label, x.sum])), J([['USAF', K(2350)], ['ANG', K(300)], ['AFRC', 0], ['STOVL', K(500)], ['USMC CV', 0], ['USN CV', K(400)]]));
   C.eq('what the pickers offer, from the list itself', J(v0.picks), J({ pmos: [['air vehicle (av)', AV], ['propulsion (pp)', PP]], aps: [['om', 'O&M'], ['sp', 'Initial Spares']], fys: [['2027', 'FY2027']],
-    statuses: [['Pending', 'Pending'], ['Unfunded', 'Unfunded']], execs: [['No', 'No'], ['Yes', 'Yes']] }));
+    statuses: [['Pending', 'Pending'], ['Unfunded', 'Unfunded']] }));
   const ranks = v => v.lines.map(l => l.ap + l.rank);
   C.eq('one PMO', J([ranks(V({ pmo: 'propulsion (pp)' })), V({ pmo: 'propulsion (pp)' }).total.sum, V({ pmo: 'propulsion (pp)' }).all]), J([['om3', 'sp1'], K(650), 5]));
-  C.eq('one appropriation; one status; exec ready Yes', J([ranks(V({ ap: 'sp' })), ranks(V({ status: 'Pending' })), ranks(V({ exec: 'Yes' }))]), J([['sp1'], ['om1', 'sp1'], ['om1', 'om3', 'om4']]));
+  C.eq('one appropriation; one status', J([ranks(V({ ap: 'sp' })), ranks(V({ status: 'Pending' }))]), J([['sp1'], ['om1', 'sp1']]));
+  C.eq('there is no Exec ready filter: asked for anyhow, it narrows nothing', J(ranks(V({ exec: 'Yes' }))), J(['om1', 'om2', 'om3', 'om4', 'sp1']));
   C.eq('Find: part of a title, or of a CCaR number, whatever its case', J([ranks(V({ q: 'garnet' })), ranks(V({ q: ' JSF66 ' })), ranks(V({ q: 'ts00' })), ranks(V({ q: 'zzz' }))]), J([['om4'], ['om1'], ['om2', 'om3', 'om4', 'sp1'], []]));
-  C.eq('pickers together narrow together, and the tiles follow', J([ranks(V({ pmo: 'air vehicle (av)', exec: 'Yes' })), V({ pmo: 'air vehicle (av)', exec: 'Yes' }).tiles]),
-    J([['om1', 'om4'], { sum: K(2600), n: 2, aps: 1, exec: { sum: K(2600), n: 2 }, sfcb: { sum: K(2500), n: 1 }, only: 1 }]));
+  C.eq('pickers together narrow together, and the tiles follow', J([ranks(V({ pmo: 'air vehicle (av)', status: 'Unfunded' })), V({ pmo: 'air vehicle (av)', status: 'Unfunded' }).tiles]),
+    J([['om2', 'om4'], { sum: K(400), n: 2, aps: 1, exec: { sum: K(100), n: 1 }, sfcb: { sum: 0, n: 0 }, only: 1 }]));
   // a service switched off is left out of every amount, as on every other view
   const off = SP.defaultView(); off.svc.USAF = false;
   const vOff = SP.ufrView(M, off, ufr, null, SP.state.settings, {});
@@ -109,9 +110,11 @@ try {
   SP.setUfr(UFR, '2026-11-14T15:00:00.000Z'); await settle(40);
   m = A.main();
   C.eq('the title, and which tracker and how many lines', J([m.querySelector('.ovtitle').textContent, m.querySelector('#uiUfrSub').textContent]), J(['Unfunded requirements (UFR)', 'FY2027 UFR tracker, loaded 2026-11-14 · 5 lines']));
-  C.eq('the pickers, at the top left, in order', J([...m.querySelectorAll('.ufrbar label')].map(l => l.firstChild.textContent.trim())), J(['Choose your PMO', 'Appropriation', 'FY', 'Funding status', 'Exec ready', 'Find']));
+  C.eq('the pickers, at the top left, in order', J([...m.querySelectorAll('.ufrbar label')].map(l => l.firstChild.textContent.trim())), J(['Choose your PMO', 'Appropriation', 'FY', 'Funding status', 'Find']));
   C.chk('the picker bar is the first thing on the page', m.firstElementChild.classList.contains('ufrbar'));
-  C.eq('the Exec ready picker offers All and the values in the tracker’s column', J([...m.querySelector('select[data-f=exec]').options].map(o => o.textContent)), J(['All', 'No', 'Yes']));
+  C.chk('there is no Exec ready picker; the Exec ready? column and the Exec ready tile are still there', !m.querySelector('select[data-f=exec]') && !!m.querySelector('.tile[data-tile=exec]')
+    && [...m.querySelectorAll('#uiUfrT thead th')].some(th => th.textContent === 'Exec ready?'));
+  C.eq('the Funding status picker offers All and the values in the tracker’s column', J([...m.querySelector('select[data-f=status]').options].map(o => o.textContent)), J(['All', 'Pending', 'Unfunded']));
   C.eq('the four tiles, in $K', J(['sum', 'exec', 'sfcb', 'only'].map(A.tile)), J([['$3,550K', '5 requirements, 2 appropriations'], ['$3,000K', '3 of 5 requirements'], ['$2,500K', '1 requirement'], ['2', 'unfunded only: no plan event yet']]));
   C.eq('the list: rank, title, CCaR number and total', J(A.rows()), J([['1', 'Prime Alpha', 'JSF6654', '2,500'], ['2', 'Tessa B', 'TS0002', '300'], ['3', 'New thing', 'TS0099', '400'], ['4', 'Garnet Rework', 'TS0007', '100'], ['1', 'Tessa E', 'TS0005', '250']]));
   C.eq('a heading row for each appropriation and fiscal year', J([...m.querySelectorAll('#uiUfrT tr.ugrp')].map(tr => tr.textContent)), J(['O&M FY2027', 'Initial Spares FY2027']));
@@ -134,8 +137,8 @@ try {
   C.chk('Clear filters is offered once something is picked', A.doc.querySelector('[data-act=ufrclear]').disabled === false);
   A.click(A.doc.querySelector('[data-act=ufrclear]')); await settle();
   C.eq('Clear filters shows the whole list again', J([A.rows().length, A.main().querySelector('#uiUfrN').textContent, A.doc.querySelector('[data-act=ufrclear]').disabled]), J([5, '5 lines', true]));
-  m = await A.pick('exec', 'Yes');
-  C.eq('Exec ready Yes: lines 1, 3 and 4', J(A.rows().map(r => r[1])), J(['Prime Alpha', 'New thing', 'Garnet Rework']));
+  m = await A.pick('status', 'Pending');
+  C.eq('Funding status Pending: the prime and Tessa E', J(A.rows().map(r => r[1])), J(['Prime Alpha', 'Tessa E']));
   A.click(A.doc.querySelector('[data-act=ufrclear]')); await settle();
   // the Find box narrows as it is typed in, and keeps the keyboard
   m = await A.type('garnet');

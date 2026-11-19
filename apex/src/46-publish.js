@@ -842,8 +842,9 @@ SP.readDescriptions = function readDescriptions(wb) {
 //   Mfull   the model with every switch on (as SP.publishData takes)
 //   view    this browser's switches: a service switched off is left out of every amount, column and total here, as it is
 //           on every other view. The lanes do not apply: the tracker has none.
-//   F       { pmo, ap, fy, status, exec, q }   each null/'' for all
-//   -> { files: [{fy, name, at}], all (lines before the pickers), n, svc: [{i, label}], picks: {pmos, aps, fys, statuses, execs},
+//   F       { pmo, ap, fy, status, q }   each null/'' for all (there is no Exec ready picker: Brad, 19 Nov 2026, "No need for an
+//           exec filter"; the Exec ready? column and the Exec ready tile stay)
+//   -> { files: [{fy, name, at}], all (lines before the pickers), n, svc: [{i, label}], picks: {pmos, aps, fys, statuses},
 //        groups: [{ap, apLabel, fy, lines}], lines: [line + {amt: [cents by shown service], sum, plan: null | {approved, obligated}}],
 //        total: {amt, sum}, tiles: {sum, n, aps, exec: {sum, n}, sfcb: {sum, n}, only}, byPmo: [{key, label, sum, color}],
 //        bySvc: [{label, sum}], skipped }
@@ -885,11 +886,10 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
     aps: SP.APS.filter(a => all.some(l => l.ap === a.id)).map(a => [a.id, a.label]),
     fys: uniq(all, l => String(l.fy), l => 'FY' + l.fy).sort((a, b) => Number(a[0]) - Number(b[0])),
     statuses: uniq(all, l => l.status, l => l.status).sort((a, b) => pb_cmp(SP.normKey(a[0]), SP.normKey(b[0]))),
-    execs: uniq(all, l => l.exec, l => l.exec).sort((a, b) => pb_cmp(SP.normKey(a[0]), SP.normKey(b[0]))),
   };
   const q = SP.normKey(f.q);
   const lines = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
-    && (f.status === null || f.status === undefined || f.status === '' || l.status === f.status) && (f.exec === null || f.exec === undefined || f.exec === '' || l.exec === f.exec)
+    && (f.status === null || f.status === undefined || f.status === '' || l.status === f.status)
     && (q === '' || SP.normKey(l.title).includes(q) || SP.normKey(l.ccar).includes(q)));
   const sumOf = ls => ls.reduce((n, l) => n + l.sum, 0);
   const groups = [];

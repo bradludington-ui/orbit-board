@@ -275,7 +275,7 @@ for the switches.
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Unobligated Requirements list.
 - **Unfunded.** The UFR tracker's lines, once it has been imported on Publish PDFs: by appropriation and fiscal year, in
-  rank order, in $K. Pick a PMO, appropriation, fiscal year, Funding status or Exec ready, or type part of a title or CCaR
+  rank order, in $K. Pick a PMO, appropriation, fiscal year or Funding status, or type part of a title or CCaR
   number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
   Unfunded only. The same view is in a view-only copy.

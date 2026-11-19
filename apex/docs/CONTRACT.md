@@ -2164,9 +2164,9 @@ rest [as] it is designed."*
 The menu item is **Unfunded**, the last under Browse; the page is titled Unfunded requirements (UFR). It is in a view-only
 copy too (§35), and works the same there. Top to bottom:
 
-- **Pickers, first on the page:** Choose your PMO, Appropriation, FY, Funding status, Exec ready, a Find box (part of a
-  title or of a CCaR number), and Clear filters. Funding status and Exec ready offer the values in the tracker's own
-  columns. A choice the list no longer holds is taken off, never left hiding every line.
+- **Pickers, first on the page:** Choose your PMO, Appropriation, FY, Funding status, a Find box (part of a title or of
+  a CCaR number), and Clear filters. Funding status offers the values in the tracker's own column. There is no Exec ready
+  picker (Brad, 19 Nov 2026: *"No need for an exec filter"*); the Exec ready? column and the Exec ready tile stay. A choice the list no longer holds is taken off, never left hiding every line.
 - **Four tiles:** Total unfunded; Exec ready (lines whose Exec Ready? begins with Y); SFCB approved (lines whose SFCB
   Action says approved); Not in the spend plan (lines with no plan event).
 - **Two charts:** unfunded by PMO, largest first, each bar in the PMO's published colour (§33.9); unfunded by service.

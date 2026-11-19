@@ -52,7 +52,7 @@ const ui = {
   pmo: { key: undefined, fy: null },                   // My PMO: the office (undefined until picked or remembered) and the FY
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
-  ufr: { pmo: null, ap: null, fy: null, status: null, exec: null, q: '', open: '' },   // the Unfunded (UFR) view's pickers, its Find box and the line opened (§37)
+  ufr: { pmo: null, ap: null, fy: null, status: null, q: '', open: '' },   // the Unfunded (UFR) view's pickers, its Find box and the line opened (§37)
   pub: { fys: null, miss: false }, pubM: null,   // Publish spend plan (§33): the years ticked (null: every year), only records with no description, its own model
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
@@ -929,12 +929,11 @@ function ui_ufrData(M) {
   const V = SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
   // a choice the list no longer holds (another tracker was loaded) is taken off, never left hiding every line
   const has = (list, v) => v === null || list.some(p => p[0] === v);
-  if (!has(V.picks.pmos, U.pmo) || !has(V.picks.aps, U.ap) || !has(V.picks.fys, U.fy) || !has(V.picks.statuses, U.status) || !has(V.picks.execs, U.exec)) {
+  if (!has(V.picks.pmos, U.pmo) || !has(V.picks.aps, U.ap) || !has(V.picks.fys, U.fy) || !has(V.picks.statuses, U.status)) {
     if (!has(V.picks.pmos, U.pmo)) U.pmo = null;
     if (!has(V.picks.aps, U.ap)) U.ap = null;
     if (!has(V.picks.fys, U.fy)) U.fy = null;
     if (!has(V.picks.statuses, U.status)) U.status = null;
-    if (!has(V.picks.execs, U.exec)) U.exec = null;
     return SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
   }
   return V;
@@ -983,9 +982,9 @@ function ui_vUfr(M) {
   if (!V.files.length) return '<div class="ovhead"><h2 class="ovtitle">Unfunded requirements (UFR)</h2></div><p class="none" id="uiUfrEmpty">No unfunded list is loaded'
     + (vo ? ' in this copy.' : '. Import the UFR tracker on <button type="button" class="tg" data-act="view" data-v="publish" data-fkey="ufr:publish">Publish PDFs</button>, and it is listed here.') + '</p>';
   const sel = (f, label, opts, cur) => ui_pickSel('ufrf', cur, f, label, opts);
-  const filtered = U.pmo !== null || U.ap !== null || U.fy !== null || U.status !== null || U.exec !== null || U.q !== '';
+  const filtered = U.pmo !== null || U.ap !== null || U.fy !== null || U.status !== null || U.q !== '';
   return '<div class="findbar pmobar ufrbar">' + sel('pmo', 'Choose your PMO', V.picks.pmos, U.pmo) + sel('ap', 'Appropriation', V.picks.aps, U.ap) + sel('fy', 'FY', V.picks.fys, U.fy)
-    + sel('status', 'Funding status', V.picks.statuses, U.status) + sel('exec', 'Exec ready', V.picks.execs, U.exec)
+    + sel('status', 'Funding status', V.picks.statuses, U.status)
     + '<label>Find <input type="search" id="uiUfrQ" data-fkey="ufrq" value="' + ui_e(U.q) + '" placeholder="title or CCaR number" size="22"></label>'
     + '<span class="grow"></span><button type="button" data-act="ufrclear" data-fkey="ufrclear"' + (filtered ? '' : ' disabled') + '>Clear filters</button></div>'
     + '<div class="ovhead"><h2 class="ovtitle">Unfunded requirements (UFR)</h2><span class="ovsub" id="uiUfrSub">' + ui_e(V.files.map(f => 'FY' + f.fy + ' UFR tracker, loaded ' + ui_day(f.at)).join(' · ')) + ' · '
@@ -1001,7 +1000,7 @@ function ui_ufrRedraw() {
   const n = document.getElementById('uiUfrN');
   if (n) n.textContent = V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' line' : ' lines') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' lines';
   const c = document.querySelector('[data-act=ufrclear]');
-  if (c) c.disabled = !(ui.ufr.pmo !== null || ui.ufr.ap !== null || ui.ufr.fy !== null || ui.ufr.status !== null || ui.ufr.exec !== null || ui.ufr.q !== '');
+  if (c) c.disabled = !(ui.ufr.pmo !== null || ui.ufr.ap !== null || ui.ufr.fy !== null || ui.ufr.status !== null || ui.ufr.q !== '');
 }
 
 // PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
@@ -2015,7 +2014,7 @@ function ui_vHelp() {
     ])
     + '<h3 class="sub">The unfunded list</h3>' + li([
       '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (on Publish PDFs): by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
-      'The pickers (PMO, appropriation, fiscal year, Funding status, Exec ready) and the Find box narrow the list; the tiles, the two charts and the total follow. A service switched off in the Filter is left out of every amount.',
+      'The pickers (PMO, appropriation, fiscal year, Funding status) and the Find box narrow the list; the tiles, the two charts and the total follow. A service switched off in the Filter is left out of every amount.',
       'Press a requirement to see it beside its spend plan: Approved, Obligated, Remaining, and Required (Approved plus the unfunded amount). A line with no plan event in the spend plan says Unfunded only.',
       'Exec ready counts the lines whose Exec Ready? says yes; SFCB approved counts those whose SFCB Action says approved.',
     ])
@@ -2755,7 +2754,7 @@ function ui_onClick(ev) {
     case 'pubzip': ui_pubZip(); break;
     case 'viewcopy': ui_viewCopy(); break;
     case 'ufropen': { const k = t.getAttribute('data-k'); ui.ufr.open = ui.ufr.open === k ? '' : k; ui_render(); break; }
-    case 'ufrclear': ui.ufr = { pmo: null, ap: null, fy: null, status: null, exec: null, q: '', open: '' }; ui_render(); break;
+    case 'ufrclear': ui.ufr = { pmo: null, ap: null, fy: null, status: null, q: '', open: '' }; ui_render(); break;
     case 'lastpick': { const f = document.getElementById('uiLastFile'); if (f) f.click(); break; }
     case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
     case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
@@ -2819,7 +2818,7 @@ function ui_onChange(ev) {
     }
     case 'ufrf': {
       const f = t.getAttribute('data-f');
-      if (['pmo', 'ap', 'fy', 'status', 'exec'].includes(f)) { ui.ufr[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
+      if (['pmo', 'ap', 'fy', 'status'].includes(f)) { ui.ufr[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
       return;
     }
     case 'pmof': {
