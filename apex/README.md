@@ -212,7 +212,7 @@ copy whenever the data changes; a copy does not update itself.
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*
-(By PMO and each appropriation); *Briefing* (Overview, Summary, Slide blocks, Publish PDFs); *Data checks* (Unobligated, Import report,
+(By PMO, each appropriation, and Unfunded); *Briefing* (Overview, Summary, Slide blocks, Publish PDFs); *Data checks* (Unobligated, Import report,
 What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
 for the switches.
 
@@ -274,6 +274,11 @@ for the switches.
 - **O&M, Full Fund, Initial Spares, OPN.** The FY table, then each FY's tree: PMO, Title, Plan Event and CCaR. Press a row
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Unobligated Requirements list.
+- **Unfunded.** The UFR tracker's lines, once it has been imported on Publish PDFs: by appropriation and fiscal year, in
+  rank order, in $K. Pick a PMO, appropriation, fiscal year, Funding status or Exec ready, or type part of a title or CCaR
+  number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
+  requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
+  Unfunded only. The same view is in a view-only copy.
 - **Unobligated.** Every item not yet obligated, in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
   that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count. A
   filter stays chosen when the switches leave it nothing to show (it says so, and its list comes back when they show it);

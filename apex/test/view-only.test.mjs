@@ -66,7 +66,7 @@ try {
   C.eq('it holds the plan on screen: the pulls, the settings, the publishing settings', J([J(V.SP.state.pulls.current) === J(A.SP.state.pulls.current), J(V.SP.state.settings) === J(A.SP.state.settings), J(V.SP.state.publish) === J(A.SP.state.publish)]), J([true, true, true]));
   C.eq('and not what a reader has no view of: the pull it replaced, the history, the last import report', J([V.SP.state.pulls.previous, V.SP.state.history, V.SP.state.lastImport]), J([{}, [], null]));
   C.chk('the copy is smaller than the keeper’s own saved file', copy.length < A.SP.savedHtml().length);
-  C.eq('the menu has no Data checks and no Set up', J([...V.doc.querySelectorAll('#uiNav .navg')].map(g => [g.getAttribute('aria-label') || '', g.querySelectorAll('button').length])), J([['', 4], ['Browse', 5], ['Briefing', 4]]));
+  C.eq('the menu has no Data checks and no Set up', J([...V.doc.querySelectorAll('#uiNav .navg')].map(g => [g.getAttribute('aria-label') || '', g.querySelectorAll('button').length])), J([['', 4], ['Browse', 6], ['Briefing', 4]]));
   C.chk('no Not Allocated, Import report, What changed or Settings anywhere on the page', !['na', 'report', 'changes', 'settings'].some(v => V.doc.querySelector('[data-act=view][data-v="' + v + '"]')));
   C.chk('it opens on the Summary, which says it is view-only at the top', V.main().querySelector('h2.title') && V.shown(V.doc.getElementById('uiVo')) && V.doc.getElementById('uiVo').textContent === 'View only');
   C.chk('there is no Manage data: the button and the bar are hidden', V.doc.getElementById('uiManageBtn').hidden === true && V.doc.getElementById('uiManage').hidden === true);
