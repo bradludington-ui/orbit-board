@@ -609,3 +609,18 @@ table.ufrt tr.band th{text-align:right}
      scrolling under it show through */
   table.tree tr[class*="lv"] > th.lab,table.tree tr.band > th.lab{background:var(--cell)}
 }
+
+/* §43 the keeper's rank of an unfunded line: a number box and up/down, and under it what the tracker says where it differs */
+.urkw{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.urk{width:3.4em;font:inherit;padding:1px 3px;border:1px solid var(--sedge);border-radius:4px;text-align:right;background:#fff;color:#111}
+.urkb{font:inherit;font-size:10px;line-height:1;padding:3px 4px;border:1px solid var(--sedge);border-radius:4px;background:var(--sbtn);color:var(--sink);cursor:pointer}
+.urkb:hover{background:var(--gold);color:#000}
+.urkf{display:block;color:var(--ochre);font-weight:700}
+.urkm{font-weight:400;font-style:italic;margin-left:8px}
+.urkreset{font:inherit;font-size:12px;font-weight:400;margin-left:6px;padding:1px 8px;border:1px solid var(--sedge);border-radius:6px;background:var(--sbtn);color:var(--sink);cursor:pointer}
+.urankchk{margin:10px 0}
+
+/* §44 the SRRB list: a plan event on two PMOs names both, one under the other */
+table.srrbt .srrbp{display:block;white-space:nowrap}
+table.srrbt td.srrbdt{white-space:nowrap}
+table.srrbt .srrbother{color:var(--ochre)}

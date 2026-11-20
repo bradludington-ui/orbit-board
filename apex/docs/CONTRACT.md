@@ -2286,3 +2286,66 @@ the zip of all pictures still ends in `[filtered]`. `SP.PIC_CUI = true` (the old
 line and the CUI marking as before.
 
 `test/pictures.test.mjs`.
+
+## 43. My ranking of the unfunded list
+
+Brad, 20 Nov 2026: *"I want the unfunded section to allow me to be able to adjust the rank from 1-N. I want to be able
+to pull it up, import data, and adjust within my non-published view. My ranking overrides any imported data. For any
+disconnects, flag it. Imported tables should overwrite all other data, based on a combination of CCaR Record and Plan
+Event Title."*
+
+- **Where.** On the Unfunded page of the keeper's own file, each line's rank is a box that can be typed in, with up and
+  down buttons beside it. A view-only copy shows the ranks as text and has none of this.
+- **1 to N** is within an appropriation and fiscal year, as the tracker ranks its tabs. A rank typed is the line's place
+  in that whole list, whatever the pickers are showing; past the end is the last place.
+- **The first change to a group makes the whole group the keeper's**: every line of it, in the order then on screen
+  with the one line moved. `state.ufrRank['ap|fy']` is that order, a list of `{k, c, t}`.
+- **What a line is known by:** its CCaR record and its title together (`SP.normKey` of each, so case and spacing do not
+  matter), within its appropriation and fiscal year. The tracker's column is *Requirement Title*; that is the title
+  meant. Two lines with the same record and title are told apart by their order on the tracker.
+- **Importing the tracker again** replaces that year's list whole: every amount, PMO, status and word is the new
+  tracker's. The ranking is not touched, and stays on the lines it knows. A line the keeper has not ranked comes after
+  the ranked ones, in the tracker's order.
+- **The keeper's rank is the rank everywhere** (`SP.ufrRanked`, applied where the screens read the lists): the Unfunded
+  page, the PDFs' unfunded lists, a view-only copy.
+- **Disconnects are flagged**, on the Unfunded page (*Your ranking: to check*) and under Settings' *To check on the
+  unfunded list*: the lines ranked differently from the tracker (one flag for a group, naming each, and *tracker N*
+  under each such rank); a line on the tracker the keeper has not ranked (*not ranked by you*); a ranked line the
+  tracker no longer has; a ranking whose list is not loaded.
+- **Undoing.** *Use the tracker's ranks* on a group's heading takes its ranking off. *Take the lines no longer on the
+  tracker out of your ranking* clears those flags.
+- The ranking is saved in the file and comes across with **Import from last version**. A group never ranked is exactly
+  as the tracker has it.
+
+`test/ufr-rank.test.mjs`.
+
+## 44. The SRRB list
+
+Brad, 20 Nov 2026: *"I also need to create a new SRRB section in the Briefing section. The intention here is to provide a
+consolidated list of requirements that require an approved Service Requirements Review Board form. I have repurposed my
+source file and changed column Y from Quantity to SRRB. It will now say Yes or be blank or say No. I need anything with
+Yes to populate in a listing format. Ideally we need to see the Requirement name (Plan Event Title), PMO, Service
+funding broken out by service."* A mockup was agreed first. His answers to the questions asked with it: *"One line per
+consolidated plan event title. I only want those that show Yes to populate on this list. I want all listed whether
+obligated or not. Plan Event amounts. Leave off list for No and blank."* Tracking the form's approval and an Excel sheet:
+*"Maybe later."* Screen only to start.
+
+- **The column.** It is found by its heading, `SRRB` in any case, wherever it sits in the pull (`SP.srrbOfRow`). The pull
+  is still read by its headings, so Quantity being gone is only a column the Import report says is not in the sheet.
+  A row is marked when its cell reads **Yes** or **Y**, in any case (`SP.srrbYes`); No, blank and anything else is not.
+- **Menu:** *SRRB*, under Briefing, between Slide blocks and Publish PDFs. A view-only copy has it.
+- **A line** is one plan event title (`SP.normKey`) within an appropriation and fiscal year, over every CCaR record and
+  PMO it is on. Its amounts are its rows marked Yes, added up by service: the CCaR plan's amounts, awarded or not.
+  It shows the title (the spelling most of its rows use), its CCaR numbers, its PMO or PMOs, its award months
+  (as Dec-2026; three, then "+N more"; "No date"), a column per service, and the total. $M.
+- **Rows of the same plan event that are not marked Yes are not in its amounts**; the line says how much that is.
+- **Counted rows only**, as every view: what the Filter's services and lanes show, of First FY or later, in the years
+  shown. A service switched off has no column.
+- **Order:** appropriation, fiscal year, PMO (the model's order, by a line's first PMO), then title.
+- **Above the list:** pickers for PMO (any PMO the line is on), appropriation and FY, a Find box (plan event or CCaR
+  number), Clear filters; four tiles (the total, the count, the largest PMO, the largest service); and two charts, by
+  PMO (each PMO's own marked rows) and by service. The count, tiles, charts and total follow the pickers.
+- **A line pressed** opens Requirements searched for that plan event. Nothing on the page changes the plan.
+- A pull with no SRRB column: the page says so. A column with nothing marked Yes: the page says that.
+
+`test/srrb.test.mjs`.

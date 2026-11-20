@@ -212,7 +212,7 @@ copy whenever the data changes; a copy does not update itself.
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*
-(By PMO, each appropriation, and Unfunded); *Briefing* (Overview, Summary, Slide blocks, Publish PDFs); *Data checks* (Unobligated, Import report,
+(By PMO, each appropriation, and Unfunded); *Briefing* (Overview, Summary, Slide blocks, SRRB, Publish PDFs); *Data checks* (Unobligated, Import report,
 What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
 for the switches.
 
@@ -255,6 +255,12 @@ for the switches.
 - **Slide blocks.** Each appropriation and FY as a slide block. It shows the PMO rows by month, then Monthly Totals,
   Cumulative Totals, Obligation %, OSD Goal % and OSD Status. Under each block is its Unobligated Requirements list (headed Not Allocated Requirements until November 2026). Each block has
   **Copy picture** and **Save picture**.
+- **SRRB.** Every plan event that needs an approved Service Requirements Review Board form: the ones marked **Yes** in the
+  CCaR pull's **SRRB** column (column Y, where Quantity used to be; APEX finds it by its heading). One line per plan
+  event title within an appropriation and fiscal year, with its CCaR numbers, its PMO, its award months and its plan
+  amounts by service, in $M, awarded or not. No and blank are left off. Pick a PMO, appropriation or fiscal year, or type
+  in Find, and the count, tiles, charts and total follow. If only some rows of a plan event say Yes, only those rows are
+  added up, and the line says how much was left out.
 - **Publish PDFs.** Spend plans to send out, as PDF files made inside the page (CONTRACT §33). One for each
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
   its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
@@ -280,6 +286,13 @@ for the switches.
   number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
   Unfunded only. The same view is in a view-only copy.
+  **Your own ranking:** in your own file (not a view-only copy) each line's rank is a box. Type a rank, or press the up
+  and down buttons, to put a list in your order, 1 to N within its appropriation and fiscal year. Your order is used in
+  place of the tracker's on this page, on the PDFs and in a view-only copy. Importing the tracker again replaces
+  everything else about a line and keeps your ranking on it: a line is known by its CCaR record and its title together.
+  Anything that does not line up is listed under *Your ranking: to check*: lines you rank differently from the tracker,
+  lines on the tracker you have not ranked, and ranked lines the tracker no longer has. *Use the tracker's ranks* undoes
+  a list's ranking.
 - **Unobligated.** Every item not yet obligated, in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
   that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count. A
   filter stays chosen when the switches leave it nothing to show (it says so, and its list comes back when they show it);

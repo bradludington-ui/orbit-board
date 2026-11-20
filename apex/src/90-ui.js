@@ -20,7 +20,7 @@ const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
 const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
   { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])).concat([['ufr', 'Unfunded']]) },
-  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['publish', 'Publish PDFs']] },
+  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['srrb', 'SRRB'], ['publish', 'Publish PDFs']] },
   { h: 'Data checks', items: [['na', 'Unobligated'], ['report', 'Import report'], ['changes', 'What changed']] },
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
@@ -52,7 +52,8 @@ const ui = {
   pmo: { key: undefined, fy: null },                   // My PMO: the office (undefined until picked or remembered) and the FY
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
-  ufr: { pmo: null, ap: null, fy: null, status: null, q: '', open: '' },   // the Unfunded (UFR) view's pickers, its Find box and the line opened (§37)
+  ufr: { pmo: null, ap: null, fy: null, status: null, q: '', open: '' },
+  srrb: { pmo: null, ap: null, fy: null, q: '' },            // the SRRB view's pickers and its Find box (§44)   // the Unfunded (UFR) view's pickers, its Find box and the line opened (§37)
   pub: { fys: null, miss: false }, pubM: null,   // Publish spend plan (§33): the years ticked (null: every year), only records with no description, its own model
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
@@ -930,6 +931,7 @@ function ui_vSlides(M) {
 function ui_ufrData(M) {
   const P = ui_pubState(), U = ui.ufr;
   const V = SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
+  V.rank = P.rank;
   // a choice the list no longer holds (another tracker was loaded) is taken off, never left hiding every line
   const has = (list, v) => v === null || list.some(p => p[0] === v);
   if (!has(V.picks.pmos, U.pmo) || !has(V.picks.aps, U.ap) || !has(V.picks.fys, U.fy) || !has(V.picks.statuses, U.status)) {
@@ -953,9 +955,25 @@ function ui_ufrBody(M, V) {
   if (!V.n) return '<p class="none" id="uiUfrNone">No unfunded requirement matches. Clear filters shows the whole list.</p>';
   const cols = 9 + V.svc.length;
   let zebra = 0;
-  const rows = V.groups.map(g => '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy + '</th></tr>' + g.lines.map(l => {
+  // §43 the keeper ranks the list here, 1 to N within an appropriation and fiscal year; a view-only copy shows the ranks
+  const edit = !ui_vo() && ui_fn('setUfrRank') && ui_fn('ufrMove'), RK = V.rank || { groups: {}, flags: [] };
+  ui.reg.ufr = [];
+  const rankCell = (l, gk, n) => {
+    if (!edit) return '<td class="urank">' + ui_e(l.rank) + '</td>';
+    const i = ui.reg.ufr.length;
+    ui.reg.ufr.push({ gk, rk: l.rk, title: l.title || '(no title)', rank: l.rank, n });
+    return '<td class="urank"><span class="urkw"><input type="number" class="urk" min="1" max="' + n + '" step="1" value="' + ui_e(l.rank) + '" data-act="ufrrank" data-i="' + i + '" data-fkey="ufrrank:' + ui_e(l.id)
+      + '" aria-label="Rank of ' + ui_e(l.title || '(no title)') + ', 1 to ' + n + '">'
+      + '<button type="button" class="urkb" data-act="ufrup" data-i="' + i + '" data-fkey="ufrup:' + ui_e(l.id) + '" aria-label="Move ' + ui_e(l.title || '(no title)') + ' up one rank" title="Up one rank">\u25B2</button>'
+      + '<button type="button" class="urkb" data-act="ufrdown" data-i="' + i + '" data-fkey="ufrdown:' + ui_e(l.id) + '" aria-label="Move ' + ui_e(l.title || '(no title)') + ' down one rank" title="Down one rank">\u25BC</button></span>'
+      + (l.rankDiff ? '<span class="fsub urkf">tracker ' + ui_e(l.rankFile) + '</span>' : l.rankNew ? '<span class="fsub urkf">not ranked by you</span>' : '') + '</td>';
+  };
+  const rows = V.groups.map(g => { const gk = g.ap + '|' + g.fy, G = RK.groups[gk] || { n: g.lines.length, mine: false };
+    return '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy
+      + (edit && G.mine ? ' <span class="urkm">in your ranking</span> <button type="button" class="urkreset" data-act="ufrreset" data-g="' + ui_e(gk) + '" data-fkey="ufrreset:' + ui_e(gk) + '">Use the tracker’s ranks</button>' : '')
+      + '</th></tr>' + g.lines.map(l => {
     const open = U.open === l.id, alt = (zebra++ % 2) ? ' alt' : '';
-    return '<tr class="' + (open ? 'cur' : alt.trim()) + '" data-ufr="' + ui_e(l.id) + '"><td class="urank">' + ui_e(l.rank) + '</td><th scope="row" class="lab"><button type="button" class="tg" data-act="ufropen" data-k="' + ui_e(l.id)
+    return '<tr class="' + (open ? 'cur' : alt.trim()) + '" data-ufr="' + ui_e(l.id) + '">' + rankCell(l, gk, G.n) + '<th scope="row" class="lab"><button type="button" class="tg" data-act="ufropen" data-k="' + ui_e(l.id)
       + '" data-fkey="ufropen:' + ui_e(l.id) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' + ui_e(l.title || '(no title)') + '</button><span class="fsub">' + ui_e(l.ccar || 'no CCaR record') + '</span></th>'
       + '<td><span class="usw" style="background:' + SP.publishColor(l.pmoKey, false) + '" aria-hidden="true"></span>' + ui_e(l.pmoLabel) + '</td>'
       + l.amt.map(ui_k).join('') + '<td class="n utot" data-c="' + l.sum + '">' + ui_e(SP.fmtK(l.sum)) + '</td><td>' + ui_e(l.status) + '</td><td class="uexec">' + ui_e(l.exec) + '</td><td>' + ui_e(l.sfcb) + '</td>'
@@ -966,14 +984,21 @@ function ui_ufrBody(M, V) {
         : '<strong>Not in the spend plan:</strong> no plan event in ' + ui_e(g.apLabel) + ' FY' + g.fy + ' carries this CCaR record' + (l.prime ? '' : ' under ' + ui_e(l.pmoLabel)) + ', so Approved is $0 and Required is this unfunded ' + ui_e(K(l.sum)) + '.')
         + (l.ccar ? '<div class="acts"><button type="button" data-act="reqfind" data-q="' + ui_e(l.ccar) + '" data-fkey="ufrreq:' + ui_e(l.id) + '">Open this requirement</button>'
           + (l.prime ? '<span class="cardnote">A prime contract: its spend plan figures are over every PMO.</span>' : '') + '</div>' : '') + '</td></tr>' : '');
-  }).join('')).join('');
+  }).join(''); }).join('');
+  // the disconnects between the keeper's ranking and the tracker (§43), for the keeper only
+  const gone = Object.keys(RK.groups).reduce((n, k) => n + (RK.groups[k].gone || 0), 0);
+  const chk = edit && RK.flags.length ? '<section class="card urankchk" id="uiUfrRankChk"><h3>Your ranking: to check (' + RK.flags.length + ')</h3><ul class="speclist">' + RK.flags.map(f => '<li>' + ui_e(f) + '</li>').join('') + '</ul>'
+    + (gone ? '<p class="acts"><button type="button" data-act="ufrforget" data-fkey="ufrforget">Take the ' + SP.fmtInt(gone) + ' line' + (gone === 1 ? '' : 's') + ' no longer on the tracker out of your ranking</button></p>' : '') + '</section>' : '';
   return '<div class="tiles">'
     + tile('sum', 'Total unfunded', ui_e(K(V.tiles.sum)), req(V.tiles.n) + ', ' + SP.fmtInt(V.tiles.aps) + (V.tiles.aps === 1 ? ' appropriation' : ' appropriations'), V.tiles.sum)
     + tile('exec', 'Exec ready', ui_e(K(V.tiles.exec.sum)), SP.fmtInt(V.tiles.exec.n) + ' of ' + req(V.tiles.n), V.tiles.exec.sum)
     + tile('sfcb', 'SFCB approved', ui_e(K(V.tiles.sfcb.sum)), req(V.tiles.sfcb.n), V.tiles.sfcb.sum)
     + tile('only', 'Not in the spend plan', SP.fmtInt(V.tiles.only), 'unfunded only: no plan event yet', V.tiles.only)
     + '</div><div class="pmotwo">' + bars('pmo', 'Unfunded by PMO ($K)', V.byPmo) + bars('svc', 'Unfunded by service ($K)', V.bySvc) + '</div>'
-    + '<h3 class="pmoall">Every unfunded requirement, by rank</h3><div class="fsheet tw"><table class="grid findt ufrt" id="uiUfrT"><thead><tr class="hd"><th scope="col">Rank</th><th scope="col" class="lab">Requirement</th><th scope="col">PMO</th>'
+    + chk + '<h3 class="pmoall">Every unfunded requirement, by rank</h3>'
+    + (edit ? '<p class="cardnote" id="uiUfrRankHow">Type a rank, or press \u25B2 \u25BC, to put a list in your own order, 1 to N within its appropriation and fiscal year. Your order is used in place of the tracker’s, here, on the PDFs and in a view-only copy, '
+      + 'and is kept when a tracker is imported again: a line is known by its CCaR record and its title together, and everything else about it is the tracker’s.</p>' : '')
+    + '<div class="fsheet tw"><table class="grid findt ufrt" id="uiUfrT"><thead><tr class="hd"><th scope="col">Rank</th><th scope="col" class="lab">Requirement</th><th scope="col">PMO</th>'
     + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($K)</th><th scope="col">Funding status</th><th scope="col">Exec ready?</th><th scope="col">SFCB action</th>'
     + '<th scope="col" class="n">Approved in plan ($K)</th></tr></thead><tbody>' + rows
     + '<tr class="band"><th colspan="3" scope="row">Total unfunded</th>' + V.total.amt.map(ui_k).join('') + ui_k(V.total.sum) + '<td colspan="4"></td></tr></tbody></table></div>'
@@ -995,6 +1020,16 @@ function ui_vUfr(M) {
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><div id="uiUfrRes">' + ui_ufrBody(M, V) + '</div>';
 }
 // the Find box narrows as it is typed in: only what is below the bar is drawn again, so the box keeps the keyboard
+// §43 one line moved to a rank: the group's whole order is kept as the keeper's from then on
+function ui_ufrRank(e, to) {
+  const st = ui_state() || {}, n = Math.round(Number(to));
+  if (!isFinite(n) || String(to).trim() === '') { ui_say('A rank is a whole number from 1 to ' + e.n + '; “' + e.title + '” stays at ' + (e.rank || 'its place') + '.', 'warn'); ui_render(); return; }
+  const list = SP.ufrMove(st.ufr, st.ufrRank, e.gk, e.rk, n);
+  if (!list) { ui_render(); return; }
+  const at = list.findIndex(x => x.k === e.rk) + 1;
+  if (SP.setUfrRank(e.gk, list)) ui_say('“' + e.title + '” is rank ' + at + ' of ' + e.n + (n !== at ? ' (' + n + ' is outside 1 to ' + e.n + ')' : '') + '. The list is in your ranking; the tracker’s ranks are noted where they differ.', 'ok');
+  ui_render();
+}
 function ui_ufrRedraw() {
   const box = document.getElementById('uiUfrRes'), M = ui_model();
   if (!box || !M) return;
@@ -1004,6 +1039,83 @@ function ui_ufrRedraw() {
   if (n) n.textContent = V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' line' : ' lines') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' lines';
   const c = document.querySelector('[data-act=ufrclear]');
   if (c) c.disabled = !(ui.ufr.pmo !== null || ui.ufr.ap !== null || ui.ufr.fy !== null || ui.ufr.status !== null || ui.ufr.q !== '');
+}
+
+// SRRB (CONTRACT §44): every plan event marked Yes in the CCaR pull's SRRB column, one line a plan event title, with its PMO
+// and its plan amounts by service. Under Briefing. Nothing here changes the plan.
+function ui_srrbData(M) {
+  const U = ui.srrb;
+  const V = SP.srrbView(M, ui_pulls(), ui_view(), U);
+  const has = (list, v) => v === null || list.some(x => x[0] === v);
+  if (!has(V.picks.pmos, U.pmo) || !has(V.picks.aps, U.ap) || !has(V.picks.fys, U.fy)) {
+    if (!has(V.picks.pmos, U.pmo)) U.pmo = null;
+    if (!has(V.picks.aps, U.ap)) U.ap = null;
+    if (!has(V.picks.fys, U.fy)) U.fy = null;
+    return SP.srrbView(M, ui_pulls(), ui_view(), U);
+  }
+  return V;
+}
+function ui_srrbMonths(l) {
+  const w = l.months.map(ym => { const m = /^(\d{4})-(\d{2})/.exec(ym); return m ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : ym; });
+  const shown = w.slice(0, 3).join(', ') + (w.length > 3 ? ' +' + (w.length - 3) + ' more' : '');
+  return shown ? shown + (l.nodate ? ', No date' : '') : (l.nodate ? 'No date' : '');
+}
+function ui_srrbBody(M, V) {
+  const m = c => '<td class="n" data-c="' + c + '">' + ui_e(SP.fmtM(c)) + '</td>';
+  const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
+  const req = n => SP.fmtInt(n) + (n === 1 ? ' requirement' : ' requirements');
+  const bars = (id, head, items) => { const max = Math.max(1, ...items.map(x => Math.abs(x.sum)));
+    return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (items.length ? '<ul class="plist ubars">' + items.map(x => '<li><span class="fp">' + ui_e(x.label) + '</span>'
+      + '<span class="ubar" aria-hidden="true"><span style="width:' + (100 * Math.abs(x.sum) / max).toFixed(1) + '%;background:' + (x.color || '#8EAADB') + '"></span></span>'
+      + '<span class="fa" data-c="' + x.sum + '">' + ui_e(SP.fmtM(x.sum)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">Nothing to show.</p>') + '</section>'; };
+  if (!V.n) return '<p class="none" id="uiSrrbNone">No SRRB requirement matches. Clear filters shows the whole list.</p>';
+  const cols = 5 + V.svc.length;
+  let zebra = 0;
+  const rows = V.groups.map(g => '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy + '</th></tr>' + g.lines.map(l => {
+    const alt = (zebra++ % 2) ? 'alt' : '';
+    return '<tr class="' + alt + '" data-srrb="' + ui_e(l.id) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(l.title) + '" data-fkey="srrbopen:' + ui_e(l.id) + '">' + ui_e(l.title) + '</button>'
+      + '<span class="fsub">' + ui_e(l.ccars.length ? l.ccars.join(', ') : 'no CCaR record') + '</span>'
+      + (l.other ? '<span class="fsub srrbother">' + ui_e(SP.fmtM(l.other)) + ' ($M) of this plan event is on rows not marked Yes, and is not counted</span>' : '') + '</th>'
+      + '<td class="srrbpmo">' + l.pmos.map(p => '<span class="srrbp"><span class="usw" style="background:' + SP.publishColor(p.key, false) + '" aria-hidden="true"></span>' + ui_e(p.label) + '</span>').join('') + '</td>'
+      + '<td class="srrbdt">' + ui_e(ui_srrbMonths(l)) + '</td>' + l.amt.map(m).join('') + '<td class="n utot" data-c="' + l.sum + '">' + ui_e(SP.fmtM(l.sum)) + '</td><td class="uexec">Yes</td></tr>';
+  }).join('')).join('');
+  const topPmo = V.byPmo[0], topSvc = V.bySvc.slice().sort((a, b) => b.sum - a.sum)[0];
+  return '<div class="tiles">'
+    + tile('sum', 'Requiring an SRRB form ($M)', ui_e(SP.fmtM(V.total.sum)), req(V.n) + ', ' + SP.fmtInt(V.groups.length) + (V.groups.length === 1 ? ' appropriation and year' : ' appropriations and years'), V.total.sum)
+    + tile('n', 'Requirements', SP.fmtInt(V.n), 'plan events marked Yes, over ' + SP.fmtInt(V.byPmo.length) + (V.byPmo.length === 1 ? ' PMO' : ' PMOs'), V.n)
+    + tile('pmo', 'Largest PMO', topPmo ? ui_e(topPmo.label) : '-', topPmo ? ui_e(SP.fmtM(topPmo.sum)) + ' ($M)' : '', topPmo ? topPmo.sum : 0)
+    + tile('svc', 'Largest service', topSvc && topSvc.sum ? ui_e(topSvc.label) : '-', topSvc && topSvc.sum ? ui_e(SP.fmtM(topSvc.sum)) + ' ($M)' : '', topSvc ? topSvc.sum : 0)
+    + '</div><div class="pmotwo">' + bars('pmo', 'SRRB requirements by PMO ($M)', V.byPmo) + bars('svc', 'SRRB requirements by service ($M)', V.bySvc) + '</div>'
+    + '<h3 class="pmoall">Every requirement that needs an approved SRRB form</h3><div class="fsheet tw"><table class="grid findt ufrt srrbt" id="uiSrrbT"><thead><tr class="hd"><th scope="col" class="lab">Requirement (Plan Event Title)</th><th scope="col">PMO</th><th scope="col">Award date</th>'
+    + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($M)</th><th scope="col">SRRB</th></tr></thead><tbody>' + rows
+    + '<tr class="band"><th colspan="3" scope="row">Total</th>' + V.total.amt.map(m).join('') + m(V.total.sum) + '<td></td></tr></tbody></table></div>'
+    + '<p class="cardnote findnote">Figures are $M: each plan event’s amounts in the CCaR plan, awarded or not, on its rows marked Yes. One line is one plan event title within an appropriation and fiscal year, over every CCaR record it is on. '
+    + 'The Filter above (services, lanes) and the pickers narrow the list and every total. Press a requirement to open it in Requirements.</p>';
+}
+function ui_vSrrb(M) {
+  const V = ui_srrbData(M), U = ui.srrb;
+  const head = '<div class="ovhead"><h2 class="ovtitle">SRRB requirements</h2>';
+  if (!V.has) return head + '</div><p class="none" id="uiSrrbEmpty">The CCaR pull loaded has no column headed SRRB, so there is nothing to list. In the pull, a row that needs an approved Service Requirements Review Board form says Yes in that column.</p>';
+  if (!V.all) return head + '</div><p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><p class="none" id="uiSrrbEmpty">No plan event is marked Yes in the SRRB column' + (M.shown.all ? '' : ' among what the Filter shows') + '.</p>';
+  const sel = (f, label, opts, cur) => ui_pickSel('srrbf', cur, f, label, opts);
+  const filtered = U.pmo !== null || U.ap !== null || U.fy !== null || U.q !== '';
+  return '<div class="findbar pmobar ufrbar">' + sel('pmo', 'Choose your PMO', V.picks.pmos, U.pmo) + sel('ap', 'Appropriation', V.picks.aps, U.ap) + sel('fy', 'FY', V.picks.fys, U.fy)
+    + '<label>Find <input type="search" id="uiSrrbQ" data-fkey="srrbq" value="' + ui_e(U.q) + '" placeholder="plan event or CCaR number" size="24"></label>'
+    + '<span class="grow"></span><button type="button" data-act="srrbclear" data-fkey="srrbclear"' + (filtered ? '' : ' disabled') + '>Clear filters</button></div>'
+    + head + '<span class="ovsub">Plan events marked Yes in the CCaR pull’s SRRB column · Data through ' + ui_e(M.asOfLabel) + ' · '
+    + '<span id="uiSrrbN">' + (V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' requirement' : ' requirements') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' requirements') + '</span></span></div>'
+    + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><div id="uiSrrbRes">' + ui_srrbBody(M, V) + '</div>';
+}
+// the Find box narrows as it is typed in: only what is below the bar is drawn again, so the box keeps the keyboard
+function ui_srrbRedraw() {
+  const box = document.getElementById('uiSrrbRes'), M = ui_model();
+  if (!box || !M) return;
+  const V = ui_srrbData(M);
+  box.innerHTML = ui_srrbBody(M, V);
+  const n = document.getElementById('uiSrrbN');
+  if (n) n.textContent = V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' requirement' : ' requirements') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' requirements';
+  const c = document.querySelector('[data-act=srrbclear]');
+  if (c) c.disabled = !(ui.srrb.pmo !== null || ui.srrb.ap !== null || ui.srrb.fy !== null || ui.srrb.q !== '');
 }
 
 // PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
@@ -1018,7 +1130,7 @@ function ui_pubModel(M) {
 // THE UNFUNDED LIST (§33.3, §39): the lists loaded, and for the keeper of the plan the import button, Remove and what to
 // check. Drawn in Settings with its controls and on Publish PDFs as what is loaded.
 function ui_ufrNotes(P, D) {
-  return Object.keys(P.ufr).sort().flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
+  return Object.keys(P.ufr).sort().flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags).concat(P.rank ? P.rank.flags : [])
     .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
 }
 function ui_ufrBlock(P, D, o) {
@@ -1040,7 +1152,10 @@ function ui_ufrBlock(P, D, o) {
 }
 function ui_pubState() {
   const st = ui_state() || {};
-  return { ufr: st.ufr && typeof st.ufr === 'object' ? st.ufr : {}, pub: st.publish && typeof st.publish === 'object' ? st.publish : {} };
+  // §43 the unfunded lists in the keeper's ranking: what every view, the PDFs and a view-only copy show
+  const raw = st.ufr && typeof st.ufr === 'object' ? st.ufr : {};
+  const X = ui_fn('ufrRanked') ? SP.ufrRanked(raw, st.ufrRank) : { ufr: raw, groups: {}, flags: [] };
+  return { ufr: X.ufr, pub: st.publish && typeof st.publish === 'object' ? st.publish : {}, rank: X };
 }
 const UI_PUB_PROGRAM = 'F-35 Sustainment';
 function ui_pubData(M) {
@@ -2040,7 +2155,8 @@ function ui_vHelp() {
       'A requirement’s name in either opens it on Find a requirement.',
     ])
     + '<h3 class="sub">The unfunded list</h3>' + li([
-      '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (in Settings): by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
+      '<strong>SRRB</strong>, under Briefing, lists every plan event marked Yes in the CCaR pull’s SRRB column: one line a plan event title within an appropriation and fiscal year, with its PMO and its plan amounts by service, awarded or not. No and blank are left off.',
+      '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (in Settings). In your own file you can type each line’s rank to put a list in your own order, which is then used in place of the tracker’s and kept when the tracker is imported again: by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
       'The pickers (PMO, appropriation, fiscal year, Funding status) and the Find box narrow the list; the tiles, the two charts and the total follow. A service switched off in the Filter is left out of every amount.',
       'Press a requirement to see it beside its spend plan: Approved, Obligated, Remaining, and Required (Approved plus the unfunded amount). A line with no plan event in the spend plan says Unfunded only.',
       'Exec ready counts the lines whose Exec Ready? says yes; SFCB approved counts those whose SFCB Action says approved.',
@@ -2410,6 +2526,7 @@ function ui_drawMain(M) {
   if (v === 'slides') return ui_vSlides(M);
   if (v === 'publish') return ui_vPublish(M);
   if (v === 'ufr') return ui_vUfr(M);
+  if (v === 'srrb') return ui_vSrrb(M);
   if (UI_AP_LABEL[v]) return ui_vAp(M, v);
   if (v === 'pmos') return ui_vPmos(M);
   if (v === 'na') return ui_vNa(M);
@@ -2428,7 +2545,7 @@ function ui_render() {
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
-  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
+  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], ufr: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
   // a view-only copy has no way to a view its menu does not hold; were one asked for anyhow, it is the Summary
   if (ui_vo() && ui.view !== 'help' && !ui_nav().some(g => g.items.some(([id]) => id === ui.view))) ui.view = UI_HOME;
@@ -2826,6 +2943,24 @@ function ui_onClick(ev) {
     case 'viewcopy': ui_viewCopy(); break;
     case 'ufropen': { const k = t.getAttribute('data-k'); ui.ufr.open = ui.ufr.open === k ? '' : k; ui_render(); break; }
     case 'ufrclear': ui.ufr = { pmo: null, ap: null, fy: null, status: null, q: '', open: '' }; ui_render(); break;
+    case 'srrbclear': ui.srrb = { pmo: null, ap: null, fy: null, q: '' }; ui_render(); break;
+    case 'ufrup': case 'ufrdown': { const e = ui.reg.ufr && ui.reg.ufr[Number(t.getAttribute('data-i'))]; if (e) ui_ufrRank(e, (Number(e.rank) || (act === 'ufrup' ? 2 : 0)) + (act === 'ufrup' ? -1 : 1)); break; }
+    case 'ufrreset': {
+      const gk = t.getAttribute('data-g');
+      if (ui_fn('setUfrRank') && SP.setUfrRank(gk, null)) ui_say('That list is back in the tracker’s ranks; your ranking of it was taken off.', 'ok');
+      ui_render(); break;
+    }
+    case 'ufrforget': {
+      const st = ui_state() || {}, X = SP.ufrRanked(st.ufr, st.ufrRank);
+      let n = 0;
+      for (const gk of Object.keys(st.ufrRank || {})) {
+        const g = X.groups[gk], have = new Set(g ? g.order : []), keep = (st.ufrRank[gk] || []).filter(e => have.has(e.k));
+        n += (st.ufrRank[gk] || []).length - keep.length;
+        SP.setUfrRank(gk, keep.length ? keep : null);
+      }
+      ui_say(SP.fmtInt(n) + ' line' + (n === 1 ? '' : 's') + ' no longer on the tracker ' + (n === 1 ? 'was' : 'were') + ' taken out of your ranking.', 'ok');
+      ui_render(); break;
+    }
     case 'lastpick': { const f = document.getElementById('uiLastFile'); if (f) f.click(); break; }
     case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
     case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
@@ -2885,6 +3020,12 @@ function ui_onChange(ev) {
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');
       if (f === 'pmo' || f === 'ap' || f === 'fy') { ui[act === 'chf' ? 'ch' : 'cal'][f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
+      return;
+    }
+    case 'ufrrank': { const e = ui.reg.ufr && ui.reg.ufr[Number(t.getAttribute('data-i'))]; if (e) ui_ufrRank(e, t.value); return; }
+    case 'srrbf': {
+      const f = t.getAttribute('data-f');
+      if (['pmo', 'ap', 'fy'].includes(f)) { ui.srrb[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
       return;
     }
     case 'ufrf': {
@@ -2966,7 +3107,8 @@ function ui_boot() {
   app.addEventListener('change', ui_onChange);
   // typing in Find a requirement redraws the list alone: the box keeps the keyboard and its caret
   app.addEventListener('input', ev => { if (ev.target && ev.target.id === 'uiFindQ') { ui.find.q = ev.target.value; ui_findRedraw(); }
-    else if (ev.target && ev.target.id === 'uiUfrQ') { ui.ufr.q = ev.target.value; ui_ufrRedraw(); } });
+    else if (ev.target && ev.target.id === 'uiUfrQ') { ui.ufr.q = ev.target.value; ui_ufrRedraw(); }
+    else if (ev.target && ev.target.id === 'uiSrrbQ') { ui.srrb.q = ev.target.value; ui_srrbRedraw(); } });
   app.addEventListener('keydown', ui_onKey);
   app.addEventListener('focusout', ev => { if (ui.els && ev.target === ui.els.asOf) ui_asOfLeft(); });
   if (ui_fn('onStateChange')) { try { SP.onStateChange(ui_stateChanged); } catch (e) {} }

@@ -245,13 +245,23 @@ function st_check(st) {
   if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
   if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
   if (st.viewOnly !== undefined && typeof st.viewOnly !== 'boolean') return 'its view-only mark is not yes or no';
-  const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish);
+  const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish) || st_checkUfrRank(st.ufrRank);
   if (ub) return ub;
   return '';
 }
 // §33.6 THE UNFUNDED LISTS AND THE PUBLISHING SETTINGS, in the shapes SP.publishData and SP.publishPages read. Absent in
 // every plan saved before §33 and in one that never loaded a list or typed a description, which is not a fault. One that
 // has them must hold them whole: a line whose amounts are not seven whole numbers would print a Required nobody typed.
+// §43 the keeper's ranking of the unfunded list: {'ap|fy': [{k, c, t}]}, every part text
+function st_checkUfrRank(r) {
+  if (r === undefined || r === null) return '';
+  if (!st_isObj(r)) return 'its ranking of the unfunded list is not a ranking';
+  for (const g of Object.keys(r)) {
+    if (!Array.isArray(r[g]) || !r[g].every(e => st_isObj(e) && typeof e.k === 'string' && (e.c === undefined || typeof e.c === 'string') && (e.t === undefined || typeof e.t === 'string')))
+      return 'its ranking of the unfunded list for ' + g + ' is not a list of lines';
+  }
+  return '';
+}
 function st_checkUfr(u) {
   if (u === undefined || u === null) return '';
   if (!st_isObj(u)) return 'its unfunded lists are not a table by fiscal year';
@@ -967,11 +977,13 @@ SP.takeSettings = function takeSettings(text, name) {
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
     if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s settings, and “' + fname + '” was not read into it.' };
   }
-  const before = JSON.stringify([st.settings, st.publish, st.ufr]);
+  const before = JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank]);
   if (next) st.settings = next;
   if (hasPub) st.publish = st_clone(inc.publish);
   if (hasUfr) { const u = st_isObj(st.ufr) ? st.ufr : {}; for (const k of Object.keys(inc.ufr)) u[k] = st_clone(inc.ufr[k]); st.ufr = u; }
-  if (JSON.stringify([st.settings, st.publish, st.ufr]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
+  // §43 and the ranking of those lists, group by group
+  if (st_isObj(inc.ufrRank) && !st_checkUfrRank(inc.ufrRank)) { const u = st_isObj(st.ufrRank) ? st.ufrRank : {}; for (const k of Object.keys(inc.ufrRank)) u[k] = st_clone(inc.ufrRank[k]); if (Object.keys(u).length) st.ufrRank = u; }
+  if (JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
   st_changed(false);
   return { ok: true, message: 'Took from “' + fname + '”: ' + brings.join('; ') + '. This page’s pulls and BAE report are as they were. Save to keep it in this page’s file.' };
 };
@@ -997,6 +1009,19 @@ SP.setUfr = function setUfr(parsed, nowIso) {
   all[String(parsed.fy)] = st_clone({ fy: parsed.fy, name: String(parsed.name || ''), importedAt: nowIso || new Date().toISOString(), unit: parsed.unit,
     tabs: parsed.tabs || [], lines: parsed.lines || [], notes: parsed.notes || [], ignored: parsed.ignored || [] });
   st.ufr = all;
+  st_changed(false);
+  return true;
+};
+// §43 the keeper's ranking of one group ('ap|fy'): a list of {k, c, t} in rank order, or null to go back to the tracker's
+// ranks. A tracker imported again does not touch it: the ranking overrides what is imported.
+SP.setUfrRank = function setUfrRank(gk, list) {
+  if (SP.isViewOnly() || typeof gk !== 'string' || gk === '') return false;
+  const st = SP.state, all = st_isObj(st.ufrRank) ? st.ufrRank : {};
+  const before = JSON.stringify(all[gk] === undefined ? null : all[gk]);
+  const next = Array.isArray(list) ? list.filter(e => st_isObj(e) && typeof e.k === 'string').map(e => ({ k: e.k, c: String(e.c || ''), t: String(e.t || '') })) : null;
+  if (JSON.stringify(next) === before) return false;
+  if (next) all[gk] = next; else delete all[gk];
+  if (Object.keys(all).length) st.ufrRank = all; else delete st.ufrRank;
   st_changed(false);
   return true;
 };
