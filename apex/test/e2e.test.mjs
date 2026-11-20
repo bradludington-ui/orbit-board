@@ -249,7 +249,8 @@ try {
   const zip = await download(A, n, 'Save all pictures');
   if (zip) {
     const list = JSON.parse(spawnSync('python3', ['-I', '-c', 'import zipfile,sys,json;z=zipfile.ZipFile(sys.argv[1]);print(json.dumps([i.filename for i in z.infolist()]));z.testzip()', zip.path], { encoding: 'utf8' }).stdout || '[]');
-    C.chk('the zip holds one PNG per block', list.length === Object.keys(O.blocks).length && list.every(x => /\.png$/.test(x)), J(list));
+    const apPng = list.filter(x => !x.includes('/')), pmoPng = list.filter(x => /^By PMO\/PMO .+ - .+ FY\d{4}\.png$/.test(x));
+    C.chk('the zip holds one PNG per block, and one per PMO block in the By PMO folder (CONTRACT §41)', apPng.length === Object.keys(O.blocks).length && pmoPng.length >= apPng.length && apPng.length + pmoPng.length === list.length && list.every(x => /\.png$/.test(x)), J(list));
   }
   C.chk('no script error while making pictures', !A.errors.length, A.errors.join(' | '));
 

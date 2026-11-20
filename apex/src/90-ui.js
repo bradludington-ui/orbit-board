@@ -898,7 +898,9 @@ function ui_vSlides(M) {
   const R = ui.reg;
   const out = ['<h2 class="title">Slide Snapshots - picture-ready blocks for PowerPoint</h2>',
     '<p class="l2">Each block is sized for a 13.33 in x 4.5 in slide region. <strong>Copy picture</strong> puts a block on the clipboard;'
-    + ' <strong>Save picture</strong> saves it as a PNG. The picture runs from the block’s title through OSD Status.</p>',
+    + ' <strong>Save picture</strong> saves it as a PNG. The picture runs from the block’s title through OSD Status' + (SP.PMO_PICTURES === false ? '.' : ', and carries no CUI marking: the slide it goes on is marked.') + '</p>',
+    SP.PMO_PICTURES === false ? '' : '<p class="note" id="uiPmoPicNote">Each PMO’s blocks have the same two buttons on <button type="button" class="tg" data-act="view" data-v="pmos" data-fkey="slides:pmos">By PMO</button>;'
+    + ' Save all pictures holds them too, in a folder named By PMO.</p>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
     // rule 6 (§14.3): with a BAE report loaded the Summary's Approved is the report's, and a block here still adds up the
     // plan; said once, so a slide's Total is not taken for a figure that disagrees with the Summary. The Slide Snapshots
@@ -1305,7 +1307,12 @@ function ui_vPmos(M) {
     // report loaded, § and † on a block the report has no figure for, as in the table above; none with no report (M4-5)
     const sp = SP.pmoStripParts(b, M);
     const strip = ui_e(sp.head) + sp.parts.map(([w, c, mk]) => '&nbsp; | &nbsp;' + w + ' ' + ui_e(SP.fmtMText(c)) + 'M' + (mk ? ui_markSpan(mk, M) : '')).join('');
+    // §41 a picture of this PMO's block, as the Slide blocks page gives one of each appropriation's
+    const pi = R.pblocks.length, pn = SP.pictureName ? SP.pictureName(b, { pmo: P }) : P.label + ' ' + b.apLabel + ' FY' + b.fy;
+    R.pblocks.push({ pmo: P, block: b });
     out.push('<section class="blk-sec" aria-label="' + ui_e(b.apLabel + ' FY' + b.fy) + '">'
+      + (SP.PMO_PICTURES === false ? '' : '<div class="slidebtns"><button type="button" data-act="copypic" data-p="' + pi + '" data-fkey="cpp:' + ui_e(b.key) + '" aria-label="Copy picture of ' + ui_e(pn) + '">Copy picture</button>'
+      + '<button type="button" data-act="savepic" data-p="' + pi + '" data-fkey="spp:' + ui_e(b.key) + '" aria-label="Save picture of ' + ui_e(pn) + '">Save picture</button></div>')
       + '<div class="bar bar2">' + ui_e(b.apLabel) + ' - FY' + ui_e(b.fy) + '</div>'
       + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
       + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
@@ -2421,7 +2428,7 @@ function ui_render() {
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
-  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
+  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
   // a view-only copy has no way to a view its menu does not hold; were one asked for anyhow, it is the Summary
   if (ui_vo() && ui.view !== 'help' && !ui_nav().some(g => g.items.some(([id]) => id === ui.view))) ui.view = UI_HOME;
@@ -2683,20 +2690,22 @@ function ui_budgetChanged(el, what) {
   ui_setSettings({ budgets: all }, 'Budget “' + (b.name || '(blank)') + '”: ' + (what === 'svc' ? 'service ' + (cur.svc || 'by rule') : 'lane ' + (cur.lane ? SP.LANE_WORDS[cur.lane] : 'by rule')) + '.');
 }
 
-async function ui_picture(kind, i) {
-  const M = ui_model(), b = ui.reg.blocks[i];
+async function ui_picture(kind, i, pi) {
+  const M = ui_model(), pb = pi === null || pi === undefined ? null : ui.reg.pblocks[pi];
+  const b = pb ? pb.block : ui.reg.blocks[i], opt = pb ? { pmo: pb.pmo } : undefined;
   if (!M || !b) return;
+  const what = pb ? SP.pictureName(b, opt) : b.apLabel + ' FY' + b.fy;
   if (kind === 'copy') {
     if (!ui_need('copyBlockPicture', 'Copy picture')) return;
     await ui_busy('copying the picture', async () => {
-      ui_say('Drawing ' + b.apLabel + ' FY' + b.fy + '…', 'info');
-      ui_result(await SP.copyBlockPicture(b, M), 'The picture of ' + b.apLabel + ' FY' + b.fy + ' is on the clipboard.');
+      ui_say('Drawing ' + what + '…', 'info');
+      ui_result(await SP.copyBlockPicture(b, M, opt), 'The picture of ' + what + ' is on the clipboard.');
     });
   } else {
     if (!ui_need('blockPng', 'Save picture')) return;
     await ui_busy('saving the picture', async () => {
-      const blob = await SP.blockPng(b, M);
-      const name = SP.download(ui_pictureName(b), blob, 'image/png');
+      const blob = await SP.blockPng(b, M, opt);
+      const name = SP.download(pb ? what + '.png' : ui_pictureName(b), blob, 'image/png');
       ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
     });
   }
@@ -2706,11 +2715,12 @@ async function ui_zip() {
   if (!M) return;
   if (!ui_need('allPicturesZip', 'Save all pictures')) return;
   await ui_busy('saving the pictures', async () => {
-    ui_say('Drawing ' + M.blocks.length + ' pictures…', 'info');
+    const nPic = M.blocks.length + (M.pmos || []).reduce((n, p) => n + p.blocks.length, 0);
+    ui_say('Drawing ' + nPic + ' pictures…', 'info');
     const blob = await SP.allPicturesZip(M);
     const name = SP.download('APEX pictures FY' + M.E + ' - data through ' + M.asOfLabel + ' - ' + ui_today()
       + (M.shown.all ? '' : ' [filtered]') + '.zip', blob, 'application/zip');
-    ui_say('Saved “' + name + '” (' + M.blocks.length + ' pictures) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+    ui_say('Saved “' + name + '” (' + nPic + ' pictures) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
 
@@ -2808,8 +2818,8 @@ function ui_onClick(ev) {
       ui_render();
       break;
     }
-    case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b'))); break;
-    case 'savepic': ui_picture('save', Number(t.getAttribute('data-b'))); break;
+    case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b')), t.hasAttribute('data-p') ? Number(t.getAttribute('data-p')) : null); break;
+    case 'savepic': ui_picture('save', Number(t.getAttribute('data-b')), t.hasAttribute('data-p') ? Number(t.getAttribute('data-p')) : null); break;
     case 'zip': ui_zip(); break;
     case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
     case 'pubzip': ui_pubZip(); break;

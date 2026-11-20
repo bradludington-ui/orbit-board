@@ -485,13 +485,13 @@ function ex_summary(M) {
 // Line 2. It said "Each block is sized for a 13.33 in x 4.5 in slide region", which v12 said and was never so: a block
 // here is about 19 x 3.4 in (5.7 : 1, review XP-3), a 70-wide label column and the money columns. The dashboard's
 // pictures are drawn to that region; a block copied from this sheet is not, and the line says so.
-const EX_SLIDES_HOW = 'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and are marked CUI: Slide blocks > Copy picture'
+const ex_slidesHow = () => 'The dashboard’s pictures fit a 13.33 in x 4.5 in slide region and ' + SP.PIC_CUI_WORDS + ': Slide blocks > Copy picture'
   + ' or Save pictures. To copy a block from this sheet instead, select it from the CUI line above its title through the CUI line'
   + ' under OSD Status and use Copy as Picture; it is wider for its height than that region, so size it by its width.';
 function ex_slides(M) {
   const K = ex_blockSheet('Slide Snapshots', M);
   ex_title(K, 'Slide Snapshots - picture-ready blocks for PowerPoint');
-  ex_subLine(K, EX_SLIDES_HOW);
+  ex_subLine(K, ex_slidesHow());
   ex_shownLine(K, M);
   // rule 6 with a BAE report loaded: the blocks below add up the plan while the Summary's Approved is the report's. The
   // Slide blocks view said so and this sheet did not (review P4-6); one sentence, SP.SLIDES_PLAN_NOTE, for both

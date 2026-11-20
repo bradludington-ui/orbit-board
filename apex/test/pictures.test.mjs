@@ -166,11 +166,9 @@ try {
       hasStatus[i] ? a.exact.green + a.exact.yellow + a.exact.red > 500 : a.exact.green + a.exact.yellow + a.exact.red === 0, J(a.exact));
     for (const [where, band, all] of [['top', a.top, a.topAll], ['bottom', a.bottom, a.bottomAll]]) {
       const bw = band.x1 - band.x0 + 1, cx = (band.x0 + band.x1) / 2;
-      C.chk(n + ': the CUI marking is drawn at the ' + where, band.n > 100 && bw >= minW && bw <= maxW && Math.abs(cx - W / 2) < 20,
-        J(band) + ' width ' + bw + ' want ' + minW.toFixed(0) + '–' + maxW.toFixed(0));
-      C.chk(n + ': nothing else is drawn in the ' + where + ' band', all.x0 >= band.x0 - 3 && all.x1 <= band.x1 + 3, J(all));
+      // §41 (Brad, 19 Nov 2026): a picture carries no CUI marking; the slide it goes on is marked
+      C.chk(n + ': no CUI marking, and nothing else, is drawn in the ' + where + ' band', band.n === 0 && all.n === 0, J(all));
     }
-    C.chk(n + ': the top and bottom markings are the same words, drawn the same', a.same);
     // a clear row is left between the table and each band: a table run into a band touches its edge row
     C.chk(n + ': the table lies inside the region, clear of both bands and both sides',
       a.table.x0 >= 8 && a.table.x1 <= W - 9 && a.table.y0 > 31 && a.table.y1 < H - 32, J(a.table));
@@ -233,8 +231,7 @@ try {
   C.chk('a block far too tall: shrunk further to fit the height (CONTRACT §10)', stress.fitsH && stress.shrunk, J(stress));
   C.chk('a block far too tall and wide: everything stays inside the region',
     stress.a.table.x0 >= 8 && stress.a.table.x1 <= W - 9 && stress.a.table.y0 > 31 && stress.a.table.y1 < H - 32 && stress.a.edge > 0.95, J(stress.a.table));
-  C.chk('a block far too tall: the CUI marking is still alone in both bands',
-    stress.a.topAll.x1 - stress.a.topAll.x0 < maxW && stress.a.bottomAll.x1 - stress.a.bottomAll.x0 < maxW && stress.a.same);
+  C.chk('a block far too tall: both bands are still blank', stress.a.topAll.n === 0 && stress.a.bottomAll.n === 0, J([stress.a.topAll, stress.a.bottomAll]));
 
   // ========================================================================= switches off (§4.3)
   const off = await ev(async () => {
@@ -323,7 +320,10 @@ try {
         }
         return out;
       }, b64);
+      // the code before drew the CUI marking in each picture (§41 took it out): this page draws it once more, for this comparison only
+      await P.p.evaluate(() => { SP.PIC_CUI = true; });
       const was = await pngs(q), now = await pngs(P.p);
+      await P.p.evaluate(() => { SP.PIC_CUI = false; });
       C.eq('no report: the code before draws the same blocks', was.map(x => x[0]), now.map(x => x[0]));
       const moved = now.filter((x, i) => !was[i] || was[i][1] !== x[1]).map(x => x[0]);
       C.chk('no report: every picture, every switch on and USAF off, is the one the code before the report drew, byte for byte', was.length === now.length && !moved.length,
@@ -334,6 +334,47 @@ try {
   }
 
   // ========================================================================== every picture in a zip (§10)
+  // ================================================================ a PMO's blocks (CONTRACT §41)
+  const pmoNames = await ev(() => __M.pmos.flatMap(p => p.blocks.map(b => SP.pictureName(b, { pmo: p }))));
+  C.chk('every PMO block has a picture name: "PMO {code} - {Ap} FY{fy}", each its own', pmoNames.length >= blocks.length && new Set(pmoNames).size === pmoNames.length
+    && pmoNames.every(n => /^PMO .+ - .+ FY\d{4}$/.test(n)), J(pmoNames.slice(0, 4)));
+  const pl = await ev(() => {
+    const ctx = document.createElement('canvas').getContext('2d'), out = [];
+    for (const p of __M.pmos) for (const b of p.blocks) {
+      const L = pic_layout(ctx, b, __M, { pmo: p }), A = pic_layout(ctx, b, __M);
+      // what the rows must be, from the model's own tree: this PMO's requirement titles in this block, in the tree's order
+      const want = b.tree.flatMap(n => n.kind === 'pmo' ? n.children : [n]).map(n => [n.label, SP.fmtM(n.total)]);
+      const rows = L.rows.filter(r => r.kind === 'pmo').map(r => [r.cells[0].t, r.cells[1].t]);
+      const band = k => L.rows.filter(r => r.kind === 'band').map(r => r.cells.map(c => c.t).join('|')).join('~');
+      const bandA = A.rows.filter(r => r.kind === 'band').map(r => r.cells.map(c => c.t).join('|')).join('~');
+      const cv = SP.blockCanvas(b, __M, { pmo: p });
+      out.push({ n: SP.pictureName(b, { pmo: p }), title: L.title, wantTitle: 'PMO: ' + p.label + ' - ' + b.apLabel + ' FY' + b.fy + ' - Spend Plan (slide-ready)', head: L.rows[0].cells[0].t,
+        rowsOk: JSON.stringify(rows) === JSON.stringify(want), nRows: rows.length, bandOk: band() === bandA, sum: want.length, size: [cv.width, cv.height], picH: L.picH,
+        fits: L.natW * L.scale <= L.region.w + 0.5 && L.natH * L.scale <= L.region.h + 0.5 });
+    }
+    return out;
+  });
+  C.chk('a PMO block’s title names the PMO, the appropriation and the year', pl.every(x => x.title === x.wantTitle), J(pl.filter(x => x.title !== x.wantTitle).slice(0, 2)));
+  C.chk('its first column is headed Requirement Title', pl.every(x => x.head === 'Requirement Title'));
+  C.chk('its rows are that PMO’s requirement titles in the block, each with its total, in the model’s order', pl.every(x => x.rowsOk && x.nRows > 0), J(pl.filter(x => !x.rowsOk).map(x => x.n)));
+  C.chk('its totals band is the block’s own: the same cells the appropriation layout draws for that block', pl.every(x => x.bandOk), J(pl.filter(x => !x.bandOk).map(x => x.n)));
+  C.chk('every PMO picture is 2000 wide, at least 675 high, as high as its layout says, and its table fits', pl.every(x => x.size[0] === W && x.size[1] >= H && x.size[1] === x.picH && x.fits), J(pl.filter(x => !x.fits).map(x => x.n)));
+  const pp = await ev(async () => { const p = __M.pmos[0], b = p.blocks[0]; return __analyse(await SP.blockPng(b, __M, { pmo: p }), 30); });
+  C.chk('a PMO picture: drawn, its table whole and inside the region, and no CUI marking in either band', pp.nonWhite > 0.05 && pp.exact.navy > 5000 && pp.exact.gold > 5000 && pp.edge > 0.95
+    && pp.table.x0 >= 8 && pp.table.x1 <= W - 9 && pp.table.y0 > 31 && pp.table.y1 < pp.h - 32 && pp.topAll.n === 0 && pp.bottomAll.n === 0, J([pp.table, pp.topAll, pp.bottomAll]));
+  // a PMO with many requirements: the picture grows down, the type is not shrunk
+  const tallP = await ev(async () => {
+    const p = __M.pmos[0], b = JSON.parse(JSON.stringify(p.blocks[0])), kids = b.tree[0].children, one = kids.length;
+    const ctx = document.createElement('canvas').getContext('2d'), base = pic_layout(ctx, p.blocks[0], __M, { pmo: p });
+    for (let i = 0; kids.length < 70; i++) kids.push(Object.assign({}, kids[i % one], { label: kids[i % one].label + ' ' + i }));
+    const L = pic_layout(ctx, b, __M, { pmo: p }), A = pic_layout(ctx, Object.assign({}, b, { pmoRows: kids }), __M);
+    return { rows: L.rows.filter(r => r.kind === 'pmo').length, picH: L.picH, scale: L.scale, baseScale: base.scale, widthScale: L.region.w / L.natW, apH: A.picH, apShrunk: A.scale < A.region.w / A.natW - 1e-9,
+      a: await __analyse(await SP.blockPng(b, __M, { pmo: p }), 30) };
+  });
+  C.chk('70 requirements: the picture is taller than 675 and the table keeps its width’s scale', tallP.rows === 70 && tallP.picH > H && Math.abs(tallP.scale - tallP.widthScale) < 1e-9 && tallP.a.h === tallP.picH && tallP.a.w === W, J([tallP.rows, tallP.picH, tallP.scale, tallP.widthScale]));
+  C.chk('70 requirements: the table is whole and inside the taller picture, both bands blank', tallP.a.edge > 0.95 && tallP.a.table.y0 > 31 && tallP.a.table.y1 < tallP.a.h - 32 && tallP.a.topAll.n === 0 && tallP.a.bottomAll.n === 0, J(tallP.a.table));
+  C.chk('an appropriation’s block with as many rows is still 675 high, shrunk to fit (§10 is unchanged)', tallP.apH === H && tallP.apShrunk, J([tallP.apH, tallP.apShrunk]));
+
   const zip64 = await ev(async () => __b64(await SP.allPicturesZip(__M)));
   const zp = join(tmp.dir, 'pictures.zip');
   writeFileSync(zp, Buffer.from(zip64, 'base64'));
@@ -360,14 +401,14 @@ for n in z.namelist():
 print(json.dumps(out))
 `, zp]));
   C.chk('the zip opens with Python’s zipfile and every member reads back intact', zr.bad === null, J(zr.bad));
-  C.eq('the zip holds one "{Ap} FY{fy}.png" per block, in block order', zr.names, blocks.map(n => n + '.png'));
-  C.chk('every PNG in the zip is 2000 x 675', zr.png.length === blocks.length && zr.png.every(p => p[1] === true && p[2] === W && p[3] === H), J(zr.png.slice(0, 3)));
+  C.eq('the zip holds one "{Ap} FY{fy}.png" per block, in block order, then one per PMO block in the By PMO folder (CONTRACT §41)', zr.names, blocks.map(n => n + '.png').concat(pmoNames.map(n => 'By PMO/' + n + '.png')));
+  C.chk('every PNG in the zip is 2000 wide; an appropriation’s is 675 high and a PMO’s at least that', zr.png.length === blocks.length + pmoNames.length && zr.png.every((p, i) => p[1] === true && p[2] === W && (i < blocks.length ? p[3] === H : p[3] >= H)), J(zr.png.slice(0, 3)));
   // 13.33 x 4.5 in holds only if the PNG says 150 dpi: with no pHYs chunk Office places it at 96 dpi, 20.83 x 7.03 in,
   // larger than the slide (review XP-7). One pHYs, 5906 px a metre each way (150 dpi), before the image data, every
   // chunk's CRC right, and the PNG still decodes at 2000 x 675.
   C.chk('every PNG says 150 dpi (one pHYs of 5906 px/m, before the image data), its chunks intact, and decodes',
-    zr.phys.length === blocks.length && zr.phys.every(x => J(x.phys) === J([5906, 5906, 1]) && x.nPhys === 1 && x.beforeIdat && x.crc
-      && J(x.dpi) === J([150, 150]) && J(x.size) === J([W, H])), J(zr.phys.slice(0, 2)));
+    zr.phys.length === blocks.length + pmoNames.length && zr.phys.every((x, i) => J(x.phys) === J([5906, 5906, 1]) && x.nPhys === 1 && x.beforeIdat && x.crc
+      && J(x.dpi) === J([150, 150]) && x.size[0] === W && (i < blocks.length ? x.size[1] === H : x.size[1] >= H)), J(zr.phys.slice(0, 2)));
 
   // a PNG that already says its resolution keeps ONE pHYs: given the tool's own PNG again, the bytes come back unchanged
   const again = await ev(async () => {
