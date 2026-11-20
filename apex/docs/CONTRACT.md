@@ -2273,6 +2273,16 @@ images are put on."* This changes §6 item 14 and §10 for pictures.
   as they need. An appropriation's picture is unchanged: always 2000 x 675, shrunk to fit.
 - **Where.** By PMO has Copy picture and Save picture on each block. Save all pictures adds every PMO block under
   `By PMO/PMO {code} - {Ap} FY{fy}.png` (`SP.pictureName`). Slide blocks says so.
-- A filtered picture still says what it shows.
+- A filtered picture still says what it shows. (§42 took that line out.)
 
 `test/pictures.test.mjs`, `test/pmo-pictures.test.mjs`.
+
+## 42. No words above a picture's table
+
+Brad, 20 Nov 2026, of the *Services shown: all; lanes shown: Discretionary* line at the top left of a filtered picture:
+*"I don't want any of the verbiage in the top left."* A picture is its table and nothing else. A filtered picture is
+drawn from the filtered figures as before, and no longer says so: the screen it was made from says what is shown, and
+the zip of all pictures still ends in `[filtered]`. `SP.PIC_CUI = true` (the older-build comparison's switch) draws the
+line and the CUI marking as before.
+
+`test/pictures.test.mjs`.

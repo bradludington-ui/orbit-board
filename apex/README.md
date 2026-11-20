@@ -327,7 +327,7 @@ The filter bar has a box for each service and one for each lane (Discretionary a
   things cover every service and lane whatever the switches show, and say so: an entered Authorized, which is typed for
   an appropriation and FY as a whole (marked ‡ while a switch is off, and always with a BAE report loaded), and the Summary's
   notes on rows not counted.
-- When not everything is shown, each view, sheet and picture says what it shows. An export's file name ends in
+- When not everything is shown, each view and sheet says what it shows. A picture for a slide carries no words but its table's, so a filtered picture does not say it is filtered. An export's file name ends in
   `[filtered]`. The Import report and What changed show every row whatever the switches, and say so.
 - The switches belong to this browser, not to the file. Changing them does not mark the file unsaved.
 - *Service not identified* appears only when a budget name matches no service rule. The **Settings** budget table lets you

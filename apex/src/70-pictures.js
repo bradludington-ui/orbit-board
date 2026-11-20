@@ -163,7 +163,10 @@ function pic_layout(ctx, block, model, opt) {
   const natH = T.titleH + rows.reduce((a, r) => a + r.h, 0);
 
   // the region and the scale: fit the width, then shrink further if the height would not fit (CONTRACT §10)
-  const shown = model.shown && !model.shown.all ? String(model.shown.text || '') : '';
+  // NO WORDS ABOVE THE TABLE (§42; Brad, 20 Nov 2026, of the "Services shown: …; lanes shown: …" line on a filtered picture:
+  // "I don't want any of the verbiage in the top left"). A picture is its table and nothing else; what a filtered picture
+  // leaves out is said on the screen it was made from. SP.PIC_CUI, the older-build comparison's switch, draws it as before.
+  const shown = SP.PIC_CUI === true && model.shown && !model.shown.all ? String(model.shown.text || '') : '';
   const top = PIC_CUI_BAND + (shown ? PIC_SHOWN_H : 0) + 4;
   const region = { x: PIC_MARGIN, y: top, w: PIC_W - 2 * PIC_MARGIN, h: PIC_H - PIC_CUI_BAND - 4 - top };
   let scale = region.w / natW, picH = PIC_H;
