@@ -2349,3 +2349,37 @@ obligated or not. Plan Event amounts. Leave off list for No and blank."* Trackin
 - A pull with no SRRB column: the page says so. A column with nothing marked Yes: the page says that.
 
 `test/srrb.test.mjs`.
+
+## 45. Mandatory plan events as unfunded lines
+
+Brad, 20 Nov 2026: *"It is looking like our Mandatory funding will not be coming to us and these items will need to be
+treated as unfundeds. Let's walk through how we should handle this since we're tracking them in CCaR until told
+otherwise."* A mockup was agreed first. His answers: all Mandatory; no Mandatory has been obligated; *"For now, let's
+only affect the Unfunded page. If it works out, we can expand"*; *"I have multiple Plan Events in a CCaR Record in some
+instances. On the unfunded list, they need to be viewed separately"*; marked *Mandatory*; a view-only copy made with the
+switch on keeps it, and its readers cannot change it; the PDFs stay as they are for now (*"If we add them as unfundeds,
+we'd then have to remove approved amounts from the PDFs so they reflect as true unfundeds and so that we stay in balance
+with discretionary funding totals"*); a record on the tracker too is listed and flagged.
+
+- **The switch** is on the Unfunded page of the keeper's file: *Mandatory funding not received: list Mandatory plan
+  events as unfunded*. `state.ufrMand === true` when on (`SP.setUfrMandatory`). It is there with no tracker loaded too.
+- **A Mandatory line** (`SP.ufrMandatory`) is one plan event within a CCaR record, appropriation and fiscal year, over
+  its counted rows on a Mandatory budget (`SP.laneRule`: the budget's name says Mandatory), by service. Rows of the same
+  plan event on Discretionary budgets are not in it. Funding status reads *Mandatory*; Exec ready and SFCB action are
+  blank. The lines are worked out from the pull each time and never stored.
+- **On the page** each is marked with a *Mandatory* tag and a tinted row. *Approved in plan* is the line's own amount,
+  which is what the plan still carries for it. Opened, it says what it is and that the spend plan still counts it.
+- **Totals.** Total unfunded, the charts and the total row take the Mandatory lines in. A fifth tile, *Mandatory, not
+  received*, gives their sum and how many.
+- **Rank.** A Mandatory line is numbered after the tracker's lines of its appropriation and year (`SP.ufrWithMandatory`)
+  and is ranked by the keeper like any other (§43). It is never said to differ from a tracker it was never on. The
+  ranking remembers which of its lines are Mandatory (`m: 1`), so with the switch off they are flagged for what they
+  were.
+- **A CCaR record on the tracker that has Mandatory plan events too** is listed both ways and flagged under the switch,
+  to be checked for counting twice.
+- **Nothing else changes.** The spend plan pages, the Overview, the pictures, the workbook and the PDFs still count
+  Mandatory as Approved, and the PDFs' unfunded lists are the tracker's alone, numbered 1 to N.
+- **A view-only copy** made with the switch on lists them, says so, and has no switch. Import from last version brings
+  the switch when it was on.
+
+`test/ufr-mandatory.test.mjs`.

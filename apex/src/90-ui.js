@@ -930,8 +930,8 @@ function ui_vSlides(M) {
 // is kept. Nothing here changes the plan: the list is imported in Settings (§39).
 function ui_ufrData(M) {
   const P = ui_pubState(), U = ui.ufr;
-  const V = SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
-  V.rank = P.rank;
+  const mk = () => { const X = SP.ufrView(ui_pubModel(M), ui_view(), P.ufrAll, P.pub, ui_settings(), U); X.rank = P.rank; X.mand = P.mand; return X; };
+  const V = mk();
   // a choice the list no longer holds (another tracker was loaded) is taken off, never left hiding every line
   const has = (list, v) => v === null || list.some(p => p[0] === v);
   if (!has(V.picks.pmos, U.pmo) || !has(V.picks.aps, U.ap) || !has(V.picks.fys, U.fy) || !has(V.picks.statuses, U.status)) {
@@ -939,7 +939,7 @@ function ui_ufrData(M) {
     if (!has(V.picks.aps, U.ap)) U.ap = null;
     if (!has(V.picks.fys, U.fy)) U.fy = null;
     if (!has(V.picks.statuses, U.status)) U.status = null;
-    return SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
+    return mk();
   }
   return V;
 }
@@ -973,12 +973,15 @@ function ui_ufrBody(M, V) {
       + (edit && G.mine ? ' <span class="urkm">in your ranking</span> <button type="button" class="urkreset" data-act="ufrreset" data-g="' + ui_e(gk) + '" data-fkey="ufrreset:' + ui_e(gk) + '">Use the tracker’s ranks</button>' : '')
       + '</th></tr>' + g.lines.map(l => {
     const open = U.open === l.id, alt = (zebra++ % 2) ? ' alt' : '';
-    return '<tr class="' + (open ? 'cur' : alt.trim()) + '" data-ufr="' + ui_e(l.id) + '">' + rankCell(l, gk, G.n) + '<th scope="row" class="lab"><button type="button" class="tg" data-act="ufropen" data-k="' + ui_e(l.id)
-      + '" data-fkey="ufropen:' + ui_e(l.id) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' + ui_e(l.title || '(no title)') + '</button><span class="fsub">' + ui_e(l.ccar || 'no CCaR record') + '</span></th>'
+    return '<tr class="' + (open ? 'cur' : alt.trim()) + (l.mand ? ' umand' : '') + '" data-ufr="' + ui_e(l.id) + '">' + rankCell(l, gk, G.n) + '<th scope="row" class="lab"><button type="button" class="tg" data-act="ufropen" data-k="' + ui_e(l.id)
+      + '" data-fkey="ufropen:' + ui_e(l.id) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' + ui_e(l.title || '(no title)') + '</button>' + (l.mand ? '<span class="mtag">Mandatory</span>' : '') + '<span class="fsub">' + ui_e(l.ccar || 'no CCaR record') + '</span></th>'
       + '<td><span class="usw" style="background:' + SP.publishColor(l.pmoKey, false) + '" aria-hidden="true"></span>' + ui_e(l.pmoLabel) + '</td>'
       + l.amt.map(ui_k).join('') + '<td class="n utot" data-c="' + l.sum + '">' + ui_e(SP.fmtK(l.sum)) + '</td><td>' + ui_e(l.status) + '</td><td class="uexec">' + ui_e(l.exec) + '</td><td>' + ui_e(l.sfcb) + '</td>'
       + (l.plan ? ui_k(l.plan.approved) : '<td class="n uonly">Unfunded only</td>') + '</tr>'
-      + (open ? '<tr class="cur udetail"><td></td><td colspan="' + (cols - 1) + '">' + (l.plan
+      + (open ? '<tr class="cur udetail"><td></td><td colspan="' + (cols - 1) + '">' + (l.mand
+        ? '<strong>A Mandatory plan event in the CCaR pull</strong>' + (l.record ? ', of ' + ui_e(l.record) : '') + ': ' + ui_e(K(l.sum)) + ' on Mandatory budgets in ' + ui_e(g.apLabel) + ' FY' + g.fy
+          + (l.plan && l.plan.obligated ? ', ' + ui_e(K(l.plan.obligated)) + ' of it marked awarded' : '') + '. It is listed here as unfunded because Mandatory funding has not been received. The spend plan pages and the PDFs still count it as Approved.'
+        : l.plan
         ? '<strong>In the spend plan (' + ui_e(g.apLabel) + ' FY' + g.fy + '):</strong> Approved ' + ui_e(K(l.plan.approved)) + ' · Obligated ' + ui_e(K(l.plan.obligated)) + ' · Remaining ' + ui_e(K(l.plan.approved - l.plan.obligated))
           + ' · <strong>Required ' + ui_e(K(l.plan.approved + l.sum)) + '</strong> (Approved + this unfunded ' + ui_e(K(l.sum)) + ') · Delta (' + ui_e(SP.fmtK(l.sum) === '-' ? '0' : SP.fmtK(l.sum)) + ')'
         : '<strong>Not in the spend plan:</strong> no plan event in ' + ui_e(g.apLabel) + ' FY' + g.fy + ' carries this CCaR record' + (l.prime ? '' : ' under ' + ui_e(l.pmoLabel)) + ', so Approved is $0 and Required is this unfunded ' + ui_e(K(l.sum)) + '.')
@@ -989,11 +992,12 @@ function ui_ufrBody(M, V) {
   const gone = Object.keys(RK.groups).reduce((n, k) => n + (RK.groups[k].gone || 0), 0);
   const chk = edit && RK.flags.length ? '<section class="card urankchk" id="uiUfrRankChk"><h3>Your ranking: to check (' + RK.flags.length + ')</h3><ul class="speclist">' + RK.flags.map(f => '<li>' + ui_e(f) + '</li>').join('') + '</ul>'
     + (gone ? '<p class="acts"><button type="button" data-act="ufrforget" data-fkey="ufrforget">Take the ' + SP.fmtInt(gone) + ' line' + (gone === 1 ? '' : 's') + ' no longer on the tracker out of your ranking</button></p>' : '') + '</section>' : '';
-  return '<div class="tiles">'
+  return '<div class="tiles' + (V.mand && V.mand.on ? ' tiles5' : '') + '">'
     + tile('sum', 'Total unfunded', ui_e(K(V.tiles.sum)), req(V.tiles.n) + ', ' + SP.fmtInt(V.tiles.aps) + (V.tiles.aps === 1 ? ' appropriation' : ' appropriations'), V.tiles.sum)
     + tile('exec', 'Exec ready', ui_e(K(V.tiles.exec.sum)), SP.fmtInt(V.tiles.exec.n) + ' of ' + req(V.tiles.n), V.tiles.exec.sum)
     + tile('sfcb', 'SFCB approved', ui_e(K(V.tiles.sfcb.sum)), req(V.tiles.sfcb.n), V.tiles.sfcb.sum)
     + tile('only', 'Not in the spend plan', SP.fmtInt(V.tiles.only), 'unfunded only: no plan event yet', V.tiles.only)
+    + (V.mand && V.mand.on ? tile('mand', 'Mandatory, not received', ui_e(K(V.tiles.mand.sum)), SP.fmtInt(V.tiles.mand.n) + (V.tiles.mand.n === 1 ? ' plan event' : ' plan events') + ' from the CCaR pull', V.tiles.mand.sum) : '')
     + '</div><div class="pmotwo">' + bars('pmo', 'Unfunded by PMO ($K)', V.byPmo) + bars('svc', 'Unfunded by service ($K)', V.bySvc) + '</div>'
     + chk + '<h3 class="pmoall">Every unfunded requirement, by rank</h3>'
     + (edit ? '<p class="cardnote" id="uiUfrRankHow">Type a rank, or press \u25B2 \u25BC, to put a list in your own order, 1 to N within its appropriation and fiscal year. Your order is used in place of the tracker’s, here, on the PDFs and in a view-only copy, '
@@ -1005,26 +1009,38 @@ function ui_ufrBody(M, V) {
     + '<p class="cardnote findnote">Figures are $K, as on the UFR tracker. The Filter above (services) and the pickers narrow the list and every total. Press a requirement to see it beside its spend plan. '
     + 'Approved in plan is the CCaR amount in that record’s plan events' + (V.skipped ? '; ' + SP.fmtInt(V.skipped) + ' line' + (V.skipped === 1 ? ' is' : 's are') + ' not shown, of a year APEX shows no figures for' : '') + '.</p>';
 }
+// §45 the Mandatory switch. The keeper turns it on or off; a view-only copy made with it on says so and cannot change it.
+function ui_ufrMandCard(V, vo) {
+  const m = V.mand || { on: false, avail: 0, availCents: 0, overlap: [] };
+  const K = c => '$' + (SP.fmtK(c) === '-' ? '0' : SP.fmtK(c)) + 'K', ev = n => SP.fmtInt(n) + (n === 1 ? ' plan event' : ' plan events');
+  if (vo) return m.on ? '<section class="card umandcard" id="uiUfrMand"><p class="umandsay"><strong>Mandatory funding not received.</strong> The ' + ev(m.n) + ' on Mandatory budgets in the CCaR pull (' + ui_e(K(m.cents))
+    + ') are listed below as unfunded, each marked <span class="mtag">Mandatory</span>. The spend plan pages still count that money as Approved.</p></section>' : '';
+  if (!m.avail && !m.on) return '';
+  return '<section class="card umandcard" id="uiUfrMand"><label class="chk umandsw"><input type="checkbox" data-act="ufrmand" data-fkey="ufrmand"' + (m.on ? ' checked' : '') + '> Mandatory funding not received: list Mandatory plan events as unfunded</label>'
+    + '<p class="cardnote">' + (m.on ? 'On: the ' : 'Off: the list is the UFR tracker alone. On, the ') + ev(m.avail) + ' on Mandatory budgets in the CCaR pull (' + ui_e(K(m.availCents)) + ') '
+    + (m.on ? 'are' : 'would be') + ' listed below as unfunded, one line a plan event, marked <span class="mtag">Mandatory</span>. This affects the Unfunded page only: the spend plan pages and the PDFs still count Mandatory as Approved. A view-only copy made with this on shows them too.</p>'
+    + (m.on && m.overlap.length ? '<h4 class="sub">To check (' + m.overlap.length + ')</h4><ul class="speclist" id="uiUfrMandChk">' + m.overlap.map(f => '<li>' + ui_e(f) + '</li>').join('') + '</ul>' : '') + '</section>';
+}
 function ui_vUfr(M) {
   const V = ui_ufrData(M), U = ui.ufr, vo = ui_vo();
   if (!V.files.length) return '<div class="ovhead"><h2 class="ovtitle">Unfunded requirements (UFR)</h2></div><p class="none" id="uiUfrEmpty">No unfunded list is loaded'
-    + (vo ? ' in this copy.' : '. Import the UFR tracker in <button type="button" class="tg" data-act="view" data-v="settings" data-fkey="ufr:settings">Settings</button>, and it is listed here.') + '</p>';
+    + (vo ? ' in this copy.' : '. Import the UFR tracker in <button type="button" class="tg" data-act="view" data-v="settings" data-fkey="ufr:settings">Settings</button>, and it is listed here.') + '</p>' + ui_ufrMandCard(V, vo);
   const sel = (f, label, opts, cur) => ui_pickSel('ufrf', cur, f, label, opts);
   const filtered = U.pmo !== null || U.ap !== null || U.fy !== null || U.status !== null || U.q !== '';
   return '<div class="findbar pmobar ufrbar">' + sel('pmo', 'Choose your PMO', V.picks.pmos, U.pmo) + sel('ap', 'Appropriation', V.picks.aps, U.ap) + sel('fy', 'FY', V.picks.fys, U.fy)
     + sel('status', 'Funding status', V.picks.statuses, U.status)
     + '<label>Find <input type="search" id="uiUfrQ" data-fkey="ufrq" value="' + ui_e(U.q) + '" placeholder="title or CCaR number" size="22"></label>'
     + '<span class="grow"></span><button type="button" data-act="ufrclear" data-fkey="ufrclear"' + (filtered ? '' : ' disabled') + '>Clear filters</button></div>'
-    + '<div class="ovhead"><h2 class="ovtitle">Unfunded requirements (UFR)</h2><span class="ovsub" id="uiUfrSub">' + ui_e(V.files.map(f => 'FY' + f.fy + ' UFR tracker, loaded ' + ui_day(f.at)).join(' · ')) + ' · '
+    + '<div class="ovhead"><h2 class="ovtitle">Unfunded requirements (UFR)</h2><span class="ovsub" id="uiUfrSub">' + ui_e(V.files.map(f => (f.mandOnly ? 'FY' + f.fy + ' Mandatory plan events from the CCaR pull' : 'FY' + f.fy + ' UFR tracker, loaded ' + ui_day(f.at))).join(' · ')) + ' · '
     + '<span id="uiUfrN">' + (V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' line' : ' lines') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' lines') + '</span></span></div>'
-    + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><div id="uiUfrRes">' + ui_ufrBody(M, V) + '</div>';
+    + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>' + ui_ufrMandCard(V, vo) + '<div id="uiUfrRes">' + ui_ufrBody(M, V) + '</div>';
 }
 // the Find box narrows as it is typed in: only what is below the bar is drawn again, so the box keeps the keyboard
 // §43 one line moved to a rank: the group's whole order is kept as the keeper's from then on
 function ui_ufrRank(e, to) {
   const st = ui_state() || {}, n = Math.round(Number(to));
   if (!isFinite(n) || String(to).trim() === '') { ui_say('A rank is a whole number from 1 to ' + e.n + '; “' + e.title + '” stays at ' + (e.rank || 'its place') + '.', 'warn'); ui_render(); return; }
-  const list = SP.ufrMove(st.ufr, st.ufrRank, e.gk, e.rk, n);
+  const list = SP.ufrMove(ui_pubState().lists, st.ufrRank, e.gk, e.rk, n);
   if (!list) { ui_render(); return; }
   const at = list.findIndex(x => x.k === e.rk) + 1;
   if (SP.setUfrRank(e.gk, list)) ui_say('“' + e.title + '” is rank ' + at + ' of ' + e.n + (n !== at ? ' (' + n + ' is outside 1 to ' + e.n + ')' : '') + '. The list is in your ranking; the tracker’s ranks are noted where they differ.', 'ok');
@@ -1154,8 +1170,22 @@ function ui_pubState() {
   const st = ui_state() || {};
   // §43 the unfunded lists in the keeper's ranking: what every view, the PDFs and a view-only copy show
   const raw = st.ufr && typeof st.ufr === 'object' ? st.ufr : {};
-  const X = ui_fn('ufrRanked') ? SP.ufrRanked(raw, st.ufrRank) : { ufr: raw, groups: {}, flags: [] };
-  return { ufr: X.ufr, pub: st.publish && typeof st.publish === 'object' ? st.publish : {}, rank: X };
+  const ranked = lists => (ui_fn('ufrRanked') ? SP.ufrRanked(lists, st.ufrRank) : { ufr: lists, groups: {}, flags: [] });
+  // §45 with the Mandatory switch on, the Unfunded page lists the pull's Mandatory plan events too. The PDFs and Settings
+  // read the tracker's lists alone (ufr); the Unfunded page reads both (ufrAll), ranked as one list
+  const on = st.ufrMand === true;
+  let mand = { on, n: 0, cents: 0, overlap: [], avail: 0, availCents: 0 }, lists = raw;
+  if (ui_fn('ufrWithMandatory')) {
+    let Mf = null;
+    try { const M = ui_model(); Mf = M ? ui_pubModel(M) : null; } catch (e) { Mf = null; }
+    if (Mf) {
+      const W = SP.ufrWithMandatory(raw, Mf);
+      mand = { on, n: on ? W.n : 0, cents: on ? W.cents : 0, overlap: on ? W.overlap : [], avail: W.n, availCents: W.cents };
+      if (on) lists = W.ufr;
+    }
+  }
+  const X = ranked(lists), Xp = lists === raw ? X : ranked(raw);
+  return { ufr: Xp.ufr, ufrAll: X.ufr, lists, pub: st.publish && typeof st.publish === 'object' ? st.publish : {}, rank: X, mand };
 }
 const UI_PUB_PROGRAM = 'F-35 Sustainment';
 function ui_pubData(M) {
@@ -2156,6 +2186,7 @@ function ui_vHelp() {
     ])
     + '<h3 class="sub">The unfunded list</h3>' + li([
       '<strong>SRRB</strong>, under Briefing, lists every plan event marked Yes in the CCaR pull’s SRRB column: one line a plan event title within an appropriation and fiscal year, with its PMO and its plan amounts by service, awarded or not. No and blank are left off.',
+      'On the Unfunded page, <strong>Mandatory funding not received</strong> lists every plan event on a Mandatory budget in the CCaR pull as unfunded, one line a plan event, marked Mandatory. It changes that page only: the spend plan pages and the PDFs still count Mandatory as Approved.',
       '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (in Settings). In your own file you can type each line’s rank to put a list in your own order, which is then used in place of the tracker’s and kept when the tracker is imported again: by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
       'The pickers (PMO, appropriation, fiscal year, Funding status) and the Find box narrow the list; the tiles, the two charts and the total follow. A service switched off in the Filter is left out of every amount.',
       'Press a requirement to see it beside its spend plan: Approved, Obligated, Remaining, and Required (Approved plus the unfunded amount). A line with no plan event in the spend plan says Unfunded only.',
@@ -2951,7 +2982,7 @@ function ui_onClick(ev) {
       ui_render(); break;
     }
     case 'ufrforget': {
-      const st = ui_state() || {}, X = SP.ufrRanked(st.ufr, st.ufrRank);
+      const st = ui_state() || {}, X = SP.ufrRanked(ui_pubState().lists, st.ufrRank);
       let n = 0;
       for (const gk of Object.keys(st.ufrRank || {})) {
         const g = X.groups[gk], have = new Set(g ? g.order : []), keep = (st.ufrRank[gk] || []).filter(e => have.has(e.k));
@@ -3023,6 +3054,12 @@ function ui_onChange(ev) {
       return;
     }
     case 'ufrrank': { const e = ui.reg.ufr && ui.reg.ufr[Number(t.getAttribute('data-i'))]; if (e) ui_ufrRank(e, t.value); return; }
+    case 'ufrmand': {
+      if (ui_fn('setUfrMandatory') && SP.setUfrMandatory(t.checked === true))
+        ui_say(t.checked ? 'Mandatory plan events are listed as unfunded on this page. The spend plan pages and the PDFs are not changed.' : 'Mandatory plan events are no longer listed as unfunded: the list is the UFR tracker alone.', 'ok');
+      ui_render();
+      return;
+    }
     case 'srrbf': {
       const f = t.getAttribute('data-f');
       if (['pmo', 'ap', 'fy'].includes(f)) { ui.srrb[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
