@@ -239,8 +239,9 @@ try {
     const ctx = document.createElement('canvas').getContext('2d');
     return { a: await __analyse(await SP.blockPng(b, __Moff), 30), said: pic_layout(ctx, b, __Moff).shown, text: __Moff.shown.text };
   });
-  C.chk('USAF off: the picture says what it shows', off.a.shown.n > 50 && off.said === off.text && /Services shown/.test(off.text), J({ said: off.said, n: off.a.shown.n }));
-  C.chk('USAF off: the table still fits below that line', off.a.table.y0 > 31 && off.a.table.y1 < H - 32 && off.a.edge > 0.95, J(off.a.table));
+  // §42 (Brad, 20 Nov 2026): a filtered picture has no line of words above its table; the screen says what is shown
+  C.chk('USAF off: the picture carries no words above its table, though the model is filtered', off.a.shown.n === 0 && off.said === '' && /Services shown/.test(off.text) && off.a.topAll.n === 0, J({ said: off.said, n: off.a.shown.n }));
+  C.chk('USAF off: the table is whole and inside the region', off.a.table.y0 > 31 && off.a.table.y1 < H - 32 && off.a.edge > 0.95, J(off.a.table));
 
   // ========================================================================= with a BAE report (§14.3, rule 6)
   // The fixture's report imported with its pull. A picture measures the CCaR plan by month, so every cell is the cell it
