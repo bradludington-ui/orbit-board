@@ -40,6 +40,8 @@ const LINES = [line('om', 1, 'Prime Alpha', 'AV', 'JSF6654', { 0: 2000, 3: 500 }
   line('sp', 1, 'Tessa E', 'PP', 'TS0005', { 0: 250 }, 'Pending', 'No', '')];
 const UFR = { ok: true, fy: 2027, name: 'UFR Tracker FY27.xlsx', unit: 1000, tabs: [], lines: LINES, notes: [], ignored: [] };
 const errs = t => t.errors.filter(e => !/^Not implemented: (Window's scrollTo\(\) method|HTMLInputElement\.prototype\.click|HTMLCanvasElement)/.test(String(e)));
+// a line's rank: on the keeper's page it is in a box that can be typed in (CONTRACT §43); in a view-only copy it is text
+const rankOf = td => { const i = td.querySelector('input.urk'); return i ? i.value : td.textContent; };
 async function boot(html) {
   const t = loadTool({ html });
   for (let i = 0; i < 200 && !t.window.document.getElementById('uiMain'); i++) await settle(5);
@@ -49,7 +51,7 @@ async function boot(html) {
     async view(v) { T.click(doc.querySelector('[data-act=view][data-v="' + v + '"]')); await settle(); return T.main(); },
     async pick(f, label) { const s = T.main().querySelector('select[data-act=ufrf][data-f=' + f + ']'); s.value = [...s.options].find(o => o.textContent === label).value; T.change(s); await settle(); return T.main(); },
     async type(text) { const b = doc.getElementById('uiUfrQ'); b.focus(); b.value = text; b.dispatchEvent(new W.Event('input', { bubbles: true })); await settle(); return T.main(); },
-    rows: () => [...T.main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [tr.querySelector('.urank').textContent, tr.querySelector('.tg').textContent, tr.querySelector('.fsub').textContent, tr.querySelector('.utot').textContent]),
+    rows: () => [...T.main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [rankOf(tr.querySelector('.urank')), tr.querySelector('.tg').textContent, tr.querySelector('.fsub').textContent, tr.querySelector('.utot').textContent]),
     tile: id => { const x = T.main().querySelector('.tile[data-tile=' + id + ']'); return [x.querySelector('.tv').textContent, x.querySelector('.ts').textContent]; },
     total: () => [...T.main().querySelectorAll('#uiUfrT tr.band td.n')].map(td => td.textContent) };
   return T;
@@ -121,7 +123,7 @@ try {
   C.eq('the columns', J([...m.querySelectorAll('#uiUfrT thead th')].map(th => th.textContent)),
     J(['Rank', 'Requirement', 'PMO', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total ($K)', 'Funding status', 'Exec ready?', 'SFCB action', 'Approved in plan ($K)']));
   const rowEl = (T, id) => [...T.main().querySelectorAll('tr[data-ufr]')].find(x => x.getAttribute('data-ufr') === id);
-  const cells = id => { const tr = [...A.main().querySelectorAll('tr[data-ufr]')].find(x => x.getAttribute('data-ufr') === id); if (!tr) throw new Error('no row ' + id + ' among ' + [...A.main().querySelectorAll('tr[data-ufr]')].map(x => x.getAttribute('data-ufr')).join(' ; ')); return [...tr.children].map(td => td.textContent); };
+  const cells = id => { const tr = [...A.main().querySelectorAll('tr[data-ufr]')].find(x => x.getAttribute('data-ufr') === id); if (!tr) throw new Error('no row ' + id + ' among ' + [...A.main().querySelectorAll('tr[data-ufr]')].map(x => x.getAttribute('data-ufr')).join(' ; ')); return [...tr.children].map((c, n) => (n === 0 ? rankOf(c) : c.textContent)); };
   C.eq('a line, cell by cell: the prime', J(cells('om|2027|O&M|10')), J(['1', 'Prime AlphaJSF6654', AV, '2,000', '-', '-', '500', '-', '-', '2,500', 'Pending', 'Yes', 'Approved 12 Nov', '4,000']));
   C.eq('a line with no plan event says Unfunded only', cells('om|2027|O&M|12')[13], 'Unfunded only');
   C.eq('the total row', J(A.total()), J(['2,350', '300', '-', '500', '-', '400', '3,550']));

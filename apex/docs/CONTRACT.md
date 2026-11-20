@@ -2286,3 +2286,35 @@ the zip of all pictures still ends in `[filtered]`. `SP.PIC_CUI = true` (the old
 line and the CUI marking as before.
 
 `test/pictures.test.mjs`.
+
+## 43. My ranking of the unfunded list
+
+Brad, 20 Nov 2026: *"I want the unfunded section to allow me to be able to adjust the rank from 1-N. I want to be able
+to pull it up, import data, and adjust within my non-published view. My ranking overrides any imported data. For any
+disconnects, flag it. Imported tables should overwrite all other data, based on a combination of CCaR Record and Plan
+Event Title."*
+
+- **Where.** On the Unfunded page of the keeper's own file, each line's rank is a box that can be typed in, with up and
+  down buttons beside it. A view-only copy shows the ranks as text and has none of this.
+- **1 to N** is within an appropriation and fiscal year, as the tracker ranks its tabs. A rank typed is the line's place
+  in that whole list, whatever the pickers are showing; past the end is the last place.
+- **The first change to a group makes the whole group the keeper's**: every line of it, in the order then on screen
+  with the one line moved. `state.ufrRank['ap|fy']` is that order, a list of `{k, c, t}`.
+- **What a line is known by:** its CCaR record and its title together (`SP.normKey` of each, so case and spacing do not
+  matter), within its appropriation and fiscal year. The tracker's column is *Requirement Title*; that is the title
+  meant. Two lines with the same record and title are told apart by their order on the tracker.
+- **Importing the tracker again** replaces that year's list whole: every amount, PMO, status and word is the new
+  tracker's. The ranking is not touched, and stays on the lines it knows. A line the keeper has not ranked comes after
+  the ranked ones, in the tracker's order.
+- **The keeper's rank is the rank everywhere** (`SP.ufrRanked`, applied where the screens read the lists): the Unfunded
+  page, the PDFs' unfunded lists, a view-only copy.
+- **Disconnects are flagged**, on the Unfunded page (*Your ranking: to check*) and under Settings' *To check on the
+  unfunded list*: the lines ranked differently from the tracker (one flag for a group, naming each, and *tracker N*
+  under each such rank); a line on the tracker the keeper has not ranked (*not ranked by you*); a ranked line the
+  tracker no longer has; a ranking whose list is not loaded.
+- **Undoing.** *Use the tracker's ranks* on a group's heading takes its ranking off. *Take the lines no longer on the
+  tracker out of your ranking* clears those flags.
+- The ranking is saved in the file and comes across with **Import from last version**. A group never ranked is exactly
+  as the tracker has it.
+
+`test/ufr-rank.test.mjs`.

@@ -280,6 +280,13 @@ for the switches.
   number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
   Unfunded only. The same view is in a view-only copy.
+  **Your own ranking:** in your own file (not a view-only copy) each line's rank is a box. Type a rank, or press the up
+  and down buttons, to put a list in your order, 1 to N within its appropriation and fiscal year. Your order is used in
+  place of the tracker's on this page, on the PDFs and in a view-only copy. Importing the tracker again replaces
+  everything else about a line and keeps your ranking on it: a line is known by its CCaR record and its title together.
+  Anything that does not line up is listed under *Your ranking: to check*: lines you rank differently from the tracker,
+  lines on the tracker you have not ranked, and ranked lines the tracker no longer has. *Use the tracker's ranks* undoes
+  a list's ranking.
 - **Unobligated.** Every item not yet obligated, in one table. You can filter it by appropriation, FY and PMO. Filtered by a PMO, it shows
   that PMO's own items, the ones its PMO tab lists: where other PMOs share a plan event, only that PMO's rows count. A
   filter stays chosen when the switches leave it nothing to show (it says so, and its list comes back when they show it);

@@ -867,6 +867,82 @@ SP.readDescriptions = function readDescriptions(wb) {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// §43 MY RANKING OF THE UNFUNDED LIST. Brad, 20 Nov 2026: "I want the unfunded section to allow me to be able to adjust the
+// rank from 1-N ... My ranking overrides any imported data. For any disconnects, flag it. Imported tables should overwrite
+// all other data, based on a combination of CCaR Record and Plan Event Title."
+//
+// A line is known by its CCaR record and its title together (SP.normKey of each), within its appropriation and fiscal
+// year: that is what a ranking is kept by, so a tracker imported again replaces every figure and word of a line and the
+// ranking stays on it. Two lines of one group with the same record and title are told apart by their order on the tracker.
+//
+//   ranks   { 'ap|fy': [{k, c, t}] }   the keeper's order of that group, first is rank 1; c and t are the record and title
+//                                      as they read when ranked, for a line the tracker no longer has
+//   SP.ufrRanked(ufr, ranks) -> { ufr, groups: {'ap|fy': {n, mine, order: [k], gone}}, flags: [text] }
+//     ufr      the lists as given, every line with rk (its key) and rankFile (the tracker's rank); in a group the keeper
+//              has ranked, rank is the line's place 1..N: the keeper's lines in the keeper's order, then any line the
+//              keeper has not ranked, in the tracker's order. A group never ranked is as the tracker has it.
+//     flags    the disconnects: lines ranked differently from the tracker, a line on the tracker the keeper has not
+//              ranked, a ranked line the tracker no longer has
+SP.ufrRanked = function ufrRanked(ufr, ranks) {
+  const out = {}, groups = {}, flags = [];
+  const R = ranks && typeof ranks === 'object' ? ranks : {};
+  const byGroup = new Map();
+  for (const fk of Object.keys(ufr && typeof ufr === 'object' ? ufr : {}).sort()) {
+    const f = ufr[fk];
+    if (!f || !Array.isArray(f.lines)) { out[fk] = f; continue; }
+    const lines = f.lines.map(l => Object.assign({}, l, { rankFile: l.rank }));
+    out[fk] = Object.assign({}, f, { lines });
+    for (const l of lines) { const gk = l.ap + '|' + l.fy; if (!byGroup.has(gk)) byGroup.set(gk, []); byGroup.get(gk).push(l); }
+  }
+  const num = r => { const n = Number(r); return r !== '' && r !== null && r !== undefined && isFinite(n) ? n : 1e9; };
+  const name = (t, c) => '“' + (t || '(no title)') + '”' + (c ? ' (CCaR ' + c + ')' : '');
+  for (const [gk, all] of byGroup) {
+    // the tracker's order, and each line's key in it
+    const ls = all.slice().sort((a, b) => num(a.rankFile) - num(b.rankFile) || a.row - b.row);
+    const seen = new Map();
+    for (const l of ls) { const base = SP.normKey(l.ccar) + '\u0001' + SP.normKey(l.title), n = (seen.get(base) || 0) + 1; seen.set(base, n); l.rk = n === 1 ? base : base + '\u0001' + n; }
+    const mine = Array.isArray(R[gk]) ? R[gk].filter(e => e && typeof e.k === 'string') : null;
+    const g = groups[gk] = { n: ls.length, mine: !!mine, order: ls.map(l => l.rk), gone: 0 };
+    if (!mine) continue;
+    const have = new Map(ls.map(l => [l.rk, l])), at = new Set(mine.map(e => e.k));
+    const order = mine.filter(e => have.has(e.k)).map(e => have.get(e.k)).concat(ls.filter(l => !at.has(l.rk)));
+    const where = pb_apLabel(ls[0].ap) + ' FY' + ls[0].fy;
+    g.order = order.map(l => l.rk);
+    order.forEach((l, i) => {
+      l.rank = String(i + 1);
+      l.rankNew = !at.has(l.rk);
+      l.rankDiff = !l.rankNew && num(l.rankFile) !== 1e9 && num(l.rankFile) !== i + 1;
+    });
+    const diff = order.filter(l => l.rankDiff), fresh = order.filter(l => l.rankNew), gone = mine.filter(e => !have.has(e.k));
+    if (diff.length) flags.push(where + ': ' + diff.length + ' line' + (diff.length === 1 ? ' is' : 's are') + ' ranked differently from the tracker, and your rank is used: '
+      + diff.map(l => name(l.title, l.ccar) + ' is ' + l.rank + ' (tracker ' + l.rankFile + ')').join('; ') + '.');
+    for (const l of fresh) flags.push(where + ': ' + name(l.title, l.ccar) + ' is on the tracker and not in your ranking; it is ' + l.rank + ', after the lines you ranked.');
+    g.gone = gone.length;
+    for (const e of gone) flags.push(where + ': ' + name(e.t, e.c) + ' is in your ranking and is no longer on the tracker; it is not listed.');
+  }
+  // a ranking kept for a group no loaded list has
+  for (const gk of Object.keys(R)) {
+    if (byGroup.has(gk) || !Array.isArray(R[gk]) || !R[gk].length) continue;
+    const [ap, fy] = gk.split('|');
+    groups[gk] = { n: 0, mine: true, order: [], gone: R[gk].length };
+    flags.push(pb_apLabel(ap) + ' FY' + fy + ': your ranking of ' + R[gk].length + ' line' + (R[gk].length === 1 ? '' : 's') + ' is kept, and no unfunded list is loaded for it.');
+  }
+  return { ufr: out, groups, flags };
+};
+// the keeper's order of a group after one line is moved to a place (1..N): every line of the group as it now stands, the
+// moved one at that place; the ranked lines the tracker no longer has are kept after them
+SP.ufrMove = function ufrMove(ufr, ranks, gk, key, to) {
+  const X = SP.ufrRanked(ufr, ranks), g = X.groups[gk];
+  if (!g || !g.order.includes(key)) return null;
+  const by = new Map();
+  for (const fk of Object.keys(X.ufr)) for (const l of (X.ufr[fk] && X.ufr[fk].lines) || []) if (l.ap + '|' + l.fy === gk) by.set(l.rk, l);
+  const order = g.order.filter(k => k !== key);
+  const pos = Math.min(order.length + 1, Math.max(1, Math.round(Number(to)) || 1));
+  order.splice(pos - 1, 0, key);
+  const old = ranks && Array.isArray(ranks[gk]) ? ranks[gk] : [];
+  return order.map(k => ({ k, c: by.get(k).ccar || '', t: by.get(k).title || '' })).concat(old.filter(e => e && typeof e.k === 'string' && !by.has(e.k)));
+};
+
 // §37 THE UNFUNDED LIST ON SCREEN (Brad, 19 Nov 2026: "we need to create a UFR section under Browse. Once I upload the UFR
 // listing, I want the list to be seen there with other features like filtering, PMO filter, etc."). Everything the
 // Unfunded (UFR) view draws, worked out here so the view only draws. Nothing is a new rule: a line's PMO and its place in

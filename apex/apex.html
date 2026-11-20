@@ -618,6 +618,16 @@ table.ufrt tr.band th{text-align:right}
      scrolling under it show through */
   table.tree tr[class*="lv"] > th.lab,table.tree tr.band > th.lab{background:var(--cell)}
 }
+
+/* §43 the keeper's rank of an unfunded line: a number box and up/down, and under it what the tracker says where it differs */
+.urkw{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.urk{width:3.4em;font:inherit;padding:1px 3px;border:1px solid var(--sedge);border-radius:4px;text-align:right;background:#fff;color:#111}
+.urkb{font:inherit;font-size:10px;line-height:1;padding:3px 4px;border:1px solid var(--sedge);border-radius:4px;background:var(--sbtn);color:var(--sink);cursor:pointer}
+.urkb:hover{background:var(--gold);color:#000}
+.urkf{display:block;color:var(--ochre);font-weight:700}
+.urkm{font-weight:400;font-style:italic;margin-left:8px}
+.urkreset{font:inherit;font-size:12px;font-weight:400;margin-left:6px;padding:1px 8px;border:1px solid var(--sedge);border-radius:6px;background:var(--sbtn);color:var(--sink);cursor:pointer}
+.urankchk{margin:10px 0}
 </style>
 </head>
 <body>
@@ -5614,6 +5624,82 @@ SP.readDescriptions = function readDescriptions(wb) {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// §43 MY RANKING OF THE UNFUNDED LIST. Brad, 20 Nov 2026: "I want the unfunded section to allow me to be able to adjust the
+// rank from 1-N ... My ranking overrides any imported data. For any disconnects, flag it. Imported tables should overwrite
+// all other data, based on a combination of CCaR Record and Plan Event Title."
+//
+// A line is known by its CCaR record and its title together (SP.normKey of each), within its appropriation and fiscal
+// year: that is what a ranking is kept by, so a tracker imported again replaces every figure and word of a line and the
+// ranking stays on it. Two lines of one group with the same record and title are told apart by their order on the tracker.
+//
+//   ranks   { 'ap|fy': [{k, c, t}] }   the keeper's order of that group, first is rank 1; c and t are the record and title
+//                                      as they read when ranked, for a line the tracker no longer has
+//   SP.ufrRanked(ufr, ranks) -> { ufr, groups: {'ap|fy': {n, mine, order: [k], gone}}, flags: [text] }
+//     ufr      the lists as given, every line with rk (its key) and rankFile (the tracker's rank); in a group the keeper
+//              has ranked, rank is the line's place 1..N: the keeper's lines in the keeper's order, then any line the
+//              keeper has not ranked, in the tracker's order. A group never ranked is as the tracker has it.
+//     flags    the disconnects: lines ranked differently from the tracker, a line on the tracker the keeper has not
+//              ranked, a ranked line the tracker no longer has
+SP.ufrRanked = function ufrRanked(ufr, ranks) {
+  const out = {}, groups = {}, flags = [];
+  const R = ranks && typeof ranks === 'object' ? ranks : {};
+  const byGroup = new Map();
+  for (const fk of Object.keys(ufr && typeof ufr === 'object' ? ufr : {}).sort()) {
+    const f = ufr[fk];
+    if (!f || !Array.isArray(f.lines)) { out[fk] = f; continue; }
+    const lines = f.lines.map(l => Object.assign({}, l, { rankFile: l.rank }));
+    out[fk] = Object.assign({}, f, { lines });
+    for (const l of lines) { const gk = l.ap + '|' + l.fy; if (!byGroup.has(gk)) byGroup.set(gk, []); byGroup.get(gk).push(l); }
+  }
+  const num = r => { const n = Number(r); return r !== '' && r !== null && r !== undefined && isFinite(n) ? n : 1e9; };
+  const name = (t, c) => '“' + (t || '(no title)') + '”' + (c ? ' (CCaR ' + c + ')' : '');
+  for (const [gk, all] of byGroup) {
+    // the tracker's order, and each line's key in it
+    const ls = all.slice().sort((a, b) => num(a.rankFile) - num(b.rankFile) || a.row - b.row);
+    const seen = new Map();
+    for (const l of ls) { const base = SP.normKey(l.ccar) + '\u0001' + SP.normKey(l.title), n = (seen.get(base) || 0) + 1; seen.set(base, n); l.rk = n === 1 ? base : base + '\u0001' + n; }
+    const mine = Array.isArray(R[gk]) ? R[gk].filter(e => e && typeof e.k === 'string') : null;
+    const g = groups[gk] = { n: ls.length, mine: !!mine, order: ls.map(l => l.rk), gone: 0 };
+    if (!mine) continue;
+    const have = new Map(ls.map(l => [l.rk, l])), at = new Set(mine.map(e => e.k));
+    const order = mine.filter(e => have.has(e.k)).map(e => have.get(e.k)).concat(ls.filter(l => !at.has(l.rk)));
+    const where = pb_apLabel(ls[0].ap) + ' FY' + ls[0].fy;
+    g.order = order.map(l => l.rk);
+    order.forEach((l, i) => {
+      l.rank = String(i + 1);
+      l.rankNew = !at.has(l.rk);
+      l.rankDiff = !l.rankNew && num(l.rankFile) !== 1e9 && num(l.rankFile) !== i + 1;
+    });
+    const diff = order.filter(l => l.rankDiff), fresh = order.filter(l => l.rankNew), gone = mine.filter(e => !have.has(e.k));
+    if (diff.length) flags.push(where + ': ' + diff.length + ' line' + (diff.length === 1 ? ' is' : 's are') + ' ranked differently from the tracker, and your rank is used: '
+      + diff.map(l => name(l.title, l.ccar) + ' is ' + l.rank + ' (tracker ' + l.rankFile + ')').join('; ') + '.');
+    for (const l of fresh) flags.push(where + ': ' + name(l.title, l.ccar) + ' is on the tracker and not in your ranking; it is ' + l.rank + ', after the lines you ranked.');
+    g.gone = gone.length;
+    for (const e of gone) flags.push(where + ': ' + name(e.t, e.c) + ' is in your ranking and is no longer on the tracker; it is not listed.');
+  }
+  // a ranking kept for a group no loaded list has
+  for (const gk of Object.keys(R)) {
+    if (byGroup.has(gk) || !Array.isArray(R[gk]) || !R[gk].length) continue;
+    const [ap, fy] = gk.split('|');
+    groups[gk] = { n: 0, mine: true, order: [], gone: R[gk].length };
+    flags.push(pb_apLabel(ap) + ' FY' + fy + ': your ranking of ' + R[gk].length + ' line' + (R[gk].length === 1 ? '' : 's') + ' is kept, and no unfunded list is loaded for it.');
+  }
+  return { ufr: out, groups, flags };
+};
+// the keeper's order of a group after one line is moved to a place (1..N): every line of the group as it now stands, the
+// moved one at that place; the ranked lines the tracker no longer has are kept after them
+SP.ufrMove = function ufrMove(ufr, ranks, gk, key, to) {
+  const X = SP.ufrRanked(ufr, ranks), g = X.groups[gk];
+  if (!g || !g.order.includes(key)) return null;
+  const by = new Map();
+  for (const fk of Object.keys(X.ufr)) for (const l of (X.ufr[fk] && X.ufr[fk].lines) || []) if (l.ap + '|' + l.fy === gk) by.set(l.rk, l);
+  const order = g.order.filter(k => k !== key);
+  const pos = Math.min(order.length + 1, Math.max(1, Math.round(Number(to)) || 1));
+  order.splice(pos - 1, 0, key);
+  const old = ranks && Array.isArray(ranks[gk]) ? ranks[gk] : [];
+  return order.map(k => ({ k, c: by.get(k).ccar || '', t: by.get(k).title || '' })).concat(old.filter(e => e && typeof e.k === 'string' && !by.has(e.k)));
+};
+
 // §37 THE UNFUNDED LIST ON SCREEN (Brad, 19 Nov 2026: "we need to create a UFR section under Browse. Once I upload the UFR
 // listing, I want the list to be seen there with other features like filtering, PMO filter, etc."). Everything the
 // Unfunded (UFR) view draws, worked out here so the view only draws. Nothing is a new rule: a line's PMO and its place in
@@ -8446,13 +8532,23 @@ function st_check(st) {
   if (st_isObj(st.lastImport)) { const rb = st_checkReport(st.lastImport.report); if (rb) return rb; }
   if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
   if (st.viewOnly !== undefined && typeof st.viewOnly !== 'boolean') return 'its view-only mark is not yes or no';
-  const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish);
+  const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish) || st_checkUfrRank(st.ufrRank);
   if (ub) return ub;
   return '';
 }
 // §33.6 THE UNFUNDED LISTS AND THE PUBLISHING SETTINGS, in the shapes SP.publishData and SP.publishPages read. Absent in
 // every plan saved before §33 and in one that never loaded a list or typed a description, which is not a fault. One that
 // has them must hold them whole: a line whose amounts are not seven whole numbers would print a Required nobody typed.
+// §43 the keeper's ranking of the unfunded list: {'ap|fy': [{k, c, t}]}, every part text
+function st_checkUfrRank(r) {
+  if (r === undefined || r === null) return '';
+  if (!st_isObj(r)) return 'its ranking of the unfunded list is not a ranking';
+  for (const g of Object.keys(r)) {
+    if (!Array.isArray(r[g]) || !r[g].every(e => st_isObj(e) && typeof e.k === 'string' && (e.c === undefined || typeof e.c === 'string') && (e.t === undefined || typeof e.t === 'string')))
+      return 'its ranking of the unfunded list for ' + g + ' is not a list of lines';
+  }
+  return '';
+}
 function st_checkUfr(u) {
   if (u === undefined || u === null) return '';
   if (!st_isObj(u)) return 'its unfunded lists are not a table by fiscal year';
@@ -9168,11 +9264,13 @@ SP.takeSettings = function takeSettings(text, name) {
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
     if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s settings, and “' + fname + '” was not read into it.' };
   }
-  const before = JSON.stringify([st.settings, st.publish, st.ufr]);
+  const before = JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank]);
   if (next) st.settings = next;
   if (hasPub) st.publish = st_clone(inc.publish);
   if (hasUfr) { const u = st_isObj(st.ufr) ? st.ufr : {}; for (const k of Object.keys(inc.ufr)) u[k] = st_clone(inc.ufr[k]); st.ufr = u; }
-  if (JSON.stringify([st.settings, st.publish, st.ufr]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
+  // §43 and the ranking of those lists, group by group
+  if (st_isObj(inc.ufrRank) && !st_checkUfrRank(inc.ufrRank)) { const u = st_isObj(st.ufrRank) ? st.ufrRank : {}; for (const k of Object.keys(inc.ufrRank)) u[k] = st_clone(inc.ufrRank[k]); if (Object.keys(u).length) st.ufrRank = u; }
+  if (JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
   st_changed(false);
   return { ok: true, message: 'Took from “' + fname + '”: ' + brings.join('; ') + '. This page’s pulls and BAE report are as they were. Save to keep it in this page’s file.' };
 };
@@ -9198,6 +9296,19 @@ SP.setUfr = function setUfr(parsed, nowIso) {
   all[String(parsed.fy)] = st_clone({ fy: parsed.fy, name: String(parsed.name || ''), importedAt: nowIso || new Date().toISOString(), unit: parsed.unit,
     tabs: parsed.tabs || [], lines: parsed.lines || [], notes: parsed.notes || [], ignored: parsed.ignored || [] });
   st.ufr = all;
+  st_changed(false);
+  return true;
+};
+// §43 the keeper's ranking of one group ('ap|fy'): a list of {k, c, t} in rank order, or null to go back to the tracker's
+// ranks. A tracker imported again does not touch it: the ranking overrides what is imported.
+SP.setUfrRank = function setUfrRank(gk, list) {
+  if (SP.isViewOnly() || typeof gk !== 'string' || gk === '') return false;
+  const st = SP.state, all = st_isObj(st.ufrRank) ? st.ufrRank : {};
+  const before = JSON.stringify(all[gk] === undefined ? null : all[gk]);
+  const next = Array.isArray(list) ? list.filter(e => st_isObj(e) && typeof e.k === 'string').map(e => ({ k: e.k, c: String(e.c || ''), t: String(e.t || '') })) : null;
+  if (JSON.stringify(next) === before) return false;
+  if (next) all[gk] = next; else delete all[gk];
+  if (Object.keys(all).length) st.ufrRank = all; else delete st.ufrRank;
   st_changed(false);
   return true;
 };
@@ -10511,6 +10622,7 @@ function ui_vSlides(M) {
 function ui_ufrData(M) {
   const P = ui_pubState(), U = ui.ufr;
   const V = SP.ufrView(ui_pubModel(M), ui_view(), P.ufr, P.pub, ui_settings(), U);
+  V.rank = P.rank;
   // a choice the list no longer holds (another tracker was loaded) is taken off, never left hiding every line
   const has = (list, v) => v === null || list.some(p => p[0] === v);
   if (!has(V.picks.pmos, U.pmo) || !has(V.picks.aps, U.ap) || !has(V.picks.fys, U.fy) || !has(V.picks.statuses, U.status)) {
@@ -10534,9 +10646,25 @@ function ui_ufrBody(M, V) {
   if (!V.n) return '<p class="none" id="uiUfrNone">No unfunded requirement matches. Clear filters shows the whole list.</p>';
   const cols = 9 + V.svc.length;
   let zebra = 0;
-  const rows = V.groups.map(g => '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy + '</th></tr>' + g.lines.map(l => {
+  // §43 the keeper ranks the list here, 1 to N within an appropriation and fiscal year; a view-only copy shows the ranks
+  const edit = !ui_vo() && ui_fn('setUfrRank') && ui_fn('ufrMove'), RK = V.rank || { groups: {}, flags: [] };
+  ui.reg.ufr = [];
+  const rankCell = (l, gk, n) => {
+    if (!edit) return '<td class="urank">' + ui_e(l.rank) + '</td>';
+    const i = ui.reg.ufr.length;
+    ui.reg.ufr.push({ gk, rk: l.rk, title: l.title || '(no title)', rank: l.rank, n });
+    return '<td class="urank"><span class="urkw"><input type="number" class="urk" min="1" max="' + n + '" step="1" value="' + ui_e(l.rank) + '" data-act="ufrrank" data-i="' + i + '" data-fkey="ufrrank:' + ui_e(l.id)
+      + '" aria-label="Rank of ' + ui_e(l.title || '(no title)') + ', 1 to ' + n + '">'
+      + '<button type="button" class="urkb" data-act="ufrup" data-i="' + i + '" data-fkey="ufrup:' + ui_e(l.id) + '" aria-label="Move ' + ui_e(l.title || '(no title)') + ' up one rank" title="Up one rank">\u25B2</button>'
+      + '<button type="button" class="urkb" data-act="ufrdown" data-i="' + i + '" data-fkey="ufrdown:' + ui_e(l.id) + '" aria-label="Move ' + ui_e(l.title || '(no title)') + ' down one rank" title="Down one rank">\u25BC</button></span>'
+      + (l.rankDiff ? '<span class="fsub urkf">tracker ' + ui_e(l.rankFile) + '</span>' : l.rankNew ? '<span class="fsub urkf">not ranked by you</span>' : '') + '</td>';
+  };
+  const rows = V.groups.map(g => { const gk = g.ap + '|' + g.fy, G = RK.groups[gk] || { n: g.lines.length, mine: false };
+    return '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy
+      + (edit && G.mine ? ' <span class="urkm">in your ranking</span> <button type="button" class="urkreset" data-act="ufrreset" data-g="' + ui_e(gk) + '" data-fkey="ufrreset:' + ui_e(gk) + '">Use the tracker’s ranks</button>' : '')
+      + '</th></tr>' + g.lines.map(l => {
     const open = U.open === l.id, alt = (zebra++ % 2) ? ' alt' : '';
-    return '<tr class="' + (open ? 'cur' : alt.trim()) + '" data-ufr="' + ui_e(l.id) + '"><td class="urank">' + ui_e(l.rank) + '</td><th scope="row" class="lab"><button type="button" class="tg" data-act="ufropen" data-k="' + ui_e(l.id)
+    return '<tr class="' + (open ? 'cur' : alt.trim()) + '" data-ufr="' + ui_e(l.id) + '">' + rankCell(l, gk, G.n) + '<th scope="row" class="lab"><button type="button" class="tg" data-act="ufropen" data-k="' + ui_e(l.id)
       + '" data-fkey="ufropen:' + ui_e(l.id) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' + ui_e(l.title || '(no title)') + '</button><span class="fsub">' + ui_e(l.ccar || 'no CCaR record') + '</span></th>'
       + '<td><span class="usw" style="background:' + SP.publishColor(l.pmoKey, false) + '" aria-hidden="true"></span>' + ui_e(l.pmoLabel) + '</td>'
       + l.amt.map(ui_k).join('') + '<td class="n utot" data-c="' + l.sum + '">' + ui_e(SP.fmtK(l.sum)) + '</td><td>' + ui_e(l.status) + '</td><td class="uexec">' + ui_e(l.exec) + '</td><td>' + ui_e(l.sfcb) + '</td>'
@@ -10547,14 +10675,21 @@ function ui_ufrBody(M, V) {
         : '<strong>Not in the spend plan:</strong> no plan event in ' + ui_e(g.apLabel) + ' FY' + g.fy + ' carries this CCaR record' + (l.prime ? '' : ' under ' + ui_e(l.pmoLabel)) + ', so Approved is $0 and Required is this unfunded ' + ui_e(K(l.sum)) + '.')
         + (l.ccar ? '<div class="acts"><button type="button" data-act="reqfind" data-q="' + ui_e(l.ccar) + '" data-fkey="ufrreq:' + ui_e(l.id) + '">Open this requirement</button>'
           + (l.prime ? '<span class="cardnote">A prime contract: its spend plan figures are over every PMO.</span>' : '') + '</div>' : '') + '</td></tr>' : '');
-  }).join('')).join('');
+  }).join(''); }).join('');
+  // the disconnects between the keeper's ranking and the tracker (§43), for the keeper only
+  const gone = Object.keys(RK.groups).reduce((n, k) => n + (RK.groups[k].gone || 0), 0);
+  const chk = edit && RK.flags.length ? '<section class="card urankchk" id="uiUfrRankChk"><h3>Your ranking: to check (' + RK.flags.length + ')</h3><ul class="speclist">' + RK.flags.map(f => '<li>' + ui_e(f) + '</li>').join('') + '</ul>'
+    + (gone ? '<p class="acts"><button type="button" data-act="ufrforget" data-fkey="ufrforget">Take the ' + SP.fmtInt(gone) + ' line' + (gone === 1 ? '' : 's') + ' no longer on the tracker out of your ranking</button></p>' : '') + '</section>' : '';
   return '<div class="tiles">'
     + tile('sum', 'Total unfunded', ui_e(K(V.tiles.sum)), req(V.tiles.n) + ', ' + SP.fmtInt(V.tiles.aps) + (V.tiles.aps === 1 ? ' appropriation' : ' appropriations'), V.tiles.sum)
     + tile('exec', 'Exec ready', ui_e(K(V.tiles.exec.sum)), SP.fmtInt(V.tiles.exec.n) + ' of ' + req(V.tiles.n), V.tiles.exec.sum)
     + tile('sfcb', 'SFCB approved', ui_e(K(V.tiles.sfcb.sum)), req(V.tiles.sfcb.n), V.tiles.sfcb.sum)
     + tile('only', 'Not in the spend plan', SP.fmtInt(V.tiles.only), 'unfunded only: no plan event yet', V.tiles.only)
     + '</div><div class="pmotwo">' + bars('pmo', 'Unfunded by PMO ($K)', V.byPmo) + bars('svc', 'Unfunded by service ($K)', V.bySvc) + '</div>'
-    + '<h3 class="pmoall">Every unfunded requirement, by rank</h3><div class="fsheet tw"><table class="grid findt ufrt" id="uiUfrT"><thead><tr class="hd"><th scope="col">Rank</th><th scope="col" class="lab">Requirement</th><th scope="col">PMO</th>'
+    + chk + '<h3 class="pmoall">Every unfunded requirement, by rank</h3>'
+    + (edit ? '<p class="cardnote" id="uiUfrRankHow">Type a rank, or press \u25B2 \u25BC, to put a list in your own order, 1 to N within its appropriation and fiscal year. Your order is used in place of the tracker’s, here, on the PDFs and in a view-only copy, '
+      + 'and is kept when a tracker is imported again: a line is known by its CCaR record and its title together, and everything else about it is the tracker’s.</p>' : '')
+    + '<div class="fsheet tw"><table class="grid findt ufrt" id="uiUfrT"><thead><tr class="hd"><th scope="col">Rank</th><th scope="col" class="lab">Requirement</th><th scope="col">PMO</th>'
     + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($K)</th><th scope="col">Funding status</th><th scope="col">Exec ready?</th><th scope="col">SFCB action</th>'
     + '<th scope="col" class="n">Approved in plan ($K)</th></tr></thead><tbody>' + rows
     + '<tr class="band"><th colspan="3" scope="row">Total unfunded</th>' + V.total.amt.map(ui_k).join('') + ui_k(V.total.sum) + '<td colspan="4"></td></tr></tbody></table></div>'
@@ -10576,6 +10711,16 @@ function ui_vUfr(M) {
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><div id="uiUfrRes">' + ui_ufrBody(M, V) + '</div>';
 }
 // the Find box narrows as it is typed in: only what is below the bar is drawn again, so the box keeps the keyboard
+// §43 one line moved to a rank: the group's whole order is kept as the keeper's from then on
+function ui_ufrRank(e, to) {
+  const st = ui_state() || {}, n = Math.round(Number(to));
+  if (!isFinite(n) || String(to).trim() === '') { ui_say('A rank is a whole number from 1 to ' + e.n + '; “' + e.title + '” stays at ' + (e.rank || 'its place') + '.', 'warn'); ui_render(); return; }
+  const list = SP.ufrMove(st.ufr, st.ufrRank, e.gk, e.rk, n);
+  if (!list) { ui_render(); return; }
+  const at = list.findIndex(x => x.k === e.rk) + 1;
+  if (SP.setUfrRank(e.gk, list)) ui_say('“' + e.title + '” is rank ' + at + ' of ' + e.n + (n !== at ? ' (' + n + ' is outside 1 to ' + e.n + ')' : '') + '. The list is in your ranking; the tracker’s ranks are noted where they differ.', 'ok');
+  ui_render();
+}
 function ui_ufrRedraw() {
   const box = document.getElementById('uiUfrRes'), M = ui_model();
   if (!box || !M) return;
@@ -10599,7 +10744,7 @@ function ui_pubModel(M) {
 // THE UNFUNDED LIST (§33.3, §39): the lists loaded, and for the keeper of the plan the import button, Remove and what to
 // check. Drawn in Settings with its controls and on Publish PDFs as what is loaded.
 function ui_ufrNotes(P, D) {
-  return Object.keys(P.ufr).sort().flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags)
+  return Object.keys(P.ufr).sort().flatMap(k => (P.ufr[k].notes || []).map(n => 'FY' + k + ' tracker, ' + n)).concat(D.flags).concat(P.rank ? P.rank.flags : [])
     .concat(D.ufrSkipped.map(x => UI_AP_LABEL[x.ap] + ' FY' + x.fy + ': ' + SP.fmtInt(x.n) + ' unfunded line' + (x.n === 1 ? ' is' : 's are') + ' not shown, because APEX shows no figures for that appropriation and year.'));
 }
 function ui_ufrBlock(P, D, o) {
@@ -10621,7 +10766,10 @@ function ui_ufrBlock(P, D, o) {
 }
 function ui_pubState() {
   const st = ui_state() || {};
-  return { ufr: st.ufr && typeof st.ufr === 'object' ? st.ufr : {}, pub: st.publish && typeof st.publish === 'object' ? st.publish : {} };
+  // §43 the unfunded lists in the keeper's ranking: what every view, the PDFs and a view-only copy show
+  const raw = st.ufr && typeof st.ufr === 'object' ? st.ufr : {};
+  const X = ui_fn('ufrRanked') ? SP.ufrRanked(raw, st.ufrRank) : { ufr: raw, groups: {}, flags: [] };
+  return { ufr: X.ufr, pub: st.publish && typeof st.publish === 'object' ? st.publish : {}, rank: X };
 }
 const UI_PUB_PROGRAM = 'F-35 Sustainment';
 function ui_pubData(M) {
@@ -11621,7 +11769,7 @@ function ui_vHelp() {
       'A requirement’s name in either opens it on Find a requirement.',
     ])
     + '<h3 class="sub">The unfunded list</h3>' + li([
-      '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (in Settings): by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
+      '<strong>Unfunded</strong>, under Browse, lists the UFR tracker’s lines once it has been imported (in Settings). In your own file you can type each line’s rank to put a list in your own order, which is then used in place of the tracker’s and kept when the tracker is imported again: by appropriation and fiscal year, in rank order, in $K as the tracker is kept.',
       'The pickers (PMO, appropriation, fiscal year, Funding status) and the Find box narrow the list; the tiles, the two charts and the total follow. A service switched off in the Filter is left out of every amount.',
       'Press a requirement to see it beside its spend plan: Approved, Obligated, Remaining, and Required (Approved plus the unfunded amount). A line with no plan event in the spend plan says Unfunded only.',
       'Exec ready counts the lines whose Exec Ready? says yes; SFCB approved counts those whose SFCB Action says approved.',
@@ -12009,7 +12157,7 @@ function ui_render() {
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
-  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
+  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], ufr: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
   // a view-only copy has no way to a view its menu does not hold; were one asked for anyhow, it is the Summary
   if (ui_vo() && ui.view !== 'help' && !ui_nav().some(g => g.items.some(([id]) => id === ui.view))) ui.view = UI_HOME;
@@ -12407,6 +12555,23 @@ function ui_onClick(ev) {
     case 'viewcopy': ui_viewCopy(); break;
     case 'ufropen': { const k = t.getAttribute('data-k'); ui.ufr.open = ui.ufr.open === k ? '' : k; ui_render(); break; }
     case 'ufrclear': ui.ufr = { pmo: null, ap: null, fy: null, status: null, q: '', open: '' }; ui_render(); break;
+    case 'ufrup': case 'ufrdown': { const e = ui.reg.ufr && ui.reg.ufr[Number(t.getAttribute('data-i'))]; if (e) ui_ufrRank(e, (Number(e.rank) || (act === 'ufrup' ? 2 : 0)) + (act === 'ufrup' ? -1 : 1)); break; }
+    case 'ufrreset': {
+      const gk = t.getAttribute('data-g');
+      if (ui_fn('setUfrRank') && SP.setUfrRank(gk, null)) ui_say('That list is back in the tracker’s ranks; your ranking of it was taken off.', 'ok');
+      ui_render(); break;
+    }
+    case 'ufrforget': {
+      const st = ui_state() || {}, X = SP.ufrRanked(st.ufr, st.ufrRank);
+      let n = 0;
+      for (const gk of Object.keys(st.ufrRank || {})) {
+        const g = X.groups[gk], have = new Set(g ? g.order : []), keep = (st.ufrRank[gk] || []).filter(e => have.has(e.k));
+        n += (st.ufrRank[gk] || []).length - keep.length;
+        SP.setUfrRank(gk, keep.length ? keep : null);
+      }
+      ui_say(SP.fmtInt(n) + ' line' + (n === 1 ? '' : 's') + ' no longer on the tracker ' + (n === 1 ? 'was' : 'were') + ' taken out of your ranking.', 'ok');
+      ui_render(); break;
+    }
     case 'lastpick': { const f = document.getElementById('uiLastFile'); if (f) f.click(); break; }
     case 'ufrpick': { const f = document.getElementById('uiUfrFile'); if (f) f.click(); break; }
     case 'descpick': { const f = document.getElementById('uiDescFile'); if (f) f.click(); break; }
@@ -12468,6 +12633,7 @@ function ui_onChange(ev) {
       if (f === 'pmo' || f === 'ap' || f === 'fy') { ui[act === 'chf' ? 'ch' : 'cal'][f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
       return;
     }
+    case 'ufrrank': { const e = ui.reg.ufr && ui.reg.ufr[Number(t.getAttribute('data-i'))]; if (e) ui_ufrRank(e, t.value); return; }
     case 'ufrf': {
       const f = t.getAttribute('data-f');
       if (['pmo', 'ap', 'fy', 'status'].includes(f)) { ui.ufr[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
