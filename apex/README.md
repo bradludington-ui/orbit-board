@@ -286,6 +286,11 @@ for the switches.
   number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
   Unfunded only. The same view is in a view-only copy.
+  **Mandatory funding not received:** a switch on this page lists every plan event on a Mandatory budget in the CCaR
+  pull as unfunded, one line per plan event, marked *Mandatory*. They come from the pull, so there is nothing to type
+  and nothing to keep in step; switch it off and the list is the tracker alone again. For now this changes the Unfunded
+  page only: the spend plan pages and the PDFs still count Mandatory as Approved. A view-only copy made with the switch
+  on shows the Mandatory lines and cannot change the switch.
   **Your own ranking:** in your own file (not a view-only copy) each line's rank is a box. Type a rank, or press the up
   and down buttons, to put a list in your order, 1 to N within its appropriation and fiscal year. Your order is used in
   place of the tracker's on this page, on the PDFs and in a view-only copy. Importing the tracker again replaces

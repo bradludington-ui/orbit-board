@@ -624,3 +624,11 @@ table.ufrt tr.band th{text-align:right}
 table.srrbt .srrbp{display:block;white-space:nowrap}
 table.srrbt td.srrbdt{white-space:nowrap}
 table.srrbt .srrbother{color:var(--ochre)}
+
+/* §45 Mandatory plan events on the Unfunded page: the switch, the tag and the tinted row */
+.umandcard{margin:10px 0;border-left:4px solid var(--ochre)}
+.umandsw{font-weight:700;font-size:15px;white-space:normal}
+.umandsay{margin:0}
+.mtag{display:inline-block;padding:0 7px;border-radius:999px;background:var(--ochre);color:#fff;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px;white-space:nowrap}
+table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
+@media (min-width:1101px){.tiles.tiles5{grid-template-columns:repeat(5,minmax(0,1fr))}}

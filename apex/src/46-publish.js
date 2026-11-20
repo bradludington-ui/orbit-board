@@ -939,6 +939,66 @@ SP.srrbView = function srrbView(M, pulls, view, F) {
     byPmo, bySvc: svcIdx.map((i, k) => ({ label: PB_UFR_SVC[i], sum: lines.reduce((n, l) => n + l.amt[k], 0) })) };
 };
 
+// §45 MANDATORY PLAN EVENTS AS UNFUNDED LINES. Brad, 20 Nov 2026: "It is looking like our Mandatory funding will not be coming
+// to us and these items will need to be treated as unfundeds ... we're tracking them in CCaR until told otherwise." His
+// answers: all Mandatory; none of it is obligated; "For now, let's only affect the Unfunded page"; "I have multiple Plan
+// Events in a CCaR Record in some instances. On the unfunded list, they need to be viewed separately"; marked Mandatory.
+//
+//   SP.ufrMandatory(Mfull) -> [line]   one line a plan event within a CCaR record, appropriation and fiscal year, over its
+//     rows on a Mandatory budget (SP.laneRule): { ap, fy, sheet: 'CCaR pull', row, rank: '', title (the plan event's
+//     title), pmo, ccar, cents[7], total, status: 'Mandatory', exec: '', sfcb: '', mand: true, record (the record's title),
+//     obligated }. Mfull is the model with every switch on. In the pull's order.
+//   SP.ufrWithMandatory(ufr, Mfull) -> { ufr, n, cents, overlap: [text] }   the lists with those lines added to their fiscal
+//     year (a year with no tracker gets an entry of its own, mandOnly: true), and the CCaR records that are on a tracker
+//     and have Mandatory plan events too, to be checked for counting twice.
+// Nothing here changes a figure on any other page: the spend plan still counts this money as Approved (§45).
+SP.ufrMandatory = function ufrMandatory(Mfull) {
+  const out = [];
+  let n = 0;
+  for (const b of (Mfull && Mfull.blocks) || []) {
+    const by = new Map();
+    for (const r of b.rows || []) {
+      const d = r.d;
+      if (d.lane !== 'mand') continue;
+      const k = d.k.ccar + '\u0001' + d.k.pe;
+      let q = by.get(k);
+      if (!q) by.set(k, (q = { pe: new Map(), ccar: new Map(), rec: new Map(), pmo: new Map(), cents: pb_zeros(), obligated: 0 }));
+      pb_tally(q.pe, pb_txt(d.pe)); pb_tally(q.ccar, pb_txt(d.ccar)); pb_tally(q.rec, pb_txt(d.title)); pb_tally(q.pmo, pb_txt(d.pmo));
+      const i = SP.SERVICES.indexOf(d.svc);
+      q.cents[i < 0 ? PB_NSVC : i] += r.cents;
+      if (d.status === 'exec') q.obligated += r.cents;
+    }
+    for (const q of by.values()) {
+      out.push({ ap: b.ap, fy: b.fy, sheet: 'CCaR pull', row: ++n, rank: '', title: pb_major(q.pe, '(no plan event title)'), pmo: pb_major(q.pmo, ''), ccar: pb_major(q.ccar, ''),
+        cents: q.cents, total: q.cents.reduce((a, c) => a + c, 0), status: 'Mandatory', exec: '', sfcb: '', mand: true, record: pb_major(q.rec, ''), obligated: q.obligated });
+    }
+  }
+  return out;
+};
+SP.ufrWithMandatory = function ufrWithMandatory(ufr, Mfull) {
+  const out = {}, lines = SP.ufrMandatory(Mfull), overlap = [];
+  const src = ufr && typeof ufr === 'object' ? ufr : {};
+  for (const k of Object.keys(src)) out[k] = src[k];
+  const onTracker = new Set();
+  for (const k of Object.keys(src)) for (const l of (src[k] && Array.isArray(src[k].lines) ? src[k].lines : [])) if (SP.normKey(l.ccar) !== '') onTracker.add(l.ap + '|' + l.fy + '|' + SP.normKey(l.ccar));
+  const said = new Set(), last = new Map();
+  for (const k of Object.keys(src)) for (const l of (src[k] && Array.isArray(src[k].lines) ? src[k].lines : [])) {
+    const gk = l.ap + '|' + l.fy, n = Number(l.rank);
+    last.set(gk, Math.max((last.get(gk) || 0) + 1, isFinite(n) && l.rank !== '' ? n : 0));
+  }
+  for (const l0 of lines) {
+    const gk = l0.ap + '|' + l0.fy, at = (last.get(gk) || 0) + 1;
+    last.set(gk, at);
+    const l = Object.assign({}, l0, { rank: String(at) });
+    const k = String(l.fy);
+    const f = out[k] && Array.isArray(out[k].lines) ? out[k] : { fy: l.fy, name: '', importedAt: '', lines: [], notes: [], mandOnly: true };
+    out[k] = Object.assign({}, f, { lines: f.lines.concat([l]) });
+    const ok = l.ap + '|' + l.fy + '|' + SP.normKey(l.ccar);
+    if (onTracker.has(ok) && !said.has(ok)) { said.add(ok); overlap.push(pb_apLabel(l.ap) + ' FY' + l.fy + ': CCaR ' + l.ccar + ' is on the UFR tracker and has Mandatory plan events listed too; check it is not counted twice.'); }
+  }
+  return { ufr: out, n: lines.length, cents: lines.reduce((a, l) => a + l.total, 0), overlap };
+};
+
 // §43 MY RANKING OF THE UNFUNDED LIST. Brad, 20 Nov 2026: "I want the unfunded section to allow me to be able to adjust the
 // rank from 1-N ... My ranking overrides any imported data. For any disconnects, flag it. Imported tables should overwrite
 // all other data, based on a combination of CCaR Record and Plan Event Title."
@@ -983,14 +1043,15 @@ SP.ufrRanked = function ufrRanked(ufr, ranks) {
     order.forEach((l, i) => {
       l.rank = String(i + 1);
       l.rankNew = !at.has(l.rk);
-      l.rankDiff = !l.rankNew && num(l.rankFile) !== 1e9 && num(l.rankFile) !== i + 1;
+      l.rankDiff = !l.rankNew && !l.mand && num(l.rankFile) !== 1e9 && num(l.rankFile) !== i + 1;   // a Mandatory line's number is APEX's own, not a tracker's
     });
     const diff = order.filter(l => l.rankDiff), fresh = order.filter(l => l.rankNew), gone = mine.filter(e => !have.has(e.k));
     if (diff.length) flags.push(where + ': ' + diff.length + ' line' + (diff.length === 1 ? ' is' : 's are') + ' ranked differently from the tracker, and your rank is used: '
       + diff.map(l => name(l.title, l.ccar) + ' is ' + l.rank + ' (tracker ' + l.rankFile + ')').join('; ') + '.');
-    for (const l of fresh) flags.push(where + ': ' + name(l.title, l.ccar) + ' is on the tracker and not in your ranking; it is ' + l.rank + ', after the lines you ranked.');
+    for (const l of fresh) flags.push(where + ': ' + name(l.title, l.ccar) + (l.mand ? ' is a Mandatory plan event from the CCaR pull' : ' is on the tracker') + ' and not in your ranking; it is ' + l.rank + ', after the lines you ranked.');
     g.gone = gone.length;
-    for (const e of gone) flags.push(where + ': ' + name(e.t, e.c) + ' is in your ranking and is no longer on the tracker; it is not listed.');
+    for (const e of gone) flags.push(where + ': ' + name(e.t, e.c) + (e.m ? ' is in your ranking and is not listed: it was a Mandatory plan event, and the Mandatory switch is off or the pull no longer has it.'
+      : ' is in your ranking and is no longer on the tracker; it is not listed.'));
   }
   // a ranking kept for a group no loaded list has
   for (const gk of Object.keys(R)) {
@@ -1012,7 +1073,7 @@ SP.ufrMove = function ufrMove(ufr, ranks, gk, key, to) {
   const pos = Math.min(order.length + 1, Math.max(1, Math.round(Number(to)) || 1));
   order.splice(pos - 1, 0, key);
   const old = ranks && Array.isArray(ranks[gk]) ? ranks[gk] : [];
-  return order.map(k => ({ k, c: by.get(k).ccar || '', t: by.get(k).title || '' })).concat(old.filter(e => e && typeof e.k === 'string' && !by.has(e.k)));
+  return order.map(k => Object.assign({ k, c: by.get(k).ccar || '', t: by.get(k).title || '' }, by.get(k).mand ? { m: 1 } : {})).concat(old.filter(e => e && typeof e.k === 'string' && !by.has(e.k)));
 };
 
 // §37 THE UNFUNDED LIST ON SCREEN (Brad, 19 Nov 2026: "we need to create a UFR section under Browse. Once I upload the UFR
@@ -1058,6 +1119,8 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
     const amt = svcIdx.map(i => l.cents[i] || 0);
     let plan = null;
     if (r && !r.ufrOnly) { plan = { approved: 0, obligated: 0 }; r.svc.forEach((x, i) => { if (on(i)) { plan.approved += x.approved; plan.obligated += x.obligated; } }); }
+    // §45 a Mandatory plan event IS in the plan: what the plan carries for it is its own amount, the one listed here
+    if (l.mand) plan = { approved: amt.reduce((a, b) => a + b, 0), obligated: l.obligated || 0 };
     return Object.assign({}, l, { amt, sum: amt.reduce((a, b) => a + b, 0), plan, prime,
       execReady: /^\s*y/i.test(l.exec), sfcbApproved: /approv/i.test(l.sfcb), id: l.ap + '|' + l.fy + '|' + l.sheet + '|' + l.row });
   });
@@ -1077,11 +1140,13 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
   for (const l of lines) { const g = groups[groups.length - 1]; if (g && g.ap === l.ap && g.fy === l.fy) g.lines.push(l); else groups.push({ ap: l.ap, apLabel: pb_apLabel(l.ap), fy: l.fy, lines: [l] }); }
   const byPmo = picks.pmos.map(([key, label]) => ({ key, label, sum: sumOf(lines.filter(l => l.pmoKey === key)), color: SP.publishColor(key, false) })).filter(x => x.sum !== 0)
     .sort((a, b) => b.sum - a.sum || pb_cmp(a.label, b.label));
-  const files = Object.keys(ufr && typeof ufr === 'object' ? ufr : {}).sort().map(k => ({ fy: ufr[k].fy, name: ufr[k].name || '', at: ufr[k].importedAt || '' }));
+  const files = Object.keys(ufr && typeof ufr === 'object' ? ufr : {}).sort().map(k => ({ fy: ufr[k].fy, name: ufr[k].name || '', at: ufr[k].importedAt || '', mandOnly: ufr[k].mandOnly === true }));
+  const mand = lines.filter(l => l.mand);
   return { files, all: all.length, n: lines.length, svc: svcIdx.map(i => ({ i, label: PB_UFR_SVC[i] })), picks, groups, lines,
     total: { amt: svcIdx.map((_, k) => lines.reduce((n, l) => n + l.amt[k], 0)), sum: sumOf(lines) },
     tiles: { sum: sumOf(lines), n: lines.length, aps: new Set(lines.map(l => l.ap)).size, exec: { sum: sumOf(lines.filter(l => l.execReady)), n: lines.filter(l => l.execReady).length },
-      sfcb: { sum: sumOf(lines.filter(l => l.sfcbApproved)), n: lines.filter(l => l.sfcbApproved).length }, only: lines.filter(l => !l.plan).length },
+      sfcb: { sum: sumOf(lines.filter(l => l.sfcbApproved)), n: lines.filter(l => l.sfcbApproved).length }, only: lines.filter(l => !l.plan).length,
+      mand: { sum: sumOf(mand), n: mand.length } },
     byPmo, bySvc: svcIdx.map((i, k) => ({ label: PB_UFR_SVC[i], sum: lines.reduce((n, l) => n + l.amt[k], 0) })),
     skipped: D.ufrSkipped.reduce((n, x) => n + x.n, 0) };
 };

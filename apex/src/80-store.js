@@ -246,6 +246,7 @@ function st_check(st) {
   if (st.bae !== undefined) { const bb = st_checkBae(st.bae); if (bb) return bb; }
   if (st.viewOnly !== undefined && typeof st.viewOnly !== 'boolean') return 'its view-only mark is not yes or no';
   const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish) || st_checkUfrRank(st.ufrRank);
+  if (st.ufrMand !== undefined && typeof st.ufrMand !== 'boolean') return 'its Mandatory-as-unfunded switch is not yes or no';
   if (ub) return ub;
   return '';
 }
@@ -259,6 +260,7 @@ function st_checkUfrRank(r) {
   for (const g of Object.keys(r)) {
     if (!Array.isArray(r[g]) || !r[g].every(e => st_isObj(e) && typeof e.k === 'string' && (e.c === undefined || typeof e.c === 'string') && (e.t === undefined || typeof e.t === 'string')))
       return 'its ranking of the unfunded list for ' + g + ' is not a list of lines';
+    if (!r[g].every(e => e.m === undefined || e.m === 1)) return 'its ranking of the unfunded list for ' + g + ' has a mark that is not a mark';
   }
   return '';
 }
@@ -977,13 +979,14 @@ SP.takeSettings = function takeSettings(text, name) {
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
     if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s settings, and “' + fname + '” was not read into it.' };
   }
-  const before = JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank]);
+  const before = JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank, st.ufrMand]);
   if (next) st.settings = next;
   if (hasPub) st.publish = st_clone(inc.publish);
   if (hasUfr) { const u = st_isObj(st.ufr) ? st.ufr : {}; for (const k of Object.keys(inc.ufr)) u[k] = st_clone(inc.ufr[k]); st.ufr = u; }
   // §43 and the ranking of those lists, group by group
   if (st_isObj(inc.ufrRank) && !st_checkUfrRank(inc.ufrRank)) { const u = st_isObj(st.ufrRank) ? st.ufrRank : {}; for (const k of Object.keys(inc.ufrRank)) u[k] = st_clone(inc.ufrRank[k]); if (Object.keys(u).length) st.ufrRank = u; }
-  if (JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
+  if (inc.ufrMand === true) st.ufrMand = true;   // §45 the Mandatory switch comes across when it was on
+  if (JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank, st.ufrMand]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
   st_changed(false);
   return { ok: true, message: 'Took from “' + fname + '”: ' + brings.join('; ') + '. This page’s pulls and BAE report are as they were. Save to keep it in this page’s file.' };
 };
@@ -1018,10 +1021,19 @@ SP.setUfrRank = function setUfrRank(gk, list) {
   if (SP.isViewOnly() || typeof gk !== 'string' || gk === '') return false;
   const st = SP.state, all = st_isObj(st.ufrRank) ? st.ufrRank : {};
   const before = JSON.stringify(all[gk] === undefined ? null : all[gk]);
-  const next = Array.isArray(list) ? list.filter(e => st_isObj(e) && typeof e.k === 'string').map(e => ({ k: e.k, c: String(e.c || ''), t: String(e.t || '') })) : null;
+  const next = Array.isArray(list) ? list.filter(e => st_isObj(e) && typeof e.k === 'string').map(e => Object.assign({ k: e.k, c: String(e.c || ''), t: String(e.t || '') }, e.m === 1 ? { m: 1 } : {})) : null;
   if (JSON.stringify(next) === before) return false;
   if (next) all[gk] = next; else delete all[gk];
   if (Object.keys(all).length) st.ufrRank = all; else delete st.ufrRank;
+  st_changed(false);
+  return true;
+};
+// §45 the switch: Mandatory funding has not been received, so the Unfunded page lists the pull's Mandatory plan events as
+// unfunded. Kept in the plan, so a view-only copy made with it on shows them, and nobody there can change it.
+SP.setUfrMandatory = function setUfrMandatory(on) {
+  const st = SP.state, want = on === true;
+  if (SP.isViewOnly() || (st.ufrMand === true) === want) return false;
+  if (want) st.ufrMand = true; else delete st.ufrMand;
   st_changed(false);
   return true;
 };

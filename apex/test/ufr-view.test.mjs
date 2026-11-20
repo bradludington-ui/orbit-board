@@ -79,7 +79,7 @@ try {
     J([{ approved: 400000040, obligated: 300000040 }, { approved: 575000060, obligated: 50000060 }, null, null, { approved: 100000000, obligated: 0 }]));
   C.eq('the total row', J(v0.total), J({ amt: [K(2350), K(300), 0, K(500), 0, K(400)], sum: K(3550) }));
   C.eq('the tiles: total; exec ready (lines 1, 3 and 4); SFCB approved (line 1); not in the spend plan (lines 3 and 4)',
-    J(v0.tiles), J({ sum: K(3550), n: 5, aps: 2, exec: { sum: K(3000), n: 3 }, sfcb: { sum: K(2500), n: 1 }, only: 2 }));
+    J(v0.tiles), J({ sum: K(3550), n: 5, aps: 2, exec: { sum: K(3000), n: 3 }, sfcb: { sum: K(2500), n: 1 }, only: 2, mand: { sum: 0, n: 0 } }));
   C.eq('unfunded by PMO, largest first, each in its plan colour', J(v0.byPmo.map(x => [x.label, x.sum, x.color])), J([[AV, K(2900), '#B9D7B0'], [PP, K(650), '#E9B9C4']]));
   C.eq('unfunded by service', J(v0.bySvc.map(x => [x.label, x.sum])), J([['USAF', K(2350)], ['ANG', K(300)], ['AFRC', 0], ['STOVL', K(500)], ['USMC CV', 0], ['USN CV', K(400)]]));
   C.eq('what the pickers offer, from the list itself', J(v0.picks), J({ pmos: [['air vehicle (av)', AV], ['propulsion (pp)', PP]], aps: [['om', 'O&M'], ['sp', 'Initial Spares']], fys: [['2027', 'FY2027']],
@@ -90,7 +90,7 @@ try {
   C.eq('there is no Exec ready filter: asked for anyhow, it narrows nothing', J(ranks(V({ exec: 'Yes' }))), J(['om1', 'om2', 'om3', 'om4', 'sp1']));
   C.eq('Find: part of a title, or of a CCaR number, whatever its case', J([ranks(V({ q: 'garnet' })), ranks(V({ q: ' JSF66 ' })), ranks(V({ q: 'ts00' })), ranks(V({ q: 'zzz' }))]), J([['om4'], ['om1'], ['om2', 'om3', 'om4', 'sp1'], []]));
   C.eq('pickers together narrow together, and the tiles follow', J([ranks(V({ pmo: 'air vehicle (av)', status: 'Unfunded' })), V({ pmo: 'air vehicle (av)', status: 'Unfunded' }).tiles]),
-    J([['om2', 'om4'], { sum: K(400), n: 2, aps: 1, exec: { sum: K(100), n: 1 }, sfcb: { sum: 0, n: 0 }, only: 1 }]));
+    J([['om2', 'om4'], { sum: K(400), n: 2, aps: 1, exec: { sum: K(100), n: 1 }, sfcb: { sum: 0, n: 0 }, only: 1, mand: { sum: 0, n: 0 } }]));
   // a service switched off is left out of every amount, as on every other view
   const off = SP.defaultView(); off.svc.USAF = false;
   const vOff = SP.ufrView(M, off, ufr, null, SP.state.settings, {});
