@@ -168,11 +168,21 @@ function imp_override(settings, budget) {
 // Derived fields, recomputed on every load so a rule fix applies to old pulls. Beyond the contract's fields it carries
 // statusLabel (the words for a status: '(blank)' or the Alloc text for 'other'), month, bad (null or the reasons the
 // row counts nowhere) and src ([fileIndex, sheet, rowNo]).
+// §44 THE SRRB COLUMN. Brad, 20 Nov 2026: "I have repurposed my source file and changed column Y from Quantity to SRRB. It
+// will now say Yes or be blank or say No." The column is found by its heading (SRRB, whatever its case), wherever it
+// sits; a pull without it has no SRRB mark on any row. A row is marked when its cell reads Yes (or Y), whatever its case.
+SP.srrbOfRow = function srrbOfRow(row) {
+  const x = row && row.x;
+  if (!x) return '';
+  for (const k of Object.keys(x)) if (SP.normKey(k) === 'srrb') return String(x[k] === null || x[k] === undefined ? '' : x[k]).trim();
+  return '';
+};
+SP.srrbYes = function srrbYes(text) { return /^\s*y(es)?\s*$/i.test(String(text === null || text === undefined ? '' : text)); };
 SP.deriveRow = function deriveRow(row, settings) {
   const c = row.c;
   const st = SP.allocStatus(c[IMP_ALLOC]);
   const ov = imp_override(settings, c[IMP_BUDGET]);
-  return {
+  return imp_withSrrb(row, {
     ap: SP.apOfRow(row, row.src ? row.src[1] : ''),
     fy: c[IMP_FY], ccar: c[IMP_CCAR], title: c[IMP_TITLE], budget: c[IMP_BUDGET], pe: c[IMP_PE],
     date: c[IMP_DATE] || '', month: c[IMP_MONTH] || '', cents: c[IMP_AMT], alloc: c[IMP_ALLOC], pmo: c[IMP_PMO],
@@ -182,8 +192,13 @@ SP.deriveRow = function deriveRow(row, settings) {
     k: { pmo: SP.normKey(c[IMP_PMO]), title: SP.normKey(c[IMP_TITLE]), pe: SP.normKey(c[IMP_PE]), ccar: SP.normKey(c[IMP_CCAR]) },
     bad: row.bad && row.bad.length ? row.bad : null,
     src: row.src,
-  };
+  });
 };
+// the row's SRRB cell, kept off the derived row's own keys: the derived row as JSON is what it was before §44
+function imp_withSrrb(row, d) {
+  Object.defineProperty(d, 'srrb', { value: SP.srrbOfRow(row), enumerable: false });
+  return d;
+}
 
 // Every distinct budget name (by normKey) in the pulls: its rows, its dollars (readable rows), the service and lane the
 // rules give, any override, and what applies. Sorted by name. A name whose service is unknown is flagged.

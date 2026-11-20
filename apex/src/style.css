@@ -619,3 +619,8 @@ table.ufrt tr.band th{text-align:right}
 .urkm{font-weight:400;font-style:italic;margin-left:8px}
 .urkreset{font:inherit;font-size:12px;font-weight:400;margin-left:6px;padding:1px 8px;border:1px solid var(--sedge);border-radius:6px;background:var(--sbtn);color:var(--sink);cursor:pointer}
 .urankchk{margin:10px 0}
+
+/* §44 the SRRB list: a plan event on two PMOs names both, one under the other */
+table.srrbt .srrbp{display:block;white-space:nowrap}
+table.srrbt td.srrbdt{white-space:nowrap}
+table.srrbt .srrbother{color:var(--ochre)}

@@ -2318,3 +2318,34 @@ Event Title."*
   as the tracker has it.
 
 `test/ufr-rank.test.mjs`.
+
+## 44. The SRRB list
+
+Brad, 20 Nov 2026: *"I also need to create a new SRRB section in the Briefing section. The intention here is to provide a
+consolidated list of requirements that require an approved Service Requirements Review Board form. I have repurposed my
+source file and changed column Y from Quantity to SRRB. It will now say Yes or be blank or say No. I need anything with
+Yes to populate in a listing format. Ideally we need to see the Requirement name (Plan Event Title), PMO, Service
+funding broken out by service."* A mockup was agreed first. His answers to the questions asked with it: *"One line per
+consolidated plan event title. I only want those that show Yes to populate on this list. I want all listed whether
+obligated or not. Plan Event amounts. Leave off list for No and blank."* Tracking the form's approval and an Excel sheet:
+*"Maybe later."* Screen only to start.
+
+- **The column.** It is found by its heading, `SRRB` in any case, wherever it sits in the pull (`SP.srrbOfRow`). The pull
+  is still read by its headings, so Quantity being gone is only a column the Import report says is not in the sheet.
+  A row is marked when its cell reads **Yes** or **Y**, in any case (`SP.srrbYes`); No, blank and anything else is not.
+- **Menu:** *SRRB*, under Briefing, between Slide blocks and Publish PDFs. A view-only copy has it.
+- **A line** is one plan event title (`SP.normKey`) within an appropriation and fiscal year, over every CCaR record and
+  PMO it is on. Its amounts are its rows marked Yes, added up by service: the CCaR plan's amounts, awarded or not.
+  It shows the title (the spelling most of its rows use), its CCaR numbers, its PMO or PMOs, its award months
+  (as Dec-2026; three, then "+N more"; "No date"), a column per service, and the total. $M.
+- **Rows of the same plan event that are not marked Yes are not in its amounts**; the line says how much that is.
+- **Counted rows only**, as every view: what the Filter's services and lanes show, of First FY or later, in the years
+  shown. A service switched off has no column.
+- **Order:** appropriation, fiscal year, PMO (the model's order, by a line's first PMO), then title.
+- **Above the list:** pickers for PMO (any PMO the line is on), appropriation and FY, a Find box (plan event or CCaR
+  number), Clear filters; four tiles (the total, the count, the largest PMO, the largest service); and two charts, by
+  PMO (each PMO's own marked rows) and by service. The count, tiles, charts and total follow the pickers.
+- **A line pressed** opens Requirements searched for that plan event. Nothing on the page changes the plan.
+- A pull with no SRRB column: the page says so. A column with nothing marked Yes: the page says that.
+
+`test/srrb.test.mjs`.

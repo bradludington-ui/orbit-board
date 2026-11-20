@@ -867,6 +867,78 @@ SP.readDescriptions = function readDescriptions(wb) {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// §44 THE SRRB LIST. Brad, 20 Nov 2026: "a consolidated list of requirements that require an approved Service Requirements
+// Review Board form ... I need anything with Yes to populate in a listing format ... the Requirement name (Plan Event
+// Title), PMO, Service funding broken out by service." And of the questions asked before it was built: "One line per
+// consolidated plan event title. I only want those that show Yes to populate on this list. I want all listed whether
+// obligated or not. Plan Event amounts. Leave off list for No and blank."
+//
+//   M      the model as the switches show it (SP.buildModel with this browser's view): a service or lane switched off is
+//          left out here as on every other view
+//   pulls  the pulls the model was built from, to say whether any of them has an SRRB column at all
+//   view   this browser's switches: a service switched off has no column
+//   F      { pmo, ap, fy, q }   each null/'' for all
+//   -> { has (a pull has the column), all (lines before the pickers), n, svc: [{i, label}], picks: {pmos, aps, fys},
+//        groups: [{ap, apLabel, fy, lines}], lines: [{id, ap, fy, title, ccars: [text], pmos: [{key, label}], months: [ym],
+//        nodate, amt: [cents by service column], sum, other (cents of the plan event's rows not marked Yes), rows}],
+//        total: {amt, sum}, byPmo: [{key, label, sum, color}], bySvc: [{label, sum}] }
+// A line is one plan event title within an appropriation and fiscal year, over every CCaR record and PMO it is on: its
+// rows marked Yes, added up by service. Rows of the same plan event not marked Yes are not in its amounts.
+SP.srrbView = function srrbView(M, pulls, view, F) {
+  const f = F || {};
+  const has = Object.keys(pulls && typeof pulls === 'object' ? pulls : {}).some(k => pulls[k] && Array.isArray(pulls[k].headers) && pulls[k].headers.some(h => SP.normKey(h) === 'srrb'));
+  const pmoAt = new Map(), pmoLabel = new Map();
+  (M.pmos || []).forEach((p, i) => { pmoAt.set(p.key, i); pmoLabel.set(p.key, p.label); });
+  const svcAt = name => { const i = SP.SERVICES.indexOf(name); return i < 0 ? PB_NSVC : i; };
+  const all = [];
+  for (const b of M.blocks || []) {
+    const by = new Map(), other = new Map();
+    for (const r of b.rows || []) {
+      const d = r.d, k = d.k.pe;
+      if (!SP.srrbYes(d.srrb)) { other.set(k, (other.get(k) || 0) + r.cents); continue; }
+      let q = by.get(k);
+      if (!q) by.set(k, (q = { sp: new Map(), ccars: new Map(), pmos: new Map(), months: new Set(), nodate: false, cents: pb_zeros(), byPmo: new Map(), rows: 0 }));
+      pb_tally(q.sp, String(d.pe === null || d.pe === undefined ? '' : d.pe).trim());
+      const cc = String(d.ccar === null || d.ccar === undefined ? '' : d.ccar).trim();
+      if (cc && !q.ccars.has(d.k.ccar)) q.ccars.set(d.k.ccar, cc);
+      if (!q.pmos.has(d.k.pmo)) q.pmos.set(d.k.pmo, pmoLabel.get(d.k.pmo) || String(d.pmo || '(no PMO)').trim());
+      if (typeof d.date === 'string' && /^\d{4}-\d{2}/.test(d.date)) q.months.add(d.date.slice(0, 7)); else q.nodate = true;
+      q.cents[svcAt(d.svc)] += r.cents; q.rows++;
+      q.byPmo.set(d.k.pmo, (q.byPmo.get(d.k.pmo) || 0) + r.cents);
+    }
+    for (const [k, q] of by) {
+      const pmos = [...q.pmos].map(([key, label]) => ({ key, label })).sort((x, y) => (pmoAt.has(x.key) ? pmoAt.get(x.key) : 1e9) - (pmoAt.has(y.key) ? pmoAt.get(y.key) : 1e9) || pb_cmp(x.label, y.label));
+      all.push({ id: b.ap + '|' + b.fy + '|' + k, ap: b.ap, apLabel: b.apLabel, fy: b.fy, key: k, title: pb_major(q.sp, '(no plan event title)'), ccars: [...q.ccars.values()], pmos,
+        months: [...q.months].sort(), nodate: q.nodate, cents: q.cents, byPmo: q.byPmo, other: other.get(k) || 0, rows: q.rows });
+    }
+  }
+  // the service columns: the six, in their order, and "No service" only when a marked row has none
+  const svcIdx = [];
+  for (let i = 0; i <= PB_NSVC; i++) if (i < PB_NSVC ? !(view && view.svc && view.svc[SP.SERVICES[i]] === false) : all.some(l => l.cents[PB_NSVC])) svcIdx.push(i);
+  for (const l of all) { l.amt = svcIdx.map(i => l.cents[i] || 0); l.sum = l.cents.reduce((a, c) => a + c, 0); }
+  const apAt = id => SP.APS.findIndex(a => a.id === id);
+  const first = l => (l.pmos.length && pmoAt.has(l.pmos[0].key) ? pmoAt.get(l.pmos[0].key) : 1e9);
+  all.sort((x, y) => apAt(x.ap) - apAt(y.ap) || x.fy - y.fy || first(x) - first(y) || pb_cmp(SP.normKey(x.title), SP.normKey(y.title)));
+  const uniq = (list, key, label) => { const m = new Map(); for (const x of list) { const k = key(x); if (!m.has(k)) m.set(k, label(x)); } return [...m]; };
+  const picks = {
+    pmos: uniq(all.flatMap(l => l.pmos), p => p.key, p => p.label).sort((a, b) => (pmoAt.has(a[0]) ? pmoAt.get(a[0]) : 1e9) - (pmoAt.has(b[0]) ? pmoAt.get(b[0]) : 1e9) || pb_cmp(a[1], b[1])),
+    aps: SP.APS.filter(a => all.some(l => l.ap === a.id)).map(a => [a.id, a.label]),
+    fys: uniq(all, l => String(l.fy), l => 'FY' + l.fy).sort((a, b) => Number(a[0]) - Number(b[0])),
+  };
+  const q = SP.normKey(f.q);
+  const lines = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmos.some(p => p.key === f.pmo)) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
+    && (q === '' || SP.normKey(l.title).includes(q) || l.ccars.some(c => SP.normKey(c).includes(q))));
+  const groups = [];
+  for (const l of lines) { const g = groups[groups.length - 1]; if (g && g.ap === l.ap && g.fy === l.fy) g.lines.push(l); else groups.push({ ap: l.ap, apLabel: l.apLabel, fy: l.fy, lines: [l] }); }
+  const sumOf = ls => ls.reduce((n, l) => n + l.sum, 0);
+  // a plan event on two PMOs is in each one's bar by that PMO's own rows; the list names both on its one line
+  const byPmo = picks.pmos.map(([key, label]) => ({ key, label, sum: lines.reduce((n, l) => n + (l.byPmo.get(key) || 0), 0), color: SP.publishColor(key, false) })).filter(x => x.sum !== 0)
+    .sort((a, b) => b.sum - a.sum || pb_cmp(a.label, b.label));
+  return { has, all: all.length, n: lines.length, svc: svcIdx.map(i => ({ i, label: PB_UFR_SVC[i] })), picks, groups, lines,
+    total: { amt: svcIdx.map((_, k) => lines.reduce((n, l) => n + l.amt[k], 0)), sum: sumOf(lines) },
+    byPmo, bySvc: svcIdx.map((i, k) => ({ label: PB_UFR_SVC[i], sum: lines.reduce((n, l) => n + l.amt[k], 0) })) };
+};
+
 // §43 MY RANKING OF THE UNFUNDED LIST. Brad, 20 Nov 2026: "I want the unfunded section to allow me to be able to adjust the
 // rank from 1-N ... My ranking overrides any imported data. For any disconnects, flag it. Imported tables should overwrite
 // all other data, based on a combination of CCaR Record and Plan Event Title."
