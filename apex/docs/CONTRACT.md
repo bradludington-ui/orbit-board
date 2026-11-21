@@ -2420,3 +2420,43 @@ possibility for moving a grouping around. Therefore plan events cannot be rearra
   to a phone (each browser keeps its own).
 
 `test/your-order.test.mjs`.
+
+## §47 The assessment of 21 Nov 2026: what was built
+
+An assessment of APEX for its 3,000+ readers (ten reviewers by lens, 85 issues, each checked by two skeptics, ranked)
+was given to Brad on 21 Nov 2026. His answer: *"Proceed with all recommended updates."* On the questions put to him he
+said to leave as they are: how a CUI file is distributed and named, the people's names the copy carries, readers seeing
+the unfunded ranks, and a hand reconciliation. The small version each skeptic and the ranker recommended was built; the
+items that would reverse an earlier decision were held for him (the keeper's To check notes and Descriptions in a copy,
+a reader's "Download this list", First FY in a copy, menu renames, the publish file name, Back staying inside APEX, PDF
+tagging). Each item's detail, the sections it touches and the proof that its check fails without it are in
+`docs/notes-group-a.md`, `notes-group-b.md` and `notes-group-c.md`; tests `review-a`, `review-b`, `review-c`.
+
+**Finding things (group A).** My PMO and By PMO start on the one office remembered in this browser and link to each other
+(other pickers still open on All, §21.2, §26, §37). Requirements gains a *Projected award* picker and an *Order* picker
+(this screen only); matches on a title or CCaR number are listed first; Enter opens the first; up to 500 are listed (was
+200). A requirement's detail lists plan events before budgets (more than three budgets fold), and shows Sub-PMO, PID and
+each plan event's description, which the search also reads; people's names are never shown or searched. My PMO gains a
+*Coming up* picker and total. Unfunded and SRRB jumps open the line's own appropriation and year; a line with no plan event
+has no jump. On a narrow screen a pressed requirement scrolls into view with the keyboard on it. A view-only copy has
+*Find a requirement* and *My PMO* buttons above the Summary. Unfunded group headings say how many lines and whose ranks.
+
+**Phone, print, Section 508 (group B).** No page scrolls sideways at 390, 360 or 320 px; the requirement column stays put
+when a wide list is scrolled; an opened Unfunded line keeps to the screen. Keyboard focus shows on the menu; picker and
+box edges reach 3:1. Print is landscape with colours, and its top line names what was picked on the page. Long lists keep
+their headings in view (641 px and wider). A *Skip to the page* link; the window title is `CUI - <view> - APEX FY<year>`,
+and in a view-only copy adds the data month and the publish day (one rule, with group C's I10 and I58). A view-only copy
+drops the plain "Opened the plan saved…" notice (warnings still show; First FY stays). Awards by month has a figures table
+under it, and late segments are hatched. PDFs carry their language and show their title. A view-only copy's Help is the
+same guide filtered and reordered for readers, with a contents list.
+
+**Figures and words (group C).** The Charts scoreboard share now uses the same requirements as its Plan and Awarded
+columns (a plan below zero counts; a year with no OSD goal stays out, §26). With the Filter's Mandatory lane off, §45's
+Mandatory lines leave Unfunded (tracker lines do not). The Mandatory card says it is the whole pull. A PDF's top line is
+*Data uploaded <oldest pull> | Data through … | Printed …*. With a BAE report loaded, *Approved (CCaR plan)* is said where
+the CCaR plan is meant, and the Unobligated list says how its total differs from the table's. Each appropriation page's
+Unobligated list is folded closed under its heading (count and total shown; every item kept; printing opens them). A
+*Show everything* button appears while a Filter switch is off, and opening says which. If scripts cannot run, the page says
+after a few seconds to download the file and open it in Edge, Chrome or Safari. A view-only copy says *Published <day>*.
+The import question (§11) also asks when a year's Obligated falls by more than $5M and 5%, naming both files. Menu, Filter
+and Manage data redraw only the bars.
