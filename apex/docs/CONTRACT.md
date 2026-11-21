@@ -2383,3 +2383,40 @@ with discretionary funding totals"*); a record on the tracker too is listed and 
   the switch when it was on.
 
 `test/ufr-mandatory.test.mjs`.
+
+## §46 Your order of PMOs and titles; Full screen
+
+Brad, 21 Nov 2026: *"I would like to have the published view always open in full screen"* and *"can we have it to where
+the user can move pmos around at the appropriation levels or at the most be able to move c-car record groups around
+within the spend plan table"*. His answers: *"Let's add a button for full screen at the top. Each user can reorder as
+they see fit. Each user should have full customization of the order. The [CCaR] title level should be the lowest
+possibility for moving a grouping around. Therefore plan events cannot be rearranged only at the record title level."*
+
+- **Full screen** is a button in the header, before Help, in the keeper's file and in a view-only copy. It asks the
+  browser for its own full screen; pressed again (or Esc) it leaves. A page cannot enter full screen by itself on
+  opening: the browser allows it only on a click. Where the browser has no full screen (an iPhone's Safari) the button
+  is hidden.
+- **Your order, by dragging only.** Later the same day: *"I want them to be able to click and drag only. I don't want
+  arrows and numbers for the movement of records in the spend plan."* On each spend plan table (an appropriation page's
+  block, and a block on By PMO) every PMO and every title (the CCaR record title, level 2) that has another beside it
+  is dragged by its label (a grip ⠇ is drawn before it; the row is draggable only while its label is held, so figures
+  can still be selected and copied). Dropped on a sibling's row (the same level, under the same PMO) it goes before or
+  after that row by which half the pointer is in; a gold line shows where. Dropped anywhere else it does not move. Plan
+  events and CCaRs do not move; they stay largest first. Alt with the up or down arrow on the label moves it one place,
+  for the keyboard (Section 508), with no control on screen.
+- **Whose.** The order is the person's own, kept in this browser (localStorage `sfcbsp.order`), never in the file, the
+  plan or a view-only copy anyone else opens; nobody else sees it. It changes no figure. The workbook, the PDFs and the
+  pictures keep the standard order.
+- **Where it applies.** A PMO's order is per block (appropriation and fiscal year). A title's order is per block and
+  PMO, so the titles stand in the same order on the appropriation page and on that PMO's By PMO page.
+- **New lines.** A PMO or title not yet placed (new in a later pull, or never moved) follows the placed ones in the
+  standard order. One a switch hides keeps its place.
+- *In your order* and a *Standard order* button show beside a block that has been moved; Standard order clears that
+  block's PMO and title order.
+- **Printing.** Brad: *"The drop-down arrow and three dots should not print."* The browser's Print shows neither the
+  ▸/▾ arrows nor the grip, nor *In your order* and *Standard order*; the rows print in the person's order. Copy picture,
+  Save picture and the PDFs are drawn from the figures and never carried either.
+- **A phone** may not drag table rows: iPhone and Android browsers differ. The order set on a computer is not carried
+  to a phone (each browser keeps its own).
+
+`test/your-order.test.mjs`.

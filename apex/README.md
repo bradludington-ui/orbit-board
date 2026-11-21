@@ -337,6 +337,17 @@ Every block has the same columns:
 
 Months up to **Data through** are actual. They have a light grey fill. Later months are the plan.
 
+## Your own order, and full screen
+
+On an appropriation page or By PMO, drag a PMO, or a record title under a PMO, by its name (look for the ⠇ grip) and
+drop it where you want it among the others at that level; a gold line shows where it will land. Plan events stay as they
+are. (From the keyboard: Alt with the up or down arrow on the name.) The order is yours alone: it is kept in your
+browser, nobody else sees it, and no figure, workbook, PDF or picture changes. **Standard order** puts a table back.
+Anything new in a later pull goes after what you placed.
+
+**Full screen** at the top fills the screen with APEX; press it again or Esc to leave. (A page cannot open full screen by
+itself: the browser needs that click. An iPhone has no full screen for pages, so the button is not shown there.)
+
 ## The switches
 
 The filter bar has a box for each service and one for each lane (Discretionary and Mandatory).
