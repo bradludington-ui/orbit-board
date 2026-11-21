@@ -11979,7 +11979,8 @@ await (async () => {
   const add = (g, t, v) => ev(`(function(){ var n=reqCreate(${J(g)}, {title:${J(t)}, event:'(added at drill)', ask:[${Number(v)}, 0, 0]}); save(); render(); return n; })()`);
   // every field the gate asks for (no BAE list here, so no budget is): the picker brings it in at once (v2.07)
   const complete = (id) => ev(`(function(id){ setDesc(id,'d'); setCons(id,'c'); setObCat(id, OB_CATS[0]); S.ptype[id]='PRIME'; setDest(id,'to','lm'); save(); return 'ok'; })(${J(id)})`);
-  ev(`window.__cf=[]; window.confirm=function(m){ window.__cf.push(String(m)); return false; }; window.alert=function(m){ window.__cf.push('ALERT '+String(m)); };
+  // v2.17 (149.4): told no to roll forward, then yes to start it empty -- a blank year; that second question is not counted
+  ev(`window.__cf=[]; window.confirm=function(m){ if(/^Start FY\\d+ EMPTY\\?/.test(String(m))) return true; window.__cf.push(String(m)); return false; }; window.alert=function(m){ window.__cf.push('ALERT '+String(m)); };
       'ok'`);
   const n1 = add('PSM', 'Sustaining engineering', 400), n2 = add('PSM', 'Program office support', 10);
   complete('A'); complete(n1);
@@ -12008,7 +12009,8 @@ await (async () => {
   ev(`window.__cf=[]; restoreReq('A'); 'ok'`);
   chk(name, '2 · restore', 'Restore A asks, naming the linked requirement, and (told no) leaves it removed',
     J([/already carries .* as NEW-2/.test(ev(`window.__cf.join('|')`)), ev(`String(S.removed.indexOf('A')>=0 && S.order.indexOf('A')<0)`)]), J([true, 'true']));
-  ev(`window.__cf=[]; restoreAll(); 'ok'`);
+  // v2.17 (149.3): Restore all asks first (answered yes here), then names A as before (told no)
+  ev(`window.__cf=[]; var __c0=window.confirm; window.confirm=function(m){ if(/^Put all \\d+ removed/.test(String(m))) return true; return __c0(m); }; restoreAll(); window.confirm=__c0; 'ok'`);
   chk(name, '2 · restore all', 'Restore all names A and, told no, restores B and C and leaves A removed',
     J([/A — as NEW-2/.test(ev(`window.__cf.join('|')`)), JSON.parse(ev(`JSON.stringify(S.removed)`)), ['B', 'C'].every(x => JSON.parse(ev('JSON.stringify(S.order)')).indexOf(x) >= 0)]),
     J([true, ['A'], true]));
@@ -12513,7 +12515,8 @@ await (async () => {
   const scF = { services: MINE, items: [it('A', 'PSM', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] };
   const F = boot(); seed(F.ev, scF); asBooted(F.ev, scF);
   F.ev(AR_FILL);
-  F.ev(`(function(){ window.alert=function(){}; window.confirm=function(){ return false; };
+  // v2.17 (149.4): told no to roll forward, then yes to start it empty -- a blank year
+  F.ev(`(function(){ window.alert=function(){}; window.confirm=function(m){ return /^Start FY\\d+ EMPTY\\?/.test(String(m)); };
       BUDDB={ts:1700000000071, files:[], rows:${J(Object.values(BUD))}.map(function(n){ return {n:n}; })}; _budRegCache=null;
       var mk=function(ev, ask, o){ return reqCreate('PSM', {title:'', event:ev, ask:ask}, null, Object.assign({ptype:'OGC', obCat:OB_CATS[0], to:'lm',
         desc:'Described.', cons:'Lost if unfunded.', wbs:'1.2.3', bud:{USAF:${J(BUD.USAF)}}}, o||{})); };
