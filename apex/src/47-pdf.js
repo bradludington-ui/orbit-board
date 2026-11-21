@@ -191,8 +191,10 @@ SP.pdfBytes = function pdfBytes(doc) {
       + xo + ' >> /Contents ' + content + ' 0 R >>'));
   }
   // what a reader is told about printing: take the paper the page is (so a landscape page is printed landscape, never
-  // turned onto a portrait sheet and shrunk), and when printing both sides flip on the short edge, as landscape reads
-  objs[0] = '<< /Type /Catalog /Pages 2 0 R /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge >> >>';
+  // turned onto a portrait sheet and shrunk), and when printing both sides flip on the short edge, as landscape reads.
+  // And what a screen reader is told (Section 508 review I62): the document is in English, and a viewer's window shows
+  // its title rather than its file name. The pages are not tagged: no /MarkInfo is written, since that would claim they are.
+  objs[0] = '<< /Type /Catalog /Pages 2 0 R /Lang (en-US) /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge /DisplayDocTitle true >> >>';
   objs[1] = '<< /Type /Pages /Count ' + kids.length + ' /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] >>';
   // the file: every string is ASCII by construction (pdf_str), so a character is a byte; picture bytes go in as they are
   const parts = [];

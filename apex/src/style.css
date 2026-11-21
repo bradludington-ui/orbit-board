@@ -29,6 +29,10 @@ body{margin:0;background:var(--sbg);color:#111;font:13px/1.35 Calibri,Carlito,"S
 .cui-top{top:0;border-bottom-width:1px}
 .cui-bottom{bottom:0;border-top-width:1px}
 .boot-note{padding:16px;color:var(--sink)}
+/* skip to the page (review I64): off screen until it has the keyboard, then over the top's corner */
+.skip{position:absolute;left:8px;top:-60px;z-index:60;padding:8px 14px;background:var(--acc);color:var(--onAcc);font-weight:700;border-radius:0 0 6px 6px;text-decoration:underline}
+.skip:focus,.skip:focus-visible{top:var(--cuiH);outline:3px solid var(--onAcc);outline-offset:-4px}
+@media print{.skip{display:none}}
 
 /* the top bar: sticky under the CUI line, so Save, the save state and the views never scroll away */
 header.top{position:sticky;top:var(--cuiH);z-index:30;background:var(--sbg2);color:var(--sink);border-bottom:1px solid var(--sline);box-shadow:0 1px 3px rgba(24,32,41,.25)}
@@ -117,13 +121,20 @@ main button,main select,main input{font:inherit}
 main button{padding:3px 10px;border:1px solid var(--navy);border-radius:3px;background:#fff;color:var(--navy);cursor:pointer}
 main button:hover{background:var(--gold);color:#000}
 main button:disabled{border-color:#aaa;color:#777;background:#f3f3f3;cursor:default}
-main select{padding:2px 4px;border:1px solid var(--grid);border-radius:2px;background:#fff;max-width:100%}
-main input[type=text]{padding:2px 4px;border:1px solid var(--grid);border-radius:2px}
+/* a picker's and a text box's edge is the palette's control edge (--sedge, §25), not the table grid's: on the pale sheet the
+   grid's #8b95a4 was 2.26:1 and 2.67:1, under WCAG 1.4.11's 3:1 (review I67). --grid itself stays, for the tables' lines. */
+main select{padding:2px 4px;border:1px solid var(--sedge);border-radius:2px;background:#fff;max-width:100%}
+main input[type=text]{padding:2px 4px;border:1px solid var(--sedge);border-radius:2px}
 main label{display:inline-flex;align-items:center;gap:6px}
 .count{margin:4px 0;font-weight:700}
 
-/* the keyboard's place is always visible, on the navy bars and on white alike (orange clears 3:1 on both) */
+/* the keyboard's place is always visible. The ring is the navy (--focus) on the light frame and sheets. It was orange until
+   the Harbor colours of §25, which made it the menu's own navy: on the menu and on the phone's Menu button it could not be
+   seen at all, 1:1 (review I61). There it is drawn in the menu's light ink (10.3:1 on the navy); on the Menu button, which
+   fills the width with the light page around it, inside its edge. */
 :focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+nav.views :focus-visible{outline-color:var(--onAcc)}
+.navbtn:focus-visible{outline:3px solid var(--onAcc);outline-offset:-4px}
 /* the month box's calendar button is a Tab stop inside the box itself, where the box no longer matches :focus */
 input[type=month]:focus-within{outline:3px solid var(--focus);outline-offset:1px}
 .tg:focus-visible{outline-offset:0}
@@ -137,6 +148,14 @@ input[type=month]:focus-within{outline:3px solid var(--focus);outline-offset:1px
 .tw.treew.fit table.tree thead th{position:sticky;top:var(--topH, 140px);z-index:5}
 .tw.treew.box{max-height:calc(100vh - var(--topH, 140px) - var(--cuiH) - 12px);overflow:auto;scroll-padding-top:3em}
 .tw.treew.box table.tree thead th{position:sticky;top:0;z-index:5}
+/* the long lists (Requirements, My PMO, Unfunded, SRRB) keep their column headings on screen too, where the table fits its
+   box, as the Calendar's do (§25; review I35): ui_layout marks such a box .fit, and it then scrolls with the page. A list
+   wider than its box (a narrow window) keeps its sideways box and its headings at the top of the table, as before; a phone
+   is as it was (§38). */
+@media (min-width:641px){
+  .fsheet.tw.fit{overflow:visible}
+  .fsheet.tw.fit table.findt thead th{position:sticky;top:var(--topH, 140px);z-index:5}
+}
 table.grid{border-collapse:collapse;font-size:12px;background:var(--cell)}
 .grid th,.grid td{border:1px solid var(--grid);padding:2px 6px;vertical-align:top}
 .grid thead tr.hd th,.grid tr.hd th{background:var(--gold);border:1px solid var(--box);border-top-width:2px;border-bottom-width:2px;font-weight:700;text-align:center;white-space:nowrap}
@@ -236,6 +255,12 @@ input.amt{width:11em;text-align:right}
 .report .rl{white-space:pre-wrap;margin:1px 0}
 .refused{margin:6px 0;padding:6px 10px;background:#fde9e7;border-left:5px solid var(--red)}
 .help{max-width:80em}
+/* the list of sections in a view-only copy's Help (review I08) */
+.helptoc ol{margin:2px 0 10px;padding-left:22px;columns:2 18em}
+.helptoc li{margin:2px 0}
+.helptoc a{color:var(--slink)}
+.help h3.sub:focus{outline:none}
+.help h3.sub:focus-visible{outline:3px solid var(--focus)}
 .help li{margin:3px 0}
 .nodata{max-width:60em}
 section.chg{margin-bottom:18px}
@@ -439,6 +464,13 @@ main.ov .calt .tg:hover,main.ov .calt .tg:focus-visible{color:var(--slink);text-
 .chsvg .chv{font-weight:600}
 .chb-awarded{fill:#00B050;background:#00B050}.chb-late{fill:var(--red);background:var(--red)}
 .chb-projected{fill:var(--strip);stroke:var(--sblue);stroke-width:1;stroke-dasharray:3 2;background:var(--strip);outline:1px dashed var(--sblue);outline-offset:-1px}
+/* a late part is hatched, on the bar and on its key, so it is not told from awarded by colour alone (review I26) */
+.chkey i.chb-late{background:repeating-linear-gradient(45deg,var(--red) 0 3px,#eba3a3 3px 5px)}
+.cht.chmonths{margin-top:8px;width:auto;min-width:min(100%,40em)}
+.chmonths caption{text-align:left;font-weight:700;color:var(--sink);padding:0 0 3px;font-size:12px}
+.chmonths tbody tr.cl th,.chmonths tbody tr.cl td{background:var(--sdeep)}
+.chmonths td.chlate{color:var(--wine);font-weight:700}
+.chmonths tfoot th,.chmonths tfoot td{font-weight:700;border-top:2px solid var(--sedge);border-bottom:0}
 .chnow{stroke:var(--steal);stroke-width:2}.chsvg .chnowt{fill:var(--slink);font-weight:700}
 .chkey{margin:6px 0 0;font-size:12px;color:var(--smut);display:flex;flex-wrap:wrap;gap:4px 16px}
 .chk i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px}
@@ -520,7 +552,17 @@ main.ov .cht .tg:hover,main.ov .cht .tg:focus-visible{background:none;color:var(
   .printhead{display:block;margin:0 16px 4px;font-size:11px;color:#000}
   .tw.treew.box{max-height:none;overflow:visible}
   table.tree thead th{position:static}
+  /* printed, a sheet keeps the screen's colours, as the Overview's keys and status fills do (§18.2; review I34): with a
+     browser's default of no backgrounds the Summary's title bar and TOTAL row printed pale grey on white and its status
+     fills were gone, so On track, Within 10 and Behind were words alone */
+  h2.title,.bar,.nabar,.grid tr.hd th,.grid thead tr.hd th,.grid tr.total th,.grid tr.total td,.grid td.cl,.grid td.st,.st,.stc,.when,.cchip,
+  .blk tr.strip td,table.ufrt tr.ugrp th,table.ufrt tr.umand th,table.ufrt tr.umand td,.mtag,.usw,.ubar,.ubar > span,.calt thead th,.calt tr.calg th,
+  .chsvg,.chtrack,.chfill,.chlbar,.chheat td,.chmonths tr.cl th,.chmonths tr.cl td,.k{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .fsheet.tw.fit table.findt thead th{position:static}
 }
+/* and on paper the page is landscape, as Publish PDFs always is (§33.4): portrait cut the Summary's Status column and the
+   Calendar's last months off the sheet (review I34). Chromium's print window then offers no portrait. */
+@page{size:letter landscape}
 /* §33 Publish spend plan */
 .pubbar .grow{flex:1 1 auto}
 .pubbar label.chk,.acts label.chk{display:inline-flex;align-items:center;gap:4px}
@@ -608,6 +650,30 @@ table.ufrt tr.band th{text-align:right}
   /* a row with no fill of its own shows the table's; pinned, its first cell needs that fill itself or the figures
      scrolling under it show through */
   table.tree tr[class*="lv"] > th.lab,table.tree tr.band > th.lab{background:var(--cell)}
+  /* a picker's label wraps above its picker and the picker is no wider than its card: My PMO's "Choose your PMO" and a long
+     office name scrolled the page sideways by 28 px at 390 and 58 px at 360, and Unfunded and SRRB at 320 (review I13).
+     Written for #uiMain, so it reaches the light-sheet pages (Unfunded, SRRB) as well as main.ov ones. */
+  #uiMain .findbar label{white-space:normal;flex-wrap:wrap;max-width:100%;min-width:0}
+  #uiMain .findbar select{min-width:0;max-width:100%}
+  /* the lists keep their first column, the requirement, while scrolled sideways, as the tree and the Calendar do (review
+     I28): Requirements, My PMO, SRRB and Unfunded (whose Rank scrolls away under it). Filled, as the tree's are. A pinned
+     cell's collapsed border is not its own to paint, and a shadow outside it is painted under the cells scrolling past, so
+     each sits a pixel or two over its neighbour and draws its own edge inside itself. */
+  table.findt th.lab{position:sticky;left:-1px;z-index:3;min-width:9em;max-width:10em;white-space:normal;overflow-wrap:anywhere;box-shadow:inset -1px 0 0 var(--sedge)}
+  table.findt thead th.lab{z-index:6}
+  table.findt tbody tr:not(.cur):not(.umand) > th.lab{background:var(--cell)}
+  /* the Summary keeps its appropriation and FY while scrolled sideways (review I28): the appropriation's cell is a fixed
+     88 px, and FY is pinned just after it, whether it is a row's first cell or follows the appropriation's */
+  table.grid.top:has(th.apg) th.apg,table.grid.top:has(th.apg) thead th:first-child{position:sticky;left:-2px;z-index:3;width:88px;min-width:88px;max-width:88px;white-space:normal}
+  table.grid.top:has(th.apg) th.apg + td,table.grid.top:has(th.apg) tbody tr:not(.total):not(:has(> th.apg)) > td:first-child,
+  table.grid.top:has(th.apg) thead th:nth-child(2){position:sticky;left:84px;z-index:3;box-shadow:inset -1px 0 0 var(--sedge)}
+  table.grid.top:has(th.apg) th.apg,table.grid.top:has(th.apg) th.apg + td,table.grid.top:has(th.apg) tbody tr:not(.total):not(:has(> th.apg)) > td:first-child{background:var(--cell)}
+  table.grid.top:has(th.apg) thead th:first-child,table.grid.top:has(th.apg) thead th:nth-child(2){z-index:6}
+  table.grid.top:has(th.apg) tr.total th{position:sticky;left:-2px;z-index:3;box-shadow:inset -1px 0 0 var(--sedge)}
+  /* an opened unfunded line's words are held to the list's visible width, so the sentence wraps on screen instead of
+     running 972 px across a 358 px box (review I31) */
+  table.ufrt tr.udetail > td:first-child:empty{display:none}
+  table.ufrt tr.udetail .udet{position:sticky;left:10px;max-width:calc(100vw - 60px);white-space:normal}
 }
 
 /* §43 the keeper's rank of an unfunded line: a number box and up/down, and under it what the tracker says where it differs */

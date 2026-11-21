@@ -2043,8 +2043,11 @@ SP.chartsOf = function chartsOf(M, reqs) {
   for (const l of late) { const n = ymN(l.ym); l.age = n === null || asOfN === null ? 0 : Math.max(0, asOfN - n); }
   late.sort((a, b) => b.cents - a.cents || eng_cmp(a.req.title, b.req.title));
   const pmos = [...pm.values()].sort((a, b) => eng_cmp(a.label, b.label));
+  // the awards by month added across the months, for the figures table under the chart (review I26)
+  const sum = { awarded: 0, late: 0, projected: 0, total: 0 };
+  for (const c of cols) for (const k of ['awarded', 'late', 'projected', 'total']) sum[k] += c[k];
   return {
-    n: R.length, cols, next3,
+    n: R.length, cols, next3, sum,
     pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 ? p.gSum / p.gPlan : null;
       return { key: p.key, label: p.label, n: p.n, planned: p.planned, awarded: p.awarded, pct, goal, status: SP.statusOf(pct, goal) }; }),
     late, lateCents: late.reduce((s, l) => s + l.cents, 0),

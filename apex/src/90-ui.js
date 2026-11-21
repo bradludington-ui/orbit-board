@@ -639,7 +639,7 @@ function ui_findRes(M) {
 }
 function ui_findRedraw() {
   const el = document.getElementById('uiFindRes'), M = ui_hasData() ? ui_model() : null;
-  if (el && M) { el.innerHTML = ui_findRes(M); ui_layout(); }
+  if (el && M) { el.innerHTML = ui_findRes(M); ui_layout(); ui_printPicks(); }
 }
 function ui_vFind(M) {
   const all = ui_reqs(M), F = ui.find;
@@ -830,6 +830,8 @@ function ui_chBars(C, M) {
       const hh = c[k] / top * ph; at -= hh;
       g += '<rect class="chb chb-' + k + '" data-k="' + k + '" data-col="' + c.index + '" data-c="' + c[k] + '" x="' + x.toFixed(1) + '" y="' + at.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hh.toFixed(1) + '"><title>'
         + ui_e(c.label + ': ' + word + ' ' + SP.fmtMText(c[k]) + ' ($M)') + '</title></rect>';
+      // a late part is hatched over its red, so it is told from awarded by more than its colour (§26; review I26)
+      if (k === 'late') g += '<rect class="chhatch" aria-hidden="true" x="' + x.toFixed(1) + '" y="' + at.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hh.toFixed(1) + '" fill="url(#uiChHatch)"/>';
     }
     if (c.total !== 0) g += '<text class="chv" x="' + (x + bw / 2).toFixed(1) + '" y="' + (at - 4).toFixed(1) + '" text-anchor="middle">' + ui_e(SP.fmtMText(c.total)) + '</text>';
     g += '<text class="ax' + (c.index === M.asOfIndex ? ' now' : '') + '" x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + ui_e(c.label) + '</text>';
@@ -838,7 +840,8 @@ function ui_chBars(C, M) {
   const lastClosed = C.cols.reduce((a, c, i) => (c.closed ? i : a), -1);
   if (lastClosed >= 0 && lastClosed < n - 1) { const x = (L + (lastClosed + 1) * step).toFixed(1);
     g += '<line class="chnow" x1="' + x + '" x2="' + x + '" y1="' + (T - 14) + '" y2="' + (T + ph) + '"/><text class="chnowt" x="' + (Number(x) + 5) + '" y="' + (T - 4) + '">Data through ' + ui_e(M.asOfLabel) + '</text>'; }
-  return '<svg class="chsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Awards by month, $M: awarded, not awarded and past its date, and projected, for each column of the Award calendar">' + g + '</svg>';
+  return '<svg class="chsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Awards by month, $M: awarded, not awarded and past its date, and projected, for each column of the Award calendar. The figures are in the table under the chart.">'
+    + '<defs><pattern id="uiChHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="6" fill="#fff" fill-opacity="0.7"/></pattern></defs>' + g + '</svg>';
 }
 // one block's burn-up: the Obligation % the slide block prints, month by month, as a line against the OSD goal
 function ui_chBurn(c) {
@@ -878,7 +881,15 @@ function ui_vCharts(M) {
   const cardB = '<section class="card chcard" data-ch="months"><h3>Awards by month ($M)</h3><p class="cardnote">How much is landing each month. '
     + (C.next3.from ? '<strong id="uiChNext" data-c="' + C.next3.cents + '">' + ui_e(SP.ymWords(C.next3.from)) + ' to ' + ui_e(SP.ymWords(C.next3.to)) + ': ' + m(C.next3.cents) + ' ($M) projected to award</strong> in ' + SP.fmtInt(C.next3.n)
       + (C.next3.n === 1 ? ' plan event.' : ' plan events.') : '') + '</p>' + ui_chBars(C, M)
-    + '<p class="chkey">' + key('chb-awarded', 'Awarded') + key('chb-late', 'Not awarded, past its date') + key('chb-projected', 'Projected') + '</p></section>';
+    + '<p class="chkey">' + key('chb-awarded', 'Awarded') + key('chb-late', 'Not awarded, past its date') + key('chb-projected', 'Projected') + '</p>'
+    // THE SAME FIGURES AS A TABLE (review I26): a month's awarded, late and projected parts were in the bars' hover text only,
+    // which no keyboard, finger or screen reader reaches, and the calendar's Total row prints only each month's total
+    + '<div class="tw"><table class="cht chmonths" id="uiChMonths"><caption>Awards by month, the figures ($M)</caption><thead><tr><th scope="col" class="lab">Month</th><th scope="col" class="n">Awarded</th>'
+    + '<th scope="col" class="n">Not awarded, past its date</th><th scope="col" class="n">Projected</th><th scope="col" class="n">Total</th></tr></thead><tbody>'
+    + C.cols.map(c => '<tr data-col="' + c.index + '"' + (c.closed ? ' class="cl"' : '') + '><th scope="row" class="lab">' + ui_e(c.label) + '</th>'
+      + ['awarded', 'late', 'projected', 'total'].map(k => '<td class="n' + (k === 'late' && c.late ? ' chlate' : '') + '" data-k="' + k + '" data-c="' + c[k] + '">' + (c[k] !== 0 ? m(c[k]) : '-') + '</td>').join('') + '</tr>').join('')
+    + '</tbody><tfoot><tr class="chmtot"><th scope="row" class="lab">Total</th>' + ['awarded', 'late', 'projected', 'total'].map(k => '<td class="n" data-k="' + k + '" data-c="' + C.sum[k] + '">' + m(C.sum[k]) + '</td>').join('')
+    + '</tr></tfoot></table></div></section>';
   // C the PMO scoreboard
   const cardC = '<section class="card chcard" data-ch="pmos"><h3>PMO scoreboard</h3><p class="cardnote">Awarded as a share of the CCaR plan, against the OSD goal for ' + ui_e(M.asOfLabel)
     + ' (each requirement’s own appropriation and year, weighted by its plan). Click an office to open My PMO.</p><table class="cht chpmo"><thead><tr><th scope="col" class="lab">PMO</th><th scope="col">Awarded of plan</th>'
@@ -1094,7 +1105,8 @@ function ui_ufrBody(M, V) {
       + '<td><span class="usw" style="background:' + SP.publishColor(l.pmoKey, false) + '" aria-hidden="true"></span>' + ui_e(l.pmoLabel) + '</td>'
       + l.amt.map(ui_k).join('') + '<td class="n utot" data-c="' + l.sum + '">' + ui_e(SP.fmtK(l.sum)) + '</td><td>' + ui_e(l.status) + '</td><td class="uexec">' + ui_e(l.exec) + '</td><td>' + ui_e(l.sfcb) + '</td>'
       + (l.plan ? ui_k(l.plan.approved) : '<td class="n uonly">Unfunded only</td>') + '</tr>'
-      + (open ? '<tr class="cur udetail"><td></td><td colspan="' + (cols - 1) + '">' + (l.mand
+      // the words sit in a box held to the list's visible width on a phone (review I31), so the sentence wraps on screen
+      + (open ? '<tr class="cur udetail"><td></td><td colspan="' + (cols - 1) + '"><div class="udet">' + (l.mand
         ? '<strong>A Mandatory plan event in the CCaR pull</strong>' + (l.record ? ', of ' + ui_e(l.record) : '') + ': ' + ui_e(K(l.sum)) + ' on Mandatory budgets in ' + ui_e(g.apLabel) + ' FY' + g.fy
           + (l.plan && l.plan.obligated ? ', ' + ui_e(K(l.plan.obligated)) + ' of it marked awarded' : '') + '. It is listed here as unfunded because Mandatory funding has not been received. The spend plan pages and the PDFs still count it as Approved.'
         : l.plan
@@ -1102,7 +1114,7 @@ function ui_ufrBody(M, V) {
           + ' · <strong>Required ' + ui_e(K(l.plan.approved + l.sum)) + '</strong> (Approved + this unfunded ' + ui_e(K(l.sum)) + ') · Delta (' + ui_e(SP.fmtK(l.sum) === '-' ? '0' : SP.fmtK(l.sum)) + ')'
         : '<strong>Not in the spend plan:</strong> no plan event in ' + ui_e(g.apLabel) + ' FY' + g.fy + ' carries this CCaR record' + (l.prime ? '' : ' under ' + ui_e(l.pmoLabel)) + ', so Approved is $0 and Required is this unfunded ' + ui_e(K(l.sum)) + '.')
         + (l.ccar ? '<div class="acts"><button type="button" data-act="reqfind" data-q="' + ui_e(l.ccar) + '" data-fkey="ufrreq:' + ui_e(l.id) + '">Open this requirement</button>'
-          + (l.prime ? '<span class="cardnote">A prime contract: its spend plan figures are over every PMO.</span>' : '') + '</div>' : '') + '</td></tr>' : '');
+          + (l.prime ? '<span class="cardnote">A prime contract: its spend plan figures are over every PMO.</span>' : '') + '</div>' : '') + '</div></td></tr>' : '');
   }).join(''); }).join('');
   // the disconnects between the keeper's ranking and the tracker (§43), for the keeper only
   const gone = Object.keys(RK.groups).reduce((n, k) => n + (RK.groups[k].gone || 0), 0);
@@ -1171,6 +1183,7 @@ function ui_ufrRedraw() {
   if (n) n.textContent = V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' line' : ' lines') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' lines';
   const c = document.querySelector('[data-act=ufrclear]');
   if (c) c.disabled = !(ui.ufr.pmo !== null || ui.ufr.ap !== null || ui.ufr.fy !== null || ui.ufr.status !== null || ui.ufr.q !== '');
+  ui_layout(); ui_printPicks();
 }
 
 // SRRB (CONTRACT §44): every plan event marked Yes in the CCaR pull's SRRB column, one line a plan event title, with its PMO
@@ -1248,6 +1261,7 @@ function ui_srrbRedraw() {
   if (n) n.textContent = V.n === V.all ? SP.fmtInt(V.all) + (V.all === 1 ? ' requirement' : ' requirements') : SP.fmtInt(V.n) + ' of ' + SP.fmtInt(V.all) + ' requirements';
   const c = document.querySelector('[data-act=srrbclear]');
   if (c) c.disabled = !(ui.srrb.pmo !== null || ui.srrb.ap !== null || ui.srrb.fy !== null || ui.srrb.q !== '');
+  ui_layout(); ui_printPicks();
 }
 
 // PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
@@ -2228,7 +2242,31 @@ function ui_vSettings(M) {
   return out.join('');
 }
 
+// HELP IN A VIEW-ONLY COPY (review I08): the same guide, never a second one, so every rule it states (§15, §17, §23, §24)
+// is stated there too. What a reader cannot use is not drawn (importing, publishing a copy, moving to a new version, Manage
+// data, the Data checks' Unobligated lists); what a reader came for comes first (the figures and their words, then finding
+// a requirement, My PMO, the unfunded list); and a list of the sections, each a link, sits under the opening note. A
+// section this list does not name is kept, last, in its own place: nothing written later is lost from the copy.
+const UI_HELP_READER_FIRST = ['The figures', 'Finding a requirement', 'My PMO and the Award calendar', 'The unfunded list', 'The Overview', 'Which rows count'];
+const UI_HELP_KEEPER_ONLY = ['Importing', 'Publishing a view-only copy', 'Moving to a new version of APEX', 'Manage data', 'Unobligated Requirements'];
 function ui_vHelp() {
+  const html = ui_vHelpAll();
+  return ui_vo() ? ui_helpReader(html) : html;
+}
+function ui_helpReader(html) {
+  const H3 = '<h3 class="sub">', at = html.indexOf(H3), end = html.lastIndexOf('</div>');
+  if (at < 0 || end < at) return html;
+  const secs = html.slice(at, end).split(H3).slice(1).map(p => ({ t: p.slice(0, p.indexOf('</h3>')), rest: p.slice(p.indexOf('</h3>')) }));
+  const plain = t => t.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&');
+  const keep = secs.filter(x => !UI_HELP_KEEPER_ONLY.includes(plain(x.t)));
+  const rank = x => { const i = UI_HELP_READER_FIRST.indexOf(plain(x.t)); return i < 0 ? UI_HELP_READER_FIRST.length : i; };
+  const order = keep.map((x, i) => [x, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(a => a[0]);
+  const id = i => 'uiHelpS' + i;
+  const toc = '<nav class="helptoc" id="uiHelpToc" aria-label="Sections of this Help"><p class="note"><strong>In this Help:</strong></p><ol>'
+    + order.map((x, i) => '<li><a href="#' + id(i) + '" data-act="helpgo" data-s="' + i + '" data-fkey="helpgo:' + i + '">' + x.t + '</a></li>').join('') + '</ol></nav>';
+  return html.slice(0, at) + toc + order.map((x, i) => '<h3 class="sub" id="' + id(i) + '" tabindex="-1">' + x.t + x.rest).join('') + html.slice(end);
+}
+function ui_vHelpAll() {
   const li = a => '<ul>' + a.filter(x => x !== '').map(x => '<li>' + x + '</li>').join('') + '</ul>';
   return '<h2 class="title">Help</h2><div class="help">'
     + (ui_vo() ? '<p class="note" id="uiVoHelp"><strong>This is a view-only copy.</strong> It shows the figures as they were when it was published. Nothing in it can be changed, imported or saved, '
@@ -2432,7 +2470,10 @@ function ui_noDataBaeReport(B) {
 // ---------------------------------------------------------------------------------------------------------------
 function ui_skeleton() {
   const app = document.getElementById('app');
-  app.innerHTML = '<header class="top" id="uiTop">'
+  // SKIP TO THE PAGE (review I64): the first Tab stop, seen only while it has the keyboard. The top bar, the Filter and
+  // fifteen menu items came before the first control of every view (WCAG 2.4.1).
+  app.innerHTML = '<a class="skip" href="#uiMain" data-act="skip" data-fkey="skip">Skip to the page</a>'
+    + '<header class="top" id="uiTop">'
     + '<div class="bar1">'
     + '<h1 class="brand" title="Appropriation Planning &amp; Execution">' + UI_MARK + '<span class="bn vh">APEX</span>'
     + '<span class="bs">Appropriation Planning &amp; Execution</span> <span class="ey" id="uiEy"></span></h1>'
@@ -2505,6 +2546,15 @@ function ui_layout() {
       const fit = t.offsetWidth <= tw.clientWidth + 1;
       tw.classList.toggle('fit', fit);
       tw.classList.toggle('box', !fit);
+      if (fit && !headH) { const h = t.querySelector('thead'); headH = h ? Math.ceil(h.offsetHeight) : 0; }
+    }
+    // the long lists (review I35): a list that fits its box, with the top pinned (never on a phone, §38), is marked .fit and
+    // its headings stick under the top, as the Calendar's do; one wider than its box keeps its sideways box, as before
+    for (const tw of E.main.querySelectorAll('.fsheet.tw')) {
+      const t = tw.querySelector('table');
+      if (!t) continue;
+      const fit = pinned && t.offsetWidth <= tw.clientWidth + 1;
+      tw.classList.toggle('fit', fit);
       if (fit && !headH) { const h = t.querySelector('thead'); headH = h ? Math.ceil(h.offsetHeight) : 0; }
     }
     const root = document.documentElement.style;
@@ -2610,9 +2660,33 @@ function ui_drawTop(M) {
     + (up.level === 'fresh' ? '' : '. ' + (up.level === 'old' ? 'More than 30 days old' : 'More than a week old') + ': import a newer CCaR pull for current figures.') : '';
   // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
   if (E.printHead) {
-    E.printHead.textContent = has ? 'APEX' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
+    ui.printBase = has ? 'APEX' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
       + E.pulls.textContent + (M ? ' · ' + M.shown.text : '') : '';
+    E.printHead.textContent = ui.printBase;
   }
+}
+// ON PAPER, WHAT THE VIEW'S OWN PICKERS AND FIND BOX NARROWED IT TO (review I34). The printed line said the month and the
+// switches, but a Requirements list found with "Engine", or My PMO on one office, printed with nothing saying so. Read off
+// the pickers as drawn, so it says exactly what the screen says; a picker left on All says nothing.
+const UI_PRINT_PICKS = ['findf', 'pmof', 'calf', 'chf', 'ufrf', 'srrbf', 'pmo', 'naf'];
+function ui_printPicks() {
+  const E = ui.els;
+  if (!E || !E.printHead) return;
+  const base = ui.printBase || '', bits = [];
+  try {
+    if (base && E.main) {
+      for (const sel of E.main.querySelectorAll(UI_PRINT_PICKS.map(a => 'select[data-act="' + a + '"]').join(','))) {
+        const o = sel.options[sel.selectedIndex], v = o ? o.textContent.trim() : '';
+        if (!v || v === 'All') continue;
+        const lab = sel.closest('label'), w = lab ? [...lab.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : '';
+        bits.push((w ? w + ' ' : '') + v);
+      }
+      for (const q of E.main.querySelectorAll('input[type=search]')) if (q.value.trim()) bits.push('Find “' + q.value.trim() + '”');
+      const ov = E.main.querySelector('[data-act=ovfy][aria-pressed=true]');
+      if (ov && ov.textContent.trim() !== 'All') bits.push('Fiscal year ' + ov.textContent.trim());
+    }
+  } catch (e) { /* the line keeps what it had */ }
+  E.printHead.textContent = base + (bits.length ? ' · Picked on this page: ' + bits.join(' · ') : '');
 }
 // the BAE report in the top bar (§14.7): its file, its date from the file name (the date its figures are of, which is what
 // line 2 says), and the day it came into this page, as each pull's is said
@@ -2711,6 +2785,13 @@ function ui_render() {
   ui.els.main.className = has && M && (ui.view === 'overview' || ui.view === 'find' || ui.view === 'mypmo' || ui.view === 'cal' || ui.view === 'charts') ? 'ov' : 'sheet';
   ui.els.main.innerHTML = html;
   ui_layout();
+  ui_printPicks();
+  // the window's title names the view once there is data (review I64, WCAG 2.4.2): browser tabs, history and a screen
+  // reader said only "APEX" whatever was open. With no data it is APEX, the page's name (§19).
+  try {
+    const cur = ui.view === 'help' ? [null, 'Help'] : UI_VIEWS.find(x => x[0] === ui.view), ey = M ? M.E : null;
+    document.title = has && cur ? cur[1] + ' - APEX' + (ey ? ' FY' + ey : '') + (ui_vo() ? ' (view only)' : '') : 'APEX';
+  } catch (e) { /* the title stays as it was */ }
   // the keyboard goes back to the control it was on; if that control is gone, to the one the action named (ui.focusTo),
   // else to the view itself, never to the top
   const to = ui.focusTo;
@@ -3007,6 +3088,18 @@ function ui_onClick(ev) {
       ui.navOpen = !ui.navOpen;
       ui_render();
       break;
+    case 'helpgo': {
+      // a section of the view-only copy's Help (review I08): its heading takes the keyboard, under the sticky top
+      ev.preventDefault();
+      const h = document.getElementById('uiHelpS' + Number(t.getAttribute('data-s')));
+      if (h) { try { h.focus({ preventScroll: true }); h.scrollIntoView({ block: 'start' }); } catch (e) { /* nothing to move to */ } }
+      break;
+    }
+    case 'skip':
+      // the view itself takes the keyboard (it is focusable, tabindex -1), brought into view under the sticky top
+      ev.preventDefault();
+      try { ui.els.main.focus({ preventScroll: true }); ui.els.main.scrollIntoView({ block: 'start' }); } catch (e) { /* nothing to move to */ }
+      break;
     case 'manage':
       ui.manage = !ui.manage;
       ui_render();
@@ -3298,7 +3391,11 @@ function ui_boot() {
   window.addEventListener('resize', ui_layout);
   if (typeof ResizeObserver === 'function') { try { new ResizeObserver(() => ui_layout()).observe(ui.els.top); } catch (e) {} }
   ui_render();
-  if (r && r.message) ui_say(r.message, r.ok === false ? 'err' : 'info');
+  // in a view-only copy the plain "Opened the plan saved …" notice is not said (review I09): the top already says when the
+  // data was uploaded, and the notice took a phone's first screen. A warning or a refusal is said as ever.
+  if (r && r.message && !(ui_vo() && r.ok !== false)) ui_say(r.message, r.ok === false ? 'err' : 'info');
+  // printed, the line on paper says what the pickers picked at that moment (review I34)
+  window.addEventListener('beforeprint', ui_printPicks);
 }
 SP.uiRender = function uiRender() { ui_invalidate(); ui_render(); };
 // the store says things while a file window is up (the first Save names the file to pick); the message line says them
