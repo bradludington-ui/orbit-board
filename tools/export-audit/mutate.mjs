@@ -2813,8 +2813,9 @@ const MUTATIONS = [
     find: "    const inc=!!(aw && aw.mode==='inc');",
     repl: "    const inc=false;" },
   { id: 'w7-src-inc-day-rolls', area: 'srcRowsOf', what: 'an increment on a day past its month’s end is dated in the next month',
-    find: "        out.push([(ym && srcSerial(a.d, Math.min(a.day, crLastDay(+ym[1], +ym[2]-1)))) || srcDefaultObl(fy), a[k]]);",
-    repl: "        out.push([(ym && srcSerial(a.d, a.day)) || srcDefaultObl(fy), a[k]]);" },
+    // v2.17 (item 149.1): retargeted -- the line now also sends a date outside the year as undated; the same defect
+    find: "        out.push([(ym && awdInFy(a.d, a.day, fy) && srcSerial(a.d, Math.min(a.day, crLastDay(+ym[1], +ym[2]-1)))) || srcDefaultObl(fy), a[k]]);",
+    repl: "        out.push([(ym && awdInFy(a.d, a.day, fy) && srcSerial(a.d, a.day)) || srcDefaultObl(fy), a[k]]);" },
   { id: 'w7-src-inc-rest-dropped', area: 'srcRowsOf', what: 'what the increments do not cover is dropped from the file',
     find: "      if(rest>0) out.push([srcDefaultObl(fy), rest]);",
     repl: "" },
@@ -2853,8 +2854,9 @@ const MUTATIONS = [
   { id: 'clin-split-even', area: 'clinSplit', what: 'the CLINs split the amount evenly, not by the grid',
     find: "  if(Number.isInteger(amt)){ const a=apportion(amt, per);", repl: "  if(Number.isInteger(amt)){ const a=apportion(amt, per.map(function(){ return 1; }));" },
   { id: 'src-single-day-rolls', area: 'srcRowsOf', what: 'a single award on the 31st of a 30-day month is dated the 1st of the next',
-    find: "    const dt=srcSerial(when, (ymW && aw && aw.day)? Math.min(aw.day, crLastDay(+ymW[1], +ymW[2]-1)) : (aw&&aw.day)) || srcDefaultObl(fy);",
-    repl: "    const dt=srcSerial(when, aw&&aw.day) || srcDefaultObl(fy);" },
+    // v2.17 (item 149.1): retargeted -- the line now also sends a date outside the year as undated; the same defect
+    find: "      : (srcSerial(when, (ymW && aw && aw.day)? Math.min(aw.day, crLastDay(+ymW[1], +ymW[2]-1)) : (aw&&aw.day)) || srcDefaultObl(fy));",
+    repl: "      : (srcSerial(when, aw&&aw.day) || srcDefaultObl(fy));" },
   // item 53 (integration): an accepted award keeps a repaired one's original; the review compares the award, not its bookkeeping
   { id: 'pmo-apply-drops-original', area: 'pmoApply', what: 'accepting an office’s award drops the repaired award’s original',
     find: "if(jrnlSet(MS.cur, [r.key, r.id], r.prop)){ awdKeepFix(r.id, old); n++; } return; }",
@@ -6870,8 +6872,9 @@ const MUTATIONS = [
   // ==== end v2.04 (item 111) ====
   // ==== v2.04 (item 112): the five-year spend plan workbook ====
   { id: 'v204-112-years-window', area: "fydpBookYears", what: "the workbook runs six years, not the base year and the next four",
-    find: "  for(let y=b; y<=b+4; y++) out.push(y);\n  return out;\n}\nfunction fydpBookApp",
-    repl: "  for(let y=b; y<=b+5; y++) out.push(y);\n  return out;\n}\nfunction fydpBookApp" },
+    // v2.16 (item 148): retargeted -- fydpLineKeys now sits between fydpBookYears and fydpBookApp; the same defect
+    find: "  for(let y=b; y<=b+4; y++) out.push(y);\n  return out;\n}\n// v2.16 (item 148): ONE LINE PER PIECE OF WORK",
+    repl: "  for(let y=b; y<=b+5; y++) out.push(y);\n  return out;\n}\n// v2.16 (item 148): ONE LINE PER PIECE OF WORK" },
   { id: 'v204-112-order-not-1n', area: "fydpBookLines", what: "the requirements are listed in reverse, not 1-N",
     find: "  const ids=M.order.filter(function(id){ return fydpBookHas(M, id, Y, f); });",
     repl: "  const ids=M.order.slice().reverse().filter(function(id){ return fydpBookHas(M, id, Y, f); });" },
@@ -11492,6 +11495,52 @@ const MUTATIONS = [
   { id: 'v215-rv-d-name-own', area: 'impFileFailSay', what: 'a failed Write into this board’s own file draws the file’s name as markup',
     find: `but “'+at+'” is this board’s own file`, repl: `but “'+(r.at||'')+'” is this board’s own file` },
   // ==== end v2.15 review RV-D ====
+  // ==== v2.16 (item 148): the five-year plan joins the years by the work, never by the number ====
+  { id: 'v216-148-joined-by-number', area: 'fydpBookApp', what: 'the five-year plan joins the years by requirement number again: an added requirement numbered NEW-1 in two years is one line, one year’s dollars under the other’s name (Brad’s GEX/GATES and LM Option Year)',
+    find: "      const lk=(LK[y] && LK[y][String(r.id)]) || ('new|'+y+'|'+r.id);", repl: "      const lk=String(r.id);" },
+  { id: 'v216-148-proj-no-link', area: 'cycProjOf', what: 'a year’s projection forgets what an added requirement continues, so a requirement brought in From another year starts a line of its own every year',
+    find: "    if(it.prior && it.prior.id!=null) row.prior={fy:+it.prior.fy, id:String(it.prior.id)};", repl: "" },
+  { id: 'v216-148-rolled-no-title', area: 'fydpLineKeys', what: 'two added requirements of one number in two years are joined by the rolled-year rule without their names, so LM’s year-1 dollars print on the GEX line',
+    find: "          if(fydpProjAdded(pr) && linkOf(pr)===linkOf(r) && String(pr.title||'')===String(r.title||'')", repl: "          if(fydpProjAdded(pr) && linkOf(pr)===linkOf(r)" },
+  { id: 'v216-148-shared-line', area: 'fydpLineKeys', what: 'two requirements of one year can share a line: a second copy continuing the same requirement is added into the first copy’s figures',
+    find: "      if(!k || used[k]) k='new|'+y+'|'+id;", repl: "      if(!k) k='new|'+y+'|'+id;" },
+  { id: 'v216-148-old-lock-board-ids', area: 'fydpProjAdded', what: 'a projection taken before v2.16 (no added flag) reads every NEW- id as a board-data requirement, the same work in every year, and crosses the numbers again',
+    find: "function fydpProjAdded(r){ return !!(r && (r.custom===true || (r.custom===undefined && /^NEW-/.test(String(r.id))))); }", repl: "function fydpProjAdded(r){ return !!(r && r.custom===true); }" },
+  { id: 'v216-148-ai-by-number', area: 'aiRequestText', what: 'the AI review request lists another year’s figures for the requirement of the same number, not the same work',
+    find: "    D.held.forEach(function(y){ const yid=fydpSameIn(LK, MS.cur, id, y);", repl: "    D.held.forEach(function(y){ const yid=String(id);" },
+  // ==== end v2.16 (item 148) ====
+  // ==== v2.17 (item 149.1-149.6: the 21 Nov review's faults that could put a wrong value in the board) ====
+  { id: 'v217-149-date-typed-taken', area: 'awdDateIn', what: "a date box stores a typed date at every keystroke again: 01/15/2027 is stored as 15 January of the year 2",
+    find: "  if(el.__awdKey){ el.__pend=true; return false; }   // typed: held until the box is left", repl: "  if(false){ el.__pend=true; return false; }" },
+  { id: 'v217-149-date-out-of-year', area: 'awdDateTake', what: "a date outside the fiscal year is taken",
+    find: "  if(!awdDateOk(v)){\n    setStat('\\u26a0 The award date was not changed:", repl: "  if(false){\n    setStat('\\u26a0 The award date was not changed:" },
+  { id: 'v217-149-date-empty-clears', area: 'awdDateTake', what: "a box left empty or half typed clears the stored date",
+    find: "  if(!v){ if(typed){", repl: "  if(!v){ setAwdDateFull(id, ''); if(typed){" },
+  { id: 'v217-149-awyear-unlisted', area: 'attLists', what: "an award dated outside the fiscal year is not listed under Needs attention",
+    find: "    const ay=awdOutYearOf(aw, +MS.cur); if(ay.length) out.awyear.push", repl: "    const ay=[]; if(ay.length) out.awyear.push" },
+  { id: 'v217-149-sps-1902', area: 'srcRowsOf', what: "the Spend Plan Source sends an award dated in the year 2 on that date (1902 in Excel)",
+    find: "    const dt=(ymW && !awdInFy(when, aw && aw.day, fy))? srcDefaultObl(fy)", repl: "    const dt=(false)? srcDefaultObl(fy)" },
+  { id: 'v217-149-esc-applies', area: 'drawerEscRevert', what: "Esc leaves a half-typed figure in the closed panel to be applied on the next click",
+    find: "  if(a.__pend || a.__awdKey){\n    a.value=", repl: "  if(false){\n    a.value=" },
+  { id: 'v217-149-closed-not-inert', area: 'drawerInertSync', what: "the closed sliding panel can still be typed into",
+    find: "  if(drawerNarrow() && !p.classList.contains('open')) p.setAttribute('inert','');", repl: "  if(false) p.setAttribute('inert','');" },
+  { id: 'v217-149-esc-keeps-keyboard', area: 'drawerClose', what: "after Esc the keyboard stays in the closed panel",
+    find: "      if(r){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); } else if(had && a.blur) a.blur(); } }catch(e){}", repl: "      if(false){ r.focus({preventScroll:true}); } } }catch(e){}" },
+  { id: 'v217-149-restore-all-unasked', area: 'restoreAll', what: "Restore all puts every removed requirement back with no question",
+    find: "  if(!confirm('Put all '+all+' removed requirement'", repl: "  if(false && !confirm('Put all '+all+' removed requirement'" },
+  { id: 'v217-149-removed-put-back', area: 'jrnlUndoable', what: "a Removed-list line in the change journal is offered to Put back, which can bring back a different requirement",
+    find: "  && !jrnlRemovedLine(e)                                 // v2.17 (item 149.3)", repl: "" },
+  { id: 'v217-149-year-cancel-starts', area: 'switchYear', what: "Cancel on a year not started starts it empty again",
+    find: "    } else { setStat('\\u2139 FY'+(y%100)+' was not started. Still on '+FYL()+'.'); try{ render(); }catch(e){} return; }", repl: "    } else seed=freshYearState();" },
+  { id: 'v217-149-reset-in-review', area: 'allocResettable', what: "Reset to the full requirement is offered on the row in Review",
+    find: "  if(uiMode!=='fund') return false;\n  const a=(S.alloc||{})[id]", repl: "  const a=(S.alloc||{})[id]" },
+  { id: 'v217-149-reset-on-nothing', area: 'allocResettable', what: "Reset to the full requirement is offered where there is nothing to reset",
+    find: "  return !!(a && !(f && f.m==='split'));", repl: "  return true;" },
+  { id: 'v217-149-order-one-office', area: 'resetOrder', what: "Reset priority order re-sorts the master order for every office while one office is showing",
+    find: "  if(pmoMode()){ setStat('\\u2139 <b>Reset priority order</b>", repl: "  if(false){ setStat('\\u2139 <b>Reset priority order</b>" },
+  { id: 'v217-149-order-says-fy27', area: 'resetOrder', what: "Reset priority order says FY27 on any year",
+    find: "  if(!confirm('Reset the '+FYL()+' priority order for EVERY office?", repl: "  if(!confirm('Reset the FY27 priority order for EVERY office?" },
+  // ==== end v2.17 ====
 
 ];
 

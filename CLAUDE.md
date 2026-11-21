@@ -5225,6 +5225,49 @@ board, 200 of 200 CAUGHT (`recovery/v215/proved-INT.jsonl`); the review's 54 tog
 `proved-RVALL.jsonl`. 54 of 54 CAUGHT, none by a block that threw. **The final gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); every browser check but layout's carried D x8 (savetarget, fileimport, storagefull, pmosave, pmoyears, pointer, keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, csp; standards 0 new findings); all 244 v2.15 mutations and retargets proved together on the final tree, 244 of 244 CAUGHT (`recovery/v215/proved-FINAL.jsonl`); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; trace matrix 77 cells; fuzz seed 890551538; verify-file self-test held; suites 36.4 min). No sweep (Brad's rule of 20 Oct). audit-board,
 audit-import and audit-recon need `--max-old-space-size=8192`.
 
+### v2.16 (item 148): the five-year spend plan joins the years by the work, never by the requirement number
+
+Brad, 19 Nov 2026, from the real board: *"GEX/GATES is somehow being confused with the Option Year requirement in the five year spend
+plan export."* FY28's LM Option Year and FY29's GEX/GATES were both NEW-n, and `fydpBookApp` joined the years by id: FY28's $2.56B
+printed on the GEX/GATES line. `NEXT-VERSION.md` › Shipped › v2.16 has the detail.
+
+- **An added requirement's id is its own year's number.** Never join years by it. `fydpLineKeys(X, Y)` is the one rule for which
+  requirement in each year is the same work: a board-data id is itself; an added one is first the nearest earlier year's requirement
+  of the same id by the rolled-year rule (`yrCopySame`'s: same link, title, office, CCaR work), then what its link names, then a line
+  of its own; two requirements of one year never share a line. `fydpSameIn` answers "this requirement, in that year". The five-year
+  workbook, its panel and the AI review request read it; **a new reader that spans years reads it too.**
+- **`cycProjOf` rows carry `custom` and `prior`** (only on an added requirement), so locks taken from v2.16 carry them. A projection
+  without them reads an id shaped `NEW-` as added: crossed numbers are never one line, at worst one requirement is two lines.
+- **A fixture must give a link something to do.** The first check passed with the link dropped from the projection: the carried
+  requirement had the same number in both years, so the rolled-year rule joined it anyway. A filler now numbers it differently.
+
+**Checks.** audit-recon "v2.16 — the five-year plan joins the years by the work, never by the number (item 148)" (fails on main
+`3486997`: Brad's case, a lock before v2.16, the workbook, the AI review); 6 `v216-148-*` mutations and `v204-112-years-window`
+retargeted, 7 of 7 CAUGHT; 3,806 targets. **The gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; fuzz seed 587323430; verify-file self-test held; suites 33.4 min). Its trace line read "? populated cells" (the stage's captured output came back empty, the stage ok); `npm run trace` on the same tree: 77 populated cells, every link holds.
+
+### v2.17 (item 149.1–149.6): what the 21 Nov review found could put a wrong value in the board
+
+Brad, 21 Nov 2026: *"Go with recommendations"* on the review of the Requirements page and the RECORD panel (item 149, 53 findings;
+the report: https://claude.ai/artifact/6ZTkCPLox7EPAk5pCtXrnr). Data loss first: v2.17 is the six faults; v2.18 the labels that
+print the wrong thing (149.7–149.17); v2.19 the clicks, repeats and additions; item 133 is v2.20.
+
+- **A date box is taken when it is left** (`awdDateIn`, `awdDateKey`, `awdDateLeave`, `awdDateTake`). Chromium fires `change` on a
+  `type="date"` box at every keystroke that leaves a whole date; the board stored it and redrew, so 01/15/2027 became 15 January of
+  the year 2. A change after a keystroke is held (`__awdKey`, `__pend`, so the v2.08 hold covers a redraw) and taken on leaving or
+  Enter; a change with no keystroke (a calendar pick) is taken at once; empty or half typed keeps the stored date; outside the
+  fiscal year is refused. **Any new date box goes through these, never `onchange` straight to a setter.** An award already dated
+  outside its year (`awdOutYearOf`, `awdInFy`) is listed under Needs attention (`awyear`) and goes out on the Spend Plan Source on
+  31 August. The checks type digits with the real keyboard (`npm run keys` X): jsdom fires no per-keystroke change.
+- **The closed sliding panel is inert, and Esc puts a half-typed figure back** (`drawerEscRevert`, `drawerInertSync`, run from
+  `gridMark` after every render). The row takes the keyboard on close (`tabindex="-1"`); Tab wraps inside the open sliding panel
+  unless a box is over it. A route that puts the keyboard in a panel field must open the panel first, or inert refuses it.
+- **Restore all asks first; Cancel restores nothing.** A Removed-list line in the change journal is not offered to Put back
+  (`jrnlRemovedLine`): the list is journalled by place.
+- **A year not started is started only on purpose** (`switchYear`): Cancel to "roll forward" asks "start it empty?", and Cancel there
+  stays and creates nothing. **A test that wants a blank year answers `[false, true]`.**
+- **Reset to the full requirement** is on the row menu only in Fund mode and only where it changes something (`allocResettable`),
+  and says what it did. **Reset priority order** names the year, says it cannot be put back, and is refused while one office shows.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

@@ -1,0 +1,17 @@
+{"id": "v217-149-date-typed-taken", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-date-out-of-year", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-date-empty-clears", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-awyear-unlisted", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-sps-1902", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-esc-applies", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-closed-not-inert", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-esc-keeps-keyboard", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-restore-all-unasked", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-removed-put-back", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-year-cancel-starts", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-reset-in-review", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-reset-on-nothing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "v217-149-order-one-office", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}
+{"id": "w7-src-inc-day-rolls", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-65bfcb6d.mjs", "detail": ""}
+{"id": "src-single-day-rolls", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-37220b2d.mjs", "detail": ""}
+{"id": "v217-149-order-says-fy27", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-63b7af4e.mjs", "detail": ""}

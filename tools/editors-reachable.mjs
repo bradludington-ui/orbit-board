@@ -211,7 +211,7 @@ for (const [f, file] of Object.entries(made)) {
         const acts = [...document.querySelectorAll('#inspector .insp-act')];
         const ins = document.querySelector('#inspector');
         const box = ins ? ins.getBoundingClientRect() : null;
-        return { n: acts.length, award: !!document.querySelector('#inspector input[onchange^="setAwdIncDate("]'),
+        return { n: acts.length, award: !!document.querySelector('#inspector input[data-awd-i]'),
           labels: acts.map(a => a.querySelector('.a1').textContent),
           seen: acts.map(a => { const c = a.getBoundingClientRect();
             return c.top >= 0 && c.bottom <= innerHeight && (!box || (c.top >= box.top && c.bottom <= box.bottom)) && c.width > 0; }),

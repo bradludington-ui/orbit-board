@@ -1,0 +1,70 @@
+[
+ {
+  "id": "v217-149-date-typed-taken",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-date-out-of-year",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-date-empty-clears",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-awyear-unlisted",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-sps-1902",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-esc-applies",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-closed-not-inert",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-esc-keeps-keyboard",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-restore-all-unasked",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-removed-put-back",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-year-cancel-starts",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-reset-in-review",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-reset-on-nothing",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-order-one-office",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "v217-149-order-says-fy27",
+  "caughtBy": "board / v2.17 \u2014"
+ },
+ {
+  "id": "w7-src-inc-day-rolls",
+  "caughtBy": "recon / W7 \u2014 F2: the Spend Plan Source dates an incremental award"
+ },
+ {
+  "id": "src-single-day-rolls",
+  "caughtBy": "recon / W7 \u2014 F2: a single award on a day past"
+ }
+]

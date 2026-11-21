@@ -4093,7 +4093,7 @@ await (async () => {
       return { X, ALL };
     };
     // window.confirm answering `ans`, every question counted and kept
-    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { if (/^Start FY\d+ EMPTY\?/.test(String(m))) return true; w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };   // v2.17 (149.4): Cancel to roll forward is followed by "start it empty?", answered yes here so Cancel still means a blank year
     // the exported workbook read back from its bytes; window.confirm is left as it is, so the count covers the export too
     const dBook = async X => { const wb = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob;
         window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
@@ -4262,7 +4262,7 @@ await (async () => {
       if (carried) a.sp = { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Carried Spares', 'USAF Spares Initial Mandatory PSM', 100 * M, 'Program (ATL)')] } };
       return a; };
     // window.confirm answering `ans`, every question counted and kept
-    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { if (/^Start FY\d+ EMPTY\?/.test(String(m))) return true; w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };   // v2.17 (149.4): Cancel to roll forward is followed by "start it empty?", answered yes here so Cancel still means a blank year
     const setBase = (X, y) => { X.w.prompt = () => String(y); X.ev(`setBaseYear(); 'ok'`); X.w.prompt = () => null; };
     // { base: 2027|2026, rule: true|false, plan: true|false, carried: true|false }
     const build = c => {
@@ -4568,7 +4568,7 @@ await (async () => {
       r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
     const WB = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * M, 'Program (TSS)')] } } };
     // window.confirm answering `ans`, every question counted and kept
-    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { if (/^Start FY\d+ EMPTY\?/.test(String(m))) return true; w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };   // v2.17 (149.4): Cancel to roll forward is followed by "start it empty?", answered yes here so Cancel still means a blank year
     const X = boot();
     seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M])], disc: [500 * M], mand: [0], order: ['F1'] });
     X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
@@ -11647,6 +11647,90 @@ function w1LockAsBefore() {
 // ==== end v2.15 review RV-C ====
 // ==== v2.15 review RV-D ====
 // ==== end v2.15 review RV-D ====
+// ==== v2.16 (item 148) ====
+// Brad, 19 Nov 2026, from the real board: "GEX/GATES is somehow being confused with the Option Year requirement in the five year
+// spend plan export." An added requirement is numbered within its own year, and the five-year plan joined the years by that number:
+// FY28's NEW-1 (LM) and FY29's NEW-1 (GEX) became one line, FY28's dollars under FY29's name. Every expectation here is the
+// fixture's own typed figures and titles, never read back from the model under test.
+await (async () => {
+  const { bootMark: _m, bootRelease: _r } = await import('./boot.mjs');
+  const __bm = _m();
+  const name = 'v2.16 — the five-year plan joins the years by the work, never by the number (item 148)';
+  try {
+  const J = JSON.stringify;
+  const B = boot(); const bev = B.ev;
+  seed(bev, { services: ['USAF', 'ANG'], items: [it('BASE', 'PSM', [100, 50])], disc: [1e11, 1e11], mand: [0, 0], order: ['BASE'] });
+  bev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const cur = +bev('MS.cur');
+  const add = (t, a, from) => `reqCreate('PSM',{title:${J(t)},event:${J(t)},ask:${J(a)}}${from ? ',' + J(from) : ''})`;
+  // year 1: LM then GEX (NEW-1, NEW-2), and LINK, carried on below
+  bev(`${add('LM Option Year', [2560000000, 0])}; ${add('GEX/GATES', [58580, 0])}; ${add('LINK carried', [700, 7])}; save(); 'ok'`);
+  const ids1 = JSON.parse(bev(`JSON.stringify(S.custom.map(x=>[x.id,x.title]))`));
+  // year 2, blank: GEX then LM (so the numbers cross), LINK brought in From another year twice (two copies of one requirement)
+  // (a filler first, so the requirement carried From another year is numbered differently in each year: only its link can join it)
+  // v2.17 (149.4): a blank year is Cancel to roll forward, then OK to start it empty
+  bev(`window.confirm=m=>/^Start FY\\d+ EMPTY\\?/.test(String(m)); switchYear(${cur + 1}); ${add('GEX/GATES', [60000, 0])}; ${add('LM Option Year', [2600000000, 0])};
+    ${add('Filler', [1, 0])}; ${add('LINK carried', [800, 8], { y: cur, id: ids1[2][0] })}; ${add('LINK second copy', [900, 9], { y: cur, id: ids1[2][0] })}; save(); 'ok'`);
+  const ids2 = JSON.parse(bev(`JSON.stringify(S.custom.map(x=>[x.id,x.title]))`));
+  // year 3, a ROLL FORWARD of year 2 (every id kept, no links): each line carries on
+  bev(`window.confirm=()=>true; switchYear(${cur + 2}); setAsk(${J(ids2[0][0])},0,'61000'); save(); window.confirm=()=>false; switchYear(${cur}); 'ok'`);
+  chk(name, 'fixture', 'CONTROL — the numbers cross: year 1 NEW-1 is LM, year 2 NEW-1 is GEX (passes on v2.15)',
+    J([ids1[0], ids2[0]]), J([['NEW-1', 'LM Option Year'], ['NEW-1', 'GEX/GATES']]));
+  chk(name, 'fixture', 'CONTROL — the requirement carried From another year has another number there (passes on v2.15)',
+    J([ids1[2][0], (ids2.find(p => p[1] === 'LINK carried') || [])[0]]), J(['NEW-3', 'NEW-4']));
+  const model = JSON.parse(bev(`(function(){ const D=fydpData('working'), Y=fydpBookYears(D), M=fydpBookApp(D, Y);
+    return JSON.stringify(M.order.map(function(k){ const q=M.reqs[k]; return {id:q.id, t:q.title, fy:Y.filter(y=>q.fy[y]).map(y=>[y, q.fy[y].ask.reduce((a,b)=>a+b,0)])}; })); })()`));
+  const lineOf = t => model.filter(l => l.t === t);
+  const yr = (l, y) => ((l.fy.find(p => p[0] === y)) || [0, null])[1];
+  // LM: year 1 and year 2 are separate added requirements with no link -- each is its own line, never GEX's dollars
+  chk(name, 'Brad’s case', 'no LM line carries a GEX figure, and no GEX line carries an LM figure',
+    J(model.filter(l => /LM|GEX/.test(l.t)).map(l => l.t + ':' + l.fy.map(p => p[1]).join('/')).sort()),
+    J(['GEX/GATES:58580', 'GEX/GATES:60000/61000', 'LM Option Year:2560000000', 'LM Option Year:2600000000/2600000000'].sort()));
+  chk(name, 'Brad’s case', 'year 1 LM is $2,560,000,000 on an LM line, year 1 GEX $58,580 on a GEX line',
+    J([lineOf('LM Option Year').map(l => yr(l, cur)).filter(v => v !== null), lineOf('GEX/GATES').map(l => yr(l, cur)).filter(v => v !== null)]),
+    J([[2560000000], [58580]]));
+  chk(name, 'rolled year', 'CONTROL (holds on v2.15 too; guards the fix) — a year started as a roll forward keeps each requirement on its line (GEX year 2 and 3 one line, the year-3 figure as typed)',
+    J(lineOf('GEX/GATES').map(l => [yr(l, cur + 1), yr(l, cur + 2)]).filter(p => p[0] !== null)), J([[60000, 61000]]));
+  chk(name, 'From another year', 'CONTROL (holds on v2.15 too; guards the fix) — a requirement brought in From another year is the same line as the one it continues',
+    J(lineOf('LINK carried').map(l => l.fy)), J([[[cur, 707], [cur + 1, 808], [cur + 2, 808]]]));
+  chk(name, 'two copies', 'CONTROL (holds on v2.15 too; guards the fix) — a second requirement continuing the same one, in the same year, is a line of its own',
+    J(lineOf('LINK second copy').map(l => l.fy)), J([[[cur + 1, 909], [cur + 2, 909]]]));
+  chk(name, 'board data', 'CONTROL — the board-data requirement (in year 1 only: year 2 started blank) is one line (passes on v2.15)',
+    J(model.filter(l => l.id === 'BASE').map(l => l.fy)), J([[[cur, 150]]]));
+  // every year's lines add to that year's projection, and no requirement's dollars are lost or counted twice
+  const yTot = JSON.parse(bev(`JSON.stringify([${cur},${cur + 1},${cur + 2}].map(y=>aceWithYear(y, cycProjOf).reqs.reduce((a,r)=>a+r.ask.reduce((x,v)=>x+v,0),0)))`));
+  chk(name, 'totals', 'CONTROL (holds on v2.15 too; guards the fix) — each year’s lines add to that year’s projection',
+    J([cur, cur + 1, cur + 2].map(y => model.reduce((a, l) => a + (yr(l, y) || 0), 0))), J(yTot));
+  // a projection taken before v2.16 carries neither custom nor prior: NEW- ids are read as added, and with no link the rolled-year
+  // rule decides -- crossed numbers are never one line
+  const old = JSON.parse(bev(`(function(){ const X={proj:{}}, Y=[${cur},${cur + 1}];
+    X.proj[${cur}]={svc:['USAF','ANG'], reqs:[{id:'NEW-1', title:'LM Option Year', grp:'PSM', ccar:'', ask:[2560000000,0], alloc:[0,0], fund:[0,0]}]};
+    X.proj[${cur + 1}]={svc:['USAF','ANG'], reqs:[{id:'NEW-1', title:'GEX/GATES', grp:'PSM', ccar:'', ask:[60000,0], alloc:[0,0], fund:[0,0]},
+                                             {id:'NEW-2', title:'LM Option Year', grp:'PSM', ccar:'', ask:[2600000000,0], alloc:[0,0], fund:[0,0]}]};
+    const M=fydpBookApp(X, Y); return JSON.stringify(M.order.map(k=>M.reqs[k].title+':'+Y.filter(y=>M.reqs[k].fy[y]).map(y=>M.reqs[k].fy[y].ask[0]).join('/'))); })()`));
+  chk(name, 'a lock before v2.16', 'a projection with no flags never puts year 1 LM under year 2 GEX',
+    J(old.slice().sort()), J(['GEX/GATES:60000', 'LM Option Year:2560000000', 'LM Option Year:2600000000'].sort()));
+  // the workbook itself: the O&M tab's line named GEX carries GEX's figure in year 1, in $M as printed
+  const book = JSON.parse(bev(`(function(){ fydpSrc='working'; var got=null, _b=buildXlsx;
+      buildXlsx=function(sh){ got=JSON.stringify(sh); return new Uint8Array(0); };
+      try{ exportFydpPlan(); }catch(e){ got=JSON.stringify({threw:String((e&&e.message)||e)}); }
+      buildXlsx=_b; return got||'null'; })()`));
+  const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+  const rows = ((Array.isArray(book) ? book : []).find(s => /O&M/.test(s.name)) || { rows: [] }).rows.map(r => (r || []).map(cv));
+  const hdr = rows.findIndex(r => r.some(c => c === 'FY' + (cur % 100)));
+  const col = hdr < 0 ? -1 : rows[hdr].indexOf('FY' + (cur % 100));
+  const gexRows = rows.filter(r => r.some(c => c === 'GEX/GATES'));
+  chk(name, 'the workbook', 'the O&M tab’s GEX/GATES lines carry $0.059M (year 1) and the LM lines never sit under GEX',
+    J(gexRows.map(r => r[col]).filter(v => typeof v === 'number' && v > 0).map(v => Math.round(v * 1e6))), J([58580]));
+  // the AI review request reads another year by the same work too
+  const ai = JSON.parse(bev(`(function(){ const t=aiRequestText(), j=JSON.parse(t.slice(t.indexOf('{', t.indexOf('THE DATA')), t.lastIndexOf('}')+1));
+    const g=j.requirements.filter(r=>r.title==='GEX/GATES')[0]; return JSON.stringify(g? Object.keys(g.years).map(y=>[+y, g.years[y].ask]) : null); })()`));
+  chk(name, 'the AI review', 'the request lists GEX/GATES’s year-1 figure only, never LM’s year-2 figure under it',
+    J(ai), J([[cur, 58580]]));
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: '', want: '' }); }
+  _r(__bm);
+})();
+// ==== end v2.16 (item 148) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

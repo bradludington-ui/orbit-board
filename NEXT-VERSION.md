@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.15** (built, awaiting Brad's merge). Next: **v2.16** (item 133).
+Current version: **v2.16** (item 148) and **v2.17** (item 149.1–149.6, built on it): both built, awaiting Brad's merge, then v2.18 and v2.19 (the rest of item 149), then **v2.20** (item 133).
 
 ## Open
 
@@ -16,8 +16,8 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   five-year text; the Priority Drill's narrow columns; the five-year workbook's "Allocated" renamed Funded). v2.16: item 133.
   Each version merges on his word.
   **v2.14 shipped** (items 140, 141, 129, 124; ledger U63, U64, U35; see Shipped); v2.15 gained items 142 to 146, found while
-  building and reviewing it. **v2.15 is built** (items 137–139 and 142–146, and the small fixes; see Shipped › v2.15) on
-  `ccr-aef4e698-poiml3`, and waits on Brad's word to merge. **v2.16 is item 133**, the last of the three.
+  building and reviewing it. **v2.15 shipped** (merged 9 Nov 2026, `e3804cf`). **v2.16 is item 148** (Brad's "Go", 19 Nov 2026:
+  the five-year spend plan's wrong names, reported from the real board), so **item 133 is v2.17**, the last of the three.
 - **The handoff's 40 decisions** (`recovery/v213/HANDOFF.md`, section 8): *"Accept all recommendations"*, v2.12's eight
   questions among them. What only Brad can do (credentials, the security team, the evidence package) comes back to him as a list.
 - **Save on his work computer writes into the file**, so item 141's main path is writing the imported board into a new file.
@@ -28,6 +28,95 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   allocation; the RCN-EEIC tab prorates a split prime's ask by the CLIN allocation; FYDP Disconnects' workbook prints — without
   saying why.
 - **Items 100 and 107 (Azure):** left until hosting is chosen.
+
+#### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
+- **Asked:** Brad, 21 Nov 2026: *"review the front landing page where my requirements are listed to include the pop up window after clicking a requirement ... for redundant clicks and information ... simplicity but usefulness."*
+- **How it was found:** six reviewers measured v2.16 in Chromium on a synthetic 36-requirement board (1920, ~1500, 1366 wide); twelve checkers re-measured every claim with a real pointer and keyboard (55 confirmed, 6 in part, 1 refuted: the folded menu already marks unsaved work); a completeness critic added seven. The report Brad read: https://claude.ai/artifact/6ZTkCPLox7EPAk5pCtXrnr . Scratch evidence (not in the repo): the session scratchpad `review/`.
+- **Answer:** *"Go with recommendations."* Order, as recommended: **v2.17 = 149.1–149.6** (they can put a wrong value in the board; data loss first, the 3 Nov rule), **v2.18 = 149.7–149.17** (labels that print the wrong thing), **v2.19 = 149.18–149.53** (clicks, repeats, additions). **Item 133 moves to v2.20.** Each version merges on Brad's word.
+- **Nothing here changes how a figure is worked out.** 149.7 and 149.8 change which existing figure a label prints, to the one the stated rules name.
+
+- **v2.17 as built, from the checkers' notes (`review/verify/all.json`, D1, D2, R1, critic-2, critic-4, critic-5):**
+  - 149.1: the three `type="date"` boxes in `awardBlockHtml` store only when left or on Enter, never per keystroke, and nothing
+    redraws under a date box holding the keyboard (D1, extra-1, extra-4: arrows on the day part, and the change fired inside a
+    redraw). A change with no keystroke (a calendar pick) is taken at once; a box left empty or half typed keeps the stored date;
+    a date outside the fiscal year is refused, naming it. An award already dated outside its fiscal year is listed under Needs
+    attention (📅 awards dated outside the year), and the Spend Plan Source sends it on 31 August, never 1902 (extra-2); the
+    export itself does not name it. "+ add date" takes Enter and refuses a date outside the year.
+  - 149.2: on close the keyboard goes to the selected row (it can take focus) and the closed drawer is `inert`; Esc puts a
+    half-typed figure back (Brad's answer). Tab no longer walks out of the open sliding record into the page behind (critic-7).
+  - 149.3: Restore all asks first, naming the count and the year, and Cancel restores nothing; the linked-requirements question
+    follows as today. A Removed-list line in the change journal is no longer offered to Put back (it is filed by place, and
+    putting one back could bring back a different requirement; R1 extra-1). Filing the list by requirement was the larger fix and
+    was not needed to close the fault.
+  - 149.4: a year not started asks in the board's own box: copy, start empty, or stay; stay and Esc create nothing.
+  - 149.5: Reset to the full requirement is on the row menu only on the Funding page and only where it changes something, and says
+    what it did.
+  - 149.6: Reset priority order names the year on screen, says it replaces the master order for every office and cannot be put back,
+    is refused (with a message) while one office is showing, and confirms on the message line; the two messages that promised it
+    undoes a published order are corrected.
+
+*Can put a wrong value in the board:*
+- **149.1 A date typed into the Award date box is stored wrong** (v2.17). Typing a date with the keyboard stores a date at every keystroke. 01/15/2027 was stored as 15 January of the year 2. Retyping only the month of 9 April 2027 left 9 January 2027, which moved $3.09M into January and into the CR window on the test board, with no message. It has been this way since the first version. The calendar picker and the “+ add date” box store the right date. *Brad's board:* Until this is fixed, use the calendar icon or “+ add date”, and check any row whose award year reads 2. It was measured in the same browser engine Edge uses, not on Edge itself. **Change:** Take the date only when you leave the box or press Enter. List any award dated outside the fiscal year under Needs attention, so one already stored is found. Today such a date goes out on the Spend Plan Source as a 1902 date.
+- **149.2 After Esc, the keyboard is still inside the closed record** (v2.17). Esc slides the record away, but the keyboard stays in the box you were in, off screen. The next key can change that requirement with nothing to show it: one arrow key changed a decision band, and a digit followed by Tab changed a value from $2,306,185 to $5. A figure half typed before Esc is applied on your next click. The Close button and a click on the dimmed list are safe. **Change:** When the record closes, the keyboard leaves it, and a closed record cannot be typed into. **Answer (recommendation taken):** put the old figure back on Esc.
+- **149.3 “Restore all” puts every removed requirement back in one click** (v2.17). No question is asked. Where a question does appear (some are already linked into the year), Cancel still restores all the others. Taking them out again is one at a time, with a question each. *Brad's board:* Your FY28 board shows “Removed 155” beside three requirements. One stray click would put about 155 back among them. **Change:** Ask first, with the count and the year, and let Cancel leave everything as it was. Fix alongside it: Put back in the change journal on a “removed requirements” line can bring back a different requirement.
+- **149.4 Choosing a fiscal year that is not started: Cancel starts it empty** (v2.17). Clicking a year marked “not started” asks one question: OK copies the current year into it, Cancel starts it blank. No answer backs out. Cancel or Esc created the year empty and marked the board unsaved, and the program has no way to take a started year back. A year started this way prints $0 in the five-year plan where a year not started prints a dash, and the next lock would freeze it as an empty plan. *Brad's board:* Your FY28 looks like a year started blank (“Removed 155” beside three added rows). If that was your choice, nothing is wrong with it. **Change:** Add a third answer: stay where I am.
+- **149.5 “Reset to the full requirement” on a row’s menu changes money without asking** (v2.17). In Review, one click raised a trimmed allocation to the full requirement with no question and no message. On the test board the Mission Critical shortfall moved by $1.19M. It can be put back from the change journal. *Brad's board:* On your three rows it does nothing except mark the board unsaved. **Change:** Show it only on a row it can change, and say what it did. **Answer (recommendation taken):** keep it on the Funding page only; on the row menu elsewhere it goes.
+- **149.6 “Reset priority order” re-sorts the whole board and cannot be put back** (v2.17). With one office showing, the bar says the master list is untouched, and the button beside it re-sorts the master order for every office. No message follows, and rank moves are not in the change journal. Its question says FY27 on any year. Two other messages promise that this button undoes a published proposed order; it does not. *Brad's board:* Added requirements are not sorted by size at all, and every FY28 requirement of yours is an added one. **Change:** Say what it does and that it cannot be undone, read the year from the board, hide it while one office is showing, and correct the two messages.
+
+*Shows the wrong thing:*
+- **149.7 A starred row’s “MC short” is not your Mission Critical figure** (v2.18). The row prints the requirement less discretionary less mandatory. Your rule, the record and the banner in the list all use the requirement less discretionary only. On the test board three of seven starred rows disagree with their own record (row $1,348,062, record $1,438,062), and the rows no longer add up to the banner above them. *Brad's board:* They agree on your board today only because mandatory is $0. **Change:** The row prints the same figure as the record.
+- **149.8 The unfunded count and the unfunded filter miss requirements that were never allocated** (v2.18). The Total UFR tile’s dollars cover every requirement that is short (29 on the test board). The count under it, and Filter › Any unfunded portion, count only dollars that were allocated and then could not be paid (21). *Brad's board:* On your FY28 board this reads about $2.56B over “0 requirements short”, and the filter lists nothing. **Answer (recommendation taken):** the count and the filter follow the dollars (ask less discretionary less mandatory).
+- **149.9 Hovering a row’s lane says “Unfunded $0” on rows that are short** (v2.18). The hover counts only allocated dollars that no lane could pay. On 12 of 36 test rows it differs from the Unfunded figure in that requirement’s own record. *Brad's board:* Your first row would hover “Unfunded $0” while flagged short $2.56B. **Change:** The hover prints the record’s Unfunded figure.
+- **149.10 “Go to FY27” opens a different requirement** (v2.18). The button changes the year but leaves the record open on that year’s first requirement, or on an unrelated added requirement that happens to carry the same number. The requirement the line names is not selected or scrolled to, and nothing leads back. *Brad's board:* All three of your records carry this line (“Continues FY27 PSM-39 … Go to FY27”). **Change:** Open the requirement it names, and give one click back to where you came from.
+- **149.11 The grey line beside “Requirements” names the office you chose before** (v2.18). After choosing PSM it still says All offices. After going back it says PSM above the whole list. Year, appropriation and cycle in that line are right. **Change:** Fix it together with item 36, which gives the line a real job.
+- **149.12 The record’s “Allocated” box shows what was funded** (v2.18). It adds discretionary and mandatory actually paid. The two differ whenever a lane runs out: on the test board it reads $2,591,300 for a requirement allocated $3,013,156. The five-year workbook was renamed to Funded in v2.15 for the same reason. **Change:** Rename it Funded. No number changes.
+- **149.13 “Cumulative” is not the running total of the column beside it** (v2.18). It is the running total of what has been allocated, not of the requirement column. Nothing on the page says so, and its last value appears nowhere else. *Brad's board:* On your board it would end at $3,818,284 beside $2.56B of requirements. **Change:** Name it for what it is and add a one-line hover.
+- **149.14 In the edit box, “next” walks into requirements that are not on your list** (v2.18). With the list narrowed to one office or by a search, “next” opens requirements outside it. After Save, the record behind the box is a different requirement from the one just saved. **Change:** The box follows the list as it is shown, and the record behind follows the box.
+- **149.15 The budget block says “every line follows the rule” when some lines have no budget** (v2.18). On 28 of 36 test records that sentence sits under lines marked “not set”, whose export line goes out with a blank budget. **Change:** Say how many lines have no budget, or say nothing.
+- **149.16 History cannot show the last change on any of your records** (v2.18). The record’s History leaves out requirements that were added on the board, although the change journal has their lines. That is a leftover from before v2.14. Where a last change is shown, it prints internal names such as “recNames”. The journal’s own search box types letters in reverse, and a line about one year’s added requirement can appear under another year’s requirement that has the same number. *Brad's board:* Every requirement on your FY28 board was added there, so this is all of them. **Change:** Show the last change for added requirements in plain field names, open the journal already narrowed to this requirement, and fix the search box and the naming.
+- **149.17 Help describes the page as it was before v2.00** (v2.18). It says the record sits beside the list and slides over only on laptops, that search and Filter stay at the top as you scroll, and it never mentions View › Record panel. Three messages also send you to Needs attention “at the top” of a page that does not show it. **Change:** Reword. Help is at its size limit, so the rewrite has to come out shorter than what it replaces.
+
+*Extra clicks:*
+- **149.18 With a record open, everything else takes two clicks** (v2.19). The record slides over the list and the rest of the page is dimmed. The first click on another requirement, on Filter, Save or the left menu only closes the record. The record also covers that row’s money, band, star and menu, and the Total UFR tile. J and K move between records, but the J and K drawn in the header are not buttons. *Brad's board:* This is the state in your photo: three tiles showing, the fourth under the record. **Change:** A click on another requirement moves the record to it. J and K become real previous and next buttons. **Answer (recommendation taken):** keep the record sliding by default; a click on another row moves it there; J and K become real previous / next buttons.
+- **149.19 Scroll the record and its Close button stops working** (v2.19). The Overview / Funding / History strip slides over the Close button, and the requirement’s name leaves the screen. A record opened after another one opens part-way down, wherever the last was scrolled. Stepping with J or K lands the table in a different place each time. The header also says RECORD twice and gives the position twice. **Change:** One pinned bar with the position, previous, next and Close, and the name on one line under it. A record opened by a click starts at the top.
+- **149.20 Mission Critical cannot be set for the record you are reading** (v2.19). The star is only on the row, which the open record covers: Close, star, reopen. The edit box says the star is set in the record panel, which is not so. **Change:** Correct that sentence. **Answer (recommendation taken):** a star switch in the record (amends the v1.91 row rule: the row and the record both set ★).
+- **149.21 Completing records one after another** (v2.19). Each record costs: open the box, fill it, Save, J, open the box again. The box’s button to the value and budgets asks you to throw away what you typed. The Requirement edit button says “6 of 9 still needed” but not which six. *Brad's board:* Your three records read “all 11 set”, so you will meet this on rolled-forward and older records. **Change:** Add “Save and next”. Make the button “Save and go to the value and budgets”. List what is still needed by name under the three buttons, each name opening the box at that field.
+- **149.22 Adding several requirements in a row** (v2.19). After Add the box closes. With All offices showing it asks for the office again each time, so every requirement after the first costs three clicks before any typing. The new row lands at the bottom, off screen, and at laptop width the confirmation message has no room to show. *Brad's board:* Works today: choose the office in the PMO menu at the top first, and the box stops asking. **Change:** An “Add and start another” button that keeps the office and clears the form. Scroll to the new row after Add.
+- **149.23 Typing a column of values in the record** (v2.19). Tab runs across (Requirement, Disc, Mand), so six values down one column is 15 Tab presses. **Change:** The Down arrow moves to the same column on the next service. Tab and Enter stay as they are.
+- **149.24 A budget must be picked by hand even when there is only one to pick** (v2.19). In the Add box each service starts on “choose” even when the office has exactly one budget for it, and Add refuses until each is picked. On records already on the board, the record says “automatic by rule” while the required list says “Budget still needed” for the same lines. **Answer (recommendation taken):** (b) pre-pick the only name in the Add box, still changeable, and (c) the record stops saying "automatic" for a line nobody picked ("by rule — not picked"). The required list is unchanged.
+- **149.25 Search** (v2.19). There is no clear button, Esc does not clear it, and once you scroll nothing shows that a search is on. It cannot find a word you can read on the row’s second line (EDI found 0 of 18 rows), a note, or a requirement’s number. A search that matches nothing can leave only the three banners, with no “No requirements match”. **Change:** Add a clear button, let Esc clear, and let search read the record name, the note and the number.
+- **149.26 Filter** (v2.19). First use is three clicks because both groups open folded. A stray divider sits at the top of the menu. The folding itself is your 4 October rule for long menus. **Change:** Open the Funding group the first time. Remove the stray line.
+- **149.27 When the board refuses a figure, the reason is behind the record** (v2.19). Type “12x” in a value box: the old figure comes back and the reason is on the top line, which is dimmed and partly under the record. After a refusal, a good entry leaves the refusal standing. **Change:** Show the same sentence inside the record, and clear it when a figure is taken.
+- **149.28 Smaller snags** (v2.19). In a window about 1,330 px wide or narrower, the Columns tick boxes change and the list does not. With the record docked, the first click on another requirement is lost after typing a figure. Tab walks out of the dimmed record and works controls behind it: it opened another requirement’s menu on top of the open record. PMO › Reassign a requirement… opens the edit box for whichever requirement is marked without naming it. A row with a damaged award date shows the bare word “Award”. **Change:** Grey out the tick boxes and say why; keep the click; keep Tab inside the record; name the requirement in the menu line; say “needs repair” on the row.
+- **149.29 The empty program shows three different first steps** (v2.19). A new version opens with a cut-off message, a shared-folder banner and an Add requirement button. The one step you take (Imports & exports, then Import a full board) is the one hidden behind More. Add requirement there can never be finished, and does not say so. **Change:** One “Start here” block: open your saved board, connect the shared folder, or start a new board.
+- **149.30 Bringing last year’s requirements into a new year** (v2.19). A blank year offers two ways in. Restoring from the Removed list brings the bare built-in line, without the PID, dates, notes or description the earlier year holds. Add requirement › From another year makes a new linked requirement, one office and one year at a time, with no tick-all, and each must pass the full form. The way that copies everything, Roll requirements forward, sits in the earlier year’s Fiscal year menu: 8 clicks for 36 requirements across four years on the test board. *Brad's board:* Your FY28 shows the mix: 155 in Removed and three added by hand, all reading “No PID”. **Change:** Say on the Removed list what restore does not bring. Add a tick-all to From another year. **Answer (recommendation taken):** Brad, 21 Nov 2026: *"Linked one by one."* A new year leads with Add requirement › From another year (linked, one requirement at a time, as v2.06 designed it); the empty year's first offer opens it. Roll forward stays where it is. The wording fixes and the tick-all go ahead.
+
+*Said twice, or says nothing:*
+- **149.31 The six money boxes in the record repeat the TOTAL line under them** (v2.19). Requirement, Discretionary, Mandatory and Unfunded are the same four numbers as the TOTAL line of the By service table on the same screen. On a laptop the boxes push that TOTAL line off the bottom. *Brad's board:* In your photo $58,580 is printed five times, and two boxes hold only a dash. **Change:** One line in their place: Requirement, Funded, Unfunded, and MC shortage only when the requirement is starred and short. About 100 px back.
+- **149.32 “Lifecycle pending — the board has no lifecycle field for a requirement yet”** (v2.19). Fixed text on every record. It stands in for a Lifecycle item from your concept images that the board has nothing to fill. **Change:** Remove it. A real status (draft, submitted, approved) would be a feature of its own.
+- **149.33 Overview / Funding / History are not tabs** (v2.19). They scroll one long page. Funding lands with the table’s own headings hidden. Overview does nothing once you have scrolled. The highlight does not follow where you are. **Change:** Make the three jumps land correctly. **Answer (recommendation taken):** keep the strip, with the three jumps landing correctly.
+- **149.34 The budget block is a quarter to a third of the record** (v2.19). One picker per service line, each saying the rule decided twice, plus a closing sentence. The longest Air Force names are cut off at the end, where the office is. It pushes the award dates off the first screen. **Change:** Say it once per line and print the name whole. **Answer (recommendation taken):** do not fold; say it once per line and print the name whole (follows item 24).
+- **149.35 Two Add requirement buttons on one page** (v2.19). One in the top bar and a blue one beside the search row. They open the same box. The blue one scrolls away and sits under an open record. **Change:** Keep the one in the top bar and give it the main-button look.
+- **149.36 The grey line beside “Requirements” repeats the four selectors above it** (v2.19). Fiscal year, appropriation, office and cycle are all in the bar directly above. Meanwhile nothing on the page says how many requirements are listed, and the four tiles stay on the whole appropriation when you narrow the list. **Change:** Use the line for what the selectors cannot say: “Showing 8 of 36”. Mark the tiles “whole board” when the list is narrowed.
+- **149.37 The row’s second line repeats its name** (v2.19). The CCaR record name is printed whenever it differs from the row’s name by a single character. After a rename the old name is printed too. The small pencil after it looks like the rename button in the record, and is not a button. *Brad's board:* Your first row states its name three times. **Change:** Print the record name only when it adds words. Drop the old name and the pencil.
+- **149.38 ADDED and the gear are on every one of your rows** (v2.19). ADDED marks any requirement added on the board, which is every row of an out-year board. It does not tell a requirement continued from last year from a new one. The gear marks funding set by hand, which is also every row. **Change:** Replace ADDED with “continues FY27” or “new”. Drop the gear from the row.
+- **149.39 Tile icons and the Editable chip look pressable and do nothing** (v2.19). The round marks on the four tiles have no action (the Total UFR one is the usual menu sign). The Editable chip always says the normal thing and takes room from the message line, which gets 30 px on a laptop. **Answer (recommendation taken):** remove the round marks; show the Editable chip only when the board is not editable.
+- **149.40 The edit box speaks in builder’s words** (v2.19). “PSM (from the file)” on a record somebody typed in, “typed before v2.08, kept”, “follows the PMO and prime rules”, and the year stated three times. **Change:** Plain rewrites. No behavior changes.
+- **149.41 One thing, several words** (v2.19). The dollars are Ask, Requirement and Req. The shortfall is UFR, Unfunded and short. Money paid is Allocated in one box and Funded everywhere else. **Answer (recommendation taken):** Requirement, Funded and Unfunded on these two screens; "Requirement edit" keeps its name.
+- **149.42 A sideways scroll bar at the foot of the record** (v2.19). A one-pixel slip in the Close bar. It takes about 15 px of height on every record. *Brad's board:* It is visible in your photo, under the TOTAL row. **Change:** A one-line fix.
+- **149.43 With incremental awards, half the award block is off the edge** (v2.19). Three of six services, the totals and both buttons sit to the right of the record’s edge. The column headed Month holds a full date. An award repaired on opening is shown as code. **Change:** One block per award, stacked, so everything fits. Head the column Date. Write the saved award as a sentence.
+
+*Worth adding:*
+- **149.44 Say on each row whether its record is complete** (v2.19). The checklist the record already uses finds something missing on every test record, yet a row flags only “No PID”, which is not on the required list. The count is seen only after opening the record. **Change:** “5 to complete” on the row, a count under the tiles, and a filter for incomplete records, all from the one checklist. Build after item 24 is decided, so the count means the same everywhere.
+- **149.45 Show the shortfall on Review rows** (v2.19). On the test board 22 of 29 short rows show no figure, only a lane word and a part-filled bar. The Funding page has it as a column. **Change:** Print “unfunded $X” under the lane word when it is not zero.
+- **149.46 Reach Needs attention from the Requirements page** (v2.19). The to-do list (missing impact statements, dates, WBS) shows only on the Funding page. **Answer (recommendation taken):** a Needs attention button on the Requirements task bar (a second way in to the same lists).
+- **149.47 Read what a requirement is without opening the editor** (v2.19). The record says “written” or “not written” but shows none of the description or impact statement. Obligation category, WBS and Goes to appear nowhere on the row or the record. **Change:** One line of the three record fields. **Answer (recommendation taken):** one line of the three record fields now; the description and impact statement preview waits (whole text or a "show all" control is still Brad's).
+- **149.48 A prime contract’s record should mention its CLINs** (v2.19). The record for a prime contract reads exactly like any other: no CLIN count and no way to the CLIN breakdown. The breakdown’s button is on the row, under the dimmed layer. The breakdown itself needs 1,406 px in a 1,186 px space in a 1,500-wide window, so it scrolls sideways and cuts the CLIN numbers. Adding a CLIN is three browser prompt boxes. *Brad's board:* Your first row, $2.56B of your $2.564B, is a prime contract. **Change:** One line in the record: “Prime contract, 3 CLINs, requested $X. Open the CLIN breakdown.” The breakdown’s width, Tab order and prompts are a bigger job to plan on its own.
+- **149.49 In a locked cycle view, the record should say it is read only** (v2.19). The page is well marked, but the record’s 56 boxes and buttons all look live. Type a figure and the old one quietly comes back; the reason shows only on the dimmed top line. **Change:** A read-only sentence at the top of the record, with Leave the view.
+- **149.50 The same requirement’s other years, in the record** (v2.19). Checking a requirement’s five yearly values means four year switches. **Change:** One line with its value in each year, each a button to that year. Worth having once FY29 to FY32 are filled in. It needs care to build safely.
+- **149.51 A hand pointer over rows** (v2.19). A row opens its record wherever you click, but the pointer stays an arrow. **Change:** Show the hand over rows.
+- **149.52 More requirements on screen** (v2.19). 323 px of bars and tiles sit above the first row. Trimming the heading line would also clear the one layout check that has failed since v2.00. *Brad's board:* About 10 rows fit in your window. View › Compact shows about 15 today, with no change to the board. **Change:** Trim the heading line (item 36 does it).
+- **149.53 Checks for what this review found** (v2.19). No automatic check reads the four tiles, the row’s MC flag, the lane hover or the record’s Allocated box, and none types a date with the keyboard. That is how the wrong dates and the wrong labels above went unseen. **Change:** Each fix arrives with a check that fails without it.
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
@@ -488,6 +577,119 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.17 — 21 Nov 2026: what the review of the Requirements page found could put a wrong value in the board (item 149.1–149.6) -- built on Brad's "Go with recommendations" of 21 Nov, on top of v2.16; merge waits on his word
+
+The six faults, as logged under item 149 (Open), with the build notes there. In short:
+- **149.1** A date typed into an award box is taken when the box is left or on Enter, never at a keystroke; a calendar pick is
+  taken at once; empty or half typed keeps the stored date; a date outside the fiscal year is refused. An award already dated
+  outside its year is under Needs attention and goes out on the Spend Plan Source on 31 August.
+- **149.2** Esc puts a half-typed figure back; the closed sliding record is inert; the row takes the keyboard; Tab stays inside the
+  open sliding record.
+- **149.3** Restore all asks first, naming the count and the year; Cancel restores nothing. A Removed-list line in the change
+  journal is not offered to Put back.
+- **149.4** A year not started: Cancel to roll forward asks "start it empty?"; Cancel there stays and creates nothing.
+- **149.5** Reset to the full requirement is on the row menu only on the Funding page and only where it changes something, and
+  says what it did.
+- **149.6** Reset priority order names the year, says it cannot be put back, is refused while one office shows, and confirms; the
+  two messages that promised it undoes a published order are corrected.
+
+**Found while building, fixed:** the first cut of 149.2 moved the keyboard to the row on any Esc, even with no record open (a menu's
+Esc, the message's Esc); `npm run keys` A, G, G3, I and V caught it. Now only closing an open record moves it, and only when the
+keyboard was in the record.
+
+**Checks.** audit-board "v2.17 — a wrong value cannot reach the board from the record, the year menu or the Removed list (item
+149)" (fails on v2.16, b11b8e5); `npm run keys` X (typed digits, the month alone, a date outside the year, an increment, Esc then
+keys, Tab inside the open record). Older checks that pinned the old behaviour, each changed on purpose: audit-board D7c and the
+v2.09 award-date part; audit-recon's and audit-import's blank-year fixtures (Cancel, then OK to start empty) and the v2.06 Restore
+all part; `npm run pointer` H2 (ArrowUp on a date steps without storing; Enter takes it) and A (no Reset outside Funding);
+editors-reachable's selector; `tools/row-controls.json` re-recorded (the date box's handler; Reset no longer on the fixture's row).
+**Mutations:** 15 new (`v217-149-*`), 2 retargeted (`w7-src-inc-day-rolls`, `src-single-day-rolls`); 3,821 targets, each once; all
+17 CAUGHT (`recovery/v215/proved-v217.jsonl`; `v217-149-order-says-fy27` first SURVIVED, the fixture being FY27, and is caught
+since the check runs on FY28). **The gate:** every suite whole (8 banners + the legacy line, boot-same); every browser check but
+layout's carried D ×8 (standards 0 new); `npm run validate:nightly`: every stage holds but the browser stage, which fails on
+layout's carried D ×8 alone (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1
+open; trace matrix 77 cells; fuzz seed 544117433; verify-file self-test held; suites 30.1 min). No sweep.
+
+**Not done:** Help was not changed (it is at its size limit; the v2.19 wording pass covers it). The Removed list is still journalled
+by place; it is no longer offered to Put back.
+
+### v2.16 — 19 Nov 2026: the five-year spend plan joins the years by the work, never by the requirement number (item 148) -- built on Brad's "Go" of 19 Nov; merge waits on his word
+
+**What Brad saw** (19 Nov 2026, photos of the real board): in the FYDP Spend Plan workbook, FY28 O&M, PSM, GEX/GATES (JSF6649) carried
+$2,560.209M -- the LM Air Vehicle Annualized Sustainment - Option Year's FY28 figure -- IAC carried GEX's $0.059M, IAC was listed a
+second time with no CCaR record, and LM read $0; the board and the RECORD panel had GEX at $58,580. *"GEX/GATES is somehow being
+confused with the Option Year requirement in the five year spend plan export."*
+
+**Why.** An added requirement is numbered within its own year (`newReqSeq`, `reqNewId`), and `fydpBookApp` joined the five years by
+that number, naming each line from the latest year. FY28's NEW-n (LM) and FY29's NEW-n (GEX) were one line. Each year's projection
+(`cycProjOf`, also what a lock stores) carried neither whether a requirement was added nor its link, so nothing could tell them apart.
+The board and every one-year workbook were right; the five-year workbook, the five-year panel (the same model) and the AI review
+request (which listed another year's figures by number) were not. Block TOTALs were right: the money was on the wrong lines.
+
+**What changed.**
+- `cycProjOf` records `custom` (an added requirement) and `prior` (what it continues) on each row; a lock taken from now on carries
+  them.
+- `fydpLineKeys(X, Y)` decides, per held year, which line each requirement is on: a board-data id is itself; an added requirement is
+  first matched to the nearest earlier held year's requirement of the same id by the rolled-year rule (`yrCopySame`'s: same link,
+  title, office and CCaR work -- a year started as a copy keeps every id and link); otherwise its link names the line (a board-data
+  id; an added one in a held year, through its own line; one before the window by its year and id); otherwise it is a line of its own.
+  Two requirements of one year never share a line. `fydpBookApp` keys its lines by it. A projection taken before v2.16 carries no
+  flags: an id shaped `NEW-` is read as added, so crossed numbers are never one line -- at worst one requirement prints as two lines.
+- `fydpSameIn(K, y0, id, y)` names the same work in another year; `aiRequestText` and the AI answer's read-back use it.
+- `BUILD` is `v2.16 (19 Nov 2026)`.
+
+**Decided in the build (Brad can reverse):** the version number -- item 148 ships as v2.16 and item 133 becomes v2.17; an added
+requirement with no link, added separately in two years, prints as two lines (ORBIT cannot know they are the same work; "From another
+year" is how to join them); a requirement renamed between years without a link prints as two lines too (the rolled-year rule needs the
+same title).
+
+**Checks.** audit-recon "v2.16 — the five-year plan joins the years by the work, never by the number (item 148)": Brad's case both
+ways, a requirement carried From another year (one line, with another number in each year), a rolled year (one line), two copies of
+one requirement in one year (two lines), a board-data requirement, each year's lines against that year's projection, a lock taken
+before v2.16, the O&M tab of the workbook itself, and the AI review request. On main `3486997` it fails on Brad's case, the old lock,
+the workbook and the AI review; the rest are CONTROLs. **Mutations:** 6 new (`v216-148-*`) and `v204-112-years-window` retargeted (the
+new function sits between the two its find spanned); 7 of 7 CAUGHT (`recovery/v215/proved-v216.jsonl`). One first SURVIVED
+(`v216-148-proj-no-link`): the fixture's carried requirement had the same number in both years, so the rolled-year rule joined it with
+or without its link; a filler now numbers it differently. 3,806 targets, each once. **The gate:** every suite whole on the final tree (8 banners + the legacy line, boot-same); `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; fuzz seed 587323430; verify-file self-test held; suites 33.4 min). Its trace line read "? populated cells" (the stage's captured output came back empty, the stage ok); `npm run trace` on the same tree: 77 populated cells, every link holds.
+
+**The item as logged:**
+
+#### 148 (as logged). The five-year spend plan puts one year's figures under another requirement's name (Brad, 19 Nov 2026, from the real board)
+**What Brad sees.** *"Doesn't look like the requirements are staying consistent with naming and allocations. GEX/GATES is somehow
+being confused with the Option Year requirement in the five year spend plan export."* On the board, FY28 O&M, PSM: GEX/GATES
+(JSF6649) is $58,580, IAC (JSF6647) about $3.76M, LM Air Vehicle Annualized Sustainment - Option Year (JSF6654) about $2.56B; the
+RECORD panel agrees. In the FYDP Spend Plan workbook (FY28-FY32, the working plan) the FY28 column prints $2,560.209M on the
+GEX/GATES line, GEX's $0.059M on the IAC line, IAC a second time with no CCaR record carrying $3.760M, and $0 on the LM line. FY29 reads
+right. Full Fund's lines may be paired the same way (the "JSF" and "No CCaR record" Andromeda lines).
+
+**Why (reproduced, 19 Nov, on main `3486997`).** `fydpBookApp` joins the five years of a plan by requirement ID alone
+(`reqs[r.id]`) and names each line from the latest year that holds that ID. A requirement added on the board is numbered within its
+own year (`newReqSeq`, `reqNewId`): FY28's NEW-1 and FY29's NEW-1 are two different requirements unless one was rolled from the
+other. So every added requirement whose number another requirement holds in another year is merged with it: that year's dollars
+print under the other one's name and CCaR record. Repro: FY27 add LM ($2,560,000,000) then GEX ($58,580); FY28 blank, add GEX then LM.
+The model prints "GEX/GATES :: FY27 2560000000" and "LM Option Year :: FY27 58580". Each year's projection (`cycProjOf`), which is
+also what a lock stores, carries neither `custom` nor the requirement's `prior` link, so the export cannot tell the cases apart.
+The board, the per-year workbooks and the RECORD panel are right; the FYDP Spend Plan workbook and the five-year panel (one model)
+are not. No figure is lost or invented: the money is on the wrong line, so every line total is wrong and the block TOTAL is right.
+
+**Proposed fix.**
+- `cycProjOf` records, per requirement, whether it was added (`custom`) and its link (`prior: {fy, id}`) -- locks taken from then on
+  carry them.
+- `fydpBookApp` keys a line by the work, not the number: a board-data ID is itself; an added requirement takes the line of what its
+  link names (a board-data ID; or an added one in a held year, through its own line; or one before the window, keyed by that year and
+  ID); with no link, it joins an earlier year's line only under the v2.07 rule for a rolled year (same ID, same title, same office,
+  the same CCaR work, `ccarSameWork`), and otherwise is a line of its own, keyed by its year and ID. Two requirements of one year
+  never share a line.
+- A lock taken before the fix carries no flags: an ID shaped `NEW-…` is read as added, and with no link the rolled-year rule decides.
+  At worst one requirement prints as two lines; it can no longer print another's dollars.
+- Check: the repro above, both directions, a requirement carried by From another year (one line, five years), a rolled year (one
+  line), two copies of one FY28 requirement in FY29 (two lines), a lock taken before the fix, and every line total and the TOTAL
+  against each year's projection. Search the other readers that join years by ID (`cycCmpData` compares one year at a time and is
+  not affected).
+- **Workaround until it ships:** the board, the RECORD panel and the year-by-year workbooks are right. Do not brief the FYDP Spend Plan
+  workbook's per-line figures; its block TOTALs are right.
+
 
 ### v2.15 — 9 Nov 2026: the context bar never wraps, a package keeps this board's PPBE cycle, retag moves every appropriation that locked it, the requirement list follows the copy that opens, Save records every appropriation it wrote, the other storage writes counted, two tabs on one appropriation, and the small fixes (items 137–139, 142–146; items 131 and 135 in part; the handoff's decisions 18 a, 19, 20; v2.12's question 1) -- built on Brad's go of 3 Nov; merge waits on his word
 

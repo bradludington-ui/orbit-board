@@ -218,9 +218,11 @@ if (want('A')) for (const [layout, w, h] of LAYOUTS) {
       await press(p, `#row-${id} button.mcb`);
       await press(p, `#row-${id} .rmbtn`); const r2 = await read(p, id), s2 = await st(p);
       chk(`${tag} · ⋯ opens the row’s menu, the panel stays off the table`, r2.menu === id && quiet(s2, layout), JSON.stringify({ menu: r2.menu, s2 }));
-      dlg.answers = [];
-      await press(p, `#rm_${id} button.mi[onclick*="resetAlloc("]`, { wait: 260 }); const r3 = await read(p, id), s3 = await st(p);
-      chk(`${tag} · ⋯ › ↺ Reset to the full requirement: done, the panel stays off the table`, r3.alloc === 'null' && quiet(s3, layout), JSON.stringify({ alloc: r3.alloc, s3 }));
+      // v2.17 (item 149.5; Brad: the Funding page only): Reset to the full requirement changes money, so the row menu offers it
+      // only in Fund mode, and only where it changes something -- not here
+      const r3 = await p.evaluate(i => !!document.querySelector(`#rm_${i} button.mi[onclick*="resetAlloc("]`), id), s3 = await st(p);
+      chk(`${tag} · ⋯ offers no Reset to the full requirement outside the Funding page, and the panel stays off the table`, r3 === false && quiet(s3, layout), JSON.stringify({ offered: r3, s3 }));
+      await p.keyboard.press('Escape'); await p.waitForTimeout(150);
       await press(p, `#row-${id} .clinbtn`); const r4 = await read(p, id);
       await press(p, `#row-${id} .clinbtn`); const r5 = await read(p, id), s5 = await st(p);
       chk(`${tag} · 🧾 shuts the drill and opens it again, the panel stays off the table`, !r4.drill && r5.drill && quiet(s5, layout), JSON.stringify({ r4: r4.drill, r5: r5.drill, s5 }));
@@ -693,7 +695,7 @@ if (want('H')) for (const [layout, w, h] of LAYOUTS) {
       return (a.getAttribute('onchange') || a.getAttribute('onclick') || a.tagName).replace(/,this\.value\)$/, ')').slice(0, 40); });
     const focusOn = (sel) => p.evaluate(sel => { const b = document.querySelector(sel); b.scrollIntoView({ block: 'center' }); b.focus(); return !!b; }, sel);
     await seedA(); await press(p, `#row-${rid} .t1`); await p.waitForTimeout(250);
-    const x0 = `#inspector button[onclick=${q('rmAwd(' + q(rid) + ',0)')}]`, d1 = `#inspector input[onchange=${q('setAwdIncDate(' + q(rid) + ',1,this.value)')}]`;
+    const x0 = `#inspector button[onclick=${q('rmAwd(' + q(rid) + ',0)')}]`, d1 = `#inspector input[onchange=${q('awdDateIn(this,' + q(rid) + ',1)')}]`;
     // H1. an award's ✕: Enter, Enter again
     await focusOn(x0); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const k1 = await kb(), a1 = await aw();
@@ -707,15 +709,21 @@ if (want('H')) for (const [layout, w, h] of LAYOUTS) {
     await p.keyboard.up('Enter'); await p.waitForTimeout(250);
     const a3 = await aw();
     chk(`${tag} · Enter held on the first award’s ✕ removes the first award only`, a3 === '5/9:200000 | 8/12:50000 | 10/3:75000', a3);
-    // H2. the Mar award's date walked forward with ArrowUp on its month: Apr, May keep the keyboard; Jul passes Jun
+    // H2. the Mar award's date walked forward with ArrowUp on its month. v2.17 (item 149.1): a keystroke in a date box is held until
+    // the box is left or Enter is pressed (Chromium fires change at every step, and a typed date was stored at every keystroke), so
+    // the steps store nothing; Enter takes Jul, which passes the Jun award: the awards re-sort and the keyboard goes nowhere, and the
+    // steps after it re-date nothing -- the Jun $50,000 award keeps its date
     await seedA(); await p.waitForTimeout(150); await focusOn(d1);
-    const steps = [];
-    for (let i = 0; i < 6; i++) { await p.keyboard.press('ArrowUp'); await p.waitForTimeout(220); steps.push((await aw()) + ' @' + (await kb())); }
-    const keep = `setAwdIncDate(${q(rid)},1)`;
-    chk(`${tag} · CONTROL: the Mar award’s month stepped to Apr, May and Jun-09 with ArrowUp, still before the Jun-12 award: the keyboard stays on its date box`,
-      steps.slice(0, 3).every(s => s.endsWith('@' + keep)) && /^2\/5:100000 \| 8\/9:200000 \| 8\/12:50000/.test(steps[2]), JSON.stringify(steps.slice(0, 3)));
-    chk(`${tag} · the next step, to Jul, passes the Jun award: the keyboard goes nowhere, and the steps after it re-date nothing -- the Jun $50,000 award keeps its date`,
-      steps.slice(3).every(s => s === '2/5:100000 | 8/12:50000 | 9/9:200000 | 10/3:75000 @nowhere'), JSON.stringify(steps.slice(3)));
+    const before = await aw(), steps = [];
+    for (let i = 0; i < 4; i++) { await p.keyboard.press('ArrowUp'); await p.waitForTimeout(220); steps.push(await aw()); }
+    chk(`${tag} · the Mar award’s month stepped four times with ArrowUp: nothing is stored while it is stepped`,
+      steps.every(s => s === before), JSON.stringify({ before, steps }));
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const after = (await aw()) + ' @' + (await kb());
+    for (let i = 0; i < 2; i++) { await p.keyboard.press('ArrowUp'); await p.waitForTimeout(220); }
+    const later = (await aw()) + ' @' + (await kb());
+    chk(`${tag} · Enter takes Jul, which passes the Jun award: the keyboard goes nowhere, and the steps after it re-date nothing -- the Jun $50,000 award keeps its date`,
+      [after, later].every(s => s === '2/5:100000 | 8/12:50000 | 9/9:200000 | 10/3:75000 @nowhere'), JSON.stringify({ after, later }));
     // H3. "set to drawn" in the not-drawn list: the last line of one requirement, the next line another's
     await p.evaluate(() => { drawerClose(); S.order.slice(-6).forEach(r => { const it = itemById(r); S.fsrc[r] = { m: 'split', dv: it.ask.slice(), mv: it.ask.map(() => 0) }; });
       save(); ndOpen = true; render(); });

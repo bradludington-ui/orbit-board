@@ -1241,6 +1241,7 @@ html[data-mode="brief"] .posture{min-height:74px}
 .row.cur{background:var(--sel)}
 .row.cur::after{box-shadow:none;inset:0 auto 0 5px;width:3px;background:var(--gold);border-radius:1px}
 .row:has(:focus-visible){outline:2px solid var(--blue);outline-offset:-2px}
+.row[tabindex]:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
 
 /* ---- cutlines: a rule and a label ----------------------------------------------------------------- */
 .cutline{font-size:10.5px;letter-spacing:.03em;padding:4px 12px;margin:0;font-weight:700;background:var(--panel2);
@@ -1966,7 +1967,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="modetools" id="t_rank" role="group" aria-label="Rank tools">
     <button class="btn" id="hardBtn" onclick="toggleHard()" title="Rank-entry mode: the list FREEZES in place — type a rank number in any row's box and it moves there in the underlying order without the screen reshuffling. Toggle off to see everything in its new position.">Rank entry</button>
     <button class="btn" onclick="togglePreviewOrder()" title="A report first — changes nothing">Preview proposed 1–N order</button>
-    <button class="btn" onclick="resetOrder()" title="Put the year on screen's priority order back — asks first">Reset priority order…</button>
+    <button class="btn" onclick="resetOrder()" title="Re-sort the year on screen's master order for every office, by requirement value — asks first, and cannot be put back">Reset priority order…</button>
     <span class="dragnote" id="dragNote"></span>
   </div>
   <div class="modetools" id="t_fund" role="group" aria-label="Fund tools">
@@ -3710,7 +3711,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.15 (9 Nov 2026)';
+const BUILD='v2.17 (21 Nov 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3939,7 +3940,7 @@ function allocNegOf(id){
 function attLists(T){
   T=T||tiers();
   const MR=masterRanks();
-  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[], wbs:[], wbsx:[]};
+  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], awyear:[], neg:[], buy:[], code:[], si:[], wbs:[], wbsx:[]};
   // v2.12 (item 132): the coverage the Without a WBS heading states -- requirements and funded dollars with a WBS, of all
   // v2.12 RV2 (K01, K05, K09, K14): read off the Spend Plan Source's own lines (wbsBlankOf), on the funded plan
   const WP=wbsPick(), cov={n:0, of:0, f:0, fof:0}, WB=wbsBlankOf(), TF=WB.T;
@@ -3961,6 +3962,7 @@ function attLists(T){
     const aw=(S.awards||{})[id];
     // v1.95 (item 53): an award repaired on opening, until a person marks it checked -- needs repair first
     if(aw && aw.fix && typeof aw.fix==='object' && !aw.fix.ok) out.awfix.push(Object.assign({how:aw.fix.how, n:aw.fix.n}, row));
+    const ay=awdOutYearOf(aw, +MS.cur); if(ay.length) out.awyear.push(Object.assign({n:ay}, row));   // v2.17 (149.1)
     const neg=allocNegOf(id); if(neg.length) out.neg.push(Object.assign({n:neg}, row));
     const inc=!!(aw && aw.mode==='inc' && (aw.inc||[]).length);
     if(!(inc || (aw && aw.d))) out.oblig.push(row);
@@ -3995,6 +3997,9 @@ const ATT_KIND={
     why:'No award or obligation date, so every funded dollar on these is UNSCHEDULED in every spend plan. The funded ones are listed first, each with what it leaves UNSCHEDULED. <b>Go to it</b> selects the requirement at its award date.'},
   awfix:{t:'🔧 AWARDS REPAIRED WHEN THE BOARD OPENED', go:'Go to it',
     why:'The saved file held these awards in a shape the board could not use as they were. Nothing was zeroed: a list for the wrong number of services kept its total, spread over the requirement’s values (an <b>inferred split</b>); a figure or date that could not be read is <b>NEEDS REPAIR</b>, and its cash is UNSCHEDULED until it is entered again. Each award keeps the record as it was saved. <b>Go to it</b> opens the award block, where <b>✓ Checked</b> takes it off this list.'},
+  // v2.17 (item 149.1): an award dated outside the fiscal year on screen
+  awyear:{t:'📅 AWARDS DATED OUTSIDE THE FISCAL YEAR', go:'Go to it',
+    why:'Each of these awards carries a date outside the fiscal year on screen \u2014 most likely typed before v2.17, when a date box stored a date at every keystroke (15 January of the year 2). It is kept exactly as saved. Every spend plan places it by that date, and the Spend Plan Source sends it on 31 August of the year, as undated money. <b>Go to it</b> selects the requirement at its award date: pick the right date from the calendar.'},
   neg:{t:'\u2796 NEGATIVE ALLOCATIONS TO REPAIR', go:'Go to it',
     why:'An allocation cannot be below zero, and the board no longer takes one typed. These came in a saved file as they are. Each is kept exactly as it was saved and counts as <b>$0</b> in every figure until it is set again: <b>Go to it</b> selects the requirement, where its allocation can be typed again or put back to the requirement value.'},
   buy:{t:'✈ BUY QUANTITIES TO REPAIR', go:'Go to it',
@@ -4027,7 +4032,7 @@ function attBody(){
   if(!L.length){ el.innerHTML=h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing left on this list.</div>'; return; }
   const money=attOpen==='oblig'? '<th>Funded · UNSCHEDULED</th>' : (attOpen==='awshort'? '<th>Discretionary undated</th><th>Mandatory undated</th>'
     : (attOpen==='awfix'? '<th style="text-align:left">What was done, and the split used</th>'
-    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>'
+    : ((attOpen==='awyear' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>'
     : (attOpen==='wbsx'? '<th style="text-align:left">Not in the estimate, kept as stored</th><th>Funded</th>'
     : (attOpen==='wbs'? '<th style="text-align:left">What goes out with no WBS</th><th>No WBS</th><th>Funded</th>' : '<th>Funded</th>')))));
   h+='<table class="fctab atttab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
@@ -4037,7 +4042,7 @@ function attBody(){
     const cells=attOpen==='awshort'? '<td>'+fM(r.ud)+'</td><td style="color:var(--purp)">'+fM(r.um)+'</td>'
       : (attOpen==='awfix'? '<td class="awfixwhat" style="text-align:left;white-space:normal"><b>'+(r.how==='repair'? 'NEEDS REPAIR' : (r.how==='split'? 'Inferred split' : 'Converted'))+'</b> \u2014 '
           +esc((Array.isArray(r.n)? r.n : []).join(' \u00b7 '))+'</td>'
-      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
+      : ((attOpen==='awyear' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
       : (attOpen==='wbsx'? '<td class="attwbsx" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td><td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'
       : (attOpen==='wbs'? '<td class="attwbs" style="text-align:left;white-space:normal">'+esc((r.why||[]).join(' \u00b7 '))+'</td><td>'+(r.blank>0.5? fM(r.blank) : '—')+'</td><td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'
       : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'))));
@@ -4046,7 +4051,7 @@ function attBody(){
       +'<td style="text-align:left">'+esc(it.grp||'')+'</td>'+cells
       +'<td><button class="qb attgo" onclick="attGo('+jsa(attOpen)+','+jsa(r.id)+')">'+K.go+'</button></td></tr>'; });
   h+='<tr class="tot"><td></td><td style="text-align:left">'+L.length+' requirement'+(L.length===1?'':'s')+'</td><td></td>'
-    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>'
+    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='awyear' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>'
       : (attOpen==='wbsx'? '<td></td>' : (attOpen==='wbs'? '<td></td><td>'+(t2>0.5? fM(t2) : '—')+'</td>' : ''))+'<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
   el.innerHTML=h;
 }
@@ -7452,7 +7457,13 @@ function switchYear(y){
     } else if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
       // v2.14 RV2-D (the check of this fix): the one roll forward, shared with PMO Apply's (pmoYearStart), so the two cannot drift
       seed=pmoYearStart(y, true);
-    } else seed=freshYearState();
+    } else if(confirm('Start FY'+(y%100)+' EMPTY?\n\nOK \u2014 start FY'+(y%100)+' with no requirements and no budget authority (the board\u2019s own requirements wait in its Removed list).\nCancel \u2014 stay on FY'+(MS.cur%100)+' and start nothing.')){
+      // v2.17 (item 149.4): A YEAR NOT STARTED IS STARTED ONLY ON PURPOSE. The one question had no answer that backed out: Cancel (and
+      // Esc) started the year EMPTY, marked the board unsaved, and the board has no way to take a started year back -- a look at an
+      // out-year, or a slip in the menu, made a year the five-year plan prints as $0 and the next lock freezes (the 21 Nov review).
+      // Cancel now asks whether to start it empty, and Cancel there changes nothing.
+      seed=freshYearState();
+    } else { setStat('\u2139 FY'+(y%100)+' was not started. Still on '+FYL()+'.'); try{ render(); }catch(e){} return; }
     MS.years[y]=seed;
   }
   MS.years[MS.cur]=S;
@@ -8287,6 +8298,7 @@ function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && !/^
   && !jrnlBySvcPlace(e)
   && !jrnlCustomPlace(e)
   && !jrnlOlderLine(e)                                   // v2.14 RV1-D (d28-writes-false-journal-line)
+  && !jrnlRemovedLine(e)                                 // v2.17 (item 149.3)
   && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }
 // v1.97 (item 80): AN ENTRY RECORDED BEFORE THE SERVICE LIST CHANGED holds its figures by the places they had then, and
 // put back it would land on whichever service holds that place now. One whose path or value carries a place or a list
@@ -8365,6 +8377,12 @@ function jrnlLabel(e){
 // v2.14 (item 124): why a line about added requirements is not put back from the journal (jrnlBody's hover titles)
 // v2.15 W3 (item 146): the menus named as they are. An added requirement's ⋯ menu says "Delete this added requirement", not Remove,
 // and History & recovery holds earlier copies only for a board that works out of the shared folder.
+// v2.17 (item 149.3): THE REMOVED LIST IS NOT PUT BACK FROM THE JOURNAL. It is journalled by each entry's PLACE in the list, so
+// restoring one requirement shifted the others and Put back on a line brought back, or removed, a different requirement (the 21
+// Nov review, R1 extra-1): with R034 and R035 removed, restoring R034 and putting the first line back put R035 back on the board.
+// A requirement is removed or restored on the board itself (its row's ⋯ menu, the Removed list).
+function jrnlRemovedLine(e){ return !!(e && Array.isArray(e.p) && String(e.p[0])==='removed'); }
+const JRNL_NOT_REMOVED='The Removed list is not put back from the change journal: it is recorded by place in the list, and putting one line back could bring back or remove a different requirement. Remove a requirement from its row\u2019s \u22ef menu; restore one from the Removed list.';
 const JRNL_NOT_WHOLE='An added requirement as a whole — added or removed — is not put back from the change journal. To take one out, use Delete this added requirement on its row’s ⋯ menu; to bring one back, open an earlier saved copy of the board file (or, working out of the shared folder, History & recovery › Earlier copies…).';
 const JRNL_NOT_PLACE='Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.';
 // v2.15 W4 (item 146): a line filed by place in a year whose added ids repeat -- recorded so by this version, never "before v2.14"
@@ -8441,6 +8459,7 @@ function jrnlBody(){
         +'<td style="text-align:right">'+(jrnlUndoable(e)
             ? '<button class="btn" style="font-size:10px;padding:2px 7px" onclick="jrnlUndo('+x.i+')">↶ Put back</button>'
             // v2.14 (item 124): a line about added requirements that is not put back says so, and why, on hover
+            : jrnlRemovedLine(e)? '<span class="hint" style="margin:0" title="'+esc(JRNL_NOT_REMOVED)+'">not put back here</span>'   // v2.17 (149.3)
             : (Array.isArray(e.p) && !/^\(/.test(String(e.p[0])) && jrnlCustomPlace(e))
               ? '<span class="hint" style="margin:0" title="'+esc(typeof e.p[1]==='number' ? jrnlPlaceTitle(e) : JRNL_NOT_WHOLE)+'">not put back here</span>' : '')
         +'</td></tr>';
@@ -16357,6 +16376,39 @@ function setAwdDate(id,val){
 // a half, and a moved or deleted award left its mark behind. The award's own day now decides (crBuckets), and
 // nothing writes a mark: the ones an older board holds are kept, untouched, and read by nothing but the list of
 // awards whose half the date moved (crMovedList).
+// v2.17 (item 149.1): A DATE TYPED INTO AN AWARD BOX IS TAKEN WHEN IT IS LEFT, NEVER AT A KEYSTROKE. A browser's date box fires
+// change at every keystroke that leaves a whole date: typing 01/15/2027 fired 0002-01-15 at the first digit of the year, the
+// board stored it and redrew, the keyboard came back on the month, and the rest of the typing went astray -- 15 January of the
+// year 2, or 9 April retyped as 9 January, which moved $3,090,156 into January and the CR window with no message (the 21 Nov
+// review, D1). Now a change that follows a keystroke in the box is held (the box keeps __pend, so the v2.08 hold puts the
+// typing back over any redraw) and taken on Tab, a click elsewhere or Enter; a change with no keystroke -- a pick in the
+// calendar -- is taken at once, as before. A box left empty or half typed keeps the stored date (a date is cleared by its ✕),
+// and a date outside the fiscal year on screen is refused, naming the year.
+function awdDateIn(el){   // (el, id, i): the id and index are in the handler only so the v2.08 hold finds this box again, never another
+  if(!el) return false;
+  if(el.__awdKey){ el.__pend=true; return false; }   // typed: held until the box is left
+  return awdDateTake(el);
+}
+function awdDateKey(el, e){
+  if(!el || !e) return;
+  if(e.key==='Enter'){ e.preventDefault(); awdDateTake(el); return; }
+  if(e.key==='Tab' || e.key==='Escape' || e.key==='Shift') return;
+  el.__awdKey=true;
+}
+function awdDateLeave(el){ if(el && el.__awdKey && document.activeElement!==el) awdDateTake(el); }
+function awdDateOk(v){ return /^\d{4}-\d{2}-\d{2}$/.test(v||'') && v>=fyMin() && v<=fyMax(); }
+function awdDateTake(el){
+  const typed=!!el.__awdKey; el.__awdKey=false; el.__pend=false;
+  const v=el.value||'', id=el.getAttribute('data-awd'), i=el.getAttribute('data-awd-i');
+  if(!id) return false;
+  if(v===(el.getAttribute('value')||'')) return false;          // nothing changed
+  if(!v){ if(typed){ setStat('\u2139 The award date was not changed: the date box was left empty or not finished. To clear a date, use its \u2715.'); render(); } return false; }
+  if(!awdDateOk(v)){
+    setStat('\u26a0 The award date was not changed: '+esc(v)+' is not in '+esc(FYL())+' ('+fyMin()+' to '+fyMax()+'). Type the whole date, or pick it from the calendar.');
+    render(); return false; }
+  if(i==null) setAwdDateFull(id, v); else setAwdIncDate(id, +i, v);
+  return true;
+}
 function setAwdDateFull(id,val){
   if(!val){ awdDrop(id); save(); render(); flash(id); return; }
   const ym=val.slice(0,7), day=parseInt(val.slice(8),10)||1;
@@ -16377,6 +16429,17 @@ function setAwdIncDate(id,i,val){
   save(); render(); flash(id);
 }
 const fyMin=()=> (MS.cur-1)+'-10-01';
+// v2.17 (item 149.1): AN AWARD DATED OUTSIDE ITS FISCAL YEAR -- what a date typed before v2.17 could leave (15 January of the year 2).
+// Every stored date of the award, as 'yyyy-mm-dd', that is not in fy (October to September); kept as saved and listed under
+// Needs attention, and the Spend Plan Source sends such a line on 31 August of the year, as undated money, never in 1902.
+function awdInFy(d, day, fy){ const m=/^(\d{4})-(\d{2})$/.exec(String(d||'')); if(!m) return true;
+  const v=m[1]+'-'+m[2]+'-'+String(day||1).padStart(2,'0'); return v>=(fy-1)+'-10-01' && v<=fy+'-09-30'; }
+function awdOutYearOf(aw, fy){
+  if(!aw || typeof aw!=='object') return [];
+  const L=aw.mode==='inc'? (Array.isArray(aw.inc)? aw.inc : []) : [aw];
+  return L.filter(function(x){ return x && x.d && !awdInFy(x.d, x.day, fy); })
+    .map(function(x){ return String(x.d)+'-'+String(x.day||1).padStart(2,'0'); });
+}
 const fyMax=()=> MS.cur+'-09-30';
 const awDateVal=(ym,day)=> ym? ym+'-'+String(day||1).padStart(2,'0') : '';
 function fillLastAwd(id){
@@ -16426,6 +16489,7 @@ function toggleAwdInc(id, funded){
 function addAwd(id){
   const v=document.getElementById('awdM-'+id).value;
   if(!v){ alert('Pick a date for the new increment.'); return; }
+  if(!awdDateOk(v)){ setStat('\u26a0 No award added: '+esc(v)+' is not in '+esc(FYL())+' ('+fyMin()+' to '+fyMax()+').'); return; }   // v2.17 (149.1)
   const ym=v.slice(0,7), day=parseInt(v.slice(8),10)||1;
   const aw=S.awards[id];
   if(!aw||aw.mode!=='inc'){ S.awards[id]={mode:'inc', inc:[]}; awdKeepFix(id, aw); }
@@ -23879,7 +23943,9 @@ function srcRowsOf(fy, St, T, rec, only){
     // end is its last day (v1.95), as for an increment below and on the 1A9A: the 31st of November is the 30th,
     // never the 1st of December -- the month every other surface places it in.
     const ymW=/^(\d{4})-(\d{2})$/.exec(String(when||''));
-    const dt=srcSerial(when, (ymW && aw && aw.day)? Math.min(aw.day, crLastDay(+ymW[1], +ymW[2]-1)) : (aw&&aw.day)) || srcDefaultObl(fy);
+    // v2.17 (item 149.1): a date outside the fiscal year goes out as undated money, on 31 August, never as the year 2 (1902 in Excel)
+    const dt=(ymW && !awdInFy(when, aw && aw.day, fy))? srcDefaultObl(fy)
+      : (srcSerial(when, (ymW && aw && aw.day)? Math.min(aw.day, crLastDay(+ymW[1], +ymW[2]-1)) : (aw&&aw.day)) || srcDefaultObl(fy));
     // AN INCREMENTAL AWARD GOES OUT A LINE PER INCREMENT (v1.95, item 60, F2; Brad: "F2 option (a)"). It went out as
     // one line, all of it dated the 1st of its first increment as stored, while the forecast and the CR views put
     // the increments in their own months. Each increment's line now carries its own date -- the day landSvc(), the
@@ -23895,7 +23961,7 @@ function srcRowsOf(fy, St, T, rec, only){
       L.at.forEach(function(a){
         if(!(a[k]>0)) return;
         const ym=/^(\d{4})-(\d{2})$/.exec(String(a.d||''));
-        out.push([(ym && srcSerial(a.d, Math.min(a.day, crLastDay(+ym[1], +ym[2]-1)))) || srcDefaultObl(fy), a[k]]);
+        out.push([(ym && awdInFy(a.d, a.day, fy) && srcSerial(a.d, Math.min(a.day, crLastDay(+ym[1], +ym[2]-1)))) || srcDefaultObl(fy), a[k]]);   // v2.17 (149.1)
       });
       const rest=(lane==='mand')? L.um : L.ud;
       if(rest>0) out.push([srcDefaultObl(fy), rest]);
@@ -24885,7 +24951,7 @@ function applyProposedOrder(){
   if(!confirm('Publish this order to your live 1\u2013N?\n\n'
     +moved+' requirement'+(moved===1?'':'s')+' change position.\n\n'
     +'This becomes the working priority order for the board, the cutlines and every export.\n'
-    +'\u21ba Reset priority order will undo it.')) return;
+    +'The order is not in the change journal: to undo it, open an earlier saved copy of the file. Save first if you may want this order back.')) return;   // v2.17 (149.6): Reset does not undo it
   S.order=prop;
   poOpen=false;
   save(); render();
@@ -25509,7 +25575,7 @@ function poBody(){
   h+='<div class="fr" style="margin-top:10px;gap:8px">'
     +'<button class="btn" onclick="exportProposedOrder()">\u2b07 Export this report</button>'
     +'<button class="btn pub" onclick="applyProposedOrder()">\u2714 Publish to my live 1\u2013N</button>'
-    +'<span class="hint">Nothing changes until you publish. Reversible with \u21ba Reset priority order.</span></div>';
+    +'<span class="hint">Nothing changes until you publish. Publishing is not undone by Reset priority order: save first if you may want today\u2019s order back.</span></div>';
   el.innerHTML=h;
 }
 // v1.92: ONE CELL WRITER FOR EVERY CSV THIS BOARD MAKES. A spreadsheet reads a cell that starts with = + - @
@@ -25753,8 +25819,15 @@ function cycProjOf(){
     const alloc=(S.fsrc||{})[id]? fund.slice() : svcAlloc(it).slice();
     const ask=it.ask.slice();
     const g=grpOf(it);
-    reqs.push({id, title:dispTitle(it), grp:g, ccar:ccarOf(it)||'', pid:pidOf(it)||'',
-               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc, d, m, fund});
+    const row={id, title:dispTitle(it), grp:g, ccar:ccarOf(it)||'', pid:pidOf(it)||'',
+               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc, d, m, fund};
+    // v2.16 (item 148): WHICH WORK THIS IS, ACROSS YEARS. An added requirement's id is its own year's number (newReqSeq), so
+    // FY28's NEW-1 and FY29's NEW-1 can be two different requirements; the five-year plan joined the years by id and printed one
+    // requirement's dollars under the other's name. The projection says it was added, and what it continues (its link), so
+    // fydpLineKeys can join the years by the work. Only on an added one: a board-data id is the same work in every year.
+    if(it.custom) row.custom=true;
+    if(it.prior && it.prior.id!=null) row.prior={fy:+it.prior.fy, id:String(it.prior.id)};
+    reqs.push(row);
     if(!pmo[g]) pmo[g]={ask:SVC.map(_=>0), alloc:SVC.map(_=>0), fund:SVC.map(_=>0), n:0};
     pmo[g].n++;
     SVC.forEach((sv,i)=>{ pmo[g].ask[i]+=ask[i]||0; pmo[g].alloc[i]+=alloc[i]||0; pmo[g].fund[i]+=fund[i]; });
@@ -26825,8 +26898,62 @@ function fydpBookYears(D){
   for(let y=b; y<=b+4; y++) out.push(y);
   return out;
 }
+// v2.16 (item 148): ONE LINE PER PIECE OF WORK, NEVER PER NUMBER. Brad, 19 Nov 2026, from the real board: "GEX/GATES is somehow being
+// confused with the Option Year requirement in the five year spend plan export." FY28's LM Option Year was NEW-n and FY29's GEX/GATES
+// was NEW-n: joined by id, FY28's $2.56B printed on the GEX/GATES line, under FY29's name and CCaR record. fydpLineKeys says, per held
+// year, which line each requirement is: {y: {id: key}}.
+// - a board-data id is the same work in every year: 'id|'+id;
+// - else an added requirement that continues another (its link, prior) takes that one's line: a board-data id's, an added one's in a held
+//   year through its own key, or one before the window keyed by its year and id (so two years continuing it share one line);
+// - first, a rolled year: the nearest earlier held year's requirement of the same id is this one when it is the same work by
+//   yrCopySame's rule (the same link, title, office and CCaR work) -- a year started as a copy keeps every id and every link;
+// - anything else is its own line ('new|'+year+'|'+id), and two requirements of one year never share one.
+// A projection taken before v2.16 says nothing of either: an id shaped NEW- is read as added, and with no link the rolled-year rule
+// decides, so at worst one requirement prints as two lines -- never with another's dollars.
+function fydpProjAdded(r){ return !!(r && (r.custom===true || (r.custom===undefined && /^NEW-/.test(String(r.id))))); }
+function fydpLineKeys(X, Y){
+  const K=Object.create(null);
+  const held=(Y||[]).filter(function(y){ return !!(X && X.proj && X.proj[y] && Array.isArray(X.proj[y].reqs)); })
+    .slice().sort(function(a,b){ return a-b; });
+  const linkOf=function(r){ return (r && r.prior && r.prior.id!=null)? +r.prior.fy+'|'+String(r.prior.id) : ''; };
+  held.forEach(function(y, yi){
+    const kk=K[y]=Object.create(null), used=Object.create(null);
+    X.proj[y].reqs.forEach(function(r){
+      const id=String(r.id); let k='';
+      if(!fydpProjAdded(r)) k='id|'+id;
+      else {
+        // a rolled year first: it keeps the id AND the link, so the nearest earlier held year's requirement of that id, with the
+        // same link, title, office and CCaR work, is this one (yrCopySame's rule) -- even where its link's line is taken this year
+        for(let j=yi-1; j>=0; j--){
+          const e=held[j], pr=(X.proj[e].reqs||[]).filter(function(x){ return String(x.id)===id; })[0];
+          if(!pr) continue;
+          if(fydpProjAdded(pr) && linkOf(pr)===linkOf(r) && String(pr.title||'')===String(r.title||'')
+             && String(pr.grp||'')===String(r.grp||'') && ccarSameWork(pr.ccar, r.ccar)) k=K[e][id]||'';
+          break;
+        }
+        if((!k || used[k]) && linkOf(r)){
+          const pid=String(r.prior.id), pfy=+r.prior.fy;
+          if(!/^NEW-/.test(pid)) k='id|'+pid;
+          else if(K[pfy] && K[pfy][pid]) k=K[pfy][pid];
+          else k='new|'+pfy+'|'+pid;
+        }
+      }
+      if(!k || used[k]) k='new|'+y+'|'+id;
+      used[k]=1; kk[id]=k;
+    });
+  });
+  return K;
+}
+// the requirement in year y that is the same work as requirement `id` of year y0 ('' when that year holds none)
+function fydpSameIn(K, y0, id, y){
+  const k=K[y0] && K[y0][String(id)]; if(!k || !K[y]) return '';
+  if(+y===+y0) return String(id);
+  const m=K[y]; for(const x in m){ if(m[x]===k) return x; }
+  return '';
+}
 function fydpBookApp(X, Y){
   const reqs=Object.create(null), order=[];
+  const LK=fydpLineKeys(X, Y);     // v2.16 (item 148): the line each year's requirement belongs on
   const upl=Object.create(null);     // v2.12 (item 134): each held year's UPL by lane, from that year's projection
   const held=Y.filter(function(y){ return !!(X && X.proj && X.proj[y] && Array.isArray(X.proj[y].reqs)); });
   held.forEach(function(y){
@@ -26840,8 +26967,9 @@ function fydpBookApp(X, Y){
     sv.forEach(function(s, i){ const f=fydpSvcFold(s); if(upl[y].svc.indexOf(f)<0) upl[y].svc.push(f);
       ['d','m'].forEach(function(k){ upl[y][k][f]=(upl[y][k][f]||0)+LU[k][i]; }); });
     P.reqs.forEach(function(r){
-      if(!reqs[r.id]){ reqs[r.id]={id:r.id, title:'', ccar:'', fy:Object.create(null)}; order.push(r.id); }
-      const q=reqs[r.id];
+      const lk=(LK[y] && LK[y][String(r.id)]) || ('new|'+y+'|'+r.id);
+      if(!reqs[lk]){ reqs[lk]={id:r.id, title:'', ccar:'', fy:Object.create(null)}; order.push(lk); }
+      const q=reqs[lk]; q.id=r.id;
       q.title=String(r.title||r.id); q.ccar=String(r.ccar||'').replace(/\s+/g,' ').trim();   // the latest year's naming
       q.fy[y]={grp:String(r.grp||''), svc:sv, ask:(r.ask||[]).map(function(v){ return +v||0; }),
                alloc:(r.fund||r.alloc||[]).map(function(v){ return +v||0; })};
@@ -30777,6 +30905,7 @@ function scoreboard(){
             ? pl(A.awfix.filter(function(x){ return x.how==='repair'; }).length,'award needs repair','awards need repair')
               +(A.awfix.some(function(x){ return x.how!=='repair'; })? ' · '+A.awfix.filter(function(x){ return x.how!=='repair'; }).length+' repaired' : '')
             : pl(A.awfix.length,'award repaired on opening','awards repaired on opening')) : '')
+        +(A.awyear.length? ae('awyear', '📅', pl(A.awyear.length,'award dated outside the year','awards dated outside the year')) : '')   // v2.17 (149.1)
         +(A.neg.length? ae('neg', '\u2796', pl(A.neg.length,'negative allocation to repair','negative allocations to repair')) : '')
         +(A.buy.length? ae('buy', '\u2708', pl(A.buy.length,'buy line to repair','buy lines to repair')) : '')
         +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '')
@@ -31795,8 +31924,8 @@ function awardBlockHtml(it){
       return `<div class="awdblk" style="padding:6px 2px 2px;border-top:1px solid var(--line);margin-top:6px">
       <b style="font-size:10px;color:var(--gold);letter-spacing:.5px">📅 AWARD / OBLIGATION</b>
       &nbsp;<label style="font-size:10.5px">Award date:
-        <input type="date" ${isInc?'disabled style="opacity:.5"':''} value="${!isInc&&aw? awDateVal(aw.d,aw.day):''}" min="${fyMin()}" max="${fyMax()}"
-          onchange="setAwdDateFull(${jsa(it.id)},this.value)" title="click to pick the award/obligation date from the calendar — the day sets the CR half-month window"></label>
+        <input type="date" ${isInc?'disabled style="opacity:.5"':''} value="${!isInc&&aw? awDateVal(aw.d,aw.day):''}" min="${fyMin()}" max="${fyMax()}" data-awd="${esc(it.id)}"
+          onchange="awdDateIn(this,${jsa(it.id)})" onkeydown="awdDateKey(this,event)" onblur="awdDateLeave(this)" title="click to pick the award/obligation date from the calendar — the day sets the CR half-month window"></label>
       ${(!isInc&&aw&&aw.d)?`<button class="qb" onclick="setAwdDateFull(${jsa(it.id)},'')" title="clear the award date">✕</button>`:''}
       <span style="font-size:9.5px;color:var(--dim)">${!isInc? (aw&&aw.d? ((aw.day?'day '+aw.day+' (baseline) · ':'')+'full funded amount ('+fM(funded)+(pw.mT>0.5 && pw.dT>0.5? ' — '+lanes(pw.dT,pw.mT) : '')+') forecasts in this month'):'no date — funded amount shows as UNSCHEDULED in the forecast'):''}</span>
       &nbsp;&nbsp;<label style="font-size:10.5px;cursor:pointer"><input type="checkbox" ${isInc?'checked':''} onchange="toggleAwdInc(${jsa(it.id)},${Math.round(funded)})"> <b style="color:${isInc?'var(--green)':'var(--dim)'}">Incremental funding</b></label>
@@ -31807,7 +31936,7 @@ function awardBlockHtml(it){
         return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
         <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${esc(s)}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--dim);padding:2px 6px" title="how this award splits: discretionary fills the awards forward from the first, mandatory backward from the last">Disc · Mand</th><th style="color:var(--blue);padding:2px 6px" title="funded dollars, both lanes, still unscheduled after this award — the last one has to clear it">Remaining</th><th></th></tr>
         ${(()=>{ let run=funded; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); const q=sp.by[i]||{dv:0,mv:0}; return `<tr>
-          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate(${jsa(it.id)},${i},this.value)" title="click for the calendar — this award's obligation date (day sets the CR half-month window)">${a.fx? awdFxTag(a.fx) : ''}</td>
+          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" data-awd="${esc(it.id)}" data-awd-i="${i}" onchange="awdDateIn(this,${jsa(it.id)},${i})" onkeydown="awdDateKey(this,event)" onblur="awdDateLeave(this)" title="click for the calendar — this award's obligation date (day sets the CR half-month window)">${a.fx? awdFxTag(a.fx) : ''}</td>
           ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${esc(s)} award for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}, both lanes"></td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
           <td class="awdsplit" style="padding:2px 6px;white-space:nowrap;color:var(--dim)" title="placed by the board's one rule: discretionary forward from the first award, mandatory backward from the last">${lanes(q.dv,q.mv)}</td>
@@ -31824,7 +31953,7 @@ function awardBlockHtml(it){
           <td colspan="2" style="padding:2px 6px">${(Math.abs(bal)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining balance, discretionary + mandatory, on the latest award, per service — the residual mod">↵ put on last</button>`:''}</td></tr>
         </table>
         <span style="display:inline-block;margin-top:4px">
-          <input type="date" id="awdM-${esc(it.id)}" min="${fyMin()}" max="${fyMax()}" title="pick the new award's date from the calendar">
+          <input type="date" id="awdM-${esc(it.id)}" min="${fyMin()}" max="${fyMax()}" onkeydown="if(event.key==='Enter'){event.preventDefault();addAwd(${jsa(it.id)});}" title="pick the new award's date from the calendar, or type it and press Enter">
           <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an award at the picked date">＋ add date</button></span>
         <span style="font-size:9.5px;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'};margin-left:8px">awards ${fM(incSum)} vs <b>funded</b> ${fM(funded)}${pw.mT>0.5? ' (discretionary '+fM(pw.dT)+' + mandatory '+fM(pw.mT)+')' : ''}${Math.abs(bal)<1?' ✓':''}</span>
         <div style="font-size:9.5px;color:var(--dim);margin-top:2px">ℹ Each award is the whole award, both lanes. Discretionary fills them forward from the first; mandatory fills them backward from the last, so it always awards last.</div>
@@ -31968,8 +32097,12 @@ function rowMenuHtml(it){
     // category, WBS, RCN/EEIC, SI, budget per service, destination -- used to hang here as up to
     // sixteen more rows, six of them added by the BAE registry alone. The unset count rides on the
     // entry so a blank field in the Spend Plan Source export is visible without opening anything.
-    +'<div class="msep"></div><div class="mlbl">Allocation</div>'
-    +mi('↺ Reset to the full requirement','resetAlloc('+jsa(id)+')')
+    // v2.17 (item 149.5; Brad, 21 Nov: the Funding page only): RESET TO THE FULL REQUIREMENT CHANGES MONEY, so it is offered where
+    // money is set -- Fund mode, the left menu's Funding -- and only on a row it can change: one with an allocation of its own that
+    // is not a per-service Split (a Split states its own allocation, and Reset changed nothing there but the save state). In Review
+    // one click raised a trimmed allocation to the full requirement with no question and no message (the 21 Nov review, critic-4).
+    +(allocResettable(id)? '<div class="msep"></div><div class="mlbl">Allocation</div>'
+    +mi('↺ Reset to the full requirement','resetAlloc('+jsa(id)+')') : '')
     +(ys.length? '<div class="msep"></div><div class="mlbl">Move between fiscal years</div>'
       +'<div class="mi" style="padding-top:2px"><span class="chk"></span>'
       +'<select class="cesel" style="margin:0;max-width:200px" onchange="rowMenuId=null;xferYear('+jsa(id)+',this.value)">'
@@ -38035,10 +38168,18 @@ function ddrop(e,id){
   reorder(list, dragId, list.indexOf(id));
   dragId=null;
 }
+// v2.17 (item 149.6): IT SAYS WHAT IT DOES, AND IT IS NOT REACHED WHILE ONE OFFICE IS SHOWING. The question said "FY27" on every
+// year (fixed text), did not say it replaces the master order for every office, or that the order is not in the change journal so
+// nothing puts it back; with one office showing, the bar beside it said the master list was untouched; and nothing was said after
+// (the 21 Nov review, critic-5). Added requirements were never sorted by size: they go last, in the order they were added.
 function resetOrder(){
-  if(!confirm('Reset the priority order to FY27 ask (largest first)?\nAllocations, MC flags, and BA values are untouched.')) return;
+  if(pmoMode()){ setStat('\u2139 <b>Reset priority order</b> replaces the master order for every office, so it is not offered while one office is showing. Choose All programme offices first.'); return; }
+  const nc=(S.custom||[]).length;
+  if(!confirm('Reset the '+FYL()+' priority order for EVERY office?\n\nThe master order becomes the board\u2019s own requirements by '+FYL()+' requirement value, largest first'
+    +(nc? ', then the '+nc+' added requirement'+(nc===1?'':'s')+' in the order they were added' : '')+'.\n\nThe order is not in the change journal, so this cannot be put back except from an earlier saved copy of the file. Allocations, Mission Critical and budget authority are not touched.')) return;
   S.order = defaultOrder().filter(id=>!S.removed.includes(id)).concat(S.custom.map(i=>i.id));
   save(); render();
+  setStat('\u21ba The '+FYL()+' priority order was reset for every office.');
 }
 
 // THE ALLOCATION IS THE PORTFOLIO TEAM'S (v1.84). A PMO copy edits everything else on a requirement
@@ -38054,9 +38195,19 @@ function allocLocked(){
   try{ render(); }catch(e){}
   return true;
 }
+function allocResettable(id){
+  if(uiMode!=='fund') return false;
+  const a=(S.alloc||{})[id], f=(S.fsrc||{})[id];
+  return !!(a && !(f && f.m==='split'));
+}
 function resetAlloc(id){
   if(allocLocked()) return;
+  // v2.17 (item 149.5): it says what it did
+  const it=itemById(id), sum=function(v){ return (v||[]).reduce(function(x,y){ return x+(+y||0); }, 0); };
+  const was=it? sum(svcAlloc(it)) : 0;
   S.alloc[id]=null; save(); render(); flash(id);
+  const now=it? sum(svcAlloc(it)) : 0, d=now-was;
+  if(it) setStat('\u21ba <b>'+esc(dispTitle(it))+'</b>: allocation back to the full requirement'+(Math.abs(d)>=1? ' ('+(d>0?'+':'\u2212')+fM(Math.abs(d))+')' : ' (no change)')+'. The change journal can put it back.');
 }
 function setAlloc(id,val){
   if(allocLocked()) return;
@@ -38974,6 +39125,11 @@ function priorHtml(it){
     +(L.on && L.fy!==+MS.cur? ' <button type="button" class="qb" onclick="switchYear('+L.fy+')">Go to FY'+(L.fy%100)+'</button>' : '')+'</div>';
 }
 function restoreAll(){
+  // v2.17 (item 149.3): RESTORE ALL ASKS FIRST, AND CANCEL RESTORES NOTHING. One click put every removed requirement back with no
+  // question -- on a year started blank, its whole baseline (Brad's FY28: 155 beside three) -- and the one question there was, for
+  // linked requirements, restored the others on either answer. Taking them out again is one at a time.
+  const all=(S.removed||[]).length; if(!all) return;
+  if(!confirm('Put all '+all+' removed requirement'+(all===1?'':'s')+' back into '+FYL()+'?\n\nEach comes back at the bottom of the priority order, and its value counts again. Taking them out again is one at a time.\n\nOK \u2014 restore all '+all+'.\nCancel \u2014 restore nothing.')) return;
   // v2.06 (review fix): what this year already carries as a linked requirement is named, and kept out unless asked for
   const linked=(S.removed||[]).filter(function(id){ return !!yearLinkOf(id); });
   let keep=[];
@@ -39823,9 +39979,12 @@ function aiFig(r, m){
 // THE REQUEST: instructions, then the data, in one file a person can upload or paste.
 function aiRequestText(){
   const D=fydpData('working'), T=tiers(), MR=masterRanks();
+  // v2.16 (item 148): another year's figures are the same WORK's, never the same number's (fydpLineKeys)
+  const LK=fydpLineKeys(D, D.held);
   const reqs=(S.order||[]).map(function(id){ const it=itemById(id); if(!it) return null;
     const years={};
-    D.held.forEach(function(y){ const r=((D.proj[y]||{}).reqs||[]).filter(function(x){ return x.id===id; })[0]; if(!r) return;
+    D.held.forEach(function(y){ const yid=fydpSameIn(LK, MS.cur, id, y);
+      const r=yid? ((D.proj[y]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null; if(!r) return;
       years[y]={ask:aiFig(r,'ask'), alloc:aiFig(r,'alloc'), fund:aiFig(r,'fund'), unf:aiFig(r,'unf')}; });
     const o={id:id, rank:MR[id]||null, title:dispTitle(it), recordName:recName(it)||'', pmo:grpOf(it)||'', ccar:ccarOf(it)||'',
       missionCritical:!!S.mc[id], description:((S.desc||{})[id]||''), impact:((S.cons||{})[id]||''), years:years};
@@ -39907,7 +40066,9 @@ function aiRead(raw){
       if(f.figure!=null){ r.figure=(typeof f.figure==='number' && isFinite(f.figure))? f.figure : NaN;
         if(isNaN(r.figure)){ r.checks.push('the figure is not a number'); r.ok=false; } }
       if(r.year!==null && r.measure && D.held.indexOf(r.year)>=0){
-        const pr=((D.proj[r.year]||{}).reqs||[]).filter(function(x){ return x.id===r.id; })[0];
+        // v2.16 (item 148): the same work in that year, as the request named it (fydpLineKeys), never the same number
+        const yid=fydpSameIn(fydpLineKeys(D, D.held), MS.cur, r.id, r.year);
+        const pr=yid? ((D.proj[r.year]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null;
         r.board=pr? aiFig(pr, r.measure) : 0;
         if(r.figure!==null && !isNaN(r.figure) && Math.round(r.figure)!==Math.round(r.board)){
           r.checks.push('the board says '+fM(r.board)+', not '+fM(r.figure)); r.ok=false; }
@@ -41691,6 +41852,7 @@ function drawerOpen(){
   const p=document.getElementById('inspector'), s=document.getElementById('drawerScrim');
   if(!p) return;
   p.classList.add('open'); if(s) s.classList.add('on');
+  p.removeAttribute('inert');   // v2.17 (149.2): taken off the sliding panel while it is closed
   try{ inspSplitFit(); }catch(e){}
   // A drawer that traps nothing still has to be escapable, and a panel that opens under the
   // keyboard's feet is a panel a keyboard user cannot reach.
@@ -41698,12 +41860,38 @@ function drawerOpen(){
   p.setAttribute('aria-label','Record'); p.setAttribute('tabindex','-1');
   try{ p.focus({preventScroll:true}); }catch(e){}
 }
-function drawerClose(){
+// v2.17 (item 149.2): THE KEYBOARD LEAVES THE RECORD WHEN IT CLOSES, AND A CLOSED RECORD CANNOT BE TYPED INTO. The sliding
+// panel was only moved off the screen: after Esc the keyboard stayed in the box it was in, the next key changed that requirement
+// with nothing on screen (one arrow key changed a decision band; a digit then Tab made a value $5), and Tab walked the hidden
+// panel's buttons (the 21 Nov review, D2, W4). The hand-back to the row never worked either: a row could not take the keyboard.
+// Now: a figure half typed when Esc closes the panel is put back (Brad, 21 Nov: the old figure comes back); the row takes the
+// keyboard (tabindex -1, gridMark); and the closed sliding panel is inert until it opens again.
+function drawerEscRevert(p){
+  const a=document.activeElement;
+  if(!p || !a || !p.contains(a) || a.tagName!=='INPUT') return;
+  if(a.__pend || a.__awdKey){
+    a.value=(a.type==='date')? (a.getAttribute('value')||'') : a.defaultValue;
+    a.__pend=false; a.__awdKey=false; a.__held=undefined;
+  }
+}
+function drawerInertSync(){
+  const p=document.getElementById('inspector'); if(!p) return;
+  if(drawerNarrow() && !p.classList.contains('open')) p.setAttribute('inert',''); else p.removeAttribute('inert');
+}
+function drawerClose(viaEsc){
   const p=document.getElementById('inspector'), s=document.getElementById('drawerScrim');
+  const wasOpen=!!(p && p.classList.contains('open'));
+  if(viaEsc===true && !wasOpen) return;     // Esc with no record open belongs to whatever has the keyboard (a menu, the message)
+  if(viaEsc===true) drawerEscRevert(p);
+  const a=document.activeElement, had=!!(p && a && (a===p || p.contains(a)));
   if(p) p.classList.remove('open');
   if(s) s.classList.remove('on');
-  // Put the reader back where they were, not at the top of a 115-row list.
-  try{ const r=document.getElementById('row-'+curRow); if(r) r.focus({preventScroll:true}); }catch(e){}
+  // Put the reader back where they were, not at the top of a 115-row list -- only when the keyboard was in the record, or
+  // nowhere (the scrim): a closed record never takes the keyboard from a menu or a button outside it.
+  try{ const r=document.getElementById('row-'+curRow);
+    if(wasOpen && drawerNarrow() && (had || !a || a===document.body || a.id==='drawerScrim')){
+      if(r){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); } else if(had && a.blur) a.blur(); } }catch(e){}
+  drawerInertSync();
 }
 function drawerSync(){
   // The window can be resized across the breakpoint with the drawer open, or docked and then
@@ -41712,9 +41900,23 @@ function drawerSync(){
 }
 try{ window.addEventListener('resize', drawerSync); }catch(e){}
 try{ document.addEventListener('keydown', function(e){
-  if(e.key==='Escape' && drawerNarrow()) drawerClose(); }); }catch(e){}
+  if(e.key==='Escape' && drawerNarrow()) drawerClose(true); }); }catch(e){}
+// v2.17 (item 149.2, critic-7): TAB STAYS IN THE OPEN SLIDING RECORD. The rest of the page is dimmed for the mouse; the keyboard
+// walked out of the panel's last control into the rows behind it and opened another requirement's menu on top of it. Inside the
+// open sliding panel Tab wraps; a box over it keeps its own keyboard (the v1.93 controller).
+try{ document.addEventListener('keydown', function(e){
+  if(e.key!=='Tab' || !drawerNarrow()) return;
+  try{ if(DLG.stack.length>0) return; }catch(x){}   // a box over the panel keeps its own keyboard
+  const p=document.getElementById('inspector'); if(!p || !p.classList.contains('open')) return;
+  const a=document.activeElement; if(!a || !(a===p || p.contains(a))) return;
+  const T=dlgTabbables(p); if(!T.length) return;
+  const i=T.indexOf(a);
+  if(e.shiftKey && (i<=0)){ e.preventDefault(); T[T.length-1].focus(); }
+  else if(!e.shiftKey && i===T.length-1){ e.preventDefault(); T[0].focus(); }
+}); }catch(e){}
 function gridMark(){
   gridRows().forEach(function(r){ r.classList.toggle('cur', r.id === 'row-' + curRow); });
+  drawerInertSync();   // v2.17 (149.2): the closed sliding panel takes no keyboard
 }
 // Called after every render. The selection survives a re-render, a re-sort and a drag; if the row
 // it pointed at is gone (removed, filtered out) it falls back to the top of the list rather than
