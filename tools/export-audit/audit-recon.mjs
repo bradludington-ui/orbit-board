@@ -4093,7 +4093,7 @@ await (async () => {
       return { X, ALL };
     };
     // window.confirm answering `ans`, every question counted and kept
-    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { if (/^Start FY\d+ EMPTY\?/.test(String(m))) return true; w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };   // v2.17 (149.4): Cancel to roll forward is followed by "start it empty?", answered yes here so Cancel still means a blank year
     // the exported workbook read back from its bytes; window.confirm is left as it is, so the count covers the export too
     const dBook = async X => { const wb = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob;
         window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
@@ -4262,7 +4262,7 @@ await (async () => {
       if (carried) a.sp = { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Carried Spares', 'USAF Spares Initial Mandatory PSM', 100 * M, 'Program (ATL)')] } };
       return a; };
     // window.confirm answering `ans`, every question counted and kept
-    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { if (/^Start FY\d+ EMPTY\?/.test(String(m))) return true; w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };   // v2.17 (149.4): Cancel to roll forward is followed by "start it empty?", answered yes here so Cancel still means a blank year
     const setBase = (X, y) => { X.w.prompt = () => String(y); X.ev(`setBaseYear(); 'ok'`); X.w.prompt = () => null; };
     // { base: 2027|2026, rule: true|false, plan: true|false, carried: true|false }
     const build = c => {
@@ -4568,7 +4568,7 @@ await (async () => {
       r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
     const WB = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * M, 'Program (TSS)')] } } };
     // window.confirm answering `ans`, every question counted and kept
-    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { if (/^Start FY\d+ EMPTY\?/.test(String(m))) return true; w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };   // v2.17 (149.4): Cancel to roll forward is followed by "start it empty?", answered yes here so Cancel still means a blank year
     const X = boot();
     seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M])], disc: [500 * M], mand: [0], order: ['F1'] });
     X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
@@ -11668,7 +11668,8 @@ await (async () => {
   const ids1 = JSON.parse(bev(`JSON.stringify(S.custom.map(x=>[x.id,x.title]))`));
   // year 2, blank: GEX then LM (so the numbers cross), LINK brought in From another year twice (two copies of one requirement)
   // (a filler first, so the requirement carried From another year is numbered differently in each year: only its link can join it)
-  bev(`window.confirm=()=>false; switchYear(${cur + 1}); ${add('GEX/GATES', [60000, 0])}; ${add('LM Option Year', [2600000000, 0])};
+  // v2.17 (149.4): a blank year is Cancel to roll forward, then OK to start it empty
+  bev(`window.confirm=m=>/^Start FY\\d+ EMPTY\\?/.test(String(m)); switchYear(${cur + 1}); ${add('GEX/GATES', [60000, 0])}; ${add('LM Option Year', [2600000000, 0])};
     ${add('Filler', [1, 0])}; ${add('LINK carried', [800, 8], { y: cur, id: ids1[2][0] })}; ${add('LINK second copy', [900, 9], { y: cur, id: ids1[2][0] })}; save(); 'ok'`);
   const ids2 = JSON.parse(bev(`JSON.stringify(S.custom.map(x=>[x.id,x.title]))`));
   // year 3, a ROLL FORWARD of year 2 (every id kept, no links): each line carries on
