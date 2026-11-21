@@ -57,6 +57,7 @@ const ui = {
   pub: { fys: null, miss: false }, pubM: null,   // Publish spend plan (§33): the years ticked (null: every year), only records with no description, its own model
   open: new Map(),          // scope -> Map(path key -> true/false): a node opened or closed by hand
   level: new Map(),         // scope -> 1..4: the "Expand to" choice; 2 (PMO and Title, as v12 opens) until changed
+  drag: null,               // §46 the PMO or title being dragged (its ui.reg.ord entry)
   pmoKey: null,             // the PMO picked on the PMOs view, by its normKey, so a rebuilt model keeps the choice
   pmoLabel: '',             // its name, for when the switches leave it with no money to name it
   naF: { ap: '', fy: '', pmo: '', pmoLabel: '' },   // pmoLabel: the chosen PMO's name, for when it has no item to name it
@@ -308,8 +309,123 @@ function ui_nodeId(scope, n) {
   R.nodes.set(id, { scope, pk });
   return id;
 }
-function ui_tree(M, scope, nodes, out) {
+// YOUR ORDER (§46): each person may move the PMOs of a spend plan table, and the record titles under a PMO, into an order
+// of their own. It is THIS BROWSER's, like the switches: kept in localStorage, never in the file, never in a view-only copy
+// anyone else opens, and it changes no figure and no product (the workbook, the PDFs and the pictures keep the standard
+// order). A PMO's order is per block (appropriation and fiscal year); a title's order is per block and PMO, so the same
+// titles stand in the same order on the appropriation page and on that PMO's page. Plan events and CCaRs stay in the
+// standard order (largest first): the title is the lowest level that moves. Anything not yet placed (new in a later pull,
+// or never moved) follows the placed ones in the standard order.
+const UI_ORD_KEY = 'sfcbsp.order';
+let ui_ordMem = null;
+function ui_ordGet() {
+  if (ui_ordMem) return ui_ordMem;
+  let o = null;
+  try { o = JSON.parse(window.localStorage.getItem(UI_ORD_KEY) || 'null'); } catch (e) { o = null; }
+  const ok = x => x && typeof x === 'object' && !Array.isArray(x);
+  const clean = x => { const r = {}; if (ok(x)) for (const k of Object.keys(x)) if (Array.isArray(x[k])) r[k] = x[k].filter(v => typeof v === 'string'); return r; };
+  ui_ordMem = { pmo: clean(o && o.pmo), title: clean(o && o.title) };
+  return ui_ordMem;
+}
+function ui_ordPut() { try { window.localStorage.setItem(UI_ORD_KEY, JSON.stringify(ui_ordMem)); } catch (e) { /* kept for this page only */ } }
+// where a level's order is kept: PMOs by block, titles by block and PMO
+function ui_ordSlot(bk, n) { return n.level === 1 ? ['pmo', bk] : n.level === 2 ? ['title', bk + '\u0001' + n.path[0]] : null; }
+function ui_ordered(bk, nodes) {
+  if (!bk || !nodes.length) return nodes;
+  const sl = ui_ordSlot(bk, nodes[0]);
+  const saved = sl && ui_ordGet()[sl[0]][sl[1]];
+  if (!saved || !saved.length) return nodes;
+  const at = new Map(saved.map((k, i) => [k, i]));
+  return nodes.map((n, i) => ({ n, i })).sort((a, b) => {
+    const x = at.has(a.n.key) ? at.get(a.n.key) : Infinity, y = at.has(b.n.key) ? at.get(b.n.key) : Infinity;
+    return x - y || a.i - b.i;
+  }).map(e => e.n);
+}
+// move one node to place `to` (1..n) among the siblings on screen; what is placed but not on screen (a switch hides it)
+// keeps its place behind them
+function ui_ordMove(e, to) {
+  const n = e.keys.length, i = e.keys.indexOf(e.key);
+  let t = Math.round(Number(to));
+  if (i < 0 || !Number.isFinite(t)) { ui_render(); return; }
+  t = Math.min(n, Math.max(1, t)) - 1;
+  const keys = e.keys.slice(); keys.splice(i, 1); keys.splice(t, 0, e.key);
+  const O = ui_ordGet(), old = O[e.kind][e.slot] || [];
+  O[e.kind][e.slot] = keys.concat(old.filter(k => !keys.includes(k)));
+  ui_ordPut();
+  ui_render();
+}
+function ui_ordMine(bk) {
+  const O = ui_ordGet();
+  return !!(O.pmo[bk] && O.pmo[bk].length) || Object.keys(O.title).some(k => k.startsWith(bk + '\u0001') && O.title[k].length);
+}
+function ui_ordReset(bk) {
+  const O = ui_ordGet();
+  delete O.pmo[bk];
+  for (const k of Object.keys(O.title)) if (k.startsWith(bk + '\u0001')) delete O.title[k];
+  ui_ordPut();
+}
+// a PMO or a title that has another beside it can be dragged (§46): its row carries its ui.reg.ord entry
+function ui_ordReg(scope, bk, n, keys) {
+  const sl = ui_ordSlot(bk, n);
+  if (!sl || keys.length < 2) return -1;
+  const R = ui.reg, i = R.ord.length;
+  R.ord.push({ kind: sl[0], slot: sl[1], key: n.key, keys, id: ui_hash(scope + '\u0001' + ui_pk(n)), label: n.label });
+  return i;
+}
+// "In your order" and "Standard order" beside a block's Expand to, once something in it has been moved
+function ui_ordBtns(scope, bk, label) {
+  return ui_ordMine(bk) ? '<span class="ordmine">In your order</span><button type="button" class="ordbtn" data-act="ordreset" data-b="' + ui_e(bk) + '" data-fkey="ordreset:' + ui_e(scope)
+    + '" aria-label="Put the standard order back (' + ui_e(label) + ')">Standard order</button>' : '';
+}
+// dropping `e` on the row of `t` (a sibling), before it or after it
+function ui_ordDrop(e, t, after) {
+  if (!e || !t || e.kind !== t.kind || e.slot !== t.slot || e.key === t.key) return;
+  const rest = e.keys.filter(k => k !== e.key), j = rest.indexOf(t.key);
+  if (j < 0) return;
+  ui_ordMove(e, (after ? j + 1 : j) + 1);
+}
+function ui_ordRowOf(el) { const tr = el && el.closest ? el.closest('tr[data-o]') : null; return tr ? { tr, e: ui.reg.ord[Number(tr.getAttribute('data-o'))] } : null; }
+function ui_dropMark(tr, cls) {
+  for (const x of ui.els.main.querySelectorAll('tr.dropb, tr.dropa')) if (x !== tr || !x.classList.contains(cls)) x.classList.remove('dropb', 'dropa');
+  if (tr && cls) tr.classList.add(cls);
+}
+// THE DRAG (§46): a row is made draggable only while the mouse is held on its label, so the figures can still be selected
+// and copied. Dropped on a sibling's row (the same level, under the same PMO), it goes before or after that row by which
+// half the pointer is in. Alt with the up or down arrow, on the row's label, does the same from the keyboard.
+function ui_dragWire(app) {
+  app.addEventListener('mousedown', ev => { const r = ui_ordRowOf(ev.target); if (r && ev.target.closest('th.lab')) r.tr.draggable = true; });
+  app.addEventListener('mouseup', () => { for (const x of app.querySelectorAll('tr[draggable=true]')) x.draggable = false; });
+  app.addEventListener('dragstart', ev => {
+    const r = ui_ordRowOf(ev.target);
+    if (!r || !r.e) return;
+    ui.drag = r.e;
+    r.tr.classList.add('dragging');
+    try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', r.e.label || ''); } catch (e) { /* no data transfer: the drop still knows */ }
+  });
+  app.addEventListener('dragover', ev => {
+    const r = ui_ordRowOf(ev.target), d = ui.drag;
+    if (!d || !r || !r.e || r.e.kind !== d.kind || r.e.slot !== d.slot || r.e.key === d.key) { ui_dropMark(null); return; }
+    ev.preventDefault();
+    try { ev.dataTransfer.dropEffect = 'move'; } catch (e) { /* as above */ }
+    const box = r.tr.getBoundingClientRect();
+    ui_dropMark(r.tr, ev.clientY > box.top + box.height / 2 ? 'dropa' : 'dropb');
+  });
+  app.addEventListener('drop', ev => {
+    const r = ui_ordRowOf(ev.target), d = ui.drag;
+    if (!d || !r || !r.e) return;
+    ev.preventDefault();
+    const box = r.tr.getBoundingClientRect(), after = ev.clientY > box.top + box.height / 2;
+    ui.drag = null;
+    ui_dropMark(null);
+    ui_ordDrop(d, r.e, after);
+  });
+  app.addEventListener('dragend', () => { ui.drag = null; for (const x of app.querySelectorAll('tr[draggable=true], tr.dragging')) { x.draggable = false; x.classList.remove('dragging'); } if (ui.els) ui_dropMark(null); });
+}
+function ui_tree(M, scope, nodes, out, bk) {
+  if (bk) nodes = ui_ordered(bk, nodes);
+  const keys = bk ? nodes.map(x => x.key) : null;
   for (const n of nodes) {
+    const oi = bk && SP.ORDER_DRAG !== false ? ui_ordReg(scope, bk, n, keys) : -1;
     const kids = n.children && n.children.length;
     const open = kids && ui_isOpen(scope, n);
     let lab;
@@ -318,9 +434,9 @@ function ui_tree(M, scope, nodes, out) {
       lab = '<button type="button" class="tg" data-act="tg" data-id="' + id + '" data-fkey="tg:' + id + '" aria-expanded="' + (open ? 'true' : 'false')
         + '"><span class="arr" aria-hidden="true">' + (open ? '▾' : '▸') + '</span>' + ui_e(n.label) + '</button>';
     } else lab = '<span class="leaf">' + ui_e(n.label) + '</span>';
-    out.push('<tr class="lv' + n.level + '"><th scope="row" class="lab lv' + n.level + '">' + lab + '</th>' + ui_m(n.total, 'tot')
+    out.push('<tr class="lv' + n.level + (oi >= 0 ? ' mv" data-o="' + oi : '') + '"><th scope="row" class="lab lv' + n.level + '"' + (oi >= 0 ? ' title="Drag to move; Alt with an up or down arrow moves it too"' : '') + '>' + lab + '</th>' + ui_m(n.total, 'tot')
       + ui_vis(M).map(c => ui_m(n.cols[c.index], c.closed ? 'cl' : '')).join('') + ui_m(n.total, 'tot') + '</tr>');
-    if (open) ui_tree(M, scope, n.children, out);
+    if (open) ui_tree(M, scope, n.children, out, n.level < 2 ? bk : null);
   }
 }
 function ui_levelPick(scope, label) {
@@ -1404,10 +1520,10 @@ function ui_vAp(M, ap) {
   for (const b of A.blocks) {
     const scope = 'ap|' + b.key;
     const rows = [];
-    ui_tree(M, scope, b.tree, rows);
+    ui_tree(M, scope, b.tree, rows, b.key);
     out.push('<section class="blk-sec" aria-label="' + ui_e(label + ' FY' + b.fy) + '">'
       + '<div class="bar">FY' + ui_e(b.fy) + ' - Spend Plan by PMO / Title / Plan Event / CCaR</div>'
-      + '<div class="blkctl">' + ui_levelPick(scope, label + ' FY' + b.fy) + '</div>'
+      + '<div class="blkctl">' + ui_levelPick(scope, label + ' FY' + b.fy) + ui_ordBtns(scope, b.key, label + ' FY' + b.fy) + '</div>'
       + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + (rows.length ? rows.join('') : '<tr><td colspan="' + ui_ncols(M) + '" class="none">No rows shown.</td></tr>')
       + ui_band(M, b) + '</tbody></table></div>'
@@ -1447,7 +1563,7 @@ function ui_vPmos(M) {
   for (const b of P.blocks) {
     const scope = 'pmo|' + P.key + '|' + b.key;
     const rows = [];
-    ui_tree(M, scope, b.tree, rows);
+    ui_tree(M, scope, b.tree, rows, b.key);
     // the stoplight row's figures for this block, with that row's marks (SP.pmoStripParts, the workbook's strip): with a
     // report loaded, § and † on a block the report has no figure for, as in the table above; none with no report (M4-5)
     const sp = SP.pmoStripParts(b, M);
@@ -1459,7 +1575,7 @@ function ui_vPmos(M) {
       + (SP.PMO_PICTURES === false ? '' : '<div class="slidebtns"><button type="button" data-act="copypic" data-p="' + pi + '" data-fkey="cpp:' + ui_e(b.key) + '" aria-label="Copy picture of ' + ui_e(pn) + '">Copy picture</button>'
       + '<button type="button" data-act="savepic" data-p="' + pi + '" data-fkey="spp:' + ui_e(b.key) + '" aria-label="Save picture of ' + ui_e(pn) + '">Save picture</button></div>')
       + '<div class="bar bar2">' + ui_e(b.apLabel) + ' - FY' + ui_e(b.fy) + '</div>'
-      + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
+      + '<div class="blkctl">' + ui_levelPick(scope, P.label + ', ' + b.apLabel + ' FY' + b.fy) + ui_ordBtns(scope, b.key, P.label + ', ' + b.apLabel + ' FY' + b.fy) + '</div>'
       + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + '<tr class="strip"><td colspan="' + ui_ncols(M) + '">' + strip + '</td></tr>'
       + rows.join('') + ui_band(M, b) + '</tbody></table></div>' + ui_naLines(M, b.na) + '</section>');
@@ -2326,6 +2442,7 @@ function ui_skeleton() {
     + '<span class="grow"></span>'
     + '<span class="savest" id="uiSave" role="status"></span>'
     + '<button type="button" data-act="export" data-fkey="export">Export Excel</button>'
+    + '<button type="button" data-act="fullscreen" data-fkey="fullscreen" id="uiFs" aria-pressed="false" hidden>Full screen</button>'
     + '<button type="button" data-act="help" data-fkey="help" id="uiHelp" aria-pressed="false">Help</button>'
     + '<button type="button" data-act="manage" data-fkey="manage" id="uiManageBtn" aria-expanded="false" aria-controls="uiManage">Manage data</button>'
     + '</div>'
@@ -2354,7 +2471,7 @@ function ui_skeleton() {
     + '<input type="file" id="uiLastFile" data-act="lastfile" accept=".html,.htm" hidden>';
   ui.els = {
     app, top: document.getElementById('uiTop'), ey: document.getElementById('uiEy'), asOf: document.getElementById('uiAsOf'),
-    first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'),
+    first: document.getElementById('uiFirst'), save: document.getElementById('uiSave'), help: document.getElementById('uiHelp'), fs: document.getElementById('uiFs'),
     upd: document.getElementById('uiUpd'), pulls: document.getElementById('uiPulls'), msg: document.getElementById('uiMsg'), nav: document.getElementById('uiNav'), navBtn: document.getElementById('uiNavBtn'), shell: document.getElementById('uiShell'),
     filters: document.getElementById('uiFilters'), main: document.getElementById('uiMain'), file: document.getElementById('uiFile'),
     msgx: document.getElementById('uiMsgX'), printHead: document.getElementById('uiPrintHead'),
@@ -2472,6 +2589,7 @@ function ui_drawTop(M) {
   E.manageBtn.setAttribute('aria-expanded', ui.manage ? 'true' : 'false');
   E.save.hidden = vo || (st === 'saved' && !ui.manage);
   E.help.setAttribute('aria-pressed', ui.view === 'help' ? 'true' : 'false');
+  ui_fsSync();
   const P = ui_pulls();
   // "imported", never "pulled": the date is when the pull came into this page, which is not when CCaR made it (a pull
   // taken on Friday and imported on Monday read "pulled Monday", review BP-3)
@@ -2576,7 +2694,7 @@ function ui_render() {
   const ae = document.activeElement;
   const fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
   const inMain = !!(ae && ui.els.main.contains(ae));
-  ui.reg = { nodes: new Map(), scopes: [], blocks: [], pblocks: [], ufr: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
+  ui.reg = { nodes: new Map(), scopes: [], ord: [], blocks: [], pblocks: [], ufr: [], pmos: [], naPmos: [], naPmoLabels: [], auth: [], special: [], budgets: [], diff: [] };
   const has = ui_hasData();
   // a view-only copy has no way to a view its menu does not hold; were one asked for anyhow, it is the Summary
   if (ui_vo() && ui.view !== 'help' && !ui_nav().some(g => g.items.some(([id]) => id === ui.view))) ui.view = UI_HOME;
@@ -2958,6 +3076,8 @@ function ui_onClick(ev) {
       if (!ui_hasData()) { ui_say('Import a CCaR pull first: there is nothing to export yet.', 'err'); break; }
       if (ui_need('exportExcel', 'Export Excel')) ui_busy('the export', async () => { ui_say('Writing the workbook…', 'info'); ui_result(await SP.exportExcel(), 'The workbook was written.'); });
       break;
+    case 'ordreset': ui_ordReset(t.getAttribute('data-b')); ui_say('That table is back in the standard order: PMOs as listed, titles largest first.', 'ok'); ui_render(); break;
+    case 'fullscreen': ui_fullscreen(); break;
     case 'tg': {
       const n = ui.reg.nodes.get(t.getAttribute('data-id'));
       if (!n) break;
@@ -3121,7 +3241,30 @@ function ui_onChange(ev) {
     case 'blane': ui_budgetChanged(t, 'lane'); break;
   }
 }
+// FULL SCREEN (§46): the browser's own full screen, on a button, for this page only. A page cannot enter it by itself:
+// the browser lets it in only on a click, and Esc (or the button again) leaves it. Hidden where the browser has none
+// (an iPhone's Safari).
+function ui_fsSync() {
+  const b = ui.els && ui.els.fs;
+  if (!b) return;
+  const can = !!(document.fullscreenEnabled && document.documentElement.requestFullscreen), on = !!document.fullscreenElement;
+  b.hidden = !can;
+  b.textContent = on ? 'Exit full screen' : 'Full screen';
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.title = on ? 'Leave full screen (Esc also leaves it)' : 'Fill the screen with APEX; Esc leaves full screen';
+}
+function ui_fullscreen() {
+  try {
+    if (document.fullscreenElement) { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); }
+    else { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => ui_say('This browser did not allow full screen here.', 'err')); }
+  } catch (e) { ui_say('This browser did not allow full screen here.', 'err'); }
+}
 function ui_onKey(ev) {
+  // §46 Alt with the up or down arrow on a PMO's or a title's label moves it one place, as a drag would
+  if (ev.altKey && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
+    const r = ui_ordRowOf(ev.target);
+    if (r && r.e) { ev.preventDefault(); ui_ordMove(r.e, r.e.keys.indexOf(r.e.key) + 1 + (ev.key === 'ArrowUp' ? -1 : 1)); return; }
+  }
   // Enter in the "Add a CCaR" box adds it, as a form would; there is no form, so nothing is ever submitted anywhere
   if (ev.key === 'Enter' && ev.target && ev.target.id === 'uiSpecNew') { ev.preventDefault(); ui_specAdd(); }
 }
@@ -3147,6 +3290,8 @@ function ui_boot() {
     else if (ev.target && ev.target.id === 'uiUfrQ') { ui.ufr.q = ev.target.value; ui_ufrRedraw(); }
     else if (ev.target && ev.target.id === 'uiSrrbQ') { ui.srrb.q = ev.target.value; ui_srrbRedraw(); } });
   app.addEventListener('keydown', ui_onKey);
+  ui_dragWire(app);
+  document.addEventListener('fullscreenchange', ui_fsSync);
   app.addEventListener('focusout', ev => { if (ui.els && ev.target === ui.els.asOf) ui_asOfLeft(); });
   if (ui_fn('onStateChange')) { try { SP.onStateChange(ui_stateChanged); } catch (e) {} }
   // the top's height moves with the window's width (its bars wrap) and with the message line: measured again each time
