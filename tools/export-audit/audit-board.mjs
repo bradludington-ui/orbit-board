@@ -10548,9 +10548,10 @@ await (async () => {
     // 149.6 -- Reset priority order: not while one office shows; its question names the year on screen
     B.ev(`S.order=['C','A','B']; save(); filter='PSM'; render(); window.__cf=[]; window.__ans=[true]; resetOrder(); 'ok'`);
     chk(name, '149.6 one office', 'refused while one office is showing; nothing asked', B.ev(`JSON.stringify([S.order, window.__cf.length])`), J([['C', 'A', 'B'], 0]));
-    B.ev(`filter='ALL'; render(); window.__ans=[true]; resetOrder(); 'ok'`);
-    chk(name, '149.6 question', 'the question names the year on screen and says it cannot be put back',
-      B.ev(`JSON.stringify([new RegExp(FYL()+' priority order').test(window.__cf[0]||''), /cannot be put back/.test(window.__cf[0]||''), /FY27/.test(window.__cf[0]||'') === (FYL()==='FY27')])`), J([true, true, true]));
+    // on a year other than FY27, so a question with the year fixed in it (v2.16: "FY27 ask") cannot pass by coincidence
+    B.ev(`filter='ALL'; window.__ans=[true]; switchYear(MS.cur+1); render(); window.__cf=[]; window.__ans=[true]; resetOrder(); 'ok'`);
+    chk(name, '149.6 question', 'on FY' + ((fy + 1) % 100) + ' the question names FY' + ((fy + 1) % 100) + ', not FY27, and says it cannot be put back',
+      B.ev(`JSON.stringify([/FY${(fy + 1) % 100} priority order/.test(window.__cf[0]||''), /FY27/.test(window.__cf[0]||''), /cannot be put back/.test(window.__cf[0]||'')])`), J([true, false, true]));
     if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
