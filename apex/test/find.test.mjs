@@ -149,7 +149,8 @@ try {
     await T.pick('ap', 'All'); await T.pick('fy', 'FY2026'); C.eq('the FY picker', T.rows().map(r => r[0]), ['Tessa C', 'Tessa D']);
     await T.pick('fy', 'All'); await T.pick('pmo', 'Propulsion (PP)'); C.eq('the PMO picker', T.rows().map(r => r[0]), ['Tessa E']);
     m = await T.pick('pmo', 'All');
-    C.eq('All is offered first in each picker and shows everything', [T.rows().length, ...[...m.querySelectorAll('.findbar select')].map(s => s.options[0].textContent)], [7, 'All', 'All', 'All']);
+    // review I12: a Projected award picker (All first, as the others) and an Order picker, whose first choice is the list's own order
+    C.eq('All is offered first in each picker and shows everything', [T.rows().length, ...[...m.querySelectorAll('.findbar select')].map(s => s.options[0].textContent)], [7, 'All', 'All', 'All', 'All', 'Appropriation, FY, title']);
     // opening one
     C.chk('before one is picked the side panel says so', /Pick a requirement/.test(T.doc.getElementById('uiFindDet').textContent));
     T.click([...m.querySelectorAll('#uiFindRes .tg')].find(b => b.textContent === 'Tessa F')); await settle();

@@ -182,7 +182,7 @@ SP.deriveRow = function deriveRow(row, settings) {
   const c = row.c;
   const st = SP.allocStatus(c[IMP_ALLOC]);
   const ov = imp_override(settings, c[IMP_BUDGET]);
-  return imp_withSrrb(row, {
+  return imp_withMore(c, imp_withSrrb(row, {
     ap: SP.apOfRow(row, row.src ? row.src[1] : ''),
     fy: c[IMP_FY], ccar: c[IMP_CCAR], title: c[IMP_TITLE], budget: c[IMP_BUDGET], pe: c[IMP_PE],
     date: c[IMP_DATE] || '', month: c[IMP_MONTH] || '', cents: c[IMP_AMT], alloc: c[IMP_ALLOC], pmo: c[IMP_PMO],
@@ -192,8 +192,17 @@ SP.deriveRow = function deriveRow(row, settings) {
     k: { pmo: SP.normKey(c[IMP_PMO]), title: SP.normKey(c[IMP_TITLE]), pe: SP.normKey(c[IMP_PE]), ccar: SP.normKey(c[IMP_CCAR]) },
     bad: row.bad && row.bad.length ? row.bad : null,
     src: row.src,
-  });
+  }));
 };
+// FIND READS THREE MORE COLUMNS (review I52): the plan event's Event Description, the PMT PID# and the Sub-PMO, as text, kept off
+// the derived row's own keys as the SRRB cell is, so the derived row as JSON is what it was. People's names (the POCs, the
+// leads) are not read here: they stay in the file and the workbook, never on a screen.
+const IMP_DESC = IMP_COL.get(SP.normKey('Event Description')), IMP_PID = IMP_COL.get(SP.normKey('PMT PID#')), IMP_SUB = IMP_COL.get(SP.normKey('Sub-PMO'));
+function imp_withMore(c, d) {
+  const t = v => (v === null || v === undefined ? '' : String(v).trim());
+  Object.defineProperty(d, 'more', { value: { desc: t(c[IMP_DESC]), pid: t(c[IMP_PID]), sub: t(c[IMP_SUB]) }, enumerable: false });
+  return d;
+}
 // the row's SRRB cell, kept off the derived row's own keys: the derived row as JSON is what it was before §44
 function imp_withSrrb(row, d) {
   Object.defineProperty(d, 'srrb', { value: SP.srrbOfRow(row), enumerable: false });

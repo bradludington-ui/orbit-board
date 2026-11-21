@@ -373,6 +373,21 @@ main.ov .findt .tg:hover{background:none;color:var(--navy);text-decoration:under
 .fevs .fa{font-variant-numeric:tabular-nums;white-space:nowrap}
 .finddet .acts{margin-top:10px}
 .findnote{margin-top:10px}
+/* REVIEW GROUP A (finding things). The detail beside the list scrolls inside itself on a wide window, so its last plan events and
+   its Open button are always reachable (I03); a jump or a press brings it, or its row, into view below the pinned top. */
+@media (min-width:1101px){.finddet{max-height:calc(100vh - var(--topH, 96px) - 24px);overflow:auto}}
+.finddet,#uiFindRes tr{scroll-margin-top:calc(var(--topH, 0px) + 8px)}
+.finddet h3:focus{outline:2px solid var(--slink);outline-offset:2px}
+.findcount:focus{outline:2px solid var(--slink);outline-offset:2px}
+.fevs .fdesc{display:block;font-size:12px;color:var(--smut);margin-top:2px}
+.fbud{padding:4px 0;border-bottom:1px solid var(--sline);font-size:13px}
+.fbud summary{cursor:pointer;color:var(--smut)}
+.fbudl{padding:4px 0 2px;overflow-wrap:anywhere}
+.findt tr.fgrp th{background:var(--spanel);color:var(--smut);font-weight:600;font-size:12px;text-align:left}
+.ltot{margin:0 0 6px;font-size:13px;font-weight:700;color:var(--sink)}
+.ugn{font-weight:400}
+.golinks{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+@media print{.golinks{display:none}}
 @media (max-width:1100px){.findtwo{grid-template-columns:minmax(0,1fr)}}
 
 /* MY PMO and THE AWARD CALENDAR (§21) */

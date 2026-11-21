@@ -133,7 +133,7 @@ try {
   C.eq('1 typed in Delta’s box: Delta, Alpha, Bravo, Charlie, each with the tracker’s rank noted under it', J(rows()), J([['1', 'Delta', 'tracker 4'], ['2', 'Alpha', 'tracker 1'], ['3', 'Bravo', 'tracker 2'], ['4', 'Charlie', 'tracker 3'], ['1', 'Echo', '']]));
   C.chk('the message says where it went, and the plan is unsaved', /“Delta” is rank 1 of 4\./.test(doc.querySelector('.msg').textContent) && S.isDirty(), doc.querySelector('.msg').textContent);
   C.chk('the group says it is in your ranking and offers the tracker’s ranks back; the other group does not', (() => { const g = [...main().querySelectorAll('tr.ugrp')].map(x => x.textContent);
-    return /^O&M FY2027 in your ranking Use the tracker’s ranks$/.test(g[0]) && g[1] === 'Initial Spares FY2027'; })(), [...main().querySelectorAll('tr.ugrp')].map(x => x.textContent).join(' | '));
+    return /^O&M FY2027 · 4 lines, ranked 1 to 4 across every PMO in your ranking Use the tracker’s ranks$/.test(g[0]) && g[1] === 'Initial Spares FY2027 · 1 line, in the UFR tracker’s ranks'; })(), [...main().querySelectorAll('tr.ugrp')].map(x => x.textContent).join(' | '));
   C.eq('the disconnect is listed on the page', J([...main().querySelectorAll('#uiUfrRankChk li')].map(li => li.textContent.replace(/:.*/, ''))), J(['O&M FY2027']));
   await click(box('Bravo').querySelector('[data-act=ufrup]'));
   C.eq('▲ on Bravo moves it up one: Delta, Bravo, Alpha, Charlie', J(rows().slice(0, 4).map(r => r[1])), J(['Delta', 'Bravo', 'Alpha', 'Charlie']));
