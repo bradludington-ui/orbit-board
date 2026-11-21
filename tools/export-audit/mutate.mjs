@@ -11525,7 +11525,7 @@ const MUTATIONS = [
   { id: 'v217-149-closed-not-inert', area: 'drawerInertSync', what: "the closed sliding panel can still be typed into",
     find: "  if(drawerNarrow() && !p.classList.contains('open')) p.setAttribute('inert','');", repl: "  if(false) p.setAttribute('inert','');" },
   { id: 'v217-149-esc-keeps-keyboard', area: 'drawerClose', what: "after Esc the keyboard stays in the closed panel",
-    find: "if(r && drawerNarrow()){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); }", repl: "if(false){ r.focus({preventScroll:true}); }" },
+    find: "      if(r){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); } else if(had && a.blur) a.blur(); } }catch(e){}", repl: "      if(false){ r.focus({preventScroll:true}); } } }catch(e){}" },
   { id: 'v217-149-restore-all-unasked', area: 'restoreAll', what: "Restore all puts every removed requirement back with no question",
     find: "  if(!confirm('Put all '+all+' removed requirement'", repl: "  if(false && !confirm('Put all '+all+' removed requirement'" },
   { id: 'v217-149-removed-put-back', area: 'jrnlUndoable', what: "a Removed-list line in the change journal is offered to Put back, which can bring back a different requirement",

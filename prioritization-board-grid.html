@@ -41880,13 +41880,17 @@ function drawerInertSync(){
 }
 function drawerClose(viaEsc){
   const p=document.getElementById('inspector'), s=document.getElementById('drawerScrim');
+  const wasOpen=!!(p && p.classList.contains('open'));
+  if(viaEsc===true && !wasOpen) return;     // Esc with no record open belongs to whatever has the keyboard (a menu, the message)
   if(viaEsc===true) drawerEscRevert(p);
-  const had=!!(p && document.activeElement && p.contains(document.activeElement));
+  const a=document.activeElement, had=!!(p && a && (a===p || p.contains(a)));
   if(p) p.classList.remove('open');
   if(s) s.classList.remove('on');
-  // Put the reader back where they were, not at the top of a 115-row list.
-  try{ const r=document.getElementById('row-'+curRow); if(r && drawerNarrow()){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); }
-    else if(had && document.activeElement && document.activeElement.blur && drawerNarrow()) document.activeElement.blur(); }catch(e){}
+  // Put the reader back where they were, not at the top of a 115-row list -- only when the keyboard was in the record, or
+  // nowhere (the scrim): a closed record never takes the keyboard from a menu or a button outside it.
+  try{ const r=document.getElementById('row-'+curRow);
+    if(wasOpen && drawerNarrow() && (had || !a || a===document.body || a.id==='drawerScrim')){
+      if(r){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); } else if(had && a.blur) a.blur(); } }catch(e){}
   drawerInertSync();
 }
 function drawerSync(){

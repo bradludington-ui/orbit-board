@@ -530,7 +530,8 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 {
   try {
     const { p, ctx, errs } = await open('fund');
-    const id = await p.evaluate(() => gridRows()[1].id.replace(/^row-/, ''));
+    // v2.17 (item 149.5): a row whose menu offers Reset to the full requirement (one with an allocation of its own), so its first item is a button
+    const id = await p.evaluate(() => { const L = gridRows().map(r => r.id.replace(/^row-/, '')); return L.find(i => allocResettable(i)) || L[1]; });
     const btn = `#rm_${id} .rmbtn`;
     await p.focus(btn); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const o = await p.evaluate(({ id, btn }) => ({ open: rowMenuId === id, focus: document.activeElement === document.querySelector(btn),
@@ -1333,10 +1334,15 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const mid = await aw('R003');
     await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     chk('X · 01/15/2027 typed: nothing is stored while typing, and Enter stores 15 Jan 2027', mid === 'null' && await aw('R003') === JSON.stringify({ mode: 'single', d: '2027-01', day: 15 }), mid + ' -> ' + await aw('R003'));
-    await openRow('R000');
+    await openRow('R006');
     await typeDate('#inspector .awdblk input[data-awd]:not([data-awd-i])', 10, [...'05']);
     await p.mouse.click(1700, 140); await p.waitForTimeout(250);
-    chk('X · the month alone retyped (9 Oct 2026 to May): 9 May 2027 when the box is left', await aw('R000') === JSON.stringify({ mode: 'single', d: '2027-05', day: 9 }), await aw('R000'));
+    chk('X · the month alone retyped (9 Apr 2027 to May): 9 May 2027 when the box is left -- v2.16 stored 9 Jan', await aw('R006') === JSON.stringify({ mode: 'single', d: '2027-05', day: 9 }), await aw('R006'));
+    await openRow('R000');
+    await typeDate('#inspector .awdblk input[data-awd]:not([data-awd-i])', 10, [...'05']);
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    chk('X · 9 Oct 2026 retyped to May 2026, outside FY27: refused, the stored date kept, and the board says why',
+      await aw('R000') === JSON.stringify({ mode: 'single', d: '2026-10', day: 9 }) && /is not in FY27/.test(await p.evaluate(() => document.getElementById('shareStat').textContent)), await aw('R000'));
     await openRow('R001');
     await typeDate('#inspector .awdblk input[data-awd-i="0"]', 10, [...'03202027', 'Tab', 'Tab', 'Tab']); await p.waitForTimeout(250);
     chk('X · an increment retyped 03/20/2027 and left with Tab: 20 Mar 2027', JSON.parse(await aw('R001')).inc.some(x => x.d === '2027-03' && x.day === 20), await aw('R001'));
