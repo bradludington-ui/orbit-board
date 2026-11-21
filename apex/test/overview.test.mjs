@@ -61,7 +61,7 @@ try {
   // ============================================================================================ the frame and the name
   {
     const T = await boot(null);
-    C.eq('the page is titled APEX', T.doc.title, 'APEX');
+    C.eq('the page is titled APEX, marked (review I58)', T.doc.title, 'CUI - APEX');
     C.chk('the top names APEX, with what the letters stand for', /^APEX\s*Appropriation Planning & Execution/.test(T.doc.querySelector('h1.brand').textContent)
       && T.doc.querySelector('h1.brand').getAttribute('title') === 'Appropriation Planning & Execution');
     C.chk('the top carries the logo, drawn in the page itself and hidden from screen readers, with the name as text beside it', !!T.doc.querySelector('h1.brand svg.logo path[d]')

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src data: blob:; base-uri 'none'; form-action 'none'">
 <meta name="sfcb-spend-plan" content="program">
-<title>APEX</title>
+<title>CUI - APEX</title>
 <style>
 /* APEX (until November 2026 the SFCB Spend Plan) dashboard: the page look (CONTRACT §9, §18, §25). The frame and the
    tables wear ORBIT's Harbor palette (§25); the layout of every table is v12's, and a status is always its colour AND
@@ -216,6 +216,18 @@ h3.bar{margin-top:16px}
 .blkctl{display:flex;justify-content:flex-start;gap:10px;padding:4px 0}
 .nabar{margin:6px 0 2px;padding:3px 8px;background:var(--navy);color:#fff;font-weight:700;font-size:13px}
 h3.nabar{font-size:13px}
+/* an appropriation's Unobligated list, folded (review I02): the bar is the button, with how many and how much under it */
+details.nafold>summary{display:block;list-style:none;cursor:pointer}
+details.nafold>summary::-webkit-details-marker{display:none}
+details.nafold>summary h3.nabar::before{content:"\25B8\00A0"}
+details.nafold[open]>summary h3.nabar::before{content:"\25BE\00A0"}
+details.nafold>summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.nacount,.natie{display:block;padding:1px 8px 3px;font-size:12px;color:var(--smut)}
+.natie{font-style:italic}
+/* the opening line, past a few seconds (review I06): shown by the stylesheet alone, so it needs no script; the screens
+   replace the whole note when they draw */
+.boot-late{display:block;margin-top:8px;visibility:hidden;animation:apexBootLate 0s linear 4s forwards}
+@keyframes apexBootLate{to{visibility:visible}}
 table.nalines{border-collapse:collapse;font-size:12px;width:100%}
 /* the month is one fixed column in every block's list (Brad, 16 Nov 2026: "after the month, it's hit or miss on how far out
    it will be spaced"): the table is the full width, and with no width of its own the month's column took a share of what
@@ -723,7 +735,7 @@ table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
 </head>
 <body>
 <div class="cui cui-top" role="note">CUI//REL TO US DoW</div>
-<div id="app"><p class="boot-note">Opening APEX&hellip;</p></div>
+<div id="app"><p class="boot-note">Opening APEX&hellip;<span class="boot-late">If this stays, download the file and open it in Edge, Chrome or Safari.</span></p></div>
 <div class="cui cui-bottom" role="note">CUI//REL TO US DoW</div>
 <script id="spState" type="application/json">null</script>
 <script>
@@ -773,6 +785,7 @@ SP.PIC_CUI_WORDS = 'carry no CUI marking';
 SP.ORDER_DRAG = true;     // false: the spend plan trees without §46's drag (no grip, no draggable rows), for a comparison with an older build
 SP.PMO_PICTURES = true;    // false: the screens without §41's PMO picture buttons and words, for a comparison with an older build
 SP.PIC_CUI = false;        // true draws the marking in a picture's two bands, as before §41: only a comparison with an older build asks for it
+SP.NA_FOLD = true;        // false: an appropriation's Unobligated lists drawn open, as before review I02, for a comparison with an older build
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated
@@ -4796,7 +4809,8 @@ SP.ymWords = function ymWords(ym) {
 // goal: an office's requirements are of several appropriations and years, each with its own OSD goal for the Data through
 // month (its block's goal), so the office's goal is those goals weighted by each requirement's plan; a requirement whose
 // block has no goal (a year after the execution year) is left out of the office's pct, goal and status, and counted in n
-// and planned all the same. age: whole months from a late plan event's month to the Data through month (0: the month that
+// and planned all the same. Every other requirement is in the pct, a plan below zero (a deobligation) too, so the pct is
+// awarded over planned of those requirements; the goal is weighted by each one's plan above zero. age: whole months from a late plan event's month to the Data through month (0: the month that
 // has just closed); a requirement's is its oldest late event's.
 // ---------------------------------------------------------------------------------------------------------------
 SP.chartsOf = function chartsOf(M, reqs) {
@@ -4811,10 +4825,13 @@ SP.chartsOf = function chartsOf(M, reqs) {
   if (asOfN !== null) { const w = n => Math.floor(n / 12) + '-' + String(n % 12 + 1).padStart(2, '0'); next3.from = w(asOfN + 1); next3.to = w(asOfN + 3); }
   for (const r of R) {
     let p = pm.get(r.pmoKey);
-    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, cells: cols.map(() => 0), total: 0 });
+    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, gW: 0, cells: cols.map(() => 0), total: 0 });
     p.n++; p.planned += r.planned; p.awarded += r.awarded;
     const g = goalOf.get(r.ap + '|' + r.fy);
-    if (g !== null && g !== undefined && r.planned > 0) { p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += r.planned * g; }
+    // every requirement with a goal is in the share, whatever the sign of its plan, so the share is the office's Awarded over
+    // its Plan as By PMO and My PMO divide them; a deobligation (a plan below zero) left out made it neither (review I78).
+    // The goal is weighted by the plan above zero only: a negative weight would bend it.
+    if (g !== null && g !== undefined) { const w = Math.max(0, r.planned); p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += w * g; p.gW += w; }
     for (const e of r.events) {
       const i = colAt.get(e.col);
       if (i !== undefined) { const c = cols[i]; c[e.awarded ? 'awarded' : e.late ? 'late' : 'projected'] += e.cents; c.total += e.cents; p.cells[i] += e.cents; p.total += e.cents; }
@@ -4837,7 +4854,7 @@ SP.chartsOf = function chartsOf(M, reqs) {
   for (const c of cols) for (const k of ['awarded', 'late', 'projected', 'total']) sum[k] += c[k];
   return {
     n: R.length, cols, next3, sum,
-    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 ? p.gSum / p.gPlan : null;
+    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 && p.gW > 0 ? p.gSum / p.gW : null;
       return { key: p.key, label: p.label, n: p.n, planned: p.planned, awarded: p.awarded, pct, goal, status: SP.statusOf(pct, goal) }; }),
     late, lateCents: late.reduce((s, l) => s + l.cents, 0),
     heat: { rows: pmos.map(p => ({ key: p.key, label: p.label, cells: p.cells, total: p.total })), max: Math.max(0, ...pmos.flatMap(p => p.cells)) },
@@ -5265,7 +5282,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       if (rest.length) groups.push({ label: pmoLabel.get(pk), prime: false, pmoKey: pk, color: SP.publishColor(pk, false), records: rest.map(a => record([a])).sort(recSort) });
     }
     const all = groups.flatMap(g => g.records), s = sumFig(all);
-    return { ap, apLabel: pb_apLabel(ap), fy, groups, total: s.total, svc: s.svc, n: all.length };
+    return { ap, apLabel: pb_apLabel(ap), fy, groups, total: s.total, svc: s.svc, n: all.length, ufrOnly: all.filter(r => r.ufrOnly).length };
   };
   const ufrSort = (x, y) => SP.APS.findIndex(a => a.id === x.ap) - SP.APS.findIndex(a => a.id === y.ap) || x.fy - y.fy
     || (Number(x.rank) || 1e9) - (Number(y.rank) || 1e9) || pb_cmp(SP.normKey(x.title), SP.normKey(y.title)) || x.row - y.row;
@@ -5323,7 +5340,8 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
 // ---------------------------------------------------------------------------------------------------------------
 // §33.4 THE PAGES. Letter, landscape, in points. Every page carries the CUI marking top and bottom, the document's name
 // and "Page n of N". A record's block of service rows is never split across pages.
-//   ctx: { program, fm: {om, ff, sp, opn: each appropriation's FM Lead}, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
+//   ctx: { program, fm: {om, ff, sp, opn: each appropriation's FM Lead}, asOfLabel, today ('YYYY-MM-DD'), dataDay ('YYYY-MM-DD': the oldest
+//          CCaR pull's import day, or ''), uploaded (text), emblem (Uint8Array of a JPEG, or null),
 //          bae (a BAE report is loaded), marks: {text for each mark printed}, ufrFiles: [{fy, name, day}] }
 // Whole dollars, as the template prints them: each figure is rounded from its own exact cents, a total from its exact
 // sum, so a total can differ by a dollar from the rounded figures above it. The stoplight page says so.
@@ -5376,7 +5394,10 @@ SP.publishPages = function publishPages(doc, ctx) {
   const fmOf = ap => pb_txt(C.fm && typeof C.fm === 'object' ? C.fm[ap] : '');
   const whoOf = aps => { const one = aps.length === 1; return aps.filter(ap => fmOf(ap)).map(ap => (one ? pb_apLabel(ap) + ' FM Lead: ' : pb_apLabel(ap) + ': ') + fmOf(ap)); };
   const whoText = aps => { const w = whoOf(aps); return !w.length ? '' : aps.length === 1 ? w[0] : 'FM Leads: ' + w.join(' | '); };
-  const asOf = ['Data as of: ' + pb_isoWords(C.today), C.asOfLabel ? 'Data through ' + C.asOfLabel : ''].filter(Boolean).join('  |  ');
+  // WHEN, ON EVERY PAGE (review I82): the day the data came in, by the OLDEST CCaR pull behind it (§30: a figure is only as
+  // fresh as the oldest pull), then the month it runs through, then the day this PDF was made. It was the print day under
+  // "Data as of", so a PDF made weeks after the upload looked fresher than its figures. With no pull, the print day alone.
+  const asOf = [C.dataDay ? 'Data uploaded ' + pb_isoWords(C.dataDay) : '', C.asOfLabel ? 'Data through ' + C.asOfLabel : '', 'Printed ' + pb_isoWords(C.today)].filter(Boolean).join('  |  ');
 
   // on a page with no full header (a continued page, the unfunded list) the emblem is small, at the top left, and the
   // page's heading starts to its right: "the top left of every spend plan" is every page of it
@@ -5528,7 +5549,11 @@ SP.publishPages = function publishPages(doc, ctx) {
       const yy = y0 + (doc.kind === 'pmo' ? 132 : 112);
       const w1 = whoText([sec.ap]);
       if (w1) T(cx, yy, w1, { size: 10, align: 'c' });
-      T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
+      // a requirement here is a CCaR record, and one on the unfunded list with no plan event is one too (§33): said apart, so
+      // the count can be laid beside the screen's, which counts the plan's own (review I83). With a BAE report loaded,
+      // Approved here is the CCaR plan, and the stoplight's Approved is the report's: named so (review I15, as P4-2)
+      T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + (sec.ufrOnly ? ' (' + SP.fmtInt(sec.ufrOnly) + ' unfunded only, no plan event)' : '')
+        + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved' + (C.bae ? ' (CCaR plan)' : '') + ' $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
         + '   |   Obligated $' + SP.fmtWhole(sec.total.obligated).replace(/^-$/, '0'), { size: 9, align: 'c', color: PB.mut });
       T(cx, yy + (w1 ? 30 : 14), asOf, { size: 8, align: 'c', color: PB.mut });
     }
@@ -5950,7 +5975,8 @@ SP.ufrMove = function ufrMove(ufr, ranks, gk, key, to) {
 // say different things about one unfunded line.
 //   Mfull   the model with every switch on (as SP.publishData takes)
 //   view    this browser's switches: a service switched off is left out of every amount, column and total here, as it is
-//           on every other view. The lanes do not apply: the tracker has none.
+//           on every other view. The lanes do not apply to the tracker's lines: it has none. The Mandatory lane switch takes
+//           off §45's Mandatory lines (tiles.mand.hidden counts those it takes off).
 //   F       { pmo, ap, fy, status, q }   each null/'' for all (there is no Exec ready picker: Brad, 19 Nov 2026, "No need for an
 //           exec filter"; the Exec ready? column and the Exec ready tile stay)
 //   -> { files: [{fy, name, at}], all (lines before the pickers), n, svc: [{i, label}], picks: {pmos, aps, fys, statuses},
@@ -5999,9 +6025,14 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
     statuses: uniq(all, l => l.status, l => l.status).sort((a, b) => pb_cmp(SP.normKey(a[0]), SP.normKey(b[0]))),
   };
   const q = SP.normKey(f.q);
-  const lines = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
+  // §45's Mandatory lines have a lane, and the Filter's Mandatory switch takes them off as it takes Mandatory off every other
+  // page; the tracker's lines have none, and the lane switches leave them alone (§37). Their ranks are given before this,
+  // so a line hidden here keeps its number (review I81).
+  const mandLaneOn = !(view && view.lane && view.lane.mand === false);
+  const shown = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
     && (f.status === null || f.status === undefined || f.status === '' || l.status === f.status)
     && (q === '' || SP.normKey(l.title).includes(q) || SP.normKey(l.ccar).includes(q)));
+  const lines = mandLaneOn ? shown : shown.filter(l => !l.mand), mandHidden = shown.length - lines.length;
   const sumOf = ls => ls.reduce((n, l) => n + l.sum, 0);
   const groups = [];
   for (const l of lines) { const g = groups[groups.length - 1]; if (g && g.ap === l.ap && g.fy === l.fy) g.lines.push(l); else groups.push({ ap: l.ap, apLabel: pb_apLabel(l.ap), fy: l.fy, lines: [l] }); }
@@ -6013,7 +6044,7 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
     total: { amt: svcIdx.map((_, k) => lines.reduce((n, l) => n + l.amt[k], 0)), sum: sumOf(lines) },
     tiles: { sum: sumOf(lines), n: lines.length, aps: new Set(lines.map(l => l.ap)).size, exec: { sum: sumOf(lines.filter(l => l.execReady)), n: lines.filter(l => l.execReady).length },
       sfcb: { sum: sumOf(lines.filter(l => l.sfcbApproved)), n: lines.filter(l => l.sfcbApproved).length }, only: lines.filter(l => !l.plan).length,
-      mand: { sum: sumOf(mand), n: mand.length } },
+      mand: Object.assign({ sum: sumOf(mand), n: mand.length }, mandHidden ? { hidden: mandHidden } : {}) },
     byPmo, bySvc: svcIdx.map((i, k) => ({ label: PB_UFR_SVC[i], sum: lines.reduce((n, l) => n + l.amt[k], 0) })),
     skipped: D.ufrSkipped.reduce((n, x) => n + x.n, 0) };
 };
@@ -8561,7 +8592,9 @@ const ST_VIEW_KEY = 'sfcbsp.view';     // ORBIT's prio27*/spmt* share this file:
 const ST_PULL_KEYS = ['om', 'ff', 'sp', 'opn', 'unidentified'];
 // What #app holds in the shell before the UI draws. Used only when the page was captured after the UI had drawn (a
 // late storeInit), so a saved file still opens like a fresh one instead of showing yesterday's screen frozen in place.
-const ST_BOOT_NOTE = '<p class="boot-note">Opening APEX…</p>';
+// the shell's own note, word for word (src/shell.html): past a few seconds its second line says what to do when the page
+// cannot run here, a preview pane or a viewer with scripts off (review I06); the screens replace it when they draw
+const ST_BOOT_NOTE = '<p class="boot-note">Opening APEX…<span class="boot-late">If this stays, download the file and open it in Edge, Chrome or Safari.</span></p>';
 // The page's own file was opened with saved data this page refused (wrong version, wrong shape). It never equals a
 // savedAt, so Save cannot treat that file as "the one this page opened with" and write over data it could not read.
 const ST_REFUSED = Object.freeze({ refused: true });
@@ -9111,6 +9144,24 @@ function st_unidAt(st) {
 // row or with $0, under a message styled as a plain success, whatever the sheet was called (review SEAM-1, SEAM-2, F1,
 // DL-2, F4): the misfiled-row question keyed on the sheet's NAME alone.
 const ST_SHRINK = 0.5;
+// AN OLDER PULL IMPORTED BY MISTAKE (review I39). Obligated money is not taken back from one week to the next but by a
+// deobligation or a correction, so a pull whose Actual Execution for a fiscal year is more than $5M AND more than 5% below the
+// one it replaces is asked about the same way: it is most likely last week's file. Its file names and import days are said.
+const ST_OBL_FALL = Object.freeze({ cents: 500000000, share: 0.05 });
+function st_oblByFy(p) {
+  const by = new Map();
+  for (const r of (p && Array.isArray(p.rows) ? p.rows : [])) {
+    if ((r.bad && r.bad.length) || !Array.isArray(r.c) || typeof r.c[9] !== 'number') continue;
+    if (!SP.allocStatus || SP.allocStatus(r.c[10]).status !== 'exec') continue;
+    const fy = String(r.c[0]);
+    by.set(fy, (by.get(fy) || 0) + r.c[9]);
+  }
+  return by;
+}
+function st_fileNames(p) {
+  const n = (p && Array.isArray(p.files) ? p.files : []).map(f => (f && typeof f.name === 'string' ? f.name : '')).filter(Boolean);
+  return n.length ? n.map(x => '“' + x + '”').join(', ') : 'a file not named';
+}
 SP.applyImport = function applyImport(parsed) {
   if (SP.isViewOnly()) throw new Error(ST_VIEW_ONLY);
   if (!st_isObj(parsed) || !st_isObj(parsed.pulls)) throw new Error('There was nothing to import (the import gave no pulls), so nothing was changed.');
@@ -9137,7 +9188,16 @@ SP.applyImport = function applyImport(parsed) {
     const was = st_readable(before[k]), now = st_readable(parsed.pulls[k]);
     if (now.rows < was.rows * ST_SHRINK) shrinks.push({ ap: k, was, now, rows: parsed.pulls[k].rows.length });
   }
-  const worry = SP.APS.map(a => a.id).filter(ap => strays.some(x => x.ap === ap) || shrinks.some(x => x.ap === ap));
+  const falls = [];
+  for (const k of keys) {
+    if (k === 'unidentified' || !before[k] || shrinks.some(z => z.ap === k)) continue;
+    const was = st_oblByFy(before[k]), now = st_oblByFy(parsed.pulls[k]);
+    for (const [fy, w] of was) {
+      const n = now.get(fy) || 0, drop = w - n;
+      if (drop > ST_OBL_FALL.cents && drop > Math.abs(w) * ST_OBL_FALL.share) falls.push({ ap: k, fy, was: w, now: n, drop });
+    }
+  }
+  const worry = SP.APS.map(a => a.id).filter(ap => strays.some(x => x.ap === ap) || shrinks.some(x => x.ap === ap) || falls.some(x => x.ap === ap));
   // A BAE REPORT WITH FEWER THAN HALF THE READABLE ROWS of the one on screen is asked about the same way (CONTRACT §14.7):
   // it replaces the whole report, every appropriation's Approved and Authorized with it, and a report filtered before it
   // was exported, or cut short, would quietly take every block it no longer covers back to the CCaR plan.
@@ -9166,6 +9226,13 @@ SP.applyImport = function applyImport(parsed) {
             : ' (' + st_usd(z.now.cents) + ')')
           + '. That is fewer than half the ' + SP.fmtInt(z.was.rows) + ' readable rows of the ' + lab + ' pull on screen.');
       }
+      const fl = falls.filter(y => y.ap === ap);
+      if (fl.length) {
+        if (!n) n = parsed.pulls[ap].rows.length;
+        bits.push('In this import (' + st_fileNames(parsed.pulls[ap]) + '), ' + lab + ' Obligated (rows CCaR marks Actual Execution) falls against the pull on screen ('
+          + st_fileNames(cur) + ', imported ' + st_day(cur.importedAt) + '): ' + fl.map(y => 'FY' + y.fy + ' from ' + st_usd(y.was) + ' to ' + st_usd(y.now) + ', ' + st_usd(y.drop) + ' less').join('; ')
+          + '. A newer pull rarely obligates less, so this may be an older file.');
+      }
       bits.push(cur ? 'Imported, ' + (n === 1 ? 'it replaces' : 'they replace') + ' the whole current ' + lab + ' pull (' + st_rows(cur.rows.length) + ', '
           + st_usd(st_cents(cur)) + ', imported ' + st_day(cur.importedAt) + ').'
         : 'Imported, ' + (n === 1 ? 'it becomes' : 'they become') + ' the whole ' + lab + ' pull.');
@@ -9184,6 +9251,9 @@ SP.applyImport = function applyImport(parsed) {
     if (shrinkOnly.length) adv.push('If ' + (shrinkOnly.length === 1 ? 'this is not the whole ' + shrinkOnly[0] + ' pull' : 'these are not the whole '
       + st_list(shrinkOnly) + ' pulls') + ' (a file cut short, a pull filtered in CCaR, a misfiled row, or Amounts saved as formulas without their '
       + 'results), press Cancel: nothing is imported, and the ' + (shrinkOnly.length === 1 ? 'pull' : 'pulls') + ' on screen stay.');
+    const fallOnly = falls.filter(y => !strays.some(x => x.ap === y.ap)).map(y => st_apLabel(y.ap)).filter((x, i, a) => a.indexOf(x) === i);
+    if (fallOnly.length) adv.push('If ' + (fallOnly.length === 1 ? 'this is not the newest ' + fallOnly[0] + ' pull' : 'these are not the newest ' + st_list(fallOnly) + ' pulls')
+      + ', press Cancel: nothing is imported, and the ' + (fallOnly.length === 1 ? 'pull' : 'pulls') + ' on screen stay. A deobligation or a CCaR correction can lower Obligated: then import anyway.');
     const paras = worry.map(para);
     if (baeShrink) {
       const z = baeShrink, unread = z.rows - z.now.rows;
@@ -9202,6 +9272,7 @@ SP.applyImport = function applyImport(parsed) {
         const x = strays.find(y => y.ap === ap), z = shrinks.find(y => y.ap === ap);
         if (x) return '“' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + sheetFor(x) + ', holds every ' + st_apLabel(ap) + ' row in the import ('
           + st_rows(x.rows) + ', ' + st_usd(x.cents) + ')';
+        if (!z) return 'the import’s ' + st_apLabel(ap) + ' Obligated is less than the pull on screen’s (' + falls.filter(y => y.ap === ap).map(y => 'FY' + y.fy + ' ' + st_usd(y.drop) + ' less').join('; ') + ')';
         return 'the import’s ' + st_apLabel(ap) + ' pull has ' + SP.fmtInt(z.now.rows) + ' readable row' + (z.now.rows === 1 ? '' : 's') + ' (' + st_usd(z.now.cents)
           + '), fewer than half the ' + SP.fmtInt(z.was.rows) + ' of the one on screen';
       });
@@ -9216,6 +9287,7 @@ SP.applyImport = function applyImport(parsed) {
         + ' replace ' + st_list(targets) + '.'
         + (strays.length ? ' If rows are misfiled, correct their Budget, or take them out of this file (each appropriation’s pull is imported whole), and import again.' : '')
         + (shrinkOnly.length ? ' Import the whole ' + st_list(shrinkOnly) + ' pull' + (shrinkOnly.length === 1 ? '' : 's') + ' when you have ' + (shrinkOnly.length === 1 ? 'it' : 'them') + '.' : '')
+        + (fallOnly.length ? ' Import the newest ' + st_list(fallOnly) + ' pull' + (fallOnly.length === 1 ? '' : 's') + '.' : '')
         + (baeShrink ? ' Import the whole BAE report when you have it.' : '') };
     }
   }
@@ -10039,6 +10111,8 @@ function ui_day(iso) {
   return d.getFullYear() + '-' + ui_pad(d.getMonth() + 1) + '-' + ui_pad(d.getDate());
 }
 function ui_today() { return ui_day(new Date().toISOString()); }
+// 'YYYY-MM-DD' -> '21 Nov 2026', as §30's pill says a day; '' for anything else
+function ui_dayWords(d) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || '')); return m ? Number(m[3]) + ' ' + SP.CAL_MONTHS[Number(m[2]) - 1] + ' ' + m[1] : ''; }
 // this computer's 'YYYY-MM-DD HH:MM', with the seconds when asked
 function ui_when(iso, sec) {
   const d = new Date(iso);
@@ -10817,6 +10891,17 @@ function ui_chBurn(c) {
     + (num(m.goal) ? '; OSD goal ' + SP.fmtPct(m.goal) : '')) + '</title></circle>'; });
   return '<svg class="chsvg burn" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + ui_e(c.apLabel + ' FY' + c.fy + ': Obligation % to date and planned, against the OSD goal') + '">' + g + '</svg>';
 }
+// OBLIGATED, BY MONTH AND IN ALL (review I84). The burn-up's line counts Actual Execution dated through the Data through
+// month; the Summary's Obligated, and the slide block's Total, count every row CCaR marks Actual Execution, also those
+// dated after that month or with no date (§4.5). Where a block has such rows the line under its chart says how much, and
+// the Obligation % that counts it, so a reader comparing the two pages is told why they differ.
+function ui_chOff(b, sl, M) {
+  const after = b && b.execAfterAsOf || 0, nod = b && b.execNoDate || 0;
+  if (!after && !nod) return '';
+  const where = after && nod ? 'dated after ' + M.asOfLabel + ' or with no date' : after ? 'dated after ' + M.asOfLabel : 'with no date';
+  return ' <span class="choff" data-c="' + (after + nod) + '">Plus ' + ui_e(SP.fmtMText(after + nod)) + ' ($M) of Actual Execution ' + ui_e(where)
+    + ', which is not on this line' + (sl && typeof sl.oblPct === 'number' && isFinite(sl.oblPct) ? ': the slide block’s Total, which counts it, is ' + ui_e(SP.fmtPct(sl.oblPct)) : '') + '.</span>';
+}
 function ui_vCharts(M) {
   const all = ui_reqs(M), P = ui_reqPicks(all), F = ui.ch;
   if (F.pmo !== null && !P.pmos.some(p => p[0] === F.pmo)) F.pmo = null;
@@ -10845,7 +10930,7 @@ function ui_vCharts(M) {
     + '</tr></tfoot></table></div></section>';
   // C the PMO scoreboard
   const cardC = '<section class="card chcard" data-ch="pmos"><h3>PMO scoreboard</h3><p class="cardnote">Awarded as a share of the CCaR plan, against the OSD goal for ' + ui_e(M.asOfLabel)
-    + ' (each requirement’s own appropriation and year, weighted by its plan). Click an office to open My PMO.</p><table class="cht chpmo"><thead><tr><th scope="col" class="lab">PMO</th><th scope="col">Awarded of plan</th>'
+    + ' (each requirement’s own appropriation and year, weighted by its plan). A requirement in a year with no OSD goal counts in Plan but not in the share. Click an office to open My PMO.</p><table class="cht chpmo"><thead><tr><th scope="col" class="lab">PMO</th><th scope="col">Awarded of plan</th>'
     + '<th scope="col">Status</th><th scope="col" class="n">Plan ($M)</th></tr></thead><tbody>' + C.pmos.map(p => '<tr data-k="' + ui_e(p.key) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="pmogo" data-k="' + ui_e(p.key)
       + '" data-fkey="chpmo:' + ui_e(p.key) + '">' + ui_e(p.label) + '</button><span class="fsub">' + SP.fmtInt(p.n) + (p.n === 1 ? ' requirement' : ' requirements') + '</span></th><td class="chbarc">'
       + (num(p.pct) ? '<span class="chtrack" title="Awarded ' + ui_e(SP.fmtPct(p.pct)) + ' of the plan; OSD goal ' + ui_e(SP.fmtPct(p.goal)) + '"><span class="chfill" style="width:' + (Math.min(1, Math.max(0, p.pct)) * 100).toFixed(1) + '%"></span>'
@@ -10870,7 +10955,7 @@ function ui_vCharts(M) {
       + '<td class="n tot" data-c="' + r.total + '">' + m(r.total) + '</td></tr>').join('') + '</tbody></table></div></section>';
   // A the burn-up: the Overview's own blocks, so it follows the Appropriation and FY pickers and never the PMO picker
   const O = SP.overviewOf(M, F.fy === null ? null : Number(F.fy)), burn = O.charts.filter(c => { const b = O.rows.find(r => r.key === c.key); return F.ap === null || (b && b.ap === F.ap); });
-  const cardA = '<section class="card chcard" data-ch="burn"><h3>Obligation burn-up</h3><p class="cardnote">Each block’s Obligation % as its slide block prints it: actual through ' + ui_e(M.asOfLabel)
+  const cardA = '<section class="card chcard" data-ch="burn"><h3>Obligation burn-up</h3><p class="cardnote">Each block’s Obligation % month by month, as its slide block’s months print it: actual through ' + ui_e(M.asOfLabel)
     + ', the plan after, against the OSD goal. It is a block’s figure, so it follows the Appropriation and FY pickers and not the PMO picker.</p>'
     + (burn.length ? '<div class="chburns">' + burn.map(c => { const b = O.rows.find(r => r.key === c.key), sl = SP.slideOf(b);
       const lastI = c.months.reduce((a, x, i) => (x.kind === 'actual' && num(x.v) ? i : a), -1), lm = lastI >= 0 ? c.months[lastI] : null;
@@ -10879,8 +10964,8 @@ function ui_vCharts(M) {
         + (sl && sl.status ? '<span class="stc st st-' + sl.status + '">' + ui_e(SP.statusWord(sl.status)) + '</span>' : '') + '</figcaption>' + ui_chBurn(c)
         + '<p class="ovlab">' + (gap === null ? 'No OSD goal for ' + ui_e(M.asOfLabel) + '.' : '<span class="chgap' + (gap < 0 ? ' behind' : '') + '" data-gap="' + gap + '">' + ui_e(lm.label) + ': ' + ui_e(SP.fmtPct(lm.v)) + ', '
           + ui_e((Math.abs(gap) * 100).toFixed(1)) + ' points ' + (gap < 0 ? 'behind' : 'ahead of') + ' the goal.</span>')
-        + (end && end.kind === 'plan' ? ' The plan reaches ' + ui_e(SP.fmtPct(end.v)) + ' by ' + ui_e(end.label) + '.' : '') + '</p></figure>'; }).join('') + '</div>'
-      + '<p class="chkey">' + key('bk-act', 'Obligated to date') + key('bk-plan', 'Plan for the rest of the year') + key('bk-goal', 'OSD goal') + '</p>'
+        + (end && end.kind === 'plan' ? ' The plan reaches ' + ui_e(SP.fmtPct(end.v)) + ' by ' + ui_e(end.label) + '.' : '') + ui_chOff(b, sl, M) + '</p></figure>'; }).join('') + '</div>'
+      + '<p class="chkey">' + key('bk-act', 'Actual through ' + ui_e(M.asOfLabel)) + key('bk-plan', 'Plan for the rest of the year') + key('bk-goal', 'OSD goal') + '</p>'
       : '<p class="cardnote">No block for what is picked.</p>') + '</section>';
   return head + count + cardB + '<div class="chtwo">' + cardC + cardD + '</div>' + cardF + cardA;
 }
@@ -11028,11 +11113,13 @@ function ui_ufrBody(M, V) {
   const U = ui.ufr, K = c => '$' + (SP.fmtK(c) === '-' ? '0' : SP.fmtK(c)) + 'K';
   const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
   const req = n => SP.fmtInt(n) + (n === 1 ? ' requirement' : ' requirements');
+  const lns = n => SP.fmtInt(n) + (n === 1 ? ' line' : ' lines'), mn = V.tiles.mand ? V.tiles.mand.n : 0;
   const bars = (id, head, items) => { const max = Math.max(1, ...items.map(x => Math.abs(x.sum)));
     return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (items.length ? '<ul class="plist ubars">' + items.map(x => '<li><span class="fp">' + ui_e(x.label) + '</span>'
       + '<span class="ubar" aria-hidden="true"><span style="width:' + (100 * Math.abs(x.sum) / max).toFixed(1) + '%;background:' + (x.color || '#8EAADB') + '"></span></span>'
       + '<span class="fa" data-c="' + x.sum + '">' + ui_e(SP.fmtK(x.sum)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">Nothing unfunded.</p>') + '</section>'; };
-  if (!V.n) return '<p class="none" id="uiUfrNone">No unfunded requirement matches. Clear filters shows the whole list.</p>';
+  if (!V.n) return '<p class="none" id="uiUfrNone">No unfunded requirement matches. Clear filters shows the whole list.'
+    + (V.tiles.mand.hidden ? ' The Filter’s Mandatory lane switch hides ' + SP.fmtInt(V.tiles.mand.hidden) + (V.tiles.mand.hidden === 1 ? ' Mandatory line.' : ' Mandatory lines.') : '') + '</p>';
   const cols = 9 + V.svc.length;
   let zebra = 0;
   // §43 the keeper ranks the list here, 1 to N within an appropriation and fiscal year; a view-only copy shows the ranks
@@ -11048,6 +11135,9 @@ function ui_ufrBody(M, V) {
       + '<button type="button" class="urkb" data-act="ufrdown" data-i="' + i + '" data-fkey="ufrdown:' + ui_e(l.id) + '" aria-label="Move ' + ui_e(l.title || '(no title)') + ' down one rank" title="Down one rank">\u25BC</button></span>'
       + (l.rankDiff ? '<span class="fsub urkf">tracker ' + ui_e(l.rankFile) + '</span>' : l.rankNew ? '<span class="fsub urkf">not ranked by you</span>' : '') + '</td>';
   };
+  // with a BAE report loaded, the CCaR figure is named CCaR plan, as What changed names it (review P4-2, I15): Approved is
+  // then the report's on the Summary
+  const apw = ui_rep(M) ? 'CCaR plan' : 'Approved';
   const rows = V.groups.map(g => { const gk = g.ap + '|' + g.fy, G = RK.groups[gk] || { n: g.lines.length, mine: false };
     return '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy
       + (edit && G.mine ? ' <span class="urkm">in your ranking</span> <button type="button" class="urkreset" data-act="ufrreset" data-g="' + ui_e(gk) + '" data-fkey="ufrreset:' + ui_e(gk) + '">Use the tracker’s ranks</button>' : '')
@@ -11063,8 +11153,8 @@ function ui_ufrBody(M, V) {
         ? '<strong>A Mandatory plan event in the CCaR pull</strong>' + (l.record ? ', of ' + ui_e(l.record) : '') + ': ' + ui_e(K(l.sum)) + ' on Mandatory budgets in ' + ui_e(g.apLabel) + ' FY' + g.fy
           + (l.plan && l.plan.obligated ? ', ' + ui_e(K(l.plan.obligated)) + ' of it marked awarded' : '') + '. It is listed here as unfunded because Mandatory funding has not been received. The spend plan pages and the PDFs still count it as Approved.'
         : l.plan
-        ? '<strong>In the spend plan (' + ui_e(g.apLabel) + ' FY' + g.fy + '):</strong> Approved ' + ui_e(K(l.plan.approved)) + ' · Obligated ' + ui_e(K(l.plan.obligated)) + ' · Remaining ' + ui_e(K(l.plan.approved - l.plan.obligated))
-          + ' · <strong>Required ' + ui_e(K(l.plan.approved + l.sum)) + '</strong> (Approved + this unfunded ' + ui_e(K(l.sum)) + ') · Delta (' + ui_e(SP.fmtK(l.sum) === '-' ? '0' : SP.fmtK(l.sum)) + ')'
+        ? '<strong>In the spend plan (' + ui_e(g.apLabel) + ' FY' + g.fy + '):</strong> ' + apw + ' ' + ui_e(K(l.plan.approved)) + ' · Obligated ' + ui_e(K(l.plan.obligated)) + ' · Remaining ' + ui_e(K(l.plan.approved - l.plan.obligated))
+          + ' · <strong>Required ' + ui_e(K(l.plan.approved + l.sum)) + '</strong> (' + apw + ' + this unfunded ' + ui_e(K(l.sum)) + ') · Delta (' + ui_e(SP.fmtK(l.sum) === '-' ? '0' : SP.fmtK(l.sum)) + ')'
         : '<strong>Not in the spend plan:</strong> no plan event in ' + ui_e(g.apLabel) + ' FY' + g.fy + ' carries this CCaR record' + (l.prime ? '' : ' under ' + ui_e(l.pmoLabel)) + ', so Approved is $0 and Required is this unfunded ' + ui_e(K(l.sum)) + '.')
         + (l.ccar ? '<div class="acts"><button type="button" data-act="reqfind" data-q="' + ui_e(l.ccar) + '" data-fkey="ufrreq:' + ui_e(l.id) + '">Open this requirement</button>'
           + (l.prime ? '<span class="cardnote">A prime contract: its spend plan figures are over every PMO.</span>' : '') + '</div>' : '') + '</div></td></tr>' : '');
@@ -11074,11 +11164,15 @@ function ui_ufrBody(M, V) {
   const chk = edit && RK.flags.length ? '<section class="card urankchk" id="uiUfrRankChk"><h3>Your ranking: to check (' + RK.flags.length + ')</h3><ul class="speclist">' + RK.flags.map(f => '<li>' + ui_e(f) + '</li>').join('') + '</ul>'
     + (gone ? '<p class="acts"><button type="button" data-act="ufrforget" data-fkey="ufrforget">Take the ' + SP.fmtInt(gone) + ' line' + (gone === 1 ? '' : 's') + ' no longer on the tracker out of your ranking</button></p>' : '') + '</section>' : '';
   return '<div class="tiles' + (V.mand && V.mand.on ? ' tiles5' : '') + '">'
-    + tile('sum', 'Total unfunded', ui_e(K(V.tiles.sum)), req(V.tiles.n) + ', ' + SP.fmtInt(V.tiles.aps) + (V.tiles.aps === 1 ? ' appropriation' : ' appropriations'), V.tiles.sum)
-    + tile('exec', 'Exec ready', ui_e(K(V.tiles.exec.sum)), SP.fmtInt(V.tiles.exec.n) + ' of ' + req(V.tiles.n), V.tiles.exec.sum)
+    // with §45's Mandatory plan events listed, the count is of lines, and says how many of each (review I83): a Mandatory
+    // line is a plan event, not a requirement the tracker or the PDFs count
+    + tile('sum', 'Total unfunded', ui_e(K(V.tiles.sum)), (mn ? lns(V.tiles.n) + ' (' + req(V.tiles.n - mn) + ' on the tracker, ' + SP.fmtInt(mn) + (mn === 1 ? ' Mandatory plan event)' : ' Mandatory plan events)') : req(V.tiles.n))
+      + ', ' + SP.fmtInt(V.tiles.aps) + (V.tiles.aps === 1 ? ' appropriation' : ' appropriations'), V.tiles.sum)
+    + tile('exec', 'Exec ready', ui_e(K(V.tiles.exec.sum)), SP.fmtInt(V.tiles.exec.n) + ' of ' + (mn ? lns(V.tiles.n) : req(V.tiles.n)), V.tiles.exec.sum)
     + tile('sfcb', 'SFCB approved', ui_e(K(V.tiles.sfcb.sum)), req(V.tiles.sfcb.n), V.tiles.sfcb.sum)
     + tile('only', 'Not in the spend plan', SP.fmtInt(V.tiles.only), 'unfunded only: no plan event yet', V.tiles.only)
-    + (V.mand && V.mand.on ? tile('mand', 'Mandatory, not received', ui_e(K(V.tiles.mand.sum)), SP.fmtInt(V.tiles.mand.n) + (V.tiles.mand.n === 1 ? ' plan event' : ' plan events') + ' from the CCaR pull', V.tiles.mand.sum) : '')
+    + (V.mand && V.mand.on ? (V.tiles.mand.hidden && !V.tiles.mand.n ? tile('mand', 'Mandatory, not received', 'Hidden', 'by the Filter’s Mandatory lane switch: ' + SP.fmtInt(V.tiles.mand.hidden) + (V.tiles.mand.hidden === 1 ? ' plan event' : ' plan events'))
+      : tile('mand', 'Mandatory, not received', ui_e(K(V.tiles.mand.sum)), SP.fmtInt(V.tiles.mand.n) + (V.tiles.mand.n === 1 ? ' plan event' : ' plan events') + ' from the CCaR pull', V.tiles.mand.sum)) : '')
     + '</div><div class="pmotwo">' + bars('pmo', 'Unfunded by PMO ($K)', V.byPmo) + bars('svc', 'Unfunded by service ($K)', V.bySvc) + '</div>'
     + chk + '<h3 class="pmoall">Every unfunded requirement, by rank</h3>'
     + (edit ? '<p class="cardnote" id="uiUfrRankHow">Type a rank, or press \u25B2 \u25BC, to put a list in your own order, 1 to N within its appropriation and fiscal year. Your order is used in place of the tracker’s, here, on the PDFs and in a view-only copy, '
@@ -11087,19 +11181,19 @@ function ui_ufrBody(M, V) {
     + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($K)</th><th scope="col">Funding status</th><th scope="col">Exec ready?</th><th scope="col">SFCB action</th>'
     + '<th scope="col" class="n">Approved in plan ($K)</th></tr></thead><tbody>' + rows
     + '<tr class="band"><th colspan="3" scope="row">Total unfunded</th>' + V.total.amt.map(ui_k).join('') + ui_k(V.total.sum) + '<td colspan="4"></td></tr></tbody></table></div>'
-    + '<p class="cardnote findnote">Figures are $K, as on the UFR tracker. The Filter above (services) and the pickers narrow the list and every total. Press a requirement to see it beside its spend plan. '
+    + '<p class="cardnote findnote">Figures are $K, as on the UFR tracker. The Filter above (its services; its lanes for the Mandatory lines only) and the pickers narrow the list and every total. Press a requirement to see it beside its spend plan. '
     + 'Approved in plan is the CCaR amount in that record’s plan events' + (V.skipped ? '; ' + SP.fmtInt(V.skipped) + ' line' + (V.skipped === 1 ? ' is' : 's are') + ' not shown, of a year APEX shows no figures for' : '') + '.</p>';
 }
 // §45 the Mandatory switch. The keeper turns it on or off; a view-only copy made with it on says so and cannot change it.
 function ui_ufrMandCard(V, vo) {
   const m = V.mand || { on: false, avail: 0, availCents: 0, overlap: [] };
   const K = c => '$' + (SP.fmtK(c) === '-' ? '0' : SP.fmtK(c)) + 'K', ev = n => SP.fmtInt(n) + (n === 1 ? ' plan event' : ' plan events');
-  if (vo) return m.on ? '<section class="card umandcard" id="uiUfrMand"><p class="umandsay"><strong>Mandatory funding not received.</strong> The ' + ev(m.n) + ' on Mandatory budgets in the CCaR pull (' + ui_e(K(m.cents))
-    + ') are listed below as unfunded, each marked <span class="mtag">Mandatory</span>. The spend plan pages still count that money as Approved.</p></section>' : '';
+  if (vo) return m.on ? '<section class="card umandcard" id="uiUfrMand"><p class="umandsay"><strong>Mandatory funding not received.</strong> The ' + ev(m.n) + ' on Mandatory budgets in the whole CCaR pull (' + ui_e(K(m.cents))
+    + ') are listed below as unfunded, each marked <span class="mtag">Mandatory</span>; the Mandatory, not received tile counts those the Filter and the pickers show. The spend plan pages still count that money as Approved.</p></section>' : '';
   if (!m.avail && !m.on) return '';
   return '<section class="card umandcard" id="uiUfrMand"><label class="chk umandsw"><input type="checkbox" data-act="ufrmand" data-fkey="ufrmand"' + (m.on ? ' checked' : '') + '> Mandatory funding not received: list Mandatory plan events as unfunded</label>'
-    + '<p class="cardnote">' + (m.on ? 'On: the ' : 'Off: the list is the UFR tracker alone. On, the ') + ev(m.avail) + ' on Mandatory budgets in the CCaR pull (' + ui_e(K(m.availCents)) + ') '
-    + (m.on ? 'are' : 'would be') + ' listed below as unfunded, one line a plan event, marked <span class="mtag">Mandatory</span>. This affects the Unfunded page only: the spend plan pages and the PDFs still count Mandatory as Approved. A view-only copy made with this on shows them too.</p>'
+    + '<p class="cardnote">' + (m.on ? 'On: the ' : 'Off: the list is the UFR tracker alone. On, the ') + ev(m.avail) + ' on Mandatory budgets in the ' + (m.on ? 'whole ' : '') + 'CCaR pull (' + ui_e(K(m.availCents)) + ') '
+    + (m.on ? 'are' : 'would be') + ' listed below as unfunded, one line a plan event, marked <span class="mtag">Mandatory</span>' + (m.on ? '; the Mandatory, not received tile counts those the Filter and the pickers show' : '') + '. This affects the Unfunded page only: the spend plan pages and the PDFs still count Mandatory as Approved. A view-only copy made with this on shows them too.</p>'
     + (m.on && m.overlap.length ? '<h4 class="sub">To check (' + m.overlap.length + ')</h4><ul class="speclist" id="uiUfrMandChk">' + m.overlap.map(f => '<li>' + ui_e(f) + '</li>').join('') + '</ul>' : '') + '</section>';
 }
 function ui_vUfr(M) {
@@ -11290,8 +11384,8 @@ function ui_pubCtx(Mp, P) {
     catch (e) { emblem = null; }
     if (emblem && !SP.jpegInfo(emblem)) emblem = null;
   }
-  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(),
-    uploaded: up ? up.text + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
+  return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(), dataDay: up ? up.oldest : '',
+    uploaded: up ? up.text + (up.more ? ' (' + up.more + ')' : '') + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
 function ui_vPublish(M) {
@@ -11494,9 +11588,40 @@ function ui_vAp(M, ap) {
       + '<div class="tw treew"><table class="grid blk tree"><thead>' + ui_hdr(M, 'PMO / Title / Plan Event / CCaR') + '</thead><tbody>'
       + (rows.length ? rows.join('') : '<tr><td colspan="' + ui_ncols(M) + '" class="none">No rows shown.</td></tr>')
       + ui_band(M, b) + '</tbody></table></div>'
-      + '<h3 class="nabar">' + ui_e(SP.UNOB_HEAD) + ' — ' + ui_e(label) + ' FY' + ui_e(b.fy) + '</h3>' + ui_naTable(M, b.na, false) + '</section>');
+      + ui_naFold(M, b, label) + '</section>');
   }
   return out.join('');
+}
+// AN APPROPRIATION'S UNOBLIGATED LISTS ARE FOLDED (review I02): under O&M's last year the list was four fifths of the page
+// (450 items), and the spend plan the page is named for sat above it. Each block's list is one native fold, closed until
+// opened, its bar saying how many items and how much; every item is still in the page (no cap, §5), so the browser's own
+// find opens the fold at a match. Opened, it stays open for this visit (UI_NA_OPEN), never in the file; printed, every
+// fold is opened first. The slide blocks and By PMO keep their short one-line-a-month lists as they were.
+const UI_NA_OPEN = new Set();
+function ui_naFold(M, b, label) {
+  const head = '<h3 class="nabar">' + ui_e(SP.UNOB_HEAD) + ' — ' + ui_e(label) + ' FY' + ui_e(b.fy) + '</h3>';
+  if (SP.NA_FOLD === false) return head + ui_naTable(M, b.na, false);
+  const n = b.na.length, sum = b.na.reduce((t, it) => t + it.cents, 0);
+  // with a BAE report loaded the table above measures Unobligated from the report's Approved, and this list adds up the CCaR
+  // plan's own rows not yet obligated: the two are said together where they meet (review I15)
+  const tie = ui_rep(M) && n ? '<span class="natie">These add to ' + ui_e(SP.fmtMText(sum)) + ' ($M), the CCaR plan less Obligated; Unobligated in the table above is the BAE report’s Approved less Obligated.</span>' : '';
+  return '<details class="nafold" data-na="' + ui_e(b.key) + '"' + (UI_NA_OPEN.has(b.key) ? ' open' : '') + '><summary>' + head
+    + '<span class="nacount" data-c="' + sum + '">' + (n ? SP.fmtInt(n) + (n === 1 ? ' item, ' : ' items, ') + ui_e(SP.fmtMText(sum)) + ' ($M). Press to ' + (UI_NA_OPEN.has(b.key) ? 'fold' : 'open') + ' the list.' : 'None.') + '</span>'
+    + tie + '</summary>' + ui_naTable(M, b.na, false) + '</details>';
+}
+function ui_naToggle(ev) {
+  const d = ev.target;
+  if (!d || !d.classList || !d.classList.contains('nafold')) return;
+  const k = d.getAttribute('data-na');
+  if (d.open) UI_NA_OPEN.add(k); else UI_NA_OPEN.delete(k);
+  const c = d.querySelector('.nacount');
+  if (c && d.querySelector('table')) c.textContent = c.textContent.replace(/Press to (open|fold) the list\.$/, 'Press to ' + (d.open ? 'fold' : 'open') + ' the list.');
+}
+function ui_naPrint(open) {
+  for (const d of document.querySelectorAll('details.nafold')) {
+    if (open) { d.setAttribute('data-was', d.open ? '1' : '0'); d.open = true; }
+    else if (d.hasAttribute('data-was')) { d.open = d.getAttribute('data-was') === '1'; d.removeAttribute('data-was'); }
+  }
 }
 
 function ui_vPmos(M) {
@@ -12584,7 +12709,12 @@ function ui_drawTop(M) {
   // work not yet saved is said wherever the person is
   // in a view-only copy (§35) the two dates are said, never set: there is no Manage data bar to set them in
   const vo = ui_vo();
-  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) + (vo ? ' · First FY ' + (Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : '')) : '') : '';
+  // a view-only copy says when it was published (its savedAt is stamped as it is made, §35), and its browser tab says so too,
+  // so two copies in two tabs can be told apart (review I10). The keeper's page keeps the shell's title.
+  const pubDay = vo ? ui_dayWords(ui_day((ui_state() || {}).savedAt)) : '';
+  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) + (vo ? ' · First FY ' + (Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : '')) : '')
+    + (pubDay ? ' · Published ' + pubDay : '') : '';
+  if (vo) document.title = 'CUI - APEX' + (has && S.asOf ? ' · data through ' + SP.asOfLabel(S.asOf) : '') + (pubDay ? ' · published ' + pubDay : '');
   if (E.vo) E.vo.hidden = !vo;
   if (vo) ui.manage = false;
   E.manageBtn.hidden = vo;
@@ -12609,8 +12739,12 @@ function ui_drawTop(M) {
   E.upd.hidden = !up;
   E.upd.className = 'upd' + (up ? ' upd-' + up.level : '');
   E.upd.textContent = up ? up.text + (up.more ? ' (' + up.more + ')' : '') : '';
-  E.upd.title = up ? shown.map(a => a.label + ' imported ' + (ui_when(P[a.id].importedAt) || 'date unknown')).join('; ')
-    + (up.level === 'fresh' ? '' : '. ' + (up.level === 'old' ? 'More than 30 days old' : 'More than a week old') + ': import a newer CCaR pull for current figures.') : '';
+  // each pull's file named beside its import (review I39): an older file imported by mistake reads "today" by its import day
+  // alone. A reader cannot import, so a view-only copy says whom to ask (review I10).
+  const fnames = p => { const n = (Array.isArray(p.files) ? p.files : []).map(f => f && typeof f.name === 'string' ? f.name : '').filter(Boolean); return n.length ? ' (' + n.join(', ') + ')' : ''; };
+  E.upd.title = up ? shown.map(a => a.label + ' imported ' + (ui_when(P[a.id].importedAt) || 'date unknown') + fnames(P[a.id])).join('; ')
+    + (up.level === 'fresh' ? '' : '. ' + (up.level === 'old' ? 'More than 30 days old' : 'More than a week old')
+      + (vo ? ': ask whoever keeps this plan for a newer copy.' : ': import a newer CCaR pull for current figures.')) : '';
   // on paper only (the top bar is not printed): what the printed figures are, and what they leave out
   if (E.printHead) {
     ui.printBase = has ? 'APEX' + (ey ? ' FY' + ey : '') + ' · Data through ' + (S.asOf ? SP.asOfLabel(S.asOf) : 'not set') + ' · '
@@ -12685,7 +12819,19 @@ function ui_drawFilters(M) {
     + '" aria-controls="uiSwitches">Filter: ' + ui_e(M.shown.text) + '</button>'
     + '<div class="filters" id="uiSwitches" role="group" aria-label="Switches: which services and lanes are counted"' + (open ? '' : ' hidden') + '>'
     + '<span class="fl" aria-hidden="true">Services</span>' + svc + '<span class="fl" aria-hidden="true">Lanes</span>' + lanes
-    + '<span class="shownline' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</span></div>';
+    + '<span class="shownline' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</span>'
+    + (M.shown.all ? '' : '<button type="button" class="showall" data-act="showall" data-fkey="showall">Show everything</button>') + '</div>';
+}
+// WHAT A SWITCH LEFT OFF HIDES, in words (review I36). The switches are this browser's (§11), and every APEX file opened in
+// it shares them, so next week's copy opens with last week's switch still off: said once as the page opens, by what is
+// OFF ("Mandatory is not counted"), where the Filter line names what is shown. '' when everything is counted.
+function ui_offWords(M) {
+  if (!M || M.shown.all) return '';
+  const v = ui_view(), off = (o, k) => !!(o && Object.prototype.hasOwnProperty.call(o, k) && !o[k]);
+  const sv = UI_SVC.filter((x, i) => (i < 6 || M.present.services.includes(x)) && off(v.svc, x)), ln = UI_LANES.filter(([l]) => off(v.lane, l)).map(([, w]) => w);
+  const parts = (ln.length ? [st_and(ln) + (ln.length === 1 ? ' is' : ' are') + ' not counted'] : []).concat(sv.length ? [st_and(sv) + (sv.length === 1 ? ' is' : ' are') + ' left out'] : []);
+  return parts.length ? 'This browser keeps the Filter’s switches from an earlier visit: ' + parts.join(', and ') + '. Show everything, in the Filter, counts it all again.' : '';
+  function st_and(a) { return a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
 }
 function ui_drawMain(M) {
   const v = ui.view;
@@ -12754,6 +12900,24 @@ function ui_render() {
     const el = byKey(fk) || (to ? byKey(to) : null);
     if (el) { if (el !== document.activeElement) el.focus({ preventScroll: true }); }
     else if (inMain) ui.els.main.focus({ preventScroll: true });
+  }
+}
+// THE BARS ALONE (review I22): the Menu button, the Filter button and Manage data change only the top bar, the menu and the
+// Filter, which the view under them never reads, so only those are drawn again. Rebuilding the whole view first made the
+// phone's Menu open over half a second late. Anything that changes a figure (a switch, a setting, an import) still draws
+// everything with ui_render; so does this, when a full redraw is already waiting.
+function ui_renderBars() {
+  if (!ui.els) return;
+  if (ui.pending) { ui_render(); return; }
+  const ae = document.activeElement, fk = ae && ae.getAttribute ? ae.getAttribute('data-fkey') : null;
+  const has = ui_hasData(), M = has ? ui_model() : null;
+  ui_drawTop(M);
+  ui_drawNav(has);
+  ui_drawFilters(M);
+  ui_layout();
+  if (fk) {
+    const el = [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === fk && !x.disabled && !x.hidden);
+    if (el && el !== document.activeElement) el.focus({ preventScroll: true });
   }
 }
 // a TASK, not a microtask: a box typed in and left with Tab fires its change before the keyboard reaches the next box,
@@ -13039,7 +13203,7 @@ function ui_onClick(ev) {
     }
     case 'navtoggle':
       ui.navOpen = !ui.navOpen;
-      ui_render();
+      ui_renderBars();
       break;
     case 'helpgo': {
       // a section of the view-only copy's Help (review I08): its heading takes the keyboard, under the sticky top
@@ -13055,11 +13219,19 @@ function ui_onClick(ev) {
       break;
     case 'manage':
       ui.manage = !ui.manage;
-      ui_render();
+      ui_renderBars();
       break;
     case 'filt':
       ui.filtOpen = t.getAttribute('aria-expanded') !== 'true';
+      ui_renderBars();
+      break;
+    case 'showall':
+      // every switch on again: this browser's view, never the file's, as any switch (§11); the keyboard goes to the Filter
+      ui_setView(SP.defaultView());
+      ui_invalidate();
+      ui.focusTo = 'filt';
       ui_render();
+      ui_say('Every service and both lanes are counted again.', 'ok');
       break;
     case 'findsel':
       {
@@ -13336,6 +13508,9 @@ function ui_boot() {
     else if (ev.target && ev.target.id === 'uiUfrQ') { ui.ufr.q = ev.target.value; ui_ufrRedraw(); }
     else if (ev.target && ev.target.id === 'uiSrrbQ') { ui.srrb.q = ev.target.value; ui_srrbRedraw(); } });
   app.addEventListener('keydown', ui_onKey);
+  app.addEventListener('toggle', ui_naToggle, true);   // a folded Unobligated list opened or closed (it does not bubble)
+  window.addEventListener('beforeprint', () => ui_naPrint(true));
+  window.addEventListener('afterprint', () => ui_naPrint(false));
   ui_dragWire(app);
   document.addEventListener('fullscreenchange', ui_fsSync);
   app.addEventListener('focusout', ev => { if (ui.els && ev.target === ui.els.asOf) ui_asOfLeft(); });
@@ -13345,8 +13520,12 @@ function ui_boot() {
   if (typeof ResizeObserver === 'function') { try { new ResizeObserver(() => ui_layout()).observe(ui.els.top); } catch (e) {} }
   ui_render();
   // in a view-only copy the plain "Opened the plan saved …" notice is not said (review I09): the top already says when the
-  // data was uploaded, and the notice took a phone's first screen. A warning or a refusal is said as ever.
-  if (r && r.message && !(ui_vo() && r.ok !== false)) ui_say(r.message, r.ok === false ? 'err' : 'info');
+  // data was uploaded, and the notice took a phone's first screen. A warning or a refusal is said as ever, and so is a Filter
+  // switch left off (review I36).
+  const off = ui_hasData() ? ui_offWords(ui_model()) : '';
+  const plain = r && r.message && ui_vo() && r.ok !== false;
+  if (r && r.message && !plain) ui_say(r.message + (off ? ' ' + off : ''), r.ok === false ? 'err' : off ? 'warn' : 'info');
+  else if (off) ui_say(off, 'warn');
   // printed, the line on paper says what the pickers picked at that moment (review I34)
   window.addEventListener('beforeprint', ui_printPicks);
 }

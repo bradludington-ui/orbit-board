@@ -153,7 +153,7 @@ async function fits(p, where) {
 // ================================================================================== A. a fresh page, imported
 const A = await open(page(null));
 const P = A.p;
-C.chk('the page title', (await P.title()) === 'APEX');
+C.chk('the page title', (await P.title()) === 'CUI - APEX'   /* review I58: the tab carries the marking */);
 C.chk('no data yet: the one panel says what to import', /No data yet/.test(await text(P, '#uiMain'))
   && /one file per appropriation, or one file holding all four/.test(await text(P, '#uiMain')));
 C.chk('no data yet: no views and no switches', (await P.$$('[data-act=view]')).length === 0 && (await P.$$('[data-act=svc]')).length === 0);

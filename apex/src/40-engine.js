@@ -2007,7 +2007,8 @@ SP.ymWords = function ymWords(ym) {
 // goal: an office's requirements are of several appropriations and years, each with its own OSD goal for the Data through
 // month (its block's goal), so the office's goal is those goals weighted by each requirement's plan; a requirement whose
 // block has no goal (a year after the execution year) is left out of the office's pct, goal and status, and counted in n
-// and planned all the same. age: whole months from a late plan event's month to the Data through month (0: the month that
+// and planned all the same. Every other requirement is in the pct, a plan below zero (a deobligation) too, so the pct is
+// awarded over planned of those requirements; the goal is weighted by each one's plan above zero. age: whole months from a late plan event's month to the Data through month (0: the month that
 // has just closed); a requirement's is its oldest late event's.
 // ---------------------------------------------------------------------------------------------------------------
 SP.chartsOf = function chartsOf(M, reqs) {
@@ -2022,10 +2023,13 @@ SP.chartsOf = function chartsOf(M, reqs) {
   if (asOfN !== null) { const w = n => Math.floor(n / 12) + '-' + String(n % 12 + 1).padStart(2, '0'); next3.from = w(asOfN + 1); next3.to = w(asOfN + 3); }
   for (const r of R) {
     let p = pm.get(r.pmoKey);
-    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, cells: cols.map(() => 0), total: 0 });
+    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, gW: 0, cells: cols.map(() => 0), total: 0 });
     p.n++; p.planned += r.planned; p.awarded += r.awarded;
     const g = goalOf.get(r.ap + '|' + r.fy);
-    if (g !== null && g !== undefined && r.planned > 0) { p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += r.planned * g; }
+    // every requirement with a goal is in the share, whatever the sign of its plan, so the share is the office's Awarded over
+    // its Plan as By PMO and My PMO divide them; a deobligation (a plan below zero) left out made it neither (review I78).
+    // The goal is weighted by the plan above zero only: a negative weight would bend it.
+    if (g !== null && g !== undefined) { const w = Math.max(0, r.planned); p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += w * g; p.gW += w; }
     for (const e of r.events) {
       const i = colAt.get(e.col);
       if (i !== undefined) { const c = cols[i]; c[e.awarded ? 'awarded' : e.late ? 'late' : 'projected'] += e.cents; c.total += e.cents; p.cells[i] += e.cents; p.total += e.cents; }
@@ -2048,7 +2052,7 @@ SP.chartsOf = function chartsOf(M, reqs) {
   for (const c of cols) for (const k of ['awarded', 'late', 'projected', 'total']) sum[k] += c[k];
   return {
     n: R.length, cols, next3, sum,
-    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 ? p.gSum / p.gPlan : null;
+    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 && p.gW > 0 ? p.gSum / p.gW : null;
       return { key: p.key, label: p.label, n: p.n, planned: p.planned, awarded: p.awarded, pct, goal, status: SP.statusOf(pct, goal) }; }),
     late, lateCents: late.reduce((s, l) => s + l.cents, 0),
     heat: { rows: pmos.map(p => ({ key: p.key, label: p.label, cells: p.cells, total: p.total })), max: Math.max(0, ...pmos.flatMap(p => p.cells)) },

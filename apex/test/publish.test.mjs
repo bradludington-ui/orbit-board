@@ -261,7 +261,7 @@ try {
   const jpg = new Uint8Array(execFileSync('python3', ['-c', 'import sys,io\nfrom PIL import Image\nb=io.BytesIO(); Image.new("RGB",(40,20),(10,90,160)).save(b,"JPEG"); sys.stdout.buffer.write(b.getvalue())']));
   C.eq('a JPEG’s size is read from its frame header', J(SP.jpegInfo(jpg)), J({ w: 40, h: 20, n: 3 }));
   C.eq('and anything else is not a JPEG', SP.jpegInfo(new Uint8Array([1, 2, 3, 4])), null);
-  const ctx = { program: 'Tessa Program', fm: { om: 'O. Lead', sp: 'S. Lead' }, asOfLabel: M.asOfLabel, today: '2026-11-17', uploaded: 'Data uploaded 9 Nov 2026.', emblem: jpg, model: M, bae: false,
+  const ctx = { program: 'Tessa Program', fm: { om: 'O. Lead', sp: 'S. Lead' }, asOfLabel: M.asOfLabel, today: '2026-11-17', dataDay: '2026-11-09', uploaded: 'Data uploaded 9 Nov 2026.'   /* review I82: the header is dated by the data, then the print day */, emblem: jpg, model: M, bae: false,
     ufrFiles: [{ fy: 2027, name: 'UFR Tracker FY27.xlsx', day: '2026-11-14' }] };
   // each section opens with a break page (§33.12); the checks below that count on a page's place read the plan without them
   const noBreak = R => ({ pages: R.pages.filter(p => p.kind !== 'break') });
@@ -273,8 +273,8 @@ try {
   const brk = Pall.pages.filter(p => p.kind === 'break');
   C.chk('a break page says which fiscal year and appropriation follows, large, with the program above', J(brk.map(p => [has(p, 'FY2026 Spend Plan'), has(p, 'FY2027 Spend Plan'), has(p, 'Operations & Maintenance'), has(p, 'Tessa Program')])) === J([[true, false, true, true], [false, true, true, true]])
     && brk.every(p => p.ops.find(o => o.t === 'text' && /Spend Plan$/.test(o.s) && o.size === 34 && o.align === 'c' && o.x === 396)));
-  C.chk('and the section’s size and totals, its FM Lead and the dates', texts(brk[1]).includes('5 requirements   |   Required $13,750,001   |   Approved $10,450,001   |   Obligated $3,500,001') && has(brk[1], 'O&M FM Lead: O. Lead')
-    && has(brk[1], 'Data as of: 17 Nov 2026  |  Data through Oct-2026'), J(texts(brk[1])));
+  C.chk('and the section’s size and totals, its FM Lead and the dates', texts(brk[1]).includes('5 requirements (2 unfunded only, no plan event)   |   Required $13,750,001   |   Approved $10,450,001   |   Obligated $3,500,001') && has(brk[1], 'O&M FM Lead: O. Lead')
+    && has(brk[1], 'Data uploaded 9 Nov 2026  |  Data through Oct-2026  |  Printed 17 Nov 2026'), J(texts(brk[1])));
   C.chk('it carries the emblem, large and centred, and the CUI marking and page number like any page', brk.every(p => p.ops.some(o => o.t === 'img' && o.w === 120 && Math.abs(o.x + o.w / 2 - 396) < 0.01)
     && texts(p).filter(x => x === SP.CUI).length === 2 && texts(p).some(x => /^Page \d of 6$/.test(x))));
   C.eq('a break page sits immediately before the first page of its section', J(Pall.pages.map((p, i) => (p.kind === 'break' ? texts(Pall.pages[i + 1]).includes('Consolidated Sustainment Spend Plan') : null)).filter(x => x !== null)), J([true, true]));
@@ -288,7 +288,7 @@ try {
     P.pages.every(p => p.ops.every(o => o.t !== 'text' || o.align !== 'r' || o.x - SP.pdfTextWidth(o.s, o.size, o.bold) >= 18)));
   const p1 = P.pages[0];
   C.chk('page 1: the title, the appropriation, the band, who and when', has(p1, 'Tessa Program - Spend Plan') && has(p1, 'Operations & Maintenance') && has(p1, 'Execution status - FY2026, FY2027')
-    && has(p1, 'O&M FM Lead: O. Lead') && has(p1, 'Data as of: 17 Nov 2026  |  Data through Oct-2026'), J(texts(p1).slice(0, 8)));
+    && has(p1, 'O&M FM Lead: O. Lead') && has(p1, 'Data uploaded 9 Nov 2026  |  Data through Oct-2026  |  Printed 17 Nov 2026'), J(texts(p1).slice(0, 8)));
   C.chk('page 1: the emblem is placed, inside its 54 pt box, its shape kept', p1.ops.some(o => o.t === 'img' && o.name === 'emblem' && o.w === 54 && o.h === 27));
   // §33.7 the emblem sits in the band: the band runs out from behind it, from the emblem's blue into the band's colour
   const strips = p1.ops.filter(o => o.t === 'rect' && o.y === 57 && o.h === 12);
@@ -373,7 +373,7 @@ try {
   // the header with the summary, and the column headings, are on every page of a section
   C.chk('every page of the section carries the full header: the emblem, both title lines, the totals by service and the band',
     PB.every(p => p.ops.some(o => o.t === 'img' && o.w === 54) && has(p, 'Tessa Program - FY27 Spend Plan') && has(p, 'Operations & Maintenance') && has(p, 'TOTAL')
-      && texts(p).filter(s => s === 'USMC (F-35B)').length >= 1 && texts(p).some(s => /^Data as of: /.test(s))), J(PB.map(p => texts(p).slice(0, 3))));
+      && texts(p).filter(s => s === 'USMC (F-35B)').length >= 1 && texts(p).some(s => /^Data uploaded /.test(s))), J(PB.map(p => texts(p).slice(0, 3))));
   C.chk('and the column headings, at the same place on each', PB.every(p => ['PMO', 'Requirement Title', 'Description', 'Award Date', 'Service', 'Delta (+/-)'].every(h => has(p, h)))
     && new Set(PB.map(p => p.ops.find(o => o.t === 'text' && o.s === 'Requirement Title').y)).size === 1);
   C.eq('the first page’s band is the plan’s name; each later page’s says continued', J([texts(PB[0]).includes('Consolidated Sustainment Spend Plan'), PB.slice(1).every(p => texts(p).includes('Consolidated Sustainment Spend Plan (continued)'))]), J([true, true]));
