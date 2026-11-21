@@ -2691,7 +2691,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'D7b', 'and ALL YEARS counts its $3,000,000', ev('flowCalc().ip'), 3000000);
   // D7c: a year made outside the FYDP window is said
   const b = +ev('+MS.base||+MS.cur'), far = b + 7;
-  ev(`window.confirm=function(){ return false; }; switchYear(${far}); 'ok'`);
+  // v2.17 (item 149.4): a year not started blank is asked twice -- Cancel to roll forward, then OK to start it empty
+  ev(`window.__cfA=[false,true]; window.confirm=function(){ return window.__cfA.length? window.__cfA.shift() : false; }; switchYear(${far}); 'ok'`);
   chk(name, 'D7c', 'the line says the new year is outside the window', ev(`(document.getElementById('shareStat')||{}).textContent||''`).endsWith(
     ' ⚠ FY' + (far % 100) + ' is outside the FYDP window (FY' + (b % 100) + '–FY' + ((b + 4) % 100) + '): it is in no five-year report or locked cycle, and the funds flow’s ALL YEARS counts its plan.'), true);
   ev(`switchYear(${b + 1}); 'ok'`);
@@ -6412,12 +6413,13 @@ await (async () => {
   // ---- 2. an award's date walked past another: the award re-sorts, and the date box at its old place is another award's
   part('an award’s date', () => {
     const { ev } = mk();
-    const date = (i, m, d) => `(function(){ var A=__inp('#inspector', 'setAwdIncDate("T",${i},this.value)'); A.focus(); A.value=FYMON[${m}][0]+'-${d}';
+    // v2.17 (item 149.1): the box's handler is awdDateIn; a change with no keystroke (here) is taken at once, as a calendar pick
+    const date = (i, m, d) => `(function(){ var A=__inp('#inspector', 'awdDateIn(this,"T",${i})'); A.focus(); A.value=FYMON[${m}][0]+'-${d}';
       A.dispatchEvent(new Event('input', {bubbles:true})); A.dispatchEvent(new Event('change', {bubbles:true})); return __kb()+' '+(document.activeElement.value||''); })()`;
     // Chromium commits a date box on every step of ArrowUp, the box keeping the keyboard: a step that stays between its
     // neighbours keeps it there
     chk(name, 'an award’s date', 'CONTROL: the Mar award re-dated to Apr, still before Jun: the keyboard stays on its date box, holding the new date',
-      ev(date(1, 6, '09')), 'setAwdIncDate("T",1) ' + ev(`FYMON[6][0]`) + '-09');
+      ev(date(1, 6, '09')), 'awdDateIn(this,"T",1) ' + ev(`FYMON[6][0]`) + '-09');
     const B2 = mk();
     chk(name, 'an award’s date', 'the Mar award re-dated to Jul, past the Jun award: the awards re-sort and the keyboard goes nowhere -- not to the date box now at its place, the Jun award’s',
       B2.ev(date(1, 9, '09')).split(' ')[0], 'nowhere');
