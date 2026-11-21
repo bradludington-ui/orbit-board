@@ -45,11 +45,11 @@ const ui = {
   view: UI_HOME, back: UI_HOME,
   manage: false,            // the Manage data bar is open: by itself when the file holds no data, then as the person leaves it
   filtOpen: null,           // the switches are open: null follows the Manage bar and whether a switch is off
-  find: { q: '', pmo: null, ap: null, fy: null, sel: '' },   // Find a requirement: the words typed, the three pickers, the one opened
+  find: ui_findNew(),       // Find a requirement: the words typed, the pickers, the order, the one opened
   reqs: null, reqFor: null, // the requirement list of the model on screen
   cal: { pmo: null, ap: null, fy: null },              // the Award calendar's three pickers
   ch: { pmo: null, ap: null, fy: null },               // the Charts view's three pickers (§26)
-  pmo: { key: undefined, fy: null },                   // My PMO: the office (undefined until picked or remembered) and the FY
+  pmo: { key: undefined, fy: null, win: 3 },           // My PMO: the office (undefined until picked or remembered), the FY, and how many months its first list looks ahead (review I32)
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
   ufr: { pmo: null, ap: null, fy: null, status: null, q: '', open: '' },
@@ -591,19 +591,54 @@ function ui_ovDonut(byAp) {
 // in, three pickers, and each requirement's money and the month it is projected to award. SP.requirementsOf reads the
 // blocks' own counted rows: nothing here is worked out a second way.
 // ---------------------------------------------------------------------------------------------------------------
-const UI_FIND_MAX = 200, UI_FIND_ALL = '*';
+// At most 500 are listed (review I51: the real pull's 233 were cut at 200, so Initial Spares and OPN were never listed until
+// something was picked); the count line still adds up every one that matches, and says when the list is cut.
+const UI_FIND_MAX = 500, UI_FIND_ALL = '*';
+// THE PROJECTED AWARD PICKER (review I12, I32): which requirements, by their Projected award column. "Next N months" are the N
+// after the Data through month, as My PMO's list counts them; a requirement is in it when its earliest month not yet awarded is.
+const UI_FIND_ST = [['late', 'Past its projected date'], ['n1', 'In the next month'], ['n2', 'In the next 2 months'], ['n3', 'In the next 3 months'],
+  ['later', 'More than 3 months out'], ['nodate', 'No date'], ['awarded', 'Awarded']];
+// THE ORDER (review I12). The default is the list's own order: appropriation, year, then title. A chosen order runs across the
+// whole list, before it is cut, and the count line says so; nothing else on the page (and no export) follows it.
+const UI_FIND_ORD = [['', 'Appropriation, FY, title'], ['rem', 'Still to award, largest first'], ['planned', 'Planned, largest first'],
+  ['next', 'Projected award, earliest first'], ['title', 'Title, A to Z']];
 function ui_reqs(M) {
   if (ui.reqFor !== M) { ui.reqs = SP.requirementsOf(M); ui.reqFor = M; }
   return ui.reqs;
 }
+// what the search reads: the title, CCaR number, PMO, appropriation, FY, budgets and plan events, and (review I52) each plan
+// event's description, the PID and the Sub-PMO. Never a person's name.
 function ui_reqHay(r) {
-  if (!r.hay) Object.defineProperty(r, 'hay', { value: [r.title, r.ccar, r.pmo, r.apLabel, 'FY' + r.fy].concat(r.budgets, r.events.map(e => e.pe)).join('\n').toLowerCase(), enumerable: false });
+  if (!r.hay) Object.defineProperty(r, 'hay', { value: [r.title, r.ccar, r.pmo, r.apLabel, 'FY' + r.fy].concat(r.budgets, r.events.map(e => e.pe), r.events.flatMap(e => e.desc || []),
+    r.pid || [], r.sub || []).join('\n').toLowerCase(), enumerable: false });
   return r.hay;
 }
+function ui_findWords() { return String(ui.find.q || '').toLowerCase().split(/\s+/).filter(Boolean); }
+function ui_findSt(r, st, asOf) {
+  if (!st) return true;
+  if (st === 'late' || st === 'nodate' || st === 'awarded') return r.state === st;
+  if (st === 'later') return r.state === 'planned' && r.next > ui_ymAdd(asOf, 3);
+  return r.state === 'planned' && r.next <= ui_ymAdd(asOf, Number(st.slice(1)));
+}
+// the list, in its order. With words typed and no order chosen, the requirements whose title or CCaR number holds every word come
+// first (review I33), the rest after them in the list's own order; .lead says how many came first.
 function ui_findList(M) {
-  const F = ui.find, words = String(F.q || '').toLowerCase().split(/\s+/).filter(Boolean);
-  return ui_reqs(M).filter(r => (F.pmo === null || r.pmoKey === F.pmo) && (F.ap === null || r.ap === F.ap) && (F.fy === null || String(r.fy) === F.fy)
-    && words.every(w => ui_reqHay(r).includes(w)));
+  const F = ui.find, words = ui_findWords();
+  let list = ui_reqs(M).filter(r => (F.pmo === null || r.pmoKey === F.pmo) && (F.ap === null || r.ap === F.ap) && (F.fy === null || String(r.fy) === F.fy)
+    && ui_findSt(r, F.st, M.asOf) && words.every(w => ui_reqHay(r).includes(w)));
+  let lead = 0;
+  if (F.ord) {
+    const by = { rem: (a, b) => b.remaining - a.remaining, planned: (a, b) => b.planned - a.planned,
+      next: (a, b) => (a.next === null) - (b.next === null) || (a.next < b.next ? -1 : a.next > b.next ? 1 : 0),
+      title: (a, b) => { const x = a.title.toLowerCase(), y = b.title.toLowerCase(); return x < y ? -1 : x > y ? 1 : 0; } }[F.ord];
+    if (by) list = list.slice().sort(by);
+  } else if (words.length) {
+    const first = [], rest = [];
+    for (const r of list) (words.every(w => (r.title + '\n' + r.ccar).toLowerCase().includes(w)) ? first : rest).push(r);
+    list = first.concat(rest); lead = first.length;
+  }
+  list.lead = lead;
+  return list;
 }
 // when it is projected to award, as its word on a colour: never the colour alone
 function ui_reqWhen(r) {
@@ -612,27 +647,41 @@ function ui_reqWhen(r) {
   if (r.state === 'planned') return '<span class="when w-plan">' + ui_e(SP.ymWords(r.next)) + '</span>';
   return '<span class="when w-none" title="Nothing left to award carries a date">No date</span>';
 }
+// the one opened. Its money and where it sits, then its plan events by month (each with its description, review I52), then its
+// budgets: more than three fold behind their count (review I04), opened when the search matched one of them.
+const UI_FIND_BUD_OPEN = 3;
 function ui_findDetail(r) {
   if (!r) return '<aside class="card finddet" id="uiFindDet"><p class="cardnote">Pick a requirement to see its plan events.</p></aside>';
   const kv = (k, v) => '<div class="kv"><span>' + k + '</span><b>' + v + '</b></div>';
-  return '<aside class="card finddet" id="uiFindDet" aria-label="' + ui_e(r.title) + '"><h3>' + ui_e(r.title) + ' <span class="fccar">' + ui_e(r.ccar) + '</span></h3>'
+  const words = ui_findWords(), budHit = words.length > 0 && r.budgets.some(b => words.some(w => b.toLowerCase().includes(w)));
+  const pid = r.pid || [], sub = r.sub || [];
+  const buds = r.budgets.length > UI_FIND_BUD_OPEN
+    ? '<details class="fbud"' + (budHit ? ' open' : '') + '><summary>' + SP.fmtInt(r.budgets.length) + ' budgets</summary><div class="fbudl">' + r.budgets.map(ui_e).join('<br>') + '</div></details>'
+    : kv(r.budgets.length === 1 ? 'Budget' : 'Budgets', r.budgets.length ? r.budgets.map(ui_e).join('<br>') : '(none)');
+  return '<aside class="card finddet" id="uiFindDet" aria-label="' + ui_e(r.title) + '"><h3 id="uiFindDetH" tabindex="-1">' + ui_e(r.title) + ' <span class="fccar">' + ui_e(r.ccar) + '</span></h3>'
     + kv('Planned ($M)', ui_e(SP.fmtMText(r.planned))) + kv('Awarded ($M)', ui_e(SP.fmtMText(r.awarded))) + kv('Still to award ($M)', ui_e(SP.fmtMText(r.remaining)))
-    + kv('PMO', ui_e(r.pmo)) + kv('Appropriation', ui_e(r.apLabel) + ' FY' + r.fy)
-    + kv(r.budgets.length === 1 ? 'Budget' : 'Budgets', r.budgets.length ? r.budgets.map(ui_e).join('<br>') : '(none)')
+    + kv('PMO', ui_e(r.pmo)) + (sub.length ? kv('Sub-PMO', sub.map(ui_e).join(', ')) : '') + kv('Appropriation', ui_e(r.apLabel) + ' FY' + r.fy)
+    + (pid.length ? kv(pid.length === 1 ? 'PID' : 'PIDs', pid.map(ui_e).join(', ')) : '')
     + '<h3 class="fev">Plan events</h3><ul class="fevs">' + r.events.map(e => '<li><span class="fd">' + (e.ym ? ui_e(SP.ymWords(e.ym)) : 'No date') + '</span><span class="fp">' + ui_e(e.pe)
       + (e.awarded ? ' <span class="when st-green">Awarded</span>' : e.late ? ' <span class="when st-red">Not awarded</span>' : '')
-      + (e.tag ? ' <span class="when w-none">' + ui_e(e.tag) + '</span>' : '') + '</span><span class="fa">' + ui_e(SP.fmtMText(e.cents)) + '</span></li>').join('') + '</ul>'
+      + (e.tag ? ' <span class="when w-none">' + ui_e(e.tag) + '</span>' : '')
+      + (e.desc && e.desc.length ? '<span class="fdesc">' + e.desc.map(ui_e).join(' · ') + '</span>' : '') + '</span><span class="fa">' + ui_e(SP.fmtMText(e.cents)) + '</span></li>').join('') + '</ul>'
+    + buds
     + '<div class="acts"><button type="button" data-act="view" data-v="' + ui_e(r.ap) + '" data-fkey="find:open">Open ' + ui_e(r.apLabel) + '</button></div></aside>';
 }
 function ui_findRes(M) {
   const list = ui_findList(M), sel = list.find(r => r.key === ui.find.sel) || null;
   const sum = f => list.reduce((s, r) => s + r[f], 0);
-  const count = '<p class="findcount" id="uiFindCount" role="status">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')
+  const ordW = (UI_FIND_ORD.find(o => o[0] && o[0] === ui.find.ord) || [])[1];
+  const count = '<p class="findcount" id="uiFindCount" role="status" tabindex="-1" data-fkey="findcount">' + SP.fmtInt(list.length) + (list.length === 1 ? ' requirement' : ' requirements')
     + (list.length ? ' · Planned ' + ui_e(SP.fmtMText(sum('planned'))) + ' · Awarded ' + ui_e(SP.fmtMText(sum('awarded'))) + ' · Still to award ' + ui_e(SP.fmtMText(sum('remaining'))) + ' ($M)' : '')
+    + (ordW && list.length > 1 ? ' · in order of ' + ui_e(ordW.toLowerCase()) + ', on this screen only' : '')
     + (list.length > UI_FIND_MAX ? '. The first ' + UI_FIND_MAX + ' are listed: type more, or pick a PMO, an appropriation or an FY.' : '') + '</p>';
   if (!list.length) return count + '<p class="none">No requirement matches. <button type="button" data-act="findclear" data-fkey="findclear">Clear the search</button></p>';
-  const all = ui_reqs(M);
-  const rows = list.slice(0, UI_FIND_MAX).map(r => '<tr data-rk="' + all.indexOf(r) + '"' + (sel === r ? ' class="cur"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="findsel" data-i="'
+  const all = ui_reqs(M), shown = list.slice(0, UI_FIND_MAX);
+  // the requirements matched by title or CCaR number come first; a quiet heading parts them from the rest (review I33)
+  const also = list.lead > 0 && list.lead < shown.length ? list.lead : -1;
+  const rows = shown.map((r, i) => (i === also ? '<tr class="fgrp"><th colspan="6" scope="colgroup">Also matched a plan event, description, PID, budget or PMO</th></tr>' : '') + '<tr data-rk="' + all.indexOf(r) + '"' + (sel === r ? ' class="cur"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="findsel" data-i="'
     + all.indexOf(r) + '" data-fkey="findsel:' + all.indexOf(r) + '" aria-expanded="' + (sel === r ? 'true' : 'false') + '">' + ui_e(r.title) + '</button><span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.pmo) + '</span></th>'
     + '<td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>' + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
   return count + '<div class="findtwo"><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
@@ -658,11 +707,39 @@ function ui_vFind(M) {
     + opts.map(([v, w]) => '<option value="=' + ui_e(v) + '"' + (F[f] === v ? ' selected' : '') + '>' + ui_e(w) + '</option>').join('') + '</select></label>';
   return '<div class="ovhead"><h2 class="ovtitle">Find a requirement</h2><span class="ovsub">How much money it has, and when it is projected to award. Data through ' + ui_e(M.asOfLabel) + '.</span></div>'
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
-    + '<div class="findbar"><input type="search" id="uiFindQ" data-fkey="findq" value="' + ui_e(F.q) + '" placeholder="Title, CCaR number or plan event" aria-label="Find a requirement by title, CCaR number or plan event" autocomplete="off">'
-    + pick('pmo', 'PMO', pmos) + pick('ap', 'Appropriation', aps) + pick('fy', 'FY', fys) + '</div>'
+    + '<div class="findbar"><input type="search" id="uiFindQ" data-fkey="findq" value="' + ui_e(F.q) + '" placeholder="Title, CCaR number, plan event, description or PID" aria-label="Find a requirement by title, CCaR number, plan event, description or PID" autocomplete="off">'
+    + pick('pmo', 'PMO', pmos) + pick('ap', 'Appropriation', aps) + pick('fy', 'FY', fys) + pick('st', 'Projected award', UI_FIND_ST)
+    + '<label>Order <select data-act="findf" data-f="ord" data-fkey="findf:ord">' + UI_FIND_ORD.map(([v, w]) => '<option value="=' + v + '"' + ((F.ord || '') === v ? ' selected' : '') + '>' + ui_e(w) + '</option>').join('') + '</select></label>'
+    + '</div>'
     + '<div id="uiFindRes">' + ui_findRes(M) + '</div>'
     + '<p class="cardnote findnote">Awarded is what CCaR marks Actual Execution. Projected award is the earliest plan event date in the CCaR pull that is not yet awarded; '
-    + '“Was” means that month has closed (Data through ' + ui_e(M.asOfLabel) + ') and it is not awarded.</p>';
+    + '“Was” means that month has closed (Data through ' + ui_e(M.asOfLabel) + ') and it is not awarded. Press Enter in the search box to open the first requirement listed.</p>';
+}
+// Find's state, whole: the words, the three pickers, the Projected award picker (review I12, I32), the order (I12) and the one
+// opened. Every way into Find starts from this, so a jump never carries an old order or filter by mistake.
+function ui_findNew(o) { return Object.assign({ q: '', pmo: null, ap: null, fy: null, st: null, ord: '', sel: '' }, o || {}); }
+// A REQUIREMENT OPENED (review I03, I14). On a window 1,100 px or narrower the detail is drawn under the whole list, so a press
+// seemed to do nothing: the detail is brought into view and its heading takes the keyboard. On a wide window the detail is
+// beside the list already; after a jump from another page the requirement's row is brought into view and takes the keyboard,
+// and with no one requirement to show, the count line does. The search box is never given the keyboard after a jump, so a
+// phone does not raise its keyboard over the answer.
+function ui_narrow() { try { return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1100px)').matches; } catch (e) { return false; } }
+// a jump from another page lands on Find: on its requirement where there is one, else at the top with the count line
+function ui_findJump() {
+  ui.view = 'find'; ui.navOpen = false;
+  ui_render();
+  if (!ui.find.sel) ui_toTop();
+  ui_findShow(true);
+}
+function ui_findShow(jump) {
+  const see = (el, block) => { try { if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block }); } catch (e) { /* nothing to scroll */ } };
+  const det = document.getElementById('uiFindDet'), h = document.getElementById('uiFindDetH');
+  if (ui.find.sel && h && ui_narrow()) { h.focus({ preventScroll: true }); see(det, 'start'); return; }
+  if (!jump) return;
+  const btn = ui.find.sel ? document.querySelector('#uiFindRes tr.cur [data-act=findsel]') : null;
+  if (btn) { btn.focus({ preventScroll: true }); see(btn.closest('tr'), 'center'); return; }
+  const c = document.getElementById('uiFindCount');
+  if (c) c.focus({ preventScroll: true });
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -670,6 +747,18 @@ function ui_vFind(M) {
 // and work out nothing else; a requirement's name in either opens it on Find a requirement.
 // ---------------------------------------------------------------------------------------------------------------
 const UI_PMO_KEY = 'sfcbsp.pmo';     // this browser's office on My PMO, beside the switches' 'sfcbsp.view'
+// ONE OFFICE FOR MY PMO AND BY PMO (review I01). Both show one office, and both start on the office remembered in this browser;
+// a pick on either (or an office pressed on the Charts' scoreboard) is the other's too, and is remembered. The pickers that
+// start on All (Requirements, Calendar, Charts, Unfunded, SRRB) are not touched: a portfolio page is never quietly narrowed.
+function ui_pmoRemember(key, label) {
+  ui.pmo.key = key; ui.pmoKey = key;
+  if (label !== undefined) ui.pmoLabel = label;
+  try { window.localStorage.setItem(UI_PMO_KEY, key); } catch (e) { /* kept for this page only */ }
+}
+function ui_pmoRemembered() {
+  if (ui.pmo.key !== undefined) return ui.pmo.key;
+  try { const k = window.localStorage.getItem(UI_PMO_KEY); return k === null ? undefined : k; } catch (e) { return undefined; }
+}
 const UI_CAL_MAX = 300;
 function ui_reqPicks(all) {
   const pmos = [], seen = new Set();
@@ -695,6 +784,7 @@ function ui_vMyPmo(M) {
   if (S.key === undefined) { try { const k = window.localStorage.getItem(UI_PMO_KEY); if (k !== null) S.key = k; } catch (e) { /* no storage: the first office */ } }
   // with nothing remembered, the first office that has a name: (no PMO), whose key is '', is nobody's own
   if (S.key === undefined || !P.pmos.some(p => p[0] === S.key)) S.key = (P.pmos.find(p => p[0] !== '') || P.pmos[0])[0];
+  ui.pmoKey = S.key; ui.pmoLabel = P.pmos.find(p => p[0] === S.key)[1];     // By PMO opens on the same office
   const mine0 = all.filter(r => r.pmoKey === S.key);
   const fys = [...new Set(mine0.map(r => r.fy))].sort((a, b) => a - b).map(f => [String(f), 'FY' + f]);
   if (S.fy !== null && !fys.some(p => p[0] === S.fy)) S.fy = null;
@@ -702,8 +792,10 @@ function ui_vMyPmo(M) {
   const sum = f => mine.reduce((s, r) => s + r[f], 0), planned = sum('planned'), awarded = sum('awarded');
   const evs = mine.flatMap(r => r.events.filter(e => !e.awarded).map(e => ({ r, e })));
   const late = evs.filter(x => x.e.late).sort((a, b) => (a.e.ym < b.e.ym ? -1 : a.e.ym > b.e.ym ? 1 : b.e.cents - a.e.cents));
-  const to = ui_ymAdd(M.asOf, 3);
+  // the first list looks 1, 2, 3 or 6 months past the Data through month (review I32); three until another is picked
+  const win = [1, 2, 3, 6].includes(S.win) ? S.win : 3, to = ui_ymAdd(M.asOf, win);
   const soon = evs.filter(x => x.e.ym !== null && x.e.ym > M.asOf && x.e.ym <= to).sort((a, b) => (a.e.ym < b.e.ym ? -1 : a.e.ym > b.e.ym ? 1 : b.e.cents - a.e.cents));
+  const soonCents = soon.reduce((s, x) => s + x.e.cents, 0);
   const lateReqs = new Set(late.map(x => x.r)).size, lateCents = late.reduce((s, x) => s + x.e.cents, 0);
   // A SPECIAL CCaR IS ONE LINE A MONTH on the two lists (Brad, 16 Nov 2026, of a prime contract's plan events filling the
   // next three months: "group my large Prime contracts into one line item … based on the Special CCaR inputs in the setup
@@ -726,8 +818,8 @@ function ui_vMyPmo(M) {
     return out.sort((a, b) => (a.e.ym < b.e.ym ? -1 : a.e.ym > b.e.ym ? 1 : b.e.cents - a.e.cents));
   };
   const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
-  const lst = (id, head, items0, none) => { const items = roll(items0);
-    return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (items.length ? '<ul class="plist">' + items.map(x => (x.sp
+  const lst = (id, head, items0, none, tot) => { const items = roll(items0);
+    return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (tot && items.length ? tot : '') + (items.length ? '<ul class="plist">' + items.map(x => (x.sp
     ? '<li data-sp="' + ui_e(x.key) + '"><span class="fd">' + ui_e(SP.ymWords(x.e.ym)) + '</span><span class="fp"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.r.ccar) + '" data-fkey="pmo' + id + 'sp:' + ui_e(x.key) + ':' + ui_e(x.e.ym) + '">'
       + ui_e(x.title) + (x.titles.size > 1 ? ' (+' + (x.titles.size - 1) + ' more)' : '') + '</button><span class="fsub">' + ui_e(x.r.ccar) + ' · ' + ui_e([...x.where].join(', ')) + ' · <strong>' + SP.fmtInt(x.n) + (x.n === 1 ? ' plan event' : ' plan events, added together')
       + '</strong></span></span>'
@@ -736,7 +828,9 @@ function ui_vMyPmo(M) {
   const rows = mine.map(r => '<tr><th scope="row" class="lab">' + ui_reqBtn(r, all, 'pmoall') + '<span class="fsub">' + ui_e(r.ccar) + '</span></th><td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>'
     + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
   // the pickers come first, at the left, above the office's name (Brad, 16 Nov 2026)
-  return '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'Choose your PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys) + '</div>'
+  return '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'Choose your PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys)
+    + ui_pickSel('pmof', String(win), 'win', 'Coming up', [['1', 'Next month'], ['2', 'Next 2 months'], ['3', 'Next 3 months'], ['6', 'Next 6 months']], true)
+    + '<span class="grow"></span><button type="button" data-act="view" data-v="pmos" data-fkey="pmo:bypmo">See its spend plan on By PMO</button></div>'
     + '<div class="ovhead"><h2 class="ovtitle">' + ui_e(P.pmos.find(p => p[0] === S.key)[1]) + '</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel) + '</span></div>'
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
     + '<div class="tiles">'
@@ -745,12 +839,15 @@ function ui_vMyPmo(M) {
     + tile('remaining', 'Still to award ($M)', ui_e(SP.fmtMText(planned - awarded)), SP.fmtInt(mine.filter(r => r.state !== 'awarded').length) + ' not fully awarded', planned - awarded)
     + tile('late', 'Past projected date', SP.fmtInt(lateReqs), lateReqs ? ui_e(SP.fmtMText(lateCents)) + ' ($M) not yet awarded' : 'nothing is past its date', lateCents)
     + '</div><div class="pmotwo">'
-    + lst('soon', 'Projected to award in the next three months', soon, 'Nothing is projected to award from ' + ui_e(SP.ymWords(ui_ymAdd(M.asOf, 1))) + ' to ' + ui_e(SP.ymWords(to)) + '.')
+    + lst('soon', win === 3 ? 'Projected to award in the next three months' : win === 1 ? 'Projected to award next month' : 'Projected to award in the next ' + win + ' months', soon,
+      'Nothing is projected to award ' + (win === 1 ? 'in ' + ui_e(SP.ymWords(to)) : 'from ' + ui_e(SP.ymWords(ui_ymAdd(M.asOf, 1))) + ' to ' + ui_e(SP.ymWords(to))) + '.',
+      '<p class="ltot" id="uiPmoSoonTot" data-c="' + soonCents + '">' + SP.fmtInt(soon.length) + (soon.length === 1 ? ' plan event' : ' plan events') + ', ' + ui_e(SP.fmtMText(soonCents)) + ' ($M), '
+        + (win === 1 ? 'in ' + ui_e(SP.ymWords(to)) : ui_e(SP.ymWords(ui_ymAdd(M.asOf, 1))) + ' to ' + ui_e(SP.ymWords(to))) + '</p>')
     + lst('late', 'Past its projected date, not yet awarded', late, 'Nothing is past its projected date.')
     + '</div><h3 class="pmoall">Every requirement</h3><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
     + '<th scope="col" class="n">Planned ($M)</th><th scope="col" class="n">Awarded ($M)</th><th scope="col" class="n">Still to award ($M)</th><th scope="col">Projected award</th></tr></thead><tbody>'
     + rows + '</tbody></table></div>'
-    + '<p class="cardnote findnote">The next three months are the three after the Data through month. Past its projected date: a plan event not awarded whose month has closed. '
+    + '<p class="cardnote findnote">The months of the first list are those after the Data through month: Coming up picks how many. Past its projected date: a plan event not awarded whose month has closed. '
     + 'A Special CCaR (Settings) is one line for each month on those two lists, its plan events added together; click it to list them.</p>';
 }
 function ui_vCal(M) {
@@ -1015,6 +1112,15 @@ function ui_vOverview(M) {
 }
 
 function ui_quarter(M) { return Math.ceil(M.asOfIndex / 3); }
+// A VIEW-ONLY COPY OPENS ON THE SUMMARY (§29), a briefing table with nothing in it that leads anywhere. Two buttons above it
+// lead a reader to what they come for (review I17): Find a requirement, and My PMO on the office this browser remembers. The
+// keeper's own file is as it was; the menu's names are not changed. On the screen only: never printed, never in a picture.
+function ui_summaryGo(M) {
+  if (!ui_vo()) return '';
+  const k = ui_pmoRemembered(), r = k === undefined ? null : ui_reqs(M).find(x => x.pmoKey === k);
+  return '<nav class="golinks" id="uiSumGo" aria-label="Start here"><button type="button" data-act="view" data-v="find" data-fkey="sum:find">Find a requirement</button>'
+    + '<button type="button" data-act="view" data-v="mypmo" data-fkey="sum:mypmo">' + (r ? 'My PMO: ' + ui_e(r.pmo) : 'My PMO') + '</button></nav>';
+}
 function ui_vSummary(M) {
   const legend = '<table class="legend"><caption>Status</caption><tbody>' + SP.STATUS_LEGEND.map(l =>
     '<tr><td class="st st-' + l.status + '">' + ui_e(l.word) + '</td><td>' + ui_e(l.colour) + ' — ' + ui_e(l.meaning) + '</td></tr>').join('')
@@ -1026,7 +1132,7 @@ function ui_vSummary(M) {
   const l2 = ui_rep(M) ? ui_e(SP.summaryLine2(M).replace('"Actual Execution"', '“Actual Execution”'))
     : 'Data through ' + ui_e(M.asOfLabel) + ' | Approved = total planned ($M from the CCaR pull) | Authorized = entered, else Approved'
       + ' | Obligated = CCaR status “Actual Execution” | Unobligated = Approved - Obligated | Delta = Obl% - OSD%';
-  return '<h2 class="title">F-35 Sustainment Financial Execution - Top-Line Snapshot (FY' + ui_pad(M.E % 100) + 'Q' + ui_quarter(M) + ')</h2>'
+  return ui_summaryGo(M) + '<h2 class="title">F-35 Sustainment Financial Execution - Top-Line Snapshot (FY' + ui_pad(M.E % 100) + 'Q' + ui_quarter(M) + ')</h2>'
     + '<p class="l2">' + l2 + '</p>'
     + '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
     + (M.blocks.length ? ui_topTable(M.summary.rows, { model: M, withAp: true, mergeAp: true, total: M.summary.total, totalLabel: 'TOTAL - Sustainment' })
@@ -1114,7 +1220,12 @@ function ui_ufrBody(M, V) {
   // then the report's on the Summary
   const apw = ui_rep(M) ? 'CCaR plan' : 'Approved';
   const rows = V.groups.map(g => { const gk = g.ap + '|' + g.fy, G = RK.groups[gk] || { n: g.lines.length, mine: false };
+    // how many lines the group holds and whose ranks these are (review I37): 1 to N runs across every PMO of the appropriation and
+    // year, so a PMO picked shows gaps; a group the keeper has not ranked keeps the tracker's own numbers, which may skip
+    const nAll = G.n, nShown = g.lines.length;
     return '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy
+      + ' <span class="ugn">· ' + SP.fmtInt(nAll) + (nAll === 1 ? ' line' : ' lines') + (nShown < nAll ? ' (' + SP.fmtInt(nShown) + ' shown)' : '') + ', '
+      + (G.mine ? 'ranked 1 to ' + SP.fmtInt(nAll) + ' across every PMO' + (edit ? '' : ' by the file’s keeper') : 'in the UFR tracker’s ranks') + '</span>'
       + (edit && G.mine ? ' <span class="urkm">in your ranking</span> <button type="button" class="urkreset" data-act="ufrreset" data-g="' + ui_e(gk) + '" data-fkey="ufrreset:' + ui_e(gk) + '">Use the tracker’s ranks</button>' : '')
       + '</th></tr>' + g.lines.map(l => {
     const open = U.open === l.id, alt = (zebra++ % 2) ? ' alt' : '';
@@ -1131,7 +1242,9 @@ function ui_ufrBody(M, V) {
         ? '<strong>In the spend plan (' + ui_e(g.apLabel) + ' FY' + g.fy + '):</strong> ' + apw + ' ' + ui_e(K(l.plan.approved)) + ' · Obligated ' + ui_e(K(l.plan.obligated)) + ' · Remaining ' + ui_e(K(l.plan.approved - l.plan.obligated))
           + ' · <strong>Required ' + ui_e(K(l.plan.approved + l.sum)) + '</strong> (' + apw + ' + this unfunded ' + ui_e(K(l.sum)) + ') · Delta (' + ui_e(SP.fmtK(l.sum) === '-' ? '0' : SP.fmtK(l.sum)) + ')'
         : '<strong>Not in the spend plan:</strong> no plan event in ' + ui_e(g.apLabel) + ' FY' + g.fy + ' carries this CCaR record' + (l.prime ? '' : ' under ' + ui_e(l.pmoLabel)) + ', so Approved is $0 and Required is this unfunded ' + ui_e(K(l.sum)) + '.')
-        + (l.ccar ? '<div class="acts"><button type="button" data-act="reqfind" data-q="' + ui_e(l.ccar) + '" data-fkey="ufrreq:' + ui_e(l.id) + '">Open this requirement</button>'
+        // a line with no plan event has no requirement to open (review I14: the button landed on "No requirement matches"); the
+        // words above already say it is not in the spend plan. The button names the line's own appropriation and year.
+        + (l.ccar && (l.plan || l.mand) ? '<div class="acts"><button type="button" data-act="reqfind" data-q="' + ui_e(l.ccar) + '" data-ap="' + ui_e(g.ap) + '" data-fy="' + ui_e(g.fy) + '" data-fkey="ufrreq:' + ui_e(l.id) + '">Open this requirement</button>'
           + (l.prime ? '<span class="cardnote">A prime contract: its spend plan figures are over every PMO.</span>' : '') + '</div>' : '') + '</div></td></tr>' : '');
   }).join(''); }).join('');
   // the disconnects between the keeper's ranking and the tracker (§43), for the keeper only
@@ -1157,6 +1270,7 @@ function ui_ufrBody(M, V) {
     + '<th scope="col" class="n">Approved in plan ($K)</th></tr></thead><tbody>' + rows
     + '<tr class="band"><th colspan="3" scope="row">Total unfunded</th>' + V.total.amt.map(ui_k).join('') + ui_k(V.total.sum) + '<td colspan="4"></td></tr></tbody></table></div>'
     + '<p class="cardnote findnote">Figures are $K, as on the UFR tracker. The Filter above (its services; its lanes for the Mandatory lines only) and the pickers narrow the list and every total. Press a requirement to see it beside its spend plan. '
+    + 'A rank is the line’s place in its whole appropriation and fiscal year, across every PMO, so a PMO picked shows gaps in the numbers. '
     + 'Approved in plan is the CCaR amount in that record’s plan events' + (V.skipped ? '; ' + SP.fmtInt(V.skipped) + ' line' + (V.skipped === 1 ? ' is' : 's are') + ' not shown, of a year APEX shows no figures for' : '') + '.</p>';
 }
 // §45 the Mandatory switch. The keeper turns it on or off; a view-only copy made with it on says so and cannot change it.
@@ -1240,7 +1354,7 @@ function ui_srrbBody(M, V) {
   let zebra = 0;
   const rows = V.groups.map(g => '<tr class="ugrp"><th colspan="' + cols + '" scope="colgroup">' + ui_e(g.apLabel) + ' FY' + g.fy + '</th></tr>' + g.lines.map(l => {
     const alt = (zebra++ % 2) ? 'alt' : '';
-    return '<tr class="' + alt + '" data-srrb="' + ui_e(l.id) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(l.title) + '" data-fkey="srrbopen:' + ui_e(l.id) + '">' + ui_e(l.title) + '</button>'
+    return '<tr class="' + alt + '" data-srrb="' + ui_e(l.id) + '"><th scope="row" class="lab"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(l.title) + '" data-ap="' + ui_e(l.ap) + '" data-fy="' + ui_e(l.fy) + '" data-fkey="srrbopen:' + ui_e(l.id) + '">' + ui_e(l.title) + '</button>'
       + '<span class="fsub">' + ui_e(l.ccars.length ? l.ccars.join(', ') : 'no CCaR record') + '</span>'
       + (l.other ? '<span class="fsub srrbother">' + ui_e(SP.fmtM(l.other)) + ' ($M) of this plan event is on rows not marked Yes, and is not counted</span>' : '') + '</th>'
       + '<td class="srrbpmo">' + l.pmos.map(p => '<span class="srrbp"><span class="usw" style="background:' + SP.publishColor(p.key, false) + '" aria-hidden="true"></span>' + ui_e(p.label) + '</span>').join('') + '</td>'
@@ -1605,11 +1719,14 @@ function ui_vPmos(M) {
   // The PMO picked stays picked while the switches leave it with no money, as the Not Allocated filter does (review
   // SEAM-10): it was overwritten with the first PMO, so after a switch was turned off and on again another PMO's tab was
   // on screen. Until one is picked, the first is shown.
-  if (ui.pmoKey === null || ui.pmoKey === undefined) { ui.pmoKey = M.pmos[0].key; ui.pmoLabel = M.pmos[0].label; }
+  // Until one is picked here, the office My PMO has (review I01), else the first.
+  if (ui.pmoKey === null || ui.pmoKey === undefined) { const k = SP.PMO_LINKS === false ? undefined : ui_pmoRemembered(), P0 = (k !== undefined && M.pmos.find(x => x.key === k)) || M.pmos[0]; ui.pmoKey = P0.key; ui.pmoLabel = P0.label; }
   const P = M.pmos.find(x => x.key === ui.pmoKey);
   const opts = M.pmos.map((x, i) => { R.pmos[i] = x.key; return '<option value="' + i + '"' + (x === P ? ' selected' : '') + '>' + ui_e(x.label) + '</option>'; });
   if (!P) { R.pmos.push(ui.pmoKey); opts.push('<option value="' + (R.pmos.length - 1) + '" selected>' + ui_e(ui.pmoLabel || '(the PMO chosen)') + ' (no money shown)</option>'); }
-  const pick = '<p class="acts"><label>PMO <select data-act="pmo" data-fkey="pmo">' + opts.join('') + '</select></label></p>';
+  const pick = '<p class="acts"><label>PMO <select data-act="pmo" data-fkey="pmo">' + opts.join('') + '</select></label>'
+    + (SP.PMO_LINKS === false ? '' : ' <button type="button" data-act="view" data-v="mypmo" data-fkey="pmos:mypmo">See its requirements on My PMO</button>') + '</p>';
+  if (SP.PMO_LINKS !== false && ui.pmo.key === undefined) ui.pmo.key = ui.pmoKey;   // My PMO opens on the office shown here
   if (!P) {
     return pick + '<h2 class="title">PMO: ' + ui_e(ui.pmoLabel || '(the PMO chosen)') + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>'
       + '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
@@ -2370,8 +2487,9 @@ function ui_vHelpAll() {
       + 'in the file (marked ‡ while some switch is off), and the notes on rows not counted (money before First FY, ' + (ui_lo25() ? '' : 'FY' + SP.OBBBA_FY + ' O&amp;M OBBBA funding, ') + 'rows whose appropriation is not identified, '
       + 'rows that could not be read). The Import report and What changed show every row, whatever the switches.'])
     + '<h3 class="sub">Finding a requirement</h3>' + li([
-      'The page opens on the <strong>Summary</strong>. <strong>Find a requirement</strong> is Requirements, first in the menu. Type part of a title, a CCaR number or a plan event; every word typed must be '
-      + 'there. The three pickers narrow the list to one PMO, appropriation or fiscal year.',
+      'The page opens on the <strong>Summary</strong>. <strong>Find a requirement</strong> is Requirements, first in the menu. Type part of a title, a CCaR number, a plan event, a description or a PID; every word typed must be '
+      + 'there, and titles and CCaR numbers that hold them are listed first. Enter opens the first one listed. The pickers narrow the list to one PMO, appropriation or fiscal year, '
+      + 'or by Projected award (past its date, the next months, no date, awarded); Order puts the list in another order on the screen only.',
       'A requirement is a CCaR record (its title and CCaR number) in one appropriation and FY. <strong>Planned</strong> is its CCaR plan; <strong>Awarded</strong> is '
       + 'what CCaR marks “Actual Execution”; <strong>Still to award</strong> is the difference.',
       '<strong>Projected award</strong> is the earliest plan event date in the CCaR pull that is not yet awarded. “Was” means that month has closed (it is the Data '
@@ -2380,8 +2498,9 @@ function ui_vHelpAll() {
       'It counts the rows every other view counts: ' + (ui_lo25() ? 'the switches and First FY apply' : 'the switches, First FY and the FY2025 O&amp;M OBBBA rule apply') + '. The BAE report does not change it.',
     ])
     + '<h3 class="sub">My PMO and the Award calendar</h3>' + li([
-      '<strong>My PMO</strong> is one office’s requirements: its Planned, Awarded and Still to award, what is projected to award in the three months after the Data through '
-      + 'month, and what is past its projected date and not awarded. The office you pick is remembered in this browser, not in the file.',
+      '<strong>My PMO</strong> is one office’s requirements: its Planned, Awarded and Still to award, what is projected to award in the months after the Data through '
+      + 'month (three, or as Coming up picks), and what is past its projected date and not awarded. The office you pick is remembered in this browser, not in the file, '
+      + 'and By PMO opens on it too.',
       '<strong>Award calendar</strong> lays the execution year out by month. Each requirement’s money sits in the month it is projected to award: awarded (✓), projected, or '
       + 'not awarded and past its date (!). Prior Yr is before the year’s October, the next-year column after its September. Its Total row is the plan by month.',
       '<strong>Charts</strong> draws what those three views say, under the same three pickers: awards by month (awarded, late and projected, with the next three months added up), '
@@ -2689,7 +2808,7 @@ function ui_drawTop(M) {
   const pubDay = vo ? ui_dayWords(ui_day((ui_state() || {}).savedAt)) : '';
   E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) + (vo ? ' · First FY ' + (Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : '')) : '')
     + (pubDay ? ' · Published ' + pubDay : '') : '';
-  if (vo) document.title = 'CUI - APEX' + (has && S.asOf ? ' · data through ' + SP.asOfLabel(S.asOf) : '') + (pubDay ? ' · published ' + pubDay : '');
+  ui.pubDay = pubDay;
   if (E.vo) E.vo.hidden = !vo;
   if (vo) ui.manage = false;
   E.manageBtn.hidden = vo;
@@ -2739,7 +2858,7 @@ function ui_printPicks() {
     if (base && E.main) {
       for (const sel of E.main.querySelectorAll(UI_PRINT_PICKS.map(a => 'select[data-act="' + a + '"]').join(','))) {
         const o = sel.options[sel.selectedIndex], v = o ? o.textContent.trim() : '';
-        if (!v || v === 'All') continue;
+        if (!v || v === 'All' || (sel.getAttribute('data-f') === 'ord' && sel.selectedIndex === 0)) continue;   // All, or the standard order, picks nothing
         const lab = sel.closest('label'), w = lab ? [...lab.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : '';
         bits.push((w ? w + ' ' : '') + v);
       }
@@ -2861,10 +2980,14 @@ function ui_render() {
   ui_layout();
   ui_printPicks();
   // the window's title names the view once there is data (review I64, WCAG 2.4.2): browser tabs, history and a screen
-  // reader said only "APEX" whatever was open. With no data it is APEX, the page's name (§19).
+  // reader said only "APEX" whatever was open.
   try {
     const cur = ui.view === 'help' ? [null, 'Help'] : UI_VIEWS.find(x => x[0] === ui.view), ey = M ? M.E : null;
-    document.title = has && cur ? cur[1] + ' - APEX' + (ey ? ' FY' + ey : '') + (ui_vo() ? ' (view only)' : '') : 'APEX';
+    // one title rule (reviews I10, I58, I64): the marking first, then the view, the year, and in a view-only copy the data
+    // month and the publish day, so two copies in two tabs can be told apart. With no data it is the page's name, marked.
+    const vo = ui_vo(), S0 = ui_settings();
+    document.title = has && cur ? 'CUI - ' + cur[1] + ' - APEX' + (ey ? ' FY' + ey : '')
+      + (vo ? ' (view only)' + (S0 && S0.asOf ? ' · data through ' + SP.asOfLabel(S0.asOf) : '') + (ui.pubDay ? ' · published ' + ui.pubDay : '') : '') : 'CUI - APEX';
   } catch (e) { /* the title stays as it was */ }
   // the keyboard goes back to the control it was on; if that control is gone, to the one the action named (ui.focusTo),
   // else to the view itself, never to the top
@@ -3215,28 +3338,33 @@ function ui_onClick(ev) {
         if (r) ui.find.sel = ui.find.sel === r.key ? '' : r.key;
       }
       ui_render();
+      ui_findShow(false);
       break;
     case 'reqopen': {
       // from My PMO or the Award calendar: the requirement is opened on Find a requirement, with nothing narrowing the list
       const r = (ui.reqs || [])[Number(t.getAttribute('data-i'))];
-      if (r) { ui.find = { q: '', pmo: null, ap: null, fy: null, sel: r.key }; ui.view = 'find'; ui.focusTo = 'findq'; ui_render(); ui_toTop(); }
+      if (r) { ui.find = ui_findNew({ sel: r.key }); ui_findJump(); }
       break;
     }
     case 'pmogo': {
       // an office on the Charts view's scoreboard: My PMO, on that office
-      ui.pmo.key = t.getAttribute('data-k') || ''; ui.pmo.fy = null;
-      try { window.localStorage.setItem(UI_PMO_KEY, ui.pmo.key); } catch (e) { /* kept for this page only */ }
+      ui_pmoRemember(t.getAttribute('data-k') || ''); ui.pmo.fy = null;
       ui.view = 'mypmo'; ui_render(); ui_toTop();
       break;
     }
-    case 'reqfind':
-      // a Special CCaR's line on the Award calendar: Find a requirement, searched for its number, so every part of it is listed
-      ui.find = { q: t.getAttribute('data-q') || '', pmo: null, ap: null, fy: null, sel: '' };
-      ui.view = 'find'; ui.focusTo = 'findq';
-      ui_render(); ui_toTop();
+    case 'reqfind': {
+      // a Special CCaR's line on the Award calendar or My PMO: Find a requirement, searched for its number, so every part of it is
+      // listed. A line of Unfunded or SRRB names its own appropriation and year, and the pickers are set to them (review I14), so
+      // it lands on that line's requirement and not on the same number in other years; when one requirement is left, it is opened.
+      const ap = t.getAttribute('data-ap'), fy = t.getAttribute('data-fy');
+      ui.find = ui_findNew({ q: t.getAttribute('data-q') || '', ap: ap || null, fy: fy || null });
+      const M = ui_hasData() ? ui_model() : null, hit = M ? ui_findList(M) : [];
+      if (hit.length === 1) ui.find.sel = hit[0].key;
+      ui_findJump();
       break;
+    }
     case 'findclear':
-      ui.find = { q: '', pmo: null, ap: null, fy: null, sel: '' };
+      ui.find = ui_findNew();
       ui.focusTo = 'findq';
       ui_render();
       break;
@@ -3386,7 +3514,8 @@ function ui_onChange(ev) {
     case 'pmof': {
       const f = t.getAttribute('data-f');
       if (f === 'fy') ui.pmo.fy = t.value === UI_FIND_ALL ? null : t.value.slice(1);
-      else if (f === 'pmo') { ui.pmo.key = t.value.slice(1); try { window.localStorage.setItem(UI_PMO_KEY, ui.pmo.key); } catch (e) { /* kept for this page only */ } }
+      else if (f === 'pmo') ui_pmoRemember(t.value.slice(1));
+      else if (f === 'win') ui.pmo.win = Number(t.value.slice(1)) || 3;
       else return;
       ui_render();
       return;
@@ -3394,7 +3523,8 @@ function ui_onChange(ev) {
     case 'findf': {
       const f = t.getAttribute('data-f');
       // "All" is its own choice, never the empty key: (no PMO) is a PMO a reader can pick, and its key is ''
-      if (f === 'pmo' || f === 'ap' || f === 'fy') { ui.find[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
+      if (f === 'pmo' || f === 'ap' || f === 'fy' || f === 'st') { ui.find[f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
+      else if (f === 'ord') { const v = t.value.slice(1); ui.find.ord = UI_FIND_ORD.some(o => o[0] === v) ? v : ''; ui_render(); }
       return;
     }
     case 'svc': case 'lane': {
@@ -3415,7 +3545,7 @@ function ui_onChange(ev) {
       ui_render();
       break;
     }
-    case 'pmo': { const k = ui.reg.pmos[Number(t.value)]; if (k !== undefined) { ui.pmoKey = k; ui_render(); } break; }
+    case 'pmo': { const k = ui.reg.pmos[Number(t.value)]; if (k !== undefined) { if (SP.PMO_LINKS === false) ui.pmoKey = k; else ui_pmoRemember(k); ui_render(); } break; }
     case 'naf': {
       const f = t.getAttribute('data-f');
       if (f === 'ap') ui.naF.ap = t.value;
@@ -3460,6 +3590,11 @@ function ui_onKey(ev) {
   }
   // Enter in the "Add a CCaR" box adds it, as a form would; there is no form, so nothing is ever submitted anywhere
   if (ev.key === 'Enter' && ev.target && ev.target.id === 'uiSpecNew') { ev.preventDefault(); ui_specAdd(); }
+  // Enter in Find's search box opens the first requirement listed (review I33)
+  if (ev.key === 'Enter' && ev.target && ev.target.id === 'uiFindQ' && ui_hasData()) {
+    const M = ui_model(), first = M ? ui_findList(M)[0] : null;
+    if (first) { ev.preventDefault(); ui.find.sel = first.key; ui_render(); ui_findShow(false); }
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------------

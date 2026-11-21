@@ -80,17 +80,17 @@ try {
   // ============================================================== I09, I64: the opening notice, the title and the skip link
   {
     const E = await boot(null);
-    C.eq('I64: with no data the window is titled APEX, the page’s name (§19)', E.doc.title, 'APEX');
+    C.eq('I64: with no data the window is titled CUI - APEX, the page’s name, marked (§19, I58)', E.doc.title, 'CUI - APEX');
     E.t.close();
     const K = await boot(KEEP), V = await boot(VO);
     C.chk('I09: a keeper’s page still says which plan it opened', /^Opened the plan saved/.test(K.doc.getElementById('uiMsg').textContent), K.doc.getElementById('uiMsg').textContent);
     C.eq('I09: a view-only copy does not say the plain opening notice', V.doc.getElementById('uiMsg').textContent, '');
-    C.chk('I09: a view-only copy still says Data through and First FY as words (§35)', /^Data through Oct-2026 · First FY \d{4}$/.test(V.doc.getElementById('uiAsOfText').textContent), V.doc.getElementById('uiAsOfText').textContent);
-    C.eq('I64: with data the window’s title names the view, the year and the copy', [K.doc.title, V.doc.title], ['Summary - APEX FY2027', 'Summary - APEX FY2027 (view only)']);
+    C.chk('I09: a view-only copy still says Data through and First FY as words (§35)', /^Data through Oct-2026 · First FY \d{4}( · Published \d{1,2} [A-Z][a-z]{2} \d{4})?$/.test(V.doc.getElementById('uiAsOfText').textContent), V.doc.getElementById('uiAsOfText').textContent);
+    C.eq('I64: with data the window’s title names the view, the year and the copy', [K.doc.title, V.doc.title], ['CUI - Summary - APEX FY2027', V.doc.title.startsWith('CUI - Summary - APEX FY2027 (view only) · data through ') ? V.doc.title : 'CUI - Summary - APEX FY2027 (view only) · data through …']);
     await K.view('cal');
-    C.eq('I64: … and follows a change of view', K.doc.title, 'Calendar - APEX FY2027');
+    C.eq('I64: … and follows a change of view', K.doc.title, 'CUI - Calendar - APEX FY2027');
     K.click(K.doc.getElementById('uiHelp')); await settle();
-    C.eq('I64: … Help too', K.doc.title, 'Help - APEX FY2027');
+    C.eq('I64: … Help too', K.doc.title, 'CUI - Help - APEX FY2027');
     const first = K.doc.querySelector('#app a[href], #app button, #app input, #app select');
     C.chk('I64: the first control in the page is "Skip to the page", pointing at the view', !!first && first.classList.contains('skip') && first.getAttribute('href') === '#uiMain' && first.textContent === 'Skip to the page');
     K.click(K.doc.querySelector('a.skip')); await settle();
@@ -139,7 +139,7 @@ try {
     qb.value = 'number 3'; qb.dispatchEvent(new K.W.Event('input', { bubbles: true })); await settle();
     C.chk('I34: on paper, the line says what was searched for', /Picked on this page: Find “number 3”$/.test(K.doc.getElementById('uiPrintHead').textContent), K.doc.getElementById('uiPrintHead').textContent);
     await K.view('mypmo');
-    C.chk('I34: … and what office was picked', /Picked on this page: Choose your PMO [^·]+$/.test(K.doc.getElementById('uiPrintHead').textContent), K.doc.getElementById('uiPrintHead').textContent);
+    C.chk('I34: … and what office was picked', /Picked on this page: Choose your PMO [^·]+?( · Coming up [^·]+)?$/.test(K.doc.getElementById('uiPrintHead').textContent), K.doc.getElementById('uiPrintHead').textContent);
     await K.view('summary');
     C.chk('I34: … and nothing where nothing is picked', !/Picked on this page/.test(K.doc.getElementById('uiPrintHead').textContent) && /All services, both lanes$/.test(K.doc.getElementById('uiPrintHead').textContent), K.doc.getElementById('uiPrintHead').textContent);
     C.eq('no script error in jsdom', J([K, V].flatMap(T => T.t.errors.filter(x => !/^Not implemented: (Window's scrollTo\(\) method|HTMLInputElement\.prototype\.click|HTMLCanvasElement)/.test(String(x))))), '[]');
