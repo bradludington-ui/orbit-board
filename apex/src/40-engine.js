@@ -1939,9 +1939,11 @@ SP.overviewOf = function overviewOf(M, fy) {
 // rule: the rows are each block's counted rows (the switches, First FY and FY2025 O&M OBBBA funding apply as they do to
 // every figure), Planned is their sum as a tree's Total is, Awarded is the rows CCaR marks Actual Execution (§4.5's
 // Obligated), and a plan event's date is the pull's own Date.
-//   -> [{ key, ap, apLabel, fy, pmo, pmoKey, title, ccar, budgets, planned, awarded, remaining, n,
+//   -> [{ key, ap, apLabel, fy, pmo, pmoKey, title, ccar, budgets, pid, sub, planned, awarded, remaining, n,
 //         state: 'awarded'|'planned'|'late'|'nodate', next: 'YYYY-MM'|null,
-//         events: [{pe, ym: 'YYYY-MM'|null, col, cents, awarded: bool, tag: ''|'Unprogrammed'|'Forecast', late: bool}] }]
+//         events: [{pe, desc, ym: 'YYYY-MM'|null, col, cents, awarded: bool, tag: ''|'Unprogrammed'|'Forecast', late: bool}] }]
+//   pid, sub and each plan event's desc: the distinct PMT PID#, Sub-PMO and Event Description texts its rows carry (review
+//   I52), in name order; none is a figure, and people's names are never read
 //   (col is the event's column in model.cols: Prior Yr, Oct to Sep of the execution year, the next-year column, No date)
 // in the order of the blocks, then by title and CCaR number.
 //   next: the earliest month of a plan event not yet awarded; state 'late' when that month has closed (it is the Data
@@ -1955,22 +1957,26 @@ SP.requirementsOf = function requirementsOf(M) {
     for (const r of b.rows || []) {
       const d = r.d, k = d.k.pmo + '\u0000' + d.k.title + '\u0000' + d.k.ccar;
       let q = by.get(k);
-      if (!q) by.set(k, (q = { pmoKey: d.k.pmo, sp: [new Map(), new Map(), new Map()], budgets: new Map(), planned: 0, awarded: 0, n: 0, ev: new Map() }));
+      if (!q) by.set(k, (q = { pmoKey: d.k.pmo, sp: [new Map(), new Map(), new Map()], budgets: new Map(), pid: new Map(), sub: new Map(), planned: 0, awarded: 0, n: 0, ev: new Map() }));
       eng_tally(q.sp[0], eng_txt(d.pmo)); eng_tally(q.sp[1], eng_txt(d.title)); eng_tally(q.sp[2], eng_txt(d.ccar));
       const bn = eng_txt(d.budget).trim();
       if (bn) q.budgets.set(SP.normKey(bn), bn);
+      const mo = d.more || {};
+      if (mo.pid) q.pid.set(SP.normKey(mo.pid), mo.pid);
+      if (mo.sub) q.sub.set(SP.normKey(mo.sub), mo.sub);
       q.planned += r.cents; q.n++;
       const exec = d.status === 'exec';
       if (exec) q.awarded += r.cents;
       const ym = r.col !== ENG_NODATE && typeof d.date === 'string' && /^\d{4}-\d{2}/.test(d.date) ? d.date.slice(0, 7) : null;
       const ek = d.k.pe + '\u0000' + (ym || '') + '\u0000' + (exec ? 1 : 0) + '\u0000' + d.status;
       let e = q.ev.get(ek);
-      if (!e) q.ev.set(ek, (e = { sp: new Map(), ym, col: r.col, cents: 0, awarded: exec, tag: d.status === 'unprog' ? 'Unprogrammed' : d.status === 'fcst' ? 'Forecast' : '' }));
+      if (!e) q.ev.set(ek, (e = { sp: new Map(), desc: new Map(), ym, col: r.col, cents: 0, awarded: exec, tag: d.status === 'unprog' ? 'Unprogrammed' : d.status === 'fcst' ? 'Forecast' : '' }));
       eng_tally(e.sp, eng_txt(d.pe)); e.cents += r.cents;
+      if (mo.desc) e.desc.set(SP.normKey(mo.desc), mo.desc);
     }
     const list = [];
     for (const [k, q] of by) {
-      const events = [...q.ev.values()].map(e => ({ pe: eng_major(e.sp, ENG_BLANK.pe), ym: e.ym, col: e.col, cents: e.cents, awarded: e.awarded, tag: e.tag,
+      const events = [...q.ev.values()].map(e => ({ pe: eng_major(e.sp, ENG_BLANK.pe), desc: [...e.desc.values()].sort(eng_cmp), ym: e.ym, col: e.col, cents: e.cents, awarded: e.awarded, tag: e.tag,
         late: !e.awarded && e.ym !== null && asOf !== '' && e.ym <= asOf }))
         .sort((x, y) => (x.ym === null) - (y.ym === null) || eng_cmp(x.ym || '', y.ym || '') || eng_cmp(x.pe, y.pe) || (y.awarded - x.awarded));
       const open = events.filter(e => !e.awarded), dated = open.filter(e => e.ym !== null);
@@ -1978,6 +1984,7 @@ SP.requirementsOf = function requirementsOf(M) {
       const state = !open.length ? 'awarded' : next === null ? 'nodate' : (asOf !== '' && next <= asOf) ? 'late' : 'planned';
       list.push({ key: b.key + '|' + k, ap: b.ap, apLabel: b.apLabel, fy: b.fy, pmoKey: q.pmoKey, pmo: eng_major(q.sp[0], ENG_BLANK.pmo),
         title: eng_major(q.sp[1], ENG_BLANK.title), ccar: eng_major(q.sp[2], ENG_BLANK.ccar), budgets: [...q.budgets.values()].sort(eng_cmp),
+        pid: [...q.pid.values()].sort(eng_cmp), sub: [...q.sub.values()].sort(eng_cmp),
         planned: q.planned, awarded: q.awarded, remaining: q.planned - q.awarded, n: q.n, state, next, events });
     }
     list.sort((x, y) => eng_cmp(x.title, y.title) || eng_cmp(x.ccar, y.ccar) || eng_cmp(x.pmo, y.pmo));
@@ -2007,7 +2014,8 @@ SP.ymWords = function ymWords(ym) {
 // goal: an office's requirements are of several appropriations and years, each with its own OSD goal for the Data through
 // month (its block's goal), so the office's goal is those goals weighted by each requirement's plan; a requirement whose
 // block has no goal (a year after the execution year) is left out of the office's pct, goal and status, and counted in n
-// and planned all the same. age: whole months from a late plan event's month to the Data through month (0: the month that
+// and planned all the same. Every other requirement is in the pct, a plan below zero (a deobligation) too, so the pct is
+// awarded over planned of those requirements; the goal is weighted by each one's plan above zero. age: whole months from a late plan event's month to the Data through month (0: the month that
 // has just closed); a requirement's is its oldest late event's.
 // ---------------------------------------------------------------------------------------------------------------
 SP.chartsOf = function chartsOf(M, reqs) {
@@ -2022,10 +2030,13 @@ SP.chartsOf = function chartsOf(M, reqs) {
   if (asOfN !== null) { const w = n => Math.floor(n / 12) + '-' + String(n % 12 + 1).padStart(2, '0'); next3.from = w(asOfN + 1); next3.to = w(asOfN + 3); }
   for (const r of R) {
     let p = pm.get(r.pmoKey);
-    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, cells: cols.map(() => 0), total: 0 });
+    if (!p) pm.set(r.pmoKey, p = { key: r.pmoKey, label: r.pmo, n: 0, planned: 0, awarded: 0, gPlan: 0, gAwd: 0, gSum: 0, gW: 0, cells: cols.map(() => 0), total: 0 });
     p.n++; p.planned += r.planned; p.awarded += r.awarded;
     const g = goalOf.get(r.ap + '|' + r.fy);
-    if (g !== null && g !== undefined && r.planned > 0) { p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += r.planned * g; }
+    // every requirement with a goal is in the share, whatever the sign of its plan, so the share is the office's Awarded over
+    // its Plan as By PMO and My PMO divide them; a deobligation (a plan below zero) left out made it neither (review I78).
+    // The goal is weighted by the plan above zero only: a negative weight would bend it.
+    if (g !== null && g !== undefined) { const w = Math.max(0, r.planned); p.gPlan += r.planned; p.gAwd += r.awarded; p.gSum += w * g; p.gW += w; }
     for (const e of r.events) {
       const i = colAt.get(e.col);
       if (i !== undefined) { const c = cols[i]; c[e.awarded ? 'awarded' : e.late ? 'late' : 'projected'] += e.cents; c.total += e.cents; p.cells[i] += e.cents; p.total += e.cents; }
@@ -2043,9 +2054,12 @@ SP.chartsOf = function chartsOf(M, reqs) {
   for (const l of late) { const n = ymN(l.ym); l.age = n === null || asOfN === null ? 0 : Math.max(0, asOfN - n); }
   late.sort((a, b) => b.cents - a.cents || eng_cmp(a.req.title, b.req.title));
   const pmos = [...pm.values()].sort((a, b) => eng_cmp(a.label, b.label));
+  // the awards by month added across the months, for the figures table under the chart (review I26)
+  const sum = { awarded: 0, late: 0, projected: 0, total: 0 };
+  for (const c of cols) for (const k of ['awarded', 'late', 'projected', 'total']) sum[k] += c[k];
   return {
-    n: R.length, cols, next3,
-    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 ? p.gSum / p.gPlan : null;
+    n: R.length, cols, next3, sum,
+    pmos: pmos.map(p => { const pct = p.gPlan > 0 ? p.gAwd / p.gPlan : null, goal = p.gPlan > 0 && p.gW > 0 ? p.gSum / p.gW : null;
       return { key: p.key, label: p.label, n: p.n, planned: p.planned, awarded: p.awarded, pct, goal, status: SP.statusOf(pct, goal) }; }),
     late, lateCents: late.reduce((s, l) => s + l.cents, 0),
     heat: { rows: pmos.map(p => ({ key: p.key, label: p.label, cells: p.cells, total: p.total })), max: Math.max(0, ...pmos.flatMap(p => p.cells)) },

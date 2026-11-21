@@ -348,6 +348,20 @@ Anything new in a later pull goes after what you placed.
 **Full screen** at the top fills the screen with APEX; press it again or Esc to leave. (A page cannot open full screen by
 itself: the browser needs that click. An iPhone has no full screen for pages, so the button is not shown there.)
 
+## Finding your way (Nov 2026)
+
+- **Your office** is remembered: My PMO and By PMO both open on it, and each links to the other.
+- **Requirements:** titles and CCaR numbers that match come first; pick *Projected award* (late, next 1 to 3 months, no
+  date, awarded) or an *Order*; press Enter to open the first. A requirement shows its plan events first, then its
+  budgets, and its Sub-PMO, PID and plan event descriptions.
+- **My PMO** has a *Coming up* picker with a total for what is due in the next months.
+- **Unobligated lists** on the appropriation pages are folded under their heading; press it to open.
+- **A Filter switch left off** is said when the page opens, and *Show everything* puts every service and lane back.
+- **Printing** (Ctrl+P) is landscape, in colour, and names what was picked on the page.
+- **On a phone** no page scrolls sideways, and the requirement's name stays put when a list is scrolled.
+- **A view-only copy** says when it was published, its Help starts with what a reader needs, and two buttons above the
+  Summary lead to a requirement or your office.
+
 ## The switches
 
 The filter bar has a box for each service and one for each lane (Discretionary and Mandatory).

@@ -110,7 +110,7 @@ try {
   const cellsOf = title => [...[...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].find(tr => tr.querySelector('.tg').textContent === title).children].slice(3, 9).map(c => c.textContent);
   C.eq('Lot One by service: USAF 2,400 and ANG 300; Repair: STOVL 1,500', J([cellsOf('Lot One'), cellsOf('Repair')]), J([['2,400', '300', '-', '-', '-', '-'], ['-', '-', '-', '1,500', '-', '-']]));
   C.eq('five tiles: the total takes them in, and the fifth says how much is Mandatory', J([tile('sum'), tile('only'), tile('mand'), main().querySelector('.tiles').classList.contains('tiles5')]),
-    J([['$8,100K', '6 requirements, 2 appropriations'], ['1', 'unfunded only: no plan event yet'], ['$6,700K', '4 plan events from the CCaR pull'], true]));
+    J([['$8,100K', '6 lines (2 requirements on the tracker, 4 Mandatory plan events), 2 appropriations'], ['1', 'unfunded only: no plan event yet'], ['$6,700K', '4 plan events from the CCaR pull'], true]));
   C.eq('the total row', [...main().querySelectorAll('#uiUfrT tr.band td.n')].map(x => x.textContent).join(' '), '6,300 300 - 1,500 - - 8,100');
   C.eq('the record on the tracker and among the Mandatory plan events is flagged under the switch', J([...main().querySelectorAll('#uiUfrMandChk li')].map(li => li.textContent)),
     J(['O&M FY2027: CCaR C1 is on the UFR tracker and has Mandatory plan events listed too; check it is not counted twice.']));
@@ -139,7 +139,7 @@ try {
   const vm = vo.window.document.getElementById('uiMain');
   C.eq('a view-only copy made with the switch on lists them, in the keeper’s ranking', J([...vm.querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [tr.querySelector('.urank').textContent, tr.querySelector('.tg').textContent, !!tr.querySelector('.mtag')])),
     J([['1', 'Repair', true], ['2', 'Depot tooling', false], ['3', 'Tessa A', false], ['4', 'Lot One', true], ['5', 'Lot Two', true], ['1', 'Kit', true]]));
-  C.chk('it says Mandatory funding was not received, has no switch, and cannot be changed', /Mandatory funding not received\. The 4 plan events on Mandatory budgets in the CCaR pull \(\$6,700K\) are listed below as unfunded/.test(vm.querySelector('#uiUfrMand').textContent)
+  C.chk('it says Mandatory funding was not received, has no switch, and cannot be changed', /Mandatory funding not received\. The 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded/.test(vm.querySelector('#uiUfrMand').textContent)
     && !vm.querySelector('input[data-act=ufrmand]') && vo.SP.setUfrMandatory(false) === false && vo.SP.state.ufrMand === true, vm.querySelector('#uiUfrMand').textContent);
   C.eq('no script error in the view-only copy', J(errs(vo)), '[]');
   vo.close();

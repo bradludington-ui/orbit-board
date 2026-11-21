@@ -119,7 +119,7 @@ try {
   C.eq('the Funding status picker offers All and the values in the tracker’s column', J([...m.querySelector('select[data-f=status]').options].map(o => o.textContent)), J(['All', 'Pending', 'Unfunded']));
   C.eq('the four tiles, in $K', J(['sum', 'exec', 'sfcb', 'only'].map(A.tile)), J([['$3,550K', '5 requirements, 2 appropriations'], ['$3,000K', '3 of 5 requirements'], ['$2,500K', '1 requirement'], ['2', 'unfunded only: no plan event yet']]));
   C.eq('the list: rank, title, CCaR number and total', J(A.rows()), J([['1', 'Prime Alpha', 'JSF6654', '2,500'], ['2', 'Tessa B', 'TS0002', '300'], ['3', 'New thing', 'TS0099', '400'], ['4', 'Garnet Rework', 'TS0007', '100'], ['1', 'Tessa E', 'TS0005', '250']]));
-  C.eq('a heading row for each appropriation and fiscal year', J([...m.querySelectorAll('#uiUfrT tr.ugrp')].map(tr => tr.textContent)), J(['O&M FY2027', 'Initial Spares FY2027']));
+  C.eq('a heading row for each appropriation and fiscal year', J([...m.querySelectorAll('#uiUfrT tr.ugrp')].map(tr => tr.textContent)), J(['O&M FY2027 · 4 lines, in the UFR tracker’s ranks', 'Initial Spares FY2027 · 1 line, in the UFR tracker’s ranks']));   // review I37: how many, and whose ranks
   C.eq('the columns', J([...m.querySelectorAll('#uiUfrT thead th')].map(th => th.textContent)),
     J(['Rank', 'Requirement', 'PMO', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total ($K)', 'Funding status', 'Exec ready?', 'SFCB action', 'Approved in plan ($K)']));
   const rowEl = (T, id) => [...T.main().querySelectorAll('tr[data-ufr]')].find(x => x.getAttribute('data-ufr') === id);
@@ -158,8 +158,12 @@ try {
   A.click(rowEl(A, 'om|2027|O&M|12').querySelector('.tg')); await settle();
   C.chk('pressing one with no plan event says it is not in the spend plan, and only one line is open at a time', /Not in the spend plan: no plan event in O&M FY2027 carries this CCaR record under Propulsion \(PP\), so Approved is \$0 and Required is this unfunded \$400K/.test(det())
     && A.main().querySelectorAll('tr.udetail').length === 1, det());
+  // review I14: a line with no plan event has no requirement to open, so it offers no button that would land on "No requirement matches"
+  C.chk('… and it offers no way to Requirements, where nothing would match', !A.main().querySelector('tr.udetail [data-act=reqfind]'));
+  A.click(rowEl(A, 'om|2027|O&M|10').querySelector('.tg')); await settle();
   A.click(A.main().querySelector('tr.udetail [data-act=reqfind]')); await settle();
-  C.chk('Open this requirement goes to Requirements, searched for its CCaR number', A.doc.querySelector('#uiNav [aria-pressed=true]').getAttribute('data-v') === 'find' && A.doc.getElementById('uiFindQ').value === 'TS0099');
+  C.chk('Open this requirement goes to Requirements, searched for its CCaR number, in the line’s own appropriation and year', A.doc.querySelector('#uiNav [aria-pressed=true]').getAttribute('data-v') === 'find' && A.doc.getElementById('uiFindQ').value === 'JSF6654'
+    && A.main().querySelector('select[data-f=ap]').selectedOptions[0].textContent === 'O&M' && A.main().querySelector('select[data-f=fy]').selectedOptions[0].textContent === 'FY2027');
   // the Filter's services
   await A.view('ufr');
   const usaf = [...A.doc.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => b.parentElement.textContent.trim() === 'USAF');

@@ -72,7 +72,7 @@ try {
   C.chk('there is no Manage data: the button and the bar are hidden', V.doc.getElementById('uiManageBtn').hidden === true && V.doc.getElementById('uiManage').hidden === true);
   C.eq('so nothing to import, save or publish with is on screen', J(['import', 'lastpick', 'save', 'savecopy', 'viewcopy'].map(a => [...V.doc.querySelectorAll('[data-act=' + a + ']')].some(b => V.shown(b)))), J([false, false, false, false, false]));
   C.chk('no "Unsaved changes" is said', !V.shown(V.doc.getElementById('uiSave')));
-  C.chk('Data through and First FY are said as words, and their boxes are not on screen', V.doc.getElementById('uiAsOfText').textContent === 'Data through Oct-2026 · First FY 2026'
+  C.chk('Data through and First FY are said as words, and their boxes are not on screen', /^Data through Oct-2026 · First FY 2026 · Published \d{1,2} [A-Z][a-z]{2} \d{4}$/.test(V.doc.getElementById('uiAsOfText').textContent)   /* review I10: and the day it was published */
     && !V.shown(V.doc.getElementById('uiAsOf')) && !V.shown(V.doc.getElementById('uiFirst')), V.doc.getElementById('uiAsOfText').textContent);
   C.eq('the figures are the keeper’s, cell for cell (the Summary)', J(await summaryOf(V)), J(WANT));
   // every view left in the menu draws

@@ -398,7 +398,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       if (rest.length) groups.push({ label: pmoLabel.get(pk), prime: false, pmoKey: pk, color: SP.publishColor(pk, false), records: rest.map(a => record([a])).sort(recSort) });
     }
     const all = groups.flatMap(g => g.records), s = sumFig(all);
-    return { ap, apLabel: pb_apLabel(ap), fy, groups, total: s.total, svc: s.svc, n: all.length };
+    return { ap, apLabel: pb_apLabel(ap), fy, groups, total: s.total, svc: s.svc, n: all.length, ufrOnly: all.filter(r => r.ufrOnly).length };
   };
   const ufrSort = (x, y) => SP.APS.findIndex(a => a.id === x.ap) - SP.APS.findIndex(a => a.id === y.ap) || x.fy - y.fy
     || (Number(x.rank) || 1e9) - (Number(y.rank) || 1e9) || pb_cmp(SP.normKey(x.title), SP.normKey(y.title)) || x.row - y.row;
@@ -456,7 +456,8 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
 // ---------------------------------------------------------------------------------------------------------------
 // §33.4 THE PAGES. Letter, landscape, in points. Every page carries the CUI marking top and bottom, the document's name
 // and "Page n of N". A record's block of service rows is never split across pages.
-//   ctx: { program, fm: {om, ff, sp, opn: each appropriation's FM Lead}, asOfLabel, today ('YYYY-MM-DD'), uploaded (text), emblem (Uint8Array of a JPEG, or null),
+//   ctx: { program, fm: {om, ff, sp, opn: each appropriation's FM Lead}, asOfLabel, today ('YYYY-MM-DD'), dataDay ('YYYY-MM-DD': the oldest
+//          CCaR pull's import day, or ''), uploaded (text), emblem (Uint8Array of a JPEG, or null),
 //          bae (a BAE report is loaded), marks: {text for each mark printed}, ufrFiles: [{fy, name, day}] }
 // Whole dollars, as the template prints them: each figure is rounded from its own exact cents, a total from its exact
 // sum, so a total can differ by a dollar from the rounded figures above it. The stoplight page says so.
@@ -509,7 +510,10 @@ SP.publishPages = function publishPages(doc, ctx) {
   const fmOf = ap => pb_txt(C.fm && typeof C.fm === 'object' ? C.fm[ap] : '');
   const whoOf = aps => { const one = aps.length === 1; return aps.filter(ap => fmOf(ap)).map(ap => (one ? pb_apLabel(ap) + ' FM Lead: ' : pb_apLabel(ap) + ': ') + fmOf(ap)); };
   const whoText = aps => { const w = whoOf(aps); return !w.length ? '' : aps.length === 1 ? w[0] : 'FM Leads: ' + w.join(' | '); };
-  const asOf = ['Data as of: ' + pb_isoWords(C.today), C.asOfLabel ? 'Data through ' + C.asOfLabel : ''].filter(Boolean).join('  |  ');
+  // WHEN, ON EVERY PAGE (review I82): the day the data came in, by the OLDEST CCaR pull behind it (§30: a figure is only as
+  // fresh as the oldest pull), then the month it runs through, then the day this PDF was made. It was the print day under
+  // "Data as of", so a PDF made weeks after the upload looked fresher than its figures. With no pull, the print day alone.
+  const asOf = [C.dataDay ? 'Data uploaded ' + pb_isoWords(C.dataDay) : '', C.asOfLabel ? 'Data through ' + C.asOfLabel : '', 'Printed ' + pb_isoWords(C.today)].filter(Boolean).join('  |  ');
 
   // on a page with no full header (a continued page, the unfunded list) the emblem is small, at the top left, and the
   // page's heading starts to its right: "the top left of every spend plan" is every page of it
@@ -661,7 +665,11 @@ SP.publishPages = function publishPages(doc, ctx) {
       const yy = y0 + (doc.kind === 'pmo' ? 132 : 112);
       const w1 = whoText([sec.ap]);
       if (w1) T(cx, yy, w1, { size: 10, align: 'c' });
-      T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
+      // a requirement here is a CCaR record, and one on the unfunded list with no plan event is one too (§33): said apart, so
+      // the count can be laid beside the screen's, which counts the plan's own (review I83). With a BAE report loaded,
+      // Approved here is the CCaR plan, and the stoplight's Approved is the report's: named so (review I15, as P4-2)
+      T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + (sec.ufrOnly ? ' (' + SP.fmtInt(sec.ufrOnly) + ' unfunded only, no plan event)' : '')
+        + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved' + (C.bae ? ' (CCaR plan)' : '') + ' $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
         + '   |   Obligated $' + SP.fmtWhole(sec.total.obligated).replace(/^-$/, '0'), { size: 9, align: 'c', color: PB.mut });
       T(cx, yy + (w1 ? 30 : 14), asOf, { size: 8, align: 'c', color: PB.mut });
     }
@@ -1083,7 +1091,8 @@ SP.ufrMove = function ufrMove(ufr, ranks, gk, key, to) {
 // say different things about one unfunded line.
 //   Mfull   the model with every switch on (as SP.publishData takes)
 //   view    this browser's switches: a service switched off is left out of every amount, column and total here, as it is
-//           on every other view. The lanes do not apply: the tracker has none.
+//           on every other view. The lanes do not apply to the tracker's lines: it has none. The Mandatory lane switch takes
+//           off §45's Mandatory lines (tiles.mand.hidden counts those it takes off).
 //   F       { pmo, ap, fy, status, q }   each null/'' for all (there is no Exec ready picker: Brad, 19 Nov 2026, "No need for an
 //           exec filter"; the Exec ready? column and the Exec ready tile stay)
 //   -> { files: [{fy, name, at}], all (lines before the pickers), n, svc: [{i, label}], picks: {pmos, aps, fys, statuses},
@@ -1132,9 +1141,14 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
     statuses: uniq(all, l => l.status, l => l.status).sort((a, b) => pb_cmp(SP.normKey(a[0]), SP.normKey(b[0]))),
   };
   const q = SP.normKey(f.q);
-  const lines = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
+  // §45's Mandatory lines have a lane, and the Filter's Mandatory switch takes them off as it takes Mandatory off every other
+  // page; the tracker's lines have none, and the lane switches leave them alone (§37). Their ranks are given before this,
+  // so a line hidden here keeps its number (review I81).
+  const mandLaneOn = !(view && view.lane && view.lane.mand === false);
+  const shown = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
     && (f.status === null || f.status === undefined || f.status === '' || l.status === f.status)
     && (q === '' || SP.normKey(l.title).includes(q) || SP.normKey(l.ccar).includes(q)));
+  const lines = mandLaneOn ? shown : shown.filter(l => !l.mand), mandHidden = shown.length - lines.length;
   const sumOf = ls => ls.reduce((n, l) => n + l.sum, 0);
   const groups = [];
   for (const l of lines) { const g = groups[groups.length - 1]; if (g && g.ap === l.ap && g.fy === l.fy) g.lines.push(l); else groups.push({ ap: l.ap, apLabel: pb_apLabel(l.ap), fy: l.fy, lines: [l] }); }
@@ -1146,7 +1160,7 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
     total: { amt: svcIdx.map((_, k) => lines.reduce((n, l) => n + l.amt[k], 0)), sum: sumOf(lines) },
     tiles: { sum: sumOf(lines), n: lines.length, aps: new Set(lines.map(l => l.ap)).size, exec: { sum: sumOf(lines.filter(l => l.execReady)), n: lines.filter(l => l.execReady).length },
       sfcb: { sum: sumOf(lines.filter(l => l.sfcbApproved)), n: lines.filter(l => l.sfcbApproved).length }, only: lines.filter(l => !l.plan).length,
-      mand: { sum: sumOf(mand), n: mand.length } },
+      mand: Object.assign({ sum: sumOf(mand), n: mand.length }, mandHidden ? { hidden: mandHidden } : {}) },
     byPmo, bySvc: svcIdx.map((i, k) => ({ label: PB_UFR_SVC[i], sum: lines.reduce((n, l) => n + l.amt[k], 0) })),
     skipped: D.ufrSkipped.reduce((n, x) => n + x.n, 0) };
 };
