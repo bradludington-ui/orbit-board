@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.16** (item 148; built, awaiting Brad's merge); **v2.17** (item 149.1–149.6) built on it, then v2.18 and v2.19 (the rest of item 149), then **v2.20** (item 133).
+Current version: **v2.16** (item 148) and **v2.17** (item 149.1–149.6, built on it): both built, awaiting Brad's merge, then v2.18 and v2.19 (the rest of item 149), then **v2.20** (item 133).
 
 ## Open
 
@@ -577,6 +577,42 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.17 — 21 Nov 2026: what the review of the Requirements page found could put a wrong value in the board (item 149.1–149.6) -- built on Brad's "Go with recommendations" of 21 Nov, on top of v2.16; merge waits on his word
+
+The six faults, as logged under item 149 (Open), with the build notes there. In short:
+- **149.1** A date typed into an award box is taken when the box is left or on Enter, never at a keystroke; a calendar pick is
+  taken at once; empty or half typed keeps the stored date; a date outside the fiscal year is refused. An award already dated
+  outside its year is under Needs attention and goes out on the Spend Plan Source on 31 August.
+- **149.2** Esc puts a half-typed figure back; the closed sliding record is inert; the row takes the keyboard; Tab stays inside the
+  open sliding record.
+- **149.3** Restore all asks first, naming the count and the year; Cancel restores nothing. A Removed-list line in the change
+  journal is not offered to Put back.
+- **149.4** A year not started: Cancel to roll forward asks "start it empty?"; Cancel there stays and creates nothing.
+- **149.5** Reset to the full requirement is on the row menu only on the Funding page and only where it changes something, and
+  says what it did.
+- **149.6** Reset priority order names the year, says it cannot be put back, is refused while one office shows, and confirms; the
+  two messages that promised it undoes a published order are corrected.
+
+**Found while building, fixed:** the first cut of 149.2 moved the keyboard to the row on any Esc, even with no record open (a menu's
+Esc, the message's Esc); `npm run keys` A, G, G3, I and V caught it. Now only closing an open record moves it, and only when the
+keyboard was in the record.
+
+**Checks.** audit-board "v2.17 — a wrong value cannot reach the board from the record, the year menu or the Removed list (item
+149)" (fails on v2.16, b11b8e5); `npm run keys` X (typed digits, the month alone, a date outside the year, an increment, Esc then
+keys, Tab inside the open record). Older checks that pinned the old behaviour, each changed on purpose: audit-board D7c and the
+v2.09 award-date part; audit-recon's and audit-import's blank-year fixtures (Cancel, then OK to start empty) and the v2.06 Restore
+all part; `npm run pointer` H2 (ArrowUp on a date steps without storing; Enter takes it) and A (no Reset outside Funding);
+editors-reachable's selector; `tools/row-controls.json` re-recorded (the date box's handler; Reset no longer on the fixture's row).
+**Mutations:** 15 new (`v217-149-*`), 2 retargeted (`w7-src-inc-day-rolls`, `src-single-day-rolls`); 3,821 targets, each once; all
+17 CAUGHT (`recovery/v215/proved-v217.jsonl`; `v217-149-order-says-fy27` first SURVIVED, the fixture being FY27, and is caught
+since the check runs on FY28). **The gate:** every suite whole (8 banners + the legacy line, boot-same); every browser check but
+layout's carried D ×8 (standards 0 new); `npm run validate:nightly`: every stage holds but the browser stage, which fails on
+layout's carried D ×8 alone (defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1
+open; trace matrix 77 cells; fuzz seed 544117433; verify-file self-test held; suites 30.1 min). No sweep.
+
+**Not done:** Help was not changed (it is at its size limit; the v2.19 wording pass covers it). The Removed list is still journalled
+by place; it is no longer offered to Put back.
 
 ### v2.16 — 19 Nov 2026: the five-year spend plan joins the years by the work, never by the requirement number (item 148) -- built on Brad's "Go" of 19 Nov; merge waits on his word
 

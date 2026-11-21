@@ -15,6 +15,19 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 
 ## Current implementation assignment
 
+- Task and approved scope: v2.17 -- item 149.1–149.6 on Brad's "Go with recommendations" of 21 Nov 2026 (the review of the
+  Requirements page and the RECORD panel; data loss first). Built on v2.16 on the same branch, so PR #58 carries both. v2.18
+  (149.7–149.17), v2.19 (149.18–149.53) and v2.20 (item 133) follow, each on Brad's word.
+- Owner: Claude (Claude Code session on ccr-aef4e698-poiml3), no helpers.
+- Allowed files: prioritization-board-grid.html, tools/export-audit/{audit-board,audit-import,audit-recon,mutate}.mjs,
+  tools/{keyboard-reach,pointer-edit,editors-reachable}.mjs, tools/row-controls.json, NEXT-VERSION.md, CLAUDE.md,
+  recovery/v215/{proofs,proved}-v217.*, this entry.
+- Status: ready for review. Awaiting Brad's merge (v2.16 and v2.17 together, or v2.16 first). Not merged.
+- Results: NEXT-VERSION.md › Shipped › v2.17. 17 of 17 mutations CAUGHT; 3,821 targets, each once; every suite whole;
+  validate:nightly holds but for layout's carried D x8 (fuzz seed 544117433). No sweep.
+
+### The v2.16 assignment (built; awaiting merge with v2.17)
+
 - Task and approved scope: v2.16 -- item 148 alone, on Brad's "Go" of 19 Nov 2026: the five-year spend plan joined the years by
   requirement number, so an added requirement's dollars printed under another requirement's name (his GEX/GATES and LM Option Year
   photos). Item 133 moves to v2.17. v2.15 shipped (PR #36, merged e3804cf, 9 Nov 2026).
