@@ -12046,7 +12046,8 @@ await (async () => {
   // ---- the PMO copy: 1, 14, 9, and the review's warning
   const B = boot(); seed(B.ev, sc); asBooted(B.ev, sc);
   // A carries every required field in FY27, so the copy brings it in at once -- carrying its renamed plan event (S.titles)
-  B.ev(`window.confirm=function(){ return false; }; window.alert=function(){}; S.titles.A='Depot support (renamed)';
+  // v2.17 (149.4): told no to roll forward, then yes to start FY28 empty
+  B.ev(`window.confirm=function(m){ return /^Start FY\\d+ EMPTY\\?/.test(String(m)); }; window.alert=function(){}; S.titles.A='Depot support (renamed)';
       setDesc('A','Annual depot support.'); setCons('A','Line stops.'); setObCat('A', OB_CATS[0]); S.ptype.A='OGC'; setDest('A','to','pax'); setDest('A','end','dla');
       setMipr('A','direct'); wbsStore('req','A',null,[{w:'1.2.3', v:[]}]); save(); switchYear(2028); 'ok'`);
   const html = B.ev(String.raw`(function(){
