@@ -10473,6 +10473,88 @@ await (async () => {
   }
 })();
 // ==== end v2.15 review RV-D ====
+// ==== v2.17 (item 149.1-149.6: what the 21 Nov review found could put a wrong value in the board) ====
+// v2.17 (item 149): THE SIX FAULTS OF THE 21 NOV REVIEW. Each part fails on v2.16 (b11b8e5) unless it says CONTROL. The browser half
+// (dates typed with the real keyboard, the closed panel, Tab inside the open one) is tools/keyboard-reach.mjs X.
+await (async () => {
+  const name = 'v2.17 — a wrong value cannot reach the board from the record, the year menu or the Removed list (item 149)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask, grp) => ({ id, grp: grp || 'AV', team: grp || 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: 'JSF' + id, fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100]), mk('B', [500, 0, 0], 'PSM'), mk('C', [300, 0, 0])],
+      disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B', 'C'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Pat'); window.alert=function(){}; window.__cf=[]; window.__ans=[];
+      window.confirm=function(m){ window.__cf.push(String(m)); return window.__ans.length? window.__ans.shift() : true; }; 'ok'`);
+    const aw = id => B.ev(`JSON.stringify((S.awards||{})[${J(id)}]||null)`);
+    const box = (id, i) => `(function(){ setCur(${J(id)}); render(); return document.querySelector('#inspector input[data-awd]${i == null ? ':not([data-awd-i])' : '[data-awd-i="' + i + '"]'}'); })()`;
+    // 149.1 -- a change after a keystroke is held; leaving takes it; a calendar pick (no keystroke) is taken at once
+    B.ev(`var e=${box('A')}; e.__awdKey=true; e.value='0002-01-15'; e.dispatchEvent(new Event('change',{bubbles:true})); 'ok'`);
+    chk(name, '149.1 typed', 'a change that follows a keystroke stores nothing (v2.16 stored 15 Jan of the year 2)', aw('A'), 'null');
+    B.ev(`var e=document.querySelector('#inspector input[data-awd]'); e.value='2027-01-15'; awdDateTake(e); 'ok'`);
+    chk(name, '149.1 left', 'leaving the box takes the whole date', aw('A'), J({ mode: 'single', d: '2027-01', day: 15 }));
+    B.ev(`var e=${box('A')}; e.value='2027-03-20'; e.dispatchEvent(new Event('change',{bubbles:true})); 'ok'`);
+    chk(name, '149.1 calendar', 'CONTROL: a pick with no keystroke is taken at once', aw('A'), J({ mode: 'single', d: '2027-03', day: 20 }));
+    B.ev(`var e=${box('A')}; e.__awdKey=true; e.value='2031-01-15'; awdDateTake(e); 'ok'`);
+    chk(name, '149.1 out of year', 'a date outside the fiscal year is refused and the stored date kept', aw('A'), J({ mode: 'single', d: '2027-03', day: 20 }));
+    B.ev(`var e=${box('A')}; e.__awdKey=true; e.value=''; awdDateTake(e); 'ok'`);
+    chk(name, '149.1 unfinished', 'a box left empty or half typed keeps the stored date', aw('A'), J({ mode: 'single', d: '2027-03', day: 20 }));
+    B.ev(`S.awards.C={mode:'inc', inc:[{d:'2026-12', day:5, sv:[100,0,0]}]}; save(); var e=${box('C', 0)}; e.__awdKey=true; e.value='2027-02-03'; e.dispatchEvent(new Event('change',{bubbles:true})); 'ok'`);
+    chk(name, '149.1 increment', 'an increment’s typed date is held too', JSON.parse(aw('C')).inc[0].d, '2026-12');
+    B.ev(`var e=document.querySelector('#inspector input[data-awd-i="0"]'); awdDateTake(e); 'ok'`);
+    chk(name, '149.1 increment left', '… and taken when left', JSON.parse(aw('C')).inc[0].d + '-' + JSON.parse(aw('C')).inc[0].day, '2027-02-3');
+    // a date a v2.16 box stored: listed, and the Spend Plan Source sends it on 31 August
+    B.ev(`S.awards.B={mode:'single', d:'0002-01', day:15}; save(); render(); 'ok'`);
+    chk(name, '149.1 listed', 'an award dated outside the year is under Needs attention', B.ev(`JSON.stringify(attLists().awyear.map(function(r){ return [r.id, r.n]; }))`), J([['B', ['0002-01-15']]]));
+    const dates = JSON.parse(B.ev(`(function(){ var T=tiers(), i=SRC_HDR.indexOf('Date'); return JSON.stringify(srcRowsOf(MS.cur, S, T).filter(function(r){ return r[2] && (r[2].v||r[2])==='JSFB'; }).map(function(r){ var c=r[i]; return c && c.v!==undefined? c.v : c; })); })()`));
+    const dflt = Number(B.ev(`srcDefaultObl(MS.cur)`));
+    chk(name, '149.1 Spend Plan Source', 'its lines go out on 31 August of the year, never in 1902', J([dates.length > 0, dates.every(d => d === dflt)]), J([true, true]));
+    // 149.2 -- Esc puts a half-typed figure back; the closed sliding panel is inert; the row takes the keyboard
+    B.ev(`setCur('A'); render(); drawerOpen(); var e=document.querySelector('#inspector input[onchange^="setAsk"]'); e.focus(); e.value='5'; e.__pend=true;
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape', bubbles:true})); 'ok'`);
+    chk(name, '149.2 Esc', 'the half-typed figure is put back, the panel is inert, and the row has the keyboard',
+      B.ev(`JSON.stringify([document.querySelector('#inspector input[onchange^="setAsk"]').value, document.getElementById('inspector').hasAttribute('inert'), document.activeElement.id, itemById('A').ask[0]])`),
+      J(['900', true, 'row-A', 900]));
+    B.ev(`drawerOpen(); 'ok'`);
+    chk(name, '149.2 open', 'CONTROL: the open panel is not inert', B.ev(`document.getElementById('inspector').hasAttribute('inert')`), 'false');
+    B.ev(`drawerClose(); 'ok'`);
+    // 149.3 -- Restore all asks first, and Cancel restores nothing
+    B.ev(`S.removed=['A','C']; S.order=['B']; applyState(S); save(); window.__cf=[]; window.__ans=[false]; restoreAll(); 'ok'`);
+    chk(name, '149.3 Cancel', 'Restore all asks, naming the count, and Cancel restores nothing',
+      B.ev(`JSON.stringify([S.removed.length, /all 2 removed/.test(window.__cf[0]||'')])`), J([2, true]));
+    B.ev(`window.__ans=[true]; restoreAll(); 'ok'`);
+    chk(name, '149.3 OK', 'CONTROL: OK restores them', B.ev(`S.removed.length`), '0');
+    B.ev(`S.removed=['C']; save(); S.removed=[]; save(); 'ok'`);
+    chk(name, '149.3 journal', 'a Removed-list line is not offered to Put back',
+      B.ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='removed'; }).map(jrnlUndoable))`).includes('true'), false);
+    // 149.4 -- a year not started: Cancel twice stays and creates nothing
+    const fy = Number(B.ev(`MS.cur`));
+    B.ev(`window.__ans=[false,false]; switchYear(${fy + 2}); 'ok'`);
+    chk(name, '149.4 stay', 'Cancel, then Cancel, stays on the year and creates nothing', B.ev(`JSON.stringify([MS.cur, !!MS.years[${fy + 2}]])`), J([fy, false]));
+    B.ev(`window.__ans=[false,true]; switchYear(${fy + 2}); 'ok'`);
+    chk(name, '149.4 empty', 'CONTROL: Cancel, then OK, starts it empty', B.ev(`JSON.stringify([MS.cur, (S.order||[]).length])`), J([fy + 2, 0]));
+    B.ev(`window.__ans=[]; switchYear(${fy}); 'ok'`);
+    // 149.5 -- Reset to the full requirement only on the Funding page, only where it changes something
+    B.ev(`S.alloc.A={m:'t', v:500}; save(); uiMode='review'; render(); 'ok'`);
+    chk(name, '149.5 Review', 'not offered in Review', B.ev(`allocResettable('A')`), 'false');
+    B.ev(`uiMode='fund'; render(); 'ok'`);
+    chk(name, '149.5 Fund', 'CONTROL: offered on the Funding page where an allocation is set', B.ev(`allocResettable('A')`), 'true');
+    chk(name, '149.5 nothing set', 'not offered where there is nothing to reset', B.ev(`allocResettable('B')`), 'false');
+    B.ev(`resetAlloc('A'); uiMode='review'; render(); 'ok'`);
+    chk(name, '149.5 says', 'it says what it did', /allocation back to the full requirement/.test(B.ev(`document.getElementById('shareStat').textContent`)), true);
+    // 149.6 -- Reset priority order: not while one office shows; its question names the year on screen
+    B.ev(`S.order=['C','A','B']; save(); filter='PSM'; render(); window.__cf=[]; window.__ans=[true]; resetOrder(); 'ok'`);
+    chk(name, '149.6 one office', 'refused while one office is showing; nothing asked', B.ev(`JSON.stringify([S.order, window.__cf.length])`), J([['C', 'A', 'B'], 0]));
+    B.ev(`filter='ALL'; render(); window.__ans=[true]; resetOrder(); 'ok'`);
+    chk(name, '149.6 question', 'the question names the year on screen and says it cannot be put back',
+      B.ev(`JSON.stringify([new RegExp(FYL()+' priority order').test(window.__cf[0]||''), /cannot be put back/.test(window.__cf[0]||''), /FY27/.test(window.__cf[0]||'') === (FYL()==='FY27')])`), J([true, true, true]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.17 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

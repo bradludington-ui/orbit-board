@@ -1312,6 +1312,54 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`W · the twins section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// v2.17 (item 149.1, 149.2): X · A DATE TYPED INTO AN AWARD BOX, AND THE KEYBOARD WHEN THE RECORD CLOSES. Typed with the real keyboard
+// in Chromium, which fires change at every keystroke that leaves a whole date: on v2.16 01152027 stored 15 January of the year 2, and
+// retyping only the month of 9 October left 2 January. After Esc the keyboard stayed in the closed panel's box, and a digit then Tab
+// changed that requirement's value; Tab walked out of the open sliding panel into the rows behind it.
+{
+  try {
+    const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    p.on('dialog', d => d.dismiss());
+    await p.goto('file://' + LIVE);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.evaluate(() => { localStorage.setItem('prio27who', 'Pat'); });
+    const openRow = async id => { await p.keyboard.press('Escape'); await p.waitForTimeout(250); await p.locator('[id="row-' + id + '"] .tt').click(); await p.waitForTimeout(400); };
+    const typeDate = async (sel, dx, keys) => { const loc = p.locator(sel).first(); await loc.scrollIntoViewIfNeeded(); const bb = await loc.boundingBox();
+      await p.mouse.click(bb.x + dx, bb.y + bb.height / 2); for (const k of keys) { await p.keyboard.press(k); await p.waitForTimeout(40); } };
+    const aw = id => p.evaluate(i => JSON.stringify((S.awards || {})[i] || null), id);
+    await openRow('R003');
+    await typeDate('#inspector .awdblk input[data-awd]:not([data-awd-i])', 10, [...'01152027']);
+    const mid = await aw('R003');
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    chk('X · 01/15/2027 typed: nothing is stored while typing, and Enter stores 15 Jan 2027', mid === 'null' && await aw('R003') === JSON.stringify({ mode: 'single', d: '2027-01', day: 15 }), mid + ' -> ' + await aw('R003'));
+    await openRow('R000');
+    await typeDate('#inspector .awdblk input[data-awd]:not([data-awd-i])', 10, [...'05']);
+    await p.mouse.click(1700, 140); await p.waitForTimeout(250);
+    chk('X · the month alone retyped (9 Oct 2026 to May): 9 May 2027 when the box is left', await aw('R000') === JSON.stringify({ mode: 'single', d: '2027-05', day: 9 }), await aw('R000'));
+    await openRow('R001');
+    await typeDate('#inspector .awdblk input[data-awd-i="0"]', 10, [...'03202027', 'Tab', 'Tab', 'Tab']); await p.waitForTimeout(250);
+    chk('X · an increment retyped 03/20/2027 and left with Tab: 20 Mar 2027', JSON.parse(await aw('R001')).inc.some(x => x.d === '2027-03' && x.day === 20), await aw('R001'));
+    // 149.2: Esc with a figure half typed, then a digit and Tab: nothing changes
+    await openRow('R004');
+    const ask0 = await p.evaluate(() => JSON.stringify(itemById('R004').ask));
+    const req = p.locator('#inspector input[onchange^="setAsk"]').first();
+    await req.click(); await p.keyboard.press('Control+a'); await p.keyboard.type('5');
+    await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+    await p.keyboard.press('7'); await p.keyboard.press('Tab'); await p.keyboard.press('ArrowDown'); await p.waitForTimeout(300);
+    const st = await p.evaluate(() => ({ ask: JSON.stringify(itemById('R004').ask), inert: document.getElementById('inspector').hasAttribute('inert'),
+      inPanel: document.getElementById('inspector').contains(document.activeElement) }));
+    chk('X · Esc with a figure half typed: it is put back, the closed panel is inert and has no keyboard, and the keys after it change nothing',
+      st.ask === ask0 && st.inert && !st.inPanel, JSON.stringify(st));
+    // Tab stays in the open sliding panel
+    await openRow('R004'); let out = 0;
+    for (let i = 0; i < 80; i++) { await p.keyboard.press('Tab'); if (!(await p.evaluate(() => document.getElementById('inspector').contains(document.activeElement)))) out++; }
+    chk('X · Tab, 80 times, never leaves the open sliding panel', out === 0, out + ' times out');
+    chk('X · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk('X · the award-date and closed-panel section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
 console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position, a WBS paragraph picked, the PPBE cycle at the top and the RCN / EEIC list held across a redraw, and each one works\n');
 process.exit(bad ? 1 : 0);

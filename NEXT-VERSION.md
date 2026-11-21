@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.16** (item 148; built, awaiting Brad's merge). Next: **v2.17** (item 149.1–149.6), then v2.18 and v2.19 (the rest of item 149), then **v2.20** (item 133).
+Current version: **v2.16** (item 148; built, awaiting Brad's merge); **v2.17** (item 149.1–149.6) built on it, then v2.18 and v2.19 (the rest of item 149), then **v2.20** (item 133).
 
 ## Open
 
@@ -38,18 +38,22 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
 - **v2.17 as built, from the checkers' notes (`review/verify/all.json`, D1, D2, R1, critic-2, critic-4, critic-5):**
   - 149.1: the three `type="date"` boxes in `awardBlockHtml` store only when left or on Enter, never per keystroke, and nothing
     redraws under a date box holding the keyboard (D1, extra-1, extra-4: arrows on the day part, and the change fired inside a
-    redraw). An award dated outside its fiscal year is listed under Needs attention, and the Spend Plan Source treats it as undated
-    (31 August) and names it, never 1902 (extra-2). Checks type digits with the real keyboard.
+    redraw). A change with no keystroke (a calendar pick) is taken at once; a box left empty or half typed keeps the stored date;
+    a date outside the fiscal year is refused, naming it. An award already dated outside its fiscal year is listed under Needs
+    attention (📅 awards dated outside the year), and the Spend Plan Source sends it on 31 August, never 1902 (extra-2); the
+    export itself does not name it. "+ add date" takes Enter and refuses a date outside the year.
   - 149.2: on close the keyboard goes to the selected row (it can take focus) and the closed drawer is `inert`; Esc puts a
     half-typed figure back (Brad's answer). Tab no longer walks out of the open sliding record into the page behind (critic-7).
   - 149.3: Restore all asks first, naming the count and the year, and Cancel restores nothing; the linked-requirements question
-    follows as today. The change journal files the Removed list by requirement, not by place (R1 extra-1).
+    follows as today. A Removed-list line in the change journal is no longer offered to Put back (it is filed by place, and
+    putting one back could bring back a different requirement; R1 extra-1). Filing the list by requirement was the larger fix and
+    was not needed to close the fault.
   - 149.4: a year not started asks in the board's own box: copy, start empty, or stay; stay and Esc create nothing.
   - 149.5: Reset to the full requirement is on the row menu only on the Funding page and only where it changes something, and says
     what it did.
   - 149.6: Reset priority order names the year on screen, says it replaces the master order for every office and cannot be put back,
-    is hidden while one office is showing, and confirms on the message line; the two messages that promised it undoes a published
-    order are corrected.
+    is refused (with a message) while one office is showing, and confirms on the message line; the two messages that promised it
+    undoes a published order are corrected.
 
 *Can put a wrong value in the board:*
 - **149.1 A date typed into the Award date box is stored wrong** (v2.17). Typing a date with the keyboard stores a date at every keystroke. 01/15/2027 was stored as 15 January of the year 2. Retyping only the month of 9 April 2027 left 9 January 2027, which moved $3.09M into January and into the CR window on the test board, with no message. It has been this way since the first version. The calendar picker and the “+ add date” box store the right date. *Brad's board:* Until this is fixed, use the calendar icon or “+ add date”, and check any row whose award year reads 2. It was measured in the same browser engine Edge uses, not on Edge itself. **Change:** Take the date only when you leave the box or press Enter. List any award dated outside the fiscal year under Needs attention, so one already stored is found. Today such a date goes out on the Spend Plan Source as a 1902 date.
