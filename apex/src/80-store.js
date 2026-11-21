@@ -25,7 +25,9 @@ const ST_VIEW_KEY = 'sfcbsp.view';     // ORBIT's prio27*/spmt* share this file:
 const ST_PULL_KEYS = ['om', 'ff', 'sp', 'opn', 'unidentified'];
 // What #app holds in the shell before the UI draws. Used only when the page was captured after the UI had drawn (a
 // late storeInit), so a saved file still opens like a fresh one instead of showing yesterday's screen frozen in place.
-const ST_BOOT_NOTE = '<p class="boot-note">Opening APEX…</p>';
+// the shell's own note, word for word (src/shell.html): past a few seconds its second line says what to do when the page
+// cannot run here, a preview pane or a viewer with scripts off (review I06); the screens replace it when they draw
+const ST_BOOT_NOTE = '<p class="boot-note">Opening APEX…<span class="boot-late">If this stays, download the file and open it in Edge, Chrome or Safari.</span></p>';
 // The page's own file was opened with saved data this page refused (wrong version, wrong shape). It never equals a
 // savedAt, so Save cannot treat that file as "the one this page opened with" and write over data it could not read.
 const ST_REFUSED = Object.freeze({ refused: true });
@@ -575,6 +577,24 @@ function st_unidAt(st) {
 // row or with $0, under a message styled as a plain success, whatever the sheet was called (review SEAM-1, SEAM-2, F1,
 // DL-2, F4): the misfiled-row question keyed on the sheet's NAME alone.
 const ST_SHRINK = 0.5;
+// AN OLDER PULL IMPORTED BY MISTAKE (review I39). Obligated money is not taken back from one week to the next but by a
+// deobligation or a correction, so a pull whose Actual Execution for a fiscal year is more than $5M AND more than 5% below the
+// one it replaces is asked about the same way: it is most likely last week's file. Its file names and import days are said.
+const ST_OBL_FALL = Object.freeze({ cents: 500000000, share: 0.05 });
+function st_oblByFy(p) {
+  const by = new Map();
+  for (const r of (p && Array.isArray(p.rows) ? p.rows : [])) {
+    if ((r.bad && r.bad.length) || !Array.isArray(r.c) || typeof r.c[9] !== 'number') continue;
+    if (!SP.allocStatus || SP.allocStatus(r.c[10]).status !== 'exec') continue;
+    const fy = String(r.c[0]);
+    by.set(fy, (by.get(fy) || 0) + r.c[9]);
+  }
+  return by;
+}
+function st_fileNames(p) {
+  const n = (p && Array.isArray(p.files) ? p.files : []).map(f => (f && typeof f.name === 'string' ? f.name : '')).filter(Boolean);
+  return n.length ? n.map(x => '“' + x + '”').join(', ') : 'a file not named';
+}
 SP.applyImport = function applyImport(parsed) {
   if (SP.isViewOnly()) throw new Error(ST_VIEW_ONLY);
   if (!st_isObj(parsed) || !st_isObj(parsed.pulls)) throw new Error('There was nothing to import (the import gave no pulls), so nothing was changed.');
@@ -601,7 +621,16 @@ SP.applyImport = function applyImport(parsed) {
     const was = st_readable(before[k]), now = st_readable(parsed.pulls[k]);
     if (now.rows < was.rows * ST_SHRINK) shrinks.push({ ap: k, was, now, rows: parsed.pulls[k].rows.length });
   }
-  const worry = SP.APS.map(a => a.id).filter(ap => strays.some(x => x.ap === ap) || shrinks.some(x => x.ap === ap));
+  const falls = [];
+  for (const k of keys) {
+    if (k === 'unidentified' || !before[k] || shrinks.some(z => z.ap === k)) continue;
+    const was = st_oblByFy(before[k]), now = st_oblByFy(parsed.pulls[k]);
+    for (const [fy, w] of was) {
+      const n = now.get(fy) || 0, drop = w - n;
+      if (drop > ST_OBL_FALL.cents && drop > Math.abs(w) * ST_OBL_FALL.share) falls.push({ ap: k, fy, was: w, now: n, drop });
+    }
+  }
+  const worry = SP.APS.map(a => a.id).filter(ap => strays.some(x => x.ap === ap) || shrinks.some(x => x.ap === ap) || falls.some(x => x.ap === ap));
   // A BAE REPORT WITH FEWER THAN HALF THE READABLE ROWS of the one on screen is asked about the same way (CONTRACT §14.7):
   // it replaces the whole report, every appropriation's Approved and Authorized with it, and a report filtered before it
   // was exported, or cut short, would quietly take every block it no longer covers back to the CCaR plan.
@@ -630,6 +659,13 @@ SP.applyImport = function applyImport(parsed) {
             : ' (' + st_usd(z.now.cents) + ')')
           + '. That is fewer than half the ' + SP.fmtInt(z.was.rows) + ' readable rows of the ' + lab + ' pull on screen.');
       }
+      const fl = falls.filter(y => y.ap === ap);
+      if (fl.length) {
+        if (!n) n = parsed.pulls[ap].rows.length;
+        bits.push('In this import (' + st_fileNames(parsed.pulls[ap]) + '), ' + lab + ' Obligated (rows CCaR marks Actual Execution) falls against the pull on screen ('
+          + st_fileNames(cur) + ', imported ' + st_day(cur.importedAt) + '): ' + fl.map(y => 'FY' + y.fy + ' from ' + st_usd(y.was) + ' to ' + st_usd(y.now) + ', ' + st_usd(y.drop) + ' less').join('; ')
+          + '. A newer pull rarely obligates less, so this may be an older file.');
+      }
       bits.push(cur ? 'Imported, ' + (n === 1 ? 'it replaces' : 'they replace') + ' the whole current ' + lab + ' pull (' + st_rows(cur.rows.length) + ', '
           + st_usd(st_cents(cur)) + ', imported ' + st_day(cur.importedAt) + ').'
         : 'Imported, ' + (n === 1 ? 'it becomes' : 'they become') + ' the whole ' + lab + ' pull.');
@@ -648,6 +684,9 @@ SP.applyImport = function applyImport(parsed) {
     if (shrinkOnly.length) adv.push('If ' + (shrinkOnly.length === 1 ? 'this is not the whole ' + shrinkOnly[0] + ' pull' : 'these are not the whole '
       + st_list(shrinkOnly) + ' pulls') + ' (a file cut short, a pull filtered in CCaR, a misfiled row, or Amounts saved as formulas without their '
       + 'results), press Cancel: nothing is imported, and the ' + (shrinkOnly.length === 1 ? 'pull' : 'pulls') + ' on screen stay.');
+    const fallOnly = falls.filter(y => !strays.some(x => x.ap === y.ap)).map(y => st_apLabel(y.ap)).filter((x, i, a) => a.indexOf(x) === i);
+    if (fallOnly.length) adv.push('If ' + (fallOnly.length === 1 ? 'this is not the newest ' + fallOnly[0] + ' pull' : 'these are not the newest ' + st_list(fallOnly) + ' pulls')
+      + ', press Cancel: nothing is imported, and the ' + (fallOnly.length === 1 ? 'pull' : 'pulls') + ' on screen stay. A deobligation or a CCaR correction can lower Obligated: then import anyway.');
     const paras = worry.map(para);
     if (baeShrink) {
       const z = baeShrink, unread = z.rows - z.now.rows;
@@ -666,6 +705,7 @@ SP.applyImport = function applyImport(parsed) {
         const x = strays.find(y => y.ap === ap), z = shrinks.find(y => y.ap === ap);
         if (x) return '“' + x.file + '” › “' + x.sheet + '”, a sheet named for ' + sheetFor(x) + ', holds every ' + st_apLabel(ap) + ' row in the import ('
           + st_rows(x.rows) + ', ' + st_usd(x.cents) + ')';
+        if (!z) return 'the import’s ' + st_apLabel(ap) + ' Obligated is less than the pull on screen’s (' + falls.filter(y => y.ap === ap).map(y => 'FY' + y.fy + ' ' + st_usd(y.drop) + ' less').join('; ') + ')';
         return 'the import’s ' + st_apLabel(ap) + ' pull has ' + SP.fmtInt(z.now.rows) + ' readable row' + (z.now.rows === 1 ? '' : 's') + ' (' + st_usd(z.now.cents)
           + '), fewer than half the ' + SP.fmtInt(z.was.rows) + ' of the one on screen';
       });
@@ -680,6 +720,7 @@ SP.applyImport = function applyImport(parsed) {
         + ' replace ' + st_list(targets) + '.'
         + (strays.length ? ' If rows are misfiled, correct their Budget, or take them out of this file (each appropriation’s pull is imported whole), and import again.' : '')
         + (shrinkOnly.length ? ' Import the whole ' + st_list(shrinkOnly) + ' pull' + (shrinkOnly.length === 1 ? '' : 's') + ' when you have ' + (shrinkOnly.length === 1 ? 'it' : 'them') + '.' : '')
+        + (fallOnly.length ? ' Import the newest ' + st_list(fallOnly) + ' pull' + (fallOnly.length === 1 ? '' : 's') + '.' : '')
         + (baeShrink ? ' Import the whole BAE report when you have it.' : '') };
     }
   }
