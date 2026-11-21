@@ -218,9 +218,11 @@ if (want('A')) for (const [layout, w, h] of LAYOUTS) {
       await press(p, `#row-${id} button.mcb`);
       await press(p, `#row-${id} .rmbtn`); const r2 = await read(p, id), s2 = await st(p);
       chk(`${tag} · ⋯ opens the row’s menu, the panel stays off the table`, r2.menu === id && quiet(s2, layout), JSON.stringify({ menu: r2.menu, s2 }));
-      dlg.answers = [];
-      await press(p, `#rm_${id} button.mi[onclick*="resetAlloc("]`, { wait: 260 }); const r3 = await read(p, id), s3 = await st(p);
-      chk(`${tag} · ⋯ › ↺ Reset to the full requirement: done, the panel stays off the table`, r3.alloc === 'null' && quiet(s3, layout), JSON.stringify({ alloc: r3.alloc, s3 }));
+      // v2.17 (item 149.5; Brad: the Funding page only): Reset to the full requirement changes money, so the row menu offers it
+      // only in Fund mode, and only where it changes something -- not here
+      const r3 = await p.evaluate(i => !!document.querySelector(`#rm_${i} button.mi[onclick*="resetAlloc("]`), id), s3 = await st(p);
+      chk(`${tag} · ⋯ offers no Reset to the full requirement outside the Funding page, and the panel stays off the table`, r3 === false && quiet(s3, layout), JSON.stringify({ offered: r3, s3 }));
+      await p.keyboard.press('Escape'); await p.waitForTimeout(150);
       await press(p, `#row-${id} .clinbtn`); const r4 = await read(p, id);
       await press(p, `#row-${id} .clinbtn`); const r5 = await read(p, id), s5 = await st(p);
       chk(`${tag} · 🧾 shuts the drill and opens it again, the panel stays off the table`, !r4.drill && r5.drill && quiet(s5, layout), JSON.stringify({ r4: r4.drill, r5: r5.drill, s5 }));
