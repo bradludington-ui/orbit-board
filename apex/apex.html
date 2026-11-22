@@ -757,6 +757,15 @@ table.srrbt .srrbother{color:var(--ochre)}
 .mtag{display:inline-block;padding:0 7px;border-radius:999px;background:var(--ochre);color:#fff;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px;white-space:nowrap}
 table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
 @media (min-width:1101px){.tiles.tiles5{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+/* §50 DOWNLOAD THIS LIST: one button beside a list's heading (or under Requirements' count line). It wraps under the heading
+   on a narrow screen rather than widen the page, and it is not printed: paper has nothing to download. */
+.dlhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;min-width:0}
+.dlhead .pmoall{margin-right:auto}
+.dlrow{margin:2px 0 8px}
+.dlhead .dlrow{margin:0 0 6px}
+main.ov .dlbtn{max-width:100%;min-height:30px;padding:4px 12px;font:inherit;font-weight:600;white-space:normal;text-align:left;cursor:pointer}
+@media print{.dlrow,.dlbtn{display:none!important}}
 </style>
 </head>
 <body>
@@ -813,6 +822,7 @@ SP.ORDER_DRAG = true;     // false: the spend plan trees without §46's drag (no
 SP.PMO_PICTURES = true;    // false: the screens without §41's PMO picture buttons and words, for a comparison with an older build
 SP.PIC_CUI = false;        // true draws the marking in a picture's two bands, as before §41: only a comparison with an older build asks for it
 SP.NA_FOLD = true;        // false: an appropriation's Unobligated lists drawn open, as before review I02, for a comparison with an older build
+SP.LIST_DL = true;        // false: Requirements, My PMO, Unfunded and SRRB without §50's Download this list button, for a comparison with an older build
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated
@@ -5424,7 +5434,14 @@ SP.publishPages = function publishPages(doc, ctx) {
   const C = ctx || {};
   const pages = [];
   let pg = null, y = 0;
-  const T = (x, yy, s, o) => pg.ops.push(Object.assign({ t: 'text', x, y: yy, s: String(s) }, o || {}));
+  // §51 THE TAGS. Every text drawn goes into `cur`, a node of the structure tree (a heading, a paragraph, a table cell), or,
+  // with cur null, is an Artifact a screen reader skips: a header or table heading repeated on a continued page, the page
+  // frame. The tree is built in reading order as the pages are laid out; rules, fills and the emblem are never content.
+  const root = { role: 'Document', kids: [] };
+  const nd = (role, parent, attrs) => { const n = { role, kids: [] }; if (attrs) n.attrs = attrs; (parent || root).kids.push(n); return n; };
+  let cur = null;
+  const into = (n, fn) => { const was = cur; cur = n; try { fn(); } finally { cur = was; } };
+  const T = (x, yy, s, o) => pg.ops.push(Object.assign({ t: 'text', x, y: yy, s: String(s) }, cur ? { sn: cur } : {}, o || {}));
   const Rc = (x, yy, w, h, o) => pg.ops.push(Object.assign({ t: 'rect', x, y: yy, w, h }, o || {}));
   const Ln = (x1, y1, x2, y2, o) => pg.ops.push(Object.assign({ t: 'line', x1, y1, x2, y2, stroke: PB.rule, lw: 0.4 }, o || {}));
   const newPage = () => { pg = { w: PB.W, h: PB.H, ops: [] }; pages.push(pg); y = 24; };
@@ -5450,11 +5467,11 @@ SP.publishPages = function publishPages(doc, ctx) {
   };
   const mini = () => { if (!C.emblem) return PB.L; emblemAt(PB.L, 21, 20); return PB.L + 25; };
   // the full header: emblem, two title lines, the band, who and when. `right` is where the title area ends
-  const header = (line1, line2, bandText, right, who) => {
+  const header = (line1, line2, bandText, right, who, hl) => {
     const hasEmb = !!C.emblem;
     const xl = hasEmb ? PB.L + 62 : PB.L, cx = (xl + right) / 2;
-    T(cx, 37, line1, { size: 12, bold: true, align: 'c' });
-    T(cx, 51, line2, { size: 12, bold: true, align: 'c' });
+    const P = t => (hl ? nd(t) : null);
+    into(P(hl), () => { T(cx, 37, line1, { size: 12, bold: true, align: 'c' }); T(cx, 51, line2, { size: 12, bold: true, align: 'c' }); });
     if (hasEmb) {
       // THE EMBLEM SITS IN THE BAND, not beside it (Brad, 17 Nov 2026: "make it fit seamlessly so that it doesn't stick out like
       // a sore thumb with color fading"). The band runs out from behind the emblem, starting in the emblem's own blue and
@@ -5465,9 +5482,9 @@ SP.publishPages = function publishPages(doc, ctx) {
       Rc(x0 + fade, 57, right - x0 - fade, 12, { fill: PB.band });
       emblemAt(PB.L, 24, 54);
     } else Rc(xl, 57, right - xl, 12, { fill: PB.band });
-    T(cx, 66, bandText, { size: 8.5, bold: true, align: 'c' });
-    if (who) T(xl, 79, who, { size: 7 });
-    T(xl, who ? 88 : 79, asOf, { size: 7 });
+    into(P('P'), () => T(cx, 66, bandText, { size: 8.5, bold: true, align: 'c' }));
+    if (who) into(P('P'), () => T(xl, 79, who, { size: 7 }));
+    into(P('P'), () => T(xl, who ? 88 : 79, asOf, { size: 7 }));
     y = 98;
   };
   const money = (x, w, yy, cents, o) => {
@@ -5481,21 +5498,26 @@ SP.publishPages = function publishPages(doc, ctx) {
   // ---- the stoplight page ----
   newPage();
   header((prog ? prog + ' - ' : '') + 'Spend Plan', docLine, 'Execution status' + (doc.sections.length ? ' - ' + [...new Set(doc.sections.map(s => 'FY' + s.fy))].join(', ') : ''), PB.R,
-    whoText(doc.kind === 'ap' ? [doc.ap] : SP.APS.map(a => a.id).filter(ap => doc.sections.some(x => x.ap === ap))));
-  const need = h => { if (y + h > PB.bodyEnd) { newPage(); T(mini(), 36, docLine + ' - execution status (continued)', { size: 9, bold: true }); y = 46; } };
+    whoText(doc.kind === 'ap' ? [doc.ap] : SP.APS.map(a => a.id).filter(ap => doc.sections.some(x => x.ap === ap))), 'H1');
+  const need = h => { if (y + h > PB.bodyEnd) { newPage(); into(null, () => T(mini(), 36, docLine + ' - execution status (continued)', { size: 9, bold: true })); y = 46; } };
   const stopTable = (title, cols, rows) => {
     need(30);
-    T(PB.L, y + 8, title, { size: 8, bold: true }); y += 12;
-    const headRow = () => {
+    into(nd('H2'), () => T(PB.L, y + 8, title, { size: 8, bold: true })); y += 12;
+    const tab = nd('Table');
+    // the column headings are the table's first row once; repeated on a continued page they are an Artifact
+    const headRow = first => {
       let x = PB.L;
-      for (const c of cols) { Rc(x, y, c.w, 12, { fill: PB.head, stroke: PB.rule, lw: 0.4 }); T(x + c.w / 2, y + 8.5, c.h, { size: 7, bold: true, align: 'c' }); x += c.w; }
+      const tr = first ? nd('TR', tab) : null;
+      for (const c of cols) { Rc(x, y, c.w, 12, { fill: PB.head, stroke: PB.rule, lw: 0.4 }); into(tr ? nd('TH', tr, { Scope: 'Column' }) : null, () => T(x + c.w / 2, y + 8.5, c.h, { size: 7, bold: true, align: 'c' })); x += c.w; }
       y += 12;
     };
-    headRow();
+    headRow(true);
     for (const r of rows) {
-      if (y + 11 > PB.bodyEnd) { need(1e9); headRow(); }
+      if (y + 11 > PB.bodyEnd) { need(1e9); headRow(false); }
       let x = PB.L;
+      const tr = nd('TR', tab);
       for (const c of cols) {
+        cur = c === cols[0] ? nd('TH', tr, { Scope: 'Row' }) : nd('TD', tr);
         const v = c.v(r);
         if (c.status) {
           const st = r.status;
@@ -5507,6 +5529,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         }
         x += c.w;
       }
+      cur = null;
       y += 11;
     }
     y += 10;
@@ -5522,7 +5545,7 @@ SP.publishPages = function publishPages(doc, ctx) {
     { h: 'Status', w: 64, status: true, v: () => '' }];
   const S = doc.stoplight;
   const totalRow = Object.assign({ total: true, fyText: 'Total', apLabel: 'Total', pmoLabel: 'Total' }, S.total);
-  if (!S.rows.length) { T(PB.L, y + 8, 'No plan event in the spend plan is under this ' + (doc.kind === 'pmo' ? 'PMO' : 'appropriation') + ': there is no execution status to show.', { size: 8 }); y += 20; }
+  if (!S.rows.length) { cur = nd('P'); T(PB.L, y + 8, 'No plan event in the spend plan is under this ' + (doc.kind === 'pmo' ? 'PMO' : 'appropriation') + ': there is no execution status to show.', { size: 8 }); cur = null; y += 20; }
   else if (doc.kind === 'ap') {
     stopTable(doc.label + ' by fiscal year', [{ h: 'FY', w: 60, left: true, v: r => (r.total ? 'Total' : 'FY' + r.fy) }].concat(figCols), S.rows.concat([totalRow]));
     if (S.pmoRows.length) stopTable('Each PMO in ' + doc.label, [{ h: 'PMO', w: 170, left: true, v: r => r.pmoLabel }, { h: 'FY', w: 40, left: true, v: r => 'FY' + r.fy }]
@@ -5541,13 +5564,15 @@ SP.publishPages = function publishPages(doc, ctx) {
   noteLines.push('Figures on the spend plan pages are whole dollars, each rounded from its exact cents, so a total can differ by a dollar from the figures above it.');
   noteLines.push((C.ufrFiles && C.ufrFiles.length ? 'Unfunded list: ' + C.ufrFiles.map(f => 'FY' + f.fy + ' loaded ' + pb_isoWords(f.day) + (f.name ? ' (' + f.name + ')' : '')).join('; ') + '.'
     : 'No unfunded list is loaded: Required equals Approved on every line.'));
-  for (const n of noteLines) for (const l of SP.pdfWrap(n, 7, false, PB.R - PB.L)) { need(10); T(PB.L, y + 7, l, { size: 7, color: PB.mut }); y += 9; }
+  for (const n of noteLines) { const np = nd('P'); for (const l of SP.pdfWrap(n, 7, false, PB.R - PB.L)) { need(10); into(np, () => T(PB.L, y + 7, l, { size: 7, color: PB.mut })); y += 9; } }
 
   // ---- the spend plan sections ----
   const X = [18, 76, 204, 338, 424, 484, 542, 600, 658, 716, 774];
-  const colHead = () => {
+  let tab = null;                            // the section's spend plan table, one table across its pages
+  const colHead = first => {
     const hs = [doc.kind === 'ap' ? 'PMO' : 'Group', 'Requirement Title', 'Description', 'Award Date', 'Service'].concat(FIG_HEAD);
-    hs.forEach((h, i) => T((X[i] + X[i + 1]) / 2, y + 8.5, h, { size: 7, bold: true, align: 'c' }));
+    const tr = first ? nd('TR', tab) : null;
+    hs.forEach((h, i) => into(tr ? nd('TH', tr, { Scope: 'Column' }) : null, () => T((X[i] + X[i + 1]) / 2, y + 8.5, h, { size: 7, bold: true, align: 'c' })));
     Ln(PB.L, y + 12, PB.R, y + 12, { stroke: PB.ink, lw: 0.8 });
     y += 13;
   };
@@ -5563,16 +5588,21 @@ SP.publishPages = function publishPages(doc, ctx) {
     const band = doc.kind === 'ap' ? 'Consolidated Sustainment Spend Plan' : 'PMO Spend Plan - ' + sec.apLabel + ' FY' + sec.fy;
     const top = contd => {
       newPage();
-      FIG_HEAD.forEach((h, i) => T(tx + lw + cw * i + cw / 2, 31, h, { size: 6.5, bold: true, align: 'c' }));
+      const bt = contd ? null : nd('Table'), btr = bt ? nd('TR', bt) : null;
+      if (btr) nd('TD', btr);
+      FIG_HEAD.forEach((h, i) => into(btr ? nd('TH', btr, { Scope: 'Column' }) : null, () => T(tx + lw + cw * i + cw / 2, 31, h, { size: 6.5, bold: true, align: 'c' })));
       for (let i = 0; i <= nS; i++) {
-        const tot = i === nS, f = tot ? sec.total : sec.svc[i], yy = 34 + rh * i;
+        const tot = i === nS, f = tot ? sec.total : sec.svc[i], yy = 34 + rh * i, tr = bt ? nd('TR', bt) : null;
         Rc(tx, yy, lw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
-        T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' });
-        FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 }); });
+        into(tr ? nd('TH', tr, { Scope: 'Row' }) : null, () => T(tx + lw / 2, yy + 6.4, tot ? 'TOTAL' : PB_SVC_LABEL[i], { size: i === PB_NSVC ? 5.2 : 6.3, bold: tot, align: 'c' }));
+        FIGS.forEach((k, j) => { Rc(tx + lw + cw * j, yy, cw, rh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 }); into(tr ? nd('TD', tr) : null, () => money(tx + lw + cw * j, cw, yy + 6.4, f[k], { red: k === 'delta', bold: tot, size: 6.3 })); });
       }
-      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8, whoText([sec.ap]));
+      // drawn after the box, as always (a long title is drawn over the box's rules), and read before it
+      header(line1, line2, band + (contd ? ' (continued)' : ''), tx - 8, whoText([sec.ap]), contd ? null : 'H2');
+      if (bt) { root.kids.splice(root.kids.indexOf(bt), 1); root.kids.push(bt); }
       y = Math.max(y, 34 + rh * (nS + 1) + 6);
-      colHead();
+      if (!contd) tab = nd('Table');
+      colHead(!contd);
     };
     // A BREAK PAGE OPENS EACH SECTION (Brad, 18 Nov 2026: "Let's add a break page in between appropriations and/or fiscal years
     // in the pdf"). A page of its own that says which appropriation and fiscal year the pages after it are, with the
@@ -5582,23 +5612,28 @@ SP.publishPages = function publishPages(doc, ctx) {
       const cx = PB.W / 2;
       if (C.emblem) emblemAt(cx - 60, 136, 120);
       const y0 = C.emblem ? 290 : 230;
-      if (prog) T(cx, y0, prog, { size: 16, bold: true, align: 'c', color: PB.mut });
+      if (prog) into(nd('P'), () => T(cx, y0, prog, { size: 16, bold: true, align: 'c', color: PB.mut }));
+      cur = nd('H1');
       T(cx, y0 + 40, 'FY' + sec.fy + ' Spend Plan', { size: 34, bold: true, align: 'c' });
       const bw = 520, bx = cx - bw / 2, n = 40, w = bw / 2 / n;
       // the band, fading in from both ends to the emblem's blue at the middle
       for (let i = 0; i < n; i++) { const c = pb_mix(PB.band, PB.deep, i / (n - 1)); Rc(bx + i * w, y0 + 56, w + 0.5, 30, { fill: c }); Rc(bx + bw - (i + 1) * w - 0.5, y0 + 56, w + 0.5, 30, { fill: c }); }
       T(cx, y0 + 78, PB_AP_LONG[sec.ap] || sec.apLabel, { size: 20, bold: true, align: 'c', color: '#FFFFFF' });
       if (doc.kind === 'pmo') T(cx, y0 + 108, doc.label, { size: 15, bold: true, align: 'c' });
+      cur = null;
       const yy = y0 + (doc.kind === 'pmo' ? 132 : 112);
       const w1 = whoText([sec.ap]);
-      if (w1) T(cx, yy, w1, { size: 10, align: 'c' });
+      if (w1) into(nd('P'), () => T(cx, yy, w1, { size: 10, align: 'c' }));
+      cur = nd('P');
       // a requirement here is a CCaR record, and one on the unfunded list with no plan event is one too (§33): said apart, so
       // the count can be laid beside the screen's, which counts the plan's own (review I83). With a BAE report loaded,
       // Approved here is the CCaR plan, and the stoplight's Approved is the report's: named so (review I15, as P4-2)
       T(cx, yy + (w1 ? 16 : 0), SP.fmtInt(sec.n) + ' requirement' + (sec.n === 1 ? '' : 's') + (sec.ufrOnly ? ' (' + SP.fmtInt(sec.ufrOnly) + ' unfunded only, no plan event)' : '')
         + '   |   Required $' + SP.fmtWhole(sec.total.required).replace(/^-$/, '0') + '   |   Approved' + (C.bae ? ' (CCaR plan)' : '') + ' $' + SP.fmtWhole(sec.total.approved).replace(/^-$/, '0')
         + '   |   Obligated $' + SP.fmtWhole(sec.total.obligated).replace(/^-$/, '0'), { size: 9, align: 'c', color: PB.mut });
+      cur = nd('P');
       T(cx, yy + (w1 ? 30 : 14), asOf, { size: 8, align: 'c', color: PB.mut });
+      cur = null;
     }
     top(false);
     const cont = () => top(true);
@@ -5608,15 +5643,18 @@ SP.publishPages = function publishPages(doc, ctx) {
       const h = y - run.y0;
       Rc(X[0], run.y0, X[1] - X[0], h, { fill: run.color || PB.band, stroke: PB.rule, lw: 0.4 });
       const ls = SP.pdfWrap(run.label, 7, true, X[1] - X[0] - 6, Math.max(1, Math.floor((h - 4) / 8.2)));
+      cur = run.node;
       ls.forEach((l, i) => T((X[0] + X[1]) / 2, run.y0 + h / 2 - (ls.length * 8.2) / 2 + 6.4 + i * 8.2, l, { size: 7, bold: true, align: 'c' }));
+      cur = null;
       run = null;
     };
     let dividerDone = false;
+    const gDone = new Set();
     for (const g of sec.groups) {
       if (!g.prime && !dividerDone && sec.groups.some(q => q.prime)) {
         dividerDone = true;
         if (y + 13 + 70 > PB.bodyEnd) cont();
-        T(PB.L, y + 9, 'All Other ' + sec.apLabel + ' Contracts' + (doc.kind === 'ap' ? ' - separated by PMO' : ''), { size: 7.5, bold: true });
+        into(nd('TD', nd('TR', tab), { ColSpan: 10 }), () => T(PB.L, y + 9, 'All Other ' + sec.apLabel + ' Contracts' + (doc.kind === 'ap' ? ' - separated by PMO' : ''), { size: 7.5, bold: true }));
         y += 13;
       }
       for (const r of g.records) {
@@ -5657,14 +5695,25 @@ SP.publishPages = function publishPages(doc, ctx) {
           if (left > 0) { evTall += evGap; evLines.push({ s: '+' + left + ' more plan event' + (left === 1 ? '' : 's'), more: true, dy: evTall }); evTall += evH; }
         }
         if (y + h > PB.bodyEnd) { closeRun(); cont(); }
-        if (!run) run = { label: g.label, y0: y, color: g.color };
+        // the record's rows, made before anything is drawn in them: the first holds the group (once, spanning every row of
+        // the group), the title (a row heading), the description and the award dates, each spanning the record's rows
+        const rows = [];
+        for (let i = 0; i < nRows; i++) rows.push(nd('TR', tab));
+        if (!run) {
+          let gn = null;
+          if (!gDone.has(g)) { gDone.add(g); gn = nd('TD', rows[0], { RowSpan: g.records.reduce((n, q) => n + q.svc.length + 1, 0) }); }
+          run = { label: g.label, y0: y, color: g.color, node: gn };
+        }
+        const cTitle = nd('TH', rows[0], { Scope: 'Row', RowSpan: nRows }), cDesc = nd('TD', rows[0], { RowSpan: nRows }), cAw = nd('TD', rows[0], { RowSpan: nRows });
         // title and CCaR number
         const tl = SP.pdfWrap(r.title, 7, true, X[2] - X[1] - 8, Math.max(1, Math.floor((h - 14) / 8.2)));
         const th = tl.length * 8.2 + (r.ccar ? 8 : 0);
         Rc(X[1], y, X[2] - X[1], h, { stroke: PB.rule, lw: 0.4 });
+        cur = cTitle;
         tl.forEach((l, i) => T((X[1] + X[2]) / 2, y + h / 2 - th / 2 + 6.4 + i * 8.2, l, { size: 7, bold: true, align: 'c' }));
         if (r.ccar) T((X[1] + X[2]) / 2, y + h / 2 - th / 2 + 6.4 + tl.length * 8.2, 'CCaR ' + r.ccar, { size: 6, align: 'c', color: PB.mut });
         // description
+        cur = cDesc;
         Rc(X[2], y, X[3] - X[2], h, { stroke: PB.rule, lw: 0.4 });
         if (evLines) {
           const y0 = y + h / 2 - evTall / 2 + 5.6;
@@ -5677,6 +5726,7 @@ SP.publishPages = function publishPages(doc, ctx) {
           dl.forEach((l, i) => T((X[2] + X[3]) / 2, y + h / 2 - (dl.length * 7.6) / 2 + 5.8 + i * 7.6, l, { size: 6.5, align: 'c' }));
         }
         // award dates, in order, down then across
+        cur = cAw;
         Rc(X[3], y, X[4] - X[3], h, { stroke: PB.rule, lw: 0.4 });
         const perCol = Math.max(1, Math.floor((h - 5) / dateH)), nc = Math.max(1, Math.ceil(shown.length / perCol)), cwD = (X[4] - X[3]) / nc;
         const used = Math.min(perCol, shown.length);
@@ -5685,10 +5735,11 @@ SP.publishPages = function publishPages(doc, ctx) {
         for (let i = 0; i < nRows; i++) {
           const tot = i === nRows - 1, f = tot ? r.total : r.svc[i], hh = PB.rowH, yy = y + hh * i, pad = 0;
           for (let c = 4; c < 10; c++) Rc(X[c], yy, X[c + 1] - X[c], hh, { fill: tot ? PB.soft : null, stroke: PB.rule, lw: 0.4 });
-          T((X[4] + X[5]) / 2, yy + pad + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' });
-          FIGS.forEach((k, j) => money(X[5 + j], X[6 + j] - X[5 + j], yy + pad + 6.9, f[k], { red: k === 'delta', bold: tot }));
+          into(nd('TH', rows[i], { Scope: 'Row' }), () => T((X[4] + X[5]) / 2, yy + pad + 6.9, tot ? 'Total' : PB_SVC_LABEL[i], { size: i === PB_NSVC && !tot ? 5 : 6.5, bold: tot, align: 'c' }));
+          FIGS.forEach((k, j) => into(nd('TD', rows[i]), () => money(X[5 + j], X[6 + j] - X[5 + j], yy + pad + 6.9, f[k], { red: k === 'delta', bold: tot })));
           if (tot) Ln(X[4], yy, X[10], yy, { stroke: PB.ink, lw: 0.9 });
         }
+        cur = null;
         y += h;
       }
       closeRun();
@@ -5700,28 +5751,36 @@ SP.publishPages = function publishPages(doc, ctx) {
   const ux = [18, 44, 68, 210, 270, 322, 364, 406, 448, 490, 532, 574, 624, 680, 722, 774];
   const uHead = ['FY', 'Rank', 'Requirement Title', doc.kind === 'ap' ? 'PMO' : 'Appropriation', 'CCaR Record', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total',
     'Funding Status', 'Exec Ready?', 'SFCB Action'];
+  let utab = null;
   const uTop = contd => {
     newPage();
-    const ex = mini();
-    T(ex, 35, 'Unfunded requirements' + (contd ? ' (continued)' : ''), { size: 11, bold: true });
-    T(ex, 45, (doc.kind === 'ap' ? doc.long : doc.label) + ': the unfunded list, filtered to what this spend plan presents. Whole dollars.', { size: 7, color: PB.mut });
+    const ex = mini(), was = cur;
+    cur = null;
+    into(contd ? null : nd('H1'), () => T(ex, 35, 'Unfunded requirements' + (contd ? ' (continued)' : ''), { size: 11, bold: true }));
+    into(contd ? null : nd('P'), () => T(ex, 45, (doc.kind === 'ap' ? doc.long : doc.label) + ': the unfunded list, filtered to what this spend plan presents. Whole dollars.', { size: 7, color: PB.mut }));
     y = 56;
-    uHead.forEach((h, i) => { Rc(ux[i], y, ux[i + 1] - ux[i], 12, { fill: PB.head, stroke: PB.rule, lw: 0.4 }); T((ux[i] + ux[i + 1]) / 2, y + 8.3, h, { size: 6, bold: true, align: 'c' }); });
+    if (!contd) utab = nd('Table');
+    const tr = contd ? null : nd('TR', utab);
+    uHead.forEach((h, i) => { Rc(ux[i], y, ux[i + 1] - ux[i], 12, { fill: PB.head, stroke: PB.rule, lw: 0.4 }); into(tr ? nd('TH', tr, { Scope: 'Column' }) : null, () => T((ux[i] + ux[i + 1]) / 2, y + 8.3, h, { size: 6, bold: true, align: 'c' })); });
     y += 12;
+    cur = was;
   };
   uTop(false);
   if (!U.length) {
+    cur = nd('P');
     T(PB.L, y + 12, C.ufrFiles && C.ufrFiles.length ? 'The unfunded list holds no line for what this spend plan presents.' : 'No unfunded list is loaded.', { size: 8 });
   } else {
     const sumRow = (label, ls, strong) => {
       if (y + 11 > PB.bodyEnd) uTop(true);
+      const tr = nd('TR', utab);
       Rc(ux[0], y, ux[5] - ux[0], 11, { fill: PB.soft, stroke: PB.rule, lw: 0.4 });
-      T(ux[5] - 4, y + 7.8, label, { size: 6.5, bold: true, align: 'r' });
+      into(nd('TH', tr, { Scope: 'Row', ColSpan: 5 }), () => T(ux[5] - 4, y + 7.8, label, { size: 6.5, bold: true, align: 'r' }));
       for (let i = 0; i < 7; i++) {
         const v = i < 6 ? ls.reduce((n, l) => n + l.cents[i], 0) : ls.reduce((n, l) => n + l.total, 0);
         Rc(ux[5 + i], y, ux[6 + i] - ux[5 + i], 11, { fill: PB.soft, stroke: PB.rule, lw: 0.4 });
-        money(ux[5 + i], ux[6 + i] - ux[5 + i], y + 7.8, v, { bare: true, bold: true, size: 6 });
+        into(nd('TD', tr), () => money(ux[5 + i], ux[6 + i] - ux[5 + i], y + 7.8, v, { bare: true, bold: true, size: 6 }));
       }
+      nd('TD', tr, { ColSpan: 3 });
       Rc(ux[12], y, ux[15] - ux[12], 11, { fill: PB.soft, stroke: PB.rule, lw: 0.4 });
       if (strong) Ln(ux[0], y, ux[15], y, { stroke: PB.ink, lw: 0.9 });
       y += 11;
@@ -5734,7 +5793,7 @@ SP.publishPages = function publishPages(doc, ctx) {
         closePart(); cur = k;
         if (y + 11 + 12 > PB.bodyEnd) uTop(true);
         Rc(ux[0], y, ux[15] - ux[0], 11, { fill: PB.band, stroke: PB.rule, lw: 0.4 });
-        T(ux[0] + 4, y + 7.8, k, { size: 7, bold: true }); y += 11;
+        into(nd('TD', nd('TR', utab), { ColSpan: 15 }), () => T(ux[0] + 4, y + 7.8, k, { size: 7, bold: true })); y += 11;
       }
       const tl = SP.pdfWrap(l.title || '(no title)', 6.3, false, ux[3] - ux[2] - 6, 3);
       const sl = SP.pdfWrap(l.status, 6, false, ux[13] - ux[12] - 4, 3), al = SP.pdfWrap(l.sfcb, 6, false, ux[15] - ux[14] - 4, 3);
@@ -5742,33 +5801,36 @@ SP.publishPages = function publishPages(doc, ctx) {
       const h = Math.max(10, Math.max(tl.length, sl.length, al.length, pl.length) * 7.2 + 3.5);
       if (y + h > PB.bodyEnd) { uTop(true); Rc(ux[0], y, ux[15] - ux[0], 11, { fill: PB.band, stroke: PB.rule, lw: 0.4 }); T(ux[0] + 4, y + 7.8, k + ' (continued)', { size: 7, bold: true }); y += 11; }
       for (let i = 0; i < 15; i++) Rc(ux[i], y, ux[i + 1] - ux[i], h, { stroke: PB.rule, lw: 0.4 });
-      const mid = y + 7.2;
-      T((ux[0] + ux[1]) / 2, mid, 'FY' + String(l.fy % 100).padStart(2, '0'), { size: 6, align: 'c' });
-      T((ux[1] + ux[2]) / 2, mid, l.rank, { size: 6, align: 'c' });
-      tl.forEach((s, i) => T(ux[2] + 3, mid + i * 7.2, s, { size: 6.3 }));
-      pl.forEach((s, i) => T(ux[3] + 2, mid + i * 7.2, s, { size: 6 }));
-      T(ux[4] + 2, mid, SP.pdfWrap(l.ccar, 6, false, ux[5] - ux[4] - 4, 1)[0] || '', { size: 6 });
-      for (let i = 0; i < 6; i++) money(ux[5 + i], ux[6 + i] - ux[5 + i], mid, l.cents[i], { bare: true, size: 6 });
-      money(ux[11], ux[12] - ux[11], mid, l.total, { bare: true, size: 6, bold: true });
-      sl.forEach((s, i) => T(ux[12] + 2, mid + i * 7.2, s, { size: 6 }));
-      T((ux[13] + ux[14]) / 2, mid, SP.pdfWrap(l.exec, 6, false, ux[14] - ux[13] - 4, 1)[0] || '', { size: 6, align: 'c' });
-      al.forEach((s, i) => T(ux[14] + 2, mid + i * 7.2, s, { size: 6 }));
+      const mid = y + 7.2, tr = nd('TR', utab), td = fn => into(nd('TD', tr), fn);
+      td(() => T((ux[0] + ux[1]) / 2, mid, 'FY' + String(l.fy % 100).padStart(2, '0'), { size: 6, align: 'c' }));
+      td(() => T((ux[1] + ux[2]) / 2, mid, l.rank, { size: 6, align: 'c' }));
+      into(nd('TH', tr, { Scope: 'Row' }), () => tl.forEach((s, i) => T(ux[2] + 3, mid + i * 7.2, s, { size: 6.3 })));
+      td(() => pl.forEach((s, i) => T(ux[3] + 2, mid + i * 7.2, s, { size: 6 })));
+      td(() => T(ux[4] + 2, mid, SP.pdfWrap(l.ccar, 6, false, ux[5] - ux[4] - 4, 1)[0] || '', { size: 6 }));
+      for (let i = 0; i < 6; i++) td(() => money(ux[5 + i], ux[6 + i] - ux[5 + i], mid, l.cents[i], { bare: true, size: 6 }));
+      td(() => money(ux[11], ux[12] - ux[11], mid, l.total, { bare: true, size: 6, bold: true }));
+      td(() => sl.forEach((s, i) => T(ux[12] + 2, mid + i * 7.2, s, { size: 6 })));
+      td(() => T((ux[13] + ux[14]) / 2, mid, SP.pdfWrap(l.exec, 6, false, ux[14] - ux[13] - 4, 1)[0] || '', { size: 6, align: 'c' }));
+      td(() => al.forEach((s, i) => T(ux[14] + 2, mid + i * 7.2, s, { size: 6 })));
       part.push(l); y += h;
     }
     closePart();
     sumRow('Total unfunded', U, true);
-    if (U.some(l => l.cents[PB_NSVC])) { y += 4; T(PB.L, y + 7, 'A Total larger than its services holds an amount the tracker gave under no service.', { size: 6.5, color: PB.mut }); }
+    if (U.some(l => l.cents[PB_NSVC])) { y += 4; cur = nd('P'); T(PB.L, y + 7, 'A Total larger than its services holds an amount the tracker gave under no service.', { size: 6.5, color: PB.mut }); }
   }
 
   // ---- the frame of every page ----
   const N = pages.length, cui = String(C.cui === undefined ? SP.CUI : C.cui), name = doc.file.replace(/\.pdf$/i, '');
+  // the marking is read once, first thing in the document; on every other page it and the page frame are an Artifact
+  const cuiNode = { role: 'P', kids: [] };
+  root.kids.unshift(cuiNode);
   pages.forEach((p, i) => {
-    p.ops.push({ t: 'text', x: PB.W / 2, y: 15, s: cui, size: 8, bold: true, align: 'c' });
+    p.ops.push(Object.assign({ t: 'text', x: PB.W / 2, y: 15, s: cui, size: 8, bold: true, align: 'c' }, i === 0 ? { sn: cuiNode } : {}));
     p.ops.push({ t: 'text', x: PB.W / 2, y: 603, s: cui, size: 8, bold: true, align: 'c' });
     p.ops.push({ t: 'text', x: PB.L, y: 603, s: name, size: 6.5, color: PB.mut });
     p.ops.push({ t: 'text', x: PB.R, y: 603, s: 'Page ' + (i + 1) + ' of ' + N, size: 6.5, color: PB.mut, align: 'r' });
   });
-  return { title: name, pages, images: C.emblem ? { emblem: C.emblem } : {} };
+  return { title: name, pages, images: C.emblem ? { emblem: C.emblem } : {}, struct: root };
 };
 SP.publishPdf = function publishPdf(doc, ctx) { return SP.pdfBytes(SP.publishPages(doc, ctx)); };
 
@@ -6120,6 +6182,13 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
 //       {t: 'text', x, y, s, size, bold, color, align}     y is the baseline; align 'l' (default), 'c' or 'r' about x
 //       {t: 'img', x, y, w, h, name}
 // The same input gives the same bytes: nothing here reads a clock.
+//
+// TAGGED PDF (§51, Section 508; Brad, 22 Nov 2026: "add the tags"). When doc.struct is given, the document is tagged: doc.struct
+// is the root of a structure tree of nodes {role, kids: [node], attrs?}, role a standard structure type (Document, H1, H2, P,
+// Table, TR, TH, TD), attrs the table attributes a screen reader reads (Scope 'Column' or 'Row', RowSpan, ColSpan). A text op
+// with `sn` (a node of that tree) is that node's content, in the order drawn; every other op (rules, fills, the emblem, a
+// header repeated on a continued page, the page frame) is an Artifact, which a screen reader skips. The tree's order is the
+// reading order, whatever order the page was drawn in. Without doc.struct the bytes are as they were before §51.
 
 const PDF_W = Object.freeze({
   reg: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,0,556,0,222,556,333,1000,556,556,333,1000,667,333,1000,0,611,0,0,222,222,333,333,350,556,1000,333,1000,500,333,944,0,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,552,400,549,333,333,333,576,537,333,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,549,611,556,556,556,556,500,556,500],
@@ -6227,6 +6296,9 @@ SP.jpegInfo = function jpegInfo(u8) {
   return null;
 };
 
+// the structure types this writer names; anything else is a paragraph, never a name a reader would not know
+const PDF_ROLES = new Set(['Document', 'Sect', 'H1', 'H2', 'H3', 'P', 'Table', 'TR', 'TH', 'TD', 'Caption', 'Note']);
+function pdf_role(r) { return PDF_ROLES.has(r) ? r : 'P'; }
 SP.pdfBytes = function pdfBytes(doc) {
   if (!doc || !Array.isArray(doc.pages) || !doc.pages.length) throw new Error('pdfBytes: a document needs at least one page');
   const imgs = doc.images && typeof doc.images === 'object' ? doc.images : {};
@@ -6252,6 +6324,7 @@ SP.pdfBytes = function pdfBytes(doc) {
   }
   const xo = imgNames.length ? ' /XObject << ' + imgNames.map(k => '/' + imgInfo[k].id + ' ' + imgObj[k] + ' 0 R').join(' ') + ' >>' : '';
   const kids = [];
+  const tagged = !!(doc.struct && typeof doc.struct === 'object'), mcPages = [];   // per page: [node] by MCID
   for (const pg of doc.pages) {
     const H = pg.h, W = pg.w;
     if (!(W > 0 && H > 0) || !Array.isArray(pg.ops)) throw new Error('pdfBytes: a page needs a width, a height and a list of ops');
@@ -6265,7 +6338,11 @@ SP.pdfBytes = function pdfBytes(doc) {
       if (v !== stroke) { stroke = v; c.push(v + ' RG'); }
       if (ww !== lw) { lw = ww; c.push(ww + ' w'); }
     };
+    // tagged: an op with a node is marked content of that node (BDC/EMC with its MCID); a run of other ops is one Artifact
+    const mcs = [];
+    let art = false;
     for (const o of pg.ops) {
+      const k0 = c.length;
       if (o.t === 'rect') {
         if (!o.fill && !o.stroke) continue;
         if (o.fill) setFill(o.fill);
@@ -6285,17 +6362,56 @@ SP.pdfBytes = function pdfBytes(doc) {
         if (!imgInfo[o.name]) throw new Error('pdfBytes: a page places the picture "' + o.name + '", which was not given');
         c.push('q ' + pdf_n(o.w) + ' 0 0 ' + pdf_n(o.h) + ' ' + pdf_n(o.x) + ' ' + pdf_n(H - o.y - o.h) + ' cm /' + imgInfo[o.name].id + ' Do Q');
       } else throw new Error('pdfBytes: an op of kind ' + JSON.stringify(o.t) + ' is not one this writer draws');
+      if (!tagged || c.length === k0) continue;
+      const sn = o.t === 'text' && o.sn && typeof o.sn === 'object' ? o.sn : null;
+      if (sn) {
+        if (art) { c.splice(k0, 0, 'EMC'); art = false; }
+        const id = mcs.length;
+        mcs.push(sn);
+        (sn.mcr || (sn.mcr = [])).push({ page: kids.length, mcid: id });
+        c.splice(c.length - 1, 0, '/' + pdf_role(sn.role) + ' <</MCID ' + id + '>> BDC');
+        c.push('EMC');
+      } else if (!art) { c.splice(k0, 0, '/Artifact BMC'); art = true; }
     }
+    if (art) c.push('EMC');
+    if (tagged) mcPages.push(mcs);
     const body = c.join('\n') + '\n';
     const content = add('<< /Length ' + body.length + ' >>\nstream\n' + body + 'endstream');
     kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pdf_n(W) + ' ' + pdf_n(H) + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>'
-      + xo + ' >> /Contents ' + content + ' 0 R >>'));
+      + xo + ' >> /Contents ' + content + ' 0 R' + (tagged ? ' /StructParents ' + (kids.length) + ' /Tabs /S' : '') + ' >>'));
+  }
+  // the structure tree: one object per node, its kids its child nodes and its marked content (MCR, naming the page) in order
+  let treeRoot = 0;
+  if (tagged) {
+    const nodes = [], walk = n => { nodes.push(n); for (const k of n.kids || []) walk(k); };
+    walk(doc.struct);
+    const base = objs.length + 1;                 // node i is object base + i; then the parent tree; then the tree root
+    nodes.forEach((n, i) => { n.obj = base + i; });
+    const parentOf = new Map();
+    for (const n of nodes) for (const k of n.kids || []) parentOf.set(k, n);
+    const rootObj = base + nodes.length + 1;
+    for (const n of nodes) {
+      // content on one page (nearly every cell) is its MCIDs with the page named once on the element; across pages, MCRs
+      const mc = n.mcr || [], one = mc.length && mc.every(m => m.page === mc[0].page);
+      const ks = (n.kids || []).map(k => k.obj + ' 0 R').concat(mc.map(m => (one ? String(m.mcid) : '<< /Type /MCR /Pg ' + kids[m.page] + ' 0 R /MCID ' + m.mcid + ' >>')));
+      const a = n.attrs || {}, at = [];
+      if (a.Scope) at.push('/Scope /' + a.Scope);
+      if (a.RowSpan > 1) at.push('/RowSpan ' + a.RowSpan);
+      if (a.ColSpan > 1) at.push('/ColSpan ' + a.ColSpan);
+      const p = parentOf.get(n);
+      add('<< /S /' + pdf_role(n.role) + ' /P ' + (p ? p.obj : rootObj) + ' 0 R' + (one ? ' /Pg ' + kids[mc[0].page] + ' 0 R' : '')
+        + (at.length ? ' /A << /O /Table ' + at.join(' ') + ' >>' : '') + (ks.length === 1 ? ' /K ' + ks[0] : ' /K [' + ks.join(' ') + ']') + ' >>');
+    }
+    add('<< /Nums [' + mcPages.map((ns, i) => i + ' [' + ns.map(n => n.obj + ' 0 R').join(' ') + ']').join(' ') + '] >>');
+    treeRoot = add('<< /Type /StructTreeRoot /K ' + doc.struct.obj + ' 0 R /ParentTree ' + (base + nodes.length) + ' 0 R /ParentTreeNextKey ' + mcPages.length + ' >>');
+    for (const n of nodes) { delete n.obj; delete n.mcr; }
   }
   // what a reader is told about printing: take the paper the page is (so a landscape page is printed landscape, never
   // turned onto a portrait sheet and shrunk), and when printing both sides flip on the short edge, as landscape reads.
   // And what a screen reader is told (Section 508 review I62): the document is in English, and a viewer's window shows
-  // its title rather than its file name. The pages are not tagged: no /MarkInfo is written, since that would claim they are.
-  objs[0] = '<< /Type /Catalog /Pages 2 0 R /Lang (en-US) /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge /DisplayDocTitle true >> >>';
+  // its title rather than its file name. Tagged (§51), it says so (/MarkInfo) and names its structure tree; untagged, it claims nothing.
+  objs[0] = '<< /Type /Catalog /Pages 2 0 R /Lang (en-US) /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge /DisplayDocTitle true >>'
+    + (tagged ? ' /MarkInfo << /Marked true >> /StructTreeRoot ' + treeRoot + ' 0 R' : '') + ' >>';
   objs[1] = '<< /Type /Pages /Count ' + kids.length + ' /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] >>';
   // the file: every string is ASCII by construction (pdf_str), so a character is a byte; picture bytes go in as they are
   const parts = [];
@@ -8216,6 +8332,138 @@ SP.exportExcel = async function exportExcel() {
   } catch (e) {
     return { ok: false, message: 'The workbook was not written: ' + ((e && e.message) || String(e)) };
   }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// §50 DOWNLOAD THIS LIST (Brad, 22 Nov 2026): one sheet holding exactly the lines a narrowable list shows -- Requirements
+// (Find), My PMO, Unfunded and SRRB -- after the page's pickers, its Find box and the Filter's switches, in the order shown,
+// with the screen's columns and figures. Nothing here works a figure out: each page hands over the lines it has drawn
+// (SP.listOfFind/OfPmo/OfUfr/OfSrrb only lay them out, cents as cents), and SP.listSpec writes them as numbers in $M or
+// $K, as the page prints them. The sheet carries the workbook's CUI header and footer and a CUI line at its top and foot,
+// which pickers were set, the Filter's words and the Data through month.
+//
+//   L = {page, title, asOfLabel, today, picks, shown, cols:[{h, w, t:'s'|'m'|'k'|'n'}],
+//        rows:[{k:'line'|'group'|'sub'|'total', c:[text | cents | number]}]}
+//   SP.listSpec(L)                       -> the spec SP.writeXlsx is given (one sheet)
+//   SP.listFileName(M, page, today)      -> 'APEX FY2027 - Unfunded list - data through Oct-2026 - 2026-11-22.xlsx'
+// ---------------------------------------------------------------------------------------------------------------
+const EX_FK = '#,##0;(#,##0);-';   // $K, whole thousands, as SP.fmtK prints them
+const EXL = (() => {
+  const f = o => Object.freeze(o), thin = EX_THIN, right = f({ h: 'right', v: 'center' }), left = f({ h: 'left', v: 'center', wrap: true });
+  const fo = f({ sz: 10, color: EX_INK }), bo = f({ b: true, sz: 10, color: EX_INK }), wb = f({ b: true, sz: 10, color: EX_WHITE });
+  const set = (font, fill) => ({ s: ex_s(font, fill, null, left, thin), m: ex_s(font, fill, EX_FM, right, thin), k: ex_s(font, fill, EX_FK, right, thin),
+    n: ex_s(font, fill, '0', right, thin) });
+  return { line: set(fo, null), sub: set(bo, EX_STRIP), total: set(wb, EX_NAVY), group: ex_s(f({ b: true, sz: 11, color: EX_NAVY }), EX_STRIP, null, f({ h: 'left', v: 'center', indent: 1 }), thin),
+    note: ex_s(f({ sz: 10, color: EX_INK }), null, null, f({ h: 'left', v: 'center', wrap: true })) };
+})();
+// the text a cell carries where a figure is not a figure ('Unfunded only'); a number in a money column is cents
+function ex_listCell(v, t, set) {
+  if (v === null || v === undefined || v === '') return { s: set.s };
+  if (typeof v === 'number' && isFinite(v)) {
+    if (t === 'm') return ex_mc(v, set.m);
+    if (t === 'k') return { v: v / 1e5, s: set.k };
+    if (t === 'n') return { v, s: set.n };
+  }
+  return { v: String(v), s: set.s };
+}
+SP.listSpec = function listSpec(L) {
+  if (!L || !Array.isArray(L.cols) || !L.cols.length || !Array.isArray(L.rows)) throw new Error('There is no list to write.');
+  const K = ex_sheet(String(L.page || 'List').slice(0, 31), L.cols.map(c => c.w || 14));
+  ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+  ex_title(K, String(L.title || ''));
+  ex_span(K, 'Data through ' + (L.asOfLabel || '') + ' | Downloaded ' + (L.today || ex_today()) + ' | ' + L.rows.filter(r => r.k === 'line').length + ' lines, in the order shown on the page',
+    EXS.shown, 0, K.W - 1);
+  const pk = 'Picked on the page: ' + (L.picks || 'nothing (the whole list)');
+  ex_span(K, pk, EXL.note, 0, K.W - 1, { ht: ex_ht(ex_lines(pk, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  const sw = 'Filter: ' + (L.shown || '');
+  ex_span(K, sw, EXL.note, 0, K.W - 1, { ht: ex_ht(ex_lines(sw, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  const head = ex_headRow(K, L.cols.map(c => c.h), 30);
+  for (const r of L.rows) {
+    if (r.k === 'group') { ex_span(K, String(r.c[0] || ''), EXL.group, 0, K.W - 1); continue; }
+    const set = EXL[r.k] || EXL.line;
+    ex_push(K, L.cols.map((c, i) => ex_listCell(r.c[i], c.t, set)));
+  }
+  ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+  K.sh.freeze = 'A' + (head + 1);
+  return { creator: 'APEX', sheets: [K.sh] };
+};
+SP.listBytes = async function listBytes(L) { return SP.writeXlsx(SP.listSpec(L)); };
+// the workbook's pattern with the page named: a list emailed on says what it is, which month, which day, and whether
+// the Filter hid anything (the pickers are named inside, on the sheet)
+SP.listFileName = function listFileName(model, page, today) {
+  const day = typeof today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(today) ? today : ex_today();
+  return 'APEX FY' + model.E + ' - ' + String(page).replace(/[\\/:*?"<>|]/g, '-') + ' list - data through ' + model.asOfLabel + ' - ' + day
+    + (model.shown && model.shown.all ? '' : ' [filtered]') + '.xlsx';
+};
+// a requirement's Projected award as the page words it (Awarded, Was Dec-2026, a month, No date)
+SP.listWhen = function listWhen(r) {
+  if (r.state === 'awarded') return 'Awarded';
+  if (r.state === 'late') return 'Was ' + SP.ymWords(r.next);
+  if (r.state === 'planned') return SP.ymWords(r.next);
+  return 'No date';
+};
+// an SRRB line's award months as the page words them: three, then "+N more"; No date
+SP.srrbMonthsText = function srrbMonthsText(l) {
+  const w = (l.months || []).map(ym => { const m = /^(\d{4})-(\d{2})/.exec(ym); return m ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : ym; });
+  const shown = w.slice(0, 3).join(', ') + (w.length > 3 ? ' +' + (w.length - 3) + ' more' : '');
+  return shown ? shown + (l.nodate ? ', No date' : '') : (l.nodate ? 'No date' : '');
+};
+const EX_REQ_COLS = Object.freeze([{ h: 'Requirement', w: 44, t: 's' }, { h: 'CCaR', w: 14, t: 's' }, { h: 'PMO', w: 24, t: 's' }, { h: 'Appropriation', w: 20, t: 's' },
+  { h: 'Planned ($M)', w: 13, t: 'm' }, { h: 'Awarded ($M)', w: 13, t: 'm' }, { h: 'Still to award ($M)', w: 13, t: 'm' }, { h: 'Projected award', w: 16, t: 's' }]);
+function ex_reqLine(r) { return { k: 'line', c: [r.title, r.ccar, r.pmo, r.apLabel + ' FY' + r.fy, r.planned, r.awarded, r.remaining, SP.listWhen(r)] }; }
+function ex_reqTotal(list, label) {
+  const sum = f => list.reduce((s, r) => s + r[f], 0);
+  return { k: 'total', c: [label, '', '', '', sum('planned'), sum('awarded'), sum('remaining'), ''] };
+}
+// Requirements (Find): the rows listed, in the page's order, with its "Also matched …" heading where it falls
+SP.listOfFind = function listOfFind(shown, lead) {
+  const rows = [];
+  shown.forEach((r, i) => {
+    if (lead > 0 && lead < shown.length && i === lead) rows.push({ k: 'group', c: ['Also matched a plan event, description, PID, budget or PMO'] });
+    rows.push(ex_reqLine(r));
+  });
+  rows.push(ex_reqTotal(shown, 'Total, ' + shown.length + (shown.length === 1 ? ' requirement' : ' requirements') + ' listed'));
+  return { cols: EX_REQ_COLS.slice(), rows };
+};
+// My PMO: its Every requirement table (the office is the page's heading, so it is not a column)
+SP.listOfPmo = function listOfPmo(mine) {
+  const cols = EX_REQ_COLS.filter(c => c.h !== 'PMO');
+  const rows = mine.map(r => { const x = ex_reqLine(r); x.c.splice(2, 1); return x; });
+  const t = ex_reqTotal(mine, 'Total, ' + mine.length + (mine.length === 1 ? ' requirement' : ' requirements')); t.c.splice(2, 1); rows.push(t);
+  return { cols, rows };
+};
+// Unfunded (§37, §49): each list's heading, its lines in rank order, its subtotal, then the total; $K
+SP.listOfUfr = function listOfUfr(V) {
+  const cols = [{ h: 'Rank', w: 7, t: 'n' }, { h: 'Requirement', w: 40, t: 's' }, { h: 'CCaR Record', w: 14, t: 's' }, { h: 'PMO', w: 22, t: 's' }]
+    .concat(V.svc.map(x => ({ h: x.label + ' ($K)', w: 11, t: 'k' })))
+    .concat([{ h: 'Total ($K)', w: 12, t: 'k' }, { h: 'Funding status', w: 16, t: 's' }, { h: 'Exec ready?', w: 11, t: 's' }, { h: 'SFCB action', w: 18, t: 's' }, { h: 'Approved in plan ($K)', w: 14, t: 'k' }]);
+  const pad = n => Array(n).fill('');
+  const rows = [], RK = V.rank && V.rank.groups ? V.rank.groups : {};
+  for (const g of V.groups) {
+    const G = RK[g.ap + '|' + g.fy], nAll = G && typeof G.n === 'number' ? G.n : g.lines.length;
+    rows.push({ k: 'group', c: [g.apLabel + ' FY' + g.fy] });
+    for (const l of g.lines) {
+      const rk = /^\s*\d+\s*$/.test(String(l.rank)) ? Number(l.rank) : l.rank;
+      rows.push({ k: 'line', c: [rk, (l.title || '(no title)'), l.ccar || '', l.pmoLabel].concat(l.amt, [l.sum, l.status, l.exec, l.sfcb, l.plan ? l.plan.approved : 'Unfunded only']) });
+    }
+    rows.push({ k: 'sub', c: ['', 'Subtotal, ' + g.apLabel + ' FY' + g.fy + (g.lines.length < nAll ? ' (the lines shown)' : ''), '', ''].concat(V.svc.map((_, k) => g.lines.reduce((n, l) => n + l.amt[k], 0)),
+      [g.lines.reduce((n, l) => n + l.sum, 0)], pad(4)) });
+  }
+  rows.push({ k: 'total', c: ['', 'Total unfunded' + (V.groups.length > 1 ? ', every list shown' : ''), '', ''].concat(V.total.amt, [V.total.sum], pad(4)) });
+  return { cols, rows };
+};
+// SRRB (§44): each appropriation and year's heading and its lines, then the total; $M
+SP.listOfSrrb = function listOfSrrb(V) {
+  const cols = [{ h: 'Requirement (Plan Event Title)', w: 40, t: 's' }, { h: 'CCaR records', w: 16, t: 's' }, { h: 'PMO', w: 24, t: 's' }, { h: 'Award date', w: 18, t: 's' }]
+    .concat(V.svc.map(x => ({ h: x.label + ' ($M)', w: 11, t: 'm' })))
+    .concat([{ h: 'Total ($M)', w: 12, t: 'm' }, { h: 'SRRB', w: 7, t: 's' }, { h: 'Not counted: rows not marked Yes ($M)', w: 16, t: 'm' }]);
+  const rows = [];
+  for (const g of V.groups) {
+    rows.push({ k: 'group', c: [g.apLabel + ' FY' + g.fy] });
+    for (const l of g.lines) rows.push({ k: 'line', c: [l.title, l.ccars.join(', '), l.pmos.map(p => p.label).join(', '), SP.srrbMonthsText(l)].concat(l.amt, [l.sum, 'Yes', l.other || '']) });
+  }
+  rows.push({ k: 'total', c: ['Total', '', '', ''].concat(V.total.amt, [V.total.sum, '', '']) });
+  return { cols, rows };
 };
 
 // ===== 70-pictures.js =====
@@ -10786,7 +11034,7 @@ function ui_findRes(M) {
   const rows = shown.map((r, i) => (i === also ? '<tr class="fgrp"><th colspan="6" scope="colgroup">Also matched a plan event, description, PID, budget or PMO</th></tr>' : '') + '<tr data-rk="' + all.indexOf(r) + '"' + (sel === r ? ' class="cur"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="findsel" data-i="'
     + all.indexOf(r) + '" data-fkey="findsel:' + all.indexOf(r) + '" aria-expanded="' + (sel === r ? 'true' : 'false') + '">' + ui_e(r.title) + '</button><span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.pmo) + '</span></th>'
     + '<td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>' + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
-  return count + '<div class="findtwo"><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
+  return count + ui_listBtn('find', 'the requirements listed') + '<div class="findtwo"><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
     + '<th scope="col" class="n">Planned ($M)</th><th scope="col" class="n">Awarded ($M)</th><th scope="col" class="n">Still to award ($M)</th><th scope="col">Projected award</th></tr></thead><tbody>'
     + rows + '</tbody></table></div>' + ui_findDetail(sel) + '</div>';
 }
@@ -10880,9 +11128,10 @@ function ui_ymAdd(ym, n) {
 function ui_reqBtn(r, all, key) {
   return '<button type="button" class="tg" data-act="reqopen" data-i="' + all.indexOf(r) + '" data-fkey="' + key + ':' + all.indexOf(r) + '">' + ui_e(r.title) + '</button>';
 }
-function ui_vMyPmo(M) {
+// the office and year My PMO shows, and its requirements: one reading for the page and for §50's download of its list
+function ui_myPmoSel(M) {
   const all = ui_reqs(M), P = ui_reqPicks(all), S = ui.pmo;
-  if (!all.length) return '<div class="ovhead"><h2 class="ovtitle">My PMO</h2></div><p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><p class="none">No requirement is counted.</p>';
+  if (!all.length) return { all, P, S, mine: [], fys: [] };
   if (S.key === undefined) { try { const k = window.localStorage.getItem(UI_PMO_KEY); if (k !== null) S.key = k; } catch (e) { /* no storage: the first office */ } }
   // with nothing remembered, the first office that has a name: (no PMO), whose key is '', is nobody's own
   if (S.key === undefined || !P.pmos.some(p => p[0] === S.key)) S.key = (P.pmos.find(p => p[0] !== '') || P.pmos[0])[0];
@@ -10890,7 +11139,11 @@ function ui_vMyPmo(M) {
   const mine0 = all.filter(r => r.pmoKey === S.key);
   const fys = [...new Set(mine0.map(r => r.fy))].sort((a, b) => a - b).map(f => [String(f), 'FY' + f]);
   if (S.fy !== null && !fys.some(p => p[0] === S.fy)) S.fy = null;
-  const mine = mine0.filter(r => S.fy === null || String(r.fy) === S.fy);
+  return { all, P, S, fys, label: ui.pmoLabel, mine: mine0.filter(r => S.fy === null || String(r.fy) === S.fy) };
+}
+function ui_vMyPmo(M) {
+  const { all, P, S, fys, mine } = ui_myPmoSel(M);
+  if (!all.length) return '<div class="ovhead"><h2 class="ovtitle">My PMO</h2></div><p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><p class="none">No requirement is counted.</p>';
   const sum = f => mine.reduce((s, r) => s + r[f], 0), planned = sum('planned'), awarded = sum('awarded');
   const evs = mine.flatMap(r => r.events.filter(e => !e.awarded).map(e => ({ r, e })));
   const late = evs.filter(x => x.e.late).sort((a, b) => (a.e.ym < b.e.ym ? -1 : a.e.ym > b.e.ym ? 1 : b.e.cents - a.e.cents));
@@ -10946,7 +11199,7 @@ function ui_vMyPmo(M) {
       '<p class="ltot" id="uiPmoSoonTot" data-c="' + soonCents + '">' + SP.fmtInt(soon.length) + (soon.length === 1 ? ' plan event' : ' plan events') + ', ' + ui_e(SP.fmtMText(soonCents)) + ' ($M), '
         + (win === 1 ? 'in ' + ui_e(SP.ymWords(to)) : ui_e(SP.ymWords(ui_ymAdd(M.asOf, 1))) + ' to ' + ui_e(SP.ymWords(to))) + '</p>')
     + lst('late', 'Past its projected date, not yet awarded', late, 'Nothing is past its projected date.')
-    + '</div><h3 class="pmoall">Every requirement</h3><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
+    + '</div>' + ui_listHead('pmo', 'Every requirement', mine.length) + '<div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
     + '<th scope="col" class="n">Planned ($M)</th><th scope="col" class="n">Awarded ($M)</th><th scope="col" class="n">Still to award ($M)</th><th scope="col">Projected award</th></tr></thead><tbody>'
     + rows + '</tbody></table></div>'
     + '<p class="cardnote findnote">The months of the first list are those after the Data through month: Coming up picks how many. Past its projected date: a plan event not awarded whose month has closed. '
@@ -11383,7 +11636,7 @@ function ui_ufrBody(M, V) {
     + (V.mand && V.mand.on ? (V.tiles.mand.hidden && !V.tiles.mand.n ? tile('mand', 'Mandatory, not received', 'Hidden', 'by the Filter’s Mandatory lane switch: ' + SP.fmtInt(V.tiles.mand.hidden) + (V.tiles.mand.hidden === 1 ? ' plan event' : ' plan events'))
       : tile('mand', 'Mandatory, not received', ui_e(K(V.tiles.mand.sum)), SP.fmtInt(V.tiles.mand.n) + (V.tiles.mand.n === 1 ? ' plan event' : ' plan events') + ' from the CCaR pull', V.tiles.mand.sum)) : '')
     + '</div><div class="pmotwo">' + bars('pmo', 'Unfunded by PMO ($K)', V.byPmo) + bars('svc', 'Unfunded by service ($K)', V.bySvc) + '</div>'
-    + chk + '<h3 class="pmoall">Every unfunded requirement, by rank</h3>'
+    + chk + ui_listHead('ufr', 'Every unfunded requirement, by rank', V.n)
     + (edit ? '<p class="cardnote" id="uiUfrRankHow">Drag a line by its title, or type a rank, to put a list in your own order, 1 to N within its appropriation and fiscal year. Your order is used in place of the tracker’s, here, on the PDFs and in a view-only copy, '
       + 'and is kept when a tracker is imported again: a line is known by its CCaR record and its title together, and everything else about it is the tracker’s.'
       + (V.mand && V.mand.on ? ' On a Mandatory line you set Exec ready? and SFCB action here; they are kept the same way.' : '') + '</p>' : '')
@@ -11462,11 +11715,8 @@ function ui_srrbData(M) {
   }
   return V;
 }
-function ui_srrbMonths(l) {
-  const w = l.months.map(ym => { const m = /^(\d{4})-(\d{2})/.exec(ym); return m ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : ym; });
-  const shown = w.slice(0, 3).join(', ') + (w.length > 3 ? ' +' + (w.length - 3) + ' more' : '');
-  return shown ? shown + (l.nodate ? ', No date' : '') : (l.nodate ? 'No date' : '');
-}
+// the words are §50's too (the download writes what the page shows), so they are said in one place
+function ui_srrbMonths(l) { return SP.srrbMonthsText(l); }
 function ui_srrbBody(M, V) {
   const m = c => '<td class="n" data-c="' + c + '">' + ui_e(SP.fmtM(c)) + '</td>';
   const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
@@ -11493,7 +11743,7 @@ function ui_srrbBody(M, V) {
     + tile('pmo', 'Largest PMO', topPmo ? ui_e(topPmo.label) : '-', topPmo ? ui_e(SP.fmtM(topPmo.sum)) + ' ($M)' : '', topPmo ? topPmo.sum : 0)
     + tile('svc', 'Largest service', topSvc && topSvc.sum ? ui_e(topSvc.label) : '-', topSvc && topSvc.sum ? ui_e(SP.fmtM(topSvc.sum)) + ' ($M)' : '', topSvc ? topSvc.sum : 0)
     + '</div><div class="pmotwo">' + bars('pmo', 'SRRB requirements by PMO ($M)', V.byPmo) + bars('svc', 'SRRB requirements by service ($M)', V.bySvc) + '</div>'
-    + '<h3 class="pmoall">Every requirement that needs an approved SRRB form</h3><div class="fsheet tw"><table class="grid findt ufrt srrbt" id="uiSrrbT"><thead><tr class="hd"><th scope="col" class="lab">Requirement (Plan Event Title)</th><th scope="col">PMO</th><th scope="col">Award date</th>'
+    + ui_listHead('srrb', 'Every requirement that needs an approved SRRB form', V.n) + '<div class="fsheet tw"><table class="grid findt ufrt srrbt" id="uiSrrbT"><thead><tr class="hd"><th scope="col" class="lab">Requirement (Plan Event Title)</th><th scope="col">PMO</th><th scope="col">Award date</th>'
     + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($M)</th><th scope="col">SRRB</th></tr></thead><tbody>' + rows
     + '<tr class="band"><th colspan="3" scope="row">Total</th>' + V.total.amt.map(m).join('') + m(V.total.sum) + '<td></td></tr></tbody></table></div>'
     + '<p class="cardnote findnote">Figures are $M: each plan event’s amounts in the CCaR plan, awarded or not, on its rows marked Yes. One line is one plan event title within an appropriation and fiscal year, over every CCaR record it is on. '
@@ -11524,6 +11774,93 @@ function ui_srrbRedraw() {
   const c = document.querySelector('[data-act=srrbclear]');
   if (c) c.disabled = !(ui.srrb.pmo !== null || ui.srrb.ap !== null || ui.srrb.fy !== null || ui.srrb.q !== '');
   ui_layout(); ui_printPicks();
+}
+
+// §50 DOWNLOAD THIS LIST: a button beside each narrowable list (Requirements, My PMO, Unfunded, SRRB) that saves exactly the
+// lines on screen as one Excel sheet, in the keeper's file and in a view-only copy alike: it only reads. The lines are the
+// ones the page has just drawn, read through the same functions (ui_findList, ui_myPmoSel, ui_ufrData, ui_srrbData); none
+// is worked out a second way. A list with nothing in it has no button.
+const UI_LIST_PAGE = { find: 'Requirements', pmo: 'My PMO', ufr: 'Unfunded', srrb: 'SRRB' };
+function ui_listBtn(kind, what) {
+  if (!SP.LIST_DL || !ui_fn('listSpec')) return '';
+  return '<p class="dlrow"><button type="button" class="dlbtn" data-act="listdl" data-l="' + kind + '" data-fkey="listdl:' + kind + '" aria-label="Download this list (Excel): '
+    + ui_e(what) + ', as shown">Download this list (Excel)</button></p>';
+}
+function ui_listHead(kind, head, n) {
+  const b = n > 0 ? ui_listBtn(kind, head.toLowerCase()) : '';
+  return b ? '<div class="dlhead"><h3 class="pmoall">' + ui_e(head) + '</h3>' + b + '</div>' : '<h3 class="pmoall">' + ui_e(head) + '</h3>';
+}
+// what was picked on the page, in words: each picker that is not on All, and the Find box
+function ui_listPicks(kind, M) {
+  const out = [], lab = (opts, v) => { const o = opts.find(p => p[0] === v); return o ? o[1] : v; };
+  const q = w => w ? 'Find “' + w + '”' : '';
+  if (kind === 'find') {
+    const F = ui.find, P = ui_reqPicks(ui_reqs(M));
+    if (F.q.trim()) out.push(q(F.q.trim()));
+    if (F.pmo !== null) out.push('PMO: ' + lab(P.pmos, F.pmo));
+    if (F.ap !== null) out.push('Appropriation: ' + lab(P.aps, F.ap));
+    if (F.fy !== null) out.push('FY: ' + lab(P.fys, F.fy));
+    if (F.st) out.push('Projected award: ' + lab(UI_FIND_ST, F.st));
+    if (F.ord) out.push('Order: ' + lab(UI_FIND_ORD, F.ord));
+  } else if (kind === 'pmo') {
+    const X = ui_myPmoSel(M);
+    out.push('PMO: ' + X.label);
+    out.push('FY: ' + (X.S.fy === null ? 'All' : lab(X.fys, X.S.fy)));
+  } else if (kind === 'ufr') {
+    const U = ui.ufr, V = ui_ufrData(M);
+    if (U.ap !== null) out.push('Appropriation: ' + lab(V.picks.aps, U.ap));
+    if (U.pmo !== null) out.push('PMO: ' + lab(V.picks.pmos, U.pmo));
+    if (U.fy !== null) out.push('FY: ' + lab(V.picks.fys, U.fy));
+    if (U.status !== null) out.push('Funding status: ' + lab(V.picks.statuses, U.status));
+    if (U.q.trim()) out.push(q(U.q.trim()));
+  } else if (kind === 'srrb') {
+    const U = ui.srrb, V = ui_srrbData(M);
+    if (U.pmo !== null) out.push('PMO: ' + lab(V.picks.pmos, U.pmo));
+    if (U.ap !== null) out.push('Appropriation: ' + lab(V.picks.aps, U.ap));
+    if (U.fy !== null) out.push('FY: ' + lab(V.picks.fys, U.fy));
+    if (U.q.trim()) out.push(q(U.q.trim()));
+  }
+  return out.filter(Boolean).join(' · ');
+}
+// the list as the page shows it now, laid out for the sheet (null when there is nothing listed)
+function ui_listOf(kind, M) {
+  let L = null, title = '';
+  if (kind === 'find') {
+    const list = ui_findList(M), shown = list.slice(0, UI_FIND_MAX);
+    if (!shown.length) return null;
+    L = SP.listOfFind(shown, list.lead);
+    title = 'Requirements - the list as shown' + (list.length > shown.length ? ' (the first ' + shown.length + ' of ' + list.length + ' matches, as on the page)' : '');
+  } else if (kind === 'pmo') {
+    const X = ui_myPmoSel(M);
+    if (!X.mine.length) return null;
+    L = SP.listOfPmo(X.mine);
+    title = 'My PMO - ' + X.label + ' - every requirement, as shown';
+  } else if (kind === 'ufr') {
+    const V = ui_ufrData(M);
+    if (!V.n) return null;
+    L = SP.listOfUfr(V);
+    title = 'Unfunded requirements (UFR) - the list as shown, by rank ($K)';
+  } else if (kind === 'srrb') {
+    const V = ui_srrbData(M);
+    if (!V.n) return null;
+    L = SP.listOfSrrb(V);
+    title = 'SRRB requirements - the list as shown ($M)';
+  } else return null;
+  return Object.assign(L, { page: UI_LIST_PAGE[kind], title, asOfLabel: M.asOfLabel, picks: ui_listPicks(kind, M), shown: M.shown.text });
+}
+function ui_listDownload(kind) {
+  const M = ui_hasData() ? ui_model() : null;
+  if (!M || !UI_LIST_PAGE[kind]) return;
+  ui_busy('the list', async () => {
+    const L = ui_listOf(kind, M);
+    if (!L) { ui_say('There is nothing listed to download.', 'warn'); return; }
+    const today = (() => { const d = new Date(); return d.getFullYear() + '-' + ui_pad(d.getMonth() + 1) + '-' + ui_pad(d.getDate()); })();
+    L.today = today;
+    const bytes = await SP.listBytes(L), name = SP.listFileName(M, UI_LIST_PAGE[kind], today);
+    SP.download(name, bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    const n = L.rows.filter(r => r.k === 'line').length;
+    ui_say('Wrote “' + name + '” (' + SP.fmtInt(n) + (n === 1 ? ' line' : ' lines') + ', as on the page) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
 }
 
 // PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
@@ -13489,6 +13826,9 @@ function ui_onClick(ev) {
       ui_findJump();
       break;
     }
+    case 'listdl':
+      ui_listDownload(t.getAttribute('data-l'));
+      break;
     case 'findclear':
       ui.find = ui_findNew();
       ui.focusTo = 'findq';

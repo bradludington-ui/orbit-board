@@ -265,7 +265,9 @@ for the switches.
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
   its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
   Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
-  presents. **Download PDF** saves one; **Download all** saves them in one zip. On the page, and in Settings:
+  presents. **Download PDF** saves one; **Download all** saves them in one zip. The PDFs are **tagged for Section 508**: a
+  screen reader reads them in order, as headings, paragraphs and tables with their column and row headings; the CUI
+  marking is read once, and page numbers and repeated headings are skipped. They look exactly as before. On the page, and in Settings:
   - **Import unfunded list…**, in **Settings** under Set up, takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
     OPN tabs, read by their column titles; amounts in $K). Required is Approved plus the unfunded amount for that CCaR
     record. A record that is only on the unfunded list still appears, with Approved $0. Anything to check is listed
@@ -462,6 +464,16 @@ example. Your browser puts it in its downloads folder, or asks where to save it,
 - Every sheet that marks a figure †, ‡ or § says, under its table, what the mark means.
 - On the appropriation sheets and PMO tabs, the four outline buttons at the left open the rows level by level, as in
   v12: 1 PMO, 2 Title, 3 Plan Event, 4 CCaR. The sheets open showing PMO and Title rows.
+
+### Download this list
+
+**Requirements**, **My PMO**, **Unfunded** and **SRRB** each have a **Download this list (Excel)** button beside their list
+(on Requirements, under the count line; on the others, beside the list's heading). It saves exactly the lines on screen,
+after the page's pickers, its Find box and the Filter's switches, in the order shown, with the same columns and figures
+(numbers, not text: $M on Requirements, My PMO and SRRB, $K on Unfunded). The sheet is marked CUI at the top and the bottom
+and in its printed header and footer, and says which pickers were set, what the Filter shows and the Data through month.
+The file is named like the workbook, with the page: `APEX FY2027 - Unfunded list - data through Oct-2026 - 2026-11-22.xlsx`.
+It works in a view-only copy too, changes nothing in the plan, and is not there when nothing is listed. It is not printed.
 
 ## Pictures for slides
 
