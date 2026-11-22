@@ -338,6 +338,9 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       looseSaid.add(SP.normKey(l.pmo) + '|' + pk);
       flags.push('The unfunded list’s PMO “' + l.pmo + '” is read as ' + pmoLabel.get(pk) + '.');
     }
+    // §52 a Mandatory plan event listed as unfunded (§45's switch on) goes on the unfunded list at the end, in the keeper's
+    // ranking, and nowhere else: the spend plan pages already count its money as Approved, so it adds nothing to Required
+    if (l.mand) { ufrKept.push(Object.assign({}, l, { pmoKey: pk, pmoLabel: pmoLabel.get(pk) })); continue; }
     const a = atom(l.ap, l.fy, pk, ccarKey, SP.normKey(l.title));
     for (let i = 0; i <= PB_NSVC; i++) a.ufr[i] += l.cents[i] || 0;
     if (!a.ufrTitle) { a.ufrTitle = l.title; a.ufrCcar = l.ccar; }
@@ -879,6 +882,7 @@ SP.publishPages = function publishPages(doc, ctx) {
     }
     closePart();
     sumRow('Total unfunded', U, true);
+    if (U.some(l => l.mand)) { y += 4; if (y + 30 > PB.bodyEnd) uTop(true); cur = nd('P'); for (const s0 of SP.pdfWrap('Lines whose Funding Status is Mandatory are Mandatory plan events from the CCaR pull, listed as unfunded because Mandatory funding has not been received. The spend plan pages above still count them as Approved, and they are not in any Required.', 6.5, false, PB.R - PB.L)) { T(PB.L, y + 7, s0, { size: 6.5, color: PB.mut }); y += 8; } cur = null; }
     if (U.some(l => l.cents[PB_NSVC])) { y += 4; cur = nd('P'); T(PB.L, y + 7, 'A Total larger than its services holds an amount the tracker gave under no service.', { size: 6.5, color: PB.mut }); }
   }
 

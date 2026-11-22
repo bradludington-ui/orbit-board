@@ -119,7 +119,10 @@ try {
     .test(main().querySelector('tr.udetail').textContent), main().querySelector('tr.udetail').textContent);
   // nothing else in the tool moved
   const omAfter = await (async () => { await go('om'); const h = main().innerHTML; await go('overview'); const o = main().innerHTML; await go('publish'); const p = main().innerHTML; await go('ufr'); return [h, o, p]; })();
-  C.chk('the O&M spend plan, the Overview and Publish PDFs are drawn exactly as with the switch off', omAfter[0] === omBefore[0] && omAfter[1] === omBefore[1] && omAfter[2] === omBefore[2]);
+  // §52: the PDFs' unfunded list now holds the Mandatory lines, so Spend plan PDFs counts them; nothing else on it moves
+  const lineDiff = (x, y) => { const p = x.replace(/></g, '>\n<').split('\n'), q = y.replace(/></g, '>\n<').split('\n'); return [p.filter(z => !q.includes(z)), q.filter(z => !p.includes(z))]; };
+  C.chk('the O&M spend plan and the Overview are drawn exactly as with the switch off; Spend plan PDFs differs only in its count of unfunded lines', omAfter[0] === omBefore[0] && omAfter[1] === omBefore[1]
+    && J(lineDiff(omBefore[2], omAfter[2])) === J([['<td class="n">0</td>'], ['<td class="n">5</td>']]), J(lineDiff(omBefore[2], omAfter[2])));
   C.eq('the tracker’s lists in the plan are not changed: the Mandatory lines are worked out, never stored', J(S.state.ufr['2027'].lines.map(l => l.title)), J(['Depot tooling', 'Tessa A']));
   // the Filter: a service switched off is left out of a Mandatory line as of any other
   const off = S.defaultView(); off.svc.USAF = false;
@@ -132,6 +135,26 @@ try {
   C.chk('no Mandatory line is said to differ from a tracker it was never on', ![...main().querySelectorAll('#uiUfrT tr.umand .urkf')].length && !/Repair|Lot One|Lot Two/.test((main().querySelector('#uiUfrRankChk') || { textContent: '' }).textContent),
     (main().querySelector('#uiUfrRankChk') || { textContent: '' }).textContent);
   C.chk('the ranking remembers which of its lines are Mandatory', J(S.state.ufrRank['om|2027'].map(e => [e.t, e.m === 1])) === J([['Repair', true], ['Depot tooling', false], ['Tessa A', false], ['Lot One', true], ['Lot Two', true]]), J(S.state.ufrRank['om|2027']));
+  // §52 the PDFs: each document's unfunded list ends with the Mandatory lines, in the keeper's ranking, on the appropriation's
+  // PDF and on the PDF of the PMO they are under; they add nothing to Required, which already counts them as Approved
+  {
+    const R = Wd.ui_pubData(Wd.ui_model()), doc = id => R.D.docs.find(d => d.id === id);
+    const list = d => d.ufr.map(l => [l.rank, l.title, l.status]);
+    C.eq('§52 the O&M PDF’s unfunded list: the keeper’s ranking, Mandatory lines in it', J(list(doc('ap:om'))),
+      J([['1', 'Repair', 'Mandatory'], ['2', 'Depot tooling', 'Unfunded'], ['3', 'Tessa A', 'Unfunded'], ['4', 'Lot One', 'Mandatory'], ['5', 'Lot Two', 'Mandatory']]));
+    C.eq('§52 Initial Spares: its one Mandatory line', J(list(doc('ap:sp'))), J([['1', 'Kit', 'Mandatory']]));
+    const pk = l => R.D.docs.find(d => d.kind === 'pmo' && d.label === l);
+    C.eq('§52 each PMO’s PDF lists the Mandatory lines under it, in the same order', J([list(pk(PP)), list(pk(AV))]),
+      J([[['3', 'Tessa A', 'Unfunded'], ['4', 'Lot One', 'Mandatory'], ['5', 'Lot Two', 'Mandatory'], ['1', 'Kit', 'Mandatory']], [['1', 'Repair', 'Mandatory'], ['2', 'Depot tooling', 'Unfunded']]]));
+    const Roff = (() => { const st = S.state.ufrMand; S.state.ufrMand = undefined; const x = Wd.ui_pubData(Wd.ui_model()); S.state.ufrMand = st; return x; })();
+    const req = D => J(D.docs.map(d => [d.id, d.sections.map(x => x.total.required), d.sections.map(x => x.n)]));
+    C.chk('§52 Required, Approved and every record of every section are as with the switch off: a Mandatory line adds to no Required', req(R.D) === req(Roff.D)
+      && J(R.D.docs.map(d => d.sections.map(x => x.total))) === J(Roff.D.docs.map(d => d.sections.map(x => x.total))));
+    C.eq('§52 with the switch off the PDFs’ list is the tracker’s alone', J(list(Roff.D.docs.find(d => d.id === 'ap:om'))), J([['1', 'Depot tooling', 'Unfunded'], ['2', 'Tessa A', 'Unfunded']]));   // §43: numbered 1 to N among the lines listed
+    const pg = S.publishPages(doc('ap:om'), Wd.ui_pubCtx(R.Mp, R.P)), txt = pg.pages.flatMap(p => p.ops.filter(o => o.t === 'text').map(o => o.s)).join(' | '), utx = txt.slice(txt.indexOf('Unfunded requirements'));
+    C.chk('§52 the O&M PDF prints them, Repair first, and says what a Mandatory line is', /Repair \| [^|]*\| C2 /.test(utx) && utx.indexOf('Repair') < utx.indexOf('Depot tooling') && utx.indexOf('Depot tooling') < utx.indexOf('Lot One')
+      && /Funding Status is Mandatory are Mandatory plan events from the CCaR pull/.test(utx), utx.slice(0, 1500));
+  }
   // a view-only copy made with the switch on
   const vo = loadTool({ html: S.viewOnlyHtml('2026-11-12T13:00:00.000Z') });
   for (let i = 0; i < 200 && !vo.window.document.getElementById('uiMain'); i++) await settle(5);

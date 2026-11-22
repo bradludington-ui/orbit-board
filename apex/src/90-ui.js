@@ -1571,7 +1571,8 @@ function ui_pubState() {
 const UI_PUB_PROGRAM = 'F-35 Sustainment';
 function ui_pubData(M) {
   const P = ui_pubState(), Mp = ui_pubModel(M);
-  return { Mp, P, D: SP.publishData(Mp, P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
+  // §52 with the Mandatory switch on, the PDFs' unfunded list holds the Mandatory plan events too, in the keeper's ranking
+  return { Mp, P, D: SP.publishData(Mp, P.mand && P.mand.on ? P.ufrAll : P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
 }
 // the emblem a document prints: none if the plan says so, else the one loaded, else the built-in one (§33.7)
 function ui_pubEmblem(P) {
