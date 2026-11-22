@@ -119,10 +119,8 @@ try {
     .test(main().querySelector('tr.udetail').textContent), main().querySelector('tr.udetail').textContent);
   // nothing else in the tool moved
   const omAfter = await (async () => { await go('om'); const h = main().innerHTML; await go('overview'); const o = main().innerHTML; await go('publish'); const p = main().innerHTML; await go('ufr'); return [h, o, p]; })();
-  // §52: the PDFs' unfunded list now holds the Mandatory lines, so Spend plan PDFs counts them; nothing else on it moves
-  const lineDiff = (x, y) => { const p = x.replace(/></g, '>\n<').split('\n'), q = y.replace(/></g, '>\n<').split('\n'); return [p.filter(z => !q.includes(z)), q.filter(z => !p.includes(z))]; };
-  C.chk('the O&M spend plan and the Overview are drawn exactly as with the switch off; Spend plan PDFs differs only in its count of unfunded lines', omAfter[0] === omBefore[0] && omAfter[1] === omBefore[1]
-    && J(lineDiff(omBefore[2], omAfter[2])) === J([['<td class="n">0</td>'], ['<td class="n">5</td>']]), J(lineDiff(omBefore[2], omAfter[2])));
+  // §55 the switch changes nothing on Spend plan PDFs: its two downloads do not read it
+  C.chk('the O&M spend plan, the Overview and Spend plan PDFs are drawn exactly as with the switch off', omAfter[0] === omBefore[0] && omAfter[1] === omBefore[1] && omAfter[2] === omBefore[2]);
   C.eq('the tracker’s lists in the plan are not changed: the Mandatory lines are worked out, never stored', J(S.state.ufr['2027'].lines.map(l => l.title)), J(['Depot tooling', 'Tessa A']));
   // the Filter: a service switched off is left out of a Mandatory line as of any other
   const off = S.defaultView(); off.svc.USAF = false;
@@ -135,25 +133,40 @@ try {
   C.chk('no Mandatory line is said to differ from a tracker it was never on', ![...main().querySelectorAll('#uiUfrT tr.umand .urkf')].length && !/Repair|Lot One|Lot Two/.test((main().querySelector('#uiUfrRankChk') || { textContent: '' }).textContent),
     (main().querySelector('#uiUfrRankChk') || { textContent: '' }).textContent);
   C.chk('the ranking remembers which of its lines are Mandatory', J(S.state.ufrRank['om|2027'].map(e => [e.t, e.m === 1])) === J([['Repair', true], ['Depot tooling', false], ['Tessa A', false], ['Lot One', true], ['Lot Two', true]]), J(S.state.ufrRank['om|2027']));
-  // §52 the PDFs: each document's unfunded list ends with the Mandatory lines, in the keeper's ranking, on the appropriation's
-  // PDF and on the PDF of the PMO they are under; they add nothing to Required, which already counts them as Approved
+  // §55 THE TWO DOWNLOADS. Discretionary: the body is the Discretionary money alone, and the list at the end is the tracker's
+  // lines and every Mandatory plan event, in the keeper's ranking. Discretionary and Mandatory: the body is both, and the list
+  // is the tracker's alone. Neither reads the Unfunded page's switch.
   {
-    const R = Wd.ui_pubData(Wd.ui_model()), doc = id => R.D.docs.find(d => d.id === id);
-    const list = d => d.ufr.map(l => [l.rank, l.title, l.status]);
-    C.eq('§52 the O&M PDF’s unfunded list: the keeper’s ranking, Mandatory lines in it', J(list(doc('ap:om'))),
+    const list = d => d.ufr.map(l => [l.rank, l.title, l.status]), K$ = c => c / 100;
+    const at = (R, id) => R.D.docs.find(d => d.id === id), pk = (R, l) => R.D.docs.find(d => d.kind === 'pmo' && d.label === l);
+    const Rd = Wd.ui_pubData(Wd.ui_model(), 'd'), Rdm = Wd.ui_pubData(Wd.ui_model(), 'dm');
+    C.eq('§55 Discretionary: the O&M list is the keeper’s ranking with every Mandatory line in it', J(list(at(Rd, 'ap:om'))),
       J([['1', 'Repair', 'Mandatory'], ['2', 'Depot tooling', 'Unfunded'], ['3', 'Tessa A', 'Unfunded'], ['4', 'Lot One', 'Mandatory'], ['5', 'Lot Two', 'Mandatory']]));
-    C.eq('§52 Initial Spares: its one Mandatory line', J(list(doc('ap:sp'))), J([['1', 'Kit', 'Mandatory']]));
-    const pk = l => R.D.docs.find(d => d.kind === 'pmo' && d.label === l);
-    C.eq('§52 each PMO’s PDF lists the Mandatory lines under it, in the same order', J([list(pk(PP)), list(pk(AV))]),
+    C.eq('§55 … Initial Spares its one Mandatory line', J(list(at(Rd, 'ap:sp'))), J([['1', 'Kit', 'Mandatory']]));
+    C.eq('§55 … each PMO’s PDF the lines under it, in the same order', J([list(pk(Rd, PP)), list(pk(Rd, AV))]),
       J([[['3', 'Tessa A', 'Unfunded'], ['4', 'Lot One', 'Mandatory'], ['5', 'Lot Two', 'Mandatory'], ['1', 'Kit', 'Mandatory']], [['1', 'Repair', 'Mandatory'], ['2', 'Depot tooling', 'Unfunded']]]));
-    const Roff = (() => { const st = S.state.ufrMand; S.state.ufrMand = undefined; const x = Wd.ui_pubData(Wd.ui_model()); S.state.ufrMand = st; return x; })();
-    const req = D => J(D.docs.map(d => [d.id, d.sections.map(x => x.total.required), d.sections.map(x => x.n)]));
-    C.chk('§52 Required, Approved and every record of every section are as with the switch off: a Mandatory line adds to no Required', req(R.D) === req(Roff.D)
-      && J(R.D.docs.map(d => d.sections.map(x => x.total))) === J(Roff.D.docs.map(d => d.sections.map(x => x.total))));
-    C.eq('§52 with the switch off the PDFs’ list is the tracker’s alone', J(list(Roff.D.docs.find(d => d.id === 'ap:om'))), J([['1', 'Depot tooling', 'Unfunded'], ['2', 'Tessa A', 'Unfunded']]));   // §43: numbered 1 to N among the lines listed
-    const pg = S.publishPages(doc('ap:om'), Wd.ui_pubCtx(R.Mp, R.P)), txt = pg.pages.flatMap(p => p.ops.filter(o => o.t === 'text').map(o => o.s)).join(' | '), utx = txt.slice(txt.indexOf('Unfunded requirements'));
-    C.chk('§52 the O&M PDF prints them, Repair first, and says what a Mandatory line is', /Repair \| [^|]*\| C2 /.test(utx) && utx.indexOf('Repair') < utx.indexOf('Depot tooling') && utx.indexOf('Depot tooling') < utx.indexOf('Lot One')
-      && /Funding Status is Mandatory are Mandatory plan events from the CCaR pull/.test(utx), utx.slice(0, 1500));
+    // O&M FY2027 Discretionary: Tessa A Lot One 5,000,000 and Tessa C Disc Only 900,000; Discretionary and Mandatory adds
+    // 2,400,000 + 300,000 + 1,800,000 (Tessa A) and 1,500,000 (Tessa B Repair)
+    const ap = (R, id) => K$(at(R, id).sections.find(x => x.fy === 2027).total.approved);
+    C.eq('§55 Discretionary: the body is the Discretionary money alone; Discretionary and Mandatory, both', J([ap(Rd, 'ap:om'), K$(at(Rd, 'ap:om').stoplight.total.approved), ap(Rdm, 'ap:om')]),
+      J([5900000, 5900000, 5900000 + 2400000 + 300000 + 1800000 + 1500000]));
+    // Required = Approved + the tracker's lines only: Tessa A's 500 and Depot tooling's 900 (a record of its own, Approved $0)
+    C.eq('§55 Discretionary: a Mandatory line on the list adds nothing to Required', K$(at(Rd, 'ap:om').sections.find(x => x.fy === 2027).total.required), 5900000 + 500000 + 900000);
+    C.eq('§55 Initial Spares, all Mandatory money: its Discretionary PDF has no spend plan section and still lists Kit', J([at(Rd, 'ap:sp').sections.length, list(at(Rd, 'ap:sp'))]), J([0, [['1', 'Kit', 'Mandatory']]]));
+    { const b = S.publishPdf(Wd.ui_pubDocAs(at(Rd, 'ap:sp'), 'd'), Wd.ui_pubCtx(Rd.Mp, Rd.P)), tx = Buffer.from(b).toString('latin1');
+      C.chk('§55 … that PDF is written whole: its status page shows $0 Discretionary, then the list with Kit', /^%PDF-/.test(tx) && /\(Kit\) Tj/.test(tx) && /\(Initial Spares by fiscal year\) Tj/.test(tx) && /\(Page 2 of 2\) Tj/.test(tx), (tx.match(/\((?:[^()\\]|\\.)*\) Tj/g) || []).slice(0, 40).join(' ')); }
+    C.chk('§55 … and Discretionary flags no Mandatory line’s PMO as unknown', !Rd.D.flags.some(f => /Lot One|Lot Two|Repair|Kit/.test(f)), J(Rd.D.flags));
+    C.eq('§55 Discretionary and Mandatory: the list is the tracker’s alone, in the keeper’s ranking', J([list(at(Rdm, 'ap:om')), list(at(Rdm, 'ap:sp'))]),
+      J([[['1', 'Depot tooling', 'Unfunded'], ['2', 'Tessa A', 'Unfunded']], []]));
+    const Roff = (() => { const st = S.state.ufrMand; S.state.ufrMand = undefined; const x = [Wd.ui_pubData(Wd.ui_model(), 'd'), Wd.ui_pubData(Wd.ui_model(), 'dm')]; S.state.ufrMand = st; return x; })();
+    const sig = R => J(R.D.docs.map(d => [d.id, d.sections.map(x => x.total), list(d)]));
+    C.chk('§55 the Unfunded page’s switch changes neither download', sig(Roff[0]) === sig(Rd) && sig(Roff[1]) === sig(Rdm));
+    const pg = S.publishPages(Wd.ui_pubDocAs(at(Rd, 'ap:om'), 'd'), Wd.ui_pubCtx(Rd.Mp, Rd.P)), txt = pg.pages.flatMap(p => p.ops.filter(o => o.t === 'text').map(o => o.s)).join(' | '), utx = txt.slice(txt.indexOf('Unfunded requirements'));
+    C.chk('§55 the Discretionary O&M PDF prints them, Repair first, says what they are, and names itself Discretionary', /Repair \| [^|]*\| C2 /.test(utx) && utx.indexOf('Repair') < utx.indexOf('Depot tooling') && utx.indexOf('Depot tooling') < utx.indexOf('Lot One')
+      && /Funding Status is Mandatory are Mandatory plan events from the CCaR pull/.test(utx) && /The spend plan pages above are the Discretionary money alone/.test(utx)
+      && /Discretionary: every figure in this PDF is the Discretionary money alone/.test(txt) && txt.includes('APEX Spend Plan - O&M - Discretionary'), utx.slice(0, 1500));
+    const tdm = S.publishPages(Wd.ui_pubDocAs(at(Rdm, 'ap:om'), 'dm'), Wd.ui_pubCtx(Rdm.Mp, Rdm.P)).pages.flatMap(p => p.ops.filter(o => o.t === 'text').map(o => o.s)).join(' | ');
+    C.chk('§55 the Discretionary and Mandatory one says none of that', !/Discretionary: every figure/.test(tdm) && !/Funding Status is Mandatory/.test(tdm) && tdm.includes('APEX Spend Plan - O&M - Discretionary and Mandatory'));
   }
   // a view-only copy made with the switch on
   const vo = loadTool({ html: S.viewOnlyHtml('2026-11-12T13:00:00.000Z') });

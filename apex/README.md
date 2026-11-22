@@ -265,7 +265,12 @@ for the switches.
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
   its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
   Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
-  presents. **Download PDF** saves one; **Download all** saves them in one zip. The PDFs are **tagged for Section 508**: a
+  presents. Each PDF, and **Download all** (a zip), comes two ways:
+  - **Discretionary**: the spend plan is the Discretionary money alone, and the unfunded list at the end is your UFR
+    tracker's lines and every Mandatory plan event of the CCaR pull, in your ranking (whether or not *Mandatory funding not
+    received* is ticked on the Unfunded page).
+  - **Discretionary and Mandatory**: the spend plan is both, and the unfunded list at the end is your UFR tracker's lines alone.
+  The file name ends with which one it is. Every service is counted, whatever the Filter says. The PDFs are **tagged for Section 508**: a
   screen reader reads them in order, as headings, paragraphs and tables with their column and row headings; the CUI
   marking is read once, and page numbers and repeated headings are skipped. They look exactly as before. On the page, and in Settings:
   - **Import unfunded list…**, in **Settings** under Set up, takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
@@ -293,9 +298,7 @@ for the switches.
   **Mandatory funding not received:** a switch on this page lists every plan event on a Mandatory budget in the CCaR
   pull as unfunded, one line per plan event, marked *Mandatory*. They come from the pull, so there is nothing to type
   and nothing to keep in step; switch it off and the list is the tracker alone again. For now this changes the Unfunded
-  page only on screen: the spend plan pages and the PDFs still count Mandatory as Approved. In the PDFs, the unfunded list at
-  the end of each appropriation's and each PMO's PDF lists the Mandatory lines too, in your ranking, with a note saying
-  what they are; they add nothing to Required. A view-only copy made with the switch
+  page only: the PDFs have their own two downloads (see Spend plan PDFs). A view-only copy made with the switch
   on shows the Mandatory lines and cannot change the switch. On a Mandatory line you set **Exec ready?** (Yes, No or
   blank) and **SFCB action** yourself, since the pull carries neither; the Exec ready and SFCB approved tiles count them,
   they are kept with the line when a new pull is imported, and a view-only copy shows them without a way to change them.
