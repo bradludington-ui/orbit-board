@@ -49,11 +49,14 @@ async function boot(html) {
   const T = { t, W, doc, SP: t.SP, main: () => doc.getElementById('uiMain'),
     click: el => el.dispatchEvent(new W.MouseEvent('click', { bubbles: true })), change: el => el.dispatchEvent(new W.Event('change', { bubbles: true })),
     async view(v) { T.click(doc.querySelector('[data-act=view][data-v="' + v + '"]')); await settle(); return T.main(); },
-    async pick(f, label) { const s = T.main().querySelector('select[data-act=ufrf][data-f=' + f + ']'); s.value = [...s.options].find(o => o.textContent === label).value; T.change(s); await settle(); return T.main(); },
+    async pick(f, label) {
+      // §49 the appropriation is a row of buttons
+      if (f === 'ap') { const b = [...T.main().querySelectorAll('button[data-act=ufrap]')].find(x => x.textContent === label); T.click(b); await settle(); return T.main(); }
+      const s = T.main().querySelector('select[data-act=ufrf][data-f=' + f + ']'); s.value = [...s.options].find(o => o.textContent === label).value; T.change(s); await settle(); return T.main(); },
     async type(text) { const b = doc.getElementById('uiUfrQ'); b.focus(); b.value = text; b.dispatchEvent(new W.Event('input', { bubbles: true })); await settle(); return T.main(); },
-    rows: () => [...T.main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [rankOf(tr.querySelector('.urank')), tr.querySelector('.tg').textContent, tr.querySelector('.fsub').textContent, tr.querySelector('.utot').textContent]),
+    rows: () => [...T.main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [rankOf(tr.querySelector('.urank')), tr.querySelector('.tg').textContent, tr.querySelector('.uccar').textContent, tr.querySelector('.utot').textContent]),
     tile: id => { const x = T.main().querySelector('.tile[data-tile=' + id + ']'); return [x.querySelector('.tv').textContent, x.querySelector('.ts').textContent]; },
-    total: () => [...T.main().querySelectorAll('#uiUfrT tr.band td.n')].map(td => td.textContent) };
+    total: () => [...T.main().querySelectorAll('#uiUfrT tr.utotal td.n')].map(td => td.textContent) };
   return T;
 }
 
@@ -112,7 +115,8 @@ try {
   SP.setUfr(UFR, '2026-11-14T15:00:00.000Z'); await settle(40);
   m = A.main();
   C.eq('the title, and which tracker and how many lines', J([m.querySelector('.ovtitle').textContent, m.querySelector('#uiUfrSub').textContent]), J(['Unfunded requirements (UFR)', 'FY2027 UFR tracker, loaded 2026-11-14 · 5 lines']));
-  C.eq('the pickers, at the top left, in order', J([...m.querySelectorAll('.ufrbar label')].map(l => l.firstChild.textContent.trim())), J(['Choose your PMO', 'Appropriation', 'FY', 'Funding status', 'Find']));
+  C.eq('the pickers, at the top left, in order', J([...m.querySelectorAll('.ufrbar label')].map(l => l.firstChild.textContent.trim())), J(['PMO', 'FY', 'Funding status', 'Find']));
+  C.eq('§49 above them, a button for each appropriation the lists hold, All pressed', J([...m.querySelectorAll('.ufrapbar button[data-act=ufrap]')].map(b => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? ' *' : ''))), J(['All appropriations *', 'O&M', 'Initial Spares']));
   C.chk('the picker bar is the first thing on the page', m.firstElementChild.classList.contains('ufrbar'));
   C.chk('there is no Exec ready picker; the Exec ready? column and the Exec ready tile are still there', !m.querySelector('select[data-f=exec]') && !!m.querySelector('.tile[data-tile=exec]')
     && [...m.querySelectorAll('#uiUfrT thead th')].some(th => th.textContent === 'Exec ready?'));
@@ -121,12 +125,19 @@ try {
   C.eq('the list: rank, title, CCaR number and total', J(A.rows()), J([['1', 'Prime Alpha', 'JSF6654', '2,500'], ['2', 'Tessa B', 'TS0002', '300'], ['3', 'New thing', 'TS0099', '400'], ['4', 'Garnet Rework', 'TS0007', '100'], ['1', 'Tessa E', 'TS0005', '250']]));
   C.eq('a heading row for each appropriation and fiscal year', J([...m.querySelectorAll('#uiUfrT tr.ugrp')].map(tr => tr.textContent)), J(['O&M FY2027 · 4 lines, in the UFR tracker’s ranks', 'Initial Spares FY2027 · 1 line, in the UFR tracker’s ranks']));   // review I37: how many, and whose ranks
   C.eq('the columns', J([...m.querySelectorAll('#uiUfrT thead th')].map(th => th.textContent)),
-    J(['Rank', 'Requirement', 'PMO', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total ($K)', 'Funding status', 'Exec ready?', 'SFCB action', 'Approved in plan ($K)']));
+    J(['Rank', 'Requirement', 'CCaR Record', 'PMO', 'USAF', 'ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV', 'Total ($K)', 'Funding status', 'Exec ready?', 'SFCB action', 'Approved in plan ($K)']));
   const rowEl = (T, id) => [...T.main().querySelectorAll('tr[data-ufr]')].find(x => x.getAttribute('data-ufr') === id);
   const cells = id => { const tr = [...A.main().querySelectorAll('tr[data-ufr]')].find(x => x.getAttribute('data-ufr') === id); if (!tr) throw new Error('no row ' + id + ' among ' + [...A.main().querySelectorAll('tr[data-ufr]')].map(x => x.getAttribute('data-ufr')).join(' ; ')); return [...tr.children].map((c, n) => (n === 0 ? rankOf(c) : c.textContent)); };
-  C.eq('a line, cell by cell: the prime', J(cells('om|2027|O&M|10')), J(['1', 'Prime AlphaJSF6654', AV, '2,000', '-', '-', '500', '-', '-', '2,500', 'Pending', 'Yes', 'Approved 12 Nov', '4,000']));
-  C.eq('a line with no plan event says Unfunded only', cells('om|2027|O&M|12')[13], 'Unfunded only');
+  C.eq('a line, cell by cell: the prime', J(cells('om|2027|O&M|10')), J(['1', 'Prime Alpha', 'JSF6654', AV, '2,000', '-', '-', '500', '-', '-', '2,500', 'Pending', 'Yes', 'Approved 12 Nov', '4,000']));
+  C.eq('a line with no plan event says Unfunded only', cells('om|2027|O&M|12')[14], 'Unfunded only');
   C.eq('the total row', J(A.total()), J(['2,350', '300', '-', '500', '-', '400', '3,550']));
+  // §49 each list's own totals under its last line, and the overall total after every list
+  C.eq('§49 a subtotal row under each appropriation and year, by service and in all', J([...m.querySelectorAll('#uiUfrT tr.usub')].map(tr => [tr.querySelector('th').textContent, [...tr.querySelectorAll('td.n')].map(td => td.textContent)])),
+    J([['Subtotal, O&M FY2027', ['2,100', '300', '-', '500', '-', '400', '3,300']], ['Subtotal, Initial Spares FY2027', ['250', '-', '-', '-', '-', '-', '250']]]));
+  C.eq('§49 the subtotals add to the total row, service by service', J([0, 1, 2, 3, 4, 5, 6].map(k => [...m.querySelectorAll('#uiUfrT tr.usub')].reduce((n, tr) => n + Number(tr.querySelectorAll('td.n')[k].getAttribute('data-c')), 0))),
+    J([...m.querySelectorAll('#uiUfrT tr.utotal td.n')].map(td => Number(td.getAttribute('data-c')))));
+  C.eq('§49 the total row names every list, and comes last', [...m.querySelectorAll('#uiUfrT tbody tr')].pop().querySelector('th').textContent, 'Total unfunded, every list shown');
+  C.chk('§49 no up or down rank buttons', !m.querySelector('[data-act=ufrup], [data-act=ufrdown], .urkb'));
   C.eq('the two charts: by PMO and by service, each bar’s figure', J([...m.querySelectorAll('.card[data-list]')].map(c => [c.querySelector('h3').textContent, [...c.querySelectorAll('li')].map(li => li.querySelector('.fp').textContent + ' ' + li.querySelector('.fa').textContent)])),
     J([['Unfunded by PMO ($K)', [AV + ' 2,900', PP + ' 650']], ['Unfunded by service ($K)', ['USAF 2,350', 'ANG 300', 'AFRC -', 'STOVL 500', 'USMC CV -', 'USN CV 400']]]));
   C.chk('the widest bar of each chart is full width and the others are in proportion', m.querySelector('.card[data-list=pmo] .ubar span').style.width === '100%' && m.querySelectorAll('.card[data-list=pmo] .ubar span')[1].style.width === '22.4%');
@@ -168,7 +179,7 @@ try {
   await A.view('ufr');
   const usaf = [...A.doc.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => b.parentElement.textContent.trim() === 'USAF');
   usaf.checked = false; A.change(usaf); await settle(40);
-  C.eq('USAF switched off in the Filter: its column goes, and the totals are without it', J([[...A.main().querySelectorAll('#uiUfrT thead th')].map(th => th.textContent).slice(3, 8), A.total(), A.tile('sum')[0], A.main().querySelector('.ovshown').classList.contains('filtered')]),
+  C.eq('USAF switched off in the Filter: its column goes, and the totals are without it', J([[...A.main().querySelectorAll('#uiUfrT thead th')].map(th => th.textContent).slice(4, 9), A.total(), A.tile('sum')[0], A.main().querySelector('.ovshown').classList.contains('filtered')]),
     J([['ANG', 'AFRC', 'STOVL', 'USMC CV', 'USN CV'], ['300', '-', '500', '-', '400', '1,200'], '$1,200K', true]));
   { const again = [...A.doc.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => b.parentElement.textContent.trim() === 'USAF'); again.checked = true; A.change(again); await settle(40); }
   C.eq('no script error on the page', J(errs(A.t)), '[]');

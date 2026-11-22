@@ -126,7 +126,7 @@ try {
   const box = title => [...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].find(tr => tr.querySelector('.tg').textContent === title);
   const type = async (title, v) => { const i = box(title).querySelector('input.urk'); i.value = v; i.dispatchEvent(new W.Event('change', { bubbles: true })); await settle(); };
   C.eq('the Unfunded page: each line’s rank is in a box, as the tracker has it', J(rows()), J([['1', 'Alpha', ''], ['2', 'Bravo', ''], ['3', 'Charlie', ''], ['4', 'Delta', ''], ['1', 'Echo', '']]));
-  C.chk('it says how to rank, and nothing is flagged yet', /Type a rank, or press ▲ ▼/.test(main().querySelector('#uiUfrRankHow').textContent) && !main().querySelector('#uiUfrRankChk') && !main().querySelector('[data-act=ufrreset]'));
+  C.chk('it says how to rank, and nothing is flagged yet', /Drag a line by its title, or type a rank/.test(main().querySelector('#uiUfrRankHow').textContent) && !main().querySelector('#uiUfrRankChk') && !main().querySelector('[data-act=ufrreset]'));
   C.chk('a rank box says its range: 1 to the number of lines of its appropriation and year', box('Delta').querySelector('input.urk').max === '4' && box('Echo').querySelector('input.urk').max === '1');
   S.markSaved && S.markSaved();
   await type('Delta', '1');
@@ -135,12 +135,23 @@ try {
   C.chk('the group says it is in your ranking and offers the tracker’s ranks back; the other group does not', (() => { const g = [...main().querySelectorAll('tr.ugrp')].map(x => x.textContent);
     return /^O&M FY2027 · 4 lines, ranked 1 to 4 across every PMO in your ranking Use the tracker’s ranks$/.test(g[0]) && g[1] === 'Initial Spares FY2027 · 1 line, in the UFR tracker’s ranks'; })(), [...main().querySelectorAll('tr.ugrp')].map(x => x.textContent).join(' | '));
   C.eq('the disconnect is listed on the page', J([...main().querySelectorAll('#uiUfrRankChk li')].map(li => li.textContent.replace(/:.*/, ''))), J(['O&M FY2027']));
-  await click(box('Bravo').querySelector('[data-act=ufrup]'));
-  C.eq('▲ on Bravo moves it up one: Delta, Bravo, Alpha, Charlie', J(rows().slice(0, 4).map(r => r[1])), J(['Delta', 'Bravo', 'Alpha', 'Charlie']));
-  await click(box('Delta').querySelector('[data-act=ufrdown]'));
-  C.eq('▼ on Delta moves it down one: Bravo, Delta, Alpha, Charlie', J(rows().slice(0, 4).map(r => r[1])), J(['Bravo', 'Delta', 'Alpha', 'Charlie']));
-  await click(box('Bravo').querySelector('[data-act=ufrup]'));
-  C.eq('▲ on the first line leaves it first', J(rows().slice(0, 4).map(r => r[1])), J(['Bravo', 'Delta', 'Alpha', 'Charlie']));
+  // §49 no ▲ ▼: a line is dragged by its title (jsdom has no layout, so a clientY of -1 is the top half of a row, 1 the bottom)
+  C.chk('§49 no up or down buttons, and each line of a list of two or more can be dragged', !main().querySelector('[data-act=ufrup], [data-act=ufrdown], .urkb')
+    && ['Alpha', 'Bravo', 'Charlie', 'Delta'].every(t => box(t).classList.contains('mv') && box(t).hasAttribute('data-o')) && !box('Echo').hasAttribute('data-o'));
+  const ev = (el, type, y) => { const e = new W.Event(type, { bubbles: true, cancelable: true }); Object.defineProperty(e, 'clientY', { value: y }); el.dispatchEvent(e); return e; };
+  const drag = async (from, to, y) => { const f = box(from), t = box(to); ev(f.querySelector('th.lab'), 'mousedown', 0); ev(f, 'dragstart', 0); ev(t.querySelector('th.lab'), 'dragover', y); ev(t.querySelector('th.lab'), 'drop', y); ev(f, 'dragend', 0); await settle(); };
+  const alt = async (title, key) => { box(title).querySelector('.tg').dispatchEvent(new W.KeyboardEvent('keydown', { key, altKey: true, bubbles: true, cancelable: true })); await settle(); };
+  await drag('Bravo', 'Alpha', -1);
+  C.eq('Bravo dragged onto the top half of Alpha goes above it: Delta, Bravo, Alpha, Charlie', J(rows().slice(0, 4).map(r => r[1])), J(['Delta', 'Bravo', 'Alpha', 'Charlie']));
+  C.chk('the message says its new rank', /“Bravo” is rank 2 of 4\./.test(doc.querySelector('.msg').textContent), doc.querySelector('.msg').textContent);
+  await drag('Delta', 'Charlie', 1);
+  C.eq('Delta dragged onto the bottom half of Charlie goes below it: Bravo, Alpha, Charlie, Delta', J(rows().slice(0, 4).map(r => r[1])), J(['Bravo', 'Alpha', 'Charlie', 'Delta']));
+  await drag('Delta', 'Echo', -1);
+  C.eq('a line dropped on another appropriation’s list stays where it was', J(rows().map(r => r[1])), J(['Bravo', 'Alpha', 'Charlie', 'Delta', 'Echo']));
+  await alt('Delta', 'ArrowUp'); await alt('Delta', 'ArrowUp');
+  C.eq('Alt with the up arrow on Delta’s title, twice: Bravo, Delta, Alpha, Charlie', J(rows().slice(0, 4).map(r => r[1])), J(['Bravo', 'Delta', 'Alpha', 'Charlie']));
+  await alt('Bravo', 'ArrowUp');
+  C.eq('Alt with the up arrow on the first line leaves it first', J(rows().slice(0, 4).map(r => r[1])), J(['Bravo', 'Delta', 'Alpha', 'Charlie']));
   await type('Alpha', '');
   C.chk('an empty box changes nothing and says a rank is a whole number', J(rows().slice(0, 4).map(r => r[1])) === J(['Bravo', 'Delta', 'Alpha', 'Charlie']) && /A rank is a whole number from 1 to 4/.test(doc.querySelector('.msg').textContent));
   await type('Alpha', '9');
@@ -170,7 +181,7 @@ try {
   const vm = vo.window.document.getElementById('uiMain');
   C.eq('a view-only copy shows the keeper’s ranks', J([...vm.querySelectorAll('#uiUfrT tbody tr[data-ufr]')].slice(0, 5).map(tr => [tr.querySelector('.urank').textContent, tr.querySelector('.tg').textContent])),
     J([['1', 'Bravo'], ['2', ' delta '], ['3', 'Alpha'], ['4', 'Foxtrot'], ['5', 'Alpha']]));
-  C.chk('and has no rank box, no ▲▼, no reset, no list of disconnects, and refuses a ranking', !vm.querySelector('input.urk') && !vm.querySelector('.urkb') && !vm.querySelector('[data-act=ufrreset]') && !vm.querySelector('#uiUfrRankChk')
+  C.chk('and has no rank box, no ▲▼, nothing to drag, no reset, no list of disconnects, and refuses a ranking', !vm.querySelector('input.urk') && !vm.querySelector('.urkb') && !vm.querySelector('#uiUfrT tr[data-o]') && !vm.querySelector('[data-act=ufrreset]') && !vm.querySelector('#uiUfrRankChk')
     && !vm.querySelector('#uiUfrRankHow') && vo.SP.setUfrRank('om|2027', null) === false && !!vo.SP.state.ufrRank);
   C.eq('no script error in the view-only copy', J(errs(vo)), '[]');
   vo.close();

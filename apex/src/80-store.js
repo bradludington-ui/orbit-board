@@ -249,6 +249,8 @@ function st_check(st) {
   if (st.viewOnly !== undefined && typeof st.viewOnly !== 'boolean') return 'its view-only mark is not yes or no';
   const ub = st_checkUfr(st.ufr) || st_checkPublish(st.publish) || st_checkUfrRank(st.ufrRank);
   if (st.ufrMand !== undefined && typeof st.ufrMand !== 'boolean') return 'its Mandatory-as-unfunded switch is not yes or no';
+  const mb = st_checkUfrMandSet(st.ufrMandSet);
+  if (mb) return mb;
   if (ub) return ub;
   return '';
 }
@@ -264,6 +266,13 @@ function st_checkUfrRank(r) {
       return 'its ranking of the unfunded list for ' + g + ' is not a list of lines';
     if (!r[g].every(e => e.m === undefined || e.m === 1)) return 'its ranking of the unfunded list for ' + g + ' has a mark that is not a mark';
   }
+  return '';
+}
+// §49 the keeper's Exec ready? and SFCB action on Mandatory lines: {key: {exec, sfcb}}, both text
+function st_checkUfrMandSet(m) {
+  if (m === undefined || m === null) return '';
+  if (!st_isObj(m) || !Object.keys(m).every(k => st_isObj(m[k]) && typeof m[k].exec === 'string' && typeof m[k].sfcb === 'string' && m[k].exec.length <= 40 && m[k].sfcb.length <= 200))
+    return 'its Exec ready and SFCB action on Mandatory lines are not text by line';
   return '';
 }
 function st_checkUfr(u) {
@@ -1020,14 +1029,15 @@ SP.takeSettings = function takeSettings(text, name) {
     try { yes = typeof window.confirm === 'function' && !!window.confirm(q); } catch (e) { yes = false; }
     if (!yes) return { ok: false, message: 'Nothing was taken: you chose to keep this page’s settings, and “' + fname + '” was not read into it.' };
   }
-  const before = JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank, st.ufrMand]);
+  const before = JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank, st.ufrMand, st.ufrMandSet]);
   if (next) st.settings = next;
   if (hasPub) st.publish = st_clone(inc.publish);
   if (hasUfr) { const u = st_isObj(st.ufr) ? st.ufr : {}; for (const k of Object.keys(inc.ufr)) u[k] = st_clone(inc.ufr[k]); st.ufr = u; }
   // §43 and the ranking of those lists, group by group
   if (st_isObj(inc.ufrRank) && !st_checkUfrRank(inc.ufrRank)) { const u = st_isObj(st.ufrRank) ? st.ufrRank : {}; for (const k of Object.keys(inc.ufrRank)) u[k] = st_clone(inc.ufrRank[k]); if (Object.keys(u).length) st.ufrRank = u; }
   if (inc.ufrMand === true) st.ufrMand = true;   // §45 the Mandatory switch comes across when it was on
-  if (JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank, st.ufrMand]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
+  if (st_isObj(inc.ufrMandSet) && !st_checkUfrMandSet(inc.ufrMandSet)) { const u = st_isObj(st.ufrMandSet) ? st.ufrMandSet : {}; for (const k of Object.keys(inc.ufrMandSet)) u[k] = st_clone(inc.ufrMandSet[k]); if (Object.keys(u).length) st.ufrMandSet = u; }   // §49
+  if (JSON.stringify([st.settings, st.publish, st.ufr, st.ufrRank, st.ufrMand, st.ufrMandSet]) === before) return { ok: true, message: 'Nothing changed: this page already holds what “' + fname + '” has (' + brings.join('; ') + ').' };
   st_changed(false);
   return { ok: true, message: 'Took from “' + fname + '”: ' + brings.join('; ') + '. This page’s pulls and BAE report are as they were. Save to keep it in this page’s file.' };
 };
@@ -1075,6 +1085,22 @@ SP.setUfrMandatory = function setUfrMandatory(on) {
   const st = SP.state, want = on === true;
   if (SP.isViewOnly() || (st.ufrMand === true) === want) return false;
   if (want) st.ufrMand = true; else delete st.ufrMand;
+  st_changed(false);
+  return true;
+};
+// §49 the keeper's Exec ready? ('Yes', 'No' or '') or SFCB action (text) on one Mandatory line, by SP.ufrMandKey. Both
+// empty takes the line out. Refused in a view-only copy.
+SP.setUfrMandStatus = function setUfrMandStatus(key, field, value) {
+  if (SP.isViewOnly() || typeof key !== 'string' || key === '' || (field !== 'exec' && field !== 'sfcb')) return false;
+  let v = String(value === undefined || value === null ? '' : value).replace(/\s+/g, ' ').trim();
+  if (field === 'exec' && v !== '' && v !== 'Yes' && v !== 'No') return false;
+  v = v.slice(0, field === 'exec' ? 40 : 200);
+  const st = SP.state, all = st_isObj(st.ufrMandSet) ? st.ufrMandSet : {};
+  const cur = st_isObj(all[key]) ? all[key] : { exec: '', sfcb: '' };
+  if (cur[field] === v) return false;
+  const next = Object.assign({ exec: '', sfcb: '' }, cur, { [field]: v });
+  if (next.exec === '' && next.sfcb === '') delete all[key]; else all[key] = { exec: next.exec, sfcb: next.sfcb };
+  if (Object.keys(all).length) st.ufrMandSet = all; else delete st.ufrMandSet;
   st_changed(false);
   return true;
 };
