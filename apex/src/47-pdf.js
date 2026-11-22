@@ -19,6 +19,13 @@
 //       {t: 'text', x, y, s, size, bold, color, align}     y is the baseline; align 'l' (default), 'c' or 'r' about x
 //       {t: 'img', x, y, w, h, name}
 // The same input gives the same bytes: nothing here reads a clock.
+//
+// TAGGED PDF (§51, Section 508; Brad, 22 Nov 2026: "add the tags"). When doc.struct is given, the document is tagged: doc.struct
+// is the root of a structure tree of nodes {role, kids: [node], attrs?}, role a standard structure type (Document, H1, H2, P,
+// Table, TR, TH, TD), attrs the table attributes a screen reader reads (Scope 'Column' or 'Row', RowSpan, ColSpan). A text op
+// with `sn` (a node of that tree) is that node's content, in the order drawn; every other op (rules, fills, the emblem, a
+// header repeated on a continued page, the page frame) is an Artifact, which a screen reader skips. The tree's order is the
+// reading order, whatever order the page was drawn in. Without doc.struct the bytes are as they were before §51.
 
 const PDF_W = Object.freeze({
   reg: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,0,556,0,222,556,333,1000,556,556,333,1000,667,333,1000,0,611,0,0,222,222,333,333,350,556,1000,333,1000,500,333,944,0,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,552,400,549,333,333,333,576,537,333,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,549,611,556,556,556,556,500,556,500],
@@ -126,6 +133,9 @@ SP.jpegInfo = function jpegInfo(u8) {
   return null;
 };
 
+// the structure types this writer names; anything else is a paragraph, never a name a reader would not know
+const PDF_ROLES = new Set(['Document', 'Sect', 'H1', 'H2', 'H3', 'P', 'Table', 'TR', 'TH', 'TD', 'Caption', 'Note']);
+function pdf_role(r) { return PDF_ROLES.has(r) ? r : 'P'; }
 SP.pdfBytes = function pdfBytes(doc) {
   if (!doc || !Array.isArray(doc.pages) || !doc.pages.length) throw new Error('pdfBytes: a document needs at least one page');
   const imgs = doc.images && typeof doc.images === 'object' ? doc.images : {};
@@ -151,6 +161,7 @@ SP.pdfBytes = function pdfBytes(doc) {
   }
   const xo = imgNames.length ? ' /XObject << ' + imgNames.map(k => '/' + imgInfo[k].id + ' ' + imgObj[k] + ' 0 R').join(' ') + ' >>' : '';
   const kids = [];
+  const tagged = !!(doc.struct && typeof doc.struct === 'object'), mcPages = [];   // per page: [node] by MCID
   for (const pg of doc.pages) {
     const H = pg.h, W = pg.w;
     if (!(W > 0 && H > 0) || !Array.isArray(pg.ops)) throw new Error('pdfBytes: a page needs a width, a height and a list of ops');
@@ -164,7 +175,11 @@ SP.pdfBytes = function pdfBytes(doc) {
       if (v !== stroke) { stroke = v; c.push(v + ' RG'); }
       if (ww !== lw) { lw = ww; c.push(ww + ' w'); }
     };
+    // tagged: an op with a node is marked content of that node (BDC/EMC with its MCID); a run of other ops is one Artifact
+    const mcs = [];
+    let art = false;
     for (const o of pg.ops) {
+      const k0 = c.length;
       if (o.t === 'rect') {
         if (!o.fill && !o.stroke) continue;
         if (o.fill) setFill(o.fill);
@@ -184,17 +199,56 @@ SP.pdfBytes = function pdfBytes(doc) {
         if (!imgInfo[o.name]) throw new Error('pdfBytes: a page places the picture "' + o.name + '", which was not given');
         c.push('q ' + pdf_n(o.w) + ' 0 0 ' + pdf_n(o.h) + ' ' + pdf_n(o.x) + ' ' + pdf_n(H - o.y - o.h) + ' cm /' + imgInfo[o.name].id + ' Do Q');
       } else throw new Error('pdfBytes: an op of kind ' + JSON.stringify(o.t) + ' is not one this writer draws');
+      if (!tagged || c.length === k0) continue;
+      const sn = o.t === 'text' && o.sn && typeof o.sn === 'object' ? o.sn : null;
+      if (sn) {
+        if (art) { c.splice(k0, 0, 'EMC'); art = false; }
+        const id = mcs.length;
+        mcs.push(sn);
+        (sn.mcr || (sn.mcr = [])).push({ page: kids.length, mcid: id });
+        c.splice(c.length - 1, 0, '/' + pdf_role(sn.role) + ' <</MCID ' + id + '>> BDC');
+        c.push('EMC');
+      } else if (!art) { c.splice(k0, 0, '/Artifact BMC'); art = true; }
     }
+    if (art) c.push('EMC');
+    if (tagged) mcPages.push(mcs);
     const body = c.join('\n') + '\n';
     const content = add('<< /Length ' + body.length + ' >>\nstream\n' + body + 'endstream');
     kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pdf_n(W) + ' ' + pdf_n(H) + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>'
-      + xo + ' >> /Contents ' + content + ' 0 R >>'));
+      + xo + ' >> /Contents ' + content + ' 0 R' + (tagged ? ' /StructParents ' + (kids.length) + ' /Tabs /S' : '') + ' >>'));
+  }
+  // the structure tree: one object per node, its kids its child nodes and its marked content (MCR, naming the page) in order
+  let treeRoot = 0;
+  if (tagged) {
+    const nodes = [], walk = n => { nodes.push(n); for (const k of n.kids || []) walk(k); };
+    walk(doc.struct);
+    const base = objs.length + 1;                 // node i is object base + i; then the parent tree; then the tree root
+    nodes.forEach((n, i) => { n.obj = base + i; });
+    const parentOf = new Map();
+    for (const n of nodes) for (const k of n.kids || []) parentOf.set(k, n);
+    const rootObj = base + nodes.length + 1;
+    for (const n of nodes) {
+      // content on one page (nearly every cell) is its MCIDs with the page named once on the element; across pages, MCRs
+      const mc = n.mcr || [], one = mc.length && mc.every(m => m.page === mc[0].page);
+      const ks = (n.kids || []).map(k => k.obj + ' 0 R').concat(mc.map(m => (one ? String(m.mcid) : '<< /Type /MCR /Pg ' + kids[m.page] + ' 0 R /MCID ' + m.mcid + ' >>')));
+      const a = n.attrs || {}, at = [];
+      if (a.Scope) at.push('/Scope /' + a.Scope);
+      if (a.RowSpan > 1) at.push('/RowSpan ' + a.RowSpan);
+      if (a.ColSpan > 1) at.push('/ColSpan ' + a.ColSpan);
+      const p = parentOf.get(n);
+      add('<< /S /' + pdf_role(n.role) + ' /P ' + (p ? p.obj : rootObj) + ' 0 R' + (one ? ' /Pg ' + kids[mc[0].page] + ' 0 R' : '')
+        + (at.length ? ' /A << /O /Table ' + at.join(' ') + ' >>' : '') + (ks.length === 1 ? ' /K ' + ks[0] : ' /K [' + ks.join(' ') + ']') + ' >>');
+    }
+    add('<< /Nums [' + mcPages.map((ns, i) => i + ' [' + ns.map(n => n.obj + ' 0 R').join(' ') + ']').join(' ') + '] >>');
+    treeRoot = add('<< /Type /StructTreeRoot /K ' + doc.struct.obj + ' 0 R /ParentTree ' + (base + nodes.length) + ' 0 R /ParentTreeNextKey ' + mcPages.length + ' >>');
+    for (const n of nodes) { delete n.obj; delete n.mcr; }
   }
   // what a reader is told about printing: take the paper the page is (so a landscape page is printed landscape, never
   // turned onto a portrait sheet and shrunk), and when printing both sides flip on the short edge, as landscape reads.
   // And what a screen reader is told (Section 508 review I62): the document is in English, and a viewer's window shows
-  // its title rather than its file name. The pages are not tagged: no /MarkInfo is written, since that would claim they are.
-  objs[0] = '<< /Type /Catalog /Pages 2 0 R /Lang (en-US) /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge /DisplayDocTitle true >> >>';
+  // its title rather than its file name. Tagged (§51), it says so (/MarkInfo) and names its structure tree; untagged, it claims nothing.
+  objs[0] = '<< /Type /Catalog /Pages 2 0 R /Lang (en-US) /ViewerPreferences << /PickTrayByPDFSize true /Duplex /DuplexFlipShortEdge /DisplayDocTitle true >>'
+    + (tagged ? ' /MarkInfo << /Marked true >> /StructTreeRoot ' + treeRoot + ' 0 R' : '') + ' >>';
   objs[1] = '<< /Type /Pages /Count ' + kids.length + ' /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] >>';
   // the file: every string is ASCII by construction (pdf_str), so a character is a byte; picture bytes go in as they are
   const parts = [];

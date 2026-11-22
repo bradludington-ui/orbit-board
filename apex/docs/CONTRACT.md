@@ -2509,3 +2509,34 @@ change the status for Exec Ready? and SFCB Action. I also want the unfunded list
 
 `test/ufr-49.test.mjs`; `ufr-view`, `ufr-rank` and `ufr-mandatory` updated for the new columns, rows and drag.
 
+## §51 Tagged spend plan PDFs (Brad, 22 Nov 2026: "add the tags")
+
+Section 508 expects a published PDF to be tagged, so that a screen reader reads its content in order and knows a heading
+from a table cell. Every spend plan PDF (§33) is now a tagged PDF. Nothing a reader sees changes: every page renders pixel for
+pixel as before (checked page by page against the untagged build on the invented data).
+
+- **The writer** (`SP.pdfBytes`, 47-pdf.js) takes `doc.struct`, a tree of nodes `{role, kids, attrs}` (Document, H1, H2, P,
+  Table, TR, TH, TD; attrs Scope Column or Row, RowSpan, ColSpan). A text op with `sn` is that node's marked content (BDC with
+  its MCID); every other op, rules, fills, the emblem and any text without a node, is an Artifact. It writes the structure
+  elements, the parent tree, `/StructParents` and `/Tabs /S` on each page, and `/MarkInfo << /Marked true >>` with the
+  `/StructTreeRoot` in the catalog. Without `doc.struct` the bytes are exactly as before §51, claiming no tags.
+- **The reading order** (`SP.publishPages`, 46-publish.js): the CUI marking once, first; the status page (H1, its two tables
+  as H2 with a table each, the notes as paragraphs); each section's opening page (H1 "FY<year> Spend Plan" and the
+  appropriation); the section (H2), its totals by service (a table: services as row headings), then one spend plan table
+  across all its pages: column headings read once, a group (PMO) cell spanning its rows, each record's title a row heading
+  spanning its rows, its description, award dates, then each service (a row heading) with its five figures; the "All
+  Other ... Contracts" line a row of its own; then the unfunded list (H1, a table: the line's title its row heading, each
+  appropriation and year a row, subtotals and the total with their labels as row headings).
+- **Artifacts:** on a continued page the header, the totals box, the column headings and a group's repeated label; the CUI
+  marking after page 1, the file name and the page numbers on every page.
+- **Size:** the tags make each PDF about 2.4 times larger (the largest invented one, a Full Fund plan of 16 pages, is 1.0 MB,
+  was 0.4 MB). Making them takes about 1.6 times as long (11 PDFs: 240 ms, was 150 ms).
+- **Not done:** the two standard fonts are not embedded (PDF/UA wants every font embedded; Section 508's checklist asks for
+  tagging, reading order, language, title and table headings, which are done). An accessibility checker on a Windows machine
+  (Acrobat's, or PAC) has not been run here; poppler reads the tree with no complaint.
+
+`test/pdf-tags.test.mjs` reads every published PDF byte by byte: the catalog and pages; every text inside marked content;
+the tree, the parent tree and the pages agreeing on every MCID; the CUI marking read first and once; the page frame never
+read; every table square once spans are counted; every TH with a scope; the headings in order; one spend plan table over
+several pages with its headings read once; a record's rows; the unfunded table row by row; and poppler's reading of it.
+
