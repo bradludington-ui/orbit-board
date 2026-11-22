@@ -456,10 +456,10 @@ try {
   C.eq('the page’s title', main().querySelector('h2.title').textContent, 'Publish spend plan');
   const docRows = () => [...main().querySelectorAll('#uiPubDocs tbody tr')].map(tr => [...tr.children].slice(0, 5).map(td => td.textContent));
   C.eq('the documents, before any unfunded list', J(docRows()), J([
-    ['APEX Spend Plan - O&M', 'Consolidated, every PMO · FY2026, FY2027', '4', '0', '0 typed, 4 list plan events'],
-    ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0', '0 typed, 1 list plan events'],
-    ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0', '0 typed, 3 list plan events'],
-    ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0', '0 typed, 3 list plan events']]));
+    ['APEX Spend Plan - O&M', 'Consolidated, every PMO · FY2026, FY2027', '4', '0 / 0', '0 typed, 4 list plan events'],
+    ['APEX Spend Plan - Initial Spares', 'Consolidated, every PMO · FY2027', '1', '0 / 0', '0 typed, 1 list plan events'],
+    ['APEX Spend Plan - PMO AV', 'That PMO only, O&M · FY2026, FY2027', '3', '0 / 0', '0 typed, 3 list plan events'],
+    ['APEX Spend Plan - PMO PP', 'That PMO only, O&M, Initial Spares · FY2027', '3', '0 / 0', '0 typed, 3 list plan events']]));
   C.chk('with no list it says Required equals Approved', /No unfunded list is loaded: Required equals Approved/.test(main().querySelector('#uiPubUfr').textContent));
   // the unfunded list is imported in Settings (CONTRACT §39): Publish PDFs shows what is loaded and opens Settings
   C.chk('Publish PDFs has no import button, no Remove and no file box; it has a button that opens Settings',
@@ -484,7 +484,7 @@ try {
   C.chk('Publish PDFs lists the same list, with no Remove, and says how many things there are to check in Settings', /FY2027: “UFR Tracker FY27\.xlsx”, loaded \d{4}-\d\d-\d\d · 8 lines · \$3,349,345\.60/.test(main().querySelector('#uiPubUfr').textContent)
     && !main().querySelector('[data-act=ufrdel]') && !main().querySelector('#uiUfrNotes') && /^12 to check on the unfunded list, listed in Settings\.$/.test(main().querySelector('#uiPubUfrN').textContent), main().querySelector('#uiPubUfr').textContent);
   C.eq('the documents now carry the unfunded lines, and OPN has a document of its own (unfunded only)', J(docRows().map(r => [r[0], r[2], r[3]])), J([
-    ['APEX Spend Plan - O&M', '6', '4'], ['APEX Spend Plan - Initial Spares', '1', '0'], ['APEX Spend Plan - OPN', '4', '4'], ['APEX Spend Plan - PMO AV', '4', '3'], ['APEX Spend Plan - PMO PP', '8', '5']]));
+    ['APEX Spend Plan - O&M', '6', '4 / 4'], ['APEX Spend Plan - Initial Spares', '1', '0 / 0'], ['APEX Spend Plan - OPN', '4', '4 / 4'], ['APEX Spend Plan - PMO AV', '4', '3 / 3'], ['APEX Spend Plan - PMO PP', '8', '5 / 5']]));   // §55 Discretionary / Disc. and Mand.: this plan has no Mandatory money
   // a description typed is saved and counted
   C.eq('descriptions: none written yet', main().querySelector('#uiPubDescN').textContent, '0 of 9 typed; the rest list their plan events');
   const box = main().querySelector('input[data-act=pubdesc][data-k="jsf6654"]');
@@ -510,13 +510,21 @@ try {
   const usnBox = [...doc2.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => /USN \(USN CV\)/.test(b.parentElement.textContent));
   usnBox.checked = false; change(usnBox); await settle(40);
   C.chk('USN is switched off on screen', !/USN \(USN CV\)/.test(doc2.querySelector('.filtbtn').textContent) && doc2.querySelector('.filtbtn').classList.contains('filtered'), doc2.querySelector('.filtbtn').textContent);
-  C.chk('the page says every service and lane is counted', /Every service and lane is counted, whatever the Filter above says/.test(main().textContent));
-  click(main().querySelector('button[data-act=pubdoc][data-i="0"]'));
+  C.chk('the page says every service is counted, and what each of the two downloads holds', /Every service is counted, whatever the Filter above says/.test(main().textContent)
+    && /Discretionary: the spend plan is the Discretionary money alone/.test(main().querySelector('#uiPubModes').textContent) && main().querySelectorAll('button[data-act=pubdoc]').length === 10);
+  click(main().querySelector('button[data-act=pubdoc][data-m="dm"][data-k="ap:om"]'));
   for (let i = 0; i < 200 && !got.length; i++) await settle(10);
-  C.chk('Download PDF hands the browser a PDF by the document’s name', got.length === 1 && got[0].name === 'APEX Spend Plan - O&M.pdf' && got[0].mime === 'application/pdf' && Buffer.from(got[0].data.slice(0, 5)).toString() === '%PDF-', J(got.map(g => g.name)));
+  C.chk('Download PDF hands the browser a PDF by the document’s name', got.length === 1 && got[0].name === 'APEX Spend Plan - O&M - Discretionary and Mandatory.pdf' && got[0].mime === 'application/pdf' && Buffer.from(got[0].data.slice(0, 5)).toString() === '%PDF-', J(got.map(g => g.name)));
   writeFileSync(join(tmp.dir, 'ui.pdf'), got[0].data);
   const ut = spawnSync('pdftotext', ['-layout', join(tmp.dir, 'ui.pdf'), '-'], { encoding: 'utf8' }).stdout;
   C.chk('with USN switched off on screen the PDF still counts USN: the prime’s Approved is 4,000,000 and Required 6,500,000', /\$\s+6,500,000\s+\$\s+4,000,000/.test(ut) && /O&M FM Lead: O\. Lead/.test(ut) && !/N\. Lead/.test(ut), ut.slice(0, 600));
+  // §55 the Discretionary download of the same document: its own name, and it says what it holds
+  { await settle(60); const keep = got.length; click(main().querySelector('button[data-act=pubdoc][data-m="d"][data-k="ap:om"]'));
+    for (let i = 0; i < 200 && got.length === keep; i++) await settle(10);
+    const g = got[got.length - 1]; writeFileSync(join(tmp.dir, 'uid.pdf'), g.data);
+    const dt = spawnSync('pdftotext', ['-layout', join(tmp.dir, 'uid.pdf'), '-'], { encoding: 'utf8' }).stdout;
+    C.chk('§55 Discretionary hands over its own PDF, named so, saying it is the Discretionary money alone', g.name === 'APEX Spend Plan - O&M - Discretionary.pdf' && /Discretionary: every figure in this PDF is the Discretionary money alone/.test(dt), g.name + ' ' + got.length + ' ' + doc2.querySelector('.msg').textContent);
+    got.splice(keep); }
   // §33.7 the built-in emblem is printed unless the plan holds another or asks for none
   const embBytes = Buffer.from(S2.EMBLEM_DEFAULT.split(',')[1], 'base64');
   C.eq('the built-in emblem is a JPEG, 240 px square', J([/^data:image\/jpeg;base64,/.test(S2.EMBLEM_DEFAULT), S2.jpegInfo(new Uint8Array(embBytes))]), J([true, { w: 240, h: 240, n: 3 }]));
@@ -526,7 +534,7 @@ try {
   const noEmb = main().querySelector('input[data-act=pubnoemb]'); noEmb.checked = true; change(noEmb); await settle();
   C.chk('Print no emblem is kept in the plan, and the page says none is printed', S2.state.publish.noEmblem === true && /No emblem is printed/.test(main().querySelector('#uiPubEmb').textContent));
   got.length = 0;
-  click(main().querySelector('button[data-act=pubdoc][data-i="0"]'));
+  click(main().querySelector('button[data-act=pubdoc][data-m="dm"][data-k="ap:om"]'));
   for (let i = 0; i < 200 && !got.length; i++) await settle(10);
   writeFileSync(join(tmp.dir, 'ui2.pdf'), got[0].data);
   C.eq('and the PDF then carries none', imgs(join(tmp.dir, 'ui2.pdf')), '[[], []]');
@@ -534,13 +542,13 @@ try {
   const noEmb2 = main().querySelector('input[data-act=pubnoemb]'); noEmb2.checked = false; change(noEmb2); await settle();
   got.length = 0;
   await settle();
-  click(main().querySelector('button[data-act=pubzip]'));
+  click(main().querySelector('button[data-act=pubzip][data-m="dm"]'));
   for (let i = 0; i < 300 && !got.length; i++) await settle(10);
   await settle(30);
-  C.chk('Download all hands over one zip, named for the data', got.length === 1 && /^APEX spend plans - data through Oct-2026 - \d{4}-\d\d-\d\d\.zip$/.test(got[0].name) && got[0].mime === 'application/zip', J(got.map(g => g.name)) + ' ' + doc2.querySelector('.msg').textContent);
+  C.chk('Download all hands over one zip, named for the data', got.length === 1 && /^APEX spend plans - Discretionary and Mandatory - data through Oct-2026 - \d{4}-\d\d-\d\d\.zip$/.test(got[0].name) && got[0].mime === 'application/zip', J(got.map(g => g.name)) + ' ' + doc2.querySelector('.msg').textContent);
   writeFileSync(join(tmp.dir, 'all.zip'), got[0].data);
   const zl = spawnSync('python3', ['-c', 'import sys,zipfile\nz=zipfile.ZipFile(sys.argv[1]); print(z.testzip(), sorted(z.namelist()))', join(tmp.dir, 'all.zip')], { encoding: 'utf8' });
-  C.eq('the zip holds the five PDFs, whole', zl.stdout.trim(), "None ['APEX Spend Plan - Initial Spares.pdf', 'APEX Spend Plan - O&M.pdf', 'APEX Spend Plan - OPN.pdf', 'APEX Spend Plan - PMO AV.pdf', 'APEX Spend Plan - PMO PP.pdf']");
+  C.eq('the zip holds the five PDFs, whole', zl.stdout.trim(), "None ['APEX Spend Plan - Initial Spares - Discretionary and Mandatory.pdf', 'APEX Spend Plan - O&M - Discretionary and Mandatory.pdf', 'APEX Spend Plan - OPN - Discretionary and Mandatory.pdf', 'APEX Spend Plan - PMO AV - Discretionary and Mandatory.pdf', 'APEX Spend Plan - PMO PP - Discretionary and Mandatory.pdf']");
   // removing the list
   click(doc2.querySelector('#uiNav [data-act=view][data-v="settings"]')); await settle();
   click(main().querySelector('button[data-act=ufrdel]')); await settle();

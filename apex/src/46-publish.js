@@ -317,6 +317,13 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     // of whose name it begins (three letters or more), or whose name's word it begins with; two that fit is no match.
     let loose = false;
     if (pk === undefined && l.pmo) { const g = pb_pmoShort(l.pmo, pmoOrder, pmoLabel); if (g !== undefined) { pk = g; loose = true; } }
+    // §52/§55 a Mandatory line's PMO is the pull's own: in a Discretionary PDF a PMO with Mandatory money alone is not in the
+    // model, and is named as the pull names it, never flagged as one APEX does not know
+    if (l.mand) {
+      if (pk === undefined) { pk = SP.normKey(l.pmo); addPmo(pk, l.pmo || '(no PMO)'); }
+      ufrKept.push(Object.assign({}, l, { pmoKey: pk, pmoLabel: pmoLabel.get(pk) }));
+      continue;
+    }
     if (pk === undefined) {
       if (inPlan && inPlan.size === 1) {
         pk = [...inPlan][0];
@@ -340,7 +347,6 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     }
     // §52 a Mandatory plan event listed as unfunded (§45's switch on) goes on the unfunded list at the end, in the keeper's
     // ranking, and nowhere else: the spend plan pages already count its money as Approved, so it adds nothing to Required
-    if (l.mand) { ufrKept.push(Object.assign({}, l, { pmoKey: pk, pmoLabel: pmoLabel.get(pk) })); continue; }
     const a = atom(l.ap, l.fy, pk, ccarKey, SP.normKey(l.title));
     for (let i = 0; i <= PB_NSVC; i++) a.ufr[i] += l.cents[i] || 0;
     if (!a.ufrTitle) { a.ufrTitle = l.title; a.ufrCcar = l.ccar; }
@@ -423,7 +429,8 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
     let f = pb_fileSafe(d.file), i = 2;
     while (names.has(f.toLowerCase())) f = pb_fileSafe(d.file) + ' (' + (i++) + ')';
     names.add(f.toLowerCase()); d.file = f + '.pdf';
-    if (d.sections.length) docs.push(d);
+    // §55 a Discretionary PDF of an appropriation or PMO whose money is all Mandatory still lists its Mandatory lines
+    if (d.sections.length || d.ufr.some(l => l.mand)) docs.push(d);
   };
   for (const a of SP.APS) {
     const sections = fys.map(fy => section(a.id, fy, null)).filter(Boolean);
@@ -437,7 +444,7 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
   for (const pk of pmoOrder) {
     const sections = [];
     for (const a of SP.APS) for (const fy of fys) { const s = section(a.id, fy, pk); if (s) sections.push(s); }
-    if (!sections.length) continue;
+    if (!sections.length && !ufrKept.some(l => l.mand && l.pmoKey === pk)) continue;
     const p = (M.pmos || []).find(x => x.key === pk);
     const rows = p ? p.rows.filter(r => fySet.has(r.fy)).slice().sort((x, y) => SP.APS.findIndex(a => a.id === x.ap) - SP.APS.findIndex(a => a.id === y.ap) || x.fy - y.fy) : [];
     const label = pmoLabel.get(pk), code = SP.pmoCode(label);
@@ -621,6 +628,7 @@ SP.publishPages = function publishPages(doc, ctx) {
       { h: 'FY', w: 40, left: true, v: r => (r.total ? '' : 'FY' + r.fy) }].concat(figCols), S.rows.concat([totalRow]));
   }
   const noteLines = [];
+  if (C.mandOff) noteLines.push('Discretionary: every figure in this PDF is the Discretionary money alone. Every Mandatory plan event of the CCaR pull is listed on the unfunded list at the end.');
   noteLines.push(SP.STATUS_LEGEND_TEXT);
   for (const m of ['†', '‡', '§']) if (marks.has(m)) noteLines.push(m + ' ' + SP.markText(m, C.model));
   if (C.bae) noteLines.push('On this page Approved and Authorized are the BAE report’s where it covers a block, as on the APEX Summary. The spend plan pages list the CCaR plan events.');
@@ -882,7 +890,7 @@ SP.publishPages = function publishPages(doc, ctx) {
     }
     closePart();
     sumRow('Total unfunded', U, true);
-    if (U.some(l => l.mand)) { y += 4; if (y + 30 > PB.bodyEnd) uTop(true); cur = nd('P'); for (const s0 of SP.pdfWrap('Lines whose Funding Status is Mandatory are Mandatory plan events from the CCaR pull, listed as unfunded because Mandatory funding has not been received. The spend plan pages above still count them as Approved, and they are not in any Required.', 6.5, false, PB.R - PB.L)) { T(PB.L, y + 7, s0, { size: 6.5, color: PB.mut }); y += 8; } cur = null; }
+    if (U.some(l => l.mand)) { y += 4; if (y + 30 > PB.bodyEnd) uTop(true); cur = nd('P'); for (const s0 of SP.pdfWrap('Lines whose Funding Status is Mandatory are Mandatory plan events from the CCaR pull, listed as unfunded because Mandatory funding has not been received. ' + (C.mandOff ? 'The spend plan pages above are the Discretionary money alone, and these lines are not in any Required.' : 'The spend plan pages above still count them as Approved, and they are not in any Required.'), 6.5, false, PB.R - PB.L)) { T(PB.L, y + 7, s0, { size: 6.5, color: PB.mut }); y += 8; } cur = null; }
     if (U.some(l => l.cents[PB_NSVC])) { y += 4; cur = nd('P'); T(PB.L, y + 7, 'A Total larger than its services holds an amount the tracker gave under no service.', { size: 6.5, color: PB.mut }); }
   }
 

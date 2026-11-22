@@ -2595,3 +2595,29 @@ aligned."* This revises §45 (which kept the PDFs to the tracker's lines) for th
 `test/ufr-mandatory.test.mjs` (§52 checks: each PDF's list in the keeper's order, by appropriation and by PMO; Required and
 every section unchanged; off, the tracker alone; the printed list and its note).
 
+## §55 Two downloads of the spend plan PDFs: Discretionary, and Discretionary and Mandatory (Brad, 22 Nov 2026)
+
+*"Let's just have a button that allows me to download discretionary and then another button that allows me to download
+discretionary and mandatory. In the discretionary it will put just the discretionary requirements in the body of the spend
+plan and all mandatory requirements at the bottom in the unfundeds. For the mandatory plus discretionary download it
+includes discretionary and mandatory requirements in the body of the spend plan and only my uploaded unfunded list at the
+bottom."* This replaces §52 (the Unfunded page's switch no longer reaches the PDFs) and §53, which was never merged (the
+PDFs do not follow the Filter: every service is counted, as §33 had it).
+
+- Spend plan PDFs offers, for each document and for Download all, **Discretionary** and **Discretionary and Mandatory**
+  (`ui_pubData(M, mode)`, `UI_PUB_MODES`, `ui_pubDocAs`). The file name ends ` - Discretionary` or ` - Discretionary and
+  Mandatory` (the zip's too), and so does the name at the foot of every page.
+- **Discretionary**: the body is a model with the Mandatory lane off and every service on (`ui_pubModelDisc`); the list at
+  the end is the tracker's lines and every Mandatory plan event of the pull (`SP.ufrWithMandatory`, with the keeper's Exec
+  ready? and SFCB action, §49), ranked together in the keeper's ranking (`SP.ufrRanked`), whatever the Unfunded page's
+  switch. A Mandatory line adds nothing to Required. An appropriation or PMO whose money is all Mandatory still has a PDF,
+  holding its status table and its list. The status page's notes say the figures are the Discretionary money alone, and the
+  note under the list says what a Mandatory line is.
+- **Discretionary and Mandatory**: the body is every lane; the list at the end is the tracker's lines alone, in the keeper's
+  ranking (as before §52).
+- The documents table counts unfunded lines both ways (`Discretionary / Disc. and Mand.`).
+
+`test/ufr-mandatory.test.mjs` (§55: both lists, by appropriation and PMO, in the keeper's order; the body's Approved each
+way; Required; an all-Mandatory appropriation's PDF; the switch changing neither; the printed words) and
+`test/publish.test.mjs` (the buttons, the names, the zip).
+

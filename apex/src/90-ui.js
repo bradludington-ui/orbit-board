@@ -182,7 +182,7 @@ function ui_model() {
   catch (e) { ui.modelErr = (e && e.message) || String(e); ui.model = null; }
   return ui.model;
 }
-function ui_invalidate() { ui.model = null; ui.modelErr = null; ui.pubM = null; }
+function ui_invalidate() { ui.model = null; ui.modelErr = null; ui.pubM = null; ui.pubMd = null; }
 
 // ---------------------------------------------------------------------------------------------------------------
 // THE MESSAGE LINE: every result and every error is said here, with its reason; nothing is swallowed
@@ -1569,11 +1569,29 @@ function ui_pubState() {
   return { ufr: Xp.ufr, ufrAll: X.ufr, lists, pub: st.publish && typeof st.publish === 'object' ? st.publish : {}, rank: X, mand };
 }
 const UI_PUB_PROGRAM = 'F-35 Sustainment';
-function ui_pubData(M) {
-  const P = ui_pubState(), Mp = ui_pubModel(M);
-  // §52 with the Mandatory switch on, the PDFs' unfunded list holds the Mandatory plan events too, in the keeper's ranking
-  return { Mp, P, D: SP.publishData(Mp, P.mand && P.mand.on ? P.ufrAll : P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
+// §55 TWO DOWNLOADS (Brad, 22 Nov 2026: "a button that allows me to download discretionary and then another button that
+// allows me to download discretionary and mandatory. In the discretionary it will put just the discretionary requirements in
+// the body of the spend plan and all mandatory requirements at the bottom in the unfundeds. For the mandatory plus
+// discretionary download it includes discretionary and mandatory requirements in the body of the spend plan and only my
+// uploaded unfunded list at the bottom"). Both count every service, whatever the Filter says (§33).
+//   'dm'  Discretionary and Mandatory: the body is both lanes; the list at the end is the tracker's, in the keeper's ranking
+//   'd'   Discretionary: the body is the Discretionary lane alone; the list at the end is the tracker's and every Mandatory
+//         plan event of the pull (§45's lines, whatever the Unfunded page's switch), ranked together in the keeper's ranking
+const UI_PUB_MODES = Object.freeze({ d: 'Discretionary', dm: 'Discretionary and Mandatory' });
+function ui_pubModelDisc() {
+  if (!ui.pubMd) { const V = SP.defaultView(); V.lane.mand = false; ui.pubMd = SP.buildModel(ui_pulls(), ui_settings(), V, ui_bae()); }
+  return ui.pubMd;
 }
+function ui_pubData(M, mode) {
+  const P = ui_pubState(), Mfull = ui_pubModel(M);
+  if (mode !== 'd') return { Mp: Mfull, P, mode: 'dm', D: SP.publishData(Mfull, P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
+  const st = ui_state() || {}, raw = st.ufr && typeof st.ufr === 'object' ? st.ufr : {};
+  const W = ui_fn('ufrWithMandatory') ? SP.ufrWithMandatory(raw, Mfull, st.ufrMandSet).ufr : raw;
+  const lists = ui_fn('ufrRanked') ? SP.ufrRanked(W, st.ufrRank).ufr : W, Mp = ui_pubModelDisc();
+  return { Mp, P, mode: 'd', D: SP.publishData(Mp, lists, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
+}
+// a document as a download in a mode: its name says which, and so does every page (the footer and the notes)
+function ui_pubDocAs(d, mode) { return Object.assign({}, d, { file: d.file.replace(/\.pdf$/i, '') + ' - ' + UI_PUB_MODES[mode] + '.pdf' }); }
 // the emblem a document prints: none if the plan says so, else the one loaded, else the built-in one (§33.7)
 function ui_pubEmblem(P) {
   if (P.pub.noEmblem === true) return null;
@@ -1590,28 +1608,32 @@ function ui_pubCtx(Mp, P) {
     if (emblem && !SP.jpegInfo(emblem)) emblem = null;
   }
   return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(), dataDay: up ? up.oldest : '',
-    uploaded: up ? up.text + (up.more ? ' (' + up.more + ')' : '') + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
+    uploaded: up ? up.text + (up.more ? ' (' + up.more + ')' : '') + '.' : '', emblem, model: Mp, bae: ui_rep(Mp), mandOff: !!(Mp.shown && Array.isArray(Mp.shown.lanes) && !Mp.shown.lanes.includes('mand')),
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
 function ui_vPublish(M) {
-  const { Mp, P, D } = ui_pubData(M), vo = ui_vo();
-  ui.reg.pub = { D, Mp, P };
+  const { Mp, P, D } = ui_pubData(M), vo = ui_vo(), Rd = ui_pubData(M, 'd');
+  ui.reg.pub = { D, Mp, P, dm: { D, Mp, P }, d: Rd };
+  const dOf = id => Rd.D.docs.find(x => x.id === id);
   const out = ['<h2 class="title">Publish spend plan</h2>',
     '<p class="l2">A PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). Each opens with its stoplight, '
-    + 'lists Prime Contracts first, and ends with the unfunded list for what it presents. Every service and lane is counted, whatever the Filter above says.</p>'];
+    + 'lists Prime Contracts first, and ends with the unfunded list for what it presents. Every service is counted, whatever the Filter above says.</p>'
+    + '<p class="l2" id="uiPubModes"><strong>Discretionary</strong>: the spend plan is the Discretionary money alone, and the unfunded list at the end is your UFR tracker’s lines and every Mandatory plan event of the CCaR pull, in your ranking. '
+    + '<strong>Discretionary and Mandatory</strong>: the spend plan is both, and the unfunded list at the end is your UFR tracker’s lines alone.</p>'];
   const ticked = y => ui.pub.fys === null || ui.pub.fys.includes(y);
   out.push('<div class="acts pmobar pubbar" role="group" aria-label="What to publish"><span class="fl">Fiscal years</span>'
     + D.allFys.map(y => '<label class="chk"><input type="checkbox" data-act="pubfy" data-fy="' + y + '" data-fkey="pubfy:' + y + '"' + (ticked(y) ? ' checked' : '') + '> FY' + y + '</label>').join('')
-    + '<span class="grow"></span><button type="button" class="primary" data-act="pubzip" data-fkey="pubzip"' + (D.docs.length ? '' : ' disabled') + '>Download all ' + D.docs.length
-    + ' PDF' + (D.docs.length === 1 ? '' : 's') + ' (.zip)</button></div>');
+    + '<span class="grow"></span><button type="button" class="primary" data-act="pubzip" data-m="d" data-fkey="pubzip:d"' + (Rd.D.docs.length ? '' : ' disabled') + '>Download all: Discretionary (.zip)</button>'
+    + '<button type="button" class="primary" data-act="pubzip" data-m="dm" data-fkey="pubzip:dm"' + (D.docs.length ? '' : ' disabled') + '>Download all: Discretionary and Mandatory (.zip)</button></div>');
   if (!D.docs.length) out.push('<p class="none">Nothing to publish for the fiscal years ticked.</p>');
   else {
     out.push('<div class="tw"><table class="grid pubdocs" id="uiPubDocs"><thead><tr class="hd"><th scope="col">Document</th><th scope="col">Covers</th><th scope="col">CCaR records</th>'
-      + '<th scope="col">Unfunded lines</th>' + (vo ? '' : '<th scope="col">Descriptions</th>') + '<th scope="col">PDF</th></tr></thead><tbody>'
+      + '<th scope="col">Unfunded lines (Discretionary / Disc. and Mand.)</th>' + (vo ? '' : '<th scope="col">Descriptions</th>') + '<th scope="col">PDF</th></tr></thead><tbody>'
       + D.docs.map((d, i) => '<tr data-doc="' + ui_e(d.id) + '"><th scope="row">' + ui_e(d.file.replace(/\.pdf$/, '')) + '</th><td>'
         + ui_e((d.kind === 'ap' ? 'Consolidated, every PMO' : 'That PMO only, ' + [...new Set(d.sections.map(s => s.apLabel))].join(', ')) + ' · ' + [...new Set(d.sections.map(s => 'FY' + s.fy))].join(', '))
-        + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + SP.fmtInt(d.ufr.length) + '</td><td>'
-        + (vo ? '' : (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td>') + '<button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
+        + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + (dOf(d.id) ? SP.fmtInt(dOf(d.id).ufr.length) : '-') + ' / ' + SP.fmtInt(d.ufr.length) + '</td><td>'
+        + (vo ? '' : (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td>') + (dOf(d.id) ? '<button type="button" data-act="pubdoc" data-m="d" data-k="' + ui_e(d.id) + '" data-fkey="pubdoc:d:' + ui_e(d.id) + '" aria-label="Download ' + ui_e(d.file.replace(/\.pdf$/, '')) + ', Discretionary">Discretionary</button> ' : '')
+          + '<button type="button" data-act="pubdoc" data-m="dm" data-k="' + ui_e(d.id) + '" data-fkey="pubdoc:dm:' + ui_e(d.id) + '" aria-label="Download ' + ui_e(d.file.replace(/\.pdf$/, '')) + ', Discretionary and Mandatory">Disc. and Mand.</button></td></tr>').join('')
       + '</tbody></table></div>');
   }
   // the unfunded list: what is loaded. It is imported, removed and checked in Settings (Brad, 19 Nov 2026: "Let's move it
@@ -1652,22 +1674,23 @@ function ui_vPublish(M) {
   return out.join('');
 }
 function ui_pubReady() { return ui.reg && ui.reg.pub ? ui.reg.pub : null; }
-async function ui_pubDownload(i) {
-  const R = ui_pubReady(), d = R && R.D.docs[i];
-  if (!d) return;
+async function ui_pubDownload(id, mode) {
+  const R0 = ui_pubReady(), m = mode === 'd' ? 'd' : 'dm', R = R0 && R0[m], d0 = R && R.D.docs.find(x => x.id === id);
+  if (!d0) return;
+  const d = ui_pubDocAs(d0, m);
   await ui_busy('the PDF', async () => {
     const name = SP.download(d.file, SP.publishPdf(d, ui_pubCtx(R.Mp, R.P)), 'application/pdf');
     ui_say('Saved “' + name + '” as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
-async function ui_pubZip() {
-  const R = ui_pubReady();
+async function ui_pubZip(mode) {
+  const R0 = ui_pubReady(), m = mode === 'd' ? 'd' : 'dm', R = R0 && R0[m];
   if (!R || !R.D.docs.length) return;
   await ui_busy('the PDFs', async () => {
     ui_say('Writing ' + R.D.docs.length + ' PDFs…', 'info');
     const ctx = ui_pubCtx(R.Mp, R.P);
-    const bytes = await SP.zipFiles(R.D.docs.map(d => ({ name: d.file, data: SP.publishPdf(d, ctx) })));
-    const name = SP.download('APEX spend plans - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + '.zip', bytes, 'application/zip');
+    const bytes = await SP.zipFiles(R.D.docs.map(d0 => { const d = ui_pubDocAs(d0, m); return { name: d.file, data: SP.publishPdf(d, ctx) }; }));
+    const name = SP.download('APEX spend plans - ' + UI_PUB_MODES[m] + ' - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + '.zip', bytes, 'application/zip');
     ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
@@ -3529,8 +3552,8 @@ function ui_onClick(ev) {
     case 'copypic': ui_picture('copy', Number(t.getAttribute('data-b')), t.hasAttribute('data-p') ? Number(t.getAttribute('data-p')) : null); break;
     case 'savepic': ui_picture('save', Number(t.getAttribute('data-b')), t.hasAttribute('data-p') ? Number(t.getAttribute('data-p')) : null); break;
     case 'zip': ui_zip(); break;
-    case 'pubdoc': ui_pubDownload(Number(t.getAttribute('data-i'))); break;
-    case 'pubzip': ui_pubZip(); break;
+    case 'pubdoc': ui_pubDownload(t.getAttribute('data-k'), t.getAttribute('data-m')); break;
+    case 'pubzip': ui_pubZip(t.getAttribute('data-m')); break;
     case 'viewcopy': ui_viewCopy(); break;
     case 'ufropen': { const k = t.getAttribute('data-k'); ui.ufr.open = ui.ufr.open === k ? '' : k; ui_render(); break; }
     case 'ufrclear': ui.ufr = { pmo: null, ap: null, fy: null, status: null, q: '', open: '' }; ui_render(); break;
