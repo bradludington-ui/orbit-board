@@ -265,7 +265,10 @@ for the switches.
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
   its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
   Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
-  presents. **Download PDF** saves one; **Download all** saves them in one zip. The PDFs are **tagged for Section 508**: a
+  presents. **Download PDF** saves one; **Download all** saves them in one zip. The PDFs **follow the Filter**, as Export
+  Excel does: a service or lane switched off is left out of every figure and of the unfunded list (with the Mandatory lane
+  off, no Mandatory money and no Mandatory line), and such a PDF has *[filtered]* in its name and says what it shows at the
+  foot of every page. The PDFs are **tagged for Section 508**: a
   screen reader reads them in order, as headings, paragraphs and tables with their column and row headings; the CUI
   marking is read once, and page numbers and repeated headings are skipped. They look exactly as before. On the page, and in Settings:
   - **Import unfunded list…**, in **Settings** under Set up, takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and

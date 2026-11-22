@@ -2595,3 +2595,22 @@ aligned."* This revises §45 (which kept the PDFs to the tracker's lines) for th
 `test/ufr-mandatory.test.mjs` (§52 checks: each PDF's list in the keeper's order, by appropriation and by PMO; Required and
 every section unchanged; off, the tracker alone; the printed list and its note).
 
+## §53 The PDFs follow the Filter (Brad, 22 Nov 2026)
+
+*"When I uncheck mandatory for the filter, the PDF doesn't update to remove the mandatory funded requirements from the PDF
+spend plan data or summary table."* Until now a published PDF counted every service and lane whatever the Filter said
+(`ui_pubModel`). It now follows the Filter, as Export Excel and the pictures do.
+
+- `ui_pubData` passes the model of the page (the Filter's) to `SP.publishData`. Every figure follows: the stoplight, each
+  section's totals by service, every record's rows, Approved, Obligated, Remaining, Required and Delta.
+- The unfunded list follows too (`ui_ufrForView`): a service switched off is left out of every line's amounts (and so out of
+  Required); with the Mandatory lane off, §45's Mandatory lines are not listed (§52), as on the Unfunded page. The tracker's
+  lines have no lane and stay.
+- A PDF made with any switch off has ` [filtered]` in its file name (`opts.filtered`; the zip's name already said so), its foot
+  on every page reads its name then what is shown (`Services shown: …; lanes shown: …`, in ink, bold), and the status page's
+  notes say what was left out. With everything shown, nothing changes: the same bytes as before.
+- The Help on Spend plan PDFs says so; it said the opposite.
+
+`test/ufr-mandatory.test.mjs` (§53: Mandatory lane off, the O&M PDF's Approved, stoplight and unfunded list, every name and
+page saying so; USAF off, each unfunded line's amounts; switched back on, everything as before).
+
