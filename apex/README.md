@@ -293,7 +293,9 @@ for the switches.
   **Mandatory funding not received:** a switch on this page lists every plan event on a Mandatory budget in the CCaR
   pull as unfunded, one line per plan event, marked *Mandatory*. They come from the pull, so there is nothing to type
   and nothing to keep in step; switch it off and the list is the tracker alone again. For now this changes the Unfunded
-  page only: the spend plan pages and the PDFs still count Mandatory as Approved. A view-only copy made with the switch
+  page only on screen: the spend plan pages and the PDFs still count Mandatory as Approved. In the PDFs, the unfunded list at
+  the end of each appropriation's and each PMO's PDF lists the Mandatory lines too, in your ranking, with a note saying
+  what they are; they add nothing to Required. A view-only copy made with the switch
   on shows the Mandatory lines and cannot change the switch. On a Mandatory line you set **Exec ready?** (Yes, No or
   blank) and **SFCB action** yourself, since the pull carries neither; the Exec ready and SFCB approved tiles count them,
   they are kept with the line when a new pull is imported, and a view-only copy shows them without a way to change them.

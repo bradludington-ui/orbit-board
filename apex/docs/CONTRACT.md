@@ -2575,3 +2575,23 @@ the tree, the parent tree and the pages agreeing on every MCID; the CUI marking 
 read; every table square once spans are counted; every TH with a scope; the headings in order; one spend plan table over
 several pages with its headings read once; a record's rows; the unfunded table row by row; and poppler's reading of it.
 
+## §52 Mandatory lines on the PDFs' unfunded list (Brad, 22 Nov 2026)
+
+*"If I click mandatory funding not received on the unfundeds, I need the Mandatory requirements that are now listed as
+unfundeds to populate at the bottom of the PDFs in the order I've updated. On the appropriation ones and the PMOs where
+aligned."* This revises §45 (which kept the PDFs to the tracker's lines) for the unfunded list only.
+
+- With §45's switch on, `ui_pubData` gives `SP.publishData` the lists the Unfunded page shows (`ufrAll`: the tracker's lines
+  and the Mandatory plan events, in the keeper's §43 ranking). Off, the tracker's alone, as before.
+- In `SP.publishData` a Mandatory line is placed under its PMO (from the pull) and goes onto the unfunded list at the end of
+  its appropriation's PDF and its PMO's PDF, sorted by rank as every line is. It goes nowhere else: it adds nothing to a
+  record's Required (the spend plan pages already count its money as Approved), makes no "unfunded only" record and raises
+  no flag. Every section's figures are exactly as with the switch off.
+- Its Funding Status reads Mandatory, and its Exec Ready? and SFCB Action are the keeper's (§49). Under the list, a note:
+  "Lines whose Funding Status is Mandatory are Mandatory plan events from the CCaR pull, listed as unfunded because
+  Mandatory funding has not been received. The spend plan pages above still count them as Approved, and they are not in any
+  Required." The list's subtotals and total include them, as the Unfunded page's do.
+
+`test/ufr-mandatory.test.mjs` (§52 checks: each PDF's list in the keeper's order, by appropriation and by PMO; Required and
+every section unchanged; off, the tracker alone; the printed list and its note).
+
