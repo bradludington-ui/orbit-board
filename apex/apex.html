@@ -757,6 +757,15 @@ table.srrbt .srrbother{color:var(--ochre)}
 .mtag{display:inline-block;padding:0 7px;border-radius:999px;background:var(--ochre);color:#fff;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px;white-space:nowrap}
 table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
 @media (min-width:1101px){.tiles.tiles5{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+/* §50 DOWNLOAD THIS LIST: one button beside a list's heading (or under Requirements' count line). It wraps under the heading
+   on a narrow screen rather than widen the page, and it is not printed: paper has nothing to download. */
+.dlhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;min-width:0}
+.dlhead .pmoall{margin-right:auto}
+.dlrow{margin:2px 0 8px}
+.dlhead .dlrow{margin:0 0 6px}
+main.ov .dlbtn{max-width:100%;min-height:30px;padding:4px 12px;font:inherit;font-weight:600;white-space:normal;text-align:left;cursor:pointer}
+@media print{.dlrow,.dlbtn{display:none!important}}
 </style>
 </head>
 <body>
@@ -813,6 +822,7 @@ SP.ORDER_DRAG = true;     // false: the spend plan trees without §46's drag (no
 SP.PMO_PICTURES = true;    // false: the screens without §41's PMO picture buttons and words, for a comparison with an older build
 SP.PIC_CUI = false;        // true draws the marking in a picture's two bands, as before §41: only a comparison with an older build asks for it
 SP.NA_FOLD = true;        // false: an appropriation's Unobligated lists drawn open, as before review I02, for a comparison with an older build
+SP.LIST_DL = true;        // false: Requirements, My PMO, Unfunded and SRRB without §50's Download this list button, for a comparison with an older build
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated
@@ -8324,6 +8334,138 @@ SP.exportExcel = async function exportExcel() {
   }
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// §50 DOWNLOAD THIS LIST (Brad, 22 Nov 2026): one sheet holding exactly the lines a narrowable list shows -- Requirements
+// (Find), My PMO, Unfunded and SRRB -- after the page's pickers, its Find box and the Filter's switches, in the order shown,
+// with the screen's columns and figures. Nothing here works a figure out: each page hands over the lines it has drawn
+// (SP.listOfFind/OfPmo/OfUfr/OfSrrb only lay them out, cents as cents), and SP.listSpec writes them as numbers in $M or
+// $K, as the page prints them. The sheet carries the workbook's CUI header and footer and a CUI line at its top and foot,
+// which pickers were set, the Filter's words and the Data through month.
+//
+//   L = {page, title, asOfLabel, today, picks, shown, cols:[{h, w, t:'s'|'m'|'k'|'n'}],
+//        rows:[{k:'line'|'group'|'sub'|'total', c:[text | cents | number]}]}
+//   SP.listSpec(L)                       -> the spec SP.writeXlsx is given (one sheet)
+//   SP.listFileName(M, page, today)      -> 'APEX FY2027 - Unfunded list - data through Oct-2026 - 2026-11-22.xlsx'
+// ---------------------------------------------------------------------------------------------------------------
+const EX_FK = '#,##0;(#,##0);-';   // $K, whole thousands, as SP.fmtK prints them
+const EXL = (() => {
+  const f = o => Object.freeze(o), thin = EX_THIN, right = f({ h: 'right', v: 'center' }), left = f({ h: 'left', v: 'center', wrap: true });
+  const fo = f({ sz: 10, color: EX_INK }), bo = f({ b: true, sz: 10, color: EX_INK }), wb = f({ b: true, sz: 10, color: EX_WHITE });
+  const set = (font, fill) => ({ s: ex_s(font, fill, null, left, thin), m: ex_s(font, fill, EX_FM, right, thin), k: ex_s(font, fill, EX_FK, right, thin),
+    n: ex_s(font, fill, '0', right, thin) });
+  return { line: set(fo, null), sub: set(bo, EX_STRIP), total: set(wb, EX_NAVY), group: ex_s(f({ b: true, sz: 11, color: EX_NAVY }), EX_STRIP, null, f({ h: 'left', v: 'center', indent: 1 }), thin),
+    note: ex_s(f({ sz: 10, color: EX_INK }), null, null, f({ h: 'left', v: 'center', wrap: true })) };
+})();
+// the text a cell carries where a figure is not a figure ('Unfunded only'); a number in a money column is cents
+function ex_listCell(v, t, set) {
+  if (v === null || v === undefined || v === '') return { s: set.s };
+  if (typeof v === 'number' && isFinite(v)) {
+    if (t === 'm') return ex_mc(v, set.m);
+    if (t === 'k') return { v: v / 1e5, s: set.k };
+    if (t === 'n') return { v, s: set.n };
+  }
+  return { v: String(v), s: set.s };
+}
+SP.listSpec = function listSpec(L) {
+  if (!L || !Array.isArray(L.cols) || !L.cols.length || !Array.isArray(L.rows)) throw new Error('There is no list to write.');
+  const K = ex_sheet(String(L.page || 'List').slice(0, 31), L.cols.map(c => c.w || 14));
+  ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+  ex_title(K, String(L.title || ''));
+  ex_span(K, 'Data through ' + (L.asOfLabel || '') + ' | Downloaded ' + (L.today || ex_today()) + ' | ' + L.rows.filter(r => r.k === 'line').length + ' lines, in the order shown on the page',
+    EXS.shown, 0, K.W - 1);
+  const pk = 'Picked on the page: ' + (L.picks || 'nothing (the whole list)');
+  ex_span(K, pk, EXL.note, 0, K.W - 1, { ht: ex_ht(ex_lines(pk, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  const sw = 'Filter: ' + (L.shown || '');
+  ex_span(K, sw, EXL.note, 0, K.W - 1, { ht: ex_ht(ex_lines(sw, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  const head = ex_headRow(K, L.cols.map(c => c.h), 30);
+  for (const r of L.rows) {
+    if (r.k === 'group') { ex_span(K, String(r.c[0] || ''), EXL.group, 0, K.W - 1); continue; }
+    const set = EXL[r.k] || EXL.line;
+    ex_push(K, L.cols.map((c, i) => ex_listCell(r.c[i], c.t, set)));
+  }
+  ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+  K.sh.freeze = 'A' + (head + 1);
+  return { creator: 'APEX', sheets: [K.sh] };
+};
+SP.listBytes = async function listBytes(L) { return SP.writeXlsx(SP.listSpec(L)); };
+// the workbook's pattern with the page named: a list emailed on says what it is, which month, which day, and whether
+// the Filter hid anything (the pickers are named inside, on the sheet)
+SP.listFileName = function listFileName(model, page, today) {
+  const day = typeof today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(today) ? today : ex_today();
+  return 'APEX FY' + model.E + ' - ' + String(page).replace(/[\\/:*?"<>|]/g, '-') + ' list - data through ' + model.asOfLabel + ' - ' + day
+    + (model.shown && model.shown.all ? '' : ' [filtered]') + '.xlsx';
+};
+// a requirement's Projected award as the page words it (Awarded, Was Dec-2026, a month, No date)
+SP.listWhen = function listWhen(r) {
+  if (r.state === 'awarded') return 'Awarded';
+  if (r.state === 'late') return 'Was ' + SP.ymWords(r.next);
+  if (r.state === 'planned') return SP.ymWords(r.next);
+  return 'No date';
+};
+// an SRRB line's award months as the page words them: three, then "+N more"; No date
+SP.srrbMonthsText = function srrbMonthsText(l) {
+  const w = (l.months || []).map(ym => { const m = /^(\d{4})-(\d{2})/.exec(ym); return m ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : ym; });
+  const shown = w.slice(0, 3).join(', ') + (w.length > 3 ? ' +' + (w.length - 3) + ' more' : '');
+  return shown ? shown + (l.nodate ? ', No date' : '') : (l.nodate ? 'No date' : '');
+};
+const EX_REQ_COLS = Object.freeze([{ h: 'Requirement', w: 44, t: 's' }, { h: 'CCaR', w: 14, t: 's' }, { h: 'PMO', w: 24, t: 's' }, { h: 'Appropriation', w: 20, t: 's' },
+  { h: 'Planned ($M)', w: 13, t: 'm' }, { h: 'Awarded ($M)', w: 13, t: 'm' }, { h: 'Still to award ($M)', w: 13, t: 'm' }, { h: 'Projected award', w: 16, t: 's' }]);
+function ex_reqLine(r) { return { k: 'line', c: [r.title, r.ccar, r.pmo, r.apLabel + ' FY' + r.fy, r.planned, r.awarded, r.remaining, SP.listWhen(r)] }; }
+function ex_reqTotal(list, label) {
+  const sum = f => list.reduce((s, r) => s + r[f], 0);
+  return { k: 'total', c: [label, '', '', '', sum('planned'), sum('awarded'), sum('remaining'), ''] };
+}
+// Requirements (Find): the rows listed, in the page's order, with its "Also matched …" heading where it falls
+SP.listOfFind = function listOfFind(shown, lead) {
+  const rows = [];
+  shown.forEach((r, i) => {
+    if (lead > 0 && lead < shown.length && i === lead) rows.push({ k: 'group', c: ['Also matched a plan event, description, PID, budget or PMO'] });
+    rows.push(ex_reqLine(r));
+  });
+  rows.push(ex_reqTotal(shown, 'Total, ' + shown.length + (shown.length === 1 ? ' requirement' : ' requirements') + ' listed'));
+  return { cols: EX_REQ_COLS.slice(), rows };
+};
+// My PMO: its Every requirement table (the office is the page's heading, so it is not a column)
+SP.listOfPmo = function listOfPmo(mine) {
+  const cols = EX_REQ_COLS.filter(c => c.h !== 'PMO');
+  const rows = mine.map(r => { const x = ex_reqLine(r); x.c.splice(2, 1); return x; });
+  const t = ex_reqTotal(mine, 'Total, ' + mine.length + (mine.length === 1 ? ' requirement' : ' requirements')); t.c.splice(2, 1); rows.push(t);
+  return { cols, rows };
+};
+// Unfunded (§37, §49): each list's heading, its lines in rank order, its subtotal, then the total; $K
+SP.listOfUfr = function listOfUfr(V) {
+  const cols = [{ h: 'Rank', w: 7, t: 'n' }, { h: 'Requirement', w: 40, t: 's' }, { h: 'CCaR Record', w: 14, t: 's' }, { h: 'PMO', w: 22, t: 's' }]
+    .concat(V.svc.map(x => ({ h: x.label + ' ($K)', w: 11, t: 'k' })))
+    .concat([{ h: 'Total ($K)', w: 12, t: 'k' }, { h: 'Funding status', w: 16, t: 's' }, { h: 'Exec ready?', w: 11, t: 's' }, { h: 'SFCB action', w: 18, t: 's' }, { h: 'Approved in plan ($K)', w: 14, t: 'k' }]);
+  const pad = n => Array(n).fill('');
+  const rows = [], RK = V.rank && V.rank.groups ? V.rank.groups : {};
+  for (const g of V.groups) {
+    const G = RK[g.ap + '|' + g.fy], nAll = G && typeof G.n === 'number' ? G.n : g.lines.length;
+    rows.push({ k: 'group', c: [g.apLabel + ' FY' + g.fy] });
+    for (const l of g.lines) {
+      const rk = /^\s*\d+\s*$/.test(String(l.rank)) ? Number(l.rank) : l.rank;
+      rows.push({ k: 'line', c: [rk, (l.title || '(no title)'), l.ccar || '', l.pmoLabel].concat(l.amt, [l.sum, l.status, l.exec, l.sfcb, l.plan ? l.plan.approved : 'Unfunded only']) });
+    }
+    rows.push({ k: 'sub', c: ['', 'Subtotal, ' + g.apLabel + ' FY' + g.fy + (g.lines.length < nAll ? ' (the lines shown)' : ''), '', ''].concat(V.svc.map((_, k) => g.lines.reduce((n, l) => n + l.amt[k], 0)),
+      [g.lines.reduce((n, l) => n + l.sum, 0)], pad(4)) });
+  }
+  rows.push({ k: 'total', c: ['', 'Total unfunded' + (V.groups.length > 1 ? ', every list shown' : ''), '', ''].concat(V.total.amt, [V.total.sum], pad(4)) });
+  return { cols, rows };
+};
+// SRRB (§44): each appropriation and year's heading and its lines, then the total; $M
+SP.listOfSrrb = function listOfSrrb(V) {
+  const cols = [{ h: 'Requirement (Plan Event Title)', w: 40, t: 's' }, { h: 'CCaR records', w: 16, t: 's' }, { h: 'PMO', w: 24, t: 's' }, { h: 'Award date', w: 18, t: 's' }]
+    .concat(V.svc.map(x => ({ h: x.label + ' ($M)', w: 11, t: 'm' })))
+    .concat([{ h: 'Total ($M)', w: 12, t: 'm' }, { h: 'SRRB', w: 7, t: 's' }, { h: 'Not counted: rows not marked Yes ($M)', w: 16, t: 'm' }]);
+  const rows = [];
+  for (const g of V.groups) {
+    rows.push({ k: 'group', c: [g.apLabel + ' FY' + g.fy] });
+    for (const l of g.lines) rows.push({ k: 'line', c: [l.title, l.ccars.join(', '), l.pmos.map(p => p.label).join(', '), SP.srrbMonthsText(l)].concat(l.amt, [l.sum, 'Yes', l.other || '']) });
+  }
+  rows.push({ k: 'total', c: ['Total', '', '', ''].concat(V.total.amt, [V.total.sum, '', '']) });
+  return { cols, rows };
+};
+
 // ===== 70-pictures.js =====
 // §10 PICTURES — one slide block as a picture for PowerPoint (CONTRACT §10).
 //
@@ -10892,7 +11034,7 @@ function ui_findRes(M) {
   const rows = shown.map((r, i) => (i === also ? '<tr class="fgrp"><th colspan="6" scope="colgroup">Also matched a plan event, description, PID, budget or PMO</th></tr>' : '') + '<tr data-rk="' + all.indexOf(r) + '"' + (sel === r ? ' class="cur"' : '') + '><th scope="row" class="lab"><button type="button" class="tg" data-act="findsel" data-i="'
     + all.indexOf(r) + '" data-fkey="findsel:' + all.indexOf(r) + '" aria-expanded="' + (sel === r ? 'true' : 'false') + '">' + ui_e(r.title) + '</button><span class="fsub">' + ui_e(r.ccar) + ' · ' + ui_e(r.pmo) + '</span></th>'
     + '<td>' + ui_e(r.apLabel) + ' FY' + r.fy + '</td>' + ui_m(r.planned) + ui_m(r.awarded) + ui_m(r.remaining) + '<td class="fw">' + ui_reqWhen(r) + '</td></tr>').join('');
-  return count + '<div class="findtwo"><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
+  return count + ui_listBtn('find', 'the requirements listed') + '<div class="findtwo"><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
     + '<th scope="col" class="n">Planned ($M)</th><th scope="col" class="n">Awarded ($M)</th><th scope="col" class="n">Still to award ($M)</th><th scope="col">Projected award</th></tr></thead><tbody>'
     + rows + '</tbody></table></div>' + ui_findDetail(sel) + '</div>';
 }
@@ -10986,9 +11128,10 @@ function ui_ymAdd(ym, n) {
 function ui_reqBtn(r, all, key) {
   return '<button type="button" class="tg" data-act="reqopen" data-i="' + all.indexOf(r) + '" data-fkey="' + key + ':' + all.indexOf(r) + '">' + ui_e(r.title) + '</button>';
 }
-function ui_vMyPmo(M) {
+// the office and year My PMO shows, and its requirements: one reading for the page and for §50's download of its list
+function ui_myPmoSel(M) {
   const all = ui_reqs(M), P = ui_reqPicks(all), S = ui.pmo;
-  if (!all.length) return '<div class="ovhead"><h2 class="ovtitle">My PMO</h2></div><p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><p class="none">No requirement is counted.</p>';
+  if (!all.length) return { all, P, S, mine: [], fys: [] };
   if (S.key === undefined) { try { const k = window.localStorage.getItem(UI_PMO_KEY); if (k !== null) S.key = k; } catch (e) { /* no storage: the first office */ } }
   // with nothing remembered, the first office that has a name: (no PMO), whose key is '', is nobody's own
   if (S.key === undefined || !P.pmos.some(p => p[0] === S.key)) S.key = (P.pmos.find(p => p[0] !== '') || P.pmos[0])[0];
@@ -10996,7 +11139,11 @@ function ui_vMyPmo(M) {
   const mine0 = all.filter(r => r.pmoKey === S.key);
   const fys = [...new Set(mine0.map(r => r.fy))].sort((a, b) => a - b).map(f => [String(f), 'FY' + f]);
   if (S.fy !== null && !fys.some(p => p[0] === S.fy)) S.fy = null;
-  const mine = mine0.filter(r => S.fy === null || String(r.fy) === S.fy);
+  return { all, P, S, fys, label: ui.pmoLabel, mine: mine0.filter(r => S.fy === null || String(r.fy) === S.fy) };
+}
+function ui_vMyPmo(M) {
+  const { all, P, S, fys, mine } = ui_myPmoSel(M);
+  if (!all.length) return '<div class="ovhead"><h2 class="ovtitle">My PMO</h2></div><p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><p class="none">No requirement is counted.</p>';
   const sum = f => mine.reduce((s, r) => s + r[f], 0), planned = sum('planned'), awarded = sum('awarded');
   const evs = mine.flatMap(r => r.events.filter(e => !e.awarded).map(e => ({ r, e })));
   const late = evs.filter(x => x.e.late).sort((a, b) => (a.e.ym < b.e.ym ? -1 : a.e.ym > b.e.ym ? 1 : b.e.cents - a.e.cents));
@@ -11052,7 +11199,7 @@ function ui_vMyPmo(M) {
       '<p class="ltot" id="uiPmoSoonTot" data-c="' + soonCents + '">' + SP.fmtInt(soon.length) + (soon.length === 1 ? ' plan event' : ' plan events') + ', ' + ui_e(SP.fmtMText(soonCents)) + ' ($M), '
         + (win === 1 ? 'in ' + ui_e(SP.ymWords(to)) : ui_e(SP.ymWords(ui_ymAdd(M.asOf, 1))) + ' to ' + ui_e(SP.ymWords(to))) + '</p>')
     + lst('late', 'Past its projected date, not yet awarded', late, 'Nothing is past its projected date.')
-    + '</div><h3 class="pmoall">Every requirement</h3><div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
+    + '</div>' + ui_listHead('pmo', 'Every requirement', mine.length) + '<div class="fsheet tw"><table class="grid findt"><thead><tr class="hd"><th scope="col" class="lab">Requirement</th><th scope="col">Appropriation</th>'
     + '<th scope="col" class="n">Planned ($M)</th><th scope="col" class="n">Awarded ($M)</th><th scope="col" class="n">Still to award ($M)</th><th scope="col">Projected award</th></tr></thead><tbody>'
     + rows + '</tbody></table></div>'
     + '<p class="cardnote findnote">The months of the first list are those after the Data through month: Coming up picks how many. Past its projected date: a plan event not awarded whose month has closed. '
@@ -11489,7 +11636,7 @@ function ui_ufrBody(M, V) {
     + (V.mand && V.mand.on ? (V.tiles.mand.hidden && !V.tiles.mand.n ? tile('mand', 'Mandatory, not received', 'Hidden', 'by the Filter’s Mandatory lane switch: ' + SP.fmtInt(V.tiles.mand.hidden) + (V.tiles.mand.hidden === 1 ? ' plan event' : ' plan events'))
       : tile('mand', 'Mandatory, not received', ui_e(K(V.tiles.mand.sum)), SP.fmtInt(V.tiles.mand.n) + (V.tiles.mand.n === 1 ? ' plan event' : ' plan events') + ' from the CCaR pull', V.tiles.mand.sum)) : '')
     + '</div><div class="pmotwo">' + bars('pmo', 'Unfunded by PMO ($K)', V.byPmo) + bars('svc', 'Unfunded by service ($K)', V.bySvc) + '</div>'
-    + chk + '<h3 class="pmoall">Every unfunded requirement, by rank</h3>'
+    + chk + ui_listHead('ufr', 'Every unfunded requirement, by rank', V.n)
     + (edit ? '<p class="cardnote" id="uiUfrRankHow">Drag a line by its title, or type a rank, to put a list in your own order, 1 to N within its appropriation and fiscal year. Your order is used in place of the tracker’s, here, on the PDFs and in a view-only copy, '
       + 'and is kept when a tracker is imported again: a line is known by its CCaR record and its title together, and everything else about it is the tracker’s.'
       + (V.mand && V.mand.on ? ' On a Mandatory line you set Exec ready? and SFCB action here; they are kept the same way.' : '') + '</p>' : '')
@@ -11568,11 +11715,8 @@ function ui_srrbData(M) {
   }
   return V;
 }
-function ui_srrbMonths(l) {
-  const w = l.months.map(ym => { const m = /^(\d{4})-(\d{2})/.exec(ym); return m ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : ym; });
-  const shown = w.slice(0, 3).join(', ') + (w.length > 3 ? ' +' + (w.length - 3) + ' more' : '');
-  return shown ? shown + (l.nodate ? ', No date' : '') : (l.nodate ? 'No date' : '');
-}
+// the words are §50's too (the download writes what the page shows), so they are said in one place
+function ui_srrbMonths(l) { return SP.srrbMonthsText(l); }
 function ui_srrbBody(M, V) {
   const m = c => '<td class="n" data-c="' + c + '">' + ui_e(SP.fmtM(c)) + '</td>';
   const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
@@ -11599,7 +11743,7 @@ function ui_srrbBody(M, V) {
     + tile('pmo', 'Largest PMO', topPmo ? ui_e(topPmo.label) : '-', topPmo ? ui_e(SP.fmtM(topPmo.sum)) + ' ($M)' : '', topPmo ? topPmo.sum : 0)
     + tile('svc', 'Largest service', topSvc && topSvc.sum ? ui_e(topSvc.label) : '-', topSvc && topSvc.sum ? ui_e(SP.fmtM(topSvc.sum)) + ' ($M)' : '', topSvc ? topSvc.sum : 0)
     + '</div><div class="pmotwo">' + bars('pmo', 'SRRB requirements by PMO ($M)', V.byPmo) + bars('svc', 'SRRB requirements by service ($M)', V.bySvc) + '</div>'
-    + '<h3 class="pmoall">Every requirement that needs an approved SRRB form</h3><div class="fsheet tw"><table class="grid findt ufrt srrbt" id="uiSrrbT"><thead><tr class="hd"><th scope="col" class="lab">Requirement (Plan Event Title)</th><th scope="col">PMO</th><th scope="col">Award date</th>'
+    + ui_listHead('srrb', 'Every requirement that needs an approved SRRB form', V.n) + '<div class="fsheet tw"><table class="grid findt ufrt srrbt" id="uiSrrbT"><thead><tr class="hd"><th scope="col" class="lab">Requirement (Plan Event Title)</th><th scope="col">PMO</th><th scope="col">Award date</th>'
     + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($M)</th><th scope="col">SRRB</th></tr></thead><tbody>' + rows
     + '<tr class="band"><th colspan="3" scope="row">Total</th>' + V.total.amt.map(m).join('') + m(V.total.sum) + '<td></td></tr></tbody></table></div>'
     + '<p class="cardnote findnote">Figures are $M: each plan event’s amounts in the CCaR plan, awarded or not, on its rows marked Yes. One line is one plan event title within an appropriation and fiscal year, over every CCaR record it is on. '
@@ -11630,6 +11774,93 @@ function ui_srrbRedraw() {
   const c = document.querySelector('[data-act=srrbclear]');
   if (c) c.disabled = !(ui.srrb.pmo !== null || ui.srrb.ap !== null || ui.srrb.fy !== null || ui.srrb.q !== '');
   ui_layout(); ui_printPicks();
+}
+
+// §50 DOWNLOAD THIS LIST: a button beside each narrowable list (Requirements, My PMO, Unfunded, SRRB) that saves exactly the
+// lines on screen as one Excel sheet, in the keeper's file and in a view-only copy alike: it only reads. The lines are the
+// ones the page has just drawn, read through the same functions (ui_findList, ui_myPmoSel, ui_ufrData, ui_srrbData); none
+// is worked out a second way. A list with nothing in it has no button.
+const UI_LIST_PAGE = { find: 'Requirements', pmo: 'My PMO', ufr: 'Unfunded', srrb: 'SRRB' };
+function ui_listBtn(kind, what) {
+  if (!SP.LIST_DL || !ui_fn('listSpec')) return '';
+  return '<p class="dlrow"><button type="button" class="dlbtn" data-act="listdl" data-l="' + kind + '" data-fkey="listdl:' + kind + '" aria-label="Download this list (Excel): '
+    + ui_e(what) + ', as shown">Download this list (Excel)</button></p>';
+}
+function ui_listHead(kind, head, n) {
+  const b = n > 0 ? ui_listBtn(kind, head.toLowerCase()) : '';
+  return b ? '<div class="dlhead"><h3 class="pmoall">' + ui_e(head) + '</h3>' + b + '</div>' : '<h3 class="pmoall">' + ui_e(head) + '</h3>';
+}
+// what was picked on the page, in words: each picker that is not on All, and the Find box
+function ui_listPicks(kind, M) {
+  const out = [], lab = (opts, v) => { const o = opts.find(p => p[0] === v); return o ? o[1] : v; };
+  const q = w => w ? 'Find “' + w + '”' : '';
+  if (kind === 'find') {
+    const F = ui.find, P = ui_reqPicks(ui_reqs(M));
+    if (F.q.trim()) out.push(q(F.q.trim()));
+    if (F.pmo !== null) out.push('PMO: ' + lab(P.pmos, F.pmo));
+    if (F.ap !== null) out.push('Appropriation: ' + lab(P.aps, F.ap));
+    if (F.fy !== null) out.push('FY: ' + lab(P.fys, F.fy));
+    if (F.st) out.push('Projected award: ' + lab(UI_FIND_ST, F.st));
+    if (F.ord) out.push('Order: ' + lab(UI_FIND_ORD, F.ord));
+  } else if (kind === 'pmo') {
+    const X = ui_myPmoSel(M);
+    out.push('PMO: ' + X.label);
+    out.push('FY: ' + (X.S.fy === null ? 'All' : lab(X.fys, X.S.fy)));
+  } else if (kind === 'ufr') {
+    const U = ui.ufr, V = ui_ufrData(M);
+    if (U.ap !== null) out.push('Appropriation: ' + lab(V.picks.aps, U.ap));
+    if (U.pmo !== null) out.push('PMO: ' + lab(V.picks.pmos, U.pmo));
+    if (U.fy !== null) out.push('FY: ' + lab(V.picks.fys, U.fy));
+    if (U.status !== null) out.push('Funding status: ' + lab(V.picks.statuses, U.status));
+    if (U.q.trim()) out.push(q(U.q.trim()));
+  } else if (kind === 'srrb') {
+    const U = ui.srrb, V = ui_srrbData(M);
+    if (U.pmo !== null) out.push('PMO: ' + lab(V.picks.pmos, U.pmo));
+    if (U.ap !== null) out.push('Appropriation: ' + lab(V.picks.aps, U.ap));
+    if (U.fy !== null) out.push('FY: ' + lab(V.picks.fys, U.fy));
+    if (U.q.trim()) out.push(q(U.q.trim()));
+  }
+  return out.filter(Boolean).join(' · ');
+}
+// the list as the page shows it now, laid out for the sheet (null when there is nothing listed)
+function ui_listOf(kind, M) {
+  let L = null, title = '';
+  if (kind === 'find') {
+    const list = ui_findList(M), shown = list.slice(0, UI_FIND_MAX);
+    if (!shown.length) return null;
+    L = SP.listOfFind(shown, list.lead);
+    title = 'Requirements - the list as shown' + (list.length > shown.length ? ' (the first ' + shown.length + ' of ' + list.length + ' matches, as on the page)' : '');
+  } else if (kind === 'pmo') {
+    const X = ui_myPmoSel(M);
+    if (!X.mine.length) return null;
+    L = SP.listOfPmo(X.mine);
+    title = 'My PMO - ' + X.label + ' - every requirement, as shown';
+  } else if (kind === 'ufr') {
+    const V = ui_ufrData(M);
+    if (!V.n) return null;
+    L = SP.listOfUfr(V);
+    title = 'Unfunded requirements (UFR) - the list as shown, by rank ($K)';
+  } else if (kind === 'srrb') {
+    const V = ui_srrbData(M);
+    if (!V.n) return null;
+    L = SP.listOfSrrb(V);
+    title = 'SRRB requirements - the list as shown ($M)';
+  } else return null;
+  return Object.assign(L, { page: UI_LIST_PAGE[kind], title, asOfLabel: M.asOfLabel, picks: ui_listPicks(kind, M), shown: M.shown.text });
+}
+function ui_listDownload(kind) {
+  const M = ui_hasData() ? ui_model() : null;
+  if (!M || !UI_LIST_PAGE[kind]) return;
+  ui_busy('the list', async () => {
+    const L = ui_listOf(kind, M);
+    if (!L) { ui_say('There is nothing listed to download.', 'warn'); return; }
+    const today = (() => { const d = new Date(); return d.getFullYear() + '-' + ui_pad(d.getMonth() + 1) + '-' + ui_pad(d.getDate()); })();
+    L.today = today;
+    const bytes = await SP.listBytes(L), name = SP.listFileName(M, UI_LIST_PAGE[kind], today);
+    SP.download(name, bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    const n = L.rows.filter(r => r.k === 'line').length;
+    ui_say('Wrote “' + name + '” (' + SP.fmtInt(n) + (n === 1 ? ' line' : ' lines') + ', as on the page) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
+  });
 }
 
 // PUBLISH SPEND PLAN (CONTRACT §33): the PDFs for each appropriation and each PMO, the unfunded list they read, and what
@@ -13595,6 +13826,9 @@ function ui_onClick(ev) {
       ui_findJump();
       break;
     }
+    case 'listdl':
+      ui_listDownload(t.getAttribute('data-l'));
+      break;
     case 'findclear':
       ui.find = ui_findNew();
       ui.focusTo = 'findq';

@@ -2509,6 +2509,41 @@ change the status for Exec Ready? and SFCB Action. I also want the unfunded list
 
 `test/ufr-49.test.mjs`; `ufr-view`, `ufr-rank` and `ufr-mandatory` updated for the new columns, rows and drag.
 
+## §50 Download this list (Brad, 22 Nov 2026)
+
+A reader's *Download this list*, held by §47, built: beside each narrowable list a **Download this list (Excel)** button saves
+exactly the lines on screen as one Excel sheet. Readers are the main audience, so it is in a view-only copy as in the
+keeper's file; it only reads.
+
+- **Where.** Requirements (Find): under the count line, above the table. My PMO: beside the *Every requirement* heading (that
+  table is the list; the two short lists above it are not in the file). Unfunded: beside *Every unfunded requirement, by rank*.
+  SRRB: beside *Every requirement that needs an approved SRRB form*. A list with nothing in it has no button (the page's
+  "No … matches" line is drawn instead). Hidden in print (`.dlrow`, `.dlbtn`). A real `<button>`, keyboard-reachable, labelled
+  (`aria-label` names the list); it wraps under the heading on a narrow screen.
+- **What.** The lines the page has just drawn, read through the page's own functions (`ui_findList`, `ui_myPmoSel`,
+  `ui_ufrData`, `ui_srrbData`): the pickers, the Find box and the Filter's service and lane switches applied, in the order
+  shown. Requirements writes the lines listed (the first 500 when more match, as the page lists them, and the title says so),
+  with the *Also matched …* heading where it falls. Nothing is worked out a second way: `SP.listOfFind`, `SP.listOfPmo`,
+  `SP.listOfUfr` and `SP.listOfSrrb` (60-export.js, pure) only lay those lines out, and `SP.listSpec(L)` writes them.
+- **Columns.** The screen's. Requirements: Requirement, CCaR, PMO (the screen's line under the title, split into columns),
+  Appropriation, Planned, Awarded, Still to award ($M), Projected award (in the page's words); a total of the lines listed.
+  My PMO: the same less PMO (the office is in the title). Unfunded: Rank, Requirement, CCaR Record, PMO, a column per service
+  shown, Total ($K), Funding status, Exec ready?, SFCB action, Approved in plan ($K, or *Unfunded only*); each list's heading,
+  its subtotal (*(the lines shown)* as on screen) and the total. SRRB: Requirement (Plan Event Title), CCaR records, PMO, Award
+  date (the page's words, `SP.srrbMonthsText`, shared with the screen), a column per service, Total ($M), SRRB, and the amount on
+  rows not marked Yes (the screen's note under the title); each heading and the total.
+- **Figures** are numbers: $M as `cents / 1e8` with §8's format (and its `<0.01` twin), $K as `cents / 1e5` with
+  `#,##0;(#,##0);-`. A rank that is a whole number is a number.
+- **Marking and words.** The workbook's CUI header and footer (§8), a CUI line first and last on the sheet, the title, *Data
+  through {Mon-YYYY} | Downloaded {date} | N lines, in the order shown on the page*, *Picked on the page: …* (each picker not on
+  All, the Find box's words, or *nothing (the whole list)*) and *Filter: * with the page's own shown text. Frozen under the header row.
+- **File name** (`SP.listFileName`): `APEX FY{E} - {Requirements|My PMO|Unfunded|SRRB} list - data through {Mon-YYYY} - {date}.xlsx`,
+  with ` [filtered]` when the Filter hides anything, as §8's. The workbook's own name and every other export are unchanged.
+- Written by the page's writer (§7) and downloaded through `SP.download`; no library, no network. Nothing in the plan changes,
+  and nothing is marked unsaved. `SP.LIST_DL = false` draws the pages without the button (a switch for a comparison with an
+  older build; nothing sets it today).
+
+`test/list-download.test.mjs`.
 ## §51 Tagged spend plan PDFs (Brad, 22 Nov 2026: "add the tags")
 
 Section 508 expects a published PDF to be tagged, so that a screen reader reads its content in order and knows a heading
