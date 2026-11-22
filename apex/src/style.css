@@ -345,8 +345,8 @@ main.ov .ovopen:hover{background:none;color:var(--sink)}
 /* THE FRAME IN A NARROWER WINDOW (§18.2). Up to 1400 px the menu is 118px and the sheet's margins are tighter, so a tree
    opened to CCaR keeps its full width beside the menu at 1366 px, a 15 px scrollbar included (review UX-1). */
 @media (max-width:1400px){
-  nav.views{flex-basis:118px;padding:10px 4px}
-  nav.views button{padding:6px 7px}
+  nav.views{flex-basis:128px;padding:10px 4px}
+  nav.views button{padding:6px 5px}
   main.sheet{margin-right:4px;padding-left:6px;padding-right:6px}
 }
 /* at 900 px and narrower the menu is a row above the view and no longer supplies the left gutter: the Overview, the

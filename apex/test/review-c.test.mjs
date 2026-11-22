@@ -145,7 +145,7 @@ try {
     C.chk('I79 a view-only copy’s card says the same', /The 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded, each marked Mandatory; the Mandatory, not received tile counts those the Filter and the pickers show\./
       .test(vm.querySelector('#uiUfrMand').textContent), vm.querySelector('#uiUfrMand').textContent);
     // I10 the copy's publish day, its tab title and the tooltip for a reader
-    C.chk('I10 a view-only copy says when it was published, beside the Data through month', /^Data through Oct-2026 · First FY \d{4} · Published 21 Nov 2026$/.test(vo.doc.getElementById('uiAsOfText').textContent), vo.doc.getElementById('uiAsOfText').textContent);
+    C.chk('I10 a view-only copy says when it was published, beside the Data through month', /^Data through Oct-2026 · Published 21 Nov 2026$/.test(vo.doc.getElementById('uiAsOfText').textContent), vo.doc.getElementById('uiAsOfText').textContent);
     C.eq('I10 I58 its tab title carries the marking, the month and the publish day', vo.doc.title.replace(/^CUI - [^-]+ - APEX FY\d+ \(view only\)/, 'CUI - APEX'), 'CUI - APEX · data through Oct-2026 · published 21 Nov 2026');
     C.eq('I10 the View only mark is as it was', vo.doc.getElementById('uiVo').textContent, 'View only');
     C.eq('I10 no script error in the copy', J(errs(vo.t)), '[]');

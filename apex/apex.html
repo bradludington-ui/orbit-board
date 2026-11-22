@@ -354,8 +354,8 @@ main.ov .ovopen:hover{background:none;color:var(--sink)}
 /* THE FRAME IN A NARROWER WINDOW (§18.2). Up to 1400 px the menu is 118px and the sheet's margins are tighter, so a tree
    opened to CCaR keeps its full width beside the menu at 1366 px, a 15 px scrollbar included (review UX-1). */
 @media (max-width:1400px){
-  nav.views{flex-basis:118px;padding:10px 4px}
-  nav.views button{padding:6px 7px}
+  nav.views{flex-basis:128px;padding:10px 4px}
+  nav.views button{padding:6px 5px}
   main.sheet{margin-right:4px;padding-left:6px;padding-right:6px}
 }
 /* at 900 px and narrower the menu is a row above the view and no longer supplies the left gutter: the Overview, the
@@ -10077,8 +10077,8 @@ const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
 // THE MENU (CONTRACT §20), grouped by what a reader is looking for. Find a requirement is first; the page opens on the Summary (UI_HOME, §29).
 const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
-  { h: 'Browse', items: [['pmos', 'By PMO']].concat(SP.APS.map(a => [a.id, a.label])).concat([['ufr', 'Unfunded']]) },
-  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['srrb', 'SRRB'], ['publish', 'Publish PDFs']] },
+  { h: 'Browse', items: [['pmos', 'PMO spend plan']].concat(SP.APS.map(a => [a.id, a.label])).concat([['ufr', 'Unfunded']]) },
+  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['srrb', 'SRRB'], ['publish', 'Spend plan PDFs']] },
   { h: 'Data checks', items: [['na', 'Unobligated'], ['report', 'Import report'], ['changes', 'What changed']] },
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
@@ -10888,7 +10888,7 @@ function ui_vMyPmo(M) {
   // the pickers come first, at the left, above the office's name (Brad, 16 Nov 2026)
   return '<div class="findbar pmobar">' + ui_pickSel('pmof', S.key, 'pmo', 'Choose your PMO', P.pmos, true) + ui_pickSel('pmof', S.fy, 'fy', 'FY', fys)
     + ui_pickSel('pmof', String(win), 'win', 'Coming up', [['1', 'Next month'], ['2', 'Next 2 months'], ['3', 'Next 3 months'], ['6', 'Next 6 months']], true)
-    + '<span class="grow"></span><button type="button" data-act="view" data-v="pmos" data-fkey="pmo:bypmo">See its spend plan on By PMO</button></div>'
+    + '<span class="grow"></span><button type="button" data-act="view" data-v="pmos" data-fkey="pmo:bypmo">See its PMO spend plan</button></div>'
     + '<div class="ovhead"><h2 class="ovtitle">' + ui_e(P.pmos.find(p => p[0] === S.key)[1]) + '</h2><span class="ovsub">Data through ' + ui_e(M.asOfLabel) + '</span></div>'
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
     + '<div class="tiles">'
@@ -11204,7 +11204,7 @@ function ui_vSlides(M) {
   const out = ['<h2 class="title">Slide Snapshots - picture-ready blocks for PowerPoint</h2>',
     '<p class="l2">Each block is sized for a 13.33 in x 4.5 in slide region. <strong>Copy picture</strong> puts a block on the clipboard;'
     + ' <strong>Save picture</strong> saves it as a PNG. The picture runs from the block’s title through OSD Status' + (SP.PMO_PICTURES === false ? '.' : ', and carries no CUI marking: the slide it goes on is marked.') + '</p>',
-    SP.PMO_PICTURES === false ? '' : '<p class="note" id="uiPmoPicNote">Each PMO’s blocks have the same two buttons on <button type="button" class="tg" data-act="view" data-v="pmos" data-fkey="slides:pmos">By PMO</button>;'
+    SP.PMO_PICTURES === false ? '' : '<p class="note" id="uiPmoPicNote">Each PMO’s blocks have the same two buttons on <button type="button" class="tg" data-act="view" data-v="pmos" data-fkey="slides:pmos">PMO spend plan</button>;'
     + ' Save all pictures holds them too, in a folder named By PMO.</p>',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
     // rule 6 (§14.3): with a BAE report loaded the Summary's Approved is the report's, and a block here still adds up the
@@ -11549,16 +11549,16 @@ function ui_vPublish(M) {
   if (!D.docs.length) out.push('<p class="none">Nothing to publish for the fiscal years ticked.</p>');
   else {
     out.push('<div class="tw"><table class="grid pubdocs" id="uiPubDocs"><thead><tr class="hd"><th scope="col">Document</th><th scope="col">Covers</th><th scope="col">CCaR records</th>'
-      + '<th scope="col">Unfunded lines</th><th scope="col">Descriptions</th><th scope="col">PDF</th></tr></thead><tbody>'
+      + '<th scope="col">Unfunded lines</th>' + (vo ? '' : '<th scope="col">Descriptions</th>') + '<th scope="col">PDF</th></tr></thead><tbody>'
       + D.docs.map((d, i) => '<tr data-doc="' + ui_e(d.id) + '"><th scope="row">' + ui_e(d.file.replace(/\.pdf$/, '')) + '</th><td>'
         + ui_e((d.kind === 'ap' ? 'Consolidated, every PMO' : 'That PMO only, ' + [...new Set(d.sections.map(s => s.apLabel))].join(', ')) + ' · ' + [...new Set(d.sections.map(s => 'FY' + s.fy))].join(', '))
         + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + SP.fmtInt(d.ufr.length) + '</td><td>'
-        + (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td><button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
+        + (vo ? '' : (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td>') + '<button type="button" data-act="pubdoc" data-i="' + i + '" data-fkey="pubdoc:' + ui_e(d.id) + '">Download PDF</button></td></tr>').join('')
       + '</tbody></table></div>');
   }
   // the unfunded list: what is loaded. It is imported, removed and checked in Settings (Brad, 19 Nov 2026: "Let's move it
   // to the Setup section"); a view-only copy has no Settings, so its notes stay here
-  out.push(ui_ufrBlock(P, D, { edit: false, notes: vo, id: 'uiPubUfr' }));
+  out.push(ui_ufrBlock(P, D, { edit: false, notes: false, id: 'uiPubUfr' }));   // §48: a reader's copy shows no To check notes
   if (!vo) {
     const nn = ui_ufrNotes(P, D).length;
     out.push('<p class="acts"><button type="button" data-act="view" data-v="settings" data-fkey="pubtoset">Import or remove a list in Settings</button>'
@@ -12558,7 +12558,7 @@ function ui_vHelpAll() {
     + '<h3 class="sub">My PMO and the Award calendar</h3>' + li([
       '<strong>My PMO</strong> is one office’s requirements: its Planned, Awarded and Still to award, what is projected to award in the months after the Data through '
       + 'month (three, or as Coming up picks), and what is past its projected date and not awarded. The office you pick is remembered in this browser, not in the file, '
-      + 'and By PMO opens on it too.',
+      + 'and PMO spend plan opens on it too.',
       '<strong>Award calendar</strong> lays the execution year out by month. Each requirement’s money sits in the month it is projected to award: awarded (✓), projected, or '
       + 'not awarded and past its date (!). Prior Yr is before the year’s October, the next-year column after its September. Its Total row is the plan by month.',
       '<strong>Charts</strong> draws what those three views say, under the same three pickers: awards by month (awarded, late and projected, with the next three months added up), '
@@ -12577,7 +12577,7 @@ function ui_vHelpAll() {
       'Exec ready counts the lines whose Exec Ready? says yes; SFCB approved counts those whose SFCB Action says approved.',
     ])
     + '<h3 class="sub">Publishing spend plans</h3>' + li([
-      '<strong>Publish PDFs</strong> makes a PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). '
+      '<strong>Spend plan PDFs</strong> makes a PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). '
       + 'Each opens with its stoplight, lists Prime Contracts first (the Special CCaRs of Settings) and ends with the unfunded list for what it presents.',
       'Each CCaR record has a row per service: Approved is the CCaR amount in its plan events, Obligated is what CCaR marks Actual Execution, Remaining is Approved less Obligated, '
       + 'Required is Approved plus the unfunded list’s amount for that record, and Delta is Approved less Required. Figures are whole dollars.',
@@ -12864,7 +12864,7 @@ function ui_drawTop(M) {
   // a view-only copy says when it was published (its savedAt is stamped as it is made, §35), and its browser tab says so too,
   // so two copies in two tabs can be told apart (review I10). The keeper's page keeps the shell's title.
   const pubDay = vo ? ui_dayWords(ui_day((ui_state() || {}).savedAt)) : '';
-  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf) + (vo ? ' · First FY ' + (Number.isInteger(S.firstFY) ? S.firstFY : (M ? M.firstFY : '')) : '')
+  E.asOfText.textContent = has && S.asOf ? 'Data through ' + SP.asOfLabel(S.asOf)   /* §48: no First FY in a reader's copy */
     + (pubDay ? ' · Published ' + pubDay : '') : '';
   ui.pubDay = pubDay;
   if (E.vo) E.vo.hidden = !vo;

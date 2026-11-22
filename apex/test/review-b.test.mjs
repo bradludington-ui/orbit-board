@@ -85,7 +85,7 @@ try {
     const K = await boot(KEEP), V = await boot(VO);
     C.chk('I09: a keeper’s page still says which plan it opened', /^Opened the plan saved/.test(K.doc.getElementById('uiMsg').textContent), K.doc.getElementById('uiMsg').textContent);
     C.eq('I09: a view-only copy does not say the plain opening notice', V.doc.getElementById('uiMsg').textContent, '');
-    C.chk('I09: a view-only copy still says Data through and First FY as words (§35)', /^Data through Oct-2026 · First FY \d{4}( · Published \d{1,2} [A-Z][a-z]{2} \d{4})?$/.test(V.doc.getElementById('uiAsOfText').textContent), V.doc.getElementById('uiAsOfText').textContent);
+    C.chk('I09: a view-only copy still says Data through as words, and no First FY (§35, §48)', /^Data through Oct-2026( · Published \d{1,2} [A-Z][a-z]{2} \d{4})?$/.test(V.doc.getElementById('uiAsOfText').textContent), V.doc.getElementById('uiAsOfText').textContent);
     C.eq('I64: with data the window’s title names the view, the year and the copy', [K.doc.title, V.doc.title], ['CUI - Summary - APEX FY2027', V.doc.title.startsWith('CUI - Summary - APEX FY2027 (view only) · data through ') ? V.doc.title : 'CUI - Summary - APEX FY2027 (view only) · data through …']);
     await K.view('cal');
     C.eq('I64: … and follows a change of view', K.doc.title, 'CUI - Calendar - APEX FY2027');
