@@ -2634,3 +2634,15 @@ the image I've provided."*
   is chosen. The store is unchanged (text, at most 200 characters).
 
 `test/ufr-49.test.mjs` (§56 checks), with the menu names updated in `overview`, `phone`, `publish` and `srrb`.
+
+## §57 The Mandatory mark, and Show (Brad, 22 Nov 2026: "Go with option 2 and add the filter")
+
+The *Mandatory* tag in a line's title (§45) took room and pushed long titles onto two lines; the Funding status column already
+says Mandatory. Now:
+- No tag in the title. A Mandatory line has a 5 px bar in the ochre at its left edge and a softer tint (`#f8f2e6`), and a key
+  above the table says what the bar means (`#uiUfrKey`, shown only when a Mandatory line is listed). The tint and the bar print.
+- **Show** beside the appropriation buttons, while §45's switch lists Mandatory lines: *All lines*, *UFR tracker* (the
+  tracker's lines), *Mandatory* (the Mandatory plan events). Every tile, chart, subtotal and total follows (`F.kind` in
+  `SP.ufrView`); Clear filters takes it off, and so does turning the switch off. Download this list follows too.
+
+`test/ufr-mandatory.test.mjs` (§57).

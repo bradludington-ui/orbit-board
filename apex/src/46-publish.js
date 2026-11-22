@@ -1217,6 +1217,7 @@ SP.ufrView = function ufrView(Mfull, view, ufr, pub, settings, F) {
   const mandLaneOn = !(view && view.lane && view.lane.mand === false);
   const shown = all.filter(l => (f.pmo === null || f.pmo === undefined || l.pmoKey === f.pmo) && (!f.ap || l.ap === f.ap) && (!f.fy || String(l.fy) === String(f.fy))
     && (f.status === null || f.status === undefined || f.status === '' || l.status === f.status)
+    && (!f.kind || (f.kind === 'mand') === !!l.mand)   // §57 Show: 'trk' the tracker's lines, 'mand' the Mandatory plan events
     && (q === '' || SP.normKey(l.title).includes(q) || SP.normKey(l.ccar).includes(q)));
   const lines = mandLaneOn ? shown : shown.filter(l => !l.mand), mandHidden = shown.length - lines.length;
   const sumOf = ls => ls.reduce((n, l) => n + l.sum, 0);
