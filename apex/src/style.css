@@ -748,3 +748,13 @@ table.srrbt .srrbother{color:var(--ochre)}
 .mtag{display:inline-block;padding:0 7px;border-radius:999px;background:var(--ochre);color:#fff;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px;white-space:nowrap}
 table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
 @media (min-width:1101px){.tiles.tiles5{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+/* §50 DOWNLOAD THIS LIST: one button beside a list's heading (or under Requirements' count line). It wraps under the heading
+   on a narrow screen rather than widen the page, and it is not printed: paper has nothing to download. */
+.dlhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;min-width:0}
+.dlhead .pmoall{margin-right:auto}
+.dlrow{margin:2px 0 8px}
+.dlhead .dlrow{margin:0 0 6px}
+main.ov .dlbtn{max-width:100%;min-height:30px;padding:4px 12px;font:inherit;font-weight:600;white-space:normal;text-align:left;cursor:pointer}
+@media print{.dlrow,.dlbtn{display:none!important}}
+

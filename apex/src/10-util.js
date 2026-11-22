@@ -45,6 +45,7 @@ SP.ORDER_DRAG = true;     // false: the spend plan trees without §46's drag (no
 SP.PMO_PICTURES = true;    // false: the screens without §41's PMO picture buttons and words, for a comparison with an older build
 SP.PIC_CUI = false;        // true draws the marking in a picture's two bands, as before §41: only a comparison with an older build asks for it
 SP.NA_FOLD = true;        // false: an appropriation's Unobligated lists drawn open, as before review I02, for a comparison with an older build
+SP.LIST_DL = true;        // false: Requirements, My PMO, Unfunded and SRRB without §50's Download this list button, for a comparison with an older build
 SP.GOALS_DEFAULT = ut_freeze({   // [Prior, Oct..Sep]: 13 values each, exactly as v12 typed them
   om1: [0, .0833,.1667,.25,.3333,.4167,.5,.5833,.6667,.75,.8333,.9167,1],
   om2: [1, 1,1,1,1,1,1,1,1,1,1,1,1],                 // O&M in its second year or later (expired): fully obligated

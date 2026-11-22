@@ -463,6 +463,16 @@ example. Your browser puts it in its downloads folder, or asks where to save it,
 - On the appropriation sheets and PMO tabs, the four outline buttons at the left open the rows level by level, as in
   v12: 1 PMO, 2 Title, 3 Plan Event, 4 CCaR. The sheets open showing PMO and Title rows.
 
+### Download this list
+
+**Requirements**, **My PMO**, **Unfunded** and **SRRB** each have a **Download this list (Excel)** button beside their list
+(on Requirements, under the count line; on the others, beside the list's heading). It saves exactly the lines on screen,
+after the page's pickers, its Find box and the Filter's switches, in the order shown, with the same columns and figures
+(numbers, not text: $M on Requirements, My PMO and SRRB, $K on Unfunded). The sheet is marked CUI at the top and the bottom
+and in its printed header and footer, and says which pickers were set, what the Filter shows and the Data through month.
+The file is named like the workbook, with the page: `APEX FY2027 - Unfunded list - data through Oct-2026 - 2026-11-22.xlsx`.
+It works in a view-only copy too, changes nothing in the plan, and is not there when nothing is listed. It is not printed.
+
 ## Pictures for slides
 
 - **Copy picture** puts one block on the clipboard. Paste it into PowerPoint. If the browser does not allow it, the

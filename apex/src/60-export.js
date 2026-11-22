@@ -1141,3 +1141,135 @@ SP.exportExcel = async function exportExcel() {
     return { ok: false, message: 'The workbook was not written: ' + ((e && e.message) || String(e)) };
   }
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// §50 DOWNLOAD THIS LIST (Brad, 22 Nov 2026): one sheet holding exactly the lines a narrowable list shows -- Requirements
+// (Find), My PMO, Unfunded and SRRB -- after the page's pickers, its Find box and the Filter's switches, in the order shown,
+// with the screen's columns and figures. Nothing here works a figure out: each page hands over the lines it has drawn
+// (SP.listOfFind/OfPmo/OfUfr/OfSrrb only lay them out, cents as cents), and SP.listSpec writes them as numbers in $M or
+// $K, as the page prints them. The sheet carries the workbook's CUI header and footer and a CUI line at its top and foot,
+// which pickers were set, the Filter's words and the Data through month.
+//
+//   L = {page, title, asOfLabel, today, picks, shown, cols:[{h, w, t:'s'|'m'|'k'|'n'}],
+//        rows:[{k:'line'|'group'|'sub'|'total', c:[text | cents | number]}]}
+//   SP.listSpec(L)                       -> the spec SP.writeXlsx is given (one sheet)
+//   SP.listFileName(M, page, today)      -> 'APEX FY2027 - Unfunded list - data through Oct-2026 - 2026-11-22.xlsx'
+// ---------------------------------------------------------------------------------------------------------------
+const EX_FK = '#,##0;(#,##0);-';   // $K, whole thousands, as SP.fmtK prints them
+const EXL = (() => {
+  const f = o => Object.freeze(o), thin = EX_THIN, right = f({ h: 'right', v: 'center' }), left = f({ h: 'left', v: 'center', wrap: true });
+  const fo = f({ sz: 10, color: EX_INK }), bo = f({ b: true, sz: 10, color: EX_INK }), wb = f({ b: true, sz: 10, color: EX_WHITE });
+  const set = (font, fill) => ({ s: ex_s(font, fill, null, left, thin), m: ex_s(font, fill, EX_FM, right, thin), k: ex_s(font, fill, EX_FK, right, thin),
+    n: ex_s(font, fill, '0', right, thin) });
+  return { line: set(fo, null), sub: set(bo, EX_STRIP), total: set(wb, EX_NAVY), group: ex_s(f({ b: true, sz: 11, color: EX_NAVY }), EX_STRIP, null, f({ h: 'left', v: 'center', indent: 1 }), thin),
+    note: ex_s(f({ sz: 10, color: EX_INK }), null, null, f({ h: 'left', v: 'center', wrap: true })) };
+})();
+// the text a cell carries where a figure is not a figure ('Unfunded only'); a number in a money column is cents
+function ex_listCell(v, t, set) {
+  if (v === null || v === undefined || v === '') return { s: set.s };
+  if (typeof v === 'number' && isFinite(v)) {
+    if (t === 'm') return ex_mc(v, set.m);
+    if (t === 'k') return { v: v / 1e5, s: set.k };
+    if (t === 'n') return { v, s: set.n };
+  }
+  return { v: String(v), s: set.s };
+}
+SP.listSpec = function listSpec(L) {
+  if (!L || !Array.isArray(L.cols) || !L.cols.length || !Array.isArray(L.rows)) throw new Error('There is no list to write.');
+  const K = ex_sheet(String(L.page || 'List').slice(0, 31), L.cols.map(c => c.w || 14));
+  ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+  ex_title(K, String(L.title || ''));
+  ex_span(K, 'Data through ' + (L.asOfLabel || '') + ' | Downloaded ' + (L.today || ex_today()) + ' | ' + L.rows.filter(r => r.k === 'line').length + ' lines, in the order shown on the page',
+    EXS.shown, 0, K.W - 1);
+  const pk = 'Picked on the page: ' + (L.picks || 'nothing (the whole list)');
+  ex_span(K, pk, EXL.note, 0, K.W - 1, { ht: ex_ht(ex_lines(pk, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  const sw = 'Filter: ' + (L.shown || '');
+  ex_span(K, sw, EXL.note, 0, K.W - 1, { ht: ex_ht(ex_lines(sw, ex_widthOf(K, 0, K.W - 1), 10), 10) });
+  const head = ex_headRow(K, L.cols.map(c => c.h), 30);
+  for (const r of L.rows) {
+    if (r.k === 'group') { ex_span(K, String(r.c[0] || ''), EXL.group, 0, K.W - 1); continue; }
+    const set = EXL[r.k] || EXL.line;
+    ex_push(K, L.cols.map((c, i) => ex_listCell(r.c[i], c.t, set)));
+  }
+  ex_span(K, SP.CUI, EXS.cui, 0, K.W - 1);
+  K.sh.freeze = 'A' + (head + 1);
+  return { creator: 'APEX', sheets: [K.sh] };
+};
+SP.listBytes = async function listBytes(L) { return SP.writeXlsx(SP.listSpec(L)); };
+// the workbook's pattern with the page named: a list emailed on says what it is, which month, which day, and whether
+// the Filter hid anything (the pickers are named inside, on the sheet)
+SP.listFileName = function listFileName(model, page, today) {
+  const day = typeof today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(today) ? today : ex_today();
+  return 'APEX FY' + model.E + ' - ' + String(page).replace(/[\\/:*?"<>|]/g, '-') + ' list - data through ' + model.asOfLabel + ' - ' + day
+    + (model.shown && model.shown.all ? '' : ' [filtered]') + '.xlsx';
+};
+// a requirement's Projected award as the page words it (Awarded, Was Dec-2026, a month, No date)
+SP.listWhen = function listWhen(r) {
+  if (r.state === 'awarded') return 'Awarded';
+  if (r.state === 'late') return 'Was ' + SP.ymWords(r.next);
+  if (r.state === 'planned') return SP.ymWords(r.next);
+  return 'No date';
+};
+// an SRRB line's award months as the page words them: three, then "+N more"; No date
+SP.srrbMonthsText = function srrbMonthsText(l) {
+  const w = (l.months || []).map(ym => { const m = /^(\d{4})-(\d{2})/.exec(ym); return m ? SP.CAL_MONTHS[Number(m[2]) - 1] + '-' + m[1] : ym; });
+  const shown = w.slice(0, 3).join(', ') + (w.length > 3 ? ' +' + (w.length - 3) + ' more' : '');
+  return shown ? shown + (l.nodate ? ', No date' : '') : (l.nodate ? 'No date' : '');
+};
+const EX_REQ_COLS = Object.freeze([{ h: 'Requirement', w: 44, t: 's' }, { h: 'CCaR', w: 14, t: 's' }, { h: 'PMO', w: 24, t: 's' }, { h: 'Appropriation', w: 20, t: 's' },
+  { h: 'Planned ($M)', w: 13, t: 'm' }, { h: 'Awarded ($M)', w: 13, t: 'm' }, { h: 'Still to award ($M)', w: 13, t: 'm' }, { h: 'Projected award', w: 16, t: 's' }]);
+function ex_reqLine(r) { return { k: 'line', c: [r.title, r.ccar, r.pmo, r.apLabel + ' FY' + r.fy, r.planned, r.awarded, r.remaining, SP.listWhen(r)] }; }
+function ex_reqTotal(list, label) {
+  const sum = f => list.reduce((s, r) => s + r[f], 0);
+  return { k: 'total', c: [label, '', '', '', sum('planned'), sum('awarded'), sum('remaining'), ''] };
+}
+// Requirements (Find): the rows listed, in the page's order, with its "Also matched …" heading where it falls
+SP.listOfFind = function listOfFind(shown, lead) {
+  const rows = [];
+  shown.forEach((r, i) => {
+    if (lead > 0 && lead < shown.length && i === lead) rows.push({ k: 'group', c: ['Also matched a plan event, description, PID, budget or PMO'] });
+    rows.push(ex_reqLine(r));
+  });
+  rows.push(ex_reqTotal(shown, 'Total, ' + shown.length + (shown.length === 1 ? ' requirement' : ' requirements') + ' listed'));
+  return { cols: EX_REQ_COLS.slice(), rows };
+};
+// My PMO: its Every requirement table (the office is the page's heading, so it is not a column)
+SP.listOfPmo = function listOfPmo(mine) {
+  const cols = EX_REQ_COLS.filter(c => c.h !== 'PMO');
+  const rows = mine.map(r => { const x = ex_reqLine(r); x.c.splice(2, 1); return x; });
+  const t = ex_reqTotal(mine, 'Total, ' + mine.length + (mine.length === 1 ? ' requirement' : ' requirements')); t.c.splice(2, 1); rows.push(t);
+  return { cols, rows };
+};
+// Unfunded (§37, §49): each list's heading, its lines in rank order, its subtotal, then the total; $K
+SP.listOfUfr = function listOfUfr(V) {
+  const cols = [{ h: 'Rank', w: 7, t: 'n' }, { h: 'Requirement', w: 40, t: 's' }, { h: 'CCaR Record', w: 14, t: 's' }, { h: 'PMO', w: 22, t: 's' }]
+    .concat(V.svc.map(x => ({ h: x.label + ' ($K)', w: 11, t: 'k' })))
+    .concat([{ h: 'Total ($K)', w: 12, t: 'k' }, { h: 'Funding status', w: 16, t: 's' }, { h: 'Exec ready?', w: 11, t: 's' }, { h: 'SFCB action', w: 18, t: 's' }, { h: 'Approved in plan ($K)', w: 14, t: 'k' }]);
+  const pad = n => Array(n).fill('');
+  const rows = [], RK = V.rank && V.rank.groups ? V.rank.groups : {};
+  for (const g of V.groups) {
+    const G = RK[g.ap + '|' + g.fy], nAll = G && typeof G.n === 'number' ? G.n : g.lines.length;
+    rows.push({ k: 'group', c: [g.apLabel + ' FY' + g.fy] });
+    for (const l of g.lines) {
+      const rk = /^\s*\d+\s*$/.test(String(l.rank)) ? Number(l.rank) : l.rank;
+      rows.push({ k: 'line', c: [rk, (l.title || '(no title)'), l.ccar || '', l.pmoLabel].concat(l.amt, [l.sum, l.status, l.exec, l.sfcb, l.plan ? l.plan.approved : 'Unfunded only']) });
+    }
+    rows.push({ k: 'sub', c: ['', 'Subtotal, ' + g.apLabel + ' FY' + g.fy + (g.lines.length < nAll ? ' (the lines shown)' : ''), '', ''].concat(V.svc.map((_, k) => g.lines.reduce((n, l) => n + l.amt[k], 0)),
+      [g.lines.reduce((n, l) => n + l.sum, 0)], pad(4)) });
+  }
+  rows.push({ k: 'total', c: ['', 'Total unfunded' + (V.groups.length > 1 ? ', every list shown' : ''), '', ''].concat(V.total.amt, [V.total.sum], pad(4)) });
+  return { cols, rows };
+};
+// SRRB (§44): each appropriation and year's heading and its lines, then the total; $M
+SP.listOfSrrb = function listOfSrrb(V) {
+  const cols = [{ h: 'Requirement (Plan Event Title)', w: 40, t: 's' }, { h: 'CCaR records', w: 16, t: 's' }, { h: 'PMO', w: 24, t: 's' }, { h: 'Award date', w: 18, t: 's' }]
+    .concat(V.svc.map(x => ({ h: x.label + ' ($M)', w: 11, t: 'm' })))
+    .concat([{ h: 'Total ($M)', w: 12, t: 'm' }, { h: 'SRRB', w: 7, t: 's' }, { h: 'Not counted: rows not marked Yes ($M)', w: 16, t: 'm' }]);
+  const rows = [];
+  for (const g of V.groups) {
+    rows.push({ k: 'group', c: [g.apLabel + ' FY' + g.fy] });
+    for (const l of g.lines) rows.push({ k: 'line', c: [l.title, l.ccars.join(', '), l.pmos.map(p => p.label).join(', '), SP.srrbMonthsText(l)].concat(l.amt, [l.sum, 'Yes', l.other || '']) });
+  }
+  rows.push({ k: 'total', c: ['Total', '', '', ''].concat(V.total.amt, [V.total.sum, '', '']) });
+  return { cols, rows };
+};
