@@ -282,17 +282,21 @@ for the switches.
   to open or close it. **Expand to** opens a whole block to one level. The CCaR row shows its number.
 - **PMOs.** Pick a PMO. It shows that PMO in every appropriation and FY, with its own Unobligated Requirements list.
 - **Unfunded.** The UFR tracker's lines, once it has been imported in Settings: by appropriation and fiscal year, in
-  rank order, in $K. Pick a PMO, appropriation, fiscal year or Funding status, or type part of a title or CCaR
-  number in Find; the tiles, the two charts and the total follow, and so does the Filter's choice of services. Press a
+  rank order, in $K. Press an appropriation's button at the top (or All appropriations), pick a PMO, fiscal year or
+  Funding status, or type part of a title or CCaR number in Find; the tiles, the two charts and the totals follow, and so
+  does the Filter's choice of services. The CCaR record has a column of its own. Each list ends with a subtotal row (by
+  service and in all), and the last row is the total of every list shown. Press a
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
   Unfunded only. The same view is in a view-only copy.
   **Mandatory funding not received:** a switch on this page lists every plan event on a Mandatory budget in the CCaR
   pull as unfunded, one line per plan event, marked *Mandatory*. They come from the pull, so there is nothing to type
   and nothing to keep in step; switch it off and the list is the tracker alone again. For now this changes the Unfunded
   page only: the spend plan pages and the PDFs still count Mandatory as Approved. A view-only copy made with the switch
-  on shows the Mandatory lines and cannot change the switch.
-  **Your own ranking:** in your own file (not a view-only copy) each line's rank is a box. Type a rank, or press the up
-  and down buttons, to put a list in your order, 1 to N within its appropriation and fiscal year. Your order is used in
+  on shows the Mandatory lines and cannot change the switch. On a Mandatory line you set **Exec ready?** (Yes, No or
+  blank) and **SFCB action** yourself, since the pull carries neither; the Exec ready and SFCB approved tiles count them,
+  they are kept with the line when a new pull is imported, and a view-only copy shows them without a way to change them.
+  **Your own ranking:** in your own file (not a view-only copy) each line's rank is a box. Drag a line by its title, or type
+  a rank, to put a list in your order, 1 to N within its appropriation and fiscal year. Your order is used in
   place of the tracker's on this page, on the PDFs and in a view-only copy. Importing the tracker again replaces
   everything else about a line and keeps your ranking on it: a line is known by its CCaR record and its title together.
   Anything that does not line up is listed under *Your ranking: to check*: lines you rank differently from the tracker,

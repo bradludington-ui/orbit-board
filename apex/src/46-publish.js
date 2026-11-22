@@ -956,9 +956,10 @@ SP.srrbView = function srrbView(M, pulls, view, F) {
 //     rows on a Mandatory budget (SP.laneRule): { ap, fy, sheet: 'CCaR pull', row, rank: '', title (the plan event's
 //     title), pmo, ccar, cents[7], total, status: 'Mandatory', exec: '', sfcb: '', mand: true, record (the record's title),
 //     obligated }. Mfull is the model with every switch on. In the pull's order.
-//   SP.ufrWithMandatory(ufr, Mfull) -> { ufr, n, cents, overlap: [text] }   the lists with those lines added to their fiscal
+//   SP.ufrWithMandatory(ufr, Mfull, set) -> { ufr, n, cents, overlap: [text] }   the lists with those lines added to their fiscal
 //     year (a year with no tracker gets an entry of its own, mandOnly: true), and the CCaR records that are on a tracker
-//     and have Mandatory plan events too, to be checked for counting twice.
+//     and have Mandatory plan events too, to be checked for counting twice. set is the keeper's Exec ready? and SFCB
+//     action for Mandatory lines ({SP.ufrMandKey(line): {exec, sfcb}}, §49).
 // Nothing here changes a figure on any other page: the spend plan still counts this money as Approved (§45).
 SP.ufrMandatory = function ufrMandatory(Mfull) {
   const out = [];
@@ -983,8 +984,13 @@ SP.ufrMandatory = function ufrMandatory(Mfull) {
   }
   return out;
 };
-SP.ufrWithMandatory = function ufrWithMandatory(ufr, Mfull) {
-  const out = {}, lines = SP.ufrMandatory(Mfull), overlap = [];
+// §49 a Mandatory line's Exec ready? and SFCB action are the keeper's (the CCaR pull has neither): kept by the line's
+// appropriation, fiscal year, CCaR record and plan event title, as a ranking keeps a line, so a new pull keeps them
+SP.ufrMandKey = function ufrMandKey(l) { return l.ap + '|' + l.fy + '|' + SP.normKey(l.ccar) + '\u0001' + SP.normKey(l.title); };
+SP.ufrWithMandatory = function ufrWithMandatory(ufr, Mfull, set) {
+  const S = set && typeof set === 'object' ? set : {};
+  const out = {}, lines = SP.ufrMandatory(Mfull).map(l => { const k = SP.ufrMandKey(l), v = Object.prototype.hasOwnProperty.call(S, k) && S[k] && typeof S[k] === 'object' ? S[k] : null;
+    return v ? Object.assign({}, l, { exec: typeof v.exec === 'string' ? v.exec : '', sfcb: typeof v.sfcb === 'string' ? v.sfcb : '' }) : l; }), overlap = [];
   const src = ufr && typeof ufr === 'object' ? ufr : {};
   for (const k of Object.keys(src)) out[k] = src[k];
   const onTracker = new Set();

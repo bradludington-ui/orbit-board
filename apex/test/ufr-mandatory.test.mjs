@@ -81,7 +81,7 @@ try {
   S.setSettings({ asOf: '2026-10' });
   await settle(60);
   const rows = () => [...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => { const i = tr.querySelector('input.urk'), c = tr.children;
-    return [i ? i.value : c[0].textContent, tr.querySelector('.tg').textContent, tr.querySelector('.mtag') ? 'Mandatory' : '', tr.querySelector('.fsub').textContent, c[2].textContent, tr.querySelector('.utot').textContent, c[c.length - 4].textContent, c[c.length - 1].textContent, tr.classList.contains('umand')]; });
+    return [i ? i.value : c[0].textContent, tr.querySelector('.tg').textContent, tr.querySelector('.mtag') ? 'Mandatory' : '', tr.querySelector('.uccar').textContent, c[3].textContent, tr.querySelector('.utot').textContent, c[c.length - 4].textContent, c[c.length - 1].textContent, tr.classList.contains('umand')]; });
   const flip = async on => { const b = main().querySelector('input[data-act=ufrmand]'); b.checked = on; b.dispatchEvent(new Wd.Event('change', { bubbles: true })); await settle(); };
   const tile = id => { const x = main().querySelector('.tile[data-tile=' + id + ']'); return x ? [x.querySelector('.tv').textContent, x.querySelector('.ts').textContent] : null; };
   // no tracker loaded: the page says so, and offers the switch
@@ -107,11 +107,11 @@ try {
     ['4', 'Lot Two', 'Mandatory', 'C1', PP, '1,800', 'Mandatory', '1,800', true],
     ['5', 'Repair', 'Mandatory', 'C2', AV, '1,500', 'Mandatory', '1,500', true],
     ['1', 'Kit', 'Mandatory', 'C4', PP, '700', 'Mandatory', '700', true]]));
-  const cellsOf = title => [...[...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].find(tr => tr.querySelector('.tg').textContent === title).children].slice(3, 9).map(c => c.textContent);
+  const cellsOf = title => [...[...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].find(tr => tr.querySelector('.tg').textContent === title).children].slice(4, 10).map(c => c.textContent);
   C.eq('Lot One by service: USAF 2,400 and ANG 300; Repair: STOVL 1,500', J([cellsOf('Lot One'), cellsOf('Repair')]), J([['2,400', '300', '-', '-', '-', '-'], ['-', '-', '-', '1,500', '-', '-']]));
   C.eq('five tiles: the total takes them in, and the fifth says how much is Mandatory', J([tile('sum'), tile('only'), tile('mand'), main().querySelector('.tiles').classList.contains('tiles5')]),
     J([['$8,100K', '6 lines (2 requirements on the tracker, 4 Mandatory plan events), 2 appropriations'], ['1', 'unfunded only: no plan event yet'], ['$6,700K', '4 plan events from the CCaR pull'], true]));
-  C.eq('the total row', [...main().querySelectorAll('#uiUfrT tr.band td.n')].map(x => x.textContent).join(' '), '6,300 300 - 1,500 - - 8,100');
+  C.eq('the total row', [...main().querySelectorAll('#uiUfrT tr.utotal td.n')].map(x => x.textContent).join(' '), '6,300 300 - 1,500 - - 8,100');
   C.eq('the record on the tracker and among the Mandatory plan events is flagged under the switch', J([...main().querySelectorAll('#uiUfrMandChk li')].map(li => li.textContent)),
     J(['O&M FY2027: CCaR C1 is on the UFR tracker and has Mandatory plan events listed too; check it is not counted twice.']));
   await click([...main().querySelectorAll('#uiUfrT .tg')].find(b => b.textContent === 'Lot Two'));

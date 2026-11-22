@@ -2478,3 +2478,34 @@ publish by end of month as a matter of record. Leave filename as APEX."*
   kept as the record can be told from the next.
 
 `test/view-only.test.mjs` (the plan carries a note to check; the copy shows none and no Descriptions column).
+
+## §49 The Unfunded page's own controls (Brad, 22 Nov 2026)
+
+*"To avoid confusion, let's add a filter for unfundeds to select each Appropriation. Let's remove the up and down buttons for
+unfundeds. Let's enable the ability to click and drag them around to reprioritize. I also need summary totals at the bottom of
+each unfunded so I can see the total by service and the overall total. Let's also breakout the CCaR record number into it's
+own column under CCaR Record instead of including it in the Requirement Title. For anything in mandatory give me the ability to
+change the status for Exec Ready? and SFCB Action. I also want the unfunded list to be filterable by PMO."*
+
+- **Appropriation:** a row of buttons above the pickers, *All appropriations* then each appropriation the lists hold, the one
+  in use pressed (`aria-pressed`). It replaces the Appropriation picker. The PMO picker (there before, as *Choose your PMO*) is
+  now labelled **PMO**. Both are in a view-only copy.
+- **No ▲ ▼.** In the keeper's file a line is dragged by its title (the §46 grip and drag: draggable only while the label is
+  held) and dropped above or below another line of the same appropriation and fiscal year; it takes that place in the whole
+  list (§43's `SP.ufrMove`), so with a PMO picked it goes just past the line it was dropped on. Alt with the up or down arrow on
+  the title moves it past the line shown above or below. The rank box stays (Brad asked only for the buttons to go). A drop on
+  another list does nothing. A view-only copy has nothing to drag.
+- **Totals:** under each list a *Subtotal, <appropriation> FY<year>* row, by service and in all (*(the lines shown)* when the
+  pickers hide some of it); after every list the *Total unfunded* row (*, every list shown* when there is more than one).
+- **CCaR Record** is a column after Requirement; the title cell holds the title (and the *Mandatory* tag) alone.
+- **Mandatory lines' Exec ready? and SFCB action** are the keeper's: a picker (blank, Yes, No) and a text box (suggesting the
+  words the tracker's own SFCB column uses). Kept in the plan as `state.ufrMandSet = {SP.ufrMandKey(line): {exec, sfcb}}`, the
+  key being appropriation, fiscal year, CCaR record and plan event title (as a ranking knows a line), so a new pull keeps them;
+  both blank takes the line out. `SP.setUfrMandStatus(key, field, value)` refuses in a view-only copy, refuses an Exec ready?
+  other than Yes, No or blank, and marks the plan unsaved. `SP.ufrWithMandatory(ufr, Mfull, set)` puts them on the line, so the
+  Exec ready and SFCB approved tiles count them by the same rules as a tracker line. A plan whose table is not text by line is
+  not opened. Import from last version carries it; a view-only copy shows them as text. The tracker's own lines stay read-only:
+  they are the tracker's.
+
+`test/ufr-49.test.mjs`; `ufr-view`, `ufr-rank` and `ufr-mandatory` updated for the new columns, rows and drag.
+

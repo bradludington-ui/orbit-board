@@ -623,6 +623,16 @@ table.ufrt td.utot{font-weight:700}
 table.ufrt td.uonly{color:var(--wine);font-weight:700;white-space:nowrap}
 table.ufrt tr.udetail td{padding:8px 10px}
 table.ufrt tr.band th{text-align:right}
+/* §49 the appropriation buttons, the CCaR Record column, a list's subtotal, the drag grip and the Mandatory line's own settings */
+.ufrapbar .seg{flex-wrap:wrap}
+.ufrapbar .seg button{min-height:28px;padding:3px 12px}
+.ufrapbar .seg button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--onAcc);font-weight:700}
+table.ufrt td.uccar{white-space:nowrap}
+table.ufrt tr.usub th,table.ufrt tr.usub td{background:#dde6f4;font-weight:700}
+table.ufrt tr.utotal th,table.ufrt tr.utotal td{border-top:2px solid var(--sink)}
+table.ufrt tr.mv > th.lab{padding-left:16px}
+table.ufrt .umx,table.ufrt .ums{font:inherit;padding:1px 3px;border:1px solid var(--sedge);border-radius:4px;background:#fff;color:#111;max-width:12em}
+@media print{table.ufrt tr.mv > th.lab{padding-left:6px}table.ufrt .umx,table.ufrt .ums{border:0;appearance:none;-webkit-appearance:none;background:transparent}}
 .usw{display:inline-block;width:10px;height:10px;border-radius:2px;border:1px solid #6b7889;margin-right:6px;vertical-align:-1px}
 .ufrbar input[type=search]{max-width:100%}
 
