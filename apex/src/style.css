@@ -760,3 +760,5 @@ main.ov .dlbtn{max-width:100%;min-height:30px;padding:4px 12px;font:inherit;font
 
 /* §55 the two download columns: each button on one line */
 table.pubdocs button[data-act=pubdoc]{white-space:nowrap}
+table.pubdocs td:has(> button[data-act=pubdoc]){text-align:center;vertical-align:middle}
+table.pubdocs thead th:nth-last-child(-n+2){text-align:center}
