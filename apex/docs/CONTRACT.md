@@ -2460,3 +2460,21 @@ Unobligated list is folded closed under its heading (count and total shown; ever
 after a few seconds to download the file and open it in Edge, Chrome or Safari. A view-only copy says *Published <day>*.
 The import question (§11) also asks when a year's Obligated falls by more than $5M and 5%, naming both files. Menu, Filter
 and Manage data redraw only the bars.
+
+## §48 What a reader's copy shows, and two menu names
+
+Brad, 22 Nov 2026, on the questions §47 held: *"Hide."* (the keeper's To check notes and the Descriptions column in a reader's
+copy), *"Drop it."* (First FY in a reader's copy), *"Change."* (the menu names), and on the publish file name: *"I plan to save each
+publish by end of month as a matter of record. Leave filename as APEX."*
+
+- **A view-only copy's Spend plan PDFs page** lists the PDFs and the unfunded list loaded, with no *To check* notes and no
+  Descriptions column. The keeper's file is unchanged.
+- **A view-only copy's header** says *Data through …* and *Published …*; First FY is no longer said there (it still decides what is
+  counted, and the keeper's Manage data bar still sets it). This reverses §35's "Data through and First FY are said as words".
+- **Menu names:** *By PMO* is **PMO spend plan**; *Publish PDFs* is **Spend plan PDFs** (§33's own name). The view ids (`pmos`,
+  `publish`), the pictures zip's folder (*By PMO*) and every figure are unchanged. At 1,400 px and narrower the menu is 128 px
+  with 5 px button padding, so both names fit on one line beside a CCaR-deep tree at 1,366 px (`scope-review` UX-1).
+- **The view-only copy's file name is unchanged**: *APEX view only - data through <month> - <day>.html*, dated so a month-end copy
+  kept as the record can be told from the next.
+
+`test/view-only.test.mjs` (the plan carries a note to check; the copy shows none and no Descriptions column).

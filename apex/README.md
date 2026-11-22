@@ -212,7 +212,7 @@ copy whenever the data changes; a copy does not update itself.
 ## Reading the views
 
 The views are in the menu down the left side (a row across the top in a narrow window), grouped: **Requirements**, **My PMO** and **Calendar** (the Award calendar); *Browse*
-(By PMO, each appropriation, and Unfunded); *Briefing* (Overview, Summary, Slide blocks, SRRB, Publish PDFs); *Data checks* (Unobligated, Import report,
+(PMO spend plan, each appropriation, and Unfunded); *Briefing* (Overview, Summary, Slide blocks, SRRB, Spend plan PDFs); *Data checks* (Unobligated, Import report,
 What changed); *Set up* (Settings). The **Filter** button above a view says which services and lanes are shown; click it
 for the switches.
 
@@ -261,7 +261,7 @@ for the switches.
   amounts by service, in $M, awarded or not. No and blank are left off. Pick a PMO, appropriation or fiscal year, or type
   in Find, and the count, tiles, charts and total follow. If only some rows of a plan event say Yes, only those rows are
   added up, and the line says how much was left out.
-- **Publish PDFs.** Spend plans to send out, as PDF files made inside the page (CONTRACT §33). One for each
+- **Spend plan PDFs.** Spend plans to send out, as PDF files made inside the page (CONTRACT §33). One for each
   appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO's data only). Each opens with
   its stoplight, lists Prime Contracts first (the Special CCaRs of Settings), gives each CCaR record its award dates (month and year, as Dec-2025) and a row per service of
   Required, Approved, Obligated, Remaining and Delta in whole dollars, and ends with the unfunded list for what it
@@ -269,7 +269,7 @@ for the switches.
   - **Import unfunded list…**, in **Settings** under Set up, takes the UFR tracker workbook, one per fiscal year (its O&M, Full Fund, Initial Spares and
     OPN tabs, read by their column titles; amounts in $K). Required is Approved plus the unfunded amount for that CCaR
     record. A record that is only on the unfunded list still appears, with Approved $0. Anything to check is listed
-    there too. Publish PDFs shows which list is loaded.
+    there too. Spend plan PDFs shows which list is loaded.
   - **Descriptions**: a record's Description column is a bulleted list of its plan event titles, in date order; a
     prime contract's is its Requirement Title. To print your own
     wording instead, type one for the CCaR record in the list, or import a sheet with a CCaR number column and a
@@ -339,7 +339,7 @@ Months up to **Data through** are actual. They have a light grey fill. Later mon
 
 ## Your own order, and full screen
 
-On an appropriation page or By PMO, drag a PMO, or a record title under a PMO, by its name (look for the ⠇ grip) and
+On an appropriation page or PMO spend plan, drag a PMO, or a record title under a PMO, by its name (look for the ⠇ grip) and
 drop it where you want it among the others at that level; a gold line shows where it will land. Plan events stay as they
 are. (From the keyboard: Alt with the up or down arrow on the name.) The order is yours alone: it is kept in your
 browser, nobody else sees it, and no figure, workbook, PDF or picture changes. **Standard order** puts a table back.
@@ -350,7 +350,7 @@ itself: the browser needs that click. An iPhone has no full screen for pages, so
 
 ## Finding your way (Nov 2026)
 
-- **Your office** is remembered: My PMO and By PMO both open on it, and each links to the other.
+- **Your office** is remembered: My PMO and PMO spend plan both open on it, and each links to the other.
 - **Requirements:** titles and CCaR numbers that match come first; pick *Projected award* (late, next 1 to 3 months, no
   date, awarded) or an *Order*; press Enter to open the first. A requirement shows its plan events first, then its
   budgets, and its Sub-PMO, PID and plan event descriptions.
@@ -466,7 +466,7 @@ example. Your browser puts it in its downloads folder, or asks where to save it,
   13.33 in (a browser may drop the picture's resolution on the clipboard).
 - **Save picture** saves one block as a PNG.
 - **Save all pictures (.zip)** saves every block, one PNG each, and every PMO's blocks in a folder named *By PMO*.
-- **By PMO** has the same Copy picture and Save picture on each of a PMO's blocks. A PMO's picture lists that PMO's
+- **PMO spend plan** has the same Copy picture and Save picture on each of a PMO's blocks. A PMO's picture lists that PMO's
   requirement titles over the same totals, goal and status rows.
 
 Each picture is 2000 × 675 pixels: 13.33 × 4.5 inches at 150 dpi, the slide region. A saved picture says 150 dpi, so

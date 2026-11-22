@@ -51,7 +51,7 @@ try {
   await click(main().querySelector('button[data-act=savepic][data-b="0"]'));
   C.eq('Slide blocks: Save picture still draws the appropriation’s block, with no PMO', J([drawn, saved]), J([[['O&M FY2027', null]], [['O&M FY2027.png', 'image/png']]]));
   C.chk('Slide blocks says a picture carries no CUI marking, and that each PMO’s are on By PMO and in the zip', /carries no CUI marking: the slide it goes on is marked/.test(main().textContent)
-    && /Each PMO’s blocks have the same two buttons on By PMO; Save all pictures holds them too, in a folder named By PMO\./.test(main().querySelector('#uiPmoPicNote').textContent));
+    && /Each PMO’s blocks have the same two buttons on PMO spend plan; Save all pictures holds them too, in a folder named By PMO\./.test(main().querySelector('#uiPmoPicNote').textContent));
   await click(main().querySelector('#uiPmoPicNote button'));
   C.chk('its By PMO button opens By PMO', /^PMO: /.test(main().querySelector('h2.title').textContent));
   C.eq('no script error on the page', J(t.errors.filter(x => !/^Not implemented: (Window's scrollTo\(\) method|HTMLInputElement\.prototype\.click|HTMLCanvasElement)/.test(String(x)))), '[]');

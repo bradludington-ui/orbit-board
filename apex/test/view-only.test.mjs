@@ -49,6 +49,8 @@ try {
   A.SP.download = (name, data, mime) => { got.push({ name, data, mime }); return name; };
   const btn = A.doc.querySelector('#uiManage button[data-act=viewcopy]');
   C.chk('the keeper’s page has the button, in Manage data', !!btn && btn.textContent === 'Publish view-only copy…');
+  // §48: the plan carries an unfunded list with a To check note, so the copy has one to hide
+  C.chk('the keeper\u2019s plan has an unfunded list with a note to check', A.SP.setUfr({ ok: true, fy: 2027, name: 'UFR Tracker FY27.xlsx', unit: 1000, tabs: [], notes: ['O&M row 14: no CCaR number'], ignored: [], lines: [] }, '2026-11-14T15:00:00.000Z') === true);
   const before = J(A.SP.state), dirty = A.SP.isDirty();
   A.click(btn);
   for (let i = 0; i < 200 && !got.length; i++) await settle(10);
@@ -72,7 +74,7 @@ try {
   C.chk('there is no Manage data: the button and the bar are hidden', V.doc.getElementById('uiManageBtn').hidden === true && V.doc.getElementById('uiManage').hidden === true);
   C.eq('so nothing to import, save or publish with is on screen', J(['import', 'lastpick', 'save', 'savecopy', 'viewcopy'].map(a => [...V.doc.querySelectorAll('[data-act=' + a + ']')].some(b => V.shown(b)))), J([false, false, false, false, false]));
   C.chk('no "Unsaved changes" is said', !V.shown(V.doc.getElementById('uiSave')));
-  C.chk('Data through and First FY are said as words, and their boxes are not on screen', /^Data through Oct-2026 · First FY 2026 · Published \d{1,2} [A-Z][a-z]{2} \d{4}$/.test(V.doc.getElementById('uiAsOfText').textContent)   /* review I10: and the day it was published */
+  C.chk('Data through is said as words (no First FY, §48), and the boxes are not on screen', /^Data through Oct-2026 · Published \d{1,2} [A-Z][a-z]{2} \d{4}$/.test(V.doc.getElementById('uiAsOfText').textContent)   /* review I10: and the day it was published */
     && !V.shown(V.doc.getElementById('uiAsOf')) && !V.shown(V.doc.getElementById('uiFirst')), V.doc.getElementById('uiAsOfText').textContent);
   C.eq('the figures are the keeper’s, cell for cell (the Summary)', J(await summaryOf(V)), J(WANT));
   // every view left in the menu draws
@@ -97,6 +99,8 @@ try {
   C.eq('and none of what changes the plan: no description boxes, FM Lead boxes, title box, emblem or unfunded-list buttons',
     J(['input[data-act=pubdesc]', 'input[data-act=pubfm]', 'input[data-act=pubhead]', '[data-act=embpick]', '[data-act=pubnoemb]', '[data-act=ufrpick]', '[data-act=ufrdel]', '[data-act=descpick]'].map(s => !!pub.querySelector(s))),
     J([false, false, false, false, false, false, false, false]));
+  // §48 (Brad, 22 Nov 2026: "Hide"): a reader's copy shows none of the keeper's to-do: no To check notes, no Descriptions column
+  C.eq('§48: no To check notes and no Descriptions column in a reader\u2019s copy', J([!!pub.querySelector('#uiUfrNotes'), [...pub.querySelectorAll('#uiPubDocs th')].map(t => t.textContent).includes('Descriptions')]), J([false, false]));
   // Help says what this copy is
   V.click(V.doc.querySelector('[data-act=help]')); await settle();
   C.chk('Help opens by saying this is a view-only copy', /This is a view-only copy\./.test((V.doc.getElementById('uiVoHelp') || { textContent: '' }).textContent));

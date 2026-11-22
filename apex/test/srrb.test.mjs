@@ -96,7 +96,7 @@ try {
   await settle(60);
   const nav = () => doc.querySelector('#uiNav [data-act=view][data-v="srrb"]');
   C.chk('one item in the menu, SRRB, under Briefing, between Slide blocks and Publish PDFs', !!nav() && nav().textContent === 'SRRB' && nav().closest('.navg').getAttribute('aria-label') === 'Briefing'
-    && nav().previousElementSibling.textContent === 'Slide blocks' && nav().nextElementSibling.textContent === 'Publish PDFs');
+    && nav().previousElementSibling.textContent === 'Slide blocks' && nav().nextElementSibling.textContent === 'Spend plan PDFs');
   await click(nav());
   C.chk('with a pull that has no SRRB column the page says so', /The CCaR pull loaded has no column headed SRRB/.test(main().querySelector('#uiSrrbEmpty').textContent) && !main().querySelector('#uiSrrbT'));
   S.applyImport(await S.parseFiles([{ name: 'om.csv', data: csv(NEW, OM.map(r => Object.assign({}, r, { SRRB: r.SRRB === 'No' ? 'No' : '' }))) }], { now: '2026-11-10T12:00:00.000Z' }));
