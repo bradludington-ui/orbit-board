@@ -766,6 +766,9 @@ table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
 .dlhead .dlrow{margin:0 0 6px}
 main.ov .dlbtn{max-width:100%;min-height:30px;padding:4px 12px;font:inherit;font-weight:600;white-space:normal;text-align:left;cursor:pointer}
 @media print{.dlrow,.dlbtn{display:none!important}}
+
+/* §55 the two download columns: each button on one line */
+table.pubdocs button[data-act=pubdoc]{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -11984,16 +11987,16 @@ function ui_vPublish(M) {
   out.push('<div class="acts pmobar pubbar" role="group" aria-label="What to publish"><span class="fl">Fiscal years</span>'
     + D.allFys.map(y => '<label class="chk"><input type="checkbox" data-act="pubfy" data-fy="' + y + '" data-fkey="pubfy:' + y + '"' + (ticked(y) ? ' checked' : '') + '> FY' + y + '</label>').join('')
     + '<span class="grow"></span><button type="button" class="primary" data-act="pubzip" data-m="d" data-fkey="pubzip:d"' + (Rd.D.docs.length ? '' : ' disabled') + '>Download all: Discretionary (.zip)</button>'
-    + '<button type="button" class="primary" data-act="pubzip" data-m="dm" data-fkey="pubzip:dm"' + (D.docs.length ? '' : ' disabled') + '>Download all: Discretionary and Mandatory (.zip)</button></div>');
+    + '<button type="button" class="primary" data-act="pubzip" data-m="dm" data-fkey="pubzip:dm"' + (D.docs.length ? '' : ' disabled') + '>Download all: Discretionary + Mandatory (.zip)</button></div>');
   if (!D.docs.length) out.push('<p class="none">Nothing to publish for the fiscal years ticked.</p>');
   else {
     out.push('<div class="tw"><table class="grid pubdocs" id="uiPubDocs"><thead><tr class="hd"><th scope="col">Document</th><th scope="col">Covers</th><th scope="col">CCaR records</th>'
-      + '<th scope="col">Unfunded lines (Discretionary / Disc. and Mand.)</th>' + (vo ? '' : '<th scope="col">Descriptions</th>') + '<th scope="col">PDF</th></tr></thead><tbody>'
+      + '<th scope="col">Unfunded lines (Discretionary / Discretionary + Mandatory)</th>' + (vo ? '' : '<th scope="col">Descriptions</th>') + '<th scope="col">Discretionary</th><th scope="col">Discretionary + Mandatory</th></tr></thead><tbody>'
       + D.docs.map((d, i) => '<tr data-doc="' + ui_e(d.id) + '"><th scope="row">' + ui_e(d.file.replace(/\.pdf$/, '')) + '</th><td>'
         + ui_e((d.kind === 'ap' ? 'Consolidated, every PMO' : 'That PMO only, ' + [...new Set(d.sections.map(s => s.apLabel))].join(', ')) + ' · ' + [...new Set(d.sections.map(s => 'FY' + s.fy))].join(', '))
         + '</td><td class="n">' + SP.fmtInt(d.nRecords) + '</td><td class="n">' + (dOf(d.id) ? SP.fmtInt(dOf(d.id).ufr.length) : '-') + ' / ' + SP.fmtInt(d.ufr.length) + '</td><td>'
-        + (vo ? '' : (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td>') + (dOf(d.id) ? '<button type="button" data-act="pubdoc" data-m="d" data-k="' + ui_e(d.id) + '" data-fkey="pubdoc:d:' + ui_e(d.id) + '" aria-label="Download ' + ui_e(d.file.replace(/\.pdf$/, '')) + ', Discretionary">Discretionary</button> ' : '')
-          + '<button type="button" data-act="pubdoc" data-m="dm" data-k="' + ui_e(d.id) + '" data-fkey="pubdoc:dm:' + ui_e(d.id) + '" aria-label="Download ' + ui_e(d.file.replace(/\.pdf$/, '')) + ', Discretionary and Mandatory">Disc. and Mand.</button></td></tr>').join('')
+        + (vo ? '' : (d.missing ? SP.fmtInt(d.nDesc - d.missing) + ' typed, ' + SP.fmtInt(d.missing) + ' list plan events' : 'all typed') + '</td><td>') + (dOf(d.id) ? '<button type="button" data-act="pubdoc" data-m="d" data-k="' + ui_e(d.id) + '" data-fkey="pubdoc:d:' + ui_e(d.id) + '" aria-label="Download ' + ui_e(d.file.replace(/\.pdf$/, '')) + ', Discretionary">Download PDF</button>' : '')
+          + '</td><td><button type="button" data-act="pubdoc" data-m="dm" data-k="' + ui_e(d.id) + '" data-fkey="pubdoc:dm:' + ui_e(d.id) + '" aria-label="Download ' + ui_e(d.file.replace(/\.pdf$/, '')) + ', Discretionary and Mandatory">Download PDF</button></td></tr>').join('')
       + '</tbody></table></div>');
   }
   // the unfunded list: what is loaded. It is imported, removed and checked in Settings (Brad, 19 Nov 2026: "Let's move it

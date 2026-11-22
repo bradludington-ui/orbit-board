@@ -2615,7 +2615,7 @@ PDFs do not follow the Filter: every service is counted, as §33 had it).
   note under the list says what a Mandatory line is.
 - **Discretionary and Mandatory**: the body is every lane; the list at the end is the tracker's lines alone, in the keeper's
   ranking (as before §52).
-- The documents table counts unfunded lines both ways (`Discretionary / Disc. and Mand.`).
+- The documents table counts unfunded lines both ways (`Discretionary / Discretionary + Mandatory`); each download is a column of its own, Discretionary and Discretionary + Mandatory, a Download PDF button in each.
 
 `test/ufr-mandatory.test.mjs` (§55: both lists, by appropriation and PMO, in the keeper's order; the body's Approved each
 way; Required; an all-Mandatory appropriation's PDF; the switch changing neither; the printed words) and

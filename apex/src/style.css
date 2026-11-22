@@ -758,3 +758,5 @@ table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
 main.ov .dlbtn{max-width:100%;min-height:30px;padding:4px 12px;font:inherit;font-weight:600;white-space:normal;text-align:left;cursor:pointer}
 @media print{.dlrow,.dlbtn{display:none!important}}
 
+/* §55 the two download columns: each button on one line */
+table.pubdocs button[data-act=pubdoc]{white-space:nowrap}
