@@ -155,35 +155,6 @@ try {
     C.chk('§52 the O&M PDF prints them, Repair first, and says what a Mandatory line is', /Repair \| [^|]*\| C2 /.test(utx) && utx.indexOf('Repair') < utx.indexOf('Depot tooling') && utx.indexOf('Depot tooling') < utx.indexOf('Lot One')
       && /Funding Status is Mandatory are Mandatory plan events from the CCaR pull/.test(utx), utx.slice(0, 1500));
   }
-  // §53 the PDFs follow the Filter: the Mandatory lane switched off leaves the Mandatory money out of every figure, the
-  // Mandatory lines off the unfunded list, and the file names and every page say so; switched back on, all as before
-  {
-    const R0 = Wd.ui_pubData(Wd.ui_model()), om0 = R0.D.docs.find(d => d.id === 'ap:om');
-    const lane = () => doc.querySelector('input[data-act=lane][data-l="mand"]');
-    lane().click(); await settle(40);
-    const R = Wd.ui_pubData(Wd.ui_model()), om = R.D.docs.find(d => d.id === 'ap:om'), K$ = c => c / 100;
-    // O&M FY2027 with Mandatory off: Tessa A Lot One USAF Discretionary 5,000,000 (the 2,400,000 + 300,000 + 1,800,000 Mandatory
-    // gone); Tessa B Repair 1,500,000 Mandatory gone; Tessa C Disc Only 900,000
-    C.eq('§53 Mandatory lane off: the O&M PDF’s section Approved is the Discretionary money alone', K$(om.sections.find(x => x.fy === 2027).total.approved), 5000000 + 900000);
-    C.eq('§53 … it was every lane before', K$(om0.sections.find(x => x.fy === 2027).total.approved), 5000000 + 900000 + 2400000 + 300000 + 1800000 + 1500000);
-    C.eq('§53 the stoplight’s Approved follows too', K$(om.stoplight.total.approved), 5900000);
-    C.eq('§53 the unfunded list leaves the Mandatory lines out, keeping the tracker’s in the keeper’s order', J(om.ufr.map(l => [l.rank, l.title])), J([['2', 'Depot tooling'], ['3', 'Tessa A']]));
-    C.eq('§53 every file name says [filtered]', J(R.D.docs.map(d => / \[filtered\]\.pdf$/.test(d.file))), J(R.D.docs.map(() => true)));
-    const ctx = Wd.ui_pubCtx(R.Mp, R.P), pgs = S.publishPages(om, ctx).pages;
-    C.chk('§53 every page’s foot says what is shown, and the notes say what was left out', pgs.every(p => p.ops.some(o => o.t === 'text' && /\| {3}Services shown: all; lanes shown: Discretionary$/.test(o.s)))
-      && pgs.some(p => p.ops.some(o => o.t === 'text' && /^Filtered: Services shown: all; lanes shown: Discretionary\./.test(o.s))), J(pgs[0].ops.filter(o => o.t === 'text' && o.y > 590).map(o => o.s)));
-    lane().click(); await settle(40);
-    // a service switched off is left out of every unfunded line's amounts too: USAF off, Depot tooling (USAF 900) is $0 and
-    // Lot One keeps only its ANG 300
-    const usaf = [...doc.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => b.parentElement.textContent.trim() === 'USAF');
-    usaf.click(); await settle(40);
-    const Ru = Wd.ui_pubData(Wd.ui_model()), omu = Ru.D.docs.find(d => d.id === 'ap:om');
-    C.eq('§53 USAF off: each unfunded line without its USAF amount', J(omu.ufr.map(l => [l.title, K$(l.total)])), J([['Repair', 1500000], ['Depot tooling', 0], ['Tessa A', 0], ['Lot One', 300000], ['Lot Two', 0]]));
-    [...doc.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => b.parentElement.textContent.trim() === 'USAF').click(); await settle(40);
-    const R2 = Wd.ui_pubData(Wd.ui_model());
-    C.chk('§53 switched back on: the same documents, names and lists as before', J(R2.D.docs.map(d => [d.file, d.sections.map(x => x.total), d.ufr.map(l => l.title)])) === J(R0.D.docs.map(d => [d.file, d.sections.map(x => x.total), d.ufr.map(l => l.title)]))
-      && !R2.D.docs.some(d => /filtered/.test(d.file)));
-  }
   // a view-only copy made with the switch on
   const vo = loadTool({ html: S.viewOnlyHtml('2026-11-12T13:00:00.000Z') });
   for (let i = 0; i < 200 && !vo.window.document.getElementById('uiMain'); i++) await settle(5);

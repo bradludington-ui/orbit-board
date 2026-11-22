@@ -510,13 +510,13 @@ try {
   const usnBox = [...doc2.querySelectorAll('#uiSwitches input[data-act=svc]')].find(b => /USN \(USN CV\)/.test(b.parentElement.textContent));
   usnBox.checked = false; change(usnBox); await settle(40);
   C.chk('USN is switched off on screen', !/USN \(USN CV\)/.test(doc2.querySelector('.filtbtn').textContent) && doc2.querySelector('.filtbtn').classList.contains('filtered'), doc2.querySelector('.filtbtn').textContent);
-  C.chk('§53 the page says the PDFs follow the Filter', /The PDFs follow the Filter above/.test(main().textContent));
+  C.chk('the page says every service and lane is counted', /Every service and lane is counted, whatever the Filter above says/.test(main().textContent));
   click(main().querySelector('button[data-act=pubdoc][data-i="0"]'));
   for (let i = 0; i < 200 && !got.length; i++) await settle(10);
-  C.chk('Download PDF hands the browser a PDF by the document’s name', got.length === 1 && got[0].name === 'APEX Spend Plan - O&M [filtered].pdf' && got[0].mime === 'application/pdf' && Buffer.from(got[0].data.slice(0, 5)).toString() === '%PDF-', J(got.map(g => g.name)));
+  C.chk('Download PDF hands the browser a PDF by the document’s name', got.length === 1 && got[0].name === 'APEX Spend Plan - O&M.pdf' && got[0].mime === 'application/pdf' && Buffer.from(got[0].data.slice(0, 5)).toString() === '%PDF-', J(got.map(g => g.name)));
   writeFileSync(join(tmp.dir, 'ui.pdf'), got[0].data);
   const ut = spawnSync('pdftotext', ['-layout', join(tmp.dir, 'ui.pdf'), '-'], { encoding: 'utf8' }).stdout;
-  C.chk('§53 with USN switched off on screen the PDF leaves USN out: the prime’s Approved is 3,000,000 (USAF alone) and Required 5,500,000, and its foot says what is shown', /\$\s+5,500,000\s+\$\s+3,000,000/.test(ut) && /Services shown: [^\n]*; lanes shown/.test(ut) && !/\$\s+6,500,000\s+\$\s+4,000,000/.test(ut) && /O&M FM Lead: O\. Lead/.test(ut) && !/N\. Lead/.test(ut), ut.slice(0, 600));
+  C.chk('with USN switched off on screen the PDF still counts USN: the prime’s Approved is 4,000,000 and Required 6,500,000', /\$\s+6,500,000\s+\$\s+4,000,000/.test(ut) && /O&M FM Lead: O\. Lead/.test(ut) && !/N\. Lead/.test(ut), ut.slice(0, 600));
   // §33.7 the built-in emblem is printed unless the plan holds another or asks for none
   const embBytes = Buffer.from(S2.EMBLEM_DEFAULT.split(',')[1], 'base64');
   C.eq('the built-in emblem is a JPEG, 240 px square', J([/^data:image\/jpeg;base64,/.test(S2.EMBLEM_DEFAULT), S2.jpegInfo(new Uint8Array(embBytes))]), J([true, { w: 240, h: 240, n: 3 }]));
@@ -537,10 +537,10 @@ try {
   click(main().querySelector('button[data-act=pubzip]'));
   for (let i = 0; i < 300 && !got.length; i++) await settle(10);
   await settle(30);
-  C.chk('Download all hands over one zip, named for the data', got.length === 1 && /^APEX spend plans - data through Oct-2026 - \d{4}-\d\d-\d\d \[filtered\]\.zip$/.test(got[0].name) && got[0].mime === 'application/zip', J(got.map(g => g.name)) + ' ' + doc2.querySelector('.msg').textContent);
+  C.chk('Download all hands over one zip, named for the data', got.length === 1 && /^APEX spend plans - data through Oct-2026 - \d{4}-\d\d-\d\d\.zip$/.test(got[0].name) && got[0].mime === 'application/zip', J(got.map(g => g.name)) + ' ' + doc2.querySelector('.msg').textContent);
   writeFileSync(join(tmp.dir, 'all.zip'), got[0].data);
   const zl = spawnSync('python3', ['-c', 'import sys,zipfile\nz=zipfile.ZipFile(sys.argv[1]); print(z.testzip(), sorted(z.namelist()))', join(tmp.dir, 'all.zip')], { encoding: 'utf8' });
-  C.eq('the zip holds the five PDFs, whole', zl.stdout.trim(), "None ['APEX Spend Plan - Initial Spares [filtered].pdf', 'APEX Spend Plan - O&M [filtered].pdf', 'APEX Spend Plan - OPN [filtered].pdf', 'APEX Spend Plan - PMO AV [filtered].pdf', 'APEX Spend Plan - PMO PP [filtered].pdf']");
+  C.eq('the zip holds the five PDFs, whole', zl.stdout.trim(), "None ['APEX Spend Plan - Initial Spares.pdf', 'APEX Spend Plan - O&M.pdf', 'APEX Spend Plan - OPN.pdf', 'APEX Spend Plan - PMO AV.pdf', 'APEX Spend Plan - PMO PP.pdf']");
   // removing the list
   click(doc2.querySelector('#uiNav [data-act=view][data-v="settings"]')); await settle();
   click(main().querySelector('button[data-act=ufrdel]')); await settle();

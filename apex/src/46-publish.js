@@ -191,8 +191,7 @@ SP.readUfr = function readUfr(wb, fileName) {
 //   M     a model built with every switch on
 //   ufr   the saved unfunded lists, { '<fy>': {fy, lines, ...} }, or nothing
 //   pub   { desc: { <CCaR number, normKey> : text } }
-//   opts  { fys: [years] }  the fiscal years to publish; absent: every year the model or the unfunded lists hold;
-//         filtered: true adds ' [filtered]' to every file name (§53: the model is the Filter's)
+//   opts  { fys: [years] }  the fiscal years to publish; absent: every year the model or the unfunded lists hold
 //   -> { fys, allFys, docs: [doc], records: [{key, ccar, title, desc, n}], flags: [text], ufrSkipped: [{fy, ap, n}] }
 //   doc: { id, kind: 'ap'|'pmo', ap, pmoKey, label, code, file, stoplight: {rows, total, pmoRows},
 //          sections: [{ap, apLabel, fy, total: Fig, groups: [{label, prime, records: [Rec]}], n}],
@@ -421,7 +420,6 @@ SP.publishData = function publishData(M, ufr, pub, opts) {
       seen.add(r.key); if (!r.desc) missing++;
     }
     d.missing = missing; d.nDesc = seen.size;
-    if (opts && opts.filtered) d.file += ' [filtered]';   // §53 a PDF made with a switch off says so in its name
     let f = pb_fileSafe(d.file), i = 2;
     while (names.has(f.toLowerCase())) f = pb_fileSafe(d.file) + ' (' + (i++) + ')';
     names.add(f.toLowerCase()); d.file = f + '.pdf';
@@ -623,7 +621,6 @@ SP.publishPages = function publishPages(doc, ctx) {
       { h: 'FY', w: 40, left: true, v: r => (r.total ? '' : 'FY' + r.fy) }].concat(figCols), S.rows.concat([totalRow]));
   }
   const noteLines = [];
-  if (C.filter) noteLines.push('Filtered: ' + C.filter + '. Every figure in this PDF, its unfunded list among them, leaves out the services and lanes switched off in the Filter when it was made.');
   noteLines.push(SP.STATUS_LEGEND_TEXT);
   for (const m of ['†', '‡', '§']) if (marks.has(m)) noteLines.push(m + ' ' + SP.markText(m, C.model));
   if (C.bae) noteLines.push('On this page Approved and Authorized are the BAE report’s where it covers a block, as on the APEX Summary. The spend plan pages list the CCaR plan events.');
@@ -897,8 +894,7 @@ SP.publishPages = function publishPages(doc, ctx) {
   pages.forEach((p, i) => {
     p.ops.push(Object.assign({ t: 'text', x: PB.W / 2, y: 15, s: cui, size: 8, bold: true, align: 'c' }, i === 0 ? { sn: cuiNode } : {}));
     p.ops.push({ t: 'text', x: PB.W / 2, y: 603, s: cui, size: 8, bold: true, align: 'c' });
-    // §53 a PDF made with a switch off says what it shows at the foot of every page, after its name
-    p.ops.push({ t: 'text', x: PB.L, y: 603, s: name + (C.filter ? '   |   ' + C.filter : ''), size: 6.5, color: C.filter ? PB.ink : PB.mut, bold: !!C.filter });
+    p.ops.push({ t: 'text', x: PB.L, y: 603, s: name, size: 6.5, color: PB.mut });
     p.ops.push({ t: 'text', x: PB.R, y: 603, s: 'Page ' + (i + 1) + ' of ' + N, size: 6.5, color: PB.mut, align: 'r' });
   });
   return { title: name, pages, images: C.emblem ? { emblem: C.emblem } : {}, struct: root };

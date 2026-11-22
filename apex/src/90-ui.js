@@ -1569,29 +1569,10 @@ function ui_pubState() {
   return { ufr: Xp.ufr, ufrAll: X.ufr, lists, pub: st.publish && typeof st.publish === 'object' ? st.publish : {}, rank: X, mand };
 }
 const UI_PUB_PROGRAM = 'F-35 Sustainment';
-// §53 THE PDFs FOLLOW THE FILTER (Brad, 22 Nov 2026: "When I uncheck mandatory for the filter, the PDF doesn't update to remove
-// the mandatory funded requirements from the PDF spend plan data or summary table"), as Export Excel and the pictures do: a
-// service or lane switched off is left out of every figure, and the file name and every page say so. The unfunded list
-// follows too: a service switched off is left out of each line's amounts (and so out of Required), and with the Mandatory lane
-// off §45's Mandatory lines are not listed, as on the Unfunded page.
-function ui_ufrForView(lists, V) {
-  const svcOff = i => !!(V && V.svc && V.svc[i < SP.SERVICES.length ? SP.SERVICES[i] : SP.SVC_UNKNOWN] === false);
-  const mandOff = !!(V && V.lane && V.lane.mand === false), out = {};
-  for (const k of Object.keys(lists || {})) {
-    const f = lists[k];
-    if (!f || !Array.isArray(f.lines)) { out[k] = f; continue; }
-    out[k] = Object.assign({}, f, { lines: f.lines.filter(l => !(mandOff && l.mand)).map(l => {
-      const cents = l.cents.map((c, i) => (svcOff(i) ? 0 : c));
-      return Object.assign({}, l, { cents, total: cents.reduce((a, c) => a + c, 0) });
-    }) });
-  }
-  return out;
-}
 function ui_pubData(M) {
-  const P = ui_pubState(), Mp = M, all = !M.shown || M.shown.all;
+  const P = ui_pubState(), Mp = ui_pubModel(M);
   // §52 with the Mandatory switch on, the PDFs' unfunded list holds the Mandatory plan events too, in the keeper's ranking
-  const lists = P.mand && P.mand.on ? P.ufrAll : P.ufr;
-  return { Mp, P, D: SP.publishData(Mp, all ? lists : ui_ufrForView(lists, ui_view()), P.pub, { fys: ui.pub.fys, settings: ui_settings(), filtered: !all }) };
+  return { Mp, P, D: SP.publishData(Mp, P.mand && P.mand.on ? P.ufrAll : P.ufr, P.pub, { fys: ui.pub.fys, settings: ui_settings() }) };
 }
 // the emblem a document prints: none if the plan says so, else the one loaded, else the built-in one (§33.7)
 function ui_pubEmblem(P) {
@@ -1609,7 +1590,7 @@ function ui_pubCtx(Mp, P) {
     if (emblem && !SP.jpegInfo(emblem)) emblem = null;
   }
   return { program: typeof P.pub.program === 'string' ? P.pub.program : UI_PUB_PROGRAM, fm: P.pub.fm && typeof P.pub.fm === 'object' ? P.pub.fm : {}, asOfLabel: Mp.asOfLabel, today: ui_today(), dataDay: up ? up.oldest : '',
-    uploaded: up ? up.text + (up.more ? ' (' + up.more + ')' : '') + '.' : '', emblem, model: Mp, bae: ui_rep(Mp), filter: Mp.shown && !Mp.shown.all ? Mp.shown.text : '',
+    uploaded: up ? up.text + (up.more ? ' (' + up.more + ')' : '') + '.' : '', emblem, model: Mp, bae: ui_rep(Mp),
     ufrFiles: Object.keys(P.ufr).sort().map(k => ({ fy: P.ufr[k].fy, name: P.ufr[k].name || '', day: ui_day(P.ufr[k].importedAt) })) };
 }
 function ui_vPublish(M) {
@@ -1617,7 +1598,7 @@ function ui_vPublish(M) {
   ui.reg.pub = { D, Mp, P };
   const out = ['<h2 class="title">Publish spend plan</h2>',
     '<p class="l2">A PDF for each appropriation (every PMO, each fiscal year its own section) and one for each PMO (that PMO’s data only). Each opens with its stoplight, '
-    + 'lists Prime Contracts first, and ends with the unfunded list for what it presents. The PDFs follow the Filter above: a service or lane switched off is left out of every figure, and the PDF says so.</p>'];
+    + 'lists Prime Contracts first, and ends with the unfunded list for what it presents. Every service and lane is counted, whatever the Filter above says.</p>'];
   const ticked = y => ui.pub.fys === null || ui.pub.fys.includes(y);
   out.push('<div class="acts pmobar pubbar" role="group" aria-label="What to publish"><span class="fl">Fiscal years</span>'
     + D.allFys.map(y => '<label class="chk"><input type="checkbox" data-act="pubfy" data-fy="' + y + '" data-fkey="pubfy:' + y + '"' + (ticked(y) ? ' checked' : '') + '> FY' + y + '</label>').join('')
@@ -1686,7 +1667,7 @@ async function ui_pubZip() {
     ui_say('Writing ' + R.D.docs.length + ' PDFs…', 'info');
     const ctx = ui_pubCtx(R.Mp, R.P);
     const bytes = await SP.zipFiles(R.D.docs.map(d => ({ name: d.file, data: SP.publishPdf(d, ctx) })));
-    const name = SP.download('APEX spend plans - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + (R.Mp.shown && !R.Mp.shown.all ? ' [filtered]' : '') + '.zip', bytes, 'application/zip');
+    const name = SP.download('APEX spend plans - data through ' + R.Mp.asOfLabel + ' - ' + ui_today() + '.zip', bytes, 'application/zip');
     ui_say('Saved “' + name + '” (' + R.D.docs.length + ' PDFs) as a download: ' + SP.DOWNLOAD_WHERE, 'ok');
   });
 }
@@ -2661,7 +2642,7 @@ function ui_vHelpAll() {
       '<strong>Import unfunded list…</strong>, in Settings under Set up, takes the UFR tracker workbook, one per fiscal year. Its O&amp;M, Full Fund, Initial Spares and OPN tabs are read by their column titles; '
       + 'amounts in $K are turned into dollars. A record that is only on the unfunded list still appears, with Approved $0. Loading a year again replaces that year’s list.',
       'A record’s Description is a bulleted list of its plan event titles, in date order (a prime contract’s is its Requirement Title), unless you type a description for its CCaR record on that page. Typed descriptions, the program title, each appropriation’s FM Lead and the emblem are saved in this file.',
-      'The PDFs follow the Filter, as Export Excel does: a service or lane switched off is left out of every figure and of the unfunded list (with the Mandatory lane off, no Mandatory line is listed). Such a PDF says “[filtered]” in its file name and what is shown at the foot of every page. The fiscal years ticked are the ones published.',
+      'Every service and lane is counted in a published plan, whatever the Filter says, and the fiscal years ticked are the ones published.',
     ])
     + '<h3 class="sub">Publishing a view-only copy</h3>' + li([
       'To hand the dashboard to people who should only look, open <strong>Manage data</strong> and press <strong>Publish view-only copy…</strong>. It downloads a separate file; this one is not changed.',
