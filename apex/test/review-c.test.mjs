@@ -129,7 +129,7 @@ try {
     C.eq('I83 and Exec ready counts of the same lines', J(tile('exec')), J(['$1,400K', '2 of 6 lines']));
     // I79 the card
     C.chk('I79 the switch’s card says its figure is the whole pull’s, and that the tile counts what the filters show',
-      /On: the 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded, one line a plan event, marked Mandatory; the Mandatory, not received tile counts those the Filter and the pickers show\./
+      /On: the 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded, one line a plan event, marked +by a bar at its left edge and Mandatory in its Funding status; the Mandatory, not received tile counts those the Filter and the pickers show\./
         .test(m.querySelector('#uiUfrMand').textContent), m.querySelector('#uiUfrMand').textContent);
     // I81 on the page
     C.chk('I81 the note says the lanes apply to the Mandatory lines only', /The Filter above \(its services; its lanes for the Mandatory lines only\)/.test(m.querySelector('.findnote').textContent));
@@ -142,7 +142,7 @@ try {
     // I79 in a view-only copy
     const vo = await page(SP.viewOnlyHtml('2026-11-21T13:00:00.000Z'));
     const vm = await vo.go('ufr');
-    C.chk('I79 a view-only copy’s card says the same', /The 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded, each marked Mandatory; the Mandatory, not received tile counts those the Filter and the pickers show\./
+    C.chk('I79 a view-only copy’s card says the same', /The 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded, each marked +by a bar at its left edge and Mandatory in its Funding status; the Mandatory, not received tile counts those the Filter and the pickers show\./
       .test(vm.querySelector('#uiUfrMand').textContent), vm.querySelector('#uiUfrMand').textContent);
     // I10 the copy's publish day, its tab title and the tooltip for a reader
     C.chk('I10 a view-only copy says when it was published, beside the Data through month', /^Data through Oct-2026 · Published 21 Nov 2026$/.test(vo.doc.getElementById('uiAsOfText').textContent), vo.doc.getElementById('uiAsOfText').textContent);
