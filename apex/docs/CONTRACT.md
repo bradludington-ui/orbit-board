@@ -2621,3 +2621,28 @@ PDFs do not follow the Filter: every service is counted, as §33 had it).
 way; Required; an all-Mandatory appropriation's PDF; the switch changing neither; the printed words) and
 `test/publish.test.mjs` (the buttons, the names, the zip).
 
+
+## §56 Menu capitals and the SFCB action picker (Brad, 22 Nov 2026)
+
+*"First letter of each word should be capitalized in the menu. SFCB should have a drop down to select the four options from
+the image I've provided."*
+
+- Menu items: PMO Spend Plan, Slide Blocks, Spend Plan PDFs, Import Report, What Changed. The group headings are drawn in
+  capitals already and keep their words. Text inside the pages that names a view is unchanged.
+- A Mandatory line's SFCB action (§49) is a picker of the UFR tracker's four, in its order: Approved, Denied, Info Requested,
+  Deferred (`UI_SFCB`), or blank. A value typed before §56 that is not one of the four is still offered as it was, until another
+  is chosen. The store is unchanged (text, at most 200 characters).
+
+`test/ufr-49.test.mjs` (§56 checks), with the menu names updated in `overview`, `phone`, `publish` and `srrb`.
+
+## §57 The Mandatory mark, and Show (Brad, 22 Nov 2026: "Go with option 2 and add the filter")
+
+The *Mandatory* tag in a line's title (§45) took room and pushed long titles onto two lines; the Funding status column already
+says Mandatory. Now:
+- No tag in the title. A Mandatory line has a 5 px bar in the ochre at its left edge and a softer tint (`#f8f2e6`), and a key
+  above the table says what the bar means (`#uiUfrKey`, shown only when a Mandatory line is listed). The tint and the bar print.
+- **Show** beside the appropriation buttons, while §45's switch lists Mandatory lines: *All lines*, *UFR tracker* (the
+  tracker's lines), *Mandatory* (the Mandatory plan events). Every tile, chart, subtotal and total follows (`F.kind` in
+  `SP.ufrView`); Clear filters takes it off, and so does turning the switch off. Download this list follows too.
+
+`test/ufr-mandatory.test.mjs` (§57).

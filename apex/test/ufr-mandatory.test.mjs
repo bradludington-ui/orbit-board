@@ -81,7 +81,7 @@ try {
   S.setSettings({ asOf: '2026-10' });
   await settle(60);
   const rows = () => [...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => { const i = tr.querySelector('input.urk'), c = tr.children;
-    return [i ? i.value : c[0].textContent, tr.querySelector('.tg').textContent, tr.querySelector('.mtag') ? 'Mandatory' : '', tr.querySelector('.uccar').textContent, c[3].textContent, tr.querySelector('.utot').textContent, c[c.length - 4].textContent, c[c.length - 1].textContent, tr.classList.contains('umand')]; });
+    return [i ? i.value : c[0].textContent, tr.querySelector('.tg').textContent, tr.classList.contains('umand') ? 'Mandatory' : '', tr.querySelector('.uccar').textContent, c[3].textContent, tr.querySelector('.utot').textContent, c[c.length - 4].textContent, c[c.length - 1].textContent, tr.classList.contains('umand')]; });
   const flip = async on => { const b = main().querySelector('input[data-act=ufrmand]'); b.checked = on; b.dispatchEvent(new Wd.Event('change', { bubbles: true })); await settle(); };
   const tile = id => { const x = main().querySelector('.tile[data-tile=' + id + ']'); return x ? [x.querySelector('.tv').textContent, x.querySelector('.ts').textContent] : null; };
   // no tracker loaded: the page says so, and offers the switch
@@ -108,6 +108,19 @@ try {
     ['5', 'Repair', 'Mandatory', 'C2', AV, '1,500', 'Mandatory', '1,500', true],
     ['1', 'Kit', 'Mandatory', 'C4', PP, '700', 'Mandatory', '700', true]]));
   const cellsOf = title => [...[...main().querySelectorAll('#uiUfrT tbody tr[data-ufr]')].find(tr => tr.querySelector('.tg').textContent === title).children].slice(4, 10).map(c => c.textContent);
+  // §57 no tag in the title: a bar at the row's left edge, a key above the table, and Mandatory in Funding status
+  { const mrows = [...main().querySelectorAll('#uiUfrT tbody tr.umand')];
+    C.chk('§57 no Mandatory tag in any title; the key above the table says what the bar means', !main().querySelector('#uiUfrT .mtag') && mrows.length === 4
+      && /^Mandatory plan event from the CCaR pull, not yet received/.test(main().querySelector('#uiUfrKey').textContent) && !!main().querySelector('#uiUfrKey .ukeybar')
+      && mrows.every(tr => [...tr.children].some(td => td.textContent === 'Mandatory'))); }
+  const kind = async v => { const b = main().querySelector('button[data-act=ufrkind][data-v="' + v + '"]'); await click(b); };
+  C.eq('§57 Show offers All lines, UFR tracker and Mandatory, All pressed', J([...main().querySelectorAll('button[data-act=ufrkind]')].map(b => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? ' *' : ''))), J(['All lines *', 'UFR tracker', 'Mandatory']));
+  await kind('mand');
+  C.eq('§57 Show Mandatory: the four Mandatory lines, the tiles and total follow', J([rows().map(r => r[1]), tile('sum')[0], main().querySelector('[data-act=ufrclear]').disabled]), J([['Lot One', 'Lot Two', 'Repair', 'Kit'], '$6,700K', false]));
+  await kind('trk');
+  C.eq('§57 Show UFR tracker: the tracker’s two lines, no key', J([rows().map(r => r[1]), !!main().querySelector('#uiUfrKey')]), J([['Depot tooling', 'Tessa A'], false]));
+  await kind('');
+  C.eq('§57 All lines: every line again', rows().length, 6);
   C.eq('Lot One by service: USAF 2,400 and ANG 300; Repair: STOVL 1,500', J([cellsOf('Lot One'), cellsOf('Repair')]), J([['2,400', '300', '-', '-', '-', '-'], ['-', '-', '-', '1,500', '-', '-']]));
   C.eq('five tiles: the total takes them in, and the fifth says how much is Mandatory', J([tile('sum'), tile('only'), tile('mand'), main().querySelector('.tiles').classList.contains('tiles5')]),
     J([['$8,100K', '6 lines (2 requirements on the tracker, 4 Mandatory plan events), 2 appropriations'], ['1', 'unfunded only: no plan event yet'], ['$6,700K', '4 plan events from the CCaR pull'], true]));
@@ -173,7 +186,7 @@ try {
   for (let i = 0; i < 200 && !vo.window.document.getElementById('uiMain'); i++) await settle(5);
   vo.window.document.querySelector('#uiNav [data-v=ufr]').dispatchEvent(new vo.window.MouseEvent('click', { bubbles: true })); await settle(60);
   const vm = vo.window.document.getElementById('uiMain');
-  C.eq('a view-only copy made with the switch on lists them, in the keeper’s ranking', J([...vm.querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [tr.querySelector('.urank').textContent, tr.querySelector('.tg').textContent, !!tr.querySelector('.mtag')])),
+  C.eq('a view-only copy made with the switch on lists them, in the keeper’s ranking', J([...vm.querySelectorAll('#uiUfrT tbody tr[data-ufr]')].map(tr => [tr.querySelector('.urank').textContent, tr.querySelector('.tg').textContent, tr.classList.contains('umand')])),
     J([['1', 'Repair', true], ['2', 'Depot tooling', false], ['3', 'Tessa A', false], ['4', 'Lot One', true], ['5', 'Lot Two', true], ['1', 'Kit', true]]));
   C.chk('it says Mandatory funding was not received, has no switch, and cannot be changed', /Mandatory funding not received\. The 4 plan events on Mandatory budgets in the whole CCaR pull \(\$6,700K\) are listed below as unfunded/.test(vm.querySelector('#uiUfrMand').textContent)
     && !vm.querySelector('input[data-act=ufrmand]') && vo.SP.setUfrMandatory(false) === false && vo.SP.state.ufrMand === true, vm.querySelector('#uiUfrMand').textContent);

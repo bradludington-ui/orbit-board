@@ -746,7 +746,12 @@ table.srrbt .srrbother{color:var(--ochre)}
 .umandsw{font-weight:700;font-size:15px;white-space:normal}
 .umandsay{margin:0}
 .mtag{display:inline-block;padding:0 7px;border-radius:999px;background:var(--ochre);color:#fff;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px;white-space:nowrap}
-table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f3ead8}
+/* §57 a Mandatory line: a soft tint and a bar at its left edge, explained by the key above the table (no tag in the title) */
+table.ufrt tr.umand th,table.ufrt tr.umand td{background:#f8f2e6}
+table.ufrt tr.umand > :first-child{box-shadow:inset 5px 0 0 var(--ochre)}
+.ukey{margin:6px 0;font-size:13px;color:var(--sink);display:flex;align-items:center;gap:8px}
+.ukeybar{display:inline-block;width:5px;height:1.1em;background:var(--ochre);vertical-align:middle;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ufrapbar .fl{font-weight:700;margin-right:4px}
 @media (min-width:1101px){.tiles.tiles5{grid-template-columns:repeat(5,minmax(0,1fr))}}
 
 /* §50 DOWNLOAD THIS LIST: one button beside a list's heading (or under Requirements' count line). It wraps under the heading

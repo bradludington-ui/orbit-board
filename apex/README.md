@@ -296,7 +296,7 @@ for the switches.
   requirement to see it beside its spend plan (Approved, Obligated, Remaining, Required). A line with no plan event says
   Unfunded only. The same view is in a view-only copy.
   **Mandatory funding not received:** a switch on this page lists every plan event on a Mandatory budget in the CCaR
-  pull as unfunded, one line per plan event, marked *Mandatory*. They come from the pull, so there is nothing to type
+  pull as unfunded, one line per plan event, marked by a bar at the row's left edge (and Mandatory in Funding status); a **Show** filter (All lines, UFR tracker, Mandatory) narrows the list. They come from the pull, so there is nothing to type
   and nothing to keep in step; switch it off and the list is the tracker alone again. For now this changes the Unfunded
   page only: the PDFs have their own two downloads (see Spend plan PDFs). A view-only copy made with the switch
   on shows the Mandatory lines and cannot change the switch. On a Mandatory line you set **Exec ready?** (Yes, No or

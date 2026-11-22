@@ -451,7 +451,7 @@ try {
   const click = el => el.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
   const change = el => el.dispatchEvent(new W.Event('change', { bubbles: true }));
   const nav = doc2.querySelector('[data-act=view][data-v="publish"]');
-  C.chk('one item in the menu, under Briefing', !!nav && nav.textContent === 'Spend plan PDFs'   /* §48 renamed */ && nav.closest('.navg').getAttribute('aria-label') === 'Briefing');
+  C.chk('one item in the menu, under Briefing', !!nav && nav.textContent === 'Spend Plan PDFs'   /* §48 renamed, §56 capitals */ && nav.closest('.navg').getAttribute('aria-label') === 'Briefing');
   click(nav); await settle();
   C.eq('the page’s title', main().querySelector('h2.title').textContent, 'Publish spend plan');
   const docRows = () => [...main().querySelectorAll('#uiPubDocs tbody tr')].map(tr => [...tr.children].slice(0, 5).map(td => td.textContent));
