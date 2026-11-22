@@ -57,7 +57,7 @@ try {
   await click(btn());
   await click(doc.querySelector('#uiNav button[data-v=cal]'));
   C.eq('a view chosen from the open menu folds it, and the button names the new view', J([shown().slice(1), cur()]), J([['false', 'Calendar', false], 'Calendar']));
-  for (const [id, label] of [['om', 'O&M'], ['ufr', 'Unfunded'], ['publish', 'Spend plan PDFs'], ['settings', 'Settings']]) {
+  for (const [id, label] of [['om', 'O&M'], ['ufr', 'Unfunded'], ['publish', 'Spend Plan PDFs'], ['settings', 'Settings']]) {
     const b = doc.querySelector('#uiNav button[data-v=' + id + ']');
     if (!b) { C.chk('the menu has ' + label, false); continue; }
     await click(b);

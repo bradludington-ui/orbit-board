@@ -113,32 +113,40 @@ try {
   C.eq('… and the whole list is Alpha, Delta, Bravo, Charlie', J(S.state.ufrRank['om|2027'].map(e => e.t)), J(['Alpha', 'Delta', 'Bravo', 'Charlie']));
   await click(main().querySelector('[data-act=ufrclear]'));
   // the Mandatory lines: Exec ready? and SFCB action
-  C.chk('with the Mandatory switch off, no line has a status control', !main().querySelector('select.umx, input.ums'));
+  C.chk('with the Mandatory switch off, no line has a status control', !main().querySelector('select.umx, select.ums'));
   const sw = main().querySelector('input[data-act=ufrmand]'); sw.checked = true; await change(sw);
   C.eq('switch on: each Mandatory line has an Exec ready? picker and an SFCB action box; a tracker line has neither',
-    J(['Lot One', 'Repair', 'Kit', 'Alpha'].map(n => [n, !!box(n).querySelector('select.umx[data-act=ufrmx]'), !!box(n).querySelector('input.ums[data-act=ufrms]')])),
+    J(['Lot One', 'Repair', 'Kit', 'Alpha'].map(n => [n, !!box(n).querySelector('select.umx[data-act=ufrmx]'), !!box(n).querySelector('select.ums[data-act=ufrms]')])),
     J([['Lot One', true, true], ['Repair', true, true], ['Kit', true, true], ['Alpha', false, false]]));
   C.eq('the picker offers blank, Yes and No', J([...box('Repair').querySelector('select.umx').options].map(o => o.value)), J(['', 'Yes', 'No']));
-  C.eq('the SFCB box suggests the words the tracker uses', J([...doc.querySelectorAll('#uiUfrSfcbL option')].map(o => o.value)), J(['Approved', 'Deferred']));
+  // §56 SFCB action is a drop-down of the tracker's four, in its order
+  C.eq('§56 the SFCB action picker offers blank and the tracker’s four', J([...box('Repair').querySelector('select.ums').options].map(o => o.textContent)), J(['\u2014', 'Approved', 'Denied', 'Info Requested', 'Deferred']));
   C.eq('the tiles before: Exec ready counts Alpha alone; SFCB approved Alpha alone', J([tile('exec'), tile('sfcb')]),
     J([['$100K', '1 of 8 lines'], ['$100K', '1 requirement']]));
   S.markSaved && S.markSaved();
   const ex = box('Repair').querySelector('select.umx'); ex.value = 'Yes'; await change(ex);
-  const sf = box('Repair').querySelector('input.ums'); sf.value = 'Approved'; await change(sf);
-  C.chk('set on Repair: it stays set, the message says so, and the plan is unsaved', box('Repair').querySelector('select.umx').value === 'Yes' && box('Repair').querySelector('input.ums').value === 'Approved'
+  const sf = box('Repair').querySelector('select.ums'); sf.value = 'Approved'; await change(sf);
+  C.chk('set on Repair: it stays set, the message says so, and the plan is unsaved', box('Repair').querySelector('select.umx').value === 'Yes' && box('Repair').querySelector('select.ums').value === 'Approved'
     && /SFCB action for “Repair” is “Approved”\. Save to keep it/.test(doc.querySelector('.msg').textContent) && S.isDirty(), doc.querySelector('.msg').textContent);
   C.eq('the tiles count it: Exec ready and SFCB approved each add Repair’s $1,500K', J([tile('exec'), tile('sfcb')]),
     J([['$1,600K', '2 of 8 lines'], ['$1,600K', '2 requirements']]));
+  { const s2 = box('Lot One').querySelector('select.ums'); s2.value = 'Info Requested'; await change(s2); }
+  C.eq('§56 Info Requested chosen on Lot One is kept, and counts as not approved', J([box('Lot One').querySelector('select.ums').value, tile('sfcb')]), J(['Info Requested', ['$1,600K', '2 requirements']]));
+  { const s2 = box('Lot One').querySelector('select.ums'); s2.value = ''; await change(s2); }
   C.eq('the plan holds it by the line, nothing else', J(S.state.ufrMandSet), J({ [S.ufrMandKey({ ap: 'om', fy: 2027, ccar: 'C2', title: 'Repair' })]: { exec: 'Yes', sfcb: 'Approved' } }));
   C.eq('the tracker’s own lists are not changed', J(S.state.ufr['2027'].lines.map(l => [l.title, l.exec, l.sfcb])),
     J([['Alpha', 'Yes', 'Approved'], ['Bravo', 'No', 'Deferred'], ['Charlie', '', ''], ['Delta', '', ''], ['Echo', '', '']]));
+  S.setUfrMandStatus(S.ufrMandKey({ ap: 'sp', fy: 2027, ccar: 'C4', title: 'Kit' }), 'sfcb', 'Approved 12 Nov'); A.window.ui_render(); await settle();
+  C.eq('§56 a value typed before §56 is still shown as it was, beside the four', J([box('Kit').querySelector('select.ums').value, [...box('Kit').querySelector('select.ums').options].map(o => o.value)]),
+    J(['Approved 12 Nov', ['', 'Approved', 'Denied', 'Info Requested', 'Deferred', 'Approved 12 Nov']]));
+  S.setUfrMandStatus(S.ufrMandKey({ ap: 'sp', fy: 2027, ccar: 'C4', title: 'Kit' }), 'sfcb', ''); A.window.ui_render(); await settle();
   // a view-only copy shows them as text
   const vo = loadTool({ html: S.viewOnlyHtml('2026-11-12T13:00:00.000Z') });
   for (let i = 0; i < 200 && !vo.window.document.getElementById('uiMain'); i++) await settle(5);
   vo.window.document.querySelector('#uiNav [data-v=ufr]').dispatchEvent(new vo.window.MouseEvent('click', { bubbles: true })); await settle(60);
   const vm = vo.window.document.getElementById('uiMain'), vrow = [...vm.querySelectorAll('#uiUfrT tbody tr[data-ufr]')].find(tr => tr.querySelector('.tg').textContent === 'Repair');
   C.chk('a view-only copy shows Repair’s Exec ready? and SFCB action as text, with no picker, no box and nothing to drag', vrow.querySelector('.uexec').textContent === 'Yes' && vrow.children[vrow.children.length - 2].textContent === 'Approved'
-    && !vm.querySelector('select.umx, input.ums') && !vm.querySelector('#uiUfrT tr[data-o]'));
+    && !vm.querySelector('select.umx, select.ums') && !vm.querySelector('#uiUfrT tr[data-o]'));
   C.chk('… and the appropriation buttons and the PMO picker are there for readers', !!vm.querySelector('button[data-act=ufrap]') && !!vm.querySelector('select[data-act=ufrf][data-f=pmo]'));
   C.eq('no script error in the view-only copy', J(errs(vo)), '[]');
   vo.close();

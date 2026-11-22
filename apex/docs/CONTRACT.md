@@ -2621,3 +2621,16 @@ PDFs do not follow the Filter: every service is counted, as §33 had it).
 way; Required; an all-Mandatory appropriation's PDF; the switch changing neither; the printed words) and
 `test/publish.test.mjs` (the buttons, the names, the zip).
 
+
+## §56 Menu capitals and the SFCB action picker (Brad, 22 Nov 2026)
+
+*"First letter of each word should be capitalized in the menu. SFCB should have a drop down to select the four options from
+the image I've provided."*
+
+- Menu items: PMO Spend Plan, Slide Blocks, Spend Plan PDFs, Import Report, What Changed. The group headings are drawn in
+  capitals already and keep their words. Text inside the pages that names a view is unchanged.
+- A Mandatory line's SFCB action (§49) is a picker of the UFR tracker's four, in its order: Approved, Denied, Info Requested,
+  Deferred (`UI_SFCB`), or blank. A value typed before §56 that is not one of the four is still offered as it was, until another
+  is chosen. The store is unchanged (text, at most 200 characters).
+
+`test/ufr-49.test.mjs` (§56 checks), with the menu names updated in `overview`, `phone`, `publish` and `srrb`.

@@ -19,9 +19,10 @@ const UI_AP_LABEL = Object.fromEntries(SP.APS.map(a => [a.id, a.label]));
 // THE MENU (CONTRACT §20), grouped by what a reader is looking for. Find a requirement is first; the page opens on the Summary (UI_HOME, §29).
 const UI_NAV = [
   { h: '', items: [['find', 'Requirements'], ['mypmo', 'My PMO'], ['cal', 'Calendar'], ['charts', 'Charts']] },
-  { h: 'Browse', items: [['pmos', 'PMO spend plan']].concat(SP.APS.map(a => [a.id, a.label])).concat([['ufr', 'Unfunded']]) },
-  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide blocks'], ['srrb', 'SRRB'], ['publish', 'Spend plan PDFs']] },
-  { h: 'Data checks', items: [['na', 'Unobligated'], ['report', 'Import report'], ['changes', 'What changed']] },
+  // every word of a menu item starts with a capital letter (Brad, 22 Nov 2026, §56)
+  { h: 'Browse', items: [['pmos', 'PMO Spend Plan']].concat(SP.APS.map(a => [a.id, a.label])).concat([['ufr', 'Unfunded']]) },
+  { h: 'Briefing', items: [['overview', 'Overview'], ['summary', 'Summary'], ['slides', 'Slide Blocks'], ['srrb', 'SRRB'], ['publish', 'Spend Plan PDFs']] },
+  { h: 'Data checks', items: [['na', 'Unobligated'], ['report', 'Import Report'], ['changes', 'What Changed']] },
   { h: 'Set up', items: [['settings', 'Settings']] },
 ];
 const UI_VIEWS = UI_NAV.flatMap(g => g.items);
@@ -1220,7 +1221,6 @@ function ui_ufrBody(M, V) {
     const o = ui.reg.ord.length; ui.reg.ord.push({ kind: 'ufr', slot: gk, key: l.rk, keys, ufr: ui.reg.ufr[ui.reg.ufr.length - 1], label: l.title || '(no title)' }); return o; };
   // §49 a Mandatory line's Exec ready? and SFCB action, set by the keeper (the CCaR pull carries neither)
   ui.reg.ufrMand = [];
-  const sfcbSeen = [...new Set(V.lines.filter(l => !l.mand && l.sfcb).map(l => l.sfcb))].sort();
   const mandCell = (l, f) => {
     if (!(edit && l.mand && ui_fn('setUfrMandStatus') && ui_fn('ufrMandKey'))) return '<td' + (f === 'exec' ? ' class="uexec"' : '') + '>' + ui_e(l[f]) + '</td>';
     const i = ui.reg.ufrMand.length, nm = ui_e(l.title || '(no title)');
@@ -1228,7 +1228,10 @@ function ui_ufrBody(M, V) {
     return f === 'exec'
       ? '<td class="uexec"><select class="umx" data-act="ufrmx" data-i="' + i + '" data-fkey="ufrmx:' + ui_e(l.id) + '" aria-label="Exec ready? for ' + nm + '">'
         + ['', 'Yes', 'No'].map(v => '<option value="' + v + '"' + (l.exec === v ? ' selected' : '') + '>' + (v || '\u2014') + '</option>').join('') + '</select></td>'
-      : '<td><input type="text" class="ums" list="uiUfrSfcbL" maxlength="200" value="' + ui_e(l.sfcb) + '" data-act="ufrms" data-i="' + i + '" data-fkey="ufrms:' + ui_e(l.id) + '" aria-label="SFCB action for ' + nm + '" size="12"></td>';
+      // §56 SFCB action is one of the tracker's four (Brad's picture of its drop-down); a value saved before §56 that is not one
+      // of them is still offered, as it was typed, until another is chosen
+      : '<td><select class="ums" data-act="ufrms" data-i="' + i + '" data-fkey="ufrms:' + ui_e(l.id) + '" aria-label="SFCB action for ' + nm + '">'
+        + [''].concat(UI_SFCB, l.sfcb && !UI_SFCB.includes(l.sfcb) ? [l.sfcb] : []).map(v => '<option value="' + ui_e(v) + '"' + (l.sfcb === v ? ' selected' : '') + '>' + (ui_e(v) || '\u2014') + '</option>').join('') + '</select></td>';
   };
   const rankCell = (l, gk, n) => {
     if (!edit) return '<td class="urank">' + ui_e(l.rank) + '</td>';
@@ -1296,7 +1299,7 @@ function ui_ufrBody(M, V) {
     + V.svc.map(x => '<th scope="col" class="n">' + ui_e(x.label) + '</th>').join('') + '<th scope="col" class="n">Total ($K)</th><th scope="col">Funding status</th><th scope="col">Exec ready?</th><th scope="col">SFCB action</th>'
     + '<th scope="col" class="n">Approved in plan ($K)</th></tr></thead><tbody>' + rows
     + '<tr class="band utotal"><th colspan="4" scope="row">Total unfunded' + (V.groups.length > 1 ? ', every list shown' : '') + '</th>' + V.total.amt.map(ui_k).join('') + ui_k(V.total.sum) + '<td colspan="4"></td></tr></tbody></table></div>'
-    + (ui.reg.ufrMand.length ? '<datalist id="uiUfrSfcbL">' + sfcbSeen.map(v => '<option value="' + ui_e(v) + '">').join('') + '</datalist>' : '')
+
     + '<p class="cardnote findnote">Figures are $K, as on the UFR tracker. The Filter above (its services; its lanes for the Mandatory lines only) and the pickers narrow the list and every total. Press a requirement to see it beside its spend plan. '
     + 'A rank is the line’s place in its whole appropriation and fiscal year, across every PMO, so a PMO picked shows gaps in the numbers. '
     + 'Approved in plan is the CCaR amount in that record’s plan events' + (V.skipped ? '; ' + SP.fmtInt(V.skipped) + ' line' + (V.skipped === 1 ? ' is' : 's are') + ' not shown, of a year APEX shows no figures for' : '') + '.</p>';
@@ -1577,6 +1580,8 @@ const UI_PUB_PROGRAM = 'F-35 Sustainment';
 //   'dm'  Discretionary and Mandatory: the body is both lanes; the list at the end is the tracker's, in the keeper's ranking
 //   'd'   Discretionary: the body is the Discretionary lane alone; the list at the end is the tracker's and every Mandatory
 //         plan event of the pull (§45's lines, whatever the Unfunded page's switch), ranked together in the keeper's ranking
+// §56 the SFCB action a Mandatory line can be given: the UFR tracker's own four, in its order
+const UI_SFCB = Object.freeze(['Approved', 'Denied', 'Info Requested', 'Deferred']);
 const UI_PUB_MODES = Object.freeze({ d: 'Discretionary', dm: 'Discretionary and Mandatory' });
 function ui_pubModelDisc() {
   if (!ui.pubMd) { const V = SP.defaultView(); V.lane.mand = false; ui.pubMd = SP.buildModel(ui_pulls(), ui_settings(), V, ui_bae()); }
