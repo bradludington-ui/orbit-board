@@ -2663,3 +2663,14 @@ areas of responsibility."*
 
 `test/ipt.test.mjs`.
 
+
+## §59 A drop-down on a phone does not reopen after a choice (Brad, 23 Nov 2026)
+
+*"In the phone UI, whenever I click a filter option like PMO or Sub-PMO, it recycles and pops back up instead of selecting and
+disappearing."* After a choice the page is drawn again and the keyboard was handed back to the same drop-down; a phone or
+tablet opens a drop-down's picker whenever it takes the focus, so the picker came straight back. On a touch screen (`pointer:
+coarse`, `ui_touch`) a drop-down is no longer given the focus back after a redraw (`ui_refocus`); with a mouse and a keyboard it
+still is. Every drop-down on every page goes through it.
+
+`test/touch-select.test.mjs`; checked in Chromium emulating a phone (focus after a pick on PMO, IPT, Unfunded PMO and
+Requirements: on the drop-down before, on nothing after; a laptop unchanged).
