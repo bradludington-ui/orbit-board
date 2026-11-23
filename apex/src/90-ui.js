@@ -183,7 +183,7 @@ function ui_model() {
   catch (e) { ui.modelErr = (e && e.message) || String(e); ui.model = null; }
   return ui.model;
 }
-function ui_invalidate() { ui.model = null; ui.modelErr = null; ui.pubM = null; ui.pubMd = null; }
+function ui_invalidate() { ui.model = null; ui.modelErr = null; ui.pubM = null; ui.pubMd = null; ui.iptM = null; ui.iptL = null; }
 
 // ---------------------------------------------------------------------------------------------------------------
 // THE MESSAGE LINE: every result and every error is said here, with its reason; nothing is swallowed
@@ -1863,6 +1863,42 @@ function ui_naPrint(open) {
   }
 }
 
+// §58 IPT (Brad, 23 Nov 2026: "Within the PMO spend plan sections, I want to add the ability to further filter down by the
+// Sub-PMO column of the spend plan source file. Let's call it IPT. This will give IPTs, Divisions, and Sections a more refined
+// look at just their programs and areas of responsibility.") The IPTs a PMO's picker offers are the Sub-PMO texts (by
+// normKey, first spelling) on the rows whose PMO is that PMO, with how many rows; a blank Sub-PMO is "(no IPT)".
+const UI_NO_IPT = '\u0001none';
+function ui_iptList(pmoKey) {
+  if (!ui.iptL) {
+    const by = new Map(), pulls = ui_pulls(), set = ui_settings();
+    for (const ap of Object.keys(pulls)) for (const row of (pulls[ap] && Array.isArray(pulls[ap].rows) ? pulls[ap].rows : [])) {
+      const d = SP.deriveRow(row, set), sub = d.more ? String(d.more.sub || '').trim() : '', k = sub === '' ? UI_NO_IPT : SP.normKey(sub);
+      let m = by.get(d.k.pmo);
+      if (!m) by.set(d.k.pmo, (m = new Map()));
+      const e = m.get(k);
+      if (e) e.n++; else m.set(k, { key: k, label: sub === '' ? '(no IPT)' : sub, n: 1 });
+    }
+    ui.iptL = by;
+  }
+  const m = ui.iptL.get(pmoKey);
+  return m ? [...m.values()].sort((a, b) => (a.key === UI_NO_IPT) - (b.key === UI_NO_IPT) || a.label.localeCompare(b.label)) : [];
+}
+// the model of the rows of one IPT alone: the same engine, on the pulls with every other row left out. It is built with no
+// BAE report, because the report's budgets are not split by IPT: Authorized on an IPT's rows is Approved, marked so (§8.6).
+function ui_iptModel(iptKey) {
+  const ck = iptKey + '\u0002' + JSON.stringify(ui_view());
+  if (ui.iptM && ui.iptM.k === ck) return ui.iptM.M;
+  const pulls = ui_pulls(), set = ui_settings(), out = {};
+  for (const ap of Object.keys(pulls)) {
+    const p = pulls[ap];
+    if (!p || !Array.isArray(p.rows)) { out[ap] = p; continue; }
+    out[ap] = Object.assign({}, p, { rows: p.rows.filter(row => { const d = SP.deriveRow(row, set), sub = d.more ? String(d.more.sub || '').trim() : '';
+      return (sub === '' ? UI_NO_IPT : SP.normKey(sub)) === iptKey; }) });
+  }
+  const M = SP.buildModel(out, set, ui_view(), null);
+  ui.iptM = { k: ck, M };
+  return M;
+}
 function ui_vPmos(M) {
   if (!M.pmos.length) return '<h2 class="title">PMOs</h2><p class="none">No PMO has rows to show.</p>';
   const R = ui.reg;
@@ -1871,10 +1907,16 @@ function ui_vPmos(M) {
   // on screen. Until one is picked, the first is shown.
   // Until one is picked here, the office My PMO has (review I01), else the first.
   if (ui.pmoKey === null || ui.pmoKey === undefined) { const k = SP.PMO_LINKS === false ? undefined : ui_pmoRemembered(), P0 = (k !== undefined && M.pmos.find(x => x.key === k)) || M.pmos[0]; ui.pmoKey = P0.key; ui.pmoLabel = P0.label; }
-  const P = M.pmos.find(x => x.key === ui.pmoKey);
+  let P = M.pmos.find(x => x.key === ui.pmoKey);
   const opts = M.pmos.map((x, i) => { R.pmos[i] = x.key; return '<option value="' + i + '"' + (x === P ? ' selected' : '') + '>' + ui_e(x.label) + '</option>'; });
   if (!P) { R.pmos.push(ui.pmoKey); opts.push('<option value="' + (R.pmos.length - 1) + '" selected>' + ui_e(ui.pmoLabel || '(the PMO chosen)') + ' (no money shown)</option>'); }
-  const pick = '<p class="acts"><label>PMO <select data-act="pmo" data-fkey="pmo">' + opts.join('') + '</select></label>'
+  // §58 the IPT picker, for the PMO shown; a choice another PMO does not have is taken off
+  const ipts = P ? ui_iptList(P.key) : [];
+  if (ui.ipt && (ui.iptPmo !== ui.pmoKey || !ipts.some(x => x.key === ui.ipt))) ui.ipt = null;
+  ui.reg.ipts = ipts.map(x => x.key);
+  const iptPick = SP.IPT_PICK !== false && (ipts.length > 1 || (ipts.length === 1 && ipts[0].key !== UI_NO_IPT)) ? ' <label>IPT <select data-act="ipt" data-fkey="ipt"><option value="">All IPTs</option>'
+    + ipts.map((x, i) => '<option value="' + i + '"' + (x.key === ui.ipt ? ' selected' : '') + '>' + ui_e(x.label) + '</option>').join('') + '</select></label>' : '';
+  const pick = '<p class="acts"><label>PMO <select data-act="pmo" data-fkey="pmo">' + opts.join('') + '</select></label>' + iptPick
     + (SP.PMO_LINKS === false ? '' : ' <button type="button" data-act="view" data-v="mypmo" data-fkey="pmos:mypmo">See its requirements on My PMO</button>') + '</p>';
   if (SP.PMO_LINKS !== false && ui.pmo.key === undefined) ui.pmo.key = ui.pmoKey;   // My PMO opens on the office shown here
   if (!P) {
@@ -1884,13 +1926,22 @@ function ui_vPmos(M) {
       + ' they show it; pick another PMO to see that one.</p>';
   }
   ui.pmoLabel = P.label;
+  // §58 an IPT picked: the PMO's tab is the same engine's on that IPT's rows alone
+  const full = M, iptLab = ui.ipt ? (ipts.find(x => x.key === ui.ipt) || {}).label : '';
+  if (ui.ipt) {
+    const Mi = ui_iptModel(ui.ipt), Pi = Mi && Mi.pmos.find(x => x.key === P.key);
+    if (!Pi) return pick + '<h2 class="title">PMO: ' + ui_e(P.label) + ' - IPT: ' + ui_e(iptLab) + '</h2><p class="none lost" id="uiIptNone">' + ui_e(iptLab)
+      + ' has no money under ' + ui_e(P.label) + ' that counts with these switches. Pick All IPTs to see the whole PMO.</p>';
+    M = Mi; P = Pi;
+  }
   // WITH A BAE REPORT LOADED a PMO row of a block the report covers is the PMO's share of the report's budgets its plan events
   // use (§16.1): its Authorized is the report's, not Approved, so the rows carry their own marks (§ and † on a block the report
   // has no figure for, nothing on a covered one) and the words under the table are SP.pmoTabLines', the workbook's, in its
   // order. "A PMO row shows Approved" is said only of the rows it is true of. With no report the table and its note are §8.6's.
   const rep = ui_rep(M);
   const notes = SP.pmoTabLines(P, M);
-  const out = [pick, '<h2 class="title">PMO: ' + ui_e(P.label) + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>',
+  const out = [pick, '<h2 class="title">PMO: ' + ui_e(P.label) + (ui.ipt ? ' - IPT: ' + ui_e(iptLab) : '') + ' - Sustainment Spend Plan (Cross-Appropriation Detail)</h2>',
+    ui.ipt ? '<p class="note" id="uiIptNote">Only the rows whose Sub-PMO is ' + ui_e(iptLab) + '. Authorized shows Approved here' + (ui_rep(full) ? ', as the BAE report is not split by IPT' : '') + '.</p>' : '',
     '<p class="l3' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>',
     ui_topTable(P.rows, { model: M, withAp: true, mergeAp: false, authAlways: !rep, total: P.total, totalLabel: 'Total - All' }),
     notes.map(n => '<p class="note' + (rep ? ' pmo-note' : '') + '">' + ui_e(n) + '</p>').join('')];
@@ -2999,7 +3050,7 @@ function ui_drawTop(M) {
 // ON PAPER, WHAT THE VIEW'S OWN PICKERS AND FIND BOX NARROWED IT TO (review I34). The printed line said the month and the
 // switches, but a Requirements list found with "Engine", or My PMO on one office, printed with nothing saying so. Read off
 // the pickers as drawn, so it says exactly what the screen says; a picker left on All says nothing.
-const UI_PRINT_PICKS = ['findf', 'pmof', 'calf', 'chf', 'ufrf', 'srrbf', 'pmo', 'naf'];
+const UI_PRINT_PICKS = ['findf', 'pmof', 'calf', 'chf', 'ufrf', 'srrbf', 'pmo', 'ipt', 'naf'];
 function ui_printPicks() {
   const E = ui.els;
   if (!E || !E.printHead) return;
@@ -3008,7 +3059,7 @@ function ui_printPicks() {
     if (base && E.main) {
       for (const sel of E.main.querySelectorAll(UI_PRINT_PICKS.map(a => 'select[data-act="' + a + '"]').join(','))) {
         const o = sel.options[sel.selectedIndex], v = o ? o.textContent.trim() : '';
-        if (!v || v === 'All' || (sel.getAttribute('data-f') === 'ord' && sel.selectedIndex === 0)) continue;   // All, or the standard order, picks nothing
+        if (!v || v === 'All' || (sel.getAttribute('data-f') === 'ord' && sel.selectedIndex === 0) || (sel.getAttribute('data-act') === 'ipt' && sel.value === '')) continue;   // All, or the standard order, picks nothing
         const lab = sel.closest('label'), w = lab ? [...lab.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : '';
         bits.push((w ? w + ' ' : '') + v);
       }
@@ -3704,7 +3755,8 @@ function ui_onChange(ev) {
       ui_render();
       break;
     }
-    case 'pmo': { const k = ui.reg.pmos[Number(t.value)]; if (k !== undefined) { if (SP.PMO_LINKS === false) ui.pmoKey = k; else ui_pmoRemember(k); ui_render(); } break; }
+    case 'pmo': { const k = ui.reg.pmos[Number(t.value)]; if (k !== undefined) { if (SP.PMO_LINKS === false) ui.pmoKey = k; else ui_pmoRemember(k); ui_render(); } break; }   // an IPT picked for another PMO is taken off as the page is drawn (§58)
+    case 'ipt': { const k = t.value === '' ? null : ui.reg.ipts && ui.reg.ipts[Number(t.value)]; ui.ipt = k === undefined ? null : k; ui.iptPmo = ui.pmoKey; ui_render(); break; }
     case 'naf': {
       const f = t.getAttribute('data-f');
       if (f === 'ap') ui.naF.ap = t.value;

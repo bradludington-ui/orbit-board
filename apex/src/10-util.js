@@ -42,6 +42,7 @@ SP.UFR_IN_SETTINGS = true;
 SP.PIC_CUI_WORDS = 'carry no CUI marking';
 SP.PMO_LINKS = true;      // false: By PMO as before review I01 (no link to My PMO, its pick not shared), for a comparison with an older build
 SP.ORDER_DRAG = true;     // false: the spend plan trees without §46's drag (no grip, no draggable rows), for a comparison with an older build
+SP.IPT_PICK = true;      // false: PMO Spend Plan without §58's IPT picker, for a comparison with an older build
 SP.PMO_PICTURES = true;    // false: the screens without §41's PMO picture buttons and words, for a comparison with an older build
 SP.PIC_CUI = false;        // true draws the marking in a picture's two bands, as before §41: only a comparison with an older build asks for it
 SP.NA_FOLD = true;        // false: an appropriation's Unobligated lists drawn open, as before review I02, for a comparison with an older build

@@ -61,7 +61,7 @@ export function loadTool({ modules = null, state = null, html = null, url = 'fil
   const w = dom.window;
   // §24: and keeps the $0.00 plan events; and the default Special CCaRs are the two the earlier builds had (a third was added
   // on 16 Nov 2026), since these files compare the page with those builds
-  if (oldHeadings && w.SP) { w.SP.UNOB_WORD = 'Not Allocated'; w.SP.UNOB_HEAD = 'Not Allocated Requirements'; w.SP.UFR_IN_SETTINGS = false; w.SP.PIC_CUI_WORDS = 'are marked CUI'; w.SP.ORDER_DRAG = false; w.SP.PMO_PICTURES = false; w.SP.PMO_LINKS = false; }   // and Settings without §39's Unfunded list section
+  if (oldHeadings && w.SP) { w.SP.UNOB_WORD = 'Not Allocated'; w.SP.UNOB_HEAD = 'Not Allocated Requirements'; w.SP.UFR_IN_SETTINGS = false; w.SP.PIC_CUI_WORDS = 'are marked CUI'; w.SP.ORDER_DRAG = false; w.SP.IPT_PICK = false; w.SP.PMO_PICTURES = false; w.SP.PMO_LINKS = false; }   // and Settings without §39's Unfunded list section
   if (oldHeadings && w.SP) w.SP.NA_FOLD = false;   // and an appropriation's Unobligated lists drawn open, as before review I02
   if (leftOutDefault !== undefined && w.SP) { w.SP.LEFT_OUT_DEFAULT = leftOutDefault.slice(); w.SP.KEEP_ZERO_DEFAULT = true; w.SP.SPECIAL_CCARS_DEFAULT = Object.freeze(['PP 2000', 'JSF6654']); }
   return {

@@ -2646,3 +2646,20 @@ says Mandatory. Now:
   `SP.ufrView`); Clear filters takes it off, and so does turning the switch off. Download this list follows too.
 
 `test/ufr-mandatory.test.mjs` (§57).
+
+## §58 IPT on PMO Spend Plan (Brad, 23 Nov 2026)
+
+*"Within the PMO spend plan sections, I want to add the ability to further filter down by the Sub-PMO column of the spend plan
+source file. Let's call it IPT. This will give IPTs, Divisions, and Sections a more refined look at just their programs and
+areas of responsibility."*
+
+- Beside the PMO picker, **IPT**: *All IPTs*, then each Sub-PMO text (by normKey, its first spelling) on the rows whose PMO is
+  that PMO, by name, then *(no IPT)* for rows with none (`ui_iptList`). Offered only when the PMO has a Sub-PMO to pick.
+- Picked, the PMO's tab is the same engine on the pulls with every other IPT's rows left out (`ui_iptModel`, `SP.buildModel`
+  with the Filter's switches and no BAE report, since the report's budgets are not split by IPT): the PMO table, each block,
+  its tree, totals, strip and Unobligated lists. The title names the IPT, and a note says Authorized shows Approved. Another
+  PMO's rows of the same Sub-PMO text are never counted.
+- The choice is the page's (not saved); picking another PMO takes it off; the print line names it. A view-only copy has it.
+
+`test/ipt.test.mjs`.
+
