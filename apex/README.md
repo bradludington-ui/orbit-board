@@ -487,6 +487,9 @@ It works in a view-only copy too, changes nothing in the plan, and is not there 
   13.33 in (a browser may drop the picture's resolution on the clipboard).
 - **Save picture** saves one block as a PNG.
 - **Save all pictures (.zip)** saves every block, one PNG each, and every PMO's blocks in a folder named *By PMO*.
+- **IPT** on **PMO Spend Plan**: beside the PMO picker, pick one IPT (the pull's Sub-PMO column) to see that PMO's tab for
+  that IPT's rows alone: the table, every block, the totals and the Unobligated lists. *(no IPT)* is the rows with no Sub-PMO.
+  Authorized there shows Approved (the BAE report is not split by IPT). It is in a view-only copy too.
 - **PMO spend plan** has the same Copy picture and Save picture on each of a PMO's blocks. A PMO's picture lists that PMO's
   requirement titles over the same totals, goal and status rows.
 
