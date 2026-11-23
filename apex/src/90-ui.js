@@ -3153,6 +3153,16 @@ function ui_drawMain(M) {
   return ui_vFind(M);
 }
 
+// §59 a phone or tablet opens a drop-down's own picker whenever that drop-down takes the focus, so handing the focus back to
+// a drop-down after a redraw opened the picker again the moment a choice was made (Brad, 23 Nov 2026: "it recycles and pops
+// back up instead of selecting and disappearing"). On a touch screen a drop-down is not given the focus back; a keyboard on a
+// computer still is.
+function ui_touch() { try { return typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } }
+function ui_refocus(el) {
+  if (!el || el === document.activeElement) return;
+  if (el.tagName === 'SELECT' && ui_touch()) return;
+  el.focus({ preventScroll: true });
+}
 function ui_render() {
   ui.pending = false;
   if (!ui.els) return;
@@ -3197,7 +3207,7 @@ function ui_render() {
   const byKey = k => [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === k && !x.disabled && !x.hidden);
   if (fk) {
     const el = byKey(fk) || (to ? byKey(to) : null);
-    if (el) { if (el !== document.activeElement) el.focus({ preventScroll: true }); }
+    if (el) ui_refocus(el);
     else if (inMain) ui.els.main.focus({ preventScroll: true });
   }
 }
@@ -3216,7 +3226,7 @@ function ui_renderBars() {
   ui_layout();
   if (fk) {
     const el = [...ui.els.app.querySelectorAll('[data-fkey]')].find(x => x.getAttribute('data-fkey') === fk && !x.disabled && !x.hidden);
-    if (el && el !== document.activeElement) el.focus({ preventScroll: true });
+    ui_refocus(el);
   }
 }
 // a TASK, not a microtask: a box typed in and left with Tab fires its change before the keyboard reaches the next box,
