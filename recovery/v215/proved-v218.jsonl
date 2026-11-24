@@ -11,7 +11,6 @@
 {"id": "v218-149-er-record-stays", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "v218-149-bud-every-line", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "v218-149-lastedit-no-added", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
-{"id": "v218-149-field-internal", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "v218-149-custom-field-internal", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "v218-149-jrnl-not-narrowed", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "v218-149-jrnl-redraws-box", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
@@ -22,3 +21,4 @@
 {"id": "v218-149-att-at-top", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "pmo-button-silent", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}
 {"id": "nd-filter-shows-all", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-626d82bd.mjs", "detail": ""}
+{"id": "v218-149-field-internal", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b1faf4a6.mjs", "detail": ""}

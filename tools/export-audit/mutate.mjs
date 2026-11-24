@@ -11566,7 +11566,7 @@ const MUTATIONS = [
   { id: 'v218-149-lastedit-no-added', area: 'uiLastEdit', what: "History shows nothing for a requirement added on the board",
     find: "    // a line filed by place (before v2.14) in this year may have changed it without naming it\n    const it=itemById(id); if(!it) return null;", repl: "    // a line filed by place (before v2.14) in this year may have changed it without naming it\n    const it=itemById(id); if(!it || it.custom) return null;" },
   { id: 'v218-149-field-internal', area: 'jrnlFieldName', what: "the last change and the journal print the container's internal name",
-    find: "  if(Object.prototype.hasOwnProperty.call(REQ_FIELD, k)) return FL(k);\n", repl: "\n" },
+    find: "  if(Object.prototype.hasOwnProperty.call(REQ_FIELD, k)) return FL(k);\n  return k;", repl: "  return k;" },
   { id: 'v218-149-custom-field-internal', area: 'jrnlFieldName', what: "an added requirement's field is named by its internal key",
     find: "    if(Object.prototype.hasOwnProperty.call(JRNL_CUSTOM_F, f)) return FL(JRNL_CUSTOM_F[f]);\n", repl: "\n" },
   { id: 'v218-149-jrnl-not-narrowed', area: 'jrnlReqHas', what: "the record's History opens the whole journal",

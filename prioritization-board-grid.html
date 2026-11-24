@@ -8372,8 +8372,10 @@ function jrnlFieldName(e){
     if(Object.prototype.hasOwnProperty.call(JRNL_CUSTOM_F, f)) return FL(JRNL_CUSTOM_F[f]);
     return f==='title'? 'title' : f; }
   if(k==='custom') return e.a==null? 'requirement added' : (e.b==null? 'requirement deleted' : 'added requirements');
+  // the journal's own plain names first, as they always read; the record's name for a field the journal never named (recNames)
+  if(Object.prototype.hasOwnProperty.call(JRNL_NAMES, k)) return JRNL_NAMES[k];
   if(Object.prototype.hasOwnProperty.call(REQ_FIELD, k)) return FL(k);
-  return Object.prototype.hasOwnProperty.call(JRNL_NAMES, k)? JRNL_NAMES[k] : k;
+  return k;
 }
 // the requirement a line names, read from the line's own year ({id, t}), or null
 function jrnlItemOf(e){
