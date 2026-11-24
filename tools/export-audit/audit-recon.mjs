@@ -5192,8 +5192,8 @@ await (async () => {
       const stat1 = R.ev(`(function(){ var _P=window.uiPrompt; window.uiPrompt=function(m,d,cb){ cb('1'); }; window.alert=function(){};
         try{ exportOneAppn(); }finally{ window.uiPrompt=_P; } return (document.getElementById('shareStat')||{}).textContent||''; })()`);
       w5Chk(name, at + '⬇ Export one appropriation', 'the status line names no way back that refuses the file: Import one appropriation and Import several boards refuse it, and it says why and what works',
-        stat1, '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list, '
-          + 'cost estimates and reprogramming log. It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: ' + why + '. '
+        stat1, '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list '
+          + 'and reprogramming log. It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: ' + why + '. '
           + RULE + ' ' + NOW + ' ' + CYCLE + ' ' + FULL);
       const told = '“cycle.html” was not imported: ' + why + '.\n\n' + RULE + ' ' + NOW + ' ' + CYCLE + ' ' + FULL + ' Nothing on this board was changed.';
       const held = lsOf(R.ev), al = JSON.parse(await one(R.ev, saved)), mv = moved(held, lsOf(R.ev));
@@ -5247,8 +5247,8 @@ await (async () => {
       const stat1 = R.ev(`(function(){ var _P=window.uiPrompt; window.uiPrompt=function(m,d,cb){ cb('1'); }; window.alert=function(){};
         try{ exportOneAppn(); }finally{ window.uiPrompt=_P; } return (document.getElementById('shareStat')||{}).textContent||''; })()`);
       w5Chk(name, at + '⬇ Export one appropriation', 'the status line names no way back that refuses the file, and says the file also carries a locked cycle whose list is refused',
-        stat1, '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list, '
-          + 'cost estimates and reprogramming log. It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: ' + why + '. ' + tail);
+        stat1, '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list '
+          + 'and reprogramming log. It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: ' + why + '. ' + tail);
       const saved = R.ev('buildSavedHtml()'), oneAp = R.ev(`oneAppnHtml(mySlug())||''`), pkg = pkgOf(R.ev);
       const told = '“cycle.html” was not imported: ' + why + '.\n\n' + tail + ' Nothing on this board was changed.';
       const held = lsOf(R.ev), al = JSON.parse(await one(R.ev, saved)), mv = moved(held, lsOf(R.ev));
@@ -5286,8 +5286,8 @@ await (async () => {
     // CONTROL: an ordinary board's export says to take its file back, as d66dd60's did.
     {
       const mk = bootMark();
-      const EXP = '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list, '
-        + 'cost estimates and reprogramming log. ';
+      const EXP = '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list '
+        + 'and reprogramming log. ';
       const BACK = 'Take it back with Imports & exports → ⬅ Import one appropriation.';
       const NOT_BACK = 'It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: ';
       const stat = ev => ev(`(function(){ var _P=window.uiPrompt; window.uiPrompt=function(m,d,cb){ cb('1'); }; window.alert=function(){};
@@ -6052,6 +6052,18 @@ await (async () => {
       J(['PB|2027', 'Plan event', 1, 1, 0, 0, 0, 'Excel workbook not exported: sheet “O&M”, cell B6 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”. No file was made, and the text on the board is unchanged. Change that text where it was entered — on the board, or in the file it was imported from — and export again. A locked cycle keeps the text it was locked with: a file taken from one that holds it stays refused.',
         true, 'Plan' + VT + 'event', 0, 'Excel workbook not exported: sheet “Decision Bands”, cell H18 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”', '', '', '']));
     // Ledger U46: v2.19 (item 150): the funds-flow workbook it reached is gone
+    // its board stays: the band-colour check below reads its file
+    const uM = 1000000, uFF = String.fromCharCode(0xFFFF);
+    const uRow = (fy, title, budget, amt, office) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = 'U14' + fy; r[3] = title;
+      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
+    const XU = boot();
+    seed(XU.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * uM])], disc: [500 * uM], mand: [0], order: ['F1'] });
+    XU.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.bm={disc:[${500 * uM}], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
+      applyState(S); MS.years[2027]=S; EXDB.all=${J({ om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [uRow(2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * uM, 'Program (TSS)')] } } })}; EXDB.ts=1;
+      save(); 'ok'`);
+    const uSlug = JSON.parse(XU.ev('JSON.stringify(_AP.slug)')), uHtml = XU.ev('buildSavedHtml()');
+    const uRE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
 
     // REVIEW ROUND 2 (both reviews, M1): a band's colour reaches xl/styles.xml as the Priority drill's banner fill, outside every
     // cell and sheet name, unescaped. The ladder import holds it to #RRGGBB; a board file carries it as written (the board has
