@@ -1,0 +1,16 @@
+{"id": "v220-151-source-moved", "verdict": "CAUGHT", "fails": ["3"], "threw": 1, "suite": "_slim-prove-ab6dc95f.mjs", "detail": "--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | copy\n        got false   want true\n--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | budget\n        got [\"150\",\"20\"]   want [\"100\",\"10\"]\n--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | harness\n        got threw   want ran"}
+{"id": "v220-151-skip-ignored", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-window-only", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-lines-merged", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-kx-copied", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-unit-dropped", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-split-kept", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-no-ask", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-undo-unguarded", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-undo-keeps-copy", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-retag-unasked", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-src-lists-self", "verdict": "CAUGHT", "fails": ["5"], "threw": 1, "suite": "_slim-prove-ab6dc95f.mjs", "detail": "--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | preview\n        got [\"BES|2028\",\"POM|2028\"]   want [\"POM|2028\"]\n        got [\"ANG\",\"USN\"]   want [\"USAF\",\"ANG\",\"STOVL\"]\n        got [\"FY27\",false]   want [\"FY27, FY33\",true]\n        got [false,false,false]   want [true,true,true]\n--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | harness"}
+{"id": "v220-151-src-lists-empty", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-view-allowed", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-after-drops-kept", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-ab6dc95f.mjs", "detail": ""}
+{"id": "v220-151-no-button", "verdict": "CAUGHT", "fails": ["2"], "threw": 1, "suite": "_slim-prove-ab6dc95f.mjs", "detail": "--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | button\n        got false   want true\n--- v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151) | harness\n        got threw   want ran"}

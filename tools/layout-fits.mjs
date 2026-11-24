@@ -543,6 +543,36 @@ for (const [pass, docked] of PASSES) {
     fails.length === 0 && lines === 16, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 3).join('; ')}` : `${lines} lines read`);
 }
 
+// ── T. PPBE BUDGET POSITIONS: THE COPY PREVIEW FITS (v2.20, item 151) ────────────────────────────────────────
+// "Copy controls from another cycle…" opens a preview inside the box: a source picker, a row per service with a tick box, its
+// lines, its years and three totals, and the Copy and Cancel buttons. Four services, ten-digit figures and a long run of years,
+// at 1920, 1366 and 1024: the section stays inside the box, no cell is cut, no control is past the box's edge.
+{
+  const fails = [];
+  for (const w of [1920, 1366, 1024]) {
+    const { p, ctx } = await open(w, 900, 'review');
+    const r = await p.evaluate(() => {
+      MS.ppbe = MS.ppbe || {};
+      const V = {}; [2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033].forEach((y, i) => { V[y] = { d: 2280000000 + i, m: 15828000 + i }; });
+      MS.ppbe['POM|2028'] = { v: 2, split: true, lines: {}, val: {} };
+      SVC.slice(0, 4).forEach(sv => { MS.ppbe['POM|2028'].lines[sv] = [{ k: 'x1', all: true }]; MS.ppbe['POM|2028'].val[sv] = { x1: JSON.parse(JSON.stringify(V)) }; });
+      ppCyc = 'BES'; ppYr = 2028; ppSvcIdx = 0; ppOpen = false; toggleP2(); ppMigShow();
+      const sec = document.querySelector('#ppBody .ppmig'), box = document.querySelector('#ppPanel .modal'), out = [];
+      if (!sec) return ['no preview'];
+      const b = box.getBoundingClientRect();
+      for (const e of sec.querySelectorAll('td, th, button, select, input')) { const q = e.getBoundingClientRect();
+        if (q.right > b.right + 1 || q.left < b.left - 1) out.push((e.textContent || e.tagName).trim().slice(0, 24) + ' past the box');
+        if ((e.tagName === 'TD' || e.tagName === 'TH') && e.scrollWidth > e.clientWidth + 1) out.push('"' + e.textContent.trim().slice(0, 24) + '" cut'); }
+      if (sec.querySelectorAll('table.ppmigtab tr').length < 6) out.push('the preview lists ' + (sec.querySelectorAll('table.ppmigtab tr').length - 2) + ' services, not 4');
+      return out;
+    });
+    r.forEach(o => fails.push(`${w}px: ${o}`));
+    await ctx.close();
+  }
+  chk('T · PPBE Budget Positions: the copy preview fits inside the box, nothing cut, at 1920, 1366 and 1024',
+    fails.length === 0, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 3).join('; ')}` : 'four services read at three widths');
+}
+
 // ── M. THE ADD BOX FITS WHOLE (v2.07, item 121) ──────────────────────────────────────────────────────────────
 // Brad: "everything legible and not running off the screen or needing to scroll". The box that builds the whole record is
 // measured with all of it showing -- six services' values, a budget picker on each (the longest name chosen), the two OGC

@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.19** (item 150, the scope-down), built 24 Nov 2026; merge waits on Brad's word. Then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.19** (item 150, the scope-down), merged 24 Nov 2026 (PR #78). **v2.20 is item 151** (copy one PPBE cycle's controls into another; Brad's "Go" of 24 Nov 2026), so item 149.18–149.53 is v2.21. Item 133 is withdrawn.
 
 ## Open
 
@@ -582,7 +582,73 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.19 — 24 Nov 2026: ORBIT scoped down to what it is for (item 150) -- built on Brad's "Go" of 24 Nov; merge waits on his word
+### v2.20 — 24 Nov 2026: copy one PPBE cycle's controls into another, in PPBE Budget Positions (item 151) -- built on Brad's "Go" of 24 Nov (all six recommended answers); merge waits on his word
+- **Copy controls from another cycle…**, beside delete in the PPBE Budget Positions box, opens a preview for the position on
+  screen (`ppMigShow`, `ppMigHtml`): a picker of this appropriation's other cycles that hold a figure, newest first
+  (`ppMigSrcs`), and a row per service the source holds -- a tick box, its lines, its fiscal years, the source's total, the
+  target's now and after -- with ALL SERVICES before and after, and what the copy replaces, keeps and changes said in words.
+- **One statement of what a copy does** (`ppMigPlan`), read by the preview and by the copy (`ppMigRun`): per ticked service, the
+  source's lines, figures (every fiscal year it logs, inside the target's window or not) and $K setting replace the target's; a
+  service left out, or one only the target holds, is left as it was; the target takes the source's Discretionary / Mandatory
+  setting; the source's ×1,000 record is never copied and the target's own is dropped for a replaced service. The source is
+  left as it was (answer 1). A target holding figures for a copied service is asked about, naming each, and Cancel changes
+  nothing (answer 2). One `save()`, `baLiveAll()`: a target the plan is tagged with is its budget at once.
+- **Undo the copy** (`ppMigUndo`), from the status line and the box: `MS.ppbe` is outside the change journal, so the copy keeps
+  its own record on the target, `P.mig = {from, t, by, svcs, was, now}`, the way `P.kx` keeps the ×1,000. The undo puts `was`
+  back only while the target still holds `now`, and otherwise refuses, naming what changed (`ppMigMoved`). The record travels with
+  the board.
+- **A retag is offered, never done** (answer 6): copying into a cycle newer than the plan's tag offers *Put every appropriation
+  on …* (`cycApplyAll`). Within this appropriation only (answer 5). Refused on a locked cycle's view (`cycBlock`) and in a PMO
+  copy (`sandboxBlock`).
+- **Checks.** audit-board "v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item
+  151)" (24 checks; fails on v2.19 `ce0783c`): a source year outside the window, a service left out through its rendered tick
+  box, a target service replaced and one kept, split and $K, Cancel, the source untouched, the record, the retag offered and not
+  done, the undo, the live budget, a reopen, the undo refused after a figure is typed, a locked view. `npm run layout` T: the
+  preview inside the box at 1920, 1366 and 1024. **Mutations:** 16 new (`v220-151-*`), each CAUGHT by the block
+  (`recovery/v215/proved-v220.jsonl`); 3,257 targets, each once. No sweep (Brad's rule of 20 Oct).
+  **The gate:** every suite whole (8 banners + the legacy line); panels, dialogs, keys, leftmenu, menus, dropdowns and standards (0 new
+  findings) pass; `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone,
+  as on main (defect register 15 known, 41 mutations; coverage 19/19; money map 252 cells, 97 proven, 155 n/a, 0 open; trace
+  matrix 75 cells; fuzz seed 699120401; verify-file self-test held; suites 26.2 min). Layout T failed on the first cut (the
+  years cell cut by `.fctab`'s fixed layout) and holds after the fix.
+
+#### 151 (as logged)
+##### Copy one PPBE cycle's controls into another, in PPBE Budget Positions (Brad, 24 Nov 2026)
+- **Asked:** Brad, 24 Nov 2026: *"Let's add the ability to migrate controls from one PPBE cycle to another in the PPBE Budget Position section."*
+- **What he sees today:** each position (`MS.ppbe['BES|2028']`, one per appropriation) is typed in from empty. Moving to the
+  next cycle (POM28 → BES28 → PB28) means typing every line and every year again: per service, its lines (RCN / EEIC, SI code
+  or cost element), Disc and Mand where the split is on, and the $K setting. The only way to start from figures is Budget
+  Management's *Take from a PPBE position*, which writes the board's base, not another position.
+- **What the code holds (read on v2.19, 93b901d):** a position is `{v:2, split, lines:{svc:[…]}, val:{svc:{line:{fy:{d,m}}}},
+  unit:{svc:'k'}, kx}`, keyed by fiscal year, never by an offset from the cycle year, so figures copy across cycles as they
+  stand. `MS.ppbe` is outside the change journal (the $K undo keeps its own record, `P.kx`, for that reason). A position the
+  plan is tagged with is live budget authority (item 134, `baLiveAll`), so copying into the tagged cycle moves the board's
+  budget at once.
+- **Proposed:** in the PPBE Budget Positions box, beside Delete, **Copy controls from another cycle…** for the position on
+  screen. It lists this appropriation's other logged positions (POM28, BES28 …), with each one's service count and total.
+  - A preview names, per service, the lines and years it brings, what the target already holds, and the total before and after.
+  - OK copies lines, figures, the split and the $K setting (`unit`; never `kx`, which is the source's own undo record); the
+    source is left as it was. One `save()`, `baLiveAll()`, one status line naming both cycles and the totals.
+  - **Undo the copy** from the same place, putting back the target exactly as it was (kept as `P.mig = {from, t, by, was}`,
+    the way `P.kx` keeps the ×1,000), refused once a figure has been typed since, naming it.
+  - Refused on a locked cycle's view and in a PMO copy (`cycBlock`, as every position writer).
+  - Checks: an audit-board block holding every copied cell to the source's, a target with figures of its own, a service only
+    one side has, $K on one side, a split onto an unsplit target, the undo, and the budget authority of a tagged target moving;
+    the box in panels, dialogs, keys and standards.
+- **Questions for Brad (recommended answer first):**
+  1. **Copy or move?** Copy, the source kept as it was (a locked cycle's figures are the record of what was logged).
+  2. **A target that already holds figures:** ask, then replace the target whole (recommended), or fill only what is blank, or
+     add the two together.
+  3. **Which years:** every fiscal year the source logs (recommended; a year outside the target's window is still copied and
+     named, as the box already names it), or only the years in the target's window.
+  4. **Which services:** all (recommended), with a tick per service in the preview to leave one out.
+  5. **Across appropriations** (O&M's BES28 into Full Fund's): no (recommended); a position is one appropriation's, and
+     another appropriation's figures worked out on this page would be a second engine (v1.85's rule).
+  6. **Retag after copying into a newer cycle:** offer *Retag every appropriation as …* in the status line (recommended,
+     as a lock does), never retag unasked.
+
+
+### v2.19 — 24 Nov 2026: ORBIT scoped down to what it is for (item 150) -- built on Brad's "Go" of 24 Nov; merged on his "Merge when it passes" (PR #78)
 
 **Removed** (each surface's code found by a call graph, as item 104 and v2.05 did): the Annual Cost Estimate (its import, column
 mapping and import report, its Data card, the folder share of estimates and their earlier copies, the estimate's WBS tree and office
