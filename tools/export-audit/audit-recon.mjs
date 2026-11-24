@@ -5057,7 +5057,8 @@ await (async () => {
           'TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | ']));
       // v2.09 W4: the note sends the reader to the edit box (item 128): the row's ⋯ menu has had no SI entry since v2.08
       w5Chk(name, where, 'the overview’s note says how much of that row is under a code the board does not recognize, and how much has none',
-        J(['$1,210,000 carries no recognized code: $1,120,000 of it is on 2 requirements whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) and $90,000 carries no code yet — set one in a requirement’s 📋 Requirement edit, at its Navy SI code.',
+        // v2.18 (item 149.17): the message says where Needs attention is
+        J(['$1,210,000 carries no recognized code: $1,120,000 of it is on 2 requirements whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention, on the Funding page) and $90,000 carries no code yet — set one in a requirement’s 📋 Requirement edit, at its Navy SI code.',
            '1 of 6 coded requirements take a derived code'].map(s => B.ev(`(document.querySelector('#siBody .hint')||{}).textContent||''`).includes(s))),
         J([true, true]));
       w5Chk(name, where, 'the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows',
@@ -5072,7 +5073,7 @@ await (async () => {
       w5Chk(name, where, 'its status line counts R7 as no SI code and R1, R9 apart, as codes that are not one of the five',
         String(cr.stat || cr.err).replace(/^.*Oct–Mar\./, ''),
         // v2.09 W4: the status line names the edit box (item 128), where the code has been set since v2.08
-        ' 1 with no SI code — those cells are blank; set them in each requirement’s 📋 Requirement edit, at its Navy SI code. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.');
+        ' 1 with no SI code — those cells are blank; set them in each requirement’s 📋 Requirement edit, at its Navy SI code. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention, on the Funding page) — their cells are blank too.');
       w5Chk(name, where, 'CONTROL — the CR cash return’s TOTAL row still adds to 1,910 ($K)',
         J(crRows.filter(r => cell((r || [])[0]) === 'TOTAL').map(r => r.slice(7).map(cell).reduce((a, v) => a + (typeof v === 'number' ? v : 0), 0))), J([1910]));
     }
@@ -5107,7 +5108,7 @@ await (async () => {
     const vcr = await book(VR, 'crExport');
     w5Chk(name, 'other values', 'the CR cash return counts all six as codes that are not one of the five: blank cells, none of them "no SI code", and never "Every row carries an SI code"',
       String(vcr.stat || vcr.err).replace(/^.*Oct–Mar\./, ''),
-      ' 6 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank.');
+      ' 6 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention, on the Funding page) — their cells are blank.');
     // FULL FUND: nothing reads an SI code there; the value is kept and nothing lists it
     const F = boot({ appn: 'FULL FUND' });
     seed(F.ev, { services: ['STOVL', 'USMC-C', 'USN'], items: [it('R1', 'AV', [0, 200 * K, 900 * K]), it('R2', 'AV', [0, 100 * K, 300 * K])],
