@@ -5325,6 +5325,21 @@ Funds Flow, the IDS Batch Import, the Chart of Accounts and the AI Review. `NEXT
 **Checks.** audit-board "v2.19 — the scope-down: …" and audit-import "v2.19 — a board file that carries cost estimates …";
 The gate (`validate:nightly`): every stage holds but layout's carried D ×8 (fuzz seed 362034012; suites 25.8 min).
 
+### v2.20 (item 151): copy one PPBE cycle's controls into another
+
+Brad, 24 Nov 2026: *"Let's add the ability to migrate controls from one PPBE cycle to another in the PPBE Budget Position
+section"*, and "Go" on the six recommended answers. `NEXT-VERSION.md` › Shipped › v2.20 has the detail.
+
+- **`ppMigPlan(from, to, skip)` is the one statement of a copy**, read by the preview (`ppMigHtml`) and the copy (`ppMigRun`).
+  Per ticked service the source's lines, figures (every fiscal year, in the target's window or not) and $K setting replace the
+  target's; a service left out or only the target holds is kept; the target takes the source's split. The source is never
+  changed. The source's `kx` is never copied: a ×1,000 record names cells the target never multiplied.
+- **`MS.ppbe` is outside the change journal, so a writer that replaces figures keeps its own undo record on the position**
+  (`P.mig = {from, t, by, svcs, was, now}`, as `P.kx` does), and the undo puts `was` back only while the position still equals
+  `now` (`ppMigMoved` names what changed). A new position writer that discards figures does the same, or asks and cannot be undone.
+- **A copy into the tagged cycle moves the live budget at once** (`baLiveAll`); a copy into a newer cycle offers the retag and
+  never does it.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

@@ -10338,6 +10338,97 @@ await (async () => {
   }
 })();
 // ==== end v2.19 ====
+// ==== v2.20 (item 151): copy one PPBE cycle's controls into another ====
+// Brad, 24 Nov 2026: "Let's add the ability to migrate controls from one PPBE cycle to another in the PPBE Budget Position section",
+// and "Go" on the recommended answers: a copy, the source left as it was; a target holding figures asked about and replaced
+// service by service; every fiscal year the source logs; every service, each one that can be left out; this appropriation only;
+// a retag offered, never done. The fixture makes each alternative disagree: the source logs a year outside the target's window
+// (FY33), a service is left out (STOVL), the target already holds one copied service (ANG) and one the source lacks (USN), the
+// source is split and the target is not, one service is in $K, and the board is tagged with the target, so the live budget moves.
+// FAILS ON v2.19 (ce0783c): ppMigRun and the button do not exist.
+await (async () => {
+  const name = 'v2.20 — PPBE Budget Positions: copy one cycle’s controls into another, preview, replace, undo (item 151)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    seed(ev, { services: ['USAF', 'ANG', 'STOVL', 'USN'], items: [it('A', 'AV', [500, 50, 30, 20])], disc: [150, 60, 40, 30], mand: [20, 10, 5, 5], order: ['A'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); save();
+      window.__asked=[]; window.confirm=function(m){ __asked.push(m); return true; }; window.alert=function(m){ __asked.push('ALERT '+m); };
+      MS.ppbe=MS.ppbe||{};
+      MS.ppbe['POM|2028']={v:2, split:true, lines:{USAF:[{k:'u1', rcn:'12345', eeic:'54321'}], ANG:[{k:'a1', all:true}], STOVL:[{k:'si_LA', si:'LA'}]},
+        val:{USAF:{u1:{'2027':{d:100, m:10}, '2033':{d:50, m:0}}}, ANG:{a1:{'2027':{d:70, m:0}}}, STOVL:{si_LA:{'2028':{d:300, m:0}}}},
+        unit:{USAF:'k'}, kx:{USAF:{t:1, n:0, cells:[]}}};
+      MS.ppbe['BES|2028']={v:2, split:false, lines:{ANG:[{k:'a9', all:true}], USN:[{k:'n1', all:true}]},
+        val:{ANG:{a9:{'2027':{d:999, m:0}}}, USN:{n1:{'2027':{d:55, m:0}}}}};
+      MS.ppbe['PB|2026']={v:2, split:false, lines:{}, val:{}};      // holds no figure: never offered
+      MS.cycle='BES|2028'; baLiveAll(); save();
+      ppCyc='BES'; ppYr=2028; ppOpen=true; ppSvcIdx=0; render(); 'ok'`);
+    const pos = k => JSON.parse(ev(`JSON.stringify(MS.ppbe[${J(k)}]||null)`));
+    const src0 = J(pos('POM|2028')), tgt0 = pos('BES|2028');
+    const cur = +ev(`String(MS.cur)`);
+    chk(name, 'fixture', 'CONTROL: the board is on FY27 and tagged with BES28, whose USAF says nothing (the board’s own base)', J([cur, ev(`String(S.discSvc[0])`)]), J([2027, '150']));
+    // 1. the button opens the preview, offering only the other cycles that hold a figure
+    chk(name, 'button', 'the box offers Copy controls from another cycle…', ev(`String(!!document.querySelector('#ppBody button.ppmigbtn'))`), 'true');
+    ev(`document.querySelector('#ppBody button.ppmigbtn').click(); 'ok'`);
+    chk(name, 'preview', 'the source list is the other cycles holding a figure: POM28 alone (not BES28 itself, not the empty PB26)',
+      ev(`JSON.stringify([].map.call(document.querySelectorAll('#ppBody select.ppmigfrom option'), function(o){ return o.value; }))`), J(['POM|2028']));
+    const rows = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#ppBody table.ppmigtab tr'), function(r){ return [].map.call(r.children, function(c){ return c.textContent.trim(); }); }))`));
+    let R = rows();
+    chk(name, 'preview', 'one row per service the source holds a figure for: USAF, ANG, STOVL', J(R.slice(1, -1).map(r => r[1].replace(/ \(\$K\)$/, ''))), J(['USAF', 'ANG', 'STOVL']));
+    chk(name, 'preview', 'USAF’s years include FY33, outside BES28’s window, and it is marked $K', J([R[1][3], /\(\$K\)/.test(R[1][1])]), J(['FY27, FY33', true]));
+    chk(name, 'preview', 'the text names ANG as replaced, USN as left, and the split changing',
+      J([/ANG already holds/.test(ev(`document.querySelector('#ppBody .ppmig').textContent`)), /USN is only in BES28/.test(ev(`document.querySelector('#ppBody .ppmig').textContent`)), /becomes split/.test(ev(`document.querySelector('#ppBody .ppmig').textContent`))]), J([true, true, true]));
+    // 2. leave STOVL out through its rendered tick box
+    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#ppBody table.ppmigtab input[type=checkbox]'), function(x){ return /STOVL/.test(x.getAttribute('aria-label')); })[0];
+      b.checked=false; b.dispatchEvent(new Event('change', {bubbles:true})); })(); 'ok'`);
+    chk(name, 'preview', 'STOVL unticked: the button copies 2 services', ev(`document.querySelector('#ppBody button.ppmiggo').textContent`), 'Copy 2 services into BES28');
+    const plan = JSON.parse(ev(`JSON.stringify(ppMigPlan('POM|2028','BES|2028',ppMigSkip))`));
+    chk(name, 'preview', 'ANG: BES28 holds $999 now and POM28’s $70 after', J(plan.rows.filter(r => r.sv === 'ANG').map(r => [r.tgtTot, r.srcTot])), J([[999, 70]]));
+    chk(name, 'preview', 'before $1,054 (ANG 999 + USN 55); after $285 (USAF 160, the FY33 50 included, + ANG 70 + USN 55)', J([plan.before, plan.after]), J([1054, 285]));
+    // 3. told no, nothing changes
+    ev(`window.confirm=function(m){ __asked.push(m); return false; }; document.querySelector('#ppBody button.ppmiggo').click(); 'ok'`);
+    chk(name, 'cancel', 'Cancel at the question changes nothing, and the question named ANG’s figures being replaced',
+      J([J(pos('BES|2028')) === J(tgt0), /ANG: .* becomes /.test(ev(`String(__asked[__asked.length-1])`))]), J([true, true]));
+    // 4. OK copies
+    ev(`window.confirm=function(m){ __asked.push(m); return true; }; MS.cycle='POM|2028'; baLiveAll(); render();
+      ppMigOpen=true; render(); document.querySelector('#ppBody button.ppmiggo').click(); 'ok'`);
+    const T = pos('BES|2028');
+    chk(name, 'copy', 'USAF’s lines and figures are POM28’s, FY33 included', J([T.lines.USAF, T.val.USAF]), J([[{ k: 'u1', rcn: '12345', eeic: '54321' }], { u1: { '2027': { d: 100, m: 10 }, '2033': { d: 50, m: 0 } } }]));
+    chk(name, 'copy', 'ANG is replaced (its own line gone), USN and STOVL are left as they were', J([T.lines.ANG, T.val.ANG, T.val.USN, T.val.STOVL || null]),
+      J([[{ k: 'a1', all: true }], { a1: { '2027': { d: 70, m: 0 } } }, { n1: { '2027': { d: 55, m: 0 } } }, null]));
+    chk(name, 'copy', 'BES28 takes POM28’s split and USAF’s $K, but never POM28’s ×1,000 record', J([T.split, (T.unit || {}).USAF, !!((T.kx || {}).USAF)]), J([true, 'k', false]));
+    chk(name, 'copy', 'POM28 is byte for byte as it was', J(pos('POM|2028')) === src0, true);
+    chk(name, 'copy', 'the copy is recorded: from POM28, the services, and what BES28 was', J([T.mig.from, T.mig.svcs, J(T.mig.was) === J(tgt0)]), J(['POM|2028', ['USAF', 'ANG'], true]));
+    const st = ev(`document.getElementById('shareStat').innerHTML`);
+    chk(name, 'copy', 'the status line names both cycles and offers the undo and the retag (BES28 is newer than the plan’s tag, POM28)',
+      J([/copied into BES28/.test(st), /ppMigUndo\(\)/.test(st), /ppmigretag/.test(st)]), J([true, true, true]));
+    chk(name, 'copy', 'the retag is offered, never done: the plan is still tagged POM28', ev(`MS.cycle`), 'POM|2028');
+    // 5. undo puts BES28 back exactly
+    ev(`ppMigUndo(); 'ok'`);
+    chk(name, 'undo', 'undo puts BES28 back exactly as it was', J(pos('BES|2028')) === J(tgt0), true);
+    // 6. tagged with the target: the copy moves the live budget at once, and the undo moves it back
+    ev(`MS.cycle='BES|2028'; baLiveAll(); ppMigSkip=Object.create(null); ppMigSkip.STOVL=1; ppMigFrom='POM|2028'; ppMigRun(); 'ok'`);
+    chk(name, 'budget', 'tagged BES28, FY27 USAF budget authority is the copied position’s: $100 discretionary, $10 mandatory', J([ev(`String(S.discSvc[0])`), ev(`String(S.mandSvc[0])`)]), J(['100', '10']));
+    chk(name, 'budget', 'and the retag is not offered, BES28 already being the tag', /ppmigretag/.test(ev(`document.getElementById('shareStat').innerHTML`)), false);
+    // 7. the record travels through a save and reopen, and the undo works there
+    const R2 = boot({ html: ev(`buildSavedHtml()`) });
+    chk(name, 'reopen', 'after a reopen the copy is still on record, and the box offers its undo',
+      J([R2.ev(`MS.ppbe['BES|2028'].mig.from`), R2.ev(`ppOpen=true; ppCyc='BES'; ppYr=2028; render(); String(!!document.querySelector('#ppBody button.ppmigundo'))`)]), J(['POM|2028', 'true']));
+    // 8. a figure typed since: the undo is refused, naming the service, and nothing changes
+    ev(`ppSetV('ANG','a1',2028,'d','5'); 'ok'`);
+    const edited = J(pos('BES|2028'));
+    ev(`ppMigUndo(); 'ok'`);
+    chk(name, 'undo refused', 'after ANG is typed into, the undo is refused, naming ANG, and BES28 keeps the typing',
+      J([J(pos('BES|2028')) === edited, /^ALERT .*not undone: ANG has changed/.test(ev(`String(__asked[__asked.length-1])`))]), J([true, true]));
+    // 9. a locked view refuses
+    ev(`CYCVIEW='PB|2027'; ppMigSkip=Object.create(null); MS.ppbe['BES|2028']=JSON.parse(${J(J(tgt0))}); ppMigFrom='POM|2028'; ppMigRun(); CYCVIEW=null; 'ok'`);
+    chk(name, 'locked view', 'on a locked view the copy writes nothing', J(pos('BES|2028')) === J(tgt0), true);
+    chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.20 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

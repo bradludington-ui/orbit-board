@@ -3493,7 +3493,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.19 (24 Nov 2026)';
+const BUILD='v2.20 (24 Nov 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -21780,6 +21780,7 @@ function helpBody(){
 // v1.93 (item 39): Esc in Help is the box controller's (dlgInit), like every other box.
 var _vpDone=false;
 let ppOpen=false, ppCyc='PB', ppYr=null, ppSvcIdx=0;
+let ppMigOpen=false, ppMigFrom='', ppMigSkip=Object.create(null);   // v2.20 (item 151): the copy's state, beside the box's
 
 // ==============================================================================================================
 // §31  PPBE CYCLES, FIVE-YEAR SPEND PLAN, BUDGET POSITIONS, SPRUILLS
@@ -24600,6 +24601,127 @@ function ppDel(){
   delete MS.ppbe[ppKey()];
   baLiveAll(); save(); render();
 }
+// v2.20 (item 151): COPY ONE CYCLE'S CONTROLS INTO ANOTHER. Brad, 24 Nov 2026: "Let's add the ability to migrate controls from
+// one PPBE cycle to another in the PPBE Budget Position section", and his answers: a COPY (the source is left as it was); a
+// target that holds figures is asked about and then replaced, service by service; every fiscal year the source logs (figures
+// are keyed by fiscal year, never by an offset from the cycle year, so they copy as they stand); every service the source
+// holds, each one that can be left out; within this appropriation only (a position is one appropriation's); a retag offered,
+// never done. MS.ppbe is outside the change journal, so the copy keeps its own record on the target (P.mig, the way P.kx keeps
+// the x1,000): what the target was, and what the copy made it. Undo puts the first back only while the target still holds the
+// second -- a figure typed since is never thrown away by an undo.
+const ppMigCopy=o=>JSON.parse(JSON.stringify(o));
+// a position without its copy record: what the undo compares, and what it puts back
+function ppMigBare(P){ if(!P) return null; const c=ppMigCopy(P); delete c.mig; return c; }
+function ppMigHas(Praw){ const P=ppNorm(Praw); return ppSvcsOf(P).some(sv=>ppSvcFigs(P, sv).length>0); }
+// this appropriation's other positions that hold a figure, newest cycle first
+function ppMigSrcs(){
+  const to=ppKey();
+  return Object.keys(MS.ppbe||{}).filter(k=>k!==to && cycKeyOk(k) && ppMigHas(MS.ppbe[k]))
+    .sort((a,b)=>cycKeyRank(b)-cycKeyRank(a));
+}
+// THE ONE STATEMENT OF WHAT A COPY DOES, read by the preview and by the copy itself. Per service the source holds: its lines,
+// its figures and its $K setting replace the target's; a service left out, or one only the target holds, is left as it is.
+function ppMigPlan(from, to, skip){
+  const S=ppNorm(MS.ppbe[from]), T=ppNorm(MS.ppbe[to]||null), sk=skip||{};
+  const svs=ppSvcsOf(S).filter(sv=>ppSvcFigs(S, sv).length>0);
+  const rows=svs.map(sv=>({sv:sv, skip:!!sk[sv], lines:ppLineList(S, sv).length, figs:ppSvcFigs(S, sv).length,
+    srcTot:ppSvcSum(S, sv), tgtTot:ppSvcSum(T, sv), tgtFigs:ppSvcFigs(T, sv).length, k:ppUnitK(S, sv),
+    yrs:Array.from(new Set(ppSvcFigs(S, sv).map(f=>+f[1]))).sort((a,b)=>a-b)}));
+  const kept=ppSvcsOf(T).filter(sv=>svs.indexOf(sv)<0 && ppSvcFigs(T, sv).length>0);
+  const go=rows.filter(r=>!r.skip);
+  return {from:from, to:to, rows:rows, go:go, kept:kept, split:!!S.split, splitWas:!!T.split,
+    over:go.filter(r=>r.tgtFigs>0), before:ppSvcsOf(T).reduce((a,sv)=>a+ppSvcSum(T, sv), 0),
+    after:ppSvcsOf(T).filter(sv=>!go.some(r=>r.sv===sv)).reduce((a,sv)=>a+ppSvcSum(T, sv), 0)+go.reduce((a,r)=>a+r.srcTot, 0)};
+}
+function ppMigShow(){
+  if(cycBlock('Copying PPBE controls') || sandboxBlock('Copying PPBE controls')) return;
+  ppMigOpen=!ppMigOpen; ppMigSkip=Object.create(null);
+  const s=ppMigSrcs(); if(s.indexOf(ppMigFrom)<0) ppMigFrom=s[0]||'';
+  render();
+}
+function ppMigPick(k){ ppMigFrom=String(k||''); ppMigSkip=Object.create(null); render(); }
+function ppMigTick(sv, on){ if(on) delete ppMigSkip[sv]; else ppMigSkip[sv]=1; render(); }
+function ppMigHtml(){
+  const to=ppKey(), srcs=ppMigSrcs();
+  let h='<div class="ppmig" style="border:1px solid var(--gold);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px">'
+    +'<b style="color:var(--ink)">Copy controls into '+ppLbl(to)+'</b> ';
+  if(!srcs.length) return h+'<div style="color:var(--dim);margin-top:4px">No other cycle of this appropriation holds a figure to copy.</div></div>';
+  if(srcs.indexOf(ppMigFrom)<0) ppMigFrom=srcs[0];
+  const X=ppMigPlan(ppMigFrom, to, ppMigSkip);
+  h+=' from <select class="ppmigfrom" style="font-size:10px;padding:3px 6px" onchange="ppMigPick(this.value)" aria-label="Copy controls from">'
+    +srcs.map(k=>'<option value="'+esc(k)+'"'+(k===ppMigFrom?' selected':'')+'>'+ppLbl(k)+' — '+fM2(ppSvcsOf(ppNorm(MS.ppbe[k])).reduce((a,sv)=>a+ppSvcSum(ppNorm(MS.ppbe[k]), sv), 0))+'</option>').join('')
+    +'</select>'
+    +'<table class="fctab ppmigtab" style="margin-top:6px;table-layout:auto;width:100%"><tr><th>Copy</th><th style="text-align:left">Service</th><th>Lines</th><th>Fiscal years</th>'
+    +'<th>'+ppLbl(ppMigFrom)+'</th><th>'+ppLbl(to)+' now</th><th>'+ppLbl(to)+' after</th></tr>'
+    +X.rows.map(r=>'<tr><td><input type="checkbox" '+(r.skip?'':'checked')+' aria-label="Copy '+esc(r.sv)+'" onchange="ppMigTick('+jsa(r.sv)+',this.checked)"></td>'
+      +'<td style="text-align:left;font-weight:700">'+esc(r.sv)+(r.k?' <span style="font-weight:400;color:var(--dim)">($K)</span>':'')+'</td>'
+      +'<td>'+r.lines+'</td><td style="white-space:normal;text-align:left">FY'+r.yrs.map(y=>String(y).slice(-2)).join(', FY')+'</td>'
+      +'<td>'+fM2(r.srcTot)+'</td><td>'+(r.tgtFigs? fM2(r.tgtTot) : '—')+'</td>'
+      +'<td class="ppmigafter">'+fM2(r.skip? r.tgtTot : r.srcTot)+(r.skip?' <span style="color:var(--dim)">(left)</span>':'')+'</td></tr>').join('')
+    +'<tr class="tot"><td></td><td style="text-align:left">ALL SERVICES</td><td></td><td></td><td></td><td>'+fM2(X.before)+'</td><td class="ppmigtot">'+fM2(X.after)+'</td></tr></table>'
+    +'<div style="color:var(--dim);margin-top:5px">'
+    +(X.over.length? '<b style="color:var(--amber)">'+X.over.map(r=>esc(r.sv)).join(', ')+' already '+(X.over.length===1?'holds':'hold')+' figures in '+ppLbl(to)+': they are replaced.</b> ' : '')
+    +(X.kept.length? esc(X.kept.join(', '))+' '+(X.kept.length===1?'is':'are')+' only in '+ppLbl(to)+' and '+(X.kept.length===1?'is':'are')+' left as '+(X.kept.length===1?'it is':'they are')+'. ' : '')
+    +(X.split!==X.splitWas? ppLbl(to)+' becomes '+(X.split?'split (Discretionary and Mandatory)':'one figure per line')+', as '+ppLbl(ppMigFrom)+' is. ' : '')
+    +ppLbl(ppMigFrom)+' is left as it was. The copy can be undone from here until a figure in '+ppLbl(to)+' is changed.</div>'
+    +'<div style="margin-top:6px"><button type="button" class="btn on ppmiggo" style="font-size:10px;padding:4px 10px"'+(X.go.length?'':' disabled')
+    +' onclick="ppMigRun()">Copy '+X.go.length+' service'+(X.go.length===1?'':'s')+' into '+ppLbl(to)+'</button> '
+    +'<button type="button" class="btn" style="font-size:10px;padding:4px 10px" onclick="ppMigShow()">Cancel</button></div></div>';
+  return h;
+}
+function ppMigRun(){
+  if(cycBlock('Copying PPBE controls') || sandboxBlock('Copying PPBE controls')) return;
+  const to=ppKey(), from=ppMigFrom;
+  if(!from || from===to || !MS.ppbe[from]) return;
+  const X=ppMigPlan(from, to, ppMigSkip);
+  if(!X.go.length) return;
+  if(X.over.length && !confirm('Copy '+ppLblTxt(from)+'’s controls into '+ppLblTxt(to)+'?\n\n'
+    +X.over.map(r=>r.sv+': '+fM2(r.tgtTot)+' becomes '+fM2(r.srcTot)).join('\n')
+    +'\n\n'+ppLblTxt(to)+'’s figures for '+(X.over.length===1?'that service':'those services')+' are replaced. '
+    +ppLblTxt(to)+' totals '+fM2(X.before)+' now and '+fM2(X.after)+' after. You can undo the copy from the same place.')) return;
+  const was=MS.ppbe[to]? ppMigCopy(MS.ppbe[to]) : null;
+  const S=ppNorm(MS.ppbe[from]), T=ppPos();
+  if(!T.lines) T.lines={}; if(!T.val) T.val={};
+  X.go.forEach(r=>{
+    T.lines[r.sv]=ppMigCopy(ppLineList(S, r.sv));
+    T.val[r.sv]=ppMigCopy((S.val||{})[r.sv]||{});
+    if(ppUnitK(S, r.sv)){ if(!T.unit) T.unit={}; T.unit[r.sv]='k'; } else if(T.unit) delete T.unit[r.sv];
+    if(T.kx) delete T.kx[r.sv];   // the target's own x1,000 no longer describes these figures (the source's is never copied)
+  });
+  T.split=X.split;
+  delete T.mig;
+  T.mig={from:from, t:Date.now(), by:whoAmI()||'', svcs:X.go.map(r=>r.sv), was:was, now:ppMigBare(T)};
+  ppMigOpen=false;
+  baLiveAll(); save(); render();
+  const lead=!SANDBOX && cycKeyOk(to) && (!MS.cycle || (cycKeyRank(MS.cycle)!==null && cycKeyRank(to)>cycKeyRank(MS.cycle)));
+  setStat('\u{1F3DB} '+ppLbl(from)+'’s controls were copied into '+ppLbl(to)+' for '+esc(X.go.map(r=>r.sv).join(', '))
+    +': '+ppLbl(to)+' totals '+fM2(X.before)+' → '+fM2(X.after)+'. '+ppLbl(from)+' is unchanged. '
+    +'<button type="button" class="nb lnk" onclick="ppMigUndo()">Undo the copy</button>'
+    +(lead? ' · <button type="button" class="nb lnk ppmigretag" onclick="cycApplyAll('+jsa(to)+')">Put every appropriation on '+blLbl(to)+'</button>' : ''));
+}
+// what differs between the target as the copy left it and as it is now, by service: the undo's refusal names them
+function ppMigMoved(P){
+  const m=P && P.mig; if(!m || !m.now) return [];
+  const cur=ppMigBare(P), now=m.now, out=[];
+  const svs=Array.from(new Set(ppSvcsOf(cur).concat(ppSvcsOf(now))));
+  svs.forEach(sv=>{ const a=JSON.stringify([(cur.lines||{})[sv], (cur.val||{})[sv], ppUnitK(cur, sv)]),
+    b=JSON.stringify([(now.lines||{})[sv], (now.val||{})[sv], ppUnitK(now, sv)]); if(a!==b) out.push(sv); });
+  if(!!cur.split!==!!now.split) out.push('the Discretionary / Mandatory setting');
+  return out;
+}
+function ppMigUndo(){
+  if(cycBlock('Undoing a PPBE copy') || sandboxBlock('Undoing a PPBE copy')) return;
+  const to=ppKey(), P=MS.ppbe[to], m=P && P.mig;
+  if(!m){ setStat('\u{1F3DB} '+ppLbl(to)+' holds no copy to undo.'); return; }
+  const moved=ppMigMoved(P);
+  if(moved.length){ alert('The copy into '+ppLblTxt(to)+' was not undone: '+moved.join(', ')+(moved.length===1?' has':' have')
+    +' changed since it was made, and undoing it would throw that away. Nothing was changed.'); return; }
+  if(!confirm('Undo the copy of '+ppLblTxt(m.from)+' into '+ppLblTxt(to)+'?\n\n'+ppLblTxt(to)+' goes back to what it held before'
+    +(m.was? '' : ' — nothing: it did not exist')+'.')) return;
+  if(m.was) MS.ppbe[to]=ppMigCopy(m.was); else delete MS.ppbe[to];
+  baLiveAll(); save(); render();
+  setStat('\u{1F3DB} The copy of '+ppLbl(m.from)+' into '+ppLbl(to)+' was undone.');
+}
 // THE BOTTOM-RIGHT CELL OF A TOTAL ROW (v2.06, item 119). Both TOTAL rows of the box closed on a bare <td></td>:
 // every year carried its total and the Total column stopped one row short, on the line a reader looks at first. It
 // adds the very cells the row prints, so the corner equals the row beside it and the column above it.
@@ -24637,6 +24759,8 @@ function ppBody(){
     +'</select>'
     +' <b style="color:var(--gold);margin-left:8px">'+ppLbl(ppKey())+'</b>'
     +(MS.ppbe[ppKey()]?' <button class="qb" style="color:var(--red)" onclick="ppDel()">\u2715 delete position</button>':'')
+    +' <button type="button" class="qb ppmigbtn" aria-expanded="'+ppMigOpen+'" onclick="ppMigShow()">Copy controls from another cycle\u2026</button>'
+    +((MS.ppbe[ppKey()]||{}).mig? ' <button type="button" class="qb ppmigundo" onclick="ppMigUndo()">Undo the copy from '+ppLbl(MS.ppbe[ppKey()].mig.from)+'</button>' : '')
     +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<button type="button" class="nb chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc='+jsa(k.split('|')[0])+';ppYr=Number('+jsa(k.split('|')[1])+');render()">'+ppLbl(k)+'</button>').join(' '):'none yet')+'</span></div>';
 
   {
@@ -24653,6 +24777,7 @@ function ppBody(){
       +'</div>';
   }
 
+  if(ppMigOpen) h+=ppMigHtml();
   // v2.12 (item 134): the position the working plan is tagged as IS its budget, every year it logs, read live
   h+='<div class="pplive" style="font-size:10px;margin-bottom:8px">'
     +(MS.cycle===ppKey()? '<b style="color:var(--gold)">'+ppLbl(ppKey())+' is the position the working plan is tagged as</b>: every year it logs is the plan’s '
