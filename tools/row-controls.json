@@ -1,13 +1,13 @@
 {
  "note": "The controls a user reaches for ONE requirement (row + RECORD inspector) on the grid build, seeded with the row-controls.mjs fixture. Written by `node tools/row-controls.mjs --record`; checked by `npm run controls`. Re-record only for a deliberate change, and say why in the commit.",
  "board": "prioritization-board-grid.html",
- "build": "v2.17 (21 Nov 2026)",
+ "build": "v2.18 (24 Nov 2026)",
  "controls": [
   "record | button | budClearAll('…') | every choice on this requirement, the lines ",
   "record | button | budLineClear('…','…','…') | back to the rule",
   "record | button | drawerClose() | Close (Esc)",
+  "record | button | jrnlFor('…') | 🕓 This requirement in the change journal…",
   "record | button | mRun(showLog) | 🕘 Save history",
-  "record | button | mRun(toggleJrnl) | 🕓 Change journal…",
   "record | button | openEdit('…','…') | CCaR record+ assign",
   "record | button | openEdit('…','…') | PID+ assign",
   "record | button | openEdit('…','…') | Rename the requirement — its plan event, in ",
