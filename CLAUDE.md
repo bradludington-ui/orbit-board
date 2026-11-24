@@ -5323,7 +5323,7 @@ Funds Flow, the IDS Batch Import, the Chart of Accounts and the AI Review. `NEXT
   retired are not run. The first sweep on Brad's named go is the measure of whether any surviving guard lost its only check.
 
 **Checks.** audit-board "v2.19 — the scope-down: …" and audit-import "v2.19 — a board file that carries cost estimates …";
-21 mutations proved, 21 CAUGHT (`recovery/v219/proved-v219.jsonl`); 3,241 targets.
+The gate (`validate:nightly`): every stage holds but layout's carried D ×8 (fuzz seed 362034012; suites 25.8 min).
 
 ## Colour: one token, one job
 

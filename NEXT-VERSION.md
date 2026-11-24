@@ -628,6 +628,7 @@ path to them; nothing else in it grew.
 - Money coverage 19/19 surfaces; money map 252 cells (97 proven, 155 n/a, 0 open); trace matrix 75 cells; the defect register keeps
   15 entries and moves 5 to a `retired` list (their surfaces are gone).
 - Browser checks: every one passes but layout's carried D ×8; standards 0 findings. `tools/ace-seed.mjs` is gone.
+- **The gate** (`validate:nightly`, 24 Nov): every stage holds but the browser stage, which fails on layout's carried D ×8 alone, as on main (suites 25.8 min, 8 banners + the legacy line; fuzz seed 362034012; coverage 19/19; money map 252 cells; trace 75 cells; defect register 15 known, 41 mutations).
 
 #### 150 (as logged)
 - **Asked:** Brad, 24 Nov 2026: *"I want to refine ORBIT to what I initially intended it to be used for. It's grown too much and I
