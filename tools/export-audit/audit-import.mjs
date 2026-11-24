@@ -3445,7 +3445,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'sections', 'and no section carries a paragraph written for the card build', other.join(', ') || 'none', 'none');
   ev(`helpGo('o-find'); 'ok'`);
   chk(name, 'sections', 'a section reads this build’s way of working, not the other’s',
-    /RECORD<\/b> panel on the right/.test(ev(`document.getElementById('helpBody').innerHTML`)) === (build === 'grid'), true);
+    /RECORD<\/b> panel, which slides over the list/.test(   // v2.18 (item 149.17): the record slides over; it is not "on the right"
+    ev(`document.getElementById('helpBody').innerHTML`)) === (build === 'grid'), true);
   ev(`helpGo('o-what'); 'ok'`);
   ev(`(function(){ const a=document.querySelector('#helpBody a[data-go]'); if(a) a.onclick(); return 'ok'; })()`);
   chk(name, 'sections', 'a link inside the guide goes to its section', ev(`(document.querySelector('#helpBody h2')||{}).textContent`), 'Send it back');
