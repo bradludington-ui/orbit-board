@@ -115,6 +115,14 @@ try {
   const rects = () => [...T.main().querySelectorAll('.chsvg rect.chb')].map(r => [X.cols.find(c => c.index === Number(r.getAttribute('data-col'))).label, r.getAttribute('data-k'), Number(r.getAttribute('data-c'))]);
   C.eq('awards by month: a bar part for each figure that is not zero, and no other', rects(), [['Prior Yr', 'awarded', D(2e6)], ['Prior Yr', 'late', D(0.5e6)], ['Oct', 'awarded', D(4e6)],
     ['Dec', 'projected', D(2e6)], ['Feb', 'projected', D(2e6)], ['Mar', 'projected', D(5e6)], ['Jun', 'projected', D(1e6)], ['No date', 'projected', D(0.7e6)]]);
+  // §60 the cleanup: a round scale ($M 0, 2, 4, 6 here: the tallest month is Mar's 5.00), the Data through words above
+  // every figure (they ran into the first open month's), and the picture never drawn past 1.3 times its own size
+  { const sv = m.querySelector('.chsvg.chbars'), lab = sv.querySelector('.chnowt'), num = (el, a) => Number(el.getAttribute(a));
+    C.eq('awards by month: the scale steps round, from 0 to the first step above the tallest month', [...sv.querySelectorAll('line.gl')].map(l => Number(l.getAttribute('data-tick'))), [0, 2, 4, 6]);
+    C.eq('… and its words are those steps', [...sv.querySelectorAll('text.ax')].filter(t => t.getAttribute('text-anchor') === 'end').map(t => t.textContent), ['0', '2', '4', '6']);
+    C.chk('the Data through words sit above every figure on the bars', !!lab && /^Data through Oct-2026/.test(lab.textContent) && [...sv.querySelectorAll('text.chv')].every(t => num(t, 'y') - 12 > num(lab, 'y')), lab && lab.getAttribute('y'));
+    C.chk('the closed months are shaded, up to the line', !!sv.querySelector('rect.chclosed') && Math.abs(num(sv.querySelector('rect.chclosed'), 'x') + num(sv.querySelector('rect.chclosed'), 'width') - num(sv.querySelector('line.chnow'), 'x1')) < 0.2);
+    C.eq('the picture is never drawn wider than 1.3 times its own size', sv.style.maxWidth, Math.round(Number(sv.getAttribute('viewBox').split(' ')[2]) * 1.3) + 'px'); }
   C.chk('every bar part says what it is in words', [...m.querySelectorAll('.chsvg rect.chb')].every(r => /: (Awarded|Not awarded, past its date|Projected) [\d.,]+ \(\$M\)$/.test(r.querySelector('title').textContent)));
   C.eq('the next three months are said in words and dollars', [Number(m.querySelector('#uiChNext').getAttribute('data-c')), m.querySelector('#uiChNext').textContent], [D(2e6), 'Nov 2026 to Jan 2027: 2.00 ($M) projected to award']);
   const sb = () => [...T.main().querySelectorAll('.chpmo tbody tr')].map(tr => [tr.querySelector('.tg').textContent, tr.querySelector('.chpct').textContent, (tr.querySelector('.st') || { textContent: '' }).textContent, Number(tr.querySelector('td.n').getAttribute('data-c'))]);
