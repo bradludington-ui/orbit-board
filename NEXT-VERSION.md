@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.19** (item 150, the scope-down), built 24 Nov 2026; merge waits on Brad's word. Then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.19** (item 150, the scope-down), merged 24 Nov 2026 (PR #78). Then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
 
 ## Open
 
@@ -582,7 +582,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.19 — 24 Nov 2026: ORBIT scoped down to what it is for (item 150) -- built on Brad's "Go" of 24 Nov; merge waits on his word
+### v2.19 — 24 Nov 2026: ORBIT scoped down to what it is for (item 150) -- built on Brad's "Go" of 24 Nov; merged on his "Merge when it passes" (PR #78)
 
 **Removed** (each surface's code found by a call graph, as item 104 and v2.05 did): the Annual Cost Estimate (its import, column
 mapping and import report, its Data card, the folder share of estimates and their earlier copies, the estimate's WBS tree and office
