@@ -2689,3 +2689,13 @@ is made of (§26) do not change; only how the chart is drawn:
   near the page's own on a wide screen; it still shrinks to fit a narrow one.
 
 `test/charts.test.mjs` (the steps, their words, the band above every figure, the shading, the size).
+
+## 61. Awards by month: the figures beside the chart (Brad, 24 Nov 2026)
+
+*"Put the table beside the chart on wide screens."* Where the chart can be at least 1,000 px wide with the table of figures
+beside it (a window of about 1,700 px and wider), the chart and its key are on the left and the table on the right; on a
+narrower window the table wraps beneath, as before, and printed it is always beneath. The chart's column is never wider
+than the chart may grow (§60), so the table sits against it.
+
+`test/charts.test.mjs` (the two columns and what each holds, the column's width); checked in Chromium at 2400, 1920, 1600,
+1366 and 420 px (beside, beside, beneath, beneath, beneath; no sideways scroll).

@@ -123,6 +123,11 @@ try {
     C.chk('the Data through words sit above every figure on the bars', !!lab && /^Data through Oct-2026/.test(lab.textContent) && [...sv.querySelectorAll('text.chv')].every(t => num(t, 'y') - 12 > num(lab, 'y')), lab && lab.getAttribute('y'));
     C.chk('the closed months are shaded, up to the line', !!sv.querySelector('rect.chclosed') && Math.abs(num(sv.querySelector('rect.chclosed'), 'x') + num(sv.querySelector('rect.chclosed'), 'width') - num(sv.querySelector('line.chnow'), 'x1')) < 0.2);
     C.eq('the picture is never drawn wider than 1.3 times its own size', sv.style.maxWidth, Math.round(Number(sv.getAttribute('viewBox').split(' ')[2]) * 1.3) + 'px'); }
+  // §61 the figures beside the chart where both fit: the chart and its key in one column, the table in the other
+  { const side = m.querySelector('[data-ch=months] .chside');
+    C.eq('awards by month: the chart and its key, then the figures, side by side in one row', side ? [...side.children].map(e => e.className + ':' + [...e.children].map(c => c.tagName.toLowerCase() + (c.id ? '#' + c.id : '')).join(',')) : null,
+      ['chpic:svg,p', 'tw chfigs:table#uiChMonths']);
+    C.eq('… the chart’s column no wider than the chart may grow', side.querySelector('.chpic').style.maxWidth, side.querySelector('svg').style.maxWidth); }
   C.chk('every bar part says what it is in words', [...m.querySelectorAll('.chsvg rect.chb')].every(r => /: (Awarded|Not awarded, past its date|Projected) [\d.,]+ \(\$M\)$/.test(r.querySelector('title').textContent)));
   C.eq('the next three months are said in words and dollars', [Number(m.querySelector('#uiChNext').getAttribute('data-c')), m.querySelector('#uiChNext').textContent], [D(2e6), 'Nov 2026 to Jan 2027: 2.00 ($M) projected to award']);
   const sb = () => [...T.main().querySelectorAll('.chpmo tbody tr')].map(tr => [tr.querySelector('.tg').textContent, tr.querySelector('.chpct').textContent, (tr.querySelector('.st') || { textContent: '' }).textContent, Number(tr.querySelector('td.n').getAttribute('data-c'))]);
