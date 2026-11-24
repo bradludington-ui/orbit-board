@@ -2674,3 +2674,18 @@ still is. Every drop-down on every page goes through it.
 
 `test/touch-select.test.mjs`; checked in Chromium emulating a phone (focus after a pick on PMO, IPT, Unfunded PMO and
 Requirements: on the drop-down before, on nothing after; a laptop unchanged).
+
+## 60. Awards by month, cleaned up (Brad, 24 Nov 2026)
+
+Brad, of the Charts view's first chart on his wide screen: *"Let's clean up this chart."* The figures and what each bar
+is made of (§26) do not change; only how the chart is drawn:
+
+- **A round scale.** The lines across the chart step by 1, 2, 2.5 or 5 times a power of ten ($M), about four steps up to the
+  first step above the tallest month, each with its figure (it was 0, half and the tallest month: 0, 479, 959).
+- **The Data through words have a band of their own** above the bars, beside the line where the closed months end; they
+  ran into the first open month's figure when that month was the tallest. The closed months are shaded, as on the Award
+  calendar.
+- **Drawn at its own size.** The chart grows to fit its card only up to 1.3 times the size it is drawn at, so its words stay
+  near the page's own on a wide screen; it still shrinks to fit a narrow one.
+
+`test/charts.test.mjs` (the steps, their words, the band above every figure, the shading, the size).

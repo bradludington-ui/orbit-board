@@ -923,12 +923,24 @@ function ui_vCal(M) {
 // nothing is worked out here. Each mark carries its words (a title, and the figure beside it), never its colour alone.
 // ---------------------------------------------------------------------------------------------------------------
 const UI_CH_LATE_MAX = 12;
+// §60 (Brad, 24 Nov 2026: "Let's clean up this chart"): a round scale (0, 250, 500 … $M) with a line at each step, the
+// Data through words in a band of their own above the bars (they ran into the first open month's figure), the closed
+// months shaded as on the Award calendar, and the picture drawn at its own size: it never grows past one unit a pixel, so
+// its words stay near the page's size on a wide screen (at most 1.3 times), and it still shrinks to fit a narrow one.
+function ui_niceStep(max, n) {
+  const raw = max / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+}
 function ui_chBars(C, M) {
-  const W = 920, H = 250, L = 40, R = 8, T = 34, B = 26, pw = W - L - R, ph = H - T - B, n = C.cols.length, step = pw / n, bw = Math.min(40, step - 12);
-  const top = Math.max(1, ...C.cols.map(c => c.total)), y = v => T + ph - Math.max(0, v) / top * ph;
+  const n = C.cols.length, L = 52, R = 10, T = 44, B = 28, step = 74, W = L + R + n * step, H = 300, pw = W - L - R, ph = H - T - B, bw = 46;
+  const maxM = Math.max(0, ...C.cols.map(c => c.total)) / 1e8;       // cents to $M
+  const sM = maxM > 0 ? ui_niceStep(maxM, 4) : 1, topM = Math.max(sM, Math.ceil(maxM / sM - 1e-9) * sM), top = topM * 1e8;
+  const y = v => T + ph - Math.max(0, v) / top * ph, dec = sM < 1 ? 2 : sM % 1 ? 1 : 0;
   let g = '';
-  for (const f of [0, 0.5, 1]) g += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(top * f).toFixed(1) + '" y2="' + y(top * f).toFixed(1) + '"/>'
-    + '<text class="ax" x="' + (L - 5) + '" y="' + (y(top * f) + 4).toFixed(1) + '" text-anchor="end">' + ui_e(SP.fmtMText(Math.round(top * f)).replace(/\.\d+$/, '')) + '</text>';
+  const lastClosed = C.cols.reduce((a, c, i) => (c.closed ? i : a), -1);
+  if (lastClosed >= 0) g += '<rect class="chclosed" x="' + L + '" y="' + T + '" width="' + ((lastClosed + 1) * step).toFixed(1) + '" height="' + ph + '"/>';
+  for (let v = 0; v <= topM + 1e-9; v += sM) g += '<line class="gl" data-tick="' + v + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v * 1e8).toFixed(1) + '" y2="' + y(v * 1e8).toFixed(1) + '"/>'
+    + '<text class="ax" x="' + (L - 6) + '" y="' + (y(v * 1e8) + 4).toFixed(1) + '" text-anchor="end">' + ui_e(v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })) + '</text>';
   C.cols.forEach((c, i) => {
     const x = L + i * step + (step - bw) / 2;
     let at = T + ph;
@@ -940,14 +952,13 @@ function ui_chBars(C, M) {
       // a late part is hatched over its red, so it is told from awarded by more than its colour (§26; review I26)
       if (k === 'late') g += '<rect class="chhatch" aria-hidden="true" x="' + x.toFixed(1) + '" y="' + at.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hh.toFixed(1) + '" fill="url(#uiChHatch)"/>';
     }
-    if (c.total !== 0) g += '<text class="chv" x="' + (x + bw / 2).toFixed(1) + '" y="' + (at - 4).toFixed(1) + '" text-anchor="middle">' + ui_e(SP.fmtMText(c.total)) + '</text>';
-    g += '<text class="ax' + (c.index === M.asOfIndex ? ' now' : '') + '" x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + ui_e(c.label) + '</text>';
+    if (c.total !== 0) g += '<text class="chv" x="' + (x + bw / 2).toFixed(1) + '" y="' + (at - 5).toFixed(1) + '" text-anchor="middle">' + ui_e(SP.fmtMText(c.total)) + '</text>';
+    g += '<text class="ax' + (c.index === M.asOfIndex ? ' now' : '') + '" x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 9) + '" text-anchor="middle">' + ui_e(c.label) + '</text>';
   });
-  // the closed months end at one line, as on the calendar
-  const lastClosed = C.cols.reduce((a, c, i) => (c.closed ? i : a), -1);
-  if (lastClosed >= 0 && lastClosed < n - 1) { const x = (L + (lastClosed + 1) * step).toFixed(1);
-    g += '<line class="chnow" x1="' + x + '" x2="' + x + '" y1="' + (T - 14) + '" y2="' + (T + ph) + '"/><text class="chnowt" x="' + (Number(x) + 5) + '" y="' + (T - 4) + '">Data through ' + ui_e(M.asOfLabel) + '</text>'; }
-  return '<svg class="chsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Awards by month, $M: awarded, not awarded and past its date, and projected, for each column of the Award calendar. The figures are in the table under the chart.">'
+  // the closed months end at one line, as on the calendar; its words sit in the band above the bars, never among them
+  if (lastClosed >= 0 && lastClosed < n - 1) { const x = L + (lastClosed + 1) * step;
+    g += '<line class="chnow" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="8" y2="' + (T + ph) + '"/><text class="chnowt" x="' + (x + 6).toFixed(1) + '" y="20">Data through ' + ui_e(M.asOfLabel) + ' ▸</text>'; }
+  return '<svg class="chsvg chbars" viewBox="0 0 ' + W + ' ' + H + '" style="max-width:' + Math.round(W * 1.3) + 'px" role="img" aria-label="Awards by month, $M: awarded, not awarded and past its date, and projected, for each column of the Award calendar. The figures are in the table under the chart.">'
     + '<defs><pattern id="uiChHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="6" fill="#fff" fill-opacity="0.7"/></pattern></defs>' + g + '</svg>';
 }
 // one block's burn-up: the Obligation % the slide block prints, month by month, as a line against the OSD goal
