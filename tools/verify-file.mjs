@@ -131,7 +131,6 @@ function loads(sec, html, saved, slug) {
     badPots:[S.discSvc,S.mandSvc].map(function(v){ return Array.isArray(v)&&v.length===SVC.length; }),
     strayAlloc:Object.keys(S.alloc||{}).filter(function(k){ return !itemById(k) && (S.removed||[]).indexOf(k)<0; }),
     exdb:(typeof EXDB!=='undefined'&&EXDB&&EXDB.all)? Object.keys(EXDB.all).map(function(k){ var r=EXDB.all[k].rows||{}; return k+':'+Object.keys(r).map(function(y){ return y+'('+(r[y]||[]).length+')'; }).join(' '); }) : [],
-    ace:(typeof ACEDB!=='undefined'&&ACEDB&&ACEDB.sets)? Object.keys(ACEDB.sets).map(function(k){ return k+'('+((ACEDB.sets[k].lines||[]).length)+' lines)'; }) : [],
     rp:(typeof RPDB!=='undefined'&&RPDB&&RPDB.entries)? RPDB.entries.length : 0,
     cyc:(typeof CYCDB!=='undefined'&&CYCDB&&CYCDB.cycles)? Object.keys(CYCDB.cycles).map(function(k){ return k+'['+Object.keys(CYCDB.cycles[k].years||{}).join(',')+']'; }) : [],
     subs:(typeof PMOSUBS!=='undefined'&&Array.isArray(PMOSUBS))? PMOSUBS.length : 0,
@@ -149,7 +148,10 @@ function loads(sec, html, saved, slug) {
   check(sec, facts.badPots.every(Boolean), 'both budget-authority pots have one figure per service');
   check(sec, facts.strayAlloc.length === 0, 'no allocation is parked on a requirement the board cannot find', facts.strayAlloc.length ? facts.strayAlloc.join(', ') : '');
   // every store the file carries is held, and held whole
-  const stores = [['execDb', 'EXDB', 'execution data'], ['aceDb', 'ACEDB', 'cost estimates'], ['rpDb', 'RPDB', 'reprogramming log'], ['cycDb', null, 'locked PPBE cycles']];
+  // v2.19 (item 150): ORBIT keeps no cost estimates; a file that carries them (aceDb, from before v2.19) is told so, and its next
+  // Save leaves them out on purpose -- not a loss this certificate counts
+  if (saved.state.aceDb) note(sec, 'the file carries cost estimates (from before v2.19): this build no longer keeps them, and a Save leaves them out');
+  const stores = [['execDb', 'EXDB', 'execution data'], ['rpDb', 'RPDB', 'reprogramming log'], ['cycDb', null, 'locked PPBE cycles']];
   for (const [key, g, label] of stores) {
     const inFile = saved.state[key];
     if (!inFile) { note(sec, `the file carries no ${label}`); continue; }
@@ -174,14 +176,18 @@ function loads(sec, html, saved, slug) {
   const heldAw = JSON.parse(ev(`JSON.stringify(MS.years[MS.cur].awards||{})`));
   const fixedAw = Object.keys(heldAw).filter(id => heldAw[id] && heldAw[id].fix && typeof heldAw[id].fix.orig === 'string');
   const keptAw = x => fixedAw.some(id => x.path === 'awards.' + id || x.path.startsWith('awards.' + id + '.'));
-  const lostY = dY.filter(x => x.b === undefined && !/^pmoOrder/.test(x.path) && !keptAw(x));
+  // v2.19 (item 150): a year's tie to an estimate line (aceMap) is dropped on opening, on purpose -- ORBIT keeps no estimates now --
+  // and said, never counted as a loss
+  const retiredY = x => /^aceMap(\.|$)/.test(x.path);
+  const lostY = dY.filter(x => x.b === undefined && !/^pmoOrder/.test(x.path) && !keptAw(x) && !retiredY(x));
+  if (dY.some(x => x.b === undefined && retiredY(x))) note(sec, 'the year’s ties to cost estimate lines (aceMap, from before v2.19) are left out on opening, on purpose');
   check(sec, lostY.length === 0, `FY${String(facts.cur).slice(-2)}’s state came back whole`, lostY.length ? 'missing: ' + lostY.slice(0, 4).map(x => x.path).join(', ') : (dY.length ? `${dY.length} path(s) normalised on load` : 'byte for byte'));
   if (fixedAw.length) {
     const nRep = fixedAw.filter(id => heldAw[id].fix.how === 'repair' && !heldAw[id].fix.ok).length;
     note(sec, `${fixedAw.length} award(s) repaired on opening, each keeping the record as it was saved (awards.<id>.fix.orig)`
       + (nRep ? ` — ${nRep} NEED REPAIR: what could not be read is UNSCHEDULED until it is entered again` : ''));
   }
-  note(sec, `stores: execution ${facts.exdb.length ? facts.exdb.join(' · ') : 'none'} · estimates ${facts.ace.length ? facts.ace.join(' · ') : 'none'} · reprogramming ${facts.rp} · cycles ${facts.cyc.length ? facts.cyc.join(' · ') : 'none'} · submittals held ${facts.subs}`);
+  note(sec, `stores: execution ${facts.exdb.length ? facts.exdb.join(' · ') : 'none'} · reprogramming ${facts.rp} · cycles ${facts.cyc.length ? facts.cyc.join(' · ') : 'none'} · submittals held ${facts.subs}`);
   note(sec, `positions ${facts.ppbe.length ? facts.ppbe.join(', ') : 'none'} · snapshots ${facts.snaps} · journal ${facts.jrnl} · last saves ${facts.log.join(' | ') || 'unstamped'}`);
   const empty = Object.keys(facts.census).filter(k => !facts.census[k]).sort();
   const full = Object.keys(facts.census).filter(k => facts.census[k]).sort();
@@ -193,15 +199,15 @@ function loads(sec, html, saved, slug) {
 // ============================== SURVIVES ==========================================================
 function survives(sec, html, slug) {
   const { ev } = bootAs(html, SLUG_NAME[slug]);
-  const before = settledOf(ev), s0 = ev(`JSON.stringify([typeof EXDB!=='undefined'?EXDB:null, typeof ACEDB!=='undefined'?ACEDB:null, typeof RPDB!=='undefined'?RPDB:null, typeof CYCDB!=='undefined'?CYCDB:null])`);
+  const before = settledOf(ev), s0 = ev(`JSON.stringify([typeof EXDB!=='undefined'?EXDB:null, typeof RPDB!=='undefined'?RPDB:null, typeof CYCDB!=='undefined'?CYCDB:null])`);
   let html2; try { html2 = ev('buildSavedHtml()'); } catch (e) { check(sec, false, 'the board can be saved from this file', String(e.message).slice(0, 120)); return; }
   const by = ev('String(MS.by)');           // v2.14 RV2-D: the name this check saved under (settledLog)
   const r = bootAs(html2, SLUG_NAME[slug]);
   const B0 = JSON.parse(before), after = JSON.stringify(settledLog(B0, JSON.parse(settledOf(r.ev)), by));
   const d = diffPaths(B0, JSON.parse(after));
   check(sec, d.length === 0, 'save → reopen returns every value', d.length ? d.slice(0, 3).map(x => `${x.path}: ${x.a} → ${x.b}`).join(' | ') : 'the settled state is byte for byte');
-  const s1 = r.ev(`JSON.stringify([typeof EXDB!=='undefined'?EXDB:null, typeof ACEDB!=='undefined'?ACEDB:null, typeof RPDB!=='undefined'?RPDB:null, typeof CYCDB!=='undefined'?CYCDB:null])`);
-  check(sec, s0 === s1, 'the four side stores travel byte for byte');
+  const s1 = r.ev(`JSON.stringify([typeof EXDB!=='undefined'?EXDB:null, typeof RPDB!=='undefined'?RPDB:null, typeof CYCDB!=='undefined'?CYCDB:null])`);
+  check(sec, s0 === s1, 'the three side stores travel byte for byte');   // v2.19: the cost estimates are gone
   let html3; try { html3 = r.ev('buildSavedHtml()'); } catch (e) { check(sec, false, 'the reopened board can be saved again', String(e.message).slice(0, 120)); return; }
   const again = JSON.stringify(settledLog(B0, JSON.parse(settledOf(bootAs(html3, SLUG_NAME[slug]).ev)), by));
   const d2 = diffPaths(JSON.parse(after), JSON.parse(again));
@@ -311,7 +317,7 @@ function crossFoots(sec, html, slug) {
   }
   check(sec, bad.length === 0, `every per-service breakout adds back to its figure (${rowsChecked} rows across ${blocks} blocks)`, bad.slice(0, 3).join(' | '));
   // the other workbooks build at all on this data
-  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare']) {
+  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFydpPlan', 'exportCycCompare']) {
     // the comparison needs a locked cycle for A; a file without one has nothing to compare, which is not a failure
     if (fn === 'exportCycCompare') {
       if (!cmpPrep(ev)) { check(sec, true, `${fn} has no locked cycle to compare, so it is not built here`, 'no cycle holds a year'); continue; }
@@ -332,7 +338,7 @@ function cmpPrep(ev) {
 function cellsOf(html, slug) {
   const { ev } = bootAs(html, SLUG_NAME[slug]);
   const cells = {};
-  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare']) {
+  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFydpPlan', 'exportCycCompare']) {
     if (fn === 'exportCycCompare' && !cmpPrep(ev)) continue;
     let sheets; try { sheets = grabSheets(ev, fn); } catch { continue; }
     for (const sh of sheets) {
@@ -404,8 +410,6 @@ if (flag('--selftest')) {
       S.alloc['B']={m:'t', v:3900001}; seedSplit('C'); S.minInc['E']=250000; S.band['A']='pdm';
       S.awards['A']={mode:'single', d:FYMON[2][0], day:7}; S.notes['D']='a note with a literal </script> in it';
       var E=rpAll(); E.push({id:'RP1', ts:1, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'BTR add USAF', amtM:1.5, dir:'add', pool:'disc', status:'Pending', remarks:''}); persistRp();
-      // v2.12 W1 (item 132): the line is filed under AV, as Cost files PSM's money -- PSM is inside Air Vehicle in every estimate
-      ACEDB.sets['2026ACE']={lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}]}; ACEDB.sets['2026ACE'].lines[0].v[MS.cur]=9500000; persistAce();
       applyState(S); save(); blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
   const html = ev('buildSavedHtml()');
   const dir = mkdtempSync(join(tmpdir(), 'spmt-verify-'));

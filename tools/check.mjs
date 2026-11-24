@@ -704,6 +704,12 @@ console.log('\nthe save-file handle store');
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);
+// v2.19: THE STAMP'S SHAPE IS READ BY THE BOARD ITSELF. fullBuildOf() and fullBuildTxt() find another file's version with
+// /const BUILD='v(\d+)\.(\d+)/ -- no spaces round the = -- so a stamp written `const BUILD = '...'` makes every file this
+// build saves unreadable as to its version, and the newer-build refusal and the full import's version gate read nothing.
+// The v2.19 bump wrote exactly that, and nothing here noticed.
+if (!/^const BUILD='v\d+\.\d+ \([^)]+\)';$/m.test(src)) fail("BUILD is not written const BUILD='vN.NN (date)'; -- the board reads another file's version by that exact shape");
+else pass("BUILD is written as the board reads it back (const BUILD='vN.NN (date)';)");
 
 // .gitignore is an allowlist (*.html, *.json with named exceptions), so a file added to this repo
 // is ignored unless someone remembers to except it — and a commit can then silently omit the very

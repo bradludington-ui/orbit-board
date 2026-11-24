@@ -2219,12 +2219,12 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="fydp-help"><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the base year and the next four for the working plan or a locked cycle, one view at a time. <b>📊 Export the workbook</b> prints that plan for every appropriation: a Summary with a chart, then a tab for each appropriation, each service and each PMO, each a roll-up by appropriation and then each appropriation’s block — the requirements in 1-N order under their CCaR record, printed once, and Requirement and Funded (what discretionary and mandatory pay) for each year in $M, with totals at the right and the bottom. The other appropriations are read from their own boards, so every block ties to what that board prints; a year a plan does not hold prints —. Each year’s money is under the PMO that year assigns: a requirement moved to another office is listed under each, for the years that office held it. The service tabs and the PMO tabs each add up to the appropriation tab.</p>
 <p class="v212-h132s">On the workbook’s service tabs Full Fund’s USMC-B is the STOVL tab’s, whichever board is open, so STOVL carries every appropriation’s F-35B money and the service tabs still add up to each appropriation’s tab.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role. A lock refuses a plan tagged with another cycle; <b>Retag</b> moves every appropriation that has locked the cycle being left and names any that has not. A package, or one appropriation taken from a file, comes in under the cycle this board has for it, with only that cycle’s position.</p>
-<p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept. From v2.12 a lock also keeps a copy of the PPBE position its budget authority was read from, and its view reads that copy.</p>
+<p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>destination rules</b>. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept. From v2.12 a lock also keeps a copy of the PPBE position its budget authority was read from, and its view reads that copy.</p>
 </section>
 <section data-part="team" data-id="t-ppbe" data-t="Budget authority from the PPBE position">
 <p class="v213-h136">The <b>PPBE cycle</b> box at the top of the board, beside the fiscal year, says which cycle the board works in. Choose one there (BES28, say) and every appropriation that holds a plan is put on it at once, each change in its own change journal; the cycles offered are the ones any appropriation is on or has controls entered for, and the next. It reads <i>Mixed</i> while the appropriations disagree, and opening the board then offers to put them on one. Beside it, what the budget authority BES28 gives (its controls, with any funding added or withheld) leaves <b>unallocated</b> in the year on screen, or is <b>over</b> by, service by service and lane by lane, never netted; it opens the list of what is over. Working out of the shared folder, it moves the board on screen, and each other board offers the cycle when it opens. Deltas read against a locked cycle do not change with it.</p>
 <p class="v212-h134">With the plan on BES28, every year of it reads its budget authority from this appropriation’s BES28 position in <span class="mp" data-m="fydp">FYDP › PPBE Budget Positions…</span>, live: each service the position names takes that year’s figures as its base, and typing into the position moves the budget at once. A position logged one figure per line sets each service’s total for the year, split between discretionary and mandatory as the board’s own base for that service and year splits it (all discretionary where that base is $0); Take from a PPBE position reads it so too. Retag the plan and every year moves to the new position. A service it does not name, a year it logs nothing for, or an untagged plan keeps the board’s own base, and says so. <b>Budget Management</b> shows a tagged plan’s base read-only, naming the position; added funding sources still add on top.</p>
-<p><b>Needs attention</b> shows <b>🏛 N over BES28</b> while requirements hold more than a year’s budget authority (<i>over the board’s own budget</i> where no position is read), service by service and lane by lane: the list names the requirements holding money there, in priority order, and <b>Go to it</b> selects one. ORBIT reduces nothing; you choose which gives. Funded is still what the lane draws, so no report states more than the budget authority. <b>Unallocated</b> is budget authority nobody holds.</p>
+<p><b>Needs attention</b> shows <b>🏛 N over BES28</b> while requirements hold more than a year’s budget authority (<i>over the board’s own budget</i> where no position is read), service by service and lane by lane: the list names the requirements holding money there, in priority order, and <b>Go to it</b> selects one. ORBIT reduces nothing; you choose which gives. Funded is still what the lane draws, so no report states more than the budget authority (the position plus added funding). <b>Unallocated</b> is budget authority nobody holds.</p>
 <p><b>UPL</b> is added funding no requirement holds. It is the last line, after the requirements and after their TOTAL, never inside it: on the board under the last row, on the Excel workbook’s Funding Streams sheet, on the Priority Drill’s 1-N tab and on each year of the FYDP Spend Plan’s appropriation tabs. It is not on the Spend Plan Source: CCaR keeps its own UPL.</p>
 <p>A <b>lock</b> tags an untagged plan with its own cycle first, so it is taken under the position it gives the plan, and keeps a copy of that position: its view and its reports read the copy, and a position changed afterwards moves only the working plan. A lock taken before v2.12 kept none, and its years read as they were locked.</p>
 </section>
@@ -2233,8 +2233,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-wbs" data-t="A requirement’s WBS paragraph">
 <p class="v212-h132">Every requirement carries the <b><span data-fl="wbs"></span></b> paragraph its money rolls up under: the product or outcome. A requirement on 1.2.2.1 rolls up to 1.2.2, then 1.2, then 1. A prime contract’s is logged per CLIN, in its 🧾 CLIN drill.</p>
-<p>A paragraph is <b>typed</b>, code first (1.2.2.1, or 1.2.2.1 - its name), in the edit box, the Add box and a requirement’s WBS lines. <b>Needs attention</b> lists <b>▦ without a WBS</b> (funded money sent with no paragraph, and why); <b>Go to it</b> opens the record at its WBS (a prime: its CLIN drill). <b>Classify requirements</b>, in Review, sets one paragraph on many requirements at once; it leaves a prime, and a requirement already split across paragraphs, alone.</p>
-<p>The <b>Spend Plan Source</b> carries each line’s paragraph in its WBS column as typed, so CCaR’s plan events take ORBIT’s WBS. A requirement split across paragraphs goes out a line per paragraph, its dollars split as the office typed them, with any part not yet assigned on a line of its own; the lines add up to the line they replace, to the dollar. A line with no paragraph goes out with the column blank; the export names them, as ▦ without a WBS lists them.</p>
+<p>A paragraph is <b>typed</b>, code first (1.2.2.1, or 1.2.2.1 - its name), in the edit box, the Add box and a requirement’s WBS lines. <b>Needs attention</b> lists <b>▦ without a WBS</b> (funded money sent with no paragraph, and why); <b>Go to it</b> opens the record at its WBS (a prime: its CLIN drill).</p>
+<p>The <b>Spend Plan Source</b> carries each line’s paragraph code in its WBS column (the code only, as it did with no estimate loaded), so CCaR’s plan events take ORBIT’s WBS. A requirement split across paragraphs goes out a line per paragraph, its dollars split as the office typed them, with any part not yet assigned on a line of its own; the lines add up to the line they replace, to the dollar. A line with no paragraph goes out with the column blank; the export names them, as ▦ without a WBS lists them.</p>
 </section>
 </template>
 
@@ -3493,7 +3493,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD = 'v2.19 (24 Nov 2026)';
+const BUILD='v2.19 (24 Nov 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3845,37 +3845,75 @@ function attBody(){
   el.innerHTML=h;
 }
 // v2.19 (item 150): the overs, from the fit the board works out as it draws (fitModel) -- read, never worked out again
+// v2.12 RV3 (R15): what an over is against, the lane's added funding with it; v2.12 RV6 (S07): the budget authority is floored at
+// $0 by service and lane (baOf), and the sentence says so where the floor bites -- "$50 more than BES28 less withheld funding
+// ($100 − $150)" read as a budget of −$50, so the requirements would have held $100 more.
+function fitVs(X, r, i, key){
+  const a=+X.add[i]||0, b=+X.base[i]||0, what=(r.from[i]==='pos')? key : 'the board’s own budget';
+  const fl=(b+a<-0.5)? ', floored at $0' : '';
+  if(fl && Math.abs(a)<=0.5) return what+' ('+fM(b)+fl+')';
+  if(Math.abs(a)<=0.5) return what;
+  return what+(a>0? ' plus added funding' : ' less withheld funding')+' ('+fM(b)+(a>0? ' + ' : ' − ')+fM(Math.abs(a))+fl+')';
+}
+// v2.19 (item 150): WHAT THE REQUIREMENTS HOLD AGAINST THE BUDGET AUTHORITY, under Needs attention -- the Fit to the PPBE position box
+// is gone (Brad, 24 Nov 2026: "Panel only"); what it said that a person acts on is said here: which position each year reads (and
+// what a lock kept), each over as a sentence with the requirements holding money there in priority order, and what is unallocated.
+// The figures are fitModel's, unchanged. Classes fithint, fityr, fitover and fitrows are the box's, so a sentence is found the same way.
 function attOverHtml(K){
   let FM=null; try{ FM=fitModel(); }catch(e){ FM=null; }
-  let h='<div class="hint" style="margin-bottom:8px">'+K.why+(FM && FM.over? ' Over is measured against '+esc(fitOverLbl(FM))+'.' : '')+'</div>';
-  const over=[], un=[];
-  ((FM && FM.held)||[]).forEach(function(y){ const Y=FM.years[y]; if(!Y) return;
-    ['d','m'].forEach(function(k){ const X=Y.L[k]; SVC.forEach(function(sv,i){
-      if(X.over[i]>0.5) over.push({y:+y, k:k, i:i, X:X});
-      else if(X.un[i]>0.5) un.push({y:+y, k:k, i:i, X:X}); }); }); });
-  if(!over.length && !un.length) return h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing over, and nothing unallocated.</div>';
-  const head='<tr><th style="text-align:left">Year</th><th style="text-align:left">Service</th><th style="text-align:left">Lane</th>'
-    +'<th>Held</th><th>Budget authority</th><th>{F}</th><th></th></tr>';
-  const goY=function(y){ return +y===+MS.cur? '' : '<button class="qb" onclick="attOpen=null;switchYear('+(+y)+');attShow(\'over\')">Go to FY'+(y%100)+'</button>'; };
-  if(over.length){
-    h+='<div class="fydpsec">Over</div><table class="fctab atttab attover" style="width:100%">'+head.replace('{F}','Over');
-    over.forEach(function(o){ const X=o.X, i=o.i, here=o.y===+MS.cur;
-      h+='<tr class="tot"><td style="text-align:left">FY'+(o.y%100)+'</td><td style="text-align:left">'+esc(SVC[i])+'</td><td style="text-align:left">'+FIT_LANE[o.k]+'</td>'
-        +'<td>'+fM(X.held[i])+'</td><td>'+fM(X.ba[i])+'</td><td style="color:var(--red)">'+fM(X.over[i])+'</td><td>'+goY(o.y)+'</td></tr>';
-      (X.rows[i]||[]).forEach(function(r){
-        h+='<tr><td>'+(r.rank||'—')+'</td><td class="t" style="text-align:left" colspan="2">'+esc(r.title)+(r.short>0.5? ' <span style="color:var(--amber)">· lane short '+fM(r.short)+'</span>' : '')+'</td>'
-          +'<td>'+fM(r.held)+'</td><td style="color:var(--dim)">drew '+fM(r.drawn)+'</td><td></td>'
-          +'<td>'+(here? '<button class="qb attgo" onclick="attGo(\'over\','+jsa(r.id)+')">'+K.go+'</button>' : '')+'</td></tr>'; }); });
-    h+='</table>';
-  }
-  if(un.length){
-    h+='<div class="fydpsec">Unallocated</div><table class="fctab atttab attun" style="width:100%">'+head.replace('{F}','Unallocated');
-    un.forEach(function(o){ const X=o.X, i=o.i;
-      h+='<tr><td style="text-align:left">FY'+(o.y%100)+'</td><td style="text-align:left">'+esc(SVC[i])+'</td><td style="text-align:left">'+FIT_LANE[o.k]+'</td>'
-        +'<td>'+fM(X.held[i])+'</td><td>'+fM(X.ba[i])+'</td><td style="color:var(--amber)">'+fM(X.un[i])+'</td><td>'+goY(o.y)+'</td></tr>'; });
-    h+='</table>';
-  }
+  if(!FM) return '<div class="hint">'+K.why+'</div>';
+  const ap=appnName(mySlug()), key=fitPosLbl(FM.key);
+  let h='<div class="hint fithint" style="margin-bottom:8px">'
+    +(FM.lock? (FM.has? 'Viewing <b>'+cycAp(FM.lock)+'</b> (locked): its years read the '+esc(key)+' position as it was when it was locked, never today’s. '
+        // v2.12 RV3 (R14, R21, R28): a lock taken where its tag logged no position read the board's own base, and says so
+        : 'Viewing <b>'+cycAp(FM.lock)+'</b> (locked): when it was locked, the plan’s tag ('+esc(key)+') logged no position for '+esc(ap)
+          +', so its years’ bases are the board’s own, as locked. ')
+      : (CYCVIEW? 'Viewing <b>'+cycAp(CYCVIEW)+'</b> (locked): it was locked before v2.12 and kept no position, so its budget is as locked. '
+      : (FM.key? 'The working plan is tagged <b>'+esc(key)+'</b>: every year '+esc(ap)+'’s '+esc(key)+' position logs is read from it live, service by service. '
+        : 'The working plan is untagged, so every year’s base is the board’s own. Choose a PPBE cycle at the top of the board to read a position. ')))
+    +K.why+' Funded is still what the lane draws, so no report states more than the budget authority (the position plus added funding).</div>';
+  if(!FM.held.length) return h+'<div class="hint">No year of the FYDP window holds a plan.</div>';
+  let any=false;
+  FM.held.forEach(function(y){
+    const F=FM.years[y], r=F.src; if(!F) return;
+    const over=[], un=[];
+    SVC.forEach(function(sv,i){ ['d','m'].forEach(function(k){ const X=F.L[k];
+      if(X.over[i]>0.5) over.push({k:k, i:i, X:X}); else if(X.un[i]>0.5) un.push({k:k, i:i, X:X}); }); });
+    h+='<div class="fityr" data-fy="'+y+'" style="margin:12px 0 4px"><b style="color:var(--gold)">FY'+(y%100)+' '+esc(ap)+'</b> '
+      +'<span style="font-size:10px;color:var(--mut)">'+esc(fitSrcSay(r))+'</span></div>';
+    // v2.13 (item 136): what the cycle's controls leave this year -- the figure the PPBE cycle bar shows for the year on screen,
+    // the same sums (cycFitSums), so the list it opens says it
+    if(FM.key && r.logged){ const Q=cycFitSums(F);
+      if(Q.pos.length) h+='<div class="fitctl" data-fy="'+y+'" style="font-size:11px;margin:0 0 4px">Against the budget authority <b>'+esc(key)+'</b> gives ('+esc(Q.pos.join(', '))+', its controls with any funding added or withheld): '
+        +'<b>'+fM(Q.un)+'</b> unallocated · <b>'+fM(Q.over)+'</b> over, each service and lane on its own'+(Q.own.length? '; not counted: '+esc(Q.own.join(', ')) : '')
+        +(Q.bad.length? '; not counted, '+esc(key)+' cannot be read for: '+esc(Q.bad.join(', ')) : '')+'.</div>'; }
+    if(!over.length && !un.length){ h+='<div class="hint" style="color:var(--green)">✓ Nothing over, and nothing unallocated.</div>'; return; }
+    any=true;
+    // each over, said the way it reads in the room, with every requirement holding money there and the ones not paid marked
+    over.forEach(function(o){ const X=o.X, i=o.i, sv=SVC[i];
+      h+='<div class="fitover" data-fy="'+y+'" data-svc="'+esc(sv)+'" data-lane="'+o.k+'" style="margin:8px 0 3px;font-size:11px;color:var(--red)">▲ <b>FY'+(y%100)+' '+esc(ap)+', '+esc(sv)+' '+FIT_LANE[o.k]+'</b>: '
+        +'requirements hold <b>'+fM(X.over[i])+'</b> more than '+esc(fitVs(X, r, i, key))+' — reduce a requirement</div>'
+        +'<table class="fctab atttab fitrows" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th><th>Holds</th><th>Drew</th><th style="text-align:left"></th><th></th></tr>';
+      (X.rows[i]||[]).forEach(function(q){
+        h+='<tr'+(q.short? ' class="short"' : '')+' data-id="'+esc(q.id)+'"><td>'+(q.rank||'—')+'</td><td style="text-align:left">'+esc(q.title)+'</td><td>'+fM(q.held)+'</td><td>'+fM(q.drawn)+'</td>'
+          +'<td style="text-align:left;color:var(--red)">'+(q.short? '▲ the lane cannot pay '+fM(q.held-q.drawn) : '')+'</td>'
+          +'<td><button type="button" class="qb attgo fitgo" onclick="attOverGo('+(+y)+','+jsa(q.id)+')">'+K.go+'</button></td></tr>'; });
+      h+='</table>'; });
+    if(un.length){
+      h+='<table class="fctab atttab attun" style="width:100%;margin-top:6px"><tr><th style="text-align:left">Service</th><th style="text-align:left">Lane</th><th>Budget authority</th><th>Held</th><th>Unallocated</th></tr>';
+      un.forEach(function(o){ const X=o.X, i=o.i;
+        h+='<tr data-svc="'+esc(SVC[i])+'" data-lane="'+o.k+'"><td style="text-align:left">'+esc(SVC[i])+'</td><td style="text-align:left">'+FIT_LANE[o.k]+'</td>'
+          +'<td>'+fM(X.ba[i])+'</td><td>'+fM(X.held[i])+'</td><td style="color:var(--amber)">'+fM(X.un[i])+'</td></tr>'; });
+      h+='</table>';
+    }
+  });
   return h;
+}
+// Go to it, from an over: the year it is in is put on screen first (v2.12 RV3, R34), then the requirement, at its funding by service
+function attOverGo(fy, id){
+  attOpen=null;
+  if(+fy!==+MS.cur){ switchYear(+fy); if(+MS.cur!==+fy) return; }
+  attGo('over', id);
 }
 // GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
 function attGo(k, id){

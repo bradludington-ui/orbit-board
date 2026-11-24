@@ -168,10 +168,10 @@ const exportFns = [...new Set([...src.matchAll(/^(?:async\s+)?function\s+(export
 // TWO DIFFERENT FINDINGS, and collapsing them reported six healthy exports as orphans. An export
 // reached by a BUTTON but not by a menu item is an information-architecture observation -- worth a
 // reviewer's attention, not a defect. An export reached by NOTHING clickable is a defect: a feature
-// that exists and cannot be run. exportFlow is the first kind (onclick="exportFlow()" on a panel).
+// that exists and cannot be run. exportFlow was the first kind (onclick="exportFlow()" on a panel) until v2.19 (item 150) removed it.
 // A panel empties its innerHTML while closed, so its buttons are NOT in the DOM to be found -- the
 // live sweep sees only what happens to be open. Reading the source's own handlers as well is what
-// makes "nothing reaches this" a claim worth printing: exportFlow lives behind onclick="exportFlow()"
+// makes "nothing reaches this" a claim worth printing: exportFlow lived behind onclick="exportFlow()"
 // on a panel that was shut when the page was measured, and six healthy exports were reported as
 // orphans until this was added. A census must not assert absence it cannot actually observe.
 const srcHandlers = new Set();

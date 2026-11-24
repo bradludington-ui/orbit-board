@@ -7,7 +7,7 @@
 //   A. THE MEASURED CASE. The old board (the v2.12 program, four appropriations, each with a locked PB27, a cost estimate,
 //      execution data and a BAE list -- built here in jsdom, never committed) is saved in place once, as it saves: its handle
 //      under FNAME. The board under test, opened as a program in another folder of the same browser, has its full import
-//      refused (browser storage refuses the cost estimates, forced from page code through the same all-or-nothing write), then
+//      refused (browser storage refuses the execution data -- the cost estimates until v2.19, item 150 -- forced from page code through the same all-or-nothing write), then
 //      💾 Save is pressed: the Open window is offered once, nothing is written (the window is cancelled), the old file is byte
 //      for byte as it was, and the page's handle-store log never names FNAME. On v2.13 it writes the old file over.
 //   B. THE OPEN WINDOW RETURNS THE OLD BOARD: read, checked, and the question names Full Fund, Initial Spares and OPN, whole, and
@@ -164,7 +164,8 @@ try {
   await O.p.close();
   const N = await page(ctx, 'ORBIT new.html', 'new', () => true);
   await N.p.evaluate(() => { const si = Storage.prototype.setItem; window.__si0 = si;
-    Storage.prototype.setItem = function (k, v) { if (k === 'prio27acedb') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return si.call(this, k, v); }; });
+    // v2.19 (item 150): the execution data is refused, where the cost estimates were -- the board no longer writes them
+    Storage.prototype.setItem = function (k, v) { if (k === 'prio27execdb') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return si.call(this, k, v); }; });
   await N.p.setInputFiles('#fullFile', DISK['ORBIT Live.html']); await N.p.waitForTimeout(7000);
   await N.p.evaluate(() => { Storage.prototype.setItem = window.__si0; });
   chk('A · the full import was refused, and the board says so (the fixture)', /Nothing was imported|not imported/i.test(await stat(N)), (await stat(N)).slice(0, 200));

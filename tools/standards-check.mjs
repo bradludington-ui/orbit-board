@@ -30,7 +30,6 @@ import { chromium } from 'playwright-core';
 import { readFileSync, existsSync } from 'node:fs';
 import { buildPopulated } from './ia-fixture.mjs';
 import { CHROME } from './chrome.mjs';
-import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132)
 import { CYC_TAG_SEED, CYC_KEY, cycOtherStore } from './cyc-seed.mjs';   // v2.13 (item 136)
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -444,29 +443,7 @@ for (const build of BUILDS) {
     if (!edShown.n) record(build, theme, { sc: 'coverage', key: 'the edit box was not on screen whole to measure',
       detail: 'the box with the OGC fields, the written fields and the required list was NOT shown' + (edShown.err ? ' (' + edShown.err + ')' : ''), n: 1 });
 
-    // v2.10 (item 130): FYDP DISCONNECTS, measured with its tables on screen, as the Add and edit boxes are: a cost estimate across
-    // O&M, Full Fund and Spares and O&M's BES28 position put on the board, an International figure typed, the Summary, then the
-    // USAF sheet. Its page is white in every theme, in the slides' own colours; it must be on screen, or the run fails.
-    const fdcShown = await page.evaluate(() => { try {
-      if (typeof toggleFdc !== 'function') return { n: false };
-      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
-      const Y = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033], S6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], L = [];
-      ['om', 'ff', 'sp'].forEach((ap, a) => S6.forEach((sv, s) => { const v = {}; Y.forEach(y => { v[y] = (a + 1) * 9e8 + (s + 1) * 4e7 + (y - 2020) * 3e6; }); L.push({ ap, pmo: 'AV', svc: sv, v }); }));
-      ACEDB.sets['2025ACE'] = { label: '2025ACE', ts: Date.now(), years: Y, lines: L, appn: {}, skip: {} };
-      const val = {}, lines = {}; S6.forEach((sv, s) => { lines[sv] = [{ k: '_all', all: true }]; val[sv] = { _all: {} };
-        [2027, 2028, 2029, 2030, 2031, 2032].forEach(y => { val[sv]._all[y] = { d: (s + 1) * 1.3e8 + (y - 2027) * 2e6, m: y === 2027 ? 5e6 : 0 }; }); });
-      MS.ppbe = MS.ppbe || {}; MS.ppbe['BES|2028'] = { v: 2, split: true, lines, val };
-      if (!fdcOpen) toggleFdc(); fdcTab(0);
-      const e = document.getElementById('fdcIn_ir_om_2028'); e.value = '1,234.5'; e.dispatchEvent(new Event('change', { bubbles: true }));
-      return { n: document.querySelectorAll('#fdcPage tbody tr').length > 40 && e.value === '$1,234.5' && !!document.querySelector('#fdcPage .neg') };
-    } catch (e) { return { n: false, err: String(e.message) }; } });
-    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
-    const fdcSvc = await page.evaluate(() => { try { fdcTab(1); return /USAF CTOL/.test(document.querySelector('#fdcPage .fdct2').textContent); } catch (e) { return false; } });
-    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
-    await page.evaluate(() => { try { if (fdcOpen) toggleFdc(); delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']; } catch (e) {} });
-    if (!fdcShown.n || !fdcSvc) record(build, theme, { sc: 'coverage', key: 'FYDP Disconnects was not on screen whole to measure',
-      detail: `the Summary with its figures, a shortfall and an International figure ${fdcShown.n ? 'was' : 'was NOT'} shown; the USAF sheet ${fdcSvc ? 'was' : 'was NOT'}`
-        + (fdcShown.err ? ' (' + fdcShown.err + ')' : ''), n: 1 });
+    // v2.19 (item 150): FYDP Disconnects' measure removed with its feature
 
     // v2.14 W2 (item 141): THE FILE ROUTE'S BOX, measured with step 1 showing (this page holds unsaved work), its buttons and its
     // checkbox; then after a failure, with both rescues offered. It must be on screen, or the run fails.
@@ -487,26 +464,9 @@ for (const build of BUILDS) {
     if (!ifShown.n || !ifResc) record(build, theme, { sc: 'coverage', key: 'the file route’s box was not on screen whole to measure',
       detail: `the box with step 1 ${ifShown.n ? 'was' : 'was NOT'} shown; with both rescues ${ifResc ? 'was' : 'was NOT'}` + (ifShown.err ? ' (' + ifShown.err + ')' : ''), n: 1 });
 
-    // v2.12 (item 132): THE COST ESTIMATE IMPORT'S REPORT AND MAPPING BOX, measured with what the 2026 file puts in them: every
-    // reason with rows and dollars, the named rows and the conflicting names, the columns read open; then the mapping box asking for
-    // two renamed titles from the file's own 44 headers. Each must be on screen, or the run fails.
-    const aceShown = await page.evaluate(([seed, ask]) => { try {
-      if (typeof aceRepShow !== 'function') return { r: false, c: false };
-      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
-      (0, eval)(seed); aceRepShow('2026ACE');
-      const d = document.querySelector('#aceRepBody details'); if (d) d.open = true;
-      const r = document.querySelectorAll('#aceRepBody .acerep-why tr').length >= 12 && document.querySelectorAll('#aceRepBody .acerep-named').length >= 5;
-      return { r };
-    } catch (e) { return { r: false, err: String(e.message) }; } }, [ACE_REP_SEED, ACE_COL_ASK]);
-    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
-    await page.evaluate(() => { try { aceRepClose(); } catch (e) {} });
-    const aceCol = await page.evaluate(ask => { try { (0, eval)(ask); return document.querySelectorAll('#aceColBody select').length === 2; } catch (e) { return false; } }, ACE_COL_ASK);
-    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
-    await page.evaluate(() => { try { aceColCancel(); delete ACEDB.sets['2026ACE']; render(); } catch (e) {} });
-    if (!aceShown.r || !aceCol) record(build, theme, { sc: 'coverage', key: 'the cost estimate import’s report or mapping box was not on screen to measure',
-      detail: `the report with its reasons and named rows ${aceShown.r ? 'was' : 'was NOT'} shown; the mapping box with its two pickers ${aceCol ? 'was' : 'was NOT'}`
-        + (aceShown.err ? ' (' + aceShown.err + ')' : ''), n: 1 });
-    // v2.12 (item 134): FIT TO THE PPBE POSITION, measured with an over on screen: the plan tagged with a position that gives the
+    // v2.19 (item 150): the cost estimate import's report and mapping box measures removed with their feature
+    // v2.12 (item 134): THE OVERS, measured with one on screen (v2.19, item 150: Needs attention's list, attShow('over'), where the
+    // Fit to the PPBE position box was -- fitShow() opens it): the plan tagged with a position that gives the
     // first service $1 of discretionary in the year on screen, and the first requirement directing its whole value there on a
     // Split, so the year's tables, the over line and its requirement list with Go to are drawn. Then the plan is put back.
     const fitShown = await page.evaluate(() => { try {
@@ -517,14 +477,14 @@ for (const build of BUILDS) {
       MS.ppbe = MS.ppbe || {}; MS.ppbe['POM|2099'] = { v: 2, split: true, lines: {}, val: { [SVC[0]]: { _all: { [MS.cur]: { d: 1, m: 0 } } } } };
       MS.cycle = 'POM|2099'; S.fsrc[id] = { m: 'split', dv: it.ask.slice(), mv: SVC.map(() => 0) };
       baLiveAll(); save(); render(); fitShow();
-      return { n: !!document.querySelector('#fitBody .fitover') && document.querySelectorAll('#fitBody .fitgo').length > 0 && !!document.querySelector('#fitBody table.fittab') };
+      return { n: !!document.querySelector('#attBody .fitover') && document.querySelectorAll('#attBody .fitgo').length > 0 && !!document.querySelector('#attBody .fityr') };
     } catch (e) { return { n: false, err: String(e.message) }; } });
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
-    await page.evaluate(() => { try { fitOpen = false; const k = window.__fitKeep; MS.cycle = k.cyc;
+    await page.evaluate(() => { try { attOpen = null; const k = window.__fitKeep; MS.cycle = k.cyc;
       if (k.fsrc) S.fsrc[k.id] = JSON.parse(k.fsrc); else delete S.fsrc[k.id];
       delete MS.ppbe['POM|2099']; baLiveAll(); save(); render(); } catch (e) {} });
-    if (!fitShown.n) record(build, theme, { sc: 'coverage', key: 'Fit to the PPBE position was not on screen whole to measure',
-      detail: 'the year’s table, an over line and its requirement list with Go to was NOT shown' + (fitShown.err ? ' (' + fitShown.err + ')' : ''), n: 1 });
+    if (!fitShown.n) record(build, theme, { sc: 'coverage', key: 'the list of the overs was not on screen whole to measure',
+      detail: 'the year’s heading, an over line and its requirement list with Go to was NOT shown' + (fitShown.err ? ' (' + fitShown.err + ')' : ''), n: 1 });
 
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.

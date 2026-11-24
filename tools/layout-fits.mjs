@@ -35,12 +35,10 @@
 //      1920 x 969, with six services, a budget picker on each, the OGC fields and what is still needed showing, on both tabs and
 //      with one brought in being finished, in Harbor and Midnight and in the Segoe stand-in; below 1366 it is one column that
 //      scrolls.
-//   R. (v2.12, item 134) Fit to the PPBE position and the UPL line under the last row are read whole, with an over and a
-//      nine-figure UPL, from 1920 to 800, in Harbor and Midnight and in the Segoe stand-in.
+//   R. (v2.12, item 134) The overs (Needs attention's list, where Fit to the PPBE position was until v2.19) and the UPL line under
+//      the last row are read whole, with an over and a nine-figure UPL, from 1920 to 800, in Harbor and Midnight and in the Segoe stand-in.
 //
-//   Q. (v2.12, item 132) A WBS paragraph picked in the Add box, the edit box and the WBS panel: the field reads the estimate's
-//      list, the pick leaves the code in the field, and its name -- the paragraph's path, ~160 characters -- is under it whole,
-//      each box still whole, at 1366 x 657 and 1920 x 969, Harbor and Midnight, this font and the Segoe stand-in.
+//   Q. v2.19 (item 150): the WBS picker check removed with its feature.
 //
 //   v2.00 (UI S4, fix round): C, D, E, F AND I TWICE -- the RECORD panel sliding over the table (the board's default now)
 //   and docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
@@ -49,17 +47,14 @@
 //   that ran with the panel sliding over says so and fails. A, B and G read figures, calls and data, not where anything is
 //   drawn; H reads two rows' styles; J's widths (761-1023) have the panel as a drawer, docked or not: each runs once.
 //
-//   P. (v2.12, item 132) The cost estimate import's report and its mapping box fit: at 1920, 1440, 1366, 1024 and 800, Harbor and
-//      Midnight, this font and the Segoe stand-in, neither box nor the page scrolls sideways, nothing runs past the box's edge, no
-//      cell cuts its text, and no picker cuts the name it shows -- the report with every reason, 38 named rows, long names and
-//      dollars in the billions; the mapping box with a 2026 file's whole header in each picker.
+//   O, P. v2.19 (item 150): FYDP Disconnects and the cost estimate import's boxes removed with their features.
 //
 //   S. (v2.13, item 136) The PPBE cycle at the top and the figure beside it, at their widest -- ⚠ Mixed across three
 //      appropriations, the figure in the billions both ways -- from 1920 to 761, this font and the Segoe stand-in: no sideways
 //      scroll, nothing in the top stack past the window, both whole on screen, and the list opened inside the window.
 //      v2.15 W1 (item 137; Brad: "No wrapping."): and THE CONTEXT BAR ON ONE LINE at every one of those widths, with the
 //      opening's warning unread beside it -- the figure shortened where it must be, or moved to the head of the list (whole there,
-//      opening Fit to the PPBE position) with the PPBE cycle carrying its ⚠ -- never wrapped.
+//      opening the list of the overs) with the PPBE cycle carrying its ⚠ -- never wrapped.
 //
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -69,7 +64,6 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
 import { withStandin, standinProblem } from './font-standin.mjs';
-import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132): P
 import { CYC_KEY, cycOtherStore, seedLs } from './cyc-seed.mjs';   // v2.13 (item 136): S
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -203,17 +197,19 @@ console.log('\n' + FILE.split('/').pop());
   // The calls the Active year, Budget year, FYDP, Tools and Export menus made in v1.89, as they read -- less toggleRp and
   // exportReprog, removed with the ATR/BTR tracker in v2.02 (Brad, 21 Oct 2026), and toggleEd, exportPPT and execSynopsis, removed
   // with Executive Decision, the PowerPoint deck and the Executive Synopsis in v2.05 (item 114; Brad, 23 Oct 2026).
+  // v2.19 (item 150): toggleSp, toggleAce, the aceFile import, toggleCoa, toggleFlow, exportAceTieout, exportCoa and toggleIds
+  // removed with the Spruills, the cost estimate, the Chart of Accounts, the Funds Flow and the IDS export
   const OLD = {
     'Active year': ['toggleEx', "getElementById('srcFile').click()", 'toggleQpe', 'toggleDiv'],
     'Budget year': ['toggleFc', 'toggleCr', 'toggleAdd', 'toggleBm', 'convertAllToSplit', 'togglePlans', "setScen('disc')",
                     "setScen('')", 'toggleCycChg', 'toggleBl', 'togglePos', 'toggleBands', 'togglePreviewOrder', 'resetOrder'],
-    'FYDP': ['toggleSp', 'toggleFydp', 'toggleCycCmp', 'toggleP2', 'toggleAce', "getElementById('aceFile').click()"],
-    'Tools': ['toggleSvcPanel', 'togglePmo', 'toggleCoa', 'toggleEnt', 'toggleRcn', 'toggleSi', 'toggleRlg', 'toggleExw', 'toggleMat',
-              'toggleFlow', 'themeSetIdx(0)', 'themeSetIdx(1)', 'themeSetIdx(2)', 'themeSetIdx(3)', 'themeSetIdx(4)',
+    'FYDP': ['toggleFydp', 'toggleCycCmp', 'toggleP2'],
+    'Tools': ['toggleSvcPanel', 'togglePmo', 'toggleEnt', 'toggleRcn', 'toggleSi', 'toggleRlg', 'toggleExw', 'toggleMat',
+              'themeSetIdx(0)', 'themeSetIdx(1)', 'themeSetIdx(2)', 'themeSetIdx(3)', 'themeSetIdx(4)',
               "getElementById('budFile').click()", 'toggleBudReg', "getElementById('ccarFile').click()"],
     // v2.04 (item 112): the five-year workbook is reached through its plan picker (fydpPickExport), which exports it
-    'Export': ['togglePf', 'exportExcel', 'exportAceTieout', 'fydpPickExport', 'exportCycCompare', 'exportCoa', 'exportCSV',
-               'exportSrc', 'crExport', 'toggleIds', 'linkOpen', 'linkSet'],
+    'Export': ['togglePf', 'exportExcel', 'fydpPickExport', 'exportCycCompare', 'exportCSV',
+               'exportSrc', 'crExport', 'linkOpen', 'linkSet'],
   };
   const { p, ctx } = await open(1440, 1000);
   const calls = await p.evaluate(() => {
@@ -731,117 +727,21 @@ const ER_STATE = () => {
     r.cols.length === 3 && new Set(r.cols).size === 1 && r.scrolls && r.foot && !r.side.length, JSON.stringify(r).slice(0, 300));
 }
 
-// ── O. FYDP DISCONNECTS: THE TABLE FITS AT 1366, AND SCROLLS INSIDE ITS BOX BELOW (v2.10, item 130) ───────────────────
-// The Summary and the USAF sheet, with figures as wide as the slides carry (a requirement in the tens of billions, a shortfall in
-// red parentheses) and an International figure typed. At 1920, 1440 and 1366 the table is whole in its box: no cell cuts a
-// label or a figure, no box cuts its value, the pickers and the tabs sit inside the box, nothing scrolls sideways. Narrower
-// than the table's own 900px (800 wide) it scrolls sideways INSIDE its own frame and nothing else does -- not the box, not the
-// page; at 1024 it does whichever it needs, and still cuts nothing. Harbor and Midnight, this font and the Segoe stand-in. The
-// box scrolls down, as every tall box does; that is not measured here.
-{
-  ev(`(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=['USAF','ANG','AFRC','STOVL','USMC-C','USN'], L=[];
-      ['om','ff','sp'].forEach(function(ap,a){ S6.forEach(function(sv,s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*4.4e9+(s+1)*6.1e8+(y-2020)*3.3e7+0.4; }); L.push({ap:ap,pmo:'AV',svc:sv,v:v}); }); });
-      ACEDB.sets['2025ACE']={label:'2025ACE', ts:1700000000061, years:Y, lines:L, appn:{}, skip:{}};
-      var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
-        [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*3.1e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
-      MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; MS.cycle='BES|2028'; save(); })(); 'ok'`);
-  const fileO = join(dir, 'board-o.html'), fileOS = join(dir, 'board-o-segoe.html');
-  writeFileSync(fileO, ev('buildSavedHtml()'));
-  writeFileSync(fileOS, withStandin(readFileSync(fileO, 'utf8')));
-  const LOOK = () => {
-    const m = document.querySelector('#fdcPanel .modal'), w = m && m.querySelector('.fdcwrap'), out = [];
-    if (!m || !w || !document.getElementById('fdcPanel').classList.contains('open')) return { out: ['the box or its table is not on screen'], wrap: false, rows: 0 };
-    const mr = m.getBoundingClientRect(), say = e => '"' + String(e.value || e.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '"';
-    if (mr.left < -1 || mr.right > innerWidth + 1) out.push(`the box runs off the window sideways: ${Math.round(mr.left)}-${Math.round(mr.right)} in ${innerWidth}`);
-    if (m.scrollWidth > m.clientWidth + 1) out.push(`the box scrolls sideways: ${m.scrollWidth}>${m.clientWidth}`);
-    const de = document.documentElement; if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways: ${de.scrollWidth}>${de.clientWidth}`);
-    for (const c of m.querySelectorAll('#fdcPage td, #fdcPage th')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
-    for (const i of m.querySelectorAll('input')) if (i.scrollWidth > i.clientWidth + 1) out.push('the box cuts its value: ' + say(i));
-    const cv = document.createElement('canvas').getContext('2d');
-    for (const s of m.querySelectorAll('select')) { const o = s.options[s.selectedIndex]; if (!o) continue; const cs = getComputedStyle(s); cv.font = cs.font;
-      if (cv.measureText(o.text).width > s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20 + 1) out.push('the picker cuts its name: ' + say(o)); }
-    for (const e of m.querySelectorAll('.fdcbar > *, .fdctabs button, h3 .x')) { const r = e.getBoundingClientRect();
-      if (r.width && (r.right > mr.right + 1 || r.left < mr.left - 1)) out.push('past the box’s edge: ' + say(e)); }
-    return { out, wrap: w.scrollWidth > w.clientWidth + 1, rows: m.querySelectorAll('#fdcPage tbody tr').length };
-  };
-  const OPEN = (tab) => { if (!fdcOpen) toggleFdc(); fdcTab(tab);
-    if (tab === 0) { const e = document.getElementById('fdcIn_ir_om_2028'); if (e) { e.value = '12,345.6'; e.dispatchEvent(new Event('change', { bubbles: true })); } } };
-  const fails = [], scroll = []; let read = 0;
-  for (const [font, at] of [['this machine’s font', fileO], ['the Segoe stand-in', fileOS]])
-    for (const theme of ['harbor', ''])
-      for (const [w, h] of [[1920, 969], [1440, 900], [1366, 657], [1024, 700], [800, 700]]) {
-        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
-        if (at === fileOS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
-        for (const tab of [0, 1]) {
-          const r = await p.evaluate(([o, look, tb]) => { (0, eval)('(' + o + ')')(tb); return (0, eval)('(' + look + ')')(); }, [OPEN.toString(), LOOK.toString(), tab]);
-          read++;
-          const tag = `${w}x${h} ${theme || 'midnight'} ${font} ${tab ? 'USAF' : 'Summary'}`;
-          if (r.rows < 20) fails.push(`${tag}: only ${r.rows} rows on screen`);
-          r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
-          if (w >= 1366 && r.wrap) scroll.push(`${tag}: the table scrolls sideways at a width it fits`);
-          if (w === 800 && !r.wrap) scroll.push(`${tag}: the table does not scroll inside its frame, narrower than it`);
-        }
-        await ctx.close();
-      }
-  chk('O · FYDP Disconnects: nothing cut, nothing past the box, neither the box nor the page scrolls sideways (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in, Summary and USAF)',
-    fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
-  chk('O · the table fits whole at 1920, 1440 and 1366, and scrolls sideways inside its own frame at 800, narrower than it',
-    scroll.length === 0 && read === 40, scroll.slice(0, 4).join('; '));
-}
+// v2.19 (item 150): O (FYDP Disconnects) and P (the cost estimate import's report and mapping box) removed with their features
 
-// ── P. THE COST ESTIMATE IMPORT'S REPORT AND MAPPING BOX (v2.12, item 132) ─────────────────────────────────────────────
-// The report as the 2026 file makes it: every reason, its rows and its dollars in the billions, 38 named rows and the rest, two
-// conflicting names (one long), the columns read; then the mapping box asking for two renamed titles, each picker listing the
-// file's own 44 headers. Each must be whole in the window: no sideways scroll (box or page), nothing past the box's edge, no cell
-// cutting its text, no picker cutting the name it shows. The box scrolls down, as every tall box does; that is not measured.
-{
-  ev(ACE_REP_SEED + `save(); 'ok'`);
-  const fileP = join(dir, 'board-p.html'), filePS = join(dir, 'board-p-segoe.html');
-  writeFileSync(fileP, ev('buildSavedHtml()'));
-  writeFileSync(filePS, withStandin(readFileSync(fileP, 'utf8')));
-  const LOOK = (id) => {
-    const bg = document.getElementById(id), m = bg && bg.querySelector('.modal'), out = [];
-    if (!m || !bg.classList.contains('open')) return { out: ['the box is not on screen'], rows: 0 };
-    const mr = m.getBoundingClientRect(), say = e => '"' + String(e.value || e.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '"';
-    if (mr.left < -1 || mr.right > innerWidth + 1) out.push(`the box runs off the window sideways: ${Math.round(mr.left)}-${Math.round(mr.right)} in ${innerWidth}`);
-    if (m.scrollWidth > m.clientWidth + 1) out.push(`the box scrolls sideways: ${m.scrollWidth}>${m.clientWidth}`);
-    const de = document.documentElement; if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways: ${de.scrollWidth}>${de.clientWidth}`);
-    for (const c of m.querySelectorAll('td, th, summary, .hint')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
-    const cv = document.createElement('canvas').getContext('2d');
-    for (const sl of m.querySelectorAll('select')) { const o = sl.options[sl.selectedIndex]; if (!o) continue; const cs = getComputedStyle(sl); cv.font = cs.font;
-      if (cv.measureText(o.text).width > sl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20 + 1) out.push('the picker cuts its name: ' + say(o)); }
-    for (const e of m.querySelectorAll('table, select, button, h3 .x')) { const r = e.getBoundingClientRect();
-      if (r.width && (r.right > mr.right + 1 || r.left < mr.left - 1)) out.push('past the box’s edge: ' + say(e)); }
-    return { out, rows: m.querySelectorAll('tr').length };
-  };
-  const fails = []; let read = 0;
-  for (const [font, at] of [['this machine’s font', fileP], ['the Segoe stand-in', filePS]])
-    for (const theme of ['harbor', ''])
-      for (const [w, h] of [[1920, 969], [1440, 900], [1366, 657], [1024, 700], [800, 700]]) {
-        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
-        if (at === filePS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
-        for (const [box, how, want] of [['aceRepPanel', `aceRepShow('2026ACE')`, 60], ['aceColPanel', ACE_COL_ASK, 3]]) {
-          const r = await p.evaluate(([how, look, box]) => { (0, eval)(how); render(); return (0, eval)('(' + look + ')')(box); }, [how, LOOK.toString(), box]);
-          read++;
-          const tag = `${w}x${h} ${theme || 'midnight'} ${font} ${box}`;
-          if (r.rows < want) fails.push(`${tag}: only ${r.rows} rows on screen`);
-          r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
-          await p.evaluate(() => { aceRepOpen = false; ACECOL = null; aceColOpen = false; render(); });
-        }
-        await ctx.close();
-      }
-  chk('P · the cost estimate import’s report and mapping box: nothing cut, nothing past the box, neither the box nor the page scrolls sideways (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in)',
-    fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
-}
-
-// ── R. FIT TO THE PPBE POSITION: THE BOX AND THE UPL LINE ARE READ WHOLE (v2.12, item 134) ─────────────────────────────
-// O left the plan tagged BES28 with O&M's position. Here the first service gets $1 of discretionary in the year on screen and the
+// ── R. THE OVERS AND THE UPL LINE ARE READ WHOLE (v2.12, item 134; v2.19, item 150) ─────────────────────────────────────────
+// v2.19 (item 150): the Fit to the PPBE position box is gone; what it said is Needs attention's list of the overs (attShow('over'),
+// which fitShow() opens), measured here in its place. The plan is tagged BES28 with O&M's position (O stood it up until FYDP
+// Disconnects went). Here the first service gets $1 of discretionary in the year on screen and the
 // first requirement directs its whole value there on a Split -- an over, with its requirement list -- and a mandatory add of
 // $987,654,321 on the second service nobody holds -- a nine-figure UPL, on the board's last line and in the box. At 1920, 1366,
 // 1024 and 800, Harbor and Midnight, this font and the Segoe stand-in: no cell of the box cuts a figure or a label, nothing sits
 // past the box, the page never scrolls sideways (a table narrower than its box scrolls inside its own frame), and the UPL line
 // under the last row sits inside the list.
 {
+  ev(`(function(){ var val={}, lines={}; SVC.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
+        [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*3.1e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
+      MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; MS.cycle='BES|2028'; save(); })(); 'ok'`);
   ev(`(function(){ MS.ppbe['BES|2028'].val[SVC[0]]._all[MS.cur]={d:1, m:0}; var id=S.order[0];
       S.fsrc[id]={m:'split', dv:itemById(id).ask.slice(), mv:SVC.map(function(){ return 0; })};
       S.bm.adds=(S.bm.adds||[]).concat([{name:'Congressional add', pool:'mand', vec:SVC.map(function(_,i){ return i===1? 987654321 : 0; })}]);
@@ -858,17 +758,17 @@ const ER_STATE = () => {
     else { const ur = u.getBoundingClientRect(), lr = L.getBoundingClientRect();
       if (ur.right > lr.right + 1 || ur.left < lr.left - 1) out.push(`the UPL line runs past the list: ${Math.round(ur.left)}-${Math.round(ur.right)} in ${Math.round(lr.left)}-${Math.round(lr.right)}`);
       for (const x of u.querySelectorAll('.u')) { const r = x.getBoundingClientRect(); if (r.right > lr.right + 1) out.push('a UPL figure past the list: ' + say(x)); } }
-    fitShow();
-    const m = document.querySelector('#fitPanel .modal');
-    if (!m || !document.getElementById('fitPanel').classList.contains('open')) return { out: out.concat(['the box is not on screen']), overs: 0, rows: 0 };
+    fitShow();   // v2.19 (item 150): opens Needs attention's list of the overs (attShow('over'))
+    const m = document.querySelector('#attPanel .modal');
+    if (!m || !document.getElementById('attPanel').classList.contains('open')) return { out: out.concat(['the box is not on screen']), overs: 0, rows: 0 };
     const mr = m.getBoundingClientRect();
     if (mr.left < -1 || mr.right > innerWidth + 1) out.push(`the box runs off the window sideways: ${Math.round(mr.left)}-${Math.round(mr.right)} in ${innerWidth}`);
     if (m.scrollWidth > m.clientWidth + 1) out.push(`the box scrolls sideways: ${m.scrollWidth}>${m.clientWidth}`);
     if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways with the box open: ${de.scrollWidth}>${de.clientWidth}`);
-    for (const c of m.querySelectorAll('#fitBody td, #fitBody th')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
+    for (const c of m.querySelectorAll('#attBody td, #attBody th')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
     for (const e of m.querySelectorAll('.fityr, .fitover, .fithint, h3 .x')) { const r = e.getBoundingClientRect();
       if (r.width && (r.right > mr.right + 1 || r.left < mr.left - 1)) out.push('past the box’s edge: ' + say(e)); }
-    return { out, overs: m.querySelectorAll('#fitBody .fitover').length, rows: m.querySelectorAll('#fitBody table.fitrows tr').length };
+    return { out, overs: m.querySelectorAll('#attBody .fitover').length, rows: m.querySelectorAll('#attBody table.fitrows tr').length };
   };
   const fails = []; let read = 0;
   for (const [font, at] of [['this machine’s font', fileR], ['the Segoe stand-in', fileRS]])
@@ -883,99 +783,12 @@ const ER_STATE = () => {
         r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
         await ctx.close();
       }
-  chk('R · Fit to the PPBE position: nothing cut, nothing past the box, the page never scrolls sideways, and the UPL line sits inside the list (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in)',
+  chk('R · the overs (Needs attention): nothing cut, nothing past the box, the page never scrolls sideways, and the UPL line sits inside the list (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in)',
     fails.length === 0 && read === 16, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
 }
 
-// ── Q. A WBS PARAGRAPH IS PICKED, AND ITS NAME IS READ WHOLE (v2.12, item 132) ───────────────────────────────────────────
-// A paragraph is picked from the estimate's WBS tree: a text field with a list of "code — path", the field then showing the code
-// alone and its name -- its path in the estimate, top heading first -- under it. On the M board with an estimate whose deepest
-// paragraph's path runs to about 160 characters (four headings, each named at length -- the names are invented: no estimate
-// with names had been seen when this was written): the Add box and the edit box with that paragraph picked, and the WBS panel
-// with it on one line of a split and a paragraph the estimate does not hold on the other. At 1366 x 657 and 1920 x 969, Harbor
-// and Midnight, this font and the Segoe stand-in: the field reads the list, the CCaR record's paragraph first; the pick leaves
-// the code in the field; the name is beside it whole (under the field; in the edit box, on its label's line) -- never cut,
-// never past its box -- and each box still fits whole by M's and N's measure. The edit box shows the WBS first of its
-// Accounting lines, in its widest column: under the field in the first column a long path ran that column past the box at
-// 1366 x 657, and so did a section of its own in the middle column, until the Navy SI code moved to Classification and the
-// name moved up to the label's line. The edit box is measured as N fills it with its per-service RCN / EEIC rows folded, as
-// the box opens them. The limit, measured: in N's fullest state (those rows open too) at 1366 x 657 the name has the label's
-// line and no more in the Segoe stand-in (about 85 characters), two lines in this font; a longer one makes the middle column
-// scroll there.
-{
-  ev(`(function(){
-    ACEDB.sets['2026ACE']={label:'2026ACE', ts:1700000000071, years:[MS.cur], appn:{}, skip:{},
-      lines:[{ap:'om', pmo:'PSM', svc:'USAF', wbs:'P6.2.2.1E', ccar:'JSF3087', v:{}}],
-      wbs:{om:{'P6':{n:'Depot Standup and Activation', lv:1, up:''},
-        'P6.2':{n:'CONUS Depot Standup for the F135 Propulsion System', lv:2, up:'P6'},
-        'P6.2.2E':{n:'ECU Repair Line, Tooling and Test Stands', lv:3, up:'P6.2'},
-        'P6.2.2.1E':{n:'Government Depot Labor at OC-ALC', lv:4, up:'P6.2.2E'}}}};
-    var id=S.order.filter(function(x){ return ptypeOf(x)!=='PRIME'; })[1];
-    S.wbs=S.wbs||{}; S.wbs[id]=[{w:'P6.2.2.1E', v:SVC.map(function(){ return 1000; })}, {w:'9.9.9', v:SVC.map(function(){ return 500; })}];
-    MS.wbsQ=id; save(); })(); 'ok'`);
-  const fileQ = join(dir, 'board-q.html'), fileQS = join(dir, 'board-q-segoe.html');
-  writeFileSync(fileQ, ev('buildSavedHtml()'));
-  writeFileSync(fileQS, withStandin(readFileSync(fileQ, 'utf8')));
-  const PATH = 'Depot Standup and Activation › CONUS Depot Standup for the F135 Propulsion System'
-    + ' › ECU Repair Line, Tooling and Test Stands › Government Depot Labor at OC-ALC';
-  const WANT = 'P6.2.2.1E — ' + PATH;
-  // a field's note, read whole: its text, whether it is cut, and whether it sits inside the box
-  const NOTE = (box, fid) => { const f = document.getElementById(fid), n = document.getElementById(fid + 'Note'), m = document.querySelector(box + ' .modal');
-    const nr = n.getBoundingClientRect(), mr = m.getBoundingClientRect(), dl = document.getElementById(f.getAttribute('list') || '-');
-    return { value: f.value, list: !!dl, first: dl && dl.options[0] ? [dl.options[0].value.split(' — ')[0], dl.options[0].getAttribute('label') || ''] : null,
-      note: n.textContent, cut: n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1,
-      inside: nr.left >= mr.left - 1 && nr.right <= mr.right + 1 && nr.top >= mr.top - 1 && nr.bottom <= mr.bottom + 1 && nr.bottom <= innerHeight + 1 };
-  };
-  const PICK = (fid) => { const e = document.getElementById(fid); e.value = 'P6.2.2.1E — ' + wbsPick().path['P6.2.2.1E'];
-    e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
-  const fails = []; let read = 0;
-  for (const [font, at] of [['this machine’s font', fileQ], ['the Segoe stand-in', fileQS]])
-    for (const theme of ['harbor', ''])
-      for (const [w, h] of [[1366, 657], [1920, 969]]) {
-        const { p, ctx, errs } = await open(w, h, 'review', '', false, at, theme);
-        if (at === fileQS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
-        const tag = `${w}x${h} ${theme || 'midnight'} ${font}`;
-        // a board without the pickers throws in here: said as a finding of this state, so the run goes on and Q fails by name
-        try {
-        // the Add box, filled as M fills it, the paragraph then picked
-        const a = await p.evaluate(([st, pick, note, look]) => { (0, eval)('(' + st + ')')(); (0, eval)('(' + pick + ')')('arWbs');
-          return { n: (0, eval)('(' + note + ')')('#addPanel', 'arWbs'), bad: (0, eval)('(' + look + ')')('#addPanel .modal') }; },
-          [BOX_STATES[0][1].toString(), PICK.toString(), NOTE.toString(), boxUnreadable.toString()]);
-        // the edit box, filled as N fills it with its per-service RCN / EEIC rows folded as the box opens them, the paragraph then
-        // picked (in N's fullest state the name has one line to itself; see above)
-        const e = await p.evaluate(([st, pick, note, look]) => { if (arOn()) arHide(); (0, eval)('(' + st + ')')();
-          if (rcnSvcOpen[erOpen]) erRcnSvcToggle(); (0, eval)('(' + pick + ')')('erWbs');
-          return { n: (0, eval)('(' + note + ')')('#editPanel', 'erWbs'), bad: (0, eval)('(' + look + ')')('#editPanel .modal') }; },
-          [ER_STATE.toString(), PICK.toString(), NOTE.toString(), boxUnreadable.toString()]);
-        // the WBS panel on the split: each line's field reads the list, and its name is under it whole
-        const wp = await p.evaluate(() => { if (erOn()) erClose(); toggleWbs('req', MS.wbsQ, '');
-          const m = document.querySelector('#wbsPanel .modal'), mr = m.getBoundingClientRect(), tw = m.querySelector('#wbsBody > div[style*="overflow"]');
-          const ins = [...m.querySelectorAll('#wbsBody table input.btn')];
-          return { lists: ins.map(i => i.getAttribute('list')), cutField: ins.filter(i => i.scrollWidth > i.clientWidth + 1).map(i => i.value),
-            names: [...m.querySelectorAll('.wbsnm')].map(n => { const r = n.getBoundingClientRect();
-              return { t: n.textContent, cut: n.scrollWidth > n.clientWidth + 1, inside: r.left >= mr.left - 1 && r.right <= mr.right + 1 }; }),
-            sideways: tw ? tw.scrollWidth > tw.clientWidth + 1 : true, off: mr.left < -1 || mr.right > innerWidth + 1 }; });
-        read++;
-        for (const [box, r] of [['Add box', a], ['edit box', e]]) {
-          if (!(r.n.list && r.n.first && r.n.first[0] === 'P6.2.2.1E' && /suggested/.test(r.n.first[1]))) fails.push(`${tag}, ${box}: the field does not read the list with JSF3087’s paragraph first (${JSON.stringify(r.n.first)})`);
-          if (r.n.value !== 'P6.2.2.1E') fails.push(`${tag}, ${box}: the pick left "${r.n.value.slice(0, 40)}…" in the field, not the code`);
-          if (r.n.note !== WANT) fails.push(`${tag}, ${box}: the name under the field is not the whole path ("${r.n.note.slice(0, 60)}…")`);
-          if (r.n.cut || !r.n.inside) fails.push(`${tag}, ${box}: the name is ${r.n.cut ? 'cut' : 'past the box'}`);
-          r.bad.slice(0, 3).forEach(x => fails.push(`${tag}, ${box}: ${x}`));
-        }
-        if (JSON.stringify(wp.lists) !== JSON.stringify(['wbsDl', 'wbsDl'])) fails.push(`${tag}, WBS panel: the lines do not read the list (${JSON.stringify(wp.lists)})`);
-        if (wp.cutField.length) fails.push(`${tag}, WBS panel: a line cuts its paragraph (${wp.cutField.join(', ')})`);
-        if (!wp.names[0] || wp.names[0].t !== PATH) fails.push(`${tag}, WBS panel: the first line’s name is not the whole path`);
-        if (!wp.names[1] || !/not a paragraph of the 2026ACE estimate for O&M — kept as stored/.test(wp.names[1].t)) fails.push(`${tag}, WBS panel: the line the estimate does not hold is not flagged`);
-        wp.names.forEach((n, i) => { if (n.cut || !n.inside) fails.push(`${tag}, WBS panel: line ${i + 1}’s name is ${n.cut ? 'cut' : 'past the box'}`); });
-        if (wp.sideways || wp.off) fails.push(`${tag}, WBS panel: ${wp.off ? 'the box runs off the window' : 'the table scrolls sideways'}`);
-        } catch (e) { fails.push(`${tag}: the state could not be read -- ${String(e.message || e).split('\n')[0].slice(0, 120)}`); }
-        if (errs.length) fails.push(`${tag}: ${errs[0]}`);
-        await ctx.close();
-      }
-  chk('Q · a WBS paragraph picked in the Add box, the edit box and the WBS panel: the list (the CCaR record’s paragraph first), the code alone in the field, its ~160-character name beside it whole, each box still whole -- 1366x657 and 1920x969, Harbor and Midnight, this font and the Segoe stand-in',
-    fails.length === 0 && read === 8, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
-}
+// v2.19 (item 150): Q (a WBS paragraph picked from the estimate's list, its name read whole) removed with its feature -- a WBS is
+// typed freely now; the Add box and the edit box are held whole by M and N
 
 // ── S. THE PPBE CYCLE AT THE TOP: A LONG FIGURE AND THE MIXED STATE (v2.13, item 136) ─────────────────────────────────────
 // The context bar's PPBE cycle and the figure beside it at their widest. Three appropriations' plans on three cycles -- O&M (this

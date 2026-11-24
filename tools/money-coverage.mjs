@@ -45,22 +45,16 @@ const REGISTRY = {
                   via: ['fcViewData', 'forecast', 'landSvc'] },
   srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane (and per increment of an incremental award)',
                   via: ['srcLaneOf', 'srcSvcOf', 'landSvc'] },
-  // v2.04 (item 109): the AI review request carries the plan's figures per requirement and year, for GenAI.mil to read
-  aiExport:     { money: true,  what: 'the AI review request — each requirement’s ask, allocated, funded and unfunded per FYDP year',
-                  via: ['aiRequestText', 'aiFig'] },
   exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcLaneOf', 'srcSvcOf', 'srcRowsOf'] },
   crExportRows: { money: true,  what: 'the 1A9A CR cash return' },
   exportExcel:  { money: true,  what: 'the breakouts workbook — lanes, bands, matrices, unfunded' },
   exportCSV:    { money: true,  what: 'the Priority Drill' },
   exportPlans:  { money: true,  what: 'Plan A / Plan B two-plan forecast' },
 
-  // The five below were recorded gaps from 15 Sep 2026 and were closed on 19 Sep 2026, each with a
+  // The five below were recorded gaps from 15 Sep 2026 and were closed on 19 Sep 2026 (v2.19: crData is the one left; the other four went with their features), each with a
   // check that derives the figure from the fixture and a mutation inside the surface that the check
   // catches. Closing the funds flow found a shipped defect (flow-plan-year-printed-the-allocation).
   crData:       { money: true,  what: 'CR cash needs by half-month window', via: ['crBuckets', 'landSvc'] },
-  exportFlow:   { money: true,  what: 'the funds flow', via: ['flowCalc', 'flowPlanRecs'] },
-  exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk', 'coaExportNow'] },   // v2.15 W4: the workbook is written by coaExportNow, once the folder has answered
-  exportAceTieout: { money: true, what: 'the ACE tie-out' },
   exportCycCompare: { money: true, what: 'the two-cycle comparison — A, B and Δ per year, the Changes sheet, and the rows accounting for the totals',
                   via: ['cycCmpData', 'cycCmpBody'] },
   exportFydpPlan: { money: true, what: 'the FYDP spend plan (v2.04) — the working plan or a locked cycle, base year + 4: a summary, a tab per appropriation, service and PMO',
@@ -69,20 +63,9 @@ const REGISTRY = {
                   via: ['cycDeltaChip', 'cycDeltaInsp', 'cycChgBody', 'cycWho', 'cycNextOf', 'cycRetagNext'] },
   cycProjOf:    { money: true,  what: 'a locked PPBE cycle’s projection — value, allocation and funding per requirement, per year',
                   via: ['cycLock', 'cycWindowYears', 'cycMigrateLegacy'] },
-  // v1.95 (item 55): the Spruills and its PMO drill read each year's own projection by PMO -- the board's one
-  // allocation rule -- and a locked cycle by the same PMO rule; neither was registered, which is why a drill
-  // printing $258.00M against the board's $138.00M was caught by nothing.
-  spGather:     { money: true,  what: 'the Spruills — Total Requirements, Available Funding and the rows by PMO or service, per appropriation and year',
-                  via: ['spOwnYear', 'spProjByPmo', 'spOtherYear', 'spRecOf'] },
-  pmoDetail:    { money: true,  what: 'the Spruills PMO drill — Requirement, Controls, Delta and % for one PMO, by service and year, from Board budgets or a locked cycle',
-                  via: ['spOwnYear', 'spProjByPmo', 'spOtherYear', 'spRecOf', 'blPmoAlloc', 'pmoDrillHtml'] },
-  // v2.10 (item 130): FYDP Disconnects -- the cost estimate against a PPBE cycle's controls, by appropriation and service group,
-  // the delta and % Funded, and the International figures typed on its Summary: the model (fdcModel) is what the box draws and
-  // what the workbook prints (fdcSheets, the workbook's own builder, is registered with it where it is defined)
-  exportFdc:    { money: true,  what: 'FYDP Disconnects — the cost estimate against a PPBE cycle’s controls, by appropriation and service group, with the delta and % Funded, on screen and in Excel',
-                  via: ['fdcModel', 'fdcState', 'fdcStores', 'fdcCycs', 'fdcAces', 'fdcPosHeld', 'fdcIntlSet', 'fdcMoney', 'fdcHtml', 'fdcSync', 'FDC_APS', 'FDC_GROUPS', 'fdcSheets',
-                        // v2.12 RV6 (S05): a one-figure position read by the board's one rule, against each appropriation's own base
-                        'ppLanesOf', 'fdcOwnBase', 'fdcSvcsOf', 'fdcOneSay', 'bmOwnOf'] },
+
+  // v2.19 (item 150): the funds flow, chart of accounts, ACE tie-out, Spruills and its PMO drill, FYDP Disconnects, the IDS
+  // Batch Import and the AI review request were removed from ORBIT (Brad, 24 Nov 2026), and their entries with them.
 
   // v2.12 (item 134): each year's budget authority, read live from the PPBE position under the working plan's tag (or the board's
   // own base where it says nothing), and the fit of the requirements to it -- over, unallocated and UPL -- on screen, with the UPL
@@ -93,18 +76,13 @@ const REGISTRY = {
                         'ppLanesOf', 'bmPpVec', 'bmPpState', 'bmSeedFromPp',
                         // v2.13 (item 136): the cycle every appropriation reads its budget authority from, put on all of them at once
                         'cycApplyAll', 'cycSetWorking', 'cycFromTab'] },
-  fitModel:     { money: true,  what: 'the fit to the PPBE position — per held year, service and lane: base, added, budget authority, held, drawn, over, unallocated and UPL, and each over’s requirements',
+  fitModel:     { money: true,  what: 'the fit to the budget authority (v2.19: on Needs attention, the panel gone) — per held year, service and lane: base, added, budget authority, held, drawn, over, unallocated and UPL, and each over’s requirements',
                   // v2.13 (item 136): the figure beside the PPBE cycle in the context bar reads it, and the panel's line over each year
-                  via: ['fitYearNow', 'fitReadYear', 'fitBody', 'uplParts', 'fitGo', 'cycFitSums', 'cycFitOf', 'cycFitTxt'] },
+                  via: ['fitYearNow', 'fitReadYear', 'attOverHtml', 'uplParts', 'cycFitSums', 'cycFitOf', 'cycFitTxt'] },
 
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:
     'writes the ORDER — rank and identity only. It moves no dollars and prints none.' },
-  // v1.92 (item 37): this said "no dollar columns" and excused the IDS file from every money check. It has two,
-  // Req. Amount and Req. Approved, and until v1.92 the Approved column carried the discretionary draw alone.
-  // Revised before merge: the contributions, the consolidation, the check that proves them and the two sheets.
-  exportIdsReq:  { money: true,  what: 'the IDS Batch Import — Req. Amount and Req. Approved, one row per FY, budget and control, and the reconciliation sheet',
-                   via: ['idsSources', 'idsBuild', 'idsCheck', 'idsSheets', 'budResolve'] },
   exportRlgPlan: { money: false, reason: 'RLG plan narrative fields, no dollar columns.' },
   exportExView:  { money: false, reason: 'writes the saved VIEW (filters, sort, open panel), not figures.' },
   exportOneAppn: { money: false, reason: 'writes a working board holding one appropriation: its saved state copied '

@@ -23,19 +23,17 @@
 //   M. The Add box (v2.07, item 121): Enter on Add requirement opens it with the keyboard inside, the office question is
 //      answered from the keyboard, Tab reaches every field, the tabs and the Prime/OGC switch work with Enter and Space,
 //      Add pressed early sends the keyboard to the first field still needed, and Esc asks before typing is lost.
-//   R. FYDP Disconnects (v2.10, item 130): opened from FYDP ▸ by Enter with the keyboard inside, Tab walks its pickers, Export and
-//      its sheet tabs, Enter presses a tab, an International figure typed and left with Tab is taken and the keyboard goes on to
-//      the next year, one left by clicking the next box (or a sheet tab) with the mouse leaves the keyboard where the click put
-//      it (v2.10 review, A-2), and Esc closes it with the keyboard back on FYDP ▸.
-//   T. A WBS paragraph picked from the keyboard (v2.12, item 132): Needs attention's ▦ entry, its Go to it and the edit box's
-//      WBS field by the keys, the estimate's list (the CCaR record's paragraph first), the name under a code typed, a code the
-//      estimate does not hold refused on Save with the text kept, one it holds saved; the Add box's field and Classify's quick box.
+//   R, S. v2.19 (item 150): FYDP Disconnects and the cost estimate import's boxes removed with their features.
+//   T. A WBS typed from the keyboard (v2.12, item 132; v2.19, item 150: typed freely, no estimate to pick from): Needs attention's
+//      ▦ entry, its Go to it and the edit box's WBS field by the keys, saved by Enter on Save; the Add box's field and Classify's
+//      quick box.
+//   U. The overs, from the keyboard (v2.12, item 134; v2.19: Needs attention's list where Fit to the PPBE position was).
 //   V. The PPBE cycle at the top (v2.13, item 136): on a board whose appropriations are on different cycles, Tab reaches it and
-//      the figure beside it (Enter opens Fit to the PPBE position); Enter opens its list, Esc closes it back on the button; and
+//      the figure beside it (Enter opens the list of the overs); Enter opens its list, Esc closes it back on the button; and
 //      Enter on a "Put every appropriation on …" item, OK to its question, puts every appropriation's stored plan on that cycle
 //      with the keyboard left on the button.
 //   V2. (v2.15 W1, item 137) At 1024 wide the figure has left the bar for the head of the PPBE cycle's list: Tab reaches the PPBE cycle,
-//      Enter opens the list, the first Tab lands on the figure (the whole sentence), Enter opens Fit to the PPBE position, Esc closes it.
+//      Enter opens the list, the first Tab lands on the figure (the whole sentence), Enter opens the list of the overs, Esc closes it.
 //   W. The RCN / EEIC list holds typing across a redraw, in Chromium (v2.14, ledger U35): a figure typed into a row's RCN field and
 //      not yet left survives two redraws with the keyboard and the caret, typing goes on after it, Tab commits it to that row alone,
 //      and Esc with typing not yet committed asks before the box closes.
@@ -45,7 +43,6 @@ import { chromium } from 'playwright-core';
 import { resolve, join } from 'node:path';
 import { buildPopulated } from './ia-fixture.mjs';
 import { CHROME } from './chrome.mjs';
-import { ACE_REP_SEED, ACE_HDR_2026 } from './ace-seed.mjs';   // v2.12 (item 132): S
 import { CYC_TAG_SEED, CYC_KEY, cycOtherStore, seedLs } from './cyc-seed.mjs';   // v2.13 (item 136): V
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -367,8 +364,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     // once layout stops it (the 8 carried D results), so it read seven, failing, from v2.02 until v2.03.
     // v2.05 (item 114): nine -- "(Excel)" left the titles for the XLSX tag, and Find reads the tag's words, so every workbook is
     // found, the Priority Drill, the 1A9A and the IDS file among them
-    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the nine workbooks, and Tab goes to the first',
-      first === 'mFind' && shown.length === 9 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
+    // v2.19 (item 150): six -- the ACE Tie-Out, the Chart of Accounts and the IDS file removed with their features
+    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the six workbooks, and Tab goes to the first',
+      first === 'mFind' && shown.length === 6 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(250);
     const shut = await p.evaluate(() => ({ open: document.getElementById('uiRepPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
@@ -829,147 +827,15 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`Q · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
-// ── R. FYDP DISCONNECTS, FROM THE KEYBOARD (v2.10, item 130) ─────────────────────────────────────────────────────
-// FYDP ▸ by Enter, then its item by Enter: the box opens with the keyboard inside. Tab reaches the two pickers, Export and the
-// five sheet tabs; Enter on a tab presses it alone. On the Summary an International figure is typed and Tab leaves it: it is
-// taken in $M, the figures it moves are drawn again in place, and the keyboard is on the next year's box -- the redraw does not
-// take it (a whole redraw at that moment would). Esc closes the box with the keyboard back on FYDP ▸. A cost estimate and a
-// BES28 position are put on the board first: bare, the box has no tables to reach.
-{
-  try {
-    const { p, ctx, errs } = await open('review');
-    await p.evaluate(() => { const Y = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033], S6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], L = [];
-      ['om', 'ff', 'sp'].forEach((ap, a) => S6.forEach((sv, s) => { const v = {}; Y.forEach(y => { v[y] = (a + 1) * 9e8 + (s + 1) * 4e7 + (y - 2020) * 3e6; }); L.push({ ap, pmo: 'AV', svc: sv, v }); }));
-      ACEDB.sets['2025ACE'] = { label: '2025ACE', ts: Date.now(), years: Y, lines: L, appn: {}, skip: {} };
-      const val = {}, lines = {}; S6.forEach((sv, s) => { lines[sv] = [{ k: '_all', all: true }]; val[sv] = { _all: {} };
-        [2027, 2028, 2029, 2030, 2031, 2032].forEach(y => { val[sv]._all[y] = { d: (s + 1) * 1.3e8 + (y - 2027) * 2e6, m: y === 2027 ? 5e6 : 0 }; }); });
-      MS.ppbe = MS.ppbe || {}; MS.ppbe['BES|2028'] = { v: 2, split: true, lines, val }; MS.cycle = 'BES|2028'; });
-    await p.focus('#uiNav_fydp'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
-    let found = -1;
-    for (let i = 0; i < 8; i++) { if (await p.evaluate(() => /toggleFdc/.test((document.activeElement || {}).getAttribute ? document.activeElement.getAttribute('onclick') || '' : ''))) { found = i; break; } await p.keyboard.press('Tab'); }
-    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
-    const o = await p.evaluate(() => ({ open: document.getElementById('fdcPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fdcPanel')) }));
-    chk('R · FYDP ▸, then FYDP Disconnects… by Enter: the box opens with the keyboard inside', found >= 0 && o.open && o.inBox, JSON.stringify({ found, ...o }));
-    // Tab from the estimate picker reaches the cycle picker, Export and every tab, in that order
-    const order = [];
-    await p.focus('#fdcAce');
-    for (let i = 0; i < 8; i++) { order.push(await p.evaluate(() => document.activeElement.id)); await p.keyboard.press('Tab'); }
-    chk('R · Tab walks the estimate, the cycle, Export to Excel and the five sheet tabs, in that order',
-      JSON.stringify(order) === JSON.stringify(['fdcAce', 'fdcCyc', 'fdcExport', 'fdcTab_0', 'fdcTab_1', 'fdcTab_2', 'fdcTab_3', 'fdcTab_4']), JSON.stringify(order));
-    await p.focus('#fdcTab_2'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
-    const tb = await p.evaluate(() => ({ pressed: [...document.querySelectorAll('#fdcBody .fdctabs button')].map(b => b.getAttribute('aria-pressed')).join(),
-      sub: document.querySelector('#fdcPage .fdct2').textContent, focus: document.activeElement.id }));
-    chk('R · Enter on STOVL presses it alone, shows its sheet, and the keyboard stays on it',
-      tb.pressed === 'false,false,true,false,false' && /USMC STOVL/.test(tb.sub) && tb.focus === 'fdcTab_2', JSON.stringify(tb));
-    await p.focus('#fdcTab_0'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
-    const cell = () => p.evaluate(() => document.querySelector('#fdcPage tbody tr:nth-child(2) td:nth-child(3)').textContent);
-    const c0 = await cell();
-    await p.focus('#fdcIn_ir_om_2028'); await p.keyboard.press('Control+a'); await p.keyboard.type('250'); await p.keyboard.press('Tab'); await p.waitForTimeout(150);
-    const r = await p.evaluate(() => ({ focus: document.activeElement.id, val: document.getElementById('fdcIn_ir_om_2028').value,
-      kept: FDC_INTL.ir.om[2028], cell: document.querySelector('#fdcPage tbody tr:nth-child(2) td:nth-child(3)').textContent }));
-    chk('R · an International figure typed and left with Tab is taken in $M, its requirement drawn again, and the keyboard is on the next year',
-      r.focus === 'fdcIn_ir_om_2029' && r.val === '$250' && r.kept === 250000000 && r.cell !== c0, JSON.stringify({ before: c0, ...r }));
-    // v2.10 review (A-2): the same figure left with a CLICK, a real mouse on the next box. Chromium fires the change with the
-    // keyboard nowhere and the click's focus still to land, and a figure drawn again at that moment had the box controller hand
-    // the keyboard back to the year just left: the next figure typed went into it (FY28 read $2,507M, FY30 $0). And a sheet tab
-    // clicked after a figure is typed keeps the keyboard (it was left on the estimate picker).
-    await p.click('#fdcIn_ir_om_2030'); await p.keyboard.press('Control+a'); await p.keyboard.type('7');
-    await p.click('#fdcIn_ir_om_2031'); await p.waitForTimeout(150);
-    await p.keyboard.press('Control+a'); await p.keyboard.type('3');
-    const k1 = await p.evaluate(() => ({ focus: document.activeElement.id, intl: JSON.stringify(FDC_INTL.ir.om) }));
-    chk('R · a figure typed and left by clicking the next box: the keyboard is on the box clicked, and the next figure goes there',
-      k1.focus === 'fdcIn_ir_om_2031' && k1.intl === JSON.stringify({ 2028: 250000000, 2030: 7000000 }), JSON.stringify(k1));
-    await p.click('#fdcTab_1'); await p.waitForTimeout(200);
-    const k2 = await p.evaluate(() => ({ focus: document.activeElement.id, intl: JSON.stringify(FDC_INTL.ir.om),
-      pressed: [...document.querySelectorAll('#fdcBody .fdctabs button')].map(b => b.getAttribute('aria-pressed')).join() }));
-    chk('R · then a sheet tab clicked: the tab is pressed and has the keyboard, and the figure typed is taken for its own year',
-      k2.focus === 'fdcTab_1' && k2.pressed === 'false,true,false,false,false' && k2.intl === JSON.stringify({ 2028: 250000000, 2030: 7000000, 2031: 3000000 }), JSON.stringify(k2));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    const e = await p.evaluate(() => ({ open: document.getElementById('fdcPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
-    chk('R · Esc closes it, the keyboard back on FYDP ▸', !e.open && e.focus === 'uiNav_fydp', JSON.stringify(e));
-    chk('R · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await ctx.close();
-  } catch (e) { chk(`R · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
-}
+// v2.19 (item 150): R (FYDP Disconnects) and S (the cost estimate import's mapping box and report) removed with their features
 
-// ── S. THE COST ESTIMATE IMPORT: ITS MAPPING BOX AND ITS REPORT, FROM THE KEYBOARD (v2.12, item 132) ─────────────────────
-// A 2026 file whose two titles were renamed, picked (the file dialog is the browser's own): the mapping box opens with the keyboard
-// inside, on the first field. Each column is chosen with the keyboard (a letter picks the file's own heading by its column), Tab
-// reaches Import, and Enter imports it: the report opens with the keyboard inside, and says the two were answered in the box. Esc
-// closes it. Then Data on the left menu by Enter, its Import report… by Enter: the report opens again with the keyboard inside, and
-// the year picker, moved with an arrow key, redraws the figures and keeps the keyboard. Esc on the mapping box of a second file
-// imports nothing.
-{
-  try {
-    const { p, ctx, errs } = await open('review');
-    const mkBook = hdr => p.evaluate(hdr => {
-      const row = (o) => hdr.map(t => (Object.prototype.hasOwnProperty.call(o, t) ? o[t] : ''));
-      const base = { 'PALS/O&S': '', 'Account Family (PALS or O&S)': 'O&S', '$ Type': 'TY$', 'US/PTN/FMS': 'US', Service: 'USAF', 'T/M/S': 'F-35A', 'Roll-up Flag': 'No',
-        'JPO Managed': 'Yes', 'Appropriation (US Only)': 'O&M', 'Support Line Category': 'O&S', PMO: 'Air Vehicle' };
-      const rows = [['PMO Database Output'], [], hdr.slice(),
-        row(Object.assign({}, base, { 'Work Breakdown Structure': '1.2.1.1', Level: 4, CES1: 'Manpower', CES2: 'Maintenance', CES3: 'Organizational', CES4: 'Officer', 2027: 1.25 })),
-        row(Object.assign({}, base, { 'Work Breakdown Structure': '1.2', Level: 2, CES1: 'Manpower', CES2: 'Maintenance', 'Roll-up Flag': 'Yes', 2027: 1.25 }))];
-      const bytes = buildXlsx([{ name: 'Cover', rows: [['2026 SUST ACE COMPLETE']] }, { name: 'PMO Database Output', rows }]);
-      return Array.from(bytes); }, hdr);
-    const HDR = ACE_HDR_2026.map(t => t === 'PALS/O&S' ? 'Index 2' : t);
-    const book = await mkBook(HDR), book2 = await mkBook(HDR.concat(['A column added this year']));   // the second: another layout
-    const pick = async (name, bk = book) => { await p.setInputFiles('#aceFile', { name, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(bk) });
-      await p.waitForTimeout(500); };
-    await pick('2026 SUST ACE COMPLETE Detail File.xlsx');
-    const a = await p.evaluate(() => ({ open: document.getElementById('aceColPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id,
-      asked: [...document.querySelectorAll('#aceColBody select')].map(s => s.id) }));
-    chk('S · a file with two renamed titles: the mapping box opens with the keyboard inside, on the first field asked',
-      a.open && a.focus === 'aceCol_roll' && JSON.stringify(a.asked) === JSON.stringify(['aceCol_roll', 'aceCol_pals']), JSON.stringify(a));
-    await p.keyboard.type('h'); await p.keyboard.press('Tab'); await p.keyboard.type('ar', { delay: 40 });
-    const ch = await p.evaluate(() => [document.getElementById('aceCol_roll'), document.getElementById('aceCol_pals')].map(s => s.options[s.selectedIndex].textContent));
-    chk('S · each column is chosen with the keyboard, by the letter of its column: H for Roll-up Flag, AR for the account family',
-      JSON.stringify(ch) === JSON.stringify(['H · Roll-up Flag', 'AR · Account Family (PALS or O&S)']), JSON.stringify(ch));
-    let k = -1; for (let i = 0; i < 4; i++) { await p.keyboard.press('Tab'); if (await p.evaluate(() => /aceColApply/.test((document.activeElement && document.activeElement.getAttribute('onclick')) || ''))) { k = i; break; } }
-    await p.keyboard.press('Enter'); await p.waitForTimeout(400);
-    const r = await p.evaluate(() => { const s = ACEDB.sets['2026ACE'] || {}; return { box: document.getElementById('aceColPanel').classList.contains('open'),
-      rep: document.getElementById('aceRepPanel').classList.contains('open'), inRep: !!(document.activeElement && document.activeElement.closest('#aceRepPanel')),
-      lines: (s.lines || []).length, how: ((s.rep || {}).map || {}).roll && s.rep.map.roll.how, said: /answered in the mapping box/.test(document.getElementById('aceRepBody').textContent) }; });
-    chk('S · Tab reaches Import, and Enter imports it: the report opens with the keyboard inside, the rollup left out, the two titles answered in the box',
-      k >= 0 && !r.box && r.rep && r.inRep && r.lines === 1 && r.how === 'asked' && r.said, JSON.stringify({ k, ...r }));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    const c = await p.evaluate(() => document.getElementById('aceRepPanel').classList.contains('open'));
-    chk('S · Esc closes the report', !c, String(c));
-    // from the Data box: Import report… by Enter
-    await p.evaluate(ACE_SEED => { (0, eval)(ACE_SEED); render(); }, ACE_REP_SEED);
-    await p.focus('#uiNav_data'); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
-    let f = -1; for (let i = 0; i < 30; i++) { if (await p.evaluate(() => /aceRepShow/.test((document.activeElement && document.activeElement.getAttribute('onclick')) || ''))) { f = i; break; } await p.keyboard.press('Tab'); }
-    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
-    const o = await p.evaluate(() => ({ open: document.getElementById('aceRepPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#aceRepPanel')), k: aceRepK }));
-    chk('S · Data, then Import report… by Enter: the newest estimate’s report opens with the keyboard inside', f >= 0 && o.open && o.inBox && o.k === '2026ACE', JSON.stringify({ f, ...o }));
-    await p.focus('#aceRepYrSel');
-    const y0 = await p.evaluate(() => document.querySelector('#aceRepBody .acerep-why tr th:nth-child(3)').textContent);
-    await p.keyboard.press('ArrowDown'); await p.waitForTimeout(250);
-    const y1 = await p.evaluate(() => ({ th: document.querySelector('#aceRepBody .acerep-why tr th:nth-child(3)').textContent, focus: document.activeElement && document.activeElement.id }));
-    chk('S · the year picker, moved with an arrow key, redraws the year’s figures and keeps the keyboard', y1.th !== y0 && y1.focus === 'aceRepYrSel', JSON.stringify({ y0, ...y1 }));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    // the same layout again is read without asking (the answers are remembered); a file laid out differently is asked about,
-    // and Esc on its mapping box imports nothing
-    await pick('2027 ACE same layout.xlsx');
-    const same = await p.evaluate(() => ({ open: document.getElementById('aceColPanel').classList.contains('open'), how: ((((ACEDB.sets['2027ACE'] || {}).rep || {}).map || {}).roll || {}).how }));
-    chk('S · the same layout again is read without asking, by the answers remembered', !same.open && same.how === 'remembered', JSON.stringify(same));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    const before = await p.evaluate(() => JSON.stringify(ACEDB));
-    await pick('2028 ACE another layout.xlsx', book2);
-    const askd = await p.evaluate(() => document.getElementById('aceColPanel').classList.contains('open'));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(250);
-    const z = await p.evaluate(b0 => ({ open: document.getElementById('aceColPanel').classList.contains('open'), same: JSON.stringify(ACEDB) === b0,
-      said: /canceled/.test(document.getElementById('shareStat').textContent) }), before);
-    chk('S · Esc on the mapping box imports nothing, and says so', askd && !z.open && z.same && z.said, JSON.stringify({ askd, ...z }));
-    chk('S · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await ctx.close();
-  } catch (e) { chk(`S · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
-}
-
-// ── U. FIT TO THE PPBE POSITION, FROM THE KEYBOARD (v2.12, item 134) ──────────────────────────────────────────────
+// ── U. THE OVERS, FROM THE KEYBOARD (v2.12, item 134; v2.19, item 150) ─────────────────────────────────────────────
+// v2.19 (item 150): the Fit to the PPBE position box and its FYDP ▸ entry are gone; Needs attention's 🏛 entry opens the list of the
+// overs (attShow('over')) in their place, and the check reads that list.
 // The plan tagged with a position that gives its first service $1 of discretionary this year, and the first requirement
 // directing its whole value there on a Split: an over. In Fund, Needs attention's 🏛 entry is reached with Tab and Enter opens the
-// box with the keyboard inside; Esc closes it back on the entry. FYDP ▸, then Fit to the PPBE position… by Enter, opens it too;
-// Tab reaches the over's Go to it, and Enter on it closes the box and selects that requirement.
+// list with the keyboard inside; Esc closes it back on the entry. Opened again, Tab reaches the over's Go to it, and Enter on it
+// closes the list and selects that requirement.
 {
   try {
     const { p, ctx, errs } = await open('fund');
@@ -980,40 +846,35 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     // v2.13 (item 136): from the PPBE cycle in the context bar (the injected #uiCycBtn it replaced is gone)
     const steps = await tabTo(p, '#b_cyc', '#posture .fitatt', 120);
     await p.keyboard.press('Enter'); await p.waitForTimeout(250);
-    const a = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')),
+    const a = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#attPanel')),
       entry: (document.querySelector('#posture .fitatt') || {}).textContent || '' }));
     // v2.12 RV3 (R20, K10): the entry names what the overs are against -- here one is against POM99 and the rest against the
     // services' own bases, so it says how many are against POM99
-    chk('U · Needs attention’s 🏛 entry is reached with Tab, and Enter opens the fit box with the keyboard inside', steps >= 0 && a.open && a.inBox && /🏛 \d+ over (POM99|budget authority \(\d+ against POM99\))/.test(a.entry), JSON.stringify({ steps, ...a }));
+    chk('U · Needs attention’s 🏛 entry is reached with Tab, and Enter opens the list of the overs with the keyboard inside', steps >= 0 && a.open && a.inBox && /🏛 \d+ over (POM99|budget authority \(\d+ against POM99\))/.test(a.entry), JSON.stringify({ steps, ...a }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    const e1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), cls: (document.activeElement || {}).className || '' }));
+    const e1 = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), cls: (document.activeElement || {}).className || '' }));
     chk('U · Esc closes it, the keyboard back on the entry', !e1.open && /fitatt/.test(e1.cls), JSON.stringify(e1));
-    await p.focus('#uiNav_fydp'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
-    let found = -1;
-    for (let i = 0; i < 10; i++) { if (await p.evaluate(() => /toggleFit/.test((document.activeElement || {}).getAttribute ? document.activeElement.getAttribute('onclick') || '' : ''))) { found = i; break; } await p.keyboard.press('Tab'); }
-    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
-    const o = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')) }));
-    chk('U · FYDP ▸, then Fit to the PPBE position… by Enter: the box opens with the keyboard inside', found >= 0 && o.open && o.inBox, JSON.stringify({ found, ...o }));
+    // v2.19 (item 150): FYDP ▸ › Fit to the PPBE position… removed with its box; the entry opens the list again
+    await p.focus('#posture .fitatt'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const o = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#attPanel')) }));
+    chk('U · Enter on the entry again opens the list with the keyboard inside', o.open && o.inBox, JSON.stringify(o));
     let go = -1;
     for (let i = 0; i < 60; i++) { if (await p.evaluate(() => (document.activeElement || {}).classList && document.activeElement.classList.contains('fitgo'))) { go = i; break; } await p.keyboard.press('Tab'); }
     await p.keyboard.press('Enter'); await p.waitForTimeout(300);
-    const g = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), cur: curRow }));
-    chk('U · Tab reaches the over’s Go to it, and Enter closes the box and selects the requirement', go >= 0 && !g.open && g.cur === id, JSON.stringify({ go, ...g, want: id }));
+    const g = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), cur: curRow }));
+    chk('U · Tab reaches the over’s Go to it, and Enter closes the list and selects the requirement', go >= 0 && !g.open && g.cur === id, JSON.stringify({ go, ...g, want: id }));
     chk('U · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
   } catch (e) { chk(`U · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
-// ── T. A WBS PARAGRAPH PICKED FROM THE KEYBOARD (v2.12, item 132) ───────────────────────────────────────────────────
-// A paragraph is picked from the cost estimate's WBS tree: a text field with a list of "code — path". On this board with an
-// estimate holding four paragraphs, and the requirement's CCaR record on one of its lines: Needs attention's ▦ entry, its
-// list's Go to it and the edit box's WBS field are reached with the keys, the field reads the list with the CCaR record's
-// paragraph first, a code typed shows its name under the field, a code the estimate does not hold is refused on Save with
-// the text kept and the keyboard back on the field, and one it holds is saved by Enter on Save. The Add box's field and the
-// quick box Classify's WBS cell opens read the same list and name the paragraph typed. Chromium draws a datalist's
-// suggestions outside the page and automated Chromium does not open them from the keys (measured: ArrowDown and Enter
-// leave the field as typed), so a pick is stood in for by what a pick does: the option's whole text put in the field as
-// one input -- the field then holds the code alone.
+// ── T. A WBS TYPED FROM THE KEYBOARD (v2.12, item 132; v2.19, item 150) ──────────────────────────────────────────────
+// v2.19 (item 150): the cost estimate is gone, and with it the WBS picker's list, the paragraph's name under the field and the
+// refusal of a code the estimate does not hold -- a WBS is typed freely, checked for length only. What stays: Needs attention's ▦
+// entry, its list's Go to it and the edit box's WBS field are reached with the keys, and a code typed is saved by Enter on Save;
+// the Add box's field is reached with Tab; and Classify's WBS cell, by Enter, asks for the paragraph -- with no estimate's list to
+// offer, that is the browser's own prompt (uiPrompt), not the in-app quick box, so v2.12 RV2's Esc guard on the quick box no longer
+// applies here -- Cancel stores nothing, and an answer is stored.
 {
   try {
     // the funding posture strip, and with it Needs attention, shows in Funding and Brief only (L): the edit box is reached from
@@ -1022,23 +883,15 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
       const free = S.order.filter(x => !clinApplies(x) && itemById(x));
       const id = free[0], id2 = free[1];
       S.ccar = S.ccar || {}; S.ccar[id] = 'JSF7001'; S.wbs = S.wbs || {}; delete S.wbs[id]; delete S.wbs[id2];
-      ACEDB.sets['T26'] = { label: 'T26', ts: 1700000000099, years: [MS.cur], appn: {}, skip: {},
-        lines: [{ ap: mySlug(), pmo: grpOf(itemById(id)), svc: SVC[0], wbs: '1.2.2', ccar: 'JSF7001', v: {} }],
-        wbs: { [mySlug()]: { '1': { n: 'Sustainment', lv: 1, up: '' }, '1.2': { n: 'Depot Maintenance', lv: 2, up: '1' },
-          '1.2.1': { n: 'Engine Repair', lv: 3, up: '1.2' }, '1.2.2': { n: 'Support Equipment', lv: 3, up: '1.2' } } } };
       save(); render(); return [id, id2];
     };
     let { p, ctx, errs } = await open('fund');
     p.on('dialog', d => d.accept());
     const [id, id2] = await p.evaluate(SEED);
-    const PATH = { '1.2': 'Sustainment › Depot Maintenance', '1.2.1': 'Sustainment › Depot Maintenance › Engine Repair',
-      '1.2.2': 'Sustainment › Depot Maintenance › Support Equipment' };
     const fld = (fid) => p.evaluate(fid => { const f = document.getElementById(fid), n = document.getElementById(fid + 'Note') || document.getElementById('uipNote');
       const dl = f && document.getElementById(f.getAttribute('list') || '-');
       return { value: f ? f.value : null, note: n ? n.textContent : null, kb: document.activeElement === f,
         first: dl && dl.options[0] ? [dl.options[0].value.split(' — ')[0], dl.options[0].getAttribute('label') || ''] : null, n: dl ? dl.options.length : 0 }; }, fid);
-    const pickIn = async (fid, code) => { await p.focus('#' + fid); await p.keyboard.press('Control+a'); await p.keyboard.press('Delete');
-      await p.keyboard.insertText(code + ' — ' + PATH[code]); await p.waitForTimeout(120); };
     // Needs attention's ▦ entry, by Enter: its list opens; Tab reaches this requirement's Go to it; Enter opens the edit box
     // at the WBS with the keyboard on it
     const entry = await tabTo(p, '#helpBtn', 'button.e[onclick=\'attShow("wbs")\']', 60);
@@ -1053,68 +906,47 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const box = await p.evaluate(() => document.getElementById('editPanel').classList.contains('open'));
     chk('T · Needs attention’s ▦ without a WBS, its list and Go to it, by Enter: the edit box opens at the WBS with the keyboard on it',
       entry >= 0 && steps >= 0 && box && r.kb, JSON.stringify({ entry, steps, box, kb: r.kb }));
-    chk('T · the field reads the estimate’s paragraphs, the CCaR record’s first and marked suggested',
-      r.n === 4 && r.first && r.first[0] === '1.2.2' && /suggested/.test(r.first[1]), JSON.stringify({ n: r.n, first: r.first }));
-    // a code typed: its name under the field
-    await p.keyboard.type('1.2.1'); await p.waitForTimeout(120);
-    r = await fld('erWbs');
-    chk('T · a code typed shows its name under the field', r.value === '1.2.1' && r.note === '1.2.1 — ' + PATH['1.2.1'], JSON.stringify(r));
-    // a pick (the option's whole text, as one input): the field holds the code alone, its name under it
-    await pickIn('erWbs', '1.2.2'); r = await fld('erWbs');
-    chk('T · a pick leaves the code alone in the field and its name under it', r.value === '1.2.2' && r.note === '1.2.2 — ' + PATH['1.2.2'], JSON.stringify(r));
-    // a code the estimate does not hold: Enter on Save refuses it, keeps the text, and the keyboard goes back to the field
-    await p.focus('#erWbs'); await p.keyboard.press('Control+a'); await p.keyboard.type('9.9');
-    let s = await tabTo(p, '#erWbs', '#erSaveBtn', 80);
-    if (s >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
-    r = await fld('erWbs');
-    const kept = await p.evaluate(id => ({ open: document.getElementById('editPanel').classList.contains('open'), stored: JSON.stringify((S.wbs || {})[id] || null),
-      say: (document.getElementById('erMsg') || { textContent: '' }).textContent }), id);
-    chk('T · a code the estimate does not hold is refused on Save: nothing stored, the text kept, the keyboard back on the field',
-      s >= 0 && kept.open && kept.stored === 'null' && r.value === '9.9' && r.kb && /Nothing was saved.*9\.9.*not a paragraph of the T26 estimate/.test(kept.say), JSON.stringify({ s, ...kept, value: r.value, kb: r.kb }));
-    // one it holds: Enter on Save stores it
+    // v2.19 (item 150): the estimate's list, the name under a code and the refusal of a code the estimate does not hold removed
+    // with the cost estimate
+    await p.focus('#erWbs');
+    // a code typed: Enter on Save stores it
     await p.keyboard.press('Control+a'); await p.keyboard.type('1.2.1');
+    let s;
     s = await tabTo(p, '#erWbs', '#erSaveBtn', 80);
     if (s >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const saved = await p.evaluate(id => ({ open: document.getElementById('editPanel').classList.contains('open'), w: ((S.wbs || {})[id] || []).map(x => x.w) }), id);
-    chk('T · a paragraph the estimate holds is saved by Enter on Save', s >= 0 && !saved.open && JSON.stringify(saved.w) === '["1.2.1"]', JSON.stringify({ s, ...saved }));
+    chk('T · a paragraph typed is saved by Enter on Save', s >= 0 && !saved.open && JSON.stringify(saved.w) === '["1.2.1"]', JSON.stringify({ s, ...saved }));
     const errs1 = errs.slice(); await ctx.close();
     // the Add box: Enter on Add requirement, Tab to its WBS field -- the same list, and the paragraph typed named under it
     ({ p, ctx, errs } = await open('review'));
-    // v2.12 RV2 (K02): every question is accepted, but one -- the quick box's, on Esc -- is answered Cancel, and each is kept
-    let dlgDismiss = false; const dlgSeen = [];
-    p.on('dialog', d => { dlgSeen.push(d.message()); return dlgDismiss ? d.dismiss() : d.accept(); });
+    // every question is accepted (a prompt with promptVal), but one -- the WBS prompt's first asking -- is answered Cancel; each is kept
+    let dlgDismiss = false, promptVal = ''; const dlgSeen = [];
+    p.on('dialog', d => { dlgSeen.push(d.type() + ': ' + d.message()); return dlgDismiss ? d.dismiss() : (d.type() === 'prompt' ? d.accept(promptVal) : d.accept()); });
     await p.evaluate(SEED);
     await p.evaluate(id => setPmoFilter(grpOf(itemById(id))), id);
     await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     s = await tabTo(p, '#arEvent', '#arWbs', 60);
     await p.keyboard.type('1.2'); await p.waitForTimeout(120);
     const a1 = await fld('arWbs');
-    await pickIn('arWbs', '1.2.1'); const a2 = await fld('arWbs');
-    chk('T · the Add box’s WBS field is reached with Tab, reads the same list, and names the paragraph typed or picked',
-      s >= 0 && a1.n === 4 && a1.note === '1.2 — ' + PATH['1.2'] && a2.value === '1.2.1' && a2.note === '1.2.1 — ' + PATH['1.2.1'], JSON.stringify({ s, a1, a2 }));
+    chk('T · the Add box’s WBS field is reached with Tab and takes what is typed',
+      s >= 0 && a1.kb && a1.value === '1.2', JSON.stringify({ s, a1 }));
     await p.evaluate(() => { if (arOn()) arHide(); });
-    // Classify's WBS cell, by Enter: the quick box opens with the keyboard on its field, reads the list, names what is typed,
-    // and Enter takes it
+    // Classify's WBS cell, by Enter: the paragraph is asked for (the browser's prompt, with no estimate's list to offer); Cancel
+    // stores nothing, and an answer is stored
     await p.evaluate(() => { setPmoFilter('ALL'); matOpen = true; render(); });
-    const cell = await p.evaluate(id2 => { const b = [...document.querySelectorAll('#matPanel button')].find(x => (x.getAttribute('onclick') || '') === 'wbsQuick(' + JSON.stringify(id2) + ')');
+    const findCell = () => p.evaluate(id2 => { const b = [...document.querySelectorAll('#matPanel button')].find(x => (x.getAttribute('onclick') || '') === 'wbsQuick(' + JSON.stringify(id2) + ')');
       if (b) b.id = b.id || 'tWbsCell'; return b ? b.id : ''; }, id2);
-    if (cell) { await p.focus('#' + cell); await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
-    const q0 = await fld('uipVal');
-    await p.keyboard.type('1.2.2'); await p.waitForTimeout(120);
-    const q1 = await fld('uipVal');
-    // v2.12 RV2 (K02): Esc with the typing there asks first (the box is saved only by its own OK); Cancel keeps the box, the typing
-    // and the keyboard -- a stray key loses nothing
+    let cell = await findCell();
     dlgDismiss = true; dlgSeen.length = 0;
-    await p.keyboard.press('Escape'); await p.waitForTimeout(250);
-    const qe = await p.evaluate(() => ({ open: /\bopen\b/.test(document.getElementById('uipPanel').className), v: document.getElementById('uipVal').value,
-      kb: document.activeElement && document.activeElement.id }));
+    if (cell) { await p.focus('#' + cell); await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     dlgDismiss = false;
-    chk('T · the quick box: Esc with a paragraph typed asks first, and Cancel keeps the box, the typing and the keyboard',
-      dlgSeen.some(m => /Discard what you typed\?/.test(m)) && qe.open && qe.v === '1.2.2' && qe.kb === 'uipVal', JSON.stringify({ asked: dlgSeen.slice(0, 1), ...qe }));
-    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const qc = await p.evaluate(id2 => ((S.wbs || {})[id2] || []).map(x => x.w), id2);
+    chk('T · Classify’s WBS cell, by Enter, asks for the paragraph, and Cancel stores nothing',
+      !!cell && dlgSeen.some(m => /^prompt: .*WBS paragraph/.test(m)) && JSON.stringify(qc) === '[]', JSON.stringify({ cell, asked: dlgSeen.slice(0, 1), stored: qc }));
+    cell = await findCell(); promptVal = '1.2.2'; dlgSeen.length = 0;
+    if (cell) { await p.focus('#' + cell); await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const qs = await p.evaluate(id2 => ((S.wbs || {})[id2] || []).map(x => x.w), id2);
-    chk('T · Classify’s WBS cell opens the quick box by Enter: the keyboard on its field, the same list, the paragraph typed named, and Enter takes it',
-      !!cell && q0.kb && q0.n === 4 && q1.note === '1.2.2 — ' + PATH['1.2.2'] && JSON.stringify(qs) === '["1.2.2"]', JSON.stringify({ cell, kb: q0.kb, n: q0.n, note: q1.note, stored: qs }));
+    chk('T · Classify’s WBS cell, by Enter, stores the paragraph answered', !!cell && JSON.stringify(qs) === '["1.2.2"]', JSON.stringify({ cell, asked: dlgSeen.slice(0, 1), stored: qs }));
     errs.unshift(...errs1);
     chk('T · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
@@ -1125,8 +957,8 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 // O&M (this board) is on BES28, its BES28 controls leaving the year on screen both unallocated and over (tools/cyc-seed.mjs), and
 // Full Fund's plan in this browser is on PB27 -- put in browser storage by a seed page before the board opens, never by an init
 // script (tools/pmo-save.mjs says why). So the PPBE cycle reads ⚠ Mixed, and the figure beside it is on screen as the board
-// opens. Tab from the context bar's first control reaches the PPBE cycle; Tab from it reaches the figure, and Enter opens Fit to
-// the PPBE position with the keyboard inside, Esc closing it back on the figure. Enter on the PPBE cycle opens its list, naming
+// opens. Tab from the context bar's first control reaches the PPBE cycle; Tab from it reaches the figure, and Enter opens the list
+// of the overs with the keyboard inside, Esc closing it back on the figure. Enter on the PPBE cycle opens its list, naming
 // each appropriation's cycle (⚠ on the one off the latest); Esc from inside it closes it with the keyboard back on the button.
 // Opened again, Tab reaches the first "Put every appropriation on …" item -- the cycle after the latest any is on, so BOTH
 // appropriations move -- and Enter on it, its one question answered OK, puts each one's stored plan on that cycle (this board's
@@ -1149,13 +981,13 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
       st0.seeded && st0.own === 'BES|2028' && st0.btn === '⚠ Mixed ▾' && /^BES28 · FY\d\d · \$[\d.]+[KMB] unallocated · ⚠ \$[\d.]+[KMB] over$/.test(st0.fit || ''), JSON.stringify(st0));
     const s1 = await tabTo(p, '#appnSel', '#b_cyc', 10);
     chk('V · Tab from the context bar’s first control reaches the PPBE cycle', s1 > 0, s1 > 0 ? `${s1} Tab(s)` : 'never reached');
-    // the figure: Tab reaches it, Enter opens Fit to the PPBE position with the keyboard inside, Esc closes it back on the figure
+    // the figure: Tab reaches it, Enter opens the list of the overs with the keyboard inside, Esc closes it back on the figure
     const s2 = await tabTo(p, '#b_cyc', '#cycFit', 10);
     if (s2 > 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
-    const f1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')) }));
-    chk('V · Tab reaches the figure beside it, and Enter opens Fit to the PPBE position with the keyboard inside', s2 > 0 && f1.open && f1.inBox, JSON.stringify({ steps: s2, ...f1 }));
+    const f1 = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#attPanel')) }));
+    chk('V · Tab reaches the figure beside it, and Enter opens the list of the overs with the keyboard inside', s2 > 0 && f1.open && f1.inBox, JSON.stringify({ steps: s2, ...f1 }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    const f2 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
+    const f2 = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     chk('V · Esc closes it, the keyboard back on the figure', !f2.open && f2.focus === 'cycFit', JSON.stringify(f2));
     // Enter opens the list; Esc from inside it closes it, the keyboard back on the button
     await p.focus('#b_cyc'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
@@ -1198,7 +1030,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 // ── V2. THE FIGURE, MOVED INTO THE PPBE CYCLE'S LIST, FROM THE KEYBOARD (v2.15 W1, item 137) ───────────────────────────────────────
 // V's board at 1024 wide, where the context bar has no room for the figure (Brad, 2 Nov 2026: "No wrapping."): fitTop moves it to the
 // head of the PPBE cycle's list and the PPBE cycle carries a ⚠ for the over. Tab reaches the PPBE cycle; Enter opens its list; the
-// first Tab inside lands on the figure -- the whole sentence -- and Enter opens Fit to the PPBE position with the keyboard inside; Esc
+// first Tab inside lands on the figure -- the whole sentence -- and Enter opens the list of the overs with the keyboard inside; Esc
 // closes it. The bar shows no figure of its own there, and stays one line.
 {
   try {
@@ -1219,10 +1051,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     chk('V2 · Tab reaches the PPBE cycle, Enter opens its list, and the first Tab inside lands on the figure, the whole sentence',
       s1 > 0 && a1.inFit && a1.txt.indexOf(st0.long) === 0, JSON.stringify({ steps: s1, ...a1, long: st0.long }));
     await p.keyboard.press('Enter'); await p.waitForTimeout(300);
-    const f1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')), menu: openMenu }));
-    chk('V2 · Enter on it opens Fit to the PPBE position with the keyboard inside, the list closed', f1.open && f1.inBox && f1.menu === null, JSON.stringify(f1));
+    const f1 = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#attPanel')), menu: openMenu }));
+    chk('V2 · Enter on it opens the list of the overs with the keyboard inside, the list closed', f1.open && f1.inBox && f1.menu === null, JSON.stringify(f1));
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-    const f2 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
+    const f2 = await p.evaluate(() => ({ open: document.getElementById('attPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     chk('V2 · Esc closes it, the keyboard back on the PPBE cycle', !f2.open && f2.focus === 'b_cyc', JSON.stringify(f2));
     chk('V2 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
@@ -1367,5 +1199,5 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 }
 
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position, a WBS paragraph picked, the PPBE cycle at the top and the RCN / EEIC list held across a redraw, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, the list of the overs, a WBS typed, the PPBE cycle at the top and the RCN / EEIC list held across a redraw, and each one works\n');
 process.exit(bad ? 1 : 0);

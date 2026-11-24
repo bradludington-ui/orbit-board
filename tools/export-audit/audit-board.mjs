@@ -1028,123 +1028,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
-// ══ the Spruills grid must read the board's OWN requirements ═══════════════════════════
-// APPNS is the consolidated multi-appropriation payload. It is a const baked in at build time and
-// is EMPTY on a board that simply carries its own requirements -- nothing ever writes to it, and
-// buildSavedHtml does not rewrite it either. spDefs() took it anyway for the board's own
-// appropriation, so the Spruills panel reported Total Requirements $0.00M on a board holding
-// $1.4B of asks, printed a DELTA of the entire budget as surplus, and dropped every per-PMO row.
-// pkgPackOf has guarded this exact trap for a while; this makes sure spDefs keeps doing the same.
-//
-// The oracle is the scenario's own arithmetic. Asking spGather() what it thinks the answer is
-// would have agreed with the bug.
-{
-  const name = 'Spruills reads the board it is on';
-  try {
-  const sc = { services: ['USAF', 'ANG', 'AFRC'],
-    items: [it('A', 'PSM', [9000000, 2000000, 1000000]),
-            it('B', 'AV',  [4000000, 500000, 250000]),
-            it('C', 'MxS', [1500000, 750000, 125000])],
-    disc: [9000000, 2000000, 1000000], mand: [3000000, 500000, 250000],
-    order: ['A', 'B', 'C'] };
-  const wantReq = sum(sc.items.map(i => sum(i.ask)));
-  const wantBud = sum(sc.disc) + sum(sc.mand);
-  const { ev, errors } = boot();
-  seed(ev, sc);
-  ev('render(); "ok"');
-  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+// v2.19 (item 150): removed with its feature -- Spruills reads the board it is on
 
-  // The precondition the bug needed. If a build ever starts filling APPNS this check still holds,
-  // but say so rather than passing silently on a board where the trap cannot spring.
-  const appnsEmpty = ev(`(function(){ if(typeof APPNS==='undefined') return 'no APPNS';
-    var p=APPNS[APPN]; return !!(p&&((p.items&&p.items.length)||(p.services&&p.services.length)))? 'filled':'empty'; })()`);
-  chk(name, 'precondition', "the board's own APPNS slot is empty", appnsEmpty, 'empty');
-
-  const fy = ev('MS.cur');
-  const G = JSON.parse(ev('JSON.stringify(spGather())'));
-  const own = G.blocks.find(b => b.name === ev('APPN'));
-  chk(name, 'spGather', "the board's own appropriation has a block", !!own, true);
-  if (own) {
-    chk(name, 'spGather', 'total requirements are the board\'s asks', own.req[fy], wantReq);
-    chk(name, 'spGather', 'available funding is disc + mand', own.bud[fy], wantBud);
-    chk(name, 'spGather', 'delta is funding minus requirements',
-      (own.bud[fy] || 0) - (own.req[fy] || 0), wantBud - wantReq);
-    // The missing rows were the other half of it: a block with the right total and no rows under
-    // it still briefs as a blank page.
-    const rowTot = sum(Object.values(own.rows).map(r => +r[fy] || 0));
-    chk(name, 'spGather', 'the rows under it add to the same total', rowTot, wantReq);
-    chk(name, 'spGather', 'and there is a row per PMO', Object.keys(own.rows).length,
-      new Set(sc.items.map(i => i.grp)).size);
-  }
-  } catch (e) {
-    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
-    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
-    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-}
-
-// ══ v1.95: THE SPRUILLS TABLE BY SERVICE, BY YEAR, AND FOR ANOTHER APPROPRIATION ══════════════
-// v1.95 (item 55) reads each year of the Spruills from that year's own state. Its checks hold Total
-// Requirements and the rows by PMO for two years on the board's own appropriation, and another
-// appropriation's rows by PMO. The rest of what the table prints was held for the year on screen
-// only, or not at all: the rows by service, Available Funding (and so the Delta) for a year after the
-// one on screen, and another appropriation's Total Requirements, Available Funding and rows. The
-// money map (tools/money-map.json, spGather) cites this block for those cells.
-//
-// Full Fund is stood up the way a consolidated file carries it -- its payload in APPNS, its state
-// alongside -- at three services against this board's two, so a row filed by this board's service
-// list is caught. The oracle is the scenario's own arithmetic.
-{
-  const name = 'v1.95 — the Spruills by service, by year and for another appropriation';
-  try {
-  const J = JSON.stringify, M = 1e6;
-  const { ev, errors } = boot();
-  seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 2 * M]), it('B', 'TSS', [3 * M, 1 * M])],
-    disc: [20 * M, 5 * M], mand: [4 * M, 1 * M], order: ['A', 'B'] });
-  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
-  const cur = +ev('MS.cur'), Y = [cur, cur + 1];
-  // the next year, through the board's own editors: its own asks and its own budget
-  ev(`switchYear(${cur + 1});
-      setAsk('A',0,'10000000'); setAsk('A',1,'5000000'); setAsk('B',0,'3000000'); setAsk('B',1,'1000000');
-      bmSetBase('disc',0,'30000000'); bmSetBase('disc',1,'6000000'); bmSetBase('mand',0,'0'); bmSetBase('mand',1,'2000000');
-      switchYear(${cur}); 'ok'`);
-  // Full Fund: an override in the year on screen, an added requirement in the next
-  ev(`(function(){ var P=APPNS['FULL FUND']; P.services.length=0; P.items.length=0;
-    ['USAF','ANG','AFRC'].forEach(function(s){ P.services.push(s); });
-    P.items.push({id:'FF1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req FF1', event:'Ev FF1', ccar:'CCFF1', fy26:[0,0,0], ask:[1000000,2000000,3000000], alloc:null});
-    P.items.push({id:'FF2', grp:'AV', team:'AV', sect:'', custom:false, title:'Req FF2', event:'Ev FF2', ccar:'CCFF2', fy26:[0,0,0], ask:[4000000,0,1000000], alloc:null});
-    var st={base:MS.base, cur:MS.cur, years:{}};
-    st.years[${cur}]={asks:{FF1:[2000000,2000000,3000000]}, order:['FF1','FF2'], discSvc:[5000000,1000000,1000000], mandSvc:[1000000,0,0]};
-    st.years[${cur + 1}]={asks:{}, order:['FF1','FF2','FFN'], discSvc:[6000000,2000000,2000000], mandSvc:[0,0,1000000],
-      custom:[{id:'FFN', grp:'TSS', sect:'new', custom:true, title:'FF added (made up)', event:'e', ccar:'', fy26:[0,0,0], ask:[1000000,1000000,1000000], alloc:null}]};
-    localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(st)); return 'ok'; })()`);
-  const gather = by => JSON.parse(ev(`(function(){ var keep=[spBy, spSvc, spPmo]; try{ spBy=${J(by)}; spSvc='ALL'; spPmo='ALL';
-      return JSON.stringify(spGather().blocks); } finally { spBy=keep[0]; spSvc=keep[1]; spPmo=keep[2]; } })()`));
-  const own = ev('APPN'), bySvc = gather('svc'), byPmo = gather('pmo');
-  const blk = (B, n) => B.find(b => b.name === n) || { rows: {}, req: {}, bud: {} };
-  const rows = (b, keys) => keys.map(k => Y.map(y => (b.rows[k] || {})[y]));
-  // THE TRUTH, by hand
-  chk(name, 'by service', 'the board’s own rows by service, each year from that year’s own asks',
-    J(rows(blk(bySvc, own), ['USAF', 'ANG'])), J([[13 * M, 13 * M], [3 * M, 6 * M]]));
-  chk(name, 'by year', 'the board’s own Total Requirements, Available Funding and Delta, each year from that year’s own state',
-    J(Y.map(y => { const b = blk(byPmo, own); return [b.req[y], b.bud[y], b.bud[y] - b.req[y]]; })),
-    J([[16 * M, 30 * M, 14 * M], [19 * M, 38 * M, 19 * M]]));
-  chk(name, 'another appropriation', 'Full Fund’s Total Requirements, Available Funding and Delta, each year from its own state',
-    J(Y.map(y => { const b = blk(byPmo, 'FULL FUND'); return [b.req[y], b.bud[y], b.bud[y] - b.req[y]]; })),
-    J([[12 * M, 8 * M, -4 * M], [14 * M, 11 * M, -3 * M]]));
-  chk(name, 'another appropriation', 'Full Fund’s rows by service, at its own three services, each year',
-    J(rows(blk(bySvc, 'FULL FUND'), ['USAF', 'ANG', 'AFRC'])), J([[6 * M, 6 * M], [2 * M, 3 * M], [4 * M, 5 * M]]));
-  chk(name, 'another appropriation', 'Full Fund’s rows by PMO, each year: its override, its added requirement once',
-    J(rows(blk(byPmo, 'FULL FUND'), ['PSM', 'AV', 'TSS'])), J([[7 * M, 6 * M], [5 * M, 5 * M], [null, 3 * M]]));
-  const both = [blk(bySvc, own), blk(bySvc, 'FULL FUND')];
-  chk(name, 'the rows add up', 'in each block and year, the rows by service add to Total Requirements',
-    J(both.map(b => Y.map(y => Object.values(b.rows).reduce((a, r) => a + (r[y] || 0), 0) - b.req[y]))), J([[0, 0], [0, 0]]));
-  if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-}
+// v2.19 (item 150): removed with its feature -- v1.95 — the Spruills by service, by year and for another appropriation
 
 // ══ recording a funding source must not change what a requirement is short ═════════════
 // A directed source says where the ALLOCATION is drawn from. It used to re-base the requirement on
@@ -2348,15 +2234,14 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     M.partial + ':' + Object.keys(M.proj).join(',') + ':' + Object.keys(M.years).length, 'true:' + cur + ':0');
   chk(name, 'legacy', 'its lock, author and stamp carried', M.locked + ':' + M.by + ':' + M.ts, 'true:legacy:5');
   chk(name, 'legacy', 'the legacy container is gone once carried', ev('MS.baselines===undefined'), true);
-  chk(name, 'legacy', 'the Spruills can read it for the year it holds', ev(`JSON.stringify((blPmoAlloc('${lk}','PSM',MS.cur)||{}).alloc)`), JSON.stringify([100, 50, 20]));
+  // v2.19 (item 150): the Spruills are gone; the projection they read is read here
+  chk(name, 'legacy', 'its projection reads for the year it holds', ev(`JSON.stringify(((cycProj('${lk}',MS.cur)||{}).pmo||{PSM:{}}).PSM.alloc)`), JSON.stringify([100, 50, 20]));
   ev(`blLock('${lk}', false); blDelete('${lk}'); cycMigrateLegacy(); 'ok'`);
   chk(name, 'legacy', 'a migrated cycle deleted on purpose does not come back on the next load', ev(`blGet('${lk}')`), null);
-  // the Spruills reads every year the cycle holds, and none it does not
-  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); spFund='bl|PB|'+MS.cur; 'ok'`);
-  const D = JSON.parse(ev(`JSON.stringify(pmoDetail('PSM',[MS.cur, MS.cur+1, MS.cur+2, MS.cur+5]).filter(function(b){ return b.name===APPN; })[0].ctl)`));
-  const P1 = JSON.parse(ev(`JSON.stringify(cycProj('PB|'+MS.cur, MS.cur+1).pmo.PSM.alloc)`));
-  chk(name, 'spruills', 'a cycle gives the PMO its control for every year it holds', [D.USAF[cur + 1], D.ANG[cur + 1], D.STOVL[cur + 1]].join(','), P1.join(','));
-  chk(name, 'spruills', 'and none for a year it never held', String(D.USAF[cur + 2]), 'undefined');
+  // a cycle projects every year it holds, and none it does not (v2.19, item 150: the Spruills that read it are gone)
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  chk(name, 'projection', 'a cycle projects the PMO for every year it holds', ev(`JSON.stringify(!!(cycProj('PB|'+MS.cur, MS.cur+1)||{pmo:{}}).pmo.PSM)`), 'true');
+  chk(name, 'projection', 'and none for a year it never held', ev(`String(cycProj('PB|'+MS.cur, MS.cur+2))`), 'null');
   } catch (e) {
     // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH. On a mutated board a cycle can be
     // missing where the block expects one, and reading it threw; the sweep then saw a suite that
@@ -2407,7 +2292,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'view', 'and A unstarred', ev(`!!S.mc.A`), false);
   chk(name, 'view', 'on the year the plan was on', +ev('MS.cur'), cur);
   chk(name, 'view', 'every year on the drill is the cycle’s, so every panel reads the lock', ev(`JSON.stringify(MS.years[MS.cur+1].asks.A)`), JSON.stringify([200, 100, 40]));
-  chk(name, 'view', 'the chart of accounts prints the locked ask', ev(`coaRows().filter(function(r){ return r.id==='B'; })[0].ask`), 130);
+  // v2.19 (item 150): the chart of accounts that printed it is gone; the locked ask is what the requirement carries on the drill
+  chk(name, 'view', 'the locked ask is on the board', ev(`itemById('B').ask.reduce(function(a,v){ return a+v; },0)`), 130);
   chk(name, 'view', 'the header says so, naming the appropriation (v2.05, item 116)', /VIEWING O&M PB\d\d/.test(ev(`document.getElementById('cycTag').textContent`)), true);
   chk(name, 'view', 'the board carries the banner, naming the appropriation (v2.05, item 116)', /VIEWING O&M PB\d\d \(LOCKED\)/.test(ev(`document.getElementById('list').textContent`)), true);
   chk(name, 'view', 'the title says so, for every export that prints it', /LOCKED VIEW/.test(ev('document.title')), true);
@@ -2554,8 +2440,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
       BANDS_LIST(); MS.bands.push({id:'bx', n:'Band X', d:'x', rule:'full', crit:false, consReq:false, c:'#123456'}); S.band.A='bx';
       BUDDB={ts:1700000000009, files:[], rows:['USAF O&M- CAM Discretionary AV','USAF O&M - CAM OBBBA Mandatory AV','USAF O&M- CAM Discretionary ZED'].map(budParseName).filter(Boolean)};
       _budRegCache=null; persistDest(); persistBud();
-      flowCfg().other[MS.cur]={ip:3000000}; flowCfg().fys=[MS.cur];
       MS.years[MS.cur]=S; MS.base=MS.cur; save(); blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  // v2.19 (item 150): the funds flow is gone, and its partner money, year selection and the TOTAL FUNDING checks with it
   const key = 'PB|' + ev('MS.cur');
   chk(name, 'lock', 'CONTROL — PB27 is locked', ev(`!!(blGet(${J(key)})||{}).locked`), true);
   // THE WORKING PLAN MOVES ON
@@ -2564,11 +2450,10 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
       BUDDB.rows.forEach(function(b){ if(b.n==='USAF O&M- CAM Discretionary AV') b.gone=1; }); BUDDB.ts++; _budRegCache=null; persistBud();
       S.grp.A='AV'; MS.pmos=MS.pmos.filter(function(g){ return g!=='ZED'; });
       BASE_ITEMS.forEach(function(i){ if(i.id==='A'){ i.title='A retitled'; i.event='A event retitled'; } });
-      flowCfg().other={}; flowCfg().other[MS.cur]={fms:2000000}; flowCfg().fys=null;
       applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
   // every export of the board on screen, read cell by cell
   const books = (E) => JSON.parse(E(`(function(){ var res={};
-    ['exportExcel','exportSrc','exportFlow','exportFydpPlan'].forEach(function(fn){ var cap=null, o=buildXlsx;
+    ['exportExcel','exportSrc','exportFydpPlan'].forEach(function(fn){ var cap=null, o=buildXlsx;
       buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
       try{ window[fn](); }catch(e){ cap=[{name:'threw', rows:[[String(e&&e.message)]]}]; }
       buildXlsx=o;
@@ -2577,12 +2462,11 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const sheet = (B, fn, nm) => ((B[fn] || []).find(s => s.name === nm) || { rows: [] }).rows;
   const read = (E) => { const B = books(E);
     const src = (B.exportSrc[0] || { rows: [] }).rows.slice(1).map(r => [r[3], r[4], r[9], r[18]]);
-    const fl = sheet(B, 'exportFlow', 'Funds Flow'), at = l => fl.filter(r => r[0] === l).map(r => r[1]).find(x => typeof x === 'number');
     const db = sheet(B, 'exportExcel', 'Decision Bands').find(r => r[1] === 'Band X');
     // v2.04: the five-year workbook's Summary, By PMO -- the office, its year-on-screen Requirement and Allocated (the lane draw), $M
     const sm = sheet(B, 'exportFydpPlan', 'Summary'), ph = sm.findIndex(r => r[0] === 'PMO' && !r[1]);
     const pm = (ph < 0 ? [] : sm.slice(ph + 2)).filter(r => r[0] === 'ZED' || r[0] === 'AV' || r[0] === 'PSM').map(r => [r[0], Math.round(r[2] * 1e6), Math.round(r[3] * 1e6)]);
-    return { src, flow: [at('US service appropriations'), at('International Partners'), at('Foreign Military Sales'), at('TOTAL FUNDING')],
+    return { src,
       band: db ? db.slice(0, 7) : null, pmo: pm, tabs: B.exportExcel.map(s => s.name).filter(n => /^PMO /.test(n) && n !== 'PMO Matrix'),
       dest: E(`flowEntName('dz1')`), sheets: Object.keys(B).map(f => f + ':' + B[f].length).join(' ') }; };
   // the figures as locked, worked out from the fixture: A draws discretionary 100 / 50 / 20; B draws USAF 50 + 30 mandatory, ANG
@@ -2591,13 +2475,13 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     src: [['A event', 'USAF O&M- CAM Discretionary ZED', 100, 'ZED'], ['A event', '', 50, 'ZED'], ['A event', '', 20, 'ZED'],
           ['B event', 'USAF O&M- CAM Discretionary AV', 50, 'AV'], ['B event', 'USAF O&M - CAM OBBBA Mandatory AV', 30, 'AV'],
           ['B event', '', 10, 'AV'], ['B event', '', 20, 'AV'], ['B event', '', 10, 'AV']],
-    flow: [290, 3000000, 0, 3000290], band: ['8', 'Band X', 'fund in full', '', '', 1, 170],
+    band: ['8', 'Band X', 'fund in full', '', '', 1, 170],
     pmo: [['AV', 130, 120], ['ZED', 170, 170]], tabs: ['PMO AV', 'PMO ZED'], dest: 'Depot One' };
   // THE WORKING PLAN takes every change (CONTROLS)
   const w = read(ev);
   chk(name, 'the working plan', 'CONTROL — A is AV’s, retitled; the retired name and ZED’s are gone; FMS $2,000,000 for ALL YEARS',
-    J([w.src.slice(0, 2), w.flow, w.band, w.pmo, w.dest]),
-    J([[['A event retitled', '', 100, 'AV'], ['A event retitled', '', 50, 'AV']], [290, 0, 2000000, 2000290], null,
+    J([w.src.slice(0, 2), w.band, w.pmo, w.dest]),
+    J([[['A event retitled', '', 100, 'AV'], ['A event retitled', '', 50, 'AV']], null,
        [['AV', 300, 290]], 'Depot Renamed']));
   const snap = `JSON.stringify([MS, S, DESTDB, BUDDB, BASE_ITEMS, BASE_ASK, CLINS, GROUPS, DATA.items, DATA.budget, SVC, DIRTY,
     localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb'), localStorage.getItem(_AP.key)])`;
@@ -2608,8 +2492,6 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const v = read(ev);
   chk(name, 'the view · Spend Plan Source', 'every line’s title, BAE budget and PMO as locked: A in ZED on ZED’s name, B’s USAF discretionary on the name retired since',
     J(v.src), J(LOCKED.src));
-  chk(name, 'the view · Funds Flow', 'partner and FMS money and the year selection as locked: International Partners $3,000,000, no FMS, TOTAL FUNDING $3,000,290',
-    J(v.flow), J(LOCKED.flow));
   chk(name, 'the view · Decision Bands', 'band X, removed since, is still A’s band, by its locked name and rule', J(v.band), J(LOCKED.band));
   chk(name, 'the view · five-year plan By PMO', 'A’s money is ZED’s, the office deleted since', J(v.pmo), J(LOCKED.pmo));
   chk(name, 'the view · workbook', 'the PMO tabs are AV’s and ZED’s', J(v.tabs), J(LOCKED.tabs));
@@ -2617,9 +2499,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'the view', 'CONTROL — it says nothing about today’s lists: this cycle kept its own',
     J([/^👁 Viewing O&M PB27 \(locked\)/.test(said), /read as (it is|they are) today/.test(said)]), J([true, false]));
   // A REFUSED WRITE puts the kept lists back, the board-wide ones included, and writes nothing to browser storage
-  ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Typed In The View'; BUDDB.rows=[]; flowCfg().other[MS.cur]={ip:9}; save(); 'ok'`);
-  chk(name, 'the view · a refused save', 'the destination, the BAE list and the partner money are as locked again',
-    J([ev(`flowEntName('dz1')`), ev(`budResolve('B','USAF','disc').effective`), ev(`flowCalc().ip`)]), J(['Depot One', 'USAF O&M- CAM Discretionary AV', 3000000]));
+  ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Typed In The View'; BUDDB.rows=[]; save(); 'ok'`);
+  chk(name, 'the view · a refused save', 'the destination and the BAE list are as locked again',
+    J([ev(`flowEntName('dz1')`), ev(`budResolve('B','USAF','disc').effective`)]), J(['Depot One', 'USAF O&M- CAM Discretionary AV']));
   const ls0 = ev(`JSON.stringify([localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb')])`);
   chk(name, 'the view · storage', 'the destination and BAE lists on the page are the cycle’s, and neither can be written to browser storage',
     J([ev(`persistDest()`), ev(`persistBud()`), ev(`JSON.stringify([localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb')])`) === ls0]), J([false, false, true]));
@@ -2645,9 +2527,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const oSaid = R.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
   const o = read(R.ev);
   chk(name, 'a cycle locked before v2.02', 'its view says which lists are read as they are today',
-    oSaid.endsWith('⚠ Its destinations, decision bands, BAE budget list, PMO list, requirement data and funds-flow settings are read as they are today: it was locked before v2.02, which did not keep them with a cycle.'), true);
-  chk(name, 'a cycle locked before v2.02', 'CONTROL — and it reads today’s: the new title, ZED gone (A falls back to its home office, PSM), FMS for ALL YEARS',
-    J([o.src[0], o.flow, o.dest]), J([['A event retitled', '', 100, 'PSM'], [290, 0, 2000000, 2000290], 'Depot Renamed']));
+    oSaid.endsWith('⚠ Its destinations, decision bands, BAE budget list, PMO list, requirement data and destination rules are read as they are today: it was locked before v2.02, which did not keep them with a cycle.'), true);   // v2.19 (item 150): the funds flow is gone; its rules stay
+  chk(name, 'a cycle locked before v2.02', 'CONTROL — and it reads today’s: the new title, ZED gone (A falls back to its home office, PSM)',
+    J([o.src[0], o.dest]), J([['A event retitled', '', 100, 'PSM'], 'Depot Renamed']));
   R.ev(`cycLeave(); blOpen=true; blBody(); 'ok'`);
   chk(name, 'a cycle locked before v2.02', 'its line under PPBE cycles says (other lists: today’s)',
     /\(other lists: today’s\)/.test(R.ev(`document.getElementById('blBody').textContent`)), true);
@@ -2686,17 +2568,13 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'D6a', 'a shared-folder copy carrying build v9.00 is refused; one with no build passes', JSON.stringify([
     /^it was written by a newer version of ORBIT \(v9\.00;/.test(door(JSON.stringify({ v: 1, build: 'v9.00 (1 Jan 2099)', ap: 'om' }))),
     door(JSON.stringify({ v: 1, ap: 'om' }))]), JSON.stringify([true, '']));
-  // D7b: partner money typed for a year the board offers nothing else for is offered, and ALL YEARS counts it
-  const y0 = +ev('MS.cur') - 9;
-  ev(`flowCfg().other[${y0}]={ip:3000000}; flowCfg().fys=null; 'ok'`);
-  chk(name, 'D7b', 'the year is offered', ev(`flowYears().indexOf(${y0})>=0`), true);
-  chk(name, 'D7b', 'and ALL YEARS counts its $3,000,000', ev('flowCalc().ip'), 3000000);
+  // D7b: v2.19 (item 150): the funds flow's partner money, and the years it offered, are gone
   // D7c: a year made outside the FYDP window is said
   const b = +ev('+MS.base||+MS.cur'), far = b + 7;
   // v2.17 (item 149.4): a year not started blank is asked twice -- Cancel to roll forward, then OK to start it empty
   ev(`window.__cfA=[false,true]; window.confirm=function(){ return window.__cfA.length? window.__cfA.shift() : false; }; switchYear(${far}); 'ok'`);
   chk(name, 'D7c', 'the line says the new year is outside the window', ev(`(document.getElementById('shareStat')||{}).textContent||''`).endsWith(
-    ' ⚠ FY' + (far % 100) + ' is outside the FYDP window (FY' + (b % 100) + '–FY' + ((b + 4) % 100) + '): it is in no five-year report or locked cycle, and the funds flow’s ALL YEARS counts its plan.'), true);
+    ' ⚠ FY' + (far % 100) + ' is outside the FYDP window (FY' + (b % 100) + '–FY' + ((b + 4) % 100) + '): it is in no five-year report or locked cycle.'), true);
   ev(`switchYear(${b + 1}); 'ok'`);
   chk(name, 'D7c', 'CONTROL — a year inside the window says nothing of it', /outside the FYDP window/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`)), false);
   } catch (e) {
@@ -3011,7 +2889,7 @@ const AR_DRIVE = `(function(){
     // The only fractions a workbook may hold are in cells formatted to show them: the built-in
     // two-decimal styles (10, 11 -- the forecast's $M) or an export's own format with a point or a %.
     ev(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; 'ok'`);
-    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare'];
+    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFydpPlan', 'exportCycCompare'];
     const sweep = JSON.parse(ev(`(function(){ var res={};
       ${JSON.stringify(EXPORTS)}.forEach(function(fn){
         var cap=null, ex=[], o=buildXlsx, r={sheets:0, cells:0, bad:[]};
@@ -3069,7 +2947,7 @@ const AR_DRIVE = `(function(){
     ccar:'ZZDEL1', pid:'ZZDEL-PID', costElem:'ZZDEL-CE', fsrc:{m:'split', dv:[11,12,13], mv:[1,2,3]}, asks:[7,8,9],
     awards:{mode:'single', d:FYMON[2][0], day:9}, grp:GROUPS[1], si:'LA', dest:{to:flowEnts()[0].k, end:'ZZDEL end'},
     wbs:[{w:'9.9.9', v:[]}], clinWbs:{n1:[{w:'4.5.6', v:[]}]}, rcnAsg:'ZZDEL-RCN', rcnSvc:{USAF:'ZZDEL-RCNS'},
-    clinRcn:{n1:'ZZDEL-RCNC'}, clinRcnSvc:{n1:{ANG:'ZZDEL-RCNCS'}}, aceMap:{w:['1.1.9'], ok:true}, upl:1, obCat:OB_CATS[1], budgetAsg:{USAF:'ZZDEL-BAE'},
+    clinRcn:{n1:'ZZDEL-RCNC'}, clinRcnSvc:{n1:{ANG:'ZZDEL-RCNCS'}}, upl:1, obCat:OB_CATS[1], budgetAsg:{USAF:'ZZDEL-BAE'},
     ptype:'PRIME', recNames:'ZZDEL record', clinAlloc:{n1:[5,6,7]}, clinMeta:{n1:{ask:[5,6,7], desc:'ZZDEL clin'}},
     clinNew:[{key:'n1', clin:'3099', desc:'ZZDEL new clin', ccar:'', ask:[1,1,1]}], clinRm:['0001'],
     crHalf:(function(){ var o={}; o[FYMON[2][0]]=1; return o; })(), band:'pdm', cons:'ZZDEL impact', minInc:250, mipr:'direct'}`;
@@ -3119,7 +2997,7 @@ const AR_DRIVE = `(function(){
   chk(name, 'add', 'and holds nothing but the split it is born with',
     ev(`JSON.stringify(__held(${JSON.stringify(n4)}).filter(function(k){ return k!=='fsrc'; }))`), '[]');
   chk(name, 'plan', 'the year’s plan holds none of the deleted text', ev(`JSON.stringify(S).indexOf('ZZDEL')`), '-1');
-  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFydpPlan'];
   const inExports = JSON.parse(ev(`(function(){ var hits=[];
     ${JSON.stringify(EXPORTS)}.forEach(function(fn){ var cap=null, o=buildXlsx;
       buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
@@ -3196,7 +3074,7 @@ const AR_DRIVE = `(function(){
   const name = 'restore brings back what remove took';
   try {
   const SVC = ['USAF', 'ANG', 'AFRC'];
-  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFydpPlan'];
   const setup = `S.alloc.A={m:'t', v:700}; S.mc.A=true; S.notes.A='kept note'; S.titles.A='ZZKEEP renamed';
     if(!S.costElem) S.costElem={}; S.costElem.A='ZZKEEP-CE';
     if(!S.clinAlloc) S.clinAlloc={}; S.clinAlloc.A={n1:[50,20,10]};
@@ -3671,133 +3549,9 @@ await (async () => {
 // locked from the same plan. The oracle below is the scenario's own arithmetic, written out by hand,
 // and the year's projection (cycProjOf through aceWithYear -- what a lock takes) is held to it too.
 const { bootMark: _w4Mark, bootRelease: _w4Release, settleBoards: _w4Settle } = await import('./boot.mjs');
-await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
-  const __bm = _w4Mark();
-  const name = 'v1.95 — the PMO drill uses the board’s own allocation';
-  try {
-  const J = JSON.stringify, M = 1e6;
-  const { ev, errors } = boot();
-  seed(ev, { services: ['USAF', 'ANG'],
-    items: [it('SPLIT', 'AV', [100 * M, 100 * M]), it('ODD', 'AV', [100, 100]), it('UNEQ', 'AV', [70, 30]),
-            it('OVER', 'AV', [100, 100]), it('ZERO', 'AV', [0, 0]), it('UFR', 'AV', [40 * M, 10 * M]),
-            it('MOVE', 'AV', [5 * M, 3 * M]), it('STAY', 'TSS', [7 * M, 2 * M]),
-            it('PRM', 'PRIMES', [20 * M, 4 * M], { title: 'LM Air Vehicle Annualized Sustainment (made up)' }),
-            it('PSMX', 'PSM', [2 * M, 1 * M])],
-    disc: [1000 * M, 1000 * M], mand: [1000 * M, 1000 * M],
-    order: ['SPLIT', 'ODD', 'UNEQ', 'OVER', 'ZERO', 'UFR', 'MOVE', 'STAY', 'PRM', 'PSMX'] });
-  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
-  const cur = +ev('MS.cur'), Y = [cur, cur + 1];
-  // every edit through the board's own editors
-  ev(`setFsrc('SPLIT','split'); setFsrcSvc('SPLIT','d',0,'60000000'); setFsrcSvc('SPLIT','d',1,'0');
-      setFsrcSvc('SPLIT','m',0,'0'); setFsrcSvc('SPLIT','m',1,'20000000');
-      setAlloc('ODD','101'); setAlloc('UNEQ','101'); setAlloc('ZERO','101'); setAlloc('PRM','23999999');
-      setSvc('OVER',0,'150'); setSvc('OVER',1,'10'); setFsrc('UFR','ufr'); 'ok'`);
-  ev(`switchYear(${cur + 1}); setGrp('MOVE','TSS'); switchYear(${cur}); 'ok'`);          // FY+1 rolled forward; MOVE moves there only
-  // v2.07 (item 121): added through the one writer the Add box ends in, with what the strip wrote: a title, an event, the value
-  ev(`render(); reqCreate('AV', {title:'ADDED', event:'e', ask:[9000000, 1000000]}); save(); render(); 'ok'`);
-  const nid = ev('S.custom[S.custom.length-1].id');
-  ev(`yearCopy(${J(nid)}, ${cur + 1}, 'c'); save(); setAsk('STAY',0,'8000000'); 'ok'`);  // the year on screen's ask only
-  // THE TRUTH, by hand: [USAF, ANG] allocated and asked, per PMO, per year. PRM is a prime under
-  // PRIMES and rolls up to PSM in the Spruills; its 23,999,999 is apportioned whole as [19,999,999, 4,000,000].
-  const want = {
-    [cur]: { AV: { alloc: [74000323, 24000140], ask: [154000270, 114000230] }, TSS: { alloc: [8 * M, 2 * M], ask: [8 * M, 2 * M] },
-             PSM: { alloc: [21999999, 5000000], ask: [22 * M, 5 * M] } },
-    [cur + 1]: { AV: { alloc: [69000323, 21000140], ask: [149000270, 111000230] }, TSS: { alloc: [12 * M, 5 * M], ask: [12 * M, 5 * M] },
-                 PSM: { alloc: [21999999, 5000000], ask: [22 * M, 5 * M] } },
-  };
-  // CONTROL (passes on v1.94 too): the year's projection -- the lock's engine -- is the hand arithmetic
-  const proj = y => JSON.parse(ev(`JSON.stringify(aceWithYear(${y}, function(){ return cycProjOf().reqs.map(function(r){
-      var x=itemById(r.id); return {grp:r.grp, rec:x? x.title : '', ask:r.ask, alloc:r.alloc}; }); }))`));
-  const byPmo = rows => { const o = {}; rows.forEach(r => { const g = (r.grp === 'PRIMES' && /Annualized Sustainment/.test(r.rec)) ? 'PSM' : r.grp;
-    o[g] ||= { alloc: [0, 0], ask: [0, 0] }; [0, 1].forEach(i => { o[g].alloc[i] += r.alloc[i]; o[g].ask[i] += r.ask[i]; }); }); return o; };
-  const P = { [cur]: byPmo(proj(cur)), [cur + 1]: byPmo(proj(cur + 1)) };
-  chk(name, 'control', 'CONTROL — each year’s projection by PMO is the hand arithmetic (passes on v1.94: the projection is not what changed)',
-    J(Y.map(y => ['AV', 'TSS', 'PSM'].map(g => P[y][g]))), J(Y.map(y => ['AV', 'TSS', 'PSM'].map(g => want[y][g]))));
-  // THE DRILL, on Board budgets, from the board's own requirements
-  ev(`spAce='board'; spFund='board'; 'ok'`);
-  const drill = g => JSON.parse(ev(`JSON.stringify(pmoDetail(${J(g)}, ${J(Y)}).filter(function(b){ return b.name===APPN; })[0])`));
-  const read = (D, k) => Y.map(y => ['USAF', 'ANG'].map(sv => (D[k][sv] || {})[y]));
-  const D = { AV: drill('AV'), TSS: drill('TSS'), PSM: drill('PSM'), PRIMES: drill('PRIMES') };
-  chk(name, 'AV', 'Controls, each year: the split as split, odd dollars whole, unequal and zero asks, the override, the forced UFR as nothing, the added requirement once',
-    J(read(D.AV, 'ctl')), J(Y.map(y => want[y].AV.alloc)));
-  chk(name, 'AV', 'Requirement, each year: that year’s own asks, the added requirement once', J(read(D.AV, 'req')), J(Y.map(y => want[y].AV.ask)));
-  chk(name, 'TSS', 'a PMO moved in one year: FY+1 holds it, the year on screen does not; each year’s own ask',
-    J([read(D.TSS, 'ctl'), read(D.TSS, 'req')]), J([Y.map(y => want[y].TSS.alloc), Y.map(y => want[y].TSS.ask)]));
-  chk(name, 'PSM', 'the prime under PRIMES rolls up to PSM, apportioned whole',
-    J([read(D.PSM, 'ctl'), read(D.PRIMES, 'ctl')]), J([Y.map(y => want[y].PSM.alloc), Y.map(() => [undefined, undefined])]));
-  const all = ['AV', 'TSS', 'PSM'].flatMap(g => ['req', 'bud', 'ctl'].flatMap(k => read(D[g], k).flat()));
-  chk(name, 'whole dollars', 'every figure the drill holds is an integer', all.filter(v => !Number.isInteger(v)).length + ' of ' + all.length, '0 of ' + all.length);
-  // BOARD BUDGETS AND A CYCLE LOCKED FROM THE SAME PLAN PRINT THE SAME CONTROLS
-  ev(`blCyc='PB'; blYr=MS.cur; blNote=''; cycLock(); 'ok'`);
-  ev(`spFund='bl|PB|${cur}'; 'ok'`);
-  const L = { AV: drill('AV'), TSS: drill('TSS'), PSM: drill('PSM') };
-  chk(name, 'the same plan locked', 'a cycle locked from this plan gives every PMO, every year, the Board budgets Controls',
-    J(['AV', 'TSS', 'PSM'].map(g => read(L[g], 'ctl'))), J(['AV', 'TSS', 'PSM'].map(g => Y.map(y => want[y][g].alloc))));
-  const screen = (fund, g) => ev(`(function(){ spOpen=true; spBy='pmo'; spPmo=${J(g)}; spFund=${J(fund)}; spAce='board'; spDrillSvc='ALL'; spBody();
-      var r=document.querySelector('#spBody .pmoblk tr.lctl'); return r? [].slice.call(r.cells).slice(1,3).map(function(c){ return c.textContent.trim(); }).join(' | ') : '(no drill)'; })()`);
-  const fm = v => ev(`fM2(${v})`);
-  chk(name, 'on screen', 'the drill prints the same Controls from Board budgets and from the lock, and they are the board’s',
-    ['AV', 'PSM'].map(g => screen('board', g) + ' / ' + screen('bl|PB|' + cur, g)).join(' ; '),
-    ['AV', 'PSM'].map(g => { const s = Y.map(y => fm(want[y][g].alloc[0] + want[y][g].alloc[1])).join(' | '); return s + ' / ' + s; }).join(' ; '));
-  // THE SPRUILLS TABLE ABOVE THE DRILL: each year's own requirements, each once, under that year's PMO
-  ev(`spFund='board'; spPmo='ALL'; 'ok'`);
-  const G = JSON.parse(ev(`JSON.stringify(spGather().blocks.filter(function(b){ return b.name===APPN; })[0])`));
-  const tot = y => ['AV', 'TSS', 'PSM'].reduce((a, g) => a + want[y][g].ask[0] + want[y][g].ask[1], 0);
-  chk(name, 'Spruills', 'Total Requirements and the rows by PMO, each year: the added requirement once, each year’s own ask and PMO',
-    J(Y.map(y => [G.req[y], ['AV', 'TSS', 'PSM', 'PRIMES'].map(g => (G.rows[g] || {})[y])])),
-    J(Y.map(y => [tot(y), ['AV', 'TSS', 'PSM'].map(g => want[y][g].ask[0] + want[y][g].ask[1]).concat([undefined])])));
-  if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  _w4Release(__bm, []);
-  await _w4Settle();
-})();
+// v2.19 (item 150): removed with its feature -- v1.95 — the PMO drill uses the board’s own allocation
 
-// The PMO drill reads ANOTHER appropriation's requirements from that appropriation's own year state
-// (its PMO, its added requirements once), and does not work out its allocation: the lane engine runs
-// on one appropriation per page, so its Controls are left unknown and the totals across
-// appropriations are not added up as if they were nothing. On v1.94 the drill filed Full Fund's added
-// requirement under the PMO O&M's own state gave a requirement that happened to share its id.
-await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
-  const __bm = _w4Mark();
-  const name = 'v1.95 — the PMO drill reads another appropriation from its own state';
-  try {
-  const J = JSON.stringify, M = 1e6;
-  const ff = { base: 2027, cur: 2027, ts: 1, years: { 2027: {
-    order: ['NEW-1'], alloc: {}, mc: {}, fsrc: {}, removed: [], discSvc: [50 * M, 50 * M], mandSvc: [0, 0],
-    custom: [{ id: 'NEW-1', grp: 'AV', sect: 'new', custom: true, title: 'FF added (made up)', event: 'e', ccar: '',
-               fy26: [0, 0], ask: [4 * M, 1 * M], alloc: null }] } } };
-  const { ev } = boot({ ls: { prio27ff: J(ff), prio27who: 'alice' } });
-  seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 10 * M])], disc: [100 * M, 100 * M], mand: [0, 0], order: ['A'] });
-  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
-  // O&M adds its own NEW-1 and moves it to TSS: the ids collide, the states do not
-  // v2.07 (item 121): through the one writer the Add box ends in, with what the strip wrote
-  ev(`render(); reqCreate('AV', {title:'OM added', event:'e', ask:[2000000, 0]}); save(); render(); setGrp('NEW-1','TSS');
-      spAce='board'; spFund='board'; 'ok'`);
-  const cur = +ev('MS.cur');
-  const blk = (g, n) => JSON.parse(ev(`JSON.stringify(pmoDetail(${J(g)}, [MS.cur]).filter(function(b){ return b.name===${J(n)}; })[0]||null)`));
-  const two = (b, k) => b ? ['USAF', 'ANG'].map(sv => (b[k][sv] || {})[cur]) : null;
-  chk(name, 'Full Fund', 'its added requirement is under the PMO its own state gives (AV), once; its Controls are not guessed',
-    J([two(blk('AV', 'FULL FUND'), 'req'), two(blk('AV', 'FULL FUND'), 'ctl'), two(blk('TSS', 'FULL FUND'), 'req')]),
-    J([[4 * M, 1 * M], [null, null], [null, null]]));
-  chk(name, 'O&M', 'O&M’s own added requirement is in TSS once, with its allocation', J([two(blk('TSS', 'O&M'), 'req'), two(blk('TSS', 'O&M'), 'ctl')]),
-    J([[2 * M, 0], [2 * M, 0]]));
-  const G = JSON.parse(ev(`(function(){ spBy='pmo'; return JSON.stringify(spGather().blocks.filter(function(b){ return b.name==='FULL FUND'; })[0].rows); })()`));
-  chk(name, 'Spruills', 'the Full Fund block files it under AV, once', J(G), J({ AV: { [cur]: 5 * M } }));
-  const scr = ev(`(function(){ spOpen=true; spBy='pmo'; spPmo='AV'; spFund='board'; spAce='board'; spDrillSvc='ALL'; spBody();
-      var el=document.getElementById('spBody'), b=[].slice.call(el.querySelectorAll('.pmoblk'));
-      var grand=b[b.length-1], ctl=grand? grand.querySelector('tr.lctl') : null, del=grand? grand.querySelector('tr.ldel') : null;
-      var cell=function(r){ return r? r.cells[1].textContent.trim() : '(none)'; };
-      return JSON.stringify([cell(ctl), cell(del), /FULL FUND holds AV requirements/.test(el.textContent)]); })()`);
-  chk(name, 'on screen', 'across appropriations, the year Full Fund holds AV has no total Control or Delta, and the drill says why',
-    scr, J(['—', '—', true]));
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  _w4Release(__bm, []);
-  await _w4Settle();
-})();
+// v2.19 (item 150): removed with its feature -- v1.95 — the PMO drill reads another appropriation from its own state
 // ==== end W4 ====
 
 // ==== v1.96 (item 65): long menus fold by the job ====
@@ -3830,7 +3584,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     // v2.05 (item 114): 15 -- the deck, the synopsis and Executive decision removed, and the companion tool a link at the box's foot
     // v2.12 W1: Data 8 -- the Annual Cost Estimate card gains the import report (item 132)
     // v2.15 W3: Save’s ▾ 3 -- Save as a new file… and Choose another file… beside Save a copy… (item 146)
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '8', '4', '4', '3', '5']));
+    // v2.19 (item 150): Reports & exports 9 -- the IDS file, the chart of accounts, the ACE tie-out and the AI review's three are gone;
+    // Data 5 -- the Annual Cost Estimate card's three went with it
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['9', '6', '2', '9', '5', '4', '4', '3', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
@@ -3839,10 +3595,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // v2.05 (item 114): two lists -- Working Documents (Briefing, renamed), Spend Plan & Cash with its year beside it, Five Years &
   // PPBE; then CCaR & Accounting Files and AI Review, advisory only. Companion tools is the box's foot.
   chk(name, 'groups', 'Reports & exports is grouped by the job, in two lists, nothing folded', J([secs('reports'), heads('reports')]),
-    J([['Working Documents', 'Spend Plan & Cash ' + ev('FYL()'), 'Five Years & PPBE', 'CCaR & Accounting Files', 'AI Review advisory only'], []]));
+    J([['Working Documents', 'Spend Plan & Cash ' + ev('FYL()'), 'Five Years & PPBE', 'CCaR Files'], []]));   // v2.19 (item 150)
   chk(name, 'groups', 'Setup and Filter fold', J([heads('setup'), heads('view')]),
     J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Funding', 'Service — funded requirements only']]));
-  chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Annual Cost Estimate', 'Budget extract (BAE)']));
+  chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Budget extract (BAE)']));   // v2.19 (item 150): the cost estimate's card is gone
   // Each group holds exactly what was decided, read off what its items call.
   // String.raw: a template literal would eat the regular expressions' backslashes
   const callOf = String.raw`function(e){
@@ -3856,19 +3612,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return JSON.stringify([].slice.call(d.querySelectorAll('button[onclick]')).map(${callOf})); })()`));
   // v2.10 A: the foot names FYDP Disconnects among the FYDP views (item 130)
   chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, and the box’s foot says where each view lives',
-    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /CR Cash Needs under Execution ▸; the five-year spend plan, PPBE Budget Positions, Spruills and FYDP Disconnects under FYDP ▸/.test(ev(`document.querySelector('#dd_reports .uiRfoot').textContent`))]),
+    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /CR Cash Needs under Execution ▸; the five-year spend plan and PPBE Budget Positions under FYDP ▸/.test(ev(`document.querySelector('#dd_reports .uiRfoot').textContent`))]),
     J([['togglePlans', 'crExport'], true]));
   // v2.05 (item 114; Brad, 23 Oct 2026): Briefing is Working Documents, without the deck, the synopsis and Executive decision; the
   // companion tool is a link at the foot, and changing it is a setting, under Setup › Who and where
   chk(name, 'contents', 'Working Documents, Five Years & PPBE, CCaR & Accounting Files; no Execution & reprogramming section and no Companion tools section',
     J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => callsIn(`#dd_reports .uiRs[data-g="${g}"] .mi`))),
     J([['exportExcel', 'exportCSV'], ['fydpPickExport', 'exportCycCompare'],
-       [], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], []]));
+       [], ['exportSrc'], []]));   // v2.19 (item 150): the IDS file, the chart of accounts and the ACE tie-out are gone
   chk(name, 'contents', 'the companion tool is the link at the box’s foot, and Linked tool… is under Setup › Who and where',
     J([callsIn('#dd_reports .uiRfoot button'), calls('setup', 'who').includes('linkSet')]), J([['linkOpen'], true]));
-  chk(name, 'contents', 'the sections, in order: Working Documents, Spend Plan & Cash (the year beside it), Five Years & PPBE, CCaR & Accounting Files, AI Review (advisory only)',
+  chk(name, 'contents', 'the sections, in order: Working Documents, Spend Plan & Cash (the year beside it), Five Years & PPBE, CCaR Files (v2.19)',
     ev(`(function(){ syncBtns(); return [].slice.call(document.querySelectorAll('#dd_reports .uiRs h4')).map(function(h){ return h.textContent.replace(/\\s+/g,' ').trim(); }).join(' | '); })()`),
-    'Working Documents | Spend Plan & Cash ' + ev('FYL()') + ' | Five Years & PPBE | CCaR & Accounting Files | AI Review advisory only');
+    'Working Documents | Spend Plan & Cash ' + ev('FYL()') + ' | Five Years & PPBE | CCaR Files');
   // v2.05 (item 114; Brad, 23 Oct 2026: "Leave the icons off. They're non value added"): no item in the left menu's boxes and side
   // panels starts with an icon -- read off what each list holds, every folded group included (the browser check G does it as drawn)
   chk(name, 'contents', 'no item on the left menu starts with an icon (a tick, ● and ○ for the theme in use are not icons)',
@@ -3886,12 +3642,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       var t=[].slice.call(b.childNodes).filter(function(n){ return n.nodeType===3; }).map(function(n){ return n.textContent; }).join('').trim();
       return t+' ['+((b.querySelector('.fmt')||{}).textContent||'')+']'; }).join(' | '); })()`),
     'Excel Workbook [XLSX] | Priority Drill By Band… [XLSX] | Two Spend Plans… [VIEW] | CR Cash Return (1A9A) [XLSX] | FYDP Spend Plan… [XLSX] | Cycle Comparison [XLSX] | '
-    + 'Spend Plan Source [XLSX] | IDS Batch Import… [XLSX] | Chart Of Accounts [XLSX] | ACE Tie-Out [XLSX] | Export For GenAI.mil… [TXT] | Import The Answer… [READ] | Review List [VIEW]');
+    + 'Spend Plan Source [XLSX]');   // v2.19 (item 150)
   // v2.10 A: FYDP Disconnects is a FYDP view, beside the Spruills (item 130)
   // v2.12 W3: Fit to the PPBE position (item 134) is a FYDP view, after PPBE Budget Positions
   chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
     J([flyCalls('fydp'), flyCalls('exec')]),
-    J([['toggleFydp', 'toggleSp', 'toggleFdc', 'toggleP2', 'toggleFit', 'toggleFlow'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
+    J([['toggleFydp', 'toggleP2'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));   // v2.19 (item 150): the Spruills, FYDP Disconnects, the fit and the funds flow are gone
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
@@ -3946,8 +3702,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const fx = find('excel'), fc = find('cash'), fz = find('zzqq'), ff = find('cash needs');
   // v2.02: the ATR/BTR log (Excel), and its Execution & reprogramming group, went with the tracker (seven, four groups before)
   // v2.05 (item 114): "(Excel)" left the titles for the XLSX tag, and Find reads the tag's words -- so "excel" finds every workbook
-  chk(name, 'Find', 'typing "excel" lists the nine workbooks, from four groups at once',
-    J([fx.n, fx.groups, fx.none]), J([9, ['brief', 'spend', 'fydp', 'ccar'], false]));
+  // v2.19 (item 150): the IDS file, the chart of accounts and the ACE tie-out are gone (nine -> six)
+  chk(name, 'Find', 'typing "excel" lists the six workbooks, from four groups at once',
+    J([fx.n, fx.groups, fx.none]), J([6, ['brief', 'spend', 'fydp', 'ccar'], false]));
   chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([2, ['spend'], 0, true]));
   chk(name, 'Find', 'a view that lives on the left menu is found by the line that says where it is', J([ff.n, ff.lines, ff.none]), J([0, ['foot'], false]));
   const after = JSON.parse(ev(`(function(){ uiRepClose(); syncBtns(); uiRepOpen();
@@ -4615,7 +4372,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // filed under a service's NAME: a BAE budget per service and lane, an RCN/EEIC override, a PPBE position, the Spruills' service
   ev(`(function(){ var R1=S.custom[0].id; S.budgetAsg[R1]={'S3|disc':'BUD-3D','S3|mand':'BUD-3M','S1':'BUD-1'};
     S.rcnSvc[R1]={S3:'rc3'}; MS.ppbe['PB|2027']={v:2, split:false, lines:{S3:[{k:'_all', all:true}]}, val:{S3:{_all:{2027:{d:7,m:0}}}}};
-    MS.spSvc='S3'; spSvc='S3'; MS.spDrillSvc='S1'; spDrillSvc='S1'; svcFilter=1; fcView='s:4'; save(); return 'ok'; })()`);
+    svcFilter=1; fcView='s:4'; save(); return 'ok'; })()`);
   const O = JSON.parse(ev(`JSON.stringify(MS.years)`));
   const orig = w4walk(O, [], [], W4S.length);
   const kinds = [...new Set(orig.map(([p]) => p[0] + ' ' + p.slice(1).filter(k => typeof k === 'string' && !/^NEW-/.test(k)).join('.')))].sort();
@@ -4644,9 +4401,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   ev(`prompt=function(){ return 'S3x'; }; svcRen(1)`);
   chk(name, 'rename', 'S3 renamed S3x: every list keeps its dollars where they were',
     J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig, { S3x: 'S3' }), J(['S1', 'S3x', 'S2', 'S5', 'S4']) + ' every list follows its service');
-  chk(name, 'rename', 'and what is filed under its name follows it: the BAE budget per lane, the RCN/EEIC override, the PPBE position, the Spruills’ service',
-    ev(`JSON.stringify([S.budgetAsg[S.custom[0].id], S.rcnSvc[S.custom[0].id], Object.keys(MS.ppbe['PB|2027'].val), Object.keys(MS.ppbe['PB|2027'].lines), MS.spSvc, spSvc])`),
-    J([{ S1: 'BUD-1', 'S3x|disc': 'BUD-3D', 'S3x|mand': 'BUD-3M' }, { S3x: 'rc3' }, ['S3x'], ['S3x'], 'S3x', 'S3x']));
+  // v2.19 (item 150): the Spruills, and the service it remembered, are gone
+  chk(name, 'rename', 'and what is filed under its name follows it: the BAE budget per lane, the RCN/EEIC override, the PPBE position',
+    ev(`JSON.stringify([S.budgetAsg[S.custom[0].id], S.rcnSvc[S.custom[0].id], Object.keys(MS.ppbe['PB|2027'].val), Object.keys(MS.ppbe['PB|2027'].lines)])`),
+    J([{ S1: 'BUD-1', 'S3x|disc': 'BUD-3D', 'S3x|mand': 'BUD-3M' }, { S3x: 'rc3' }, ['S3x'], ['S3x']]));
   // remove the first: the confirm says what it holds, per kind, in each year -- the fixture's own sums
   const held = (s) => { const out = {}; [0, 1].forEach(y => { const V = w4year(y);
     const ask = V.ask.reduce((a, v) => a + v[s], 0), alloc = V.dv[s] + V.mv[s] + V.alloc[s] + V.ask[2][s];
@@ -4667,8 +4425,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   ev(`svcDel(2)`);
   chk(name, 'delete last', 'S4 (the last) removed: every other service keeps its own dollars',
     J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig, { S3x: 'S3' }), J(['S3x', 'S5']) + ' every list follows its service');
-  chk(name, 'filters', 'a filter on a service removed lets go (the chip, the PMO drill’s service); one on a service kept still names it',
-    ev(`JSON.stringify([svcFilter, fcView, spDrillSvc, MS.spDrillSvc])`), J([-1, 's:1', 'ALL', 'ALL']));
+  chk(name, 'filters', 'a filter on a service removed lets go (the chip); one on a service kept still names it',
+    ev(`JSON.stringify([svcFilter, fcView])`), J([-1, 's:1']));
   // save and reopen: the file names the services in their new order and every figure is on its own service
   const R = boot({ html: ev(`buildSavedHtml()`) });
   chk(name, 'save and reopen', 'the saved board reopens with S3x, S5 and every list, in both years, on its own service',
@@ -4904,16 +4662,7 @@ await (async () => {
     const J = JSON.stringify;
     const X = boot();
     seed(X.ev, { services: ['USAF', 'USN'], items: [it('A1', 'PSM', [500, 700])], disc: [0, 0], mand: [0, 0], order: ['A1'] });
-    const ff = JSON.parse(X.ev(`(function(){ const o=[];
-      flowSetOther(2027,'ip','12.5'); o.push(flowCfg().other[2027].ip);
-      flowSetOther(2027,'ip','abc');  o.push(flowCfg().other[2027].ip);
-      flowSetOther(2027,'ip','1.2.3'); o.push(flowCfg().other[2027].ip);
-      flowSetOther(2027,'fms','1.2345678'); o.push(flowCfg().other[2027].fms);
-      flowSetOther(2027,'fms','750K'); o.push(flowCfg().other[2027].fms);
-      flowSetOther(2027,'fms',''); o.push(flowCfg().other[2027].fms);
-      return JSON.stringify(o); })()`));
-    chk(name, 'Funds Flow · partner and FMS money', '12.5 is $12,500,000; "abc" and "1.2.3" keep it; 1.2345678 is $1,234,568; 750K is $750,000; a blank clears it',
-      J(ff), J([12500000, 12500000, 12500000, 1234568, 750000, 0]));
+    // v2.19 (item 150): the Funds Flow and its partner and FMS money are gone; the realignment's $M fields stay
     const rl = JSON.parse(X.ev(`(function(){ const o=[];
       rlgSetSvc('USAF','2.5'); o.push(rlgSvcNeed.USAF);
       rlgSetSvc('USAF','abc'); o.push(rlgSvcNeed.USAF);
@@ -5554,12 +5303,8 @@ await (async () => {
   chk(name, 'BAE register', 'open on a file entry with no date, and one that is not an entry: every redraw still draws', drew(), 'drew');
   chk(name, 'BAE register', 'the entry with no date is listed, its date a dash',
     ev(`(function(){ var r=[].slice.call(document.querySelectorAll('#budRegPanel tr')).map(function(t){ return t.textContent; }).filter(function(t){ return /bae\.xlsx/.test(t); }); return r.length+' · '+/—$/.test(r[0]||''); })()`), '1 · true');
-  ev(`budOpen=false; render();
-      ACEDB.sets=ACEDB.sets||{}; ACEDB.sets.X={appn:{}}; APPN_SLUGS.forEach(function(k){ ACEDB.sets.X.appn[k]={pmo:{R:{2027:900}}}; });
-      spAce='X'; spOpen=true; 'ok'`);
-  chk(name, 'Spruills', 'open on an estimate whose appropriations carry no totals: every redraw still draws', drew(), 'drew');
-  chk(name, 'Spruills', 'and the panel is drawn', ev(`(document.getElementById('spBody')||document.getElementById('spPanel')||{}).textContent.length>0`), true);
-  ev(`spOpen=false; spAce='board'; render(); 'ok'`);
+  // v2.19 (item 150): the Spruills, and the estimate it read, are gone
+  ev(`budOpen=false; render(); 'ok'`);
   chk(name, 'errors', 'no page error', B.errors.length, 0);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
@@ -5640,17 +5385,16 @@ await (async () => {
     ev(`setDest('A','to','pax'); setDest('A','end','lm'); setMipr('A','direct'); setDest('A','to','pw'); 'ok'`);
     chk(name, 'F4', 'A switched to Pratt & Whitney: the stored second hop is cleared', ev(`(S.dest.A||{}).end===undefined`), true);
     chk(name, 'F4', 'its MIPR type is cleared', ev(`(S.mipr||{}).A===undefined`), true);
-    chk(name, 'F4', 'and its final destination is the prime', ev(`destEndOf(itemById('A'))`), 'pw');
-    chk(name, 'F4', 'the funds flow by final destination files it under Pratt & Whitney', ev(`JSON.stringify(flowDestResolve(['A'],'end'))`), J(['pw']));
+    chk(name, 'F4', 'and its final destination is the prime', ev(`(function(d){ return d.end||d.to||''; })(destOf(itemById('A')))`), 'pw');
     ev(`setDest('A','to','pax'); setMipr('A','reimb'); setDest('A','to',''); 'ok'`);
     chk(name, 'F4', 'Goes to cleared takes the MIPR type and the record with it', ev(`[(S.dest||{}).A===undefined, (S.mipr||{}).A===undefined].join(' · ')`), 'true · true');
     // a board saved before v2.08: B is on a prime with a hidden second hop and MIPR type
     ev(`S.dest.B={to:'pw', end:'lm'}; S.mipr.B='direct'; save(); 'ok'`);
-    chk(name, 'F4', 'one saved before: the hidden second hop is read as nothing', ev(`destEndOf(itemById('B'))`), 'pw');
+    chk(name, 'F4', 'one saved before: the hidden second hop is read as nothing', ev(`(function(d){ return d.end||d.to||''; })(destOf(itemById('B')))`), 'pw');
     chk(name, 'F4', 'its MIPR type is read as nothing', ev(`miprOf('B')`), '');
     chk(name, 'F4', 'and nothing is deleted from the file', ev(`[S.dest.B.end, S.mipr.B].join(' · ')`), 'lm · direct');
     ev(`setDest('C','to','pax'); setDest('C','end','lm'); setMipr('C','direct'); 'ok'`);
-    chk(name, 'F4', 'CONTROL: an OGC keeps both', ev(`[destEndOf(itemById('C')), miprOf('C')].join(' · ')`), 'lm · direct');
+    chk(name, 'F4', 'CONTROL: an OGC keeps both', ev(`[(function(d){ return d.end||d.to||''; })(destOf(itemById('C'))), miprOf('C')].join(' · ')`), 'lm · direct');
   });
 
   // ---- F7: Classify's per-service RCN / EEIC column sets RCN / EEIC, never the budget
@@ -6570,8 +6314,9 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
       ev(`JSON.stringify([BA_SRC[2027].from, BA_SRC[2027].key, BA_SRC[2029].logged, JSON.stringify(MS).indexOf('BA_SRC')])`), J([['pos', 'pos', 'board'], 'BES|2028', false, -1]));
     chk(name, 'tagged BES28', 'the lane walk draws against it: USAF discretionary drawn is BES28’s plus the add, no more',
       ev(`(function(){ var T=tiers(), t=0; S.order.forEach(function(id){ t+=T[id].d[0]; }); return t; })()`), 1050);
-    chk(name, 'the Spruills', 'Available Funding each year is the live budget (Σ disc + mand): 32,1520 · 6,145 · 2,370 for FY27–FY29',
-      ev(`(function(){ var k=[spBy,spSvc,spPmo]; spBy='pmo'; spSvc='ALL'; spPmo='ALL'; var b=spGather().blocks.find(function(x){ return x.name===APPN; }); spBy=k[0]; spSvc=k[1]; spPmo=k[2]; return JSON.stringify([b.bud[2027], b.bud[2028], b.bud[2029]]); })()`),
+    // v2.19 (item 150): the Spruills that printed it are gone; each year's budget as every reader of another year reads it
+    chk(name, 'each year’s budget', 'each year’s budget authority is the live budget (Σ disc + mand): 32,1520 · 6,145 · 2,370 for FY27–FY29',
+      ev(`(function(){ var t=function(y){ var Y=MS.years[y]; return (Y.discSvc||[]).concat(Y.mandSvc||[]).reduce(function(a,v){ return a+(+v||0); },0); }; return JSON.stringify([t(2027), t(2028), t(2029)]); })()`),
       J([1050 + 452000 + 330 + 300 + 90040 + 50, 5075 + 0 + 310 + 700 + 0 + 60, 1200 + 420 + 320 + 220 + 120 + 70]));
     // ---- a figure typed into the position moves the budget at once: the year on screen, and a year not opened
     ev(`ppCyc='BES'; ppYr=2028; ppSetV('USAF','_all',2028,'d','6000'); 'ok'`);
@@ -6687,24 +6432,25 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     // v2.12 RV3 (R15): each over is said against what it is measured against -- USAF's $50 is past BES28's $900 PLUS the lane's
     // $150 Cong add (the requirements hold $200 more than BES28 alone), and AFRC's base is the board's own
     chk(name, 'the box', 'it says each over the way it reads in the room, and nothing else is over',
-      ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody .fitover'), function(e){ return e.textContent; }))`),
+      ev(`JSON.stringify([].map.call(document.querySelectorAll('#attBody .fitover'), function(e){ return e.textContent; }))`),
       J(['▲ FY27 O&M, USAF discretionary: requirements hold $50 more than BES28 plus added funding ($900 + $150) — reduce a requirement',
          '▲ FY27 O&M, AFRC mandatory: requirements hold $100 more than the board’s own budget — reduce a requirement']));
     chk(name, 'the box', 'each year says where its base came from',
-      ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody .fityr span'), function(e){ return e.textContent; }))`),
+      ev(`JSON.stringify([].map.call(document.querySelectorAll('#attBody .fityr span'), function(e){ return e.textContent; }))`),
       J(['Base from BES28 for USAF, ANG · the board’s own for AFRC (BES28 says nothing about it).',
          'Base from BES28 for USAF, ANG · the board’s own for AFRC (BES28 says nothing about it).',
          'BES28 logs nothing for FY29: every base is the board’s own, from Budget Management.']));
-    chk(name, 'the box', 'FY27’s UPL column: AFRC discretionary 30, ANG mandatory 40',
-      ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody table.fittab')[0].querySelectorAll('tr[data-svc]'), function(r){ return r.getAttribute('data-svc')+' '+r.getAttribute('data-lane')+' '+r.lastElementChild.textContent; }))`),
+    // v2.19 (item 150): the box's table is gone with the box; FY27's UPL by service and lane is read from the fit model it drew
+    chk(name, 'the box', 'FY27’s UPL: AFRC discretionary 30, ANG mandatory 40',
+      ev(`(function(){ var Y=fitModel().years[2027], o=[]; SVC.forEach(function(sv,i){ ['d','m'].forEach(function(k){ var v=Y.L[k].upl[i]; o.push(sv+' '+k+' '+(v>0.5? fM(v) : '—')); }); }); return JSON.stringify(o); })()`),
       J(['USAF d —', 'USAF m —', 'ANG d —', 'ANG m $40', 'AFRC d $30', 'AFRC m —']));
-    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#fitBody .fitgo'), function(x){ return /"B"/.test(x.getAttribute('onclick')); })[0]; b.click(); return 'ok'; })()`);
-    chk(name, 'the box', 'Go to it closes the box and selects the requirement', ev(`JSON.stringify([fitOpen, curRow])`), J([false, 'B']));
+    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#attBody .fitgo'), function(x){ return /"B"/.test(x.getAttribute('onclick')); })[0]; b.click(); return 'ok'; })()`);
+    chk(name, 'the box', 'Go to it closes the box and selects the requirement', ev(`JSON.stringify([attOpen==='over', curRow])`), J([false, 'B']));
     // ---- Needs attention: one entry while any year is over
     // v2.12 RV3 (R20, K10): one of the two overs is against BES28 and the other against AFRC's own base, so the entry names the mix
     chk(name, 'Needs attention', 'one entry, naming the overs and what they are against, and it opens the box',
-      ev(`(function(){ var e=document.querySelector('#posture .fitatt'); if(!e) return 'none'; e.click(); return e.textContent+' | '+fitOpen; })()`), '🏛 2 over budget authority (1 against BES28) | true');
-    ev(`fitOpen=false; S.fsrc.A.dv[0]=550; S.fsrc.A.mv[2]=0; save(); render(); 'ok'`);
+      ev(`(function(){ var e=document.querySelector('#posture .fitatt'); if(!e) return 'none'; e.click(); return e.textContent+' | '+(attOpen==='over'); })()`), '🏛 2 over budget authority (1 against BES28) | true');
+    ev(`attOpen=null; S.fsrc.A.dv[0]=550; S.fsrc.A.mv[2]=0; save(); render(); 'ok'`);
     chk(name, 'Needs attention', 'reduced until nothing is over: the entry is gone', ev(`String(!!document.querySelector('#posture .fitatt'))`), 'false');
     ev(`S.fsrc.A.dv[0]=600; S.fsrc.A.mv[2]=100; save(); render(); 'ok'`);
     // ---- the UPL, the last line: on the board, after the last row, not a row
@@ -6784,8 +6530,8 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     chk(name, 'the view', 'its view reads the position as it was locked, every year: FY27 1,050, FY28 5,075 (today’s BES28 says 850)',
       ev(`JSON.stringify([CYCVIEW, S.discSvc[0], MS.years[2028].discSvc[0]])`), J(['BES|2028', 1050, 5075]));
     ev(`fitShow(); 'ok'`);
-    chk(name, 'the view', 'the fit box in the view says it reads the lock’s copy', /as it was when it was locked/.test(ev(`document.getElementById('fitBody').textContent`)), true);
-    ev(`fitOpen=false; cycLeave(); 'ok'`);
+    chk(name, 'the view', 'the fit box in the view says it reads the lock’s copy', /as it was when it was locked/.test(ev(`document.getElementById('attBody').textContent`)), true);
+    ev(`attOpen=null; cycLeave(); 'ok'`);
     chk(name, 'the view', 'left: the working plan reads today’s BES28 again', ev(`S.discSvc[0]`), 850);
     // ---- a lock taken before v2.12 kept no position: its years read as locked (the board's own base), whatever the tag says
     // v2.15 W1 (item 139): Lock now refuses a plan tagged with another cycle, so this lock -- as a build before v2.12 left it -- is taken
@@ -6832,10 +6578,10 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
       S1.ev(`JSON.stringify([BA_SRC[2027].from[0], BA_SRC[2027].bad[0]])`), J(['board', 'its line list is not a list']));
     S1.ev(`fitShow(); 'ok'`);
     chk(name, 'said', 'the fit box says USAF’s base is the board’s own because BES28 cannot be read for it',
-      S1.ev(`(document.querySelector('#fitBody .fityr span')||{}).textContent||''`),
+      S1.ev(`(document.querySelector('#attBody .fityr span')||{}).textContent||''`),
       'Base from BES28 for ANG · the board’s own for AFRC (BES28 says nothing about it) · the board’s own for USAF (its line list is not a list), where BES28 cannot be read.');
     chk(name, 'opens', 'the PPBE Budget Positions box opens on each, USAF first, without a throw',
-      J([S1, S2].map(X => X.ev(`(function(){ try{ fitOpen=false; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; toggleP2(); return String(!!document.querySelector('#ppBody .pptab')); }catch(e){ return 'threw: '+e.message; } })()`))),
+      J([S1, S2].map(X => X.ev(`(function(){ try{ attOpen=null; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; toggleP2(); return String(!!document.querySelector('#ppBody .pptab')); }catch(e){ return 'threw: '+e.message; } })()`))),
       J(['true', 'true']));
     // ---- the door refuses both, naming the place; a load that does reach applyStore lands whole and does not throw
     chk(name, 'the door', 'the import check refuses the text line list, naming it',
@@ -6992,10 +6738,10 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
       ev(`((document.querySelector('#posture .fitatt')||{}).textContent)||'none'`), '🏛 3 over budget authority (2 against BES28)');
     ev(`fitShow(); 'ok'`);
     chk(name, 'the box', 'the box says FY28’s over',
-      ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody .fitover[data-fy="2028"]'), function(e){ return e.textContent; }))`),
+      ev(`JSON.stringify([].map.call(document.querySelectorAll('#attBody .fitover[data-fy="2028"]'), function(e){ return e.textContent; }))`),
       J(['▲ FY28 O&M, ANG discretionary: requirements hold $100 more than BES28 — reduce a requirement']));
-    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#fitBody .fitover[data-fy="2028"] + .fitwrap .fitgo'), function(x){ return /"C"/.test(x.getAttribute('onclick')); })[0]; b.click(); return 'ok'; })()`);
-    chk(name, 'Go to it', 'Go to it on FY28’s row closes the box, puts FY28 on screen and selects C', ev(`JSON.stringify([fitOpen, +MS.cur, curRow])`), J([false, 2028, 'C']));
+    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#attBody .fitover[data-fy="2028"] + .fitrows .fitgo'), function(x){ return /"C"/.test(x.getAttribute('onclick')); })[0]; b.click(); return 'ok'; })()`);
+    chk(name, 'Go to it', 'Go to it on FY28’s row closes the box, puts FY28 on screen and selects C', ev(`JSON.stringify([attOpen==='over', +MS.cur, curRow])`), J([false, 2028, 'C']));
     if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
@@ -7006,8 +6752,8 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
   try {
     const J = JSON.stringify;
     const B = w3Board(), { ev } = B;
-    const said = () => ev(`(function(){ fitOpen=true; render(); var s=[].map.call(document.querySelectorAll('#fitBody .fitover[data-fy="2027"]'), function(e){ return e.textContent; });
-      fitOpen=false; render(); return JSON.stringify([((document.querySelector('#posture .fitatt')||{}).textContent)||'none', s]); })()`);
+    const said = () => ev(`(function(){ attShow('over'); var s=[].map.call(document.querySelectorAll('#attBody .fitover[data-fy="2027"]'), function(e){ return e.textContent; });
+      attOpen=null; render(); return JSON.stringify([((document.querySelector('#posture .fitatt')||{}).textContent)||'none', s]); })()`);
     // untagged: every over is against the board's own budget
     chk(name, 'untagged', 'untagged, the two FY27 overs (ANG discretionary, AFRC mandatory) are against the board’s own budget, neither lane carrying added funding',
       said(), J(['🏛 2 over the board’s own budget', ['▲ FY27 O&M, ANG discretionary: requirements hold $100 more than the board’s own budget — reduce a requirement',
@@ -7038,8 +6784,8 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
     // an untagged plan locked as PB27: the lock tags it PB27, which this appropriation logs no position under
     ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
     chk(name, 'the lock', 'the lock keeps the tag it read, with no position', ev(`JSON.stringify([MS.cycle, blGet('PB|2027').pos])`), J(['PB|2027', { key: 'PB|2027', P: null }]));
-    const view = () => ev(`(function(){ cycView('PB|2027'); fitShow(); var h=(document.querySelector('#fitBody .fithint')||{}).textContent||'', y=(document.querySelector('#fitBody .fityr span')||{}).textContent||'';
-      fitOpen=false; cycLeave(); return JSON.stringify([h.split('. ')[0], y]); })()`);
+    const view = () => ev(`(function(){ cycView('PB|2027'); fitShow(); var h=(document.querySelector('#attBody .fithint')||{}).textContent||'', y=(document.querySelector('#attBody .fityr span')||{}).textContent||'';
+      attOpen=null; cycLeave(); return JSON.stringify([h.split('. ')[0], y]); })()`);
     chk(name, 'the view', 'its view says it was locked when PB27 logged no position here, and each year that the lock kept none -- not "before v2.12", not "untagged"',
       view(), J(['Viewing O&M PB27 (locked): when it was locked, the plan’s tag (PB27) logged no position for O&M, so its years’ bases are the board’s own, as locked',
         'This lock kept no PB27 position for O&M: every base is the board’s own, as locked.']));
@@ -7123,9 +6869,9 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
       w3Cache(C, 2027), J([[1500, 100, 50], [300, 20, 0]]));
     cv(`fitShow(); 'ok'`);
     chk(name, 'R37', 'the fit box says how each one-figure service was read',
-      cv(`(document.querySelector('#fitBody .fityr span')||{}).textContent||''`),
+      cv(`(document.querySelector('#attBody .fityr span')||{}).textContent||''`),
       'Base from BES28 for USAF, AFRC · the board’s own for ANG (BES28 says nothing about it). BES28 gives one figure per line: USAF divided between the lanes as the board’s own base divides it; AFRC read as discretionary (the board’s own base is $0 in both lanes).');
-    cv(`fitOpen=false; bmOpen=true; render(); 'ok'`);
+    cv(`attOpen=null; bmOpen=true; render(); 'ok'`);
     chk(name, 'R37', 'and Budget Management says it too', /BES28 gives one figure per line: USAF divided between the lanes as the board’s own base divides it; AFRC read as discretionary/.test(cv(`document.getElementById('bmBody').textContent`)), true);
     if (B.errors.length || C.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.concat(C.errors).slice(0, 2).join(' | '), '');
   } catch (e) {
@@ -7137,7 +6883,7 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
   try {
     const B = boot(), { ev } = B;
     const sec = id => ev(`(function(){ var t=document.getElementById('helpDoc'), s=t && t.content.querySelector('section[data-id=${JSON.stringify(id)}]'); return s? s.textContent : ''; })()`);
-    chk(name, 'K13', 'the Needs attention part of the guide names the 🏛 entry and what it opens', /The first entry, 🏛 N over BES28, opens the fit to the PPBE position instead/.test(sec('t-alloc')), true);
+    chk(name, 'K13', 'the Needs attention part of the guide names the 🏛 entry and what it opens', /The first entry, 🏛 N over BES28, lists what requirements hold over the budget authority/.test(sec('t-alloc')), true);   // v2.19 (item 150): the box is gone, the list is in Needs attention
     chk(name, 'R31', 't-ppbe says no report states more than the budget authority, the position plus added funding',
       /no report states more than the budget authority \(the position plus added funding\)/.test(sec('t-ppbe')), true);
     chk(name, 'R31', 'and no longer claims no report states more than the position', /no report states more than the position\./.test(sec('t-ppbe')), false);
@@ -7187,8 +6933,8 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       J([live[0].concat(live[1]).every(Number.isInteger), live[0].map((d, i) => d + live[1][i])]), J([true, [1800, 21, 50, 1801]]));
     A.ev(`fitShow(); 'ok'`);
     chk(name, 'the live budget', 'the fit box says how each one-figure service was read',
-      A.ev(`(document.querySelector('#fitBody .fityr span')||{}).textContent||''`), 'Base from BES28 for USAF, ANG, AFRC, USN. ' + RV6ONE);
-    A.ev(`fitOpen=false; render(); 'ok'`);
+      A.ev(`(document.querySelector('#attBody .fityr span')||{}).textContent||''`), 'Base from BES28 for USAF, ANG, AFRC, USN. ' + RV6ONE);
+    A.ev(`attOpen=null; render(); 'ok'`);
     // ---- Take from a PPBE position, on an untagged plan, through Budget Management's own select
     const T = rv6Board();
     T.ev(`(function(){ bmOpen=true; render(); var s=[].filter.call(document.querySelectorAll('#bmBody select'), function(x){ return /bmSeedFromPp/.test(x.getAttribute('onchange')||''); })[0];
@@ -7209,49 +6955,8 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     T.ev(`bmSetBase('disc', 0, '1500'); bmOpen=false; render(); cycSetWorking('BES', 2028); 'ok'`);
     chk(name, 'Take', 'tagged afterwards, the plan reads what the take wrote: the same lanes as the plan tagged without a take',
       w3Cache(T, 2027), J([RV6D, RV6M]));
-    // ---- FYDP Disconnects: this appropriation's own base for O&M, Full Fund's own for Full Fund
-    const F = rv6Board();
-    const YRS = [2027, 2028, 2029, 2030, 2031, 2032];
-    const FFSV = ['USN', 'USAF', 'ANG', 'AFRC'];   // Full Fund's own list, in its own order
-    const ffPos = { v: 2, split: false, lines: { USAF: [{ k: '_all', all: true }], USN: [{ k: '_all', all: true }], ANG: [{ k: '_all', all: true }] },
-      val: { USAF: { _all: { 2027: { d: 1000, m: 0 }, 2028: { d: 400, m: 0 }, 2029: { d: 200, m: 0 } } }, USN: { _all: { 2027: { d: 40.4, m: 0 } } }, ANG: { _all: { 2027: { d: 41, m: 0 } } } } };
-    const ffStore = { base: 2027, cur: 2027, ts: 5, order: [], ppbe: { 'BES|2028': ffPos }, dataPack: { services: FFSV, items: [], budget: [] },
-      // FY27 holds its Budget Management base (its cache is the live figure, never the base); FY29 no components yet -- the budget it
-      // holds is its base, as applyState reads a year with no components; FY28 is not held at all
-      years: { 2027: { bm: { disc: [0, 300, 10, 0], mand: [0, 700, 30, 0], adds: [] }, discSvc: [9, 9, 9, 9], mandSvc: [9, 9, 9, 9] },
-        2029: { discSvc: [0, 50, 0, 0], mandSvc: [0, 150, 0, 0] } } };
-    const lines = []; ['om', 'ff', 'sp'].forEach(ap => RV6SV.forEach(sv => { const v = {}; YRS.forEach(y => { v[y] = 1000; }); lines.push({ ap, pmo: 'AV', svc: sv, v }); }));
-    F.ev(`ACEDB.sets={'2025ACE':{label:'2025ACE', ts:2000, years:${J(YRS)}, lines:${J(lines)}, appn:{}, skip:{}}}; ACEDB.ts=4000;
-      localStorage.setItem(_SLUGMAP.ff.key, ${J(J(ffStore))}); render(); 'ok'`);
-    const FM = JSON.parse(F.ev(`JSON.stringify(fdcModel({ace:'2025ACE', cyc:'BES|2028'}))`) || 'null') || { sheets: [] };
-    const rowsOf = (sh, ap) => ((FM.sheets.filter(s => s.name === sh)[0] || { rows: [] }).rows).filter(r => r.t === 'line' && r.ap === ap && (/Controls$/.test(r.label) || r.style === 'ital')).map(r => r.vals.slice(0, 3));
-    chk(name, 'FYDP Disconnects', 'the Summary: O&M’s FY27 Discretionary and Mandatory are the four services divided by O&M’s own base -- the live budget’s figures, summed',
-      J(rowsOf('Summary', 'om').map(v => v[0])), J([3672, RV6D.reduce((a, b) => a + b, 0), RV6M.reduce((a, b) => a + b, 0)]));
-    chk(name, 'FYDP Disconnects', 'Full Fund FY27: divided by FULL FUND’s own base, by its own service list (USAF 300 / 700, ANG 10 / 31, USN no base: its 40.4 as 40 discretionary)',
-      J(rowsOf('Summary', 'ff').map(v => v[0])), J([1081, 350, 731]));
-    chk(name, 'FYDP Disconnects', 'Full Fund FY29, a year with no Budget Management components yet: divided by the budget it holds, as its own board opens it (50 / 150)',
-      J(rowsOf('Summary', 'ff').map(v => v[2])), J([200, 50, 150]));
-    chk(name, 'FYDP Disconnects', 'Full Fund FY28, a year it holds no plan for: Controls are the figure; Discretionary and Mandatory are —, never guessed',
-      J(rowsOf('Summary', 'ff').map(v => v[1])), J([400, null, null]));
-    chk(name, 'FYDP Disconnects', 'the service sheets divide the same way: USAF (USAF, ANG, AFRC) and USN CV, O&M then Full Fund, FY27',
-      J([rowsOf('USAF', 'om').map(v => v[0]), rowsOf('USAF', 'ff').map(v => v[0]), rowsOf('USN CV', 'om').map(v => v[0]), rowsOf('USN CV', 'ff').map(v => v[0])]),
-      J([[1871, 1561, 310], [1041, 310, 731], [1801, 901, 900], [40, 40, 0]]));
-    const NOTE = 'BES28 gives O&M one figure per line: USAF, ANG, USN divided between Discretionary and Mandatory as O&M’s own base divides each in the year; '
-      + 'AFRC in FY27 read as Discretionary (O&M’s own base is $0 in both lanes). '
-      + 'BES28 gives Full Fund one figure per line: USAF, ANG divided between Discretionary and Mandatory as Full Fund’s own base divides each in the year; '
-      + 'USN in FY27 read as Discretionary (Full Fund’s own base is $0 in both lanes); '
-      + 'USAF in FY28 not divided, so Discretionary and Mandatory print —: Full Fund’s own base cannot be read (no Full Fund plan for that year).';
-    chk(name, 'FYDP Disconnects', 'the model says how each appropriation’s one figure was read, and where it could not be', FM.note, NOTE);
-    F.ev(`if(!fdcOpen) toggleFdc(); 'ok'`);
-    chk(name, 'FYDP Disconnects', 'the box says the same sentence',
-      F.ev(`[].some.call(document.querySelectorAll('#fdcBody .fdcnote'), function(n){ return n.textContent===${J('⚠ ' + NOTE)}; })`), true);
-    F.ev(`toggleFdc(); fdcAceK='2025ACE'; fdcCycK='BES|2028'; 'ok'`);
-    const X = await w3Book(F, 'exportFdc()');
-    const sum = X.Summary || [], ffR = sum.findIndex(r => String(r[0]) === 'BES28 Prod Support Controls');
-    chk(name, 'FYDP Disconnects', 'the workbook, read from its bytes: Full Fund’s FY27 controls 1,081 = 350 + 731, FY28 400 with — under it, and the note under every sheet’s table',
-      J([sum.slice(ffR, ffR + 3).map(r => [String(r[0]), r[1], r[2]]), ['Summary', 'USAF', 'STOVL', 'USMC CV', 'USN CV'].map(s => (X[s] || []).some(r => String(r[0]) === NOTE))]),
-      J([[['BES28 Prod Support Controls', 1081, 400], ['Discretionary', 350, '—'], ['Mandatory', 731, '—']], [true, true, true, true, true]]));
-    for (const Bx of [A, T, F]) if (Bx.errors.length) chk(name, 'jsdom', 'no script errors', Bx.errors.slice(0, 2).join(' | '), '');
+    // v2.19 (item 150): FYDP Disconnects, the third reader of a one-figure position, is gone
+    for (const Bx of [A, T]) if (Bx.errors.length) chk(name, 'jsdom', 'no script errors', Bx.errors.slice(0, 2).join(' | '), '');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
@@ -7261,7 +6966,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
   try {
     const J = JSON.stringify;
     const B = w3Board(), { ev } = B;
-    const yr = () => ev(`(function(){ cycView('PB|2027'); fitShow(); var y=(document.querySelector('#fitBody .fityr span')||{}).textContent||''; fitOpen=false; cycLeave(); return y; })()`);
+    const yr = () => ev(`(function(){ cycView('PB|2027'); fitShow(); var y=(document.querySelector('#attBody .fityr span')||{}).textContent||''; attOpen=null; cycLeave(); return y; })()`);
     // the plan tagged BES28, locked as PB27, then the lock made as a build before v2.12 left it (no `pos`; `from` the plan's tag)
     // v2.15 W1 (item 139): Lock now refuses a plan on another cycle, so the lock is taken with the plan on PB27 for the moment, and its
     // record then set as that build wrote it: `from` the plan's tag, BES28
@@ -7285,8 +6990,8 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
   try {
     const J = JSON.stringify;
     const B = w3Board(), { ev } = B;
-    const said = () => JSON.parse(ev(`(function(){ fitModel(); fitOpen=true; render(); var s=[].map.call(document.querySelectorAll('#fitBody .fitover[data-fy="2027"]'), function(e){ return e.textContent; });
-      fitOpen=false; render(); return JSON.stringify([((document.querySelector('#posture .fitatt')||{}).textContent)||'none', s]); })()`));
+    const said = () => JSON.parse(ev(`(function(){ fitModel(); attShow('over'); var s=[].map.call(document.querySelectorAll('#attBody .fitover[data-fy="2027"]'), function(e){ return e.textContent; });
+      attOpen=null; render(); return JSON.stringify([((document.querySelector('#posture .fitatt')||{}).textContent)||'none', s]); })()`));
     // tagged BES28, AFRC's mandatory over taken away: USAF discretionary (BES28's 900) holds 1,100; its Cong add turned into a Withhold of 150
     ev(`cycSetWorking('BES', 2028); S.fsrc.A.mv[2]=0; S.bm.adds[0].vec[0]=-150; applyBudget(); save(); render(); 'ok'`);
     chk(name, 'against the position', 'the one over is against BES28 less withheld funding, in the box and in Needs attention -- never "plus added funding"',
@@ -7326,7 +7031,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       J([1150, 200, 'board', 'one of its FY27 figures is not a figure', 3]));
     W.ev(`fitShow(); 'ok'`);
     chk(name, 'said', 'the fit box says USAF’s base is the board’s own because BES28 cannot be read for it',
-      /the board’s own for USAF \(one of its FY27 figures is not a figure\), where BES28 cannot be read/.test(W.ev(`(document.querySelector('#fitBody .fityr[data-fy="2027"] span')||{}).textContent||''`)), true);
+      /the board’s own for USAF \(one of its FY27 figures is not a figure\), where BES28 cannot be read/.test(W.ev(`(document.querySelector('#attBody .fityr[data-fy="2027"] span')||{}).textContent||''`)), true);
     chk(name, 'opens', 'FY28 still reads BES28’s 5,000 -- one figure, divided as FY28’s own 1,100 / 210 divides it (4,198 / 802), plus its 75 add',
       W.ev(`JSON.stringify([MS.years[2028].discSvc[0], MS.years[2028].mandSvc[0]])`), J([4273, 802]));
     const X = boot({ html: hTxt });
@@ -7370,8 +7075,8 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
   try {
     const B = boot(), { ev } = B;
     const sec = id => ev(`(function(){ var t=document.getElementById('helpDoc'), s=t && t.content.querySelector('section[data-id=${JSON.stringify(id)}]'); return s? s.textContent : ''; })()`);
-    chk(name, 't-ppbe', 'a position logged one figure per line sets each service’s total, split as the board’s own base splits it, all discretionary where that base is $0, read so by Take and FYDP Disconnects too',
-      /A position logged one figure per line sets each service’s total for the year, split between discretionary and mandatory as the board’s own base for that service and year splits it \(all discretionary where that base is \$0\); Take from a PPBE position and FYDP Disconnects read it so too\./.test(sec('t-ppbe')), true);
+    chk(name, 't-ppbe', 'a position logged one figure per line sets each service’s total, split as the board’s own base splits it, all discretionary where that base is $0, read so by Take too (v2.19: FYDP Disconnects is gone)',
+      /A position logged one figure per line sets each service’s total for the year, split between discretionary and mandatory as the board’s own base for that service and year splits it \(all discretionary where that base is \$0\); Take from a PPBE position reads it so too\./.test(sec('t-ppbe')), true);
     chk(name, 't-ppbe', 'and no longer says each service takes the year’s discretionary and mandatory figure', /takes that year’s discretionary and mandatory figure/.test(sec('t-ppbe')), false);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
@@ -7420,20 +7125,20 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       J([/budget authority \$543,390/.test(tip), /requirements hold \$2,000\./.test(tip), /\$541,440 unallocated and \$50 over in 1 service lane/.test(tip),
         /Not counted: AFRC \(BES28 gives no controls for it\)/.test(tip), /1 service lane over BES28 across the held years/.test(tip)]),
       J([true, true, true, true, true]));
-    chk(name, 'the figure', 'it is the fit model’s own reading: the Fit panel opens from it',
-      ev(`fitOpen=false; render(); document.getElementById('cycFit').click(); String(fitOpen)`), 'true');
+    chk(name, 'the figure', 'it is the fit model’s own reading: the over list opens from it (v2.19)',
+      ev(`attOpen=null; render(); document.getElementById('cycFit').click(); String(attOpen==='over')`), 'true');
     chk(name, 'the figure', 'and the panel says the same over FY27, to the dollar, naming what it does not count',
-      ev(`(document.querySelector('#fitBody .fitctl[data-fy="2027"]')||{}).textContent||'none'`),
+      ev(`(document.querySelector('#attBody .fitctl[data-fy="2027"]')||{}).textContent||'none'`),
       'Against the budget authority BES28 gives (USAF, ANG, its controls with any funding added or withheld): $541,440 unallocated · $50 over, each service and lane on its own; not counted: AFRC.');
     chk(name, 'the figure', 'a save with no redraw after it leaves the figure as it was, never blanks it',
-      ev(`fitOpen=false; render(); save(); syncBtns(); JSON.stringify([document.getElementById('cycFit').hidden, document.getElementById('cycFit').textContent])`),
+      ev(`attOpen=null; render(); save(); syncBtns(); JSON.stringify([document.getElementById('cycFit').hidden, document.getElementById('cycFit').textContent])`),
       J([false, 'FY27 · $541K unallocated · ⚠ $50 over']));
     {
       const R = boot({ html: ev('buildSavedHtml()') });
       chk(name, 'the figure', 'the board saved and opened again shows it at once', R.ev(`JSON.stringify([document.getElementById('b_cyc').textContent, document.getElementById('cycFit').hidden, document.getElementById('cycFit').textContent])`),
         J(['BES28 ▾', false, 'FY27 · $541K unallocated · ⚠ $50 over']));
     }
-    ev(`fitOpen=false; switchYear(2029); render(); 'ok'`);
+    ev(`attOpen=null; switchYear(2029); render(); 'ok'`);
     chk(name, 'the figure', 'FY29, a year BES28 logs nothing for, says so', ev(`document.getElementById('cycFit').textContent`), 'FY29 · no BES28 controls');
     ev(`switchYear(2027); cycSetWorking('BES', 2029); 'ok'`);
     chk(name, 'the figure', 'a cycle this appropriation has no position for says so', ev(`document.getElementById('cycFit').textContent`), 'no BES29 controls entered');
@@ -7457,11 +7162,11 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     ev(`uiCycGo(''); cycSetWorking('PB', 2026); blCyc='PB'; blYr=2026; cycLock(); uiCycGo('PB|2026'); 'ok'`);
     chk(name, 'locked view', 'a lock that kept no position says it kept none -- not that the position is missing now',
       ev(`JSON.stringify([document.getElementById('cycFit').textContent, /This lock kept no PB26 position/.test(document.getElementById('cycFit').title)])`), J(['kept no PB26 controls', true]));
-    ev(`uiCycGo(''); cycSetWorking('BES', 2028); MS.ppbe['BES|2028'].lines=Object.assign({}, MS.ppbe['BES|2028'].lines||{}, {USAF:'x'}); baLiveAll(); render(); fitOpen=true; render(); 'ok'`);
+    ev(`uiCycGo(''); cycSetWorking('BES', 2028); MS.ppbe['BES|2028'].lines=Object.assign({}, MS.ppbe['BES|2028'].lines||{}, {USAF:'x'}); baLiveAll(); render(); attShow('over'); 'ok'`);
     chk(name, 'the figure', 'a service the position cannot be read for is named as that, in the tooltip and on the panel’s line',
       J([/Not counted, BES28 cannot be read for: USAF/.test(ev(`document.getElementById('cycFit').title`)),
-        /not counted, BES28 cannot be read for: USAF/.test(ev(`(document.querySelector('#fitBody .fitctl[data-fy="2027"]')||{}).textContent||''`))]), J([true, true]));
-    ev(`fitOpen=false; delete MS.ppbe['BES|2028'].lines.USAF; baLiveAll(); render(); 'ok'`);
+        /not counted, BES28 cannot be read for: USAF/.test(ev(`(document.querySelector('#attBody .fitctl[data-fy="2027"]')||{}).textContent||''`))]), J([true, true]));
+    ev(`attOpen=null; delete MS.ppbe['BES|2028'].lines.USAF; baLiveAll(); render(); 'ok'`);
     // ---------------------------------------------------------------- PART 2: four appropriations
     const T1 = 1790100000000, T0 = 1790000000000;
     const year = (bm) => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [], bm });
@@ -7944,8 +7649,9 @@ const W3S_FH = `window.__fw={content:'', writes:0};
     { const G = await w3sFresh();
       G.ev(`_lsRefused[DEST_KEY]=_sideBootGen; 'ok'`);
       chk(name, 'a list refused while opening', 'is not on screen only, and leaving asks nothing', J([w3sMem(G), w3sLeave(G)]), J(['false', 'false']));
-      G.ev(`delete _lsRefused[DEST_KEY]; ${w3sQuota(30)}; ACEDB.sets=ACEDB.sets||{}; ACEDB.sets['ACE-W3']={fp:'w3', lines:[${J('y'.repeat(200))}]}; persistAce(); 'ok'`);
-      chk(name, 'a list refused after opening', 'the cost estimates refused after the board opened are on screen only, and leaving asks',
+      G.ev(`delete _lsRefused[DEST_KEY]; ${w3sQuota(30)}; BUDDB.files=(BUDDB.files||[]).concat([{dept:'USAF', file:${J('y'.repeat(200))}, n:1}]); BUDDB.ts=(+BUDDB.ts||0)+1; persistBud(); 'ok'`);
+      // v2.19 (item 150): the cost estimates were the list here; they are gone, and the BAE list stands in
+      chk(name, 'a list refused after opening', 'the BAE list refused after the board opened is on screen only, and leaving asks',
         J([w3sMem(G), w3sLeave(G)]), J(['true', 'true']));
       // (i) Clear this computer with that list on screen only
       G.ev(`window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return true; }; clearComputer(); 'ok'`);
@@ -9249,12 +8955,6 @@ await (async () => {
     const ord = code => { try { const st = JSON.parse(B.ev(`JSON.stringify(${code})`)); return J(st.years[st.cur].order); } catch (e) { return 'n/a'; } };
     chk(name, 'the fixture', 'this browser’s Full Fund holds two requirements, the file’s three, and Save writes the file’s (a CONTROL)',
       J([J(ffOld.years[ffOld.cur].order), ord('pubsFor(MS).ff')]), J([J(['F', 'G']), J(['F', 'G', 'NEW-1'])]));
-    chk(name, 'the Spruills', 'they read Full Fund as Save writes it', ord(`spDefs().filter(function(d){ return d.slug==='ff'; })[0].ms`), J(['F', 'G', 'NEW-1']));
-    const req = JSON.parse(B.ev(`(function(){ var r=spGather(); var a=Array.isArray(r)? r : (r.blocks||r.out||[]); var b=a.filter(function(x){ return /FULL FUND/.test(x.name); })[0]; return JSON.stringify(b? b.req : null); })()`));
-    // v2.14 round 2 (the lead, at the merge): RV2-D's fix counts another appropriation's base requirements from its own plan's data pack
-    // (spruills-other-appn-base-requirements-zero), so the figure is F and G's asks plus H's -- read off the older copy it would lack H's
-    const FF_BASE = SCF.items.reduce((t, i) => t + i.ask.reduce((a, v) => a + v, 0), 0);
-    chk(name, 'the Spruills', 'FY27 Full Fund requirements carry F and G and the added requirement’s value', J(req && req[B.ev('String(MS.cur)')]), J(FF_BASE + H_ASK));
     const rows = JSON.parse(B.ev(`(function(){ var cap=null; var _b=buildXlsx; buildXlsx=function(sh){ cap=sh; return _b.apply(this, arguments); };
       URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; window.alert=function(){};
       try{ exportCSV(); }catch(e){ return JSON.stringify(['threw '+e.message]); } finally{ buildXlsx=_b; }
@@ -9264,9 +8964,10 @@ await (async () => {
     const ffRow = rows[0] || [];
     chk(name, 'the Priority Drill', 'requirements by band, across every appropriation, counts Full Fund’s three', J(ffRow.slice(1).reduce((t, v) => t + (+v || 0), 0)), J(3));
     // this browser's Full Fund holding unsaved work behind the file's newer copy: read as Full Fund's own board opens it, the file's
+    // (v2.19, item 150: the Spruills are gone; apStoreOf, what every reader of another appropriation reads, is held to it here)
     B.ev(`localStorage.setItem('prio27ff.base', ${J(J({ file: ffOld.ts, folder: {}, dirty: true }))}); 'ok'`);
-    chk(name, 'held work behind a newer copy', 'the Spruills read the file’s Full Fund, as its own board opens it (and keeps the work aside)',
-      J([B.ev(`String(apStoreOf('ff').held)`), ord(`spDefs().filter(function(d){ return d.slug==='ff'; })[0].ms`)]), J(['true', J(['F', 'G', 'NEW-1'])]));
+    chk(name, 'held work behind a newer copy', 'another appropriation is read as its own board opens it, the file’s Full Fund (and the work kept aside)',
+      J([B.ev(`String(apStoreOf('ff').held)`), ord(`apStoreOf('ff').st`)]), J(['true', J(['F', 'G', 'NEW-1'])]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
@@ -9796,105 +9497,7 @@ await (async () => {
   }
   _rv2dRelease(__bm); await _rv2dSettle();
 })();
-// v2.14 RV2-D (spruills-other-appn-base-requirements-zero, spruills-checks-cannot-reach-a-real-board): ANOTHER APPROPRIATION'S
-// REQUIREMENTS ARE READ FROM ITS OWN PLAN'S DATA PACK, as every program file carries them. The program's consolidated payload (APPNS)
-// is empty on every board since the generator was retired, and a full import moves a consolidated file's packs into the plans; read
-// from APPNS alone, Full Fund's base requirements counted nowhere -- Spruills read Total Requirements $0.00M and a surplus Delta, the
-// PMO drill gave PSM $0 there, and the chart of accounts listed none of them. The v1.95 checks stood Full Fund up in APPNS by hand and
-// could not see it. And the board's own added requirements are listed once by the chart of accounts (it listed each twice, also found
-// here). Full Fund's plan is the same in this browser's storage and in the file, so the check holds whichever copy is read.
-// FAILS ON 74a6aec: Full Fund's Spruills rows, totals and drill read only FFN's $3M in the second year and nothing in the first; the
-// chart of accounts lists no Full Fund requirement and N twice.
-// v2.14 RV2-D (the check of this fix): AND FOR A YEAR FULL FUND'S PLAN HAS NOT STARTED, THE CHART OF ACCOUNTS DOES NOT LIST ITS
-// REQUIREMENTS "AS DELIVERED". With every appropriation read from its own plan's pack, the chart listed Full Fund's requirements for a
-// year its plan holds no state for, at their shipped asks, under a flag saying its board had never been opened in this file, while the
-// Spruills on the same page read no data there. FAILS ON THE FIRST CUT (8028c1b): (y) Full Fund is listed as delivered; and on 74a6aec
-// and the first cut, the workbook does not say Full Fund holds no plan for that year. (z) is a CONTROL: an appropriation this file has
-// never opened, with only a shipped payload, is still listed as delivered. (x) passes on both (a store in no year's shape was never
-// read for its pack); it bites the guard that keeps it so.
-await (async () => {
-  const __bm = _rv2dMark();
-  const name = 'v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)';
-  try {
-    const J = JSON.stringify, M = 1e6;
-    const { ev, errors } = boot();
-    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 2 * M]), it('B', 'TSS', [3 * M, 1 * M])],
-      disc: [20 * M, 5 * M], mand: [4 * M, 1 * M], order: ['A', 'B'] });
-    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save();
-      window.confirm=function(){ return true; }; window.alert=function(){}; spAce='board'; 'ok'`);
-    const cur = +ev('MS.cur'), Y = [cur, cur + 1], own = ev('APPN');
-    const N = ev(`(function(){ var a=reqCreate('AV', {title:'N', event:'EN', ask:[1000000, 500000]}); save(); render(); return a; })()`);
-    const other = own === 'FULL FUND' ? 'O&M' : 'FULL FUND', slug = ev(`APPN_SLUG[${J(other)}]`);
-    // the other appropriation, as a program file carries it: its requirements in its plan's own data pack, the consolidated payload empty
-    ev(`(function(){ var st={base:MS.base, cur:MS.cur, ts:Date.now()-60000, years:{},
-        dataPack:{services:['USAF','ANG','AFRC'], items:[
-          {id:'FF1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req FF1', event:'Ev FF1', ccar:'CCFF1', fy26:[0,0,0], ask:[1000000,2000000,3000000], alloc:null},
-          {id:'FF2', grp:'AV', team:'AV', sect:'', custom:false, title:'Req FF2', event:'Ev FF2', ccar:'CCFF2', fy26:[0,0,0], ask:[4000000,0,1000000], alloc:null}]}};
-      st.years[${cur}]={asks:{FF1:[2000000,2000000,3000000]}, order:['FF1','FF2'], discSvc:[5000000,1000000,1000000], mandSvc:[1000000,0,0]};
-      st.years[${cur + 1}]={asks:{}, order:['FF1','FF2','FFN'], discSvc:[6000000,2000000,2000000], mandSvc:[0,0,1000000],
-        custom:[{id:'FFN', grp:'TSS', sect:'new', custom:true, title:'FF added (made up)', event:'e', ccar:'', fy26:[0,0,0], ask:[1000000,1000000,1000000], alloc:null}]};
-      localStorage.setItem(_SLUGMAP[${J(slug)}].key, JSON.stringify(st)); PUBS[${J(slug)}]=JSON.parse(JSON.stringify(st)); return 'ok'; })()`);
-    chk(name, 'fixture', 'the program carries no consolidated payload for it, and its plan carries a data pack, in storage and in the file alike',
-      ev(`JSON.stringify([_hasData(APPNS[${J(other)}]), _hasPack(JSON.parse(localStorage.getItem(_SLUGMAP[${J(slug)}].key))), _hasPack(PUBS[${J(slug)}])])`), J([false, true, true]));
-    const gather = by => JSON.parse(ev(`(function(){ var keep=[spBy, spSvc, spPmo]; try{ spBy=${J(by)}; spSvc='ALL'; spPmo='ALL';
-        return JSON.stringify(spGather().blocks); } finally { spBy=keep[0]; spSvc=keep[1]; spPmo=keep[2]; } })()`));
-    const bySvc = gather('svc'), byPmo = gather('pmo');
-    const blk = (B, n) => B.find(b => b.name === n) || { rows: {}, req: {}, bud: {} };
-    const rows = (b, keys) => keys.map(k => Y.map(y => (b.rows[k] || {})[y]));
-    // THE TRUTH, by hand: FY on screen FF1 at its override 2+2+3 = $7M, FF2 4+0+1 = $5M; the next year FF1 at its own 1+2+3 = $6M, FF2
-    // $5M, FFN 1+1+1 = $3M. Budgets 5+1+1+1 = $8M and 6+2+2+1 = $11M.
-    chk(name, 'Spruills', 'Full Fund’s Total Requirements, Available Funding and Delta, each year from its own plan',
-      J(Y.map(y => { const b = blk(byPmo, other); return [b.req[y], b.bud[y], b.bud[y] - b.req[y]]; })), J([[12 * M, 8 * M, -4 * M], [14 * M, 11 * M, -3 * M]]));
-    chk(name, 'Spruills', 'Full Fund’s rows by service, at its own three services, each year',
-      J(rows(blk(bySvc, other), ['USAF', 'ANG', 'AFRC'])), J([[6 * M, 6 * M], [2 * M, 3 * M], [4 * M, 5 * M]]));
-    chk(name, 'Spruills', 'Full Fund’s rows by PMO, each year: its override, its added requirement once',
-      J(rows(blk(byPmo, other), ['PSM', 'AV', 'TSS'])), J([[7 * M, 6 * M], [5 * M, 5 * M], [null, 3 * M]]));
-    const drill = JSON.parse(ev(`(function(){ var b=pmoDetail('PSM', ${J(Y)}).filter(function(x){ return x.name===${J(other)}; })[0]||{svcs:[], req:{}};
-      return JSON.stringify([b.svcs, b.svcs.map(function(sv){ return ${J(Y)}.map(function(y){ return (b.req[sv]||{})[y]||0; }); })]); })()`));
-    chk(name, 'PMO drill', 'PSM in Full Fund: FF1 by its own three services, each year (its override on screen, its own ask the next)',
-      J(drill), J([['USAF', 'ANG', 'AFRC'], [[2 * M, 1 * M], [2 * M, 2 * M], [3 * M, 3 * M]]]));
-    const coa = JSON.parse(ev(`JSON.stringify(coaRows(${cur}).map(function(r){ return [r.ap, r.id, r.ask]; }))`));
-    chk(name, 'chart of accounts', 'every requirement of both appropriations, each once: this board’s A, B and its added N; Full Fund’s FF1 and FF2',
-      J(coa.filter(r => r[0] === own || r[0] === other)), J([[own, 'A', 12 * M], [own, 'B', 4 * M], [own, N, 1.5 * M], [other, 'FF1', 7 * M], [other, 'FF2', 5 * M]]));
-    chk(name, 'chart of accounts', '“Where we stand”: requirements and the year’s requirement, by appropriation',
-      ev(`JSON.stringify(coaSummary(coaRows(${cur})).filter(function(b){ return b.ap===${J(own)} || b.ap===${J(other)}; }).map(function(b){ return [b.ap, b.n, b.ask]; }))`),
-      J([[own, 3, 17.5 * M], [other, 2, 12 * M]]));
-    // (y) the board moves on to a year Full Fund's plan has not started (it holds this year and the next); (z) Initial Spares was never
-    // opened in this file -- no plan anywhere -- and the program ships a payload for it
-    ev(`(function(){ var P=APPNS['INITIAL SPARES']; P.services.length=0; P.items.length=0; ['USAF','ANG'].forEach(function(s){ P.services.push(s); });
-      P.items.push({id:'SP1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req SP1', event:'Ev SP1', ccar:'', fy26:[0,0], ask:[700000,300000], alloc:null});
-      localStorage.removeItem(_SLUGMAP.sp.key); PUBS.sp=null; switchYear(${cur + 2}); return 'ok'; })()`);
-    const FY2 = 'FY' + ((cur + 2) % 100);
-    chk(name, '(y) fixture', 'the year on screen is two on, which Full Fund’s plan does not hold; Initial Spares has no plan at all',
-      ev(`JSON.stringify([MS.cur, Object.keys(JSON.parse(localStorage.getItem(_SLUGMAP[${J(slug)}].key)).years), localStorage.getItem(_SLUGMAP.sp.key), PUBS.sp])`),
-      J([cur + 2, [String(cur), String(cur + 1)], null, null]));
-    chk(name, '(y) a year Full Fund has not started', 'the chart of accounts lists none of Full Fund’s requirements for it, and so no Full Fund row in “Where we stand”',
-      ev(`JSON.stringify([coaRows(${cur + 2}).filter(function(r){ return r.ap===${J(other)}; }).length, coaSummary(coaRows(${cur + 2})).some(function(b){ return b.ap===${J(other)}; })])`), J([0, false]));
-    const stand = JSON.parse(ev(`(function(){ var cap=null; var keep=buildXlsx; buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
-      try{ exportCoa(); } finally { buildXlsx=keep; }
-      var s1=(cap||[]).filter(function(s){ return s.name==='Where we stand'; })[0]||{rows:[]};
-      return JSON.stringify(s1.rows.map(function(r){ return (r||[]).map(function(c){ return (c && typeof c==='object' && 'v' in c)? c.v : c; }); })); })()`));
-    const firsts = stand.map(r => String(r[0] ?? ''));
-    chk(name, '(y) a year Full Fund has not started', 'the workbook’s “Where we stand” has no Full Fund row, and says Full Fund holds no plan for ' + FY2,
-      J([firsts.some(v => v === other || v.indexOf(other + '  (') === 0), firsts.indexOf(other + ' holds no plan for ' + FY2 + ': its board has not started that year, so it is not on this chart, and the Spruills reads no data for it there either.') >= 0]),
-      J([false, true]));
-    chk(name, '(y) a year Full Fund has not started', 'and the Spruills reads no data for Full Fund there',
-      J(blk(gather('pmo'), other).req[cur + 2] === undefined), 'true');
-    chk(name, '(z) CONTROL — never opened in this file', 'Initial Spares, with only a shipped payload, is still listed as delivered: SP1 at its shipped $1,000,000',
-      ev(`JSON.stringify(coaRows(${cur + 2}).filter(function(r){ return r.ap==='INITIAL SPARES'; }).map(function(r){ return [r.id, r.ask, r.fromPayload]; }))`), J([['SP1', 1000000, true]]));
-    // (x) a store for OPN in no year's shape (a board from before fiscal years, its edits at the top): its pack is not printed as delivered
-    // at the shipped figures, since nothing here reads where its edits are -- as before every appropriation was read from its own pack
-    ev(`(function(){ var st={ts:Date.now()-60000, asks:{OP1:[9000000,0]}, order:['OP1'],
-        dataPack:{services:['USAF','ANG'], items:[{id:'OP1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req OP1', event:'Ev OP1', ccar:'', fy26:[0,0], ask:[100000,0], alloc:null}]}};
-      localStorage.setItem(_SLUGMAP.opn.key, JSON.stringify(st)); PUBS.opn=JSON.parse(JSON.stringify(st)); return 'ok'; })()`);
-    chk(name, '(x) a store in no year’s shape', 'OPN’s pack is not listed as delivered at its shipped $100,000, while its own edit says $9,000,000',
-      ev(`JSON.stringify(coaRows(${cur + 2}).filter(function(r){ return r.ap==='OPN'; }).map(function(r){ return [r.id, r.ask]; }))`), '[]');
-    chk(name, 'errors', 'no page error', errors.length ? errors.slice(0, 2).join(' | ') : '', '');
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
-  }
-  _rv2dRelease(__bm); await _rv2dSettle();
-})();
+// v2.19 (item 150): removed with its feature -- v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)
 // v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out): THE PRIORITY DRILL'S COUNT BY BAND, ACROSS EVERY APPROPRIATION, COUNTS
 // ONLY REQUIREMENTS. An older ORBIT's Put back of an add left the add's id in the order with a null where the requirement was (the mend
 // takes it out, on that appropriation's own board), and the count read another appropriation's order raw. O&M's plan is the same in
@@ -10085,14 +9688,14 @@ await (async () => {
     const L = JSON.parse(ev(`(function(){ var b=document.querySelector('#dd_cyc .cycfit-in button.mi'), first=document.querySelector('#dd_cyc button');
       return JSON.stringify({txt:b? b.textContent.replace(/\\s+/g,' ').trim() : 'none', on:b? b.getAttribute('onclick') : '', first:first===b, fover:document.getElementById('b_cyc').classList.contains('fover'),
         tip:/⚠ \\$50 over BES28’s controls in FY27\\./.test(document.getElementById('b_cyc').title)}); })()`));
-    chk(name, 'in the list', 'the list leads with the whole sentence, and it opens Fit to the PPBE position',
-      J([L.txt, L.on, L.first]), J(['FY27 · $541K unallocated · ⚠ $50 overopens Fit to the PPBE position', 'mRun(()=>fitShow())', true]));
+    chk(name, 'in the list', 'the list leads with the whole sentence, and it lists what is over (v2.19: in Needs attention)',
+      J([L.txt, L.on, L.first]), J(['FY27 · $541K unallocated · ⚠ $50 overlists what is over the budget authority', 'mRun(()=>fitShow())', true]));
     chk(name, 'in the list', 'and the PPBE cycle carries the over: its ⚠ mark, and the figure in its tooltip', J([L.fover, L.tip]), J([true, true]));
-    ev(`fitOpen=false; document.querySelector('#dd_cyc .cycfit-in button.mi').click(); 'ok'`);
+    ev(`attOpen=null; document.querySelector('#dd_cyc .cycfit-in button.mi').click(); 'ok'`);
     await new Promise(r => setTimeout(r, 40));
-    chk(name, 'in the list', 'a press on it opens Fit to the PPBE position, and closes the list', J([ev('String(fitOpen)'), ev('String(openMenu)')]), J(['true', 'null']));
+    chk(name, 'in the list', 'a press on it opens the over list in Needs attention, and closes the list', J([ev(`String(attOpen==='over')`), ev('String(openMenu)')]), J(['true', 'null']));
     // nothing over: no mark
-    ev(`fitOpen=false; render(); S.fsrc={}; applyState(S); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    ev(`attOpen=null; render(); S.fsrc={}; applyState(S); MS.years[MS.cur]=S; save(); render(); 'ok'`);
     chk(name, 'nothing over', 'with nothing over, the button carries no mark (CONTROL of the mark)', ev(`String(document.getElementById('b_cyc').classList.contains('fover'))`), 'false');
     if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
   } catch (e) {
@@ -10665,6 +10268,76 @@ await (async () => {
   }
 })();
 // ==== end v2.18 ====
+// ==== v2.19 (item 150): the scope-down ====
+// Brad, 24 Nov 2026: "I want remove the building and importing of the ACE. From the FYDP menu I want to remove Spruills, FYDP
+// Disconnects, Fit to the PPBE Position, and Funds Flow. From the Reports and Exports section I want to remove ACE Tie Out, IDS Batch
+// Import, Chart of Accounts, and everything from the AI Review section." His answers: what a saved board kept for them is dropped on
+// save; a WBS is typed freely; the Fit box goes, its figures stay (the cycle bar, the UPL line, the 🏛 entry). This block holds what
+// is gone to being gone from every handler the page draws and from the guide, the over list to saying what the Fit box said, and a
+// store opened with the removed features' keys to losing them and nothing else. FAILS ON v2.18 (275d2f7) but the CONTROLs.
+await (async () => {
+  const name = 'v2.19 — the scope-down: nothing left reaches a removed feature, the over list says what the Fit box said, and what a board kept for them is dropped (item 150)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [500, 0]), it('B', 'PSM', [80, 50])], disc: [300, 100], mand: [0, 0], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      seedSplit('A'); S.fsrc.A.dv[0]=450; MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    // 1. every handler the page draws -- the left menu's lists, its flyouts, Needs attention and the guide -- names no removed feature
+    const GONE = /\b(toggleSp|spGather|pmoDetail|toggleFdc|exportFdc|fdc[A-Z]\w*|toggleFit|toggleFlow|exportFlow|flowCalc|exportCoa|toggleCoa|toggleIds|exportIdsReq|aiExport|aiImport|aiShow|exportAceTieout|toggleAce|importAce|aceRepShow|aceColAsk)\b/;
+    const calls = JSON.parse(ev(`(function(){ syncBtns(); var d=document.createElement('div');
+      d.innerHTML=['fydp','exec','hist'].map(function(k){ return uiFlyItems(k); }).join('');
+      var all=[].slice.call(document.querySelectorAll('[onclick]')).concat([].slice.call(d.querySelectorAll('[onclick]')));
+      return JSON.stringify(all.map(function(e){ return e.getAttribute('onclick'); })); })()`));
+    chk(name, 'handlers', 'no handler on the page or in a flyout calls a removed feature', J(calls.filter(c => GONE.test(c))), '[]');
+    chk(name, 'handlers', 'CONTROL: the page draws handlers to judge (more than a hundred)', calls.length > 100, true);
+    chk(name, 'FYDP', 'FYDP ▸ is the five-year spend plan and PPBE Budget Positions, nothing else',
+      ev(`(function(){ var d=document.createElement('div'); d.innerHTML=uiFlyItems('fydp'); return JSON.stringify([].map.call(d.querySelectorAll('[onclick]'), function(b){ return (b.getAttribute('onclick').match(/toggle\\w+/)||[''])[0]; })); })()`),
+      J(['toggleFydp', 'toggleP2']));
+    // 2. the guide names none of them as something ORBIT does
+    const help = ev(`(function(){ var t=document.getElementById('helpDoc'); return t? t.innerHTML : ''; })()`);
+    chk(name, 'the guide', 'no section on the IDS batch, the cost estimate import or the funds flow',
+      J(['t-ids', 't-ace', 't-flow'].filter(k => help.indexOf('data-id="' + k + '"') >= 0)), '[]');
+    chk(name, 'the guide', 'and no menu path to a removed feature',
+      J((help.match(/<span class="mp"[^>]*>[^<]*<\/span>/g) || []).filter(p => /Spruills|FYDP Disconnects|Fit to the PPBE|Funds Flow|IDS Batch|Chart of Accounts|ACE Tie|Import Annual Cost Estimate|GenAI/.test(p))), '[]');
+    chk(name, 'the guide', 'CONTROL: it still has its sections', (help.match(/<section /g) || []).length > 20, true);
+    // 3. Needs attention: no list of paragraphs "not in the estimate" -- there is no estimate
+    chk(name, 'Needs attention', 'it keeps no WBS-not-in-the-estimate list', ev(`String('wbsx' in attLists())`), 'false');
+    // 4. the over list says what the Fit box said: the year's reading, the over as a sentence with its requirements, what is unallocated
+    ev(`attShow('over'); 'ok'`);
+    const L = JSON.parse(ev(`JSON.stringify({yr:[].map.call(document.querySelectorAll('#attBody .fityr'), function(e){ return e.getAttribute('data-fy'); }),
+      over:[].map.call(document.querySelectorAll('#attBody .fitover'), function(e){ return e.textContent; }),
+      rows:[].map.call(document.querySelectorAll('#attBody .fitrows tr[data-id]'), function(r){ return r.getAttribute('data-id')+' '+r.children[2].textContent+' '+r.children[3].textContent; }),
+      un:[].map.call(document.querySelectorAll('#attBody .attun tr[data-svc]'), function(r){ return r.getAttribute('data-svc')+' '+r.getAttribute('data-lane')+' '+r.lastElementChild.textContent; })})`));
+    chk(name, 'the over list', 'FY27 is read and said', J(L.yr), J([ev('String(MS.cur)')]));
+    chk(name, 'the over list', 'USAF discretionary: A holds $450 against $300 -- said as the Fit box said it',
+      J(L.over), J(['▲ FY' + (ev('MS.cur') % 100) + ' O&M, USAF discretionary: requirements hold $150 more than the board’s own budget — reduce a requirement']));
+    chk(name, 'the over list', 'with the requirement holding money there, what it holds and what it drew', J(L.rows), J(['A $450 $300']));
+    chk(name, 'the over list', 'and the $50 of ANG discretionary’s $100 that B does not hold is unallocated', J(L.un), J(['ANG d $50']));
+    // Go to it, from an over in a year not on screen, puts that year on screen first
+    ev(`attOpen=null; switchYear(MS.cur+1); 'ok'`);
+    const cur1 = +ev('MS.cur');
+    ev(`attOverGo(${cur1 - 1}, 'A'); 'ok'`);
+    chk(name, 'Go to it', 'from another year, the over’s year is put on screen and A selected', ev(`JSON.stringify([MS.cur, curRow, attOpen])`), J([cur1 - 1, 'A', null]));
+    // 5. a store opened with what the removed features kept loses those keys and nothing else
+    const st = JSON.parse(ev(`(function(){ var raw={base:2027, cur:2027, ts:1, aceAlign:{X:{AV:'PSM'}}, coaDef:{a:1}, coaDefTs:3, ids:{org:21}, spAce:'board', spBy:'pmo',
+        spDrillSvc:'ALL', spPmo:'ALL', spPrior:'x', spSvc:'ALL', cycle:'BES|2028', pmos:['AV'],
+        flow:{rules:{lm:'LM', pw:'PW', where:'both'}, ents:[{k:'dz', n:'Depot'}], dv:1, other:{2027:{ip:5}}, fys:[2027], cats:[], pseudo:{on:true}, uplTo:'x'},
+        years:{2027:{order:['A'], aceMap:{A:{w:['1.1'], ok:true}}, wbs:{A:[{w:'1.1', v:[]}]}}}};
+      normalizeStore(raw); return JSON.stringify({top:Object.keys(raw).sort(), flow:Object.keys(raw.flow).sort(), yr:Object.keys(raw.years[2027]).sort(), rules:raw.flow.rules}); })()`));
+    chk(name, 'a store from before', 'the plan’s own keys for the removed features are gone, and every other key is kept',
+      J(st.top), J(['base', 'cur', 'cycle', 'flow', 'pmos', 'ts', 'years']));
+    chk(name, 'a store from before', 'the funds flow chart’s own settings are gone; the destination list, its version and the prime rules are kept',
+      J([st.flow, st.rules]), J([['dv', 'ents', 'rules'], { lm: 'LM', pw: 'PW', where: 'both' }]));
+    chk(name, 'a store from before', 'each year’s tie to an estimate line is gone; its WBS is kept', J(st.yr), J(['order', 'wbs']));
+    // 6. Pre-flight still runs (it counted the IDS file's contributions)
+    chk(name, 'Pre-flight', 'CONTROL: it opens and draws', ev(`(function(){ try{ togglePf(); var t=(document.getElementById('pfBody')||{}).textContent||''; togglePf(); return String(/Checked/.test(t)); }catch(e){ return 'threw '+e.message; } })()`), 'true');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.19 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

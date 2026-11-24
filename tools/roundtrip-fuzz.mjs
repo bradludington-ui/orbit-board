@@ -165,7 +165,7 @@ const populate = (ev, sc) => ev(`(function(){
   // and one that is absent until a user happens to touch it is exactly the kind that gets dropped.
   ['band','alloc','minInc','awards','cons','desc','notes','pid','mipr','obCat','costElem','fsrc','mc',
    'dest','grp','asks','ccar','recNames','titles','wbs','ptype','rcnAsg','rcnSvc','clinRcn','clinRcnSvc','si',
-   'budgetAsg','crHalf','clinAlloc','clinMeta','clinNew','clinRm','clinWbs','aceMap','upl','buys']
+   'budgetAsg','crHalf','clinAlloc','clinMeta','clinNew','clinRm','clinWbs','upl','buys']
     .forEach(function(k){ if(!S[k] || typeof S[k]!=='object' || Array.isArray(S[k])) S[k]={}; });
   if(!S.custom) S.custom=[];
   if(!S.removed) S.removed=[];
@@ -228,8 +228,7 @@ const populate = (ev, sc) => ev(`(function(){
     if(i%6===4){ S.clinRcnSvc[id]={}; S.clinRcnSvc[id]['n'+i]={}; S.clinRcnSvc[id]['n'+i][SVC[i%SVC.length]]='RCN-CS'+i; }
     if(i%4===1){ S.budgetAsg[id]={}; S.budgetAsg[id][SVC[i%SVC.length]]='BAE FY'+(27+i%3); }
     if(i%3===2){ S.crHalf[id]={}; S.crHalf[id][FYMON[i%12][0]]=1; }
-    // the confirmed tie to the cost estimate, and the UPL mark (keyed 'r|<id>', not the bare id)
-    if(i%5===4) S.aceMap[id]={w:['1.1.'+i], ok:i%2===0};
+    // the UPL mark (keyed 'r|<id>', not the bare id); v2.19 (item 150): the tie to the cost estimate (aceMap) is gone with it
     if(i%7===2) S.upl['r|'+id]=1;
     // THE CLIN GRID, six containers, all keyed by the prime's id
     if(it && /^PRIME/.test(id)){

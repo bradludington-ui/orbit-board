@@ -86,11 +86,11 @@ exactly one home."* The top right holds only the message line and Help; 💾 Sav
 and 📁 File ▾ are gone, and so are the task bar's Bands, Executive decision, PowerPoint deck and Exec synopsis. The
 left menu, top to bottom:
 
-- **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, Spruills, PPBE Budget Positions, Funds Flow),
+- **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, PPBE Budget Positions; v2.19 took out the Spruills, FYDP Disconnects, the Fit panel and the Funds Flow),
   **Execution ▸** (Active Year Execution, Spend Plan Forecast, CR Cash Needs, QPE coverage, ORBIT vs CCaR; Reprogramming
   Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
 - **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Find with Pre-Flight Check beside it, then two plain
-  lists of sections (`sec()`: Working Documents, Spend Plan & Cash, Five Years & PPBE; CCaR & Accounting Files, AI Review),
+  lists of sections (`sec()`: Working Documents, Spend Plan & Cash, Five Years & PPBE; CCaR Files -- v2.19 took out the ACE Tie-Out, the IDS Batch Import, the Chart of Accounts and the AI Review),
   each item one click, a title in title case with its format on a tag (`ri()`: XLSX, TXT, VIEW, READ), and a foot naming
   where the views live and linking the companion tool (v2.05, item 114).
 - **Board:** **Imports & exports** (box `#uiImpPanel`, list `dd_boards`: a whole board or one appropriation, in or
@@ -2172,7 +2172,7 @@ So: **the `pubState` tag's exact literal shape is load-bearing.** Reformat it an
 writes a file containing the *old* state. `check.mjs` guards this.
 
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
-`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog` (the reprogramming log: carried, not shown, since
+`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb` (removed on opening since v2.19: ORBIT keeps no cost estimates), `prio27reprog` (the reprogramming log: carried, not shown, since
 v2.02), `prio27appn`, `prio27who`,
 `spmtTheme`, `spmtSidecar`, `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
