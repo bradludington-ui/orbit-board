@@ -3895,8 +3895,8 @@ function attOverHtml(K){
         +'requirements hold <b>'+fM(X.over[i])+'</b> more than '+esc(fitVs(X, r, i, key))+' — reduce a requirement</div>'
         +'<table class="fctab atttab fitrows" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th><th>Holds</th><th>Drew</th><th style="text-align:left"></th><th></th></tr>';
       (X.rows[i]||[]).forEach(function(q){
-        h+='<tr'+(q.short? ' class="short"' : '')+' data-id="'+esc(q.id)+'"><td>'+(q.rank||'—')+'</td><td style="text-align:left">'+esc(q.title)+'</td><td>'+fM(q.held)+'</td><td>'+fM(q.drawn)+'</td>'
-          +'<td style="text-align:left;color:var(--red)">'+(q.short? '▲ the lane cannot pay '+fM(q.held-q.drawn) : '')+'</td>'
+        h+='<tr'+(q.short? ' class="short"' : '')+' data-id="'+esc(q.id)+'"><td>'+(q.rank||'—')+'</td><td style="text-align:left;white-space:normal">'+esc(q.title)+'</td><td>'+fM(q.held)+'</td><td>'+fM(q.drawn)+'</td>'
+          +'<td style="text-align:left;color:var(--red);white-space:normal">'+(q.short? '▲ the lane cannot pay '+fM(q.held-q.drawn) : '')+'</td>'
           +'<td><button type="button" class="qb attgo fitgo" onclick="attOverGo('+(+y)+','+jsa(q.id)+')">'+K.go+'</button></td></tr>'; });
       h+='</table>'; });
     if(un.length){
