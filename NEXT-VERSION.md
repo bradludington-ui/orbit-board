@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.18** (item 149.7–149.17): built, awaiting Brad's merge (v2.16 and v2.17 are merged, PR #58). Then **v2.19** (item 150, the scope-down), then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.18** (item 149.7–149.17), merged 24 Nov 2026 (PR #76). Then **v2.19** (item 150, the scope-down), then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
 
 ## Open
 
@@ -620,7 +620,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.18 — 24 Nov 2026: what the review of the Requirements page found printing the wrong thing (item 149.7–149.17) -- built on Brad's "Go with recommendations" of 21 Nov (and "ORBIT v2.18", 24 Nov), on main 1d88e3c; merge waits on his word
+### v2.18 — 24 Nov 2026: what the review of the Requirements page found printing the wrong thing (item 149.7–149.17) -- built on Brad's "Go with recommendations" of 21 Nov (and "ORBIT v2.18", 24 Nov), on main 1d88e3c; merged on Brad's word of 24 Nov (PR #76)
 
 No figure is worked out differently. Each label now prints the figure the stated rules name:
 - **149.7** A starred row's *MC short* is the requirement less discretionary (`mcShortSvcOf`), the record's ★ MC shortage and the
@@ -655,6 +655,24 @@ on v2.17 1d88e3c: 15 failing checks before it throws on the missing `jrnlFor`). 
 partial coverage" lane count (the oracle now counts a requirement short of its ask, trims included) and audit-import's v1.86
 not-drawn hover (the message's new words). **Mutations:** 22 new (`v218-149-*`), 2 retargeted (`pmo-button-silent`,
 `nd-filter-shows-all`); 3,843 targets, each once; all 24 CAUGHT, none by a throw (`recovery/v215/proved-v218.jsonl`). No sweep.
+
+**The gate** (`validate:nightly`, 24 Nov 2026):
+- **First run.** The suites stage failed in recon. v2.18 had named journal fields by the record's labels first, so "sustainment
+  indicator" read "Navy SI code", and the v2.00 U58/U59 checks match it exactly. 149.16 asked only that internal names
+  (recNames) stop showing: the journal now keeps its own plain names first, and uses the record's label only where it had none.
+  `v218-149-field-internal` was retargeted and CAUGHT.
+- **Second run, on `206ebf6`.** Every stage held but two:
+  - recon's three U41 expectations of the reworded message ("listed in Needs attention, on the Funding page"), updated;
+  - the browser stage, which fails on layout's carried D ×8 alone, as on main.
+  
+  Defect register 20 known, 55 mutations; coverage 27/27; money map 322 cells, 119 proven, 202 n/a, 1 open; trace matrix 77 cells;
+  fuzz seed 857013725; verify-file self-test held; suites 31.9 min.
+- **Remaining suites.** On the same board, recon, legacy, hostile, inject and ui then passed whole. export, other, board and import
+  had passed whole in the second run.
+- **Earlier changes to old expectations,** each for wording the fix changed: audit-import's v1.86 guide sentence ("panel on the
+  right") and audit-other's two WBS messages.
+- **Browser checks,** run separately: controls (re-recorded), keys, dialogs, dropdowns, leftmenu, menus, panels, pointer, csp,
+  standards (0 new), toolbar, editors, savetarget, fileimport, storagefull, pmosave and pmoyears all pass. layout fails on D ×8 alone.
 
 ### v2.17 — 21 Nov 2026: what the review of the Requirements page found could put a wrong value in the board (item 149.1–149.6) -- built on Brad's "Go with recommendations" of 21 Nov, on top of v2.16; merge waits on his word
 

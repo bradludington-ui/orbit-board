@@ -5294,6 +5294,10 @@ is worked out differently; each label now prints the figure the stated rules nam
 
 **Checks.** audit-board "v2.18 — the row, the tiles, the record and the journal print what they name (item 149.7-149.17)"; 22
 `v218-149-*` mutations and 2 retargeted, all CAUGHT (`recovery/v215/proved-v218.jsonl`); 3,843 targets.
+The gate: every suite whole, and every other stage held except layout's carried D ×8 (fuzz seed 857013725). Its first run failed
+because the journal had been renamed to the record's field labels ("Navy SI code" for "sustainment indicator"), which a v2.00
+check pins. **A wording change reaches every suite that quotes the old words: grep all of them before the gate** (v2.05's rule, met
+four times in this version).
 
 ## Colour: one token, one job
 

@@ -20,8 +20,8 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 - Owner: Claude (Claude Code session on ccr-1b6a4ab3-wntonn), no helpers. Base: main 1d88e3c (v2.17 merged, PR #58).
 - Allowed files: prioritization-board-grid.html, tools/export-audit/{audit-board,audit-import,mutate}.mjs, tools/row-controls.json,
   NEXT-VERSION.md, CLAUDE.md, recovery/v215/{proofs,proved}-v218.*, this entry.
-- Status: ready for review. Awaiting Brad's merge. Not merged.
-- Results: NEXT-VERSION.md › Shipped › v2.18. 24 of 24 mutations CAUGHT; 3,843 targets, each once. No sweep.
+- Status: merged on Brad's word of 24 Nov 2026 (PR #76), after the gate: every suite whole, every other stage held but layout's carried D x8.
+- Results: NEXT-VERSION.md › Shipped › v2.18. Next: item 150 (the scope-down, v2.19) on Brad's go. 24 of 24 mutations CAUGHT; 3,843 targets, each once. No sweep.
 
 ### The v2.17 assignment (merged, PR #58)
 
