@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
-import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132)
+// v2.19 (item 150): the cost estimate seed (ace-seed.mjs) removed with its feature
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const SVCN = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
@@ -32,12 +32,9 @@ const sc = { services: SVCN, items,
   mand: [62, 12, 6, 10, 4, 6].map(p => p * 1e6),
   order: items.map(x => x.id), mc: { R0: true, R3: true } };
 
-// v2.10 (item 130): a cost estimate across O&M, Full Fund and Spares, six services, and O&M's BES28 position, put on the board in
-// the page -- what FYDP Disconnects sets side by side. The box is drawn by its own code, from the board's stores.
-const FDC_SEED = `(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=['USAF','ANG','AFRC','STOVL','USMC-C','USN'], L=[];
-  ['om','ff','sp'].forEach(function(ap,a){ S6.forEach(function(sv,s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6+0.4; }); L.push({ap:ap,pmo:'AV',svc:sv,v:v}); }); });
-  ACEDB.sets['2025ACE']={label:'2025ACE', ts:Date.now(), years:Y, lines:L, appn:{}, skip:{}};
-  var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
+// v2.19 (item 150): FYDP Disconnects removed with its feature. A BES28 position for O&M, the plan tagged with it -- what the
+// Needs attention list of the overs (attShow('over'), where the Fit to the PPBE position box was) measures against.
+const POS_SEED = `(function(){ var S6=SVC.slice(), val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
     [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*1.3e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
   MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; MS.cycle='BES|2028'; })(); `;
 // Panels whose opener is not reachable from the backdrop's own onclick: they need a context —
@@ -55,11 +52,11 @@ const SPECIAL = {
   ndPanel:   `S.fsrc[S.order[S.order.length-1]]={m:'split', dv:SVC.map(function(){ return 9e11; }), mv:SVC.map(function(){ return 0; })};
               ndOpen=true; render();`,
   helpPanel: `openHelp('');`,
-  // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has
-  attPanel:  `attShow('oblig');`,
+  // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has. v2.19: a second pass below
+  // (the overs) is added to this entry with the list form.
   // v2.03 (item 19): the session's message list, with an unread warning in it (as ⚠ N unread opens it)
   msgPanel:  `setStat('⚠ A warning nobody has read yet.'); setStat('Order saved.'); msgOpen();`,
-  aiPanel:   `aiOpen();`,   // v2.04 (item 109): the AI review list, empty until an answer is read
+  // v2.19 (item 150): the AI review list (aiPanel) removed with its feature
   // v2.14 W2 (item 141): the box a full import too big for browser storage opens -- fullImportUndone, every key put back, given a
   // one-entry W carrying .full as fullImportText's own does; something unsaved on the page, so step 1 shows too
   impFilePanel: `DIRTY=true; (function(){ var W=[[_AP.key, '{}', 'x', 'the O&M plan']]; W.full={rep:'r'};
@@ -94,31 +91,16 @@ const SPECIAL = {
       `(function(){ var n=document.querySelectorAll('#naFromWrap tr[data-id]').length, b=document.getElementById('naFromBtn');
         return [n<4 && 'the other year’s rows ('+n+')', !(b && !b.disabled && b.getClientRects().length) && 'an enabled Add button'].filter(Boolean).join(', '); })()`],
   ],
-  // v2.10 (item 130): FYDP Disconnects. Opened bare it has no cost estimate and no position to set side by side, and says so --
-  // a box measured short of its tables. So a cost estimate and a BES28 position are put on the board first (O&M's own; Full Fund
-  // and Spares say they log none), an International figure typed on the Summary, then the USAF sheet.
-  // v2.12 (item 132): the cost estimate import's report, for an estimate as the import builds it (its backdrop closes it), and
-  // the mapping box, asking about two renamed titles in a 2026 file's own header row (its backdrop is Cancel)
-  aceRepPanel: [['aceRepPanel', ACE_REP_SEED + `aceRepShow('2026ACE');`,
-    `(function(){ var n=document.querySelectorAll('#aceRepBody .acerep-why tr').length, m=document.querySelectorAll('#aceRepBody .acerep-named').length;
-      return [n<12 && 'the reasons ('+n+')', m<5 && 'the named rows ('+m+')'].filter(Boolean).join(', '); })()`]],
-  aceColPanel: [['aceColPanel', ACE_COL_ASK,
-    `(function(){ var s=document.querySelectorAll('#aceColBody select'); return s.length===2? '' : 'the two fields asked ('+s.length+')'; })()`]],
-  fdcPanel: [
-    ['fdcPanel (Summary)', FDC_SEED + `toggleFdc(); var e=document.getElementById('fdcIn_ir_om_2028'); if(e){ e.value='1,234.5'; e.dispatchEvent(new Event('change',{bubbles:true})); }`,
-      `(function(){ var n=document.querySelectorAll('#fdcPage tbody tr').length, e=document.getElementById('fdcIn_ir_om_2028');
-        return [n<40 && 'the Summary’s rows ('+n+')', !(e && e.value==='$1,234.5') && 'the International figure typed'].filter(Boolean).join(', '); })()`],
-    ['fdcPanel (USAF)', FDC_SEED + `toggleFdc(); fdcTab(1);`,
-      `(function(){ var t=(document.querySelector('#fdcPage .fdct2')||{}).textContent||''; return /USAF CTOL/.test(t)? '' : 'the USAF sheet ('+t+')'; })()`],
-  ],
-  // v2.12 (item 134): FIT TO THE PPBE POSITION, with an over to show. FDC_SEED tags the plan BES28 with O&M's position; its first
-  // service gets $1 of discretionary in the year on screen, and the first requirement directs its whole value there on a Split,
-  // so the over line and its requirement list (Go to it) are drawn beside the year's table
-  fitPanel: [
-    ['fitPanel (an over)', FDC_SEED + `MS.ppbe['BES|2028'].val[SVC[0]]._all[MS.cur]={d:1, m:0}; var id=S.order[0];
+  // v2.19 (item 150): the cost estimate import's report and mapping box, and FYDP Disconnects, removed with their features.
+  // v2.12 (item 134) / v2.19: THE OVERS, with one to show -- the Needs attention list where the Fit to the PPBE position box was.
+  // POS_SEED tags the plan BES28 with O&M's position; its first service gets $1 of discretionary in the year on screen, and the
+  // first requirement directs its whole value there on a Split, so an over line and its requirement list (Go to it) are drawn
+  attPanel: [
+    ['attPanel', `attShow('oblig');`],
+    ['attPanel (the overs)', POS_SEED + `MS.ppbe['BES|2028'].val[SVC[0]]._all[MS.cur]={d:1, m:0}; var id=S.order[0];
       S.fsrc[id]={m:'split', dv:itemById(id).ask.slice(), mv:SVC.map(function(){ return 0; })}; baLiveAll(); save(); fitShow();`,
-      `(function(){ return [!document.querySelector('#fitBody table.fittab') && 'a year’s table', !document.querySelector('#fitBody .fitover') && 'an over line',
-        !document.querySelector('#fitBody .fitgo') && 'Go to it'].filter(Boolean).join(', '); })()`],
+      `(function(){ return [!document.querySelector('#attBody .fityr') && 'a year’s heading', !document.querySelector('#attBody .fitover') && 'an over line',
+        !document.querySelector('#attBody table.fitrows') && 'its requirement list', !document.querySelector('#attBody .fitgo') && 'Go to it'].filter(Boolean).join(', '); })()`],
   ],
 };
 // Inline panels: class "addp", shown with style.display, not a modal backdrop. (v2.07, item 121: the Add strip became a box,
@@ -133,13 +115,13 @@ const INLINE = {
 // Data are boxes there (swept with the boxes above); Setup, Program offices, Audit, History & recovery, FYDP, Execution and
 // the ▾ beside Save are flyouts, each opened from its entry and held to what a menu is held to here (LEFT, below).
 // v2.13 (item 136): the PPBE cycle in the context bar (#m_cyc), opened with the plan tagged BES28 and O&M's BES28 position logged
-// (FDC_SEED), so its list draws every appropriation's line, the cycles to put them on -- one with "controls entered" -- and the
+// (POS_SEED), so its list draws every appropriation's line, the cycles to put them on -- one with "controls entered" -- and the
 // plan on screen.
 const MENUS = { view: 'Filter', fy: 'FY', cyc: 'PPBE cycle', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
 const LEFT = { fydp: 'FYDP', exec: 'Execution', pmo: 'Program offices', aud: 'Audit', hist: 'History & recovery', setup: 'Setup', save: 'Save ▾' };
 const PREP = { basis: `uiMode='fund'; uiApply(); render();`,
                modetools: `uiMode='fund'; uiApply(); render();`,     // and a 1000px window: see below
-               cyc: FDC_SEED + `baLiveAll(); save(); render();` };
+               cyc: POS_SEED + `baLiveAll(); save(); render();` };
 // Visible text that should never contain an escape sequence. "&amp;" on screen means something
 // escaped text that was escaped already; "\\u{1F553}" means a JS escape was written straight into
 // markup, where nothing interprets it -- the Change Journal heading read exactly that for a while.
@@ -213,13 +195,13 @@ for (const f of ['prioritization-board-grid.html']) {
 
   // Closing is not a matter of removing the class: render() reads each panel's OPEN FLAG and puts
   // it straight back. Reset the flags, re-render, then strip whatever survived.
-  const FALSE = ['aceOpen','bandPanelOpen','blOpen','bmOpen','budOpen','coaPanelOpen','crOpen','divOpen',
-    'entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
-    'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
-    'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
-    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen','fdcOpen',
-    'aceRepOpen','aceColOpen',   // v2.12 (item 132): the cost estimate import's report and mapping box
-    'fitOpen'];                  // v2.12 W3: the fit box (item 134)
+  // v2.19 (item 150): aceOpen, coaPanelOpen, flowEntOpen, flowOpen, flowRepOpen, flowRuleOpen, idsOpen, spOpen, fdcOpen,
+  // aceRepOpen, aceColOpen and fitOpen removed with their features
+  const FALSE = ['bandPanelOpen','blOpen','bmOpen','budOpen','crOpen','divOpen',
+    'entOpen','exOpen','exwOpen','fcOpen',
+    'hardOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
+    'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','subOpen',
+    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen'];
   const NUL = ['wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };

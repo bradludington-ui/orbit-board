@@ -57,9 +57,11 @@ console.log(`\nbuilding into ${OUT}`);
 const F = appn(V212, 'FULL FUND', 'FF', 30, [60000000, 9000000, 4000000]);
 const S2 = appn(F.ev('buildSavedHtml()'), 'INITIAL SPARES', 'SP', 15, [20000000, 3000000, 1500000]);
 const O = appn(S2.ev('buildSavedHtml()'), 'O&M', 'OM', 60, [150000000, 30000000, 15000000]);
-// a made-up cost estimate in pieces under the import check's 200,000-character text limit (the shape import-file.mjs uses)
+// made-up text in pieces under the import check's 200,000-character text limit (the shape import-file.mjs uses)
 O.ev(`(function(){ const blob=[]; for(let i=0;i<29;i++) blob.push('synthetic-estimate-piece-'+String(i).padStart(4,'0')+'-'+'x'.repeat(189970));
-  ACEDB={ts:Date.now(), sets:{'2026 TEST ACE':{label:'2026 TEST ACE', ts:Date.now(), blob:blob}}}; return 'ok'; })()`);
+  RPDB={ts:Date.now(), entries:blob.map(function(b){ return {n:b}; })}; return 'ok'; })()`);
+// v2.19 (item 150): the pieces ride in the reprogramming log (carried byte for byte by every build since v2.02), where they rode in
+// a cost estimate -- v2.19 no longer reads one, so an estimate-sized board would fit once imported
 const BIG = O.ev('buildSavedHtml()');
 const BIGN = 'ORBIT Test Big Board (saved by v2.12).html';
 writeFileSync(join(OUT, BIGN), BIG);

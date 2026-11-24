@@ -20,7 +20,7 @@ import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
 import { buildPopulated } from './ia-fixture.mjs';
-import { ACE_REP_SEED, ACE_COL_CTX } from './ace-seed.mjs';   // v2.12 (item 132)
+// v2.19 (item 150): the cost estimate seed (ace-seed.mjs) removed with its feature
 
 const BOARD = process.env.BOARD || resolve(new URL('..', import.meta.url).pathname, 'prioritization-board-grid.html');
 const LIVE = buildPopulated(BOARD);
@@ -56,13 +56,11 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
   // open from their entries, uiGo('imp'|'rep'|'data', this)
   const KNOWN = { helpClose: 'openHelp(', erClose: 'toggleRec(', subClose: 'subOpenReview(', attClose: 'attShow(',
                   uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'",
-                  msgClose: 'msgOpen(', aiClose: 'aiOpen(',   // v2.04 (item 109): the AI review list   // v2.03 (item 19): the session's messages, opened by ⚠ N unread
+                  msgClose: 'msgOpen(',   // v2.03 (item 19): the session's messages, opened by ⚠ N unread; v2.19 (item 150): the AI review list removed with its feature
                   // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
                   // page (#uiAddBtn, uiAddReq) -- the Review tools' own button and the folded menu item call toggleAdd too
-                  toggleAdd: 'uiAddReq(',
-                  // v2.12 (item 132): the cost estimate import's report opens from the Data box (aceRepShow); the mapping box opens
-                  // only from an import that finds a title missing, so it is opened by its switch, for the file PRE puts in the page
-                  aceRepClose: 'aceRepShow(', aceColCancel: 'aceColAsk(window.__aceColCtx)' };
+                  toggleAdd: 'uiAddReq(' };
+                  // v2.19 (item 150): the cost estimate import's report and mapping box removed with their feature
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   // v2.14 W2 (item 141): the file route's box has no backdrop click (closing must not be a stray click while a file is being
   // written), and opens only from a full import browser storage refused -- so it is opened by its switch, the refusal PRE stands up
@@ -132,29 +130,17 @@ const openBox = async box => {
 // nothing to type in -- so the typing guard would go unchecked on it. One office is chosen at the top first, as a person adding
 // for their own office has it, and the box opens on its form; every office is put back after.
 const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilter('ALL')`],
-  // v2.10 (item 130): FYDP Disconnects with a cost estimate and a BES28 position to set side by side, so its tables and the
-  // International figures (text fields a person types into) are there to be checked; taken off the board after
-  fdcPanel: [`(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=['USAF','ANG','AFRC','STOVL','USMC-C','USN'], L=[];
-    ['om','ff','sp'].forEach(function(ap,a){ S6.forEach(function(sv,s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6; }); L.push({ap:ap,pmo:'AV',svc:sv,v:v}); }); });
-    ACEDB.sets['2025ACE']={label:'2025ACE', ts:Date.now(), years:Y, lines:L, appn:{}, skip:{}};
-    var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
-      [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*1.3e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
-    MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; })()`,
-    `delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']`],
-  // v2.12 (item 132): an estimate as the import builds it, its report to read; a 2026 file with two renamed titles to ask about
-  aceRepPanel: [ACE_REP_SEED, `delete ACEDB.sets['2026ACE']`],
-  aceColPanel: [`window.__aceColCtx=${ACE_COL_CTX}`, `delete window.__aceColCtx; ACECOL=null; aceColOpen=false; render()`],
+  // v2.19 (item 150): FYDP Disconnects and the cost estimate import's two boxes removed with their features
   // v2.14 W2 (item 141): a full import refused for room, every key put back, as fullImportText's own refusal reaches the box (a
   // one-entry W carrying .full); something unsaved on the page, so step 1 shows with its button and its checkbox. Taken off after
   impFilePanel: [`window.__impFileGo=function(){ DIRTY=true; var W=[[_AP.key, '{}', 'x', 'the O&M plan']]; W.full={rep:'r'};
     fullImportUndone({ok:false, at:0, why:'QuotaExceededError', back:true, now:['was'], held:[localStorage.getItem(_AP.key)]}, W, 'the text', 'ORBIT Live.html'); }`,
     `delete window.__impFileGo; try{ impFileShut(); }catch(e){} _impFileLast=null; DIRTY=false; syncBtns()`] };
 for (const box of BOXES) {
-  // v2.12 RV2 (K02): since v2.12 the in-app prompt is the WBS quick box wherever an estimate names the paragraphs, not only where
-  // the browser has no prompt of its own; it is still skipped here (its Cancel discards as it says, and its backdrop closes
-  // nothing, which this sweep's three ways of closing would each read as typing lost), and its Esc is held by keyboard-reach T
-  // in Chromium and by audit-other's "v2.12 RV2 — the WBS quick box asks" block
-  if (box.id === 'uipPanel') { skipped.push('uipPanel (the WBS quick box: its Esc is checked by keyboard-reach T and audit-other)'); continue; }
+  // the in-app prompt (uipPanel) is skipped: it opens only where the browser has no prompt of its own (Electron) -- v2.19 (item
+  // 150): with the cost estimate gone, the WBS quick box asks through the browser's prompt too (keyboard-reach T) -- its Cancel
+  // discards as it says, and its backdrop closes nothing, which this sweep's three ways of closing would each read as typing lost
+  if (box.id === 'uipPanel') { skipped.push('uipPanel (the in-app prompt, opened only where the browser has no prompt of its own)'); continue; }
   if (!box.pat) { bad.push(`${box.id}: no way to open it found`); continue; }
   if (PRE[box.id]) await p.evaluate(c => { try { (0, eval)(c); } catch (e) {} }, PRE[box.id][0]);
   await p.evaluate(() => { window.scrollTo(0, 0); document.body.focus(); });

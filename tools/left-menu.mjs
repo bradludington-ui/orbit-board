@@ -66,24 +66,25 @@ const WANT = {
   // Imports & exports
   '#fullFile': 1, '#stateFile': 1, '#multiFile': 1, exportOneAppn: 1, togglePkg: 1,
   // Setup
-  toggleSvcPanel: 1, togglePmo: 1, toggleEnt: 1, toggleBands: 1, toggleCoa: 1, toggleRcn: 1, toggleSi: 1,
+  toggleSvcPanel: 1, togglePmo: 1, toggleEnt: 1, toggleBands: 1, toggleRcn: 1,   // v2.19 (item 150): toggleCoa removed with the Chart of Accounts
+  toggleSi: 1,
   'themeSetIdx(0)': 1, 'themeSetIdx(1)': 1, 'themeSetIdx(2)': 1, 'themeSetIdx(3)': 1, 'themeSetIdx(4)': 1,
   'uiSetDensity("compact")': 1, 'uiSetDensity("comfortable")': 1, 'uiSetDensity("presentation")': 1,
   toggleDiag: 1,
   clearComputer: 1,       // v2.04 (item 106): Setup › Clear this computer…
   // Data
-  '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
-  aceRepShow: 1,          // v2.12 (item 132): Data › Annual Cost Estimate › Import report… (the newest estimate's)
+  '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#budFile': 1, toggleBudReg: 1,
+  // v2.19 (item 150): '#aceFile', toggleAce and aceRepShow removed with the Annual Cost Estimate
   // Reports & exports
   togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportCSV: 1,   // v2.05 (item 114): the deck, the synopsis and Executive Decision are gone
   fydpPickExport: 1, exportCycCompare: 1,   // v2.04 (item 112): 📊 FYDP Spend Plan (Excel) opens the plan picker first
-  exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
+  exportSrc: 1,   // v2.19 (item 150): toggleIds, exportCoa and exportAceTieout removed with their features
   linkOpen: 1, linkSet: 1,
-  aiExport: 1, '#aiFile': 1, aiOpen: 1,   // v2.04 (item 109): Reports & exports › AI review (GenAI.mil)
+  // v2.19 (item 150): aiExport, '#aiFile' and aiOpen removed with the AI review
   // FYDP ▸ (views only)
-  toggleFydp: 1, toggleSp: 1, toggleP2: 1, toggleFlow: 1,
-  toggleFdc: 1,           // v2.10 (item 130): FYDP › FYDP Disconnects…, beside the Spruills
-  toggleFit: 1,           // v2.12 (item 134): FYDP › Fit to the PPBE position…, beside PPBE Budget Positions
+  toggleFydp: 1, toggleP2: 1,
+  // v2.19 (item 150): toggleSp, toggleFlow, toggleFdc and toggleFit removed with the Spruills, the Funds Flow, FYDP Disconnects
+  // and Fit to the PPBE position (its figures are Needs attention's list of the overs)
   // Execution ▸ (views only; ⚖ Reprogramming Actions, and the ATR/BTR log export above, went with the tracker in v2.02)
   toggleEx: 1, toggleFc: 1, toggleCr: 1, toggleQpe: 1, toggleDiv: 1,
 };
@@ -163,7 +164,9 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.10: 69 -- FYDP › FYDP Disconnects… (item 130)
       // v2.12: 71 -- the cost estimate import's report (item 132) and FYDP › Fit to the PPBE position… (item 134)
       // v2.15 W3: 73 -- Save as a new file… and Choose another file…, under the ▾ beside Save (item 146)
-      off.length === 0 && Object.keys(WANT).length === 73, off.slice(0, 12).join(' | '));
+      // v2.19 (item 150): 59 -- 14 calls removed with the cost estimate, the Spruills, FYDP Disconnects, Fit to the PPBE position,
+      // the Funds Flow, the Chart of Accounts, the IDS export, the ACE tie-out and the AI review
+      off.length === 0 && Object.keys(WANT).length === 59, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
@@ -248,8 +251,7 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.09 (item 127): the copy's own Save, once, and its own Save a copy, once; the board's Save and Save a copy not at all
       chk('D · the copy’s 💾 Save and its Save a copy are each reached once, the board’s Save and Save a copy not at all',
         J([n.pmoSaveCopy || 0, n.pmoSaveCopyDl || 0, n.saveInPlace || 0, n.publishState || 0]) === J([1, 1, 0, 0]), J(n));
-      // v2.10 (item 130): FYDP Disconnects sets three appropriations side by side; a copy holds one, and does not offer it
-      chk('D · FYDP › FYDP Disconnects… is not offered in a copy', (n.toggleFdc || 0) === 0, J(n));
+      // v2.19 (item 150): the check that a copy does not offer FYDP Disconnects removed with its feature
       await p.click('#uiNav_save'); await p.waitForTimeout(120);
       const off = await p.evaluate(() => [...document.querySelectorAll('#uiFly.open button.mi')].map(e => [e.getAttribute('onclick'), (e.querySelector('.sub') || {}).textContent]));
       // v2.09 (item 127): it listed the board's Save and Save a copy, off ("turned off in a PMO copy"); the copy saves now

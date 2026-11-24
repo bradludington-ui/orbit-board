@@ -371,18 +371,16 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
   }
 }
 {
+  // v2.19 (item 150): the estimate lines and the PMO drill that read them are gone; cost elements and MIPR types stay
   const F = 'K3 estimate lines, cost elements and MIPR types keyed by name (pmoDetail, ceSummary, MIPR_LBL)';
   const B = fresh();
   const out = probe(B, F, `(function(){ var o={};
-    ACEDB.sets={ X:{ lines:[ { ap:mySlug(), pmo:'AV', svc:'__proto__', v:{2027:7} }, { ap:mySlug(), pmo:'AV', svc:'constructor', v:{2027:7} } ] } }; spAce='X';
-    try{ pmoDetail('AV', [2027]); o.drill='ran'; }catch(e){ o.drill=e.message; }
     o.objectFn=(Object[2027]===undefined)? '' : String(Object[2027]);
     DATA.costElems=true;
     try{ S.costElem={ R0:'constructor' }; ceSummary(); S.costElem={ R0:'__proto__' }; ceSummary(); o.ce='ran'; }catch(e){ o.ce=e.message; }
     o.mipr=String(MIPR_LBL['constructor']||'');
     o.polluted=${POLLUTED}; return JSON.stringify(o); })()`);
   if (out) {
-    chk(F, 'the PMO drill runs on estimate lines naming __proto__ and constructor', out.drill, 'ran');
     chk(F, 'nothing is written onto the Object constructor', out.objectFn, '');
     chk(F, 'the cost element panel runs on cost elements named constructor and __proto__', out.ce, 'ran');
     chk(F, 'a MIPR type of constructor is not a MIPR type', out.mipr, '');
@@ -465,27 +463,20 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
   const F = 'K8 lookups by a value the board uses as a key (flowSubOf, ppSetV, rpMerge tombstones, acePmoGroups, fydpBookModel, spProjByPmo, forecast)';
   const B = fresh();
   const out = probe(B, F, `(function(){ var o={};
-    o.flowSub=[flowSubOf('constructor'), flowSubOf('hasOwnProperty'), flowSubOf('toString')].map(function(x){ return x===null? 'null' : typeof x; }).join(',');
     try{ var P=ppPos(); P.val={}; ppSetV(SVC[0], '__proto__', 2027, 'd', '5'); o.pp=({})[2027]===undefined? 'clean' : 'polluted'; }catch(e){ o.pp='threw '+e.message; }
     RPDB.entries=[ { id:'hasOwnProperty', amt:2500000 } ]; RPDB.gone={};
     var res=rpMerge({ entries:[], gone:{} }); o.rpKept=RPDB.entries.length+'/'+res.buried;
-    MS.aceAlign={ X:{ AV:'constructor', PSM:'__proto__' } };
-    try{ var g=acePmoGroups('X'); o.groups=['__proto__','constructor'].map(function(k){ return (Object.prototype.hasOwnProperty.call(g,k) && Array.isArray(g[k]))? g[k].join('+') : 'missing'; }).join(','); }catch(e){ o.groups='threw '+e.message; }
     try{ var y=fydpBookYears({src:'working'})[0], X={src:'working', svc:['USAF'], held:[y], proj:{}};
       X.proj[y]={svc:['USAF'], reqs:[ { id:'R1', title:'R1', grp:'constructor', ask:[5], fund:[5] }, { id:'R2', title:'R2', grp:'__proto__', ask:[7], fund:[4] } ]};
       var bk=fydpBookModel(X, [ { k:mySlug(), D:X, own:true } ]);
       o.share=bk.pmo.map(function(p){ return p.name+'='+p.sum.tot.a+'/'+p.sum.tot.l; }).sort().join(',')+(({}).fy===undefined? '' : ' polluted'); }catch(e){ o.share='threw '+e.message; }
-    try{ var sp=spProjByPmo({ svc:['USAF'], reqs:[ { id:'R1', grp:'constructor', ask:[5], alloc:[5], fund:[5] }, { id:'R2', grp:'__proto__', ask:[7], alloc:[7], fund:[7] } ] }, null);
-      o.sp=Object.keys(sp).sort().join(',')+':'+(sp['__proto__']? sp['__proto__'].ask[0] : 'none'); }catch(e){ o.sp='threw '+e.message; }
     try{ DATA.items[0].grp='__proto__'; forecast(); o.fc=(({}).tot===undefined && ({}).unsch===undefined)? 'clean' : 'polluted'; }catch(e){ o.fc='threw '+e.message; }
     return JSON.stringify(o); })()`);
   if (out) {
-    chk(F, 'a category named after a built-in has no sub-ladder', out.flowSub, 'null,null,null');
+    // v2.19 (item 150): the funds flow's categories, the estimate's office groups and the Spruills' cycle by office are gone
     chk(F, 'a PPBE figure for a line keyed __proto__ is written to the line, not onto every object', out.pp, 'clean');
     chk(F, 'a reprogramming row is not buried by an inherited tombstone', out.rpKept, '1/0');
-    chk(F, 'estimate offices named after built-ins group as text, each holding its own board office', out.groups, 'PSM,AV');
     chk(F, 'the five-year workbook’s PMO tabs add requirements under offices named after built-ins as text', out.share, '__proto__=7/4,constructor=5/5');
-    chk(F, "a cycle's requirements under offices named after built-ins add up under those names", out.sp, '__proto__,constructor:7');
     chk(F, 'the forecast by office writes nothing onto Object.prototype', out.fc, 'clean');
   }
 }
@@ -504,36 +495,25 @@ bootRelease(bm, []);
     ['A3e buy quantity (buysPanel)', 'value="${esc(b.base[i]||0)}"'],
     ['A3f fsrc mode (lane chip title)', "funding source SET manually ('+esc(t.set.toUpperCase()"],
     ['A3g award id attribute (awardBlockHtml)', 'id="awdM-${esc(it.id)}"'],
-    ['A3h flow FY (matching-rules input)', `value="'+(parseInt(flowPseudo().from)||'')`],
     ['A3j budget-list file count (budBody)', `esc(x.file)+'</td><td>'+esc(x.n)`],
     ['A4 QPE office (exBody)', `esc(g)+' <span style="color:var(--dim);font-size:8.5px">`],
     ['A5 shared-folder peer reqs (liveBody)', 'sum? esc(sum.reqs)'],
     // found by the v2.00 self-audit, beyond the review's 27: an imported destination key and a funds-flow FY
     ['A6 destination key, "Goes to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).to===e.k`],
     ['A6 destination key, "Which awards to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).end===e.k`],
-    ['A3h flow FY "counts as" (matching-rules input)', `value="'+(parseInt(flowPseudo().to)||'')`],
-    ['A3h funds-flow label, export status line (exportFlow)', `setStat('⬇ Exported: funds flow '+esc(F.label)+'`],
     ['A3e buy quantity, adjusted (buysPanel)', 'value="${esc(b.adj[i]||0)}"'],
-    ['A2 cost-estimate set names (importAceNote)', `esc(sets.sort().join(', '))`],
     // found by the final review of 23a18ee: siblings of fixed sinks that were still raw
-    ['A3h CCaR import report counts (flowImportReport)', `'<td>'+esc(t.read||0)+'</td>'`],
-    ['A3h CCaR import report counts (flowImportReport)', `+'">'+esc(t.kept||0)+'</td>'`],
-    ['A3h CCaR import report counts (flowImportReport)', `+'">'+esc(t.noFy||0)+'</td>'`],
     ['N1 BAE import department token (importBud status line)', `('+esc(D.depts.join(', '))+')`],
     // lower severity: a file name a macOS/Linux/ZIP user can choose
     ['C1 file names in status lines (importState, importSrc, importAce)', `Imported saved state from '+esc(f.name)`],
     ['C1 file names in status lines (importState, importSrc, importAce)', `'\\ud83d\\udce5 Reading '+esc(f.name)`],
-    ['C1 file names in status lines (importState, importSrc, importAce)', `'\\ud83d\\udcc8 Reading '+esc(f.name)`],
     ['C1 file names in status lines (importState, importSrc, importAce)', `— "'+esc(h.name||FNAME)+'" now carries this state.`],
     // found by the full sweep of the board (8 Oct)
-    ['A2 cost-estimate set names (importAceNote)', `<b>' + esc(missing.sort().join(', ')) + '</b>, which was '`],
     ['N4 CCaR records count (Data menu)', `ccarIdx()? ((wholeOr(MS.ccarIdx.n,0))+' record'`],
     ['N5 roll panel year count (rollBody)', `n=st&&Array.isArray(st.order)? st.order.length : 0;`],
     ['N6 workbook and error text in status lines', `In-place save failed ('+esc((e&&e.message)||e)+')`],
     ['N6 workbook and error text in status lines', `esc(msg.join(' \\u00b7 '))`],
     ['N6 workbook and error text in status lines', `setStat('\\u26a0 Import failed: '+esc((e&&e.message)||e));`],
-    ['N7 cost-estimate line count (aceStamp, ACE tie-out)', `+' \\u00b7 '+(Array.isArray(set.lines)?set.lines.length:0)+' cost lines'`],
-    ['N7 cost-estimate line count (aceStamp, ACE tie-out)', `+(Array.isArray(set.lines)?set.lines.length:0)+' cost lines \\u00b7 '`],
     ['E2 writer, office, service and team names', `esc(WRITER.by)+' holds the pen'`],
     ['E2 writer, office, service and team names', 'title="${esc(s)} award for '],
     ['E2 writer, office, service and team names', "${g==='ALL'?'Cost Element (ALL PMOs)':esc(g)}</button>"],
@@ -549,21 +529,16 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;`],
     ['K5 safe maps and refusals (source)', `none:0, pos:Object.create(null), cand:Object.create(null), imported:false};`],
     ['K5 safe maps and refusals (source)', `const reqs=[], pmo=Object.create(null);`],
-    ['K5 safe maps and refusals (source)', `const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years,`],
-    ['K5 safe maps and refusals (source)', `const ctl=Object.create(null), ctlSvcLevel=`],
     // (v2.05, item 114: the deck's PMO roll-up map, `const byG=Object.create(null), seenIds={};`, went with the deck)
     ['K5 safe maps and refusals (source)', `ce:Object.create(null)};`],
     // (v2.09, item 126: pmoApply's office-keyed `forOf` map went with item 52's one-year refusal; its replacements,
     // pmoEachYear's `by` and pmoApply's `how`, are keyed by fiscal year, never by an imported name)
     ['K5 safe maps and refusals (source)', `function flowEntUseMap(){\n  const out=Object.create(null);`],
-    ['K5 safe maps and refusals (source)', `function flowDestResolve(ids, axis){\n  const seen=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `function pmoChoices(){\n  const seen=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `function ppKeysOf(P, sv){\n  const seen=Object.create(null), out=[];`],
     ['K5 safe maps and refusals (source)', `const P=ppNorm(Praw), seen=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `const clean=[], seen=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `const byId=Object.create(null); mine.forEach(`],
-    ['K5 safe maps and refusals (source)', `if(spAce!=='board' && !Object.prototype.hasOwnProperty.call(ACEDB.sets||{}, spAce)) spAce='board';`],
-    ['K5 safe maps and refusals (source)', `if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '`],
     ['K5 safe maps and refusals (source)', `function destRefs(states){\n  const r=Object.create(null);`],
     // found by re-verifying the key sweep (11 Oct): maps no runtime check reaches
     ['K5 safe maps and refusals (source)', `let exOpen=false, exFy=null, exX=Object.create(null), exXT={}`],
@@ -576,7 +551,6 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `  const reqs=Object.create(null), order=[];`],
     ['K5 safe maps and refusals (source)', `  const byG=Object.create(null); D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)';`],
     ['K5 safe maps and refusals (source)', `  const byGX=Object.create(null);`],
-    ['K5 safe maps and refusals (source)', `      const stray=Object.create(null);\n      (set.lines||[]).forEach(function(l){`],
     // maps no runtime check above reaches: the PMO panel, the workbook's two matrices (the deck's cost-element rollup went with
     // the deck in v2.05, item 114)
     ['K5 safe maps and refusals (source)', `  const byG=Object.create(null);\n  const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);`],
@@ -592,7 +566,6 @@ bootRelease(bm, []);
   const rawGone = [
     ['A1a package sender and name (pkgApply status lines)', /'Import cancelled — '\+nm\+/, 'an Import cancelled line draws the appropriation raw'],
     ['A1a package sender and name (pkgApply status lines)', /setStat\([^\n]*' from '\+pkg\.by\b/, 'a status line draws the package sender raw'],
-    ['A3h CCaR import report counts (flowImportReport)', /\+\(t\.(read|kept|noFy)\|\|0\)\+'<\/td>'/, 'a report count is drawn raw'],
     ['N1 BAE import department token (importBud status line)', /\('\+D\.depts\.join\(/, 'the department list is drawn raw'],
     ['C1 file names in status lines (importState, importSrc, importAce)', /setStat\([^\n]*'\+f\.name\b/, 'a status line draws a file name raw'],
     ['N4 CCaR records count (Data menu)', /\(MS\.ccarIdx\.n\|\|0\)\+/, 'the records count is drawn raw'],
@@ -612,22 +585,7 @@ bootRelease(bm, []);
 // forms in the source, so each guards the over-escapes it names -- not every possible over-escape.
 const FID = new Set();
 const fid = (name, what, got, want) => { FID.add(name); if (String(got) !== String(want)) failures.push({ finding: name, what, got: String(got), want: String(want) }); };
-{
-  // T1 — a pseudo-appropriation named with "&": the funds-flow label (the panel heading, the chart, the workbook's
-  // Scope line) carries the name as typed.
-  const B = fresh();
-  const out = probe(B, 'T1 funds-flow label keeps "&" (flowCalc / exportFlow Scope)', `(function(){
-    var row=[]; for(var i=0;i<25;i++) row.push(''); row[3]='Title A'; row[4]='O&M Carry, Mandatory'; row[7]='Event'; row[9]=1000; row[18]='AV';
-    EXDB={ts:Date.now(), all:{}}; EXDB.all[mySlug()]={rows:{2026:[row]}};
-    var C=flowCfg(); C.pseudo={on:true, label:'O&M Carry', token:'O&M Carry', from:2026, to:2027, col:4}; C.fys=[2027];
-    var F=flowCalc();
-    return JSON.stringify({ n:F.pseudo.n, label:F.label }); })()`);
-  if (out) {
-    fid('T1 funds-flow label keeps "&" (flowCalc / exportFlow Scope)', 'the fixture pulls one row into the pseudo-appropriation', out.n, 1);
-    fid('T1 funds-flow label keeps "&" (flowCalc / exportFlow Scope)', 'the label reads "O&M Carry", not "O&amp;M Carry"',
-      /O&M Carry/.test(out.label) && !/&amp;/.test(out.label), true);
-  }
-}
+// T1: v2.19 (item 150): the funds flow, whose label it guarded, is gone
 {
   // T2 — a confirm() dialog is plain text: the budget-authority question names the services a position is silent
   // about as they are, with no entities.

@@ -86,11 +86,11 @@ exactly one home."* The top right holds only the message line and Help; 💾 Sav
 and 📁 File ▾ are gone, and so are the task bar's Bands, Executive decision, PowerPoint deck and Exec synopsis. The
 left menu, top to bottom:
 
-- **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, Spruills, PPBE Budget Positions, Funds Flow),
+- **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, PPBE Budget Positions; v2.19 took out the Spruills, FYDP Disconnects, the Fit panel and the Funds Flow),
   **Execution ▸** (Active Year Execution, Spend Plan Forecast, CR Cash Needs, QPE coverage, ORBIT vs CCaR; Reprogramming
   Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
 - **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Find with Pre-Flight Check beside it, then two plain
-  lists of sections (`sec()`: Working Documents, Spend Plan & Cash, Five Years & PPBE; CCaR & Accounting Files, AI Review),
+  lists of sections (`sec()`: Working Documents, Spend Plan & Cash, Five Years & PPBE; CCaR Files -- v2.19 took out the ACE Tie-Out, the IDS Batch Import, the Chart of Accounts and the AI Review),
   each item one click, a title in title case with its format on a tag (`ri()`: XLSX, TXT, VIEW, READ), and a foot naming
   where the views live and linking the companion tool (v2.05, item 114).
 - **Board:** **Imports & exports** (box `#uiImpPanel`, list `dd_boards`: a whole board or one appropriation, in or
@@ -2172,7 +2172,7 @@ So: **the `pubState` tag's exact literal shape is load-bearing.** Reformat it an
 writes a file containing the *old* state. `check.mjs` guards this.
 
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
-`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog` (the reprogramming log: carried, not shown, since
+`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb` (removed on opening since v2.19: ORBIT keeps no cost estimates), `prio27reprog` (the reprogramming log: carried, not shown, since
 v2.02), `prio27appn`, `prio27who`,
 `spmtTheme`, `spmtSidecar`, `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
@@ -5298,6 +5298,32 @@ The gate: every suite whole, and every other stage held except layout's carried 
 because the journal had been renamed to the record's field labels ("Navy SI code" for "sustainment indicator"), which a v2.00
 check pins. **A wording change reaches every suite that quotes the old words: grep all of them before the gate** (v2.05's rule, met
 four times in this version).
+
+### v2.19 (item 150): ORBIT scoped down to what it is for
+
+Brad, 24 Nov 2026: *"The focus of this dashboard is the building of FYDP requirements, prioritization, and allocation of funding to
+support program managers and leadership in knowing where their funds are being used and what's not being used."* Removed: the
+cost estimate (import, tie-out, alignment, folder share, WBS picker), the Spruills and PMO drill, FYDP Disconnects, the Fit box, the
+Funds Flow, the IDS Batch Import, the Chart of Accounts and the AI Review. `NEXT-VERSION.md` › Shipped › v2.19 has every decision.
+**The sections above that describe them are the record of why the code was the way it was; none of that code is in the file now.**
+
+- **What an older file kept for them is dropped on opening, never refused.** `retiredDrop()` runs in `normalizeStore` (it holds its
+  own key list inside it: a store is opened while the script is still being read). `MS.flow` keeps the destination list and the
+  prime `rules` (`flowCfg()` makes only those); the destinations, *Goes to* and the SI codes still read them. Save's HOLD ON names a
+  file's cost estimates as removed on purpose (`saveDrops`); a full import leaves them out and says so.
+- **The over list is the Fit box's successor** (`attOverHtml`, `attOverGo`, `fitVs`), under Needs attention's 🏛 entry and the cycle
+  bar's figure (`fitShow()` opens it). `fitModel` is unchanged. Its classes are the box's (`.fithint`, `.fityr`, `.fitctl`, `.fitover`,
+  `table.fitrows`), so a sentence is found as before, in `#attBody`.
+- **A WBS is typed** (`wbsTake` → `codeTake`); the quick box asks through the browser's own prompt (`uiPrompt` uses its in-app box only
+  with a list).
+- **The BUILD stamp is `const BUILD='vN.NN (date)';` exactly** -- the board reads another file's version by that shape (`fullBuildOf`),
+  and `npm run check` now fails on any other. The v2.19 bump wrote spaces round the `=` and nothing noticed until a suite read it.
+- **What it leaves:** a test of a surface that stays but whose only money surface went (the destination list's duplicate keys,
+  U44; the RCN pointer `__proto__`, U61) was dropped rather than rebuilt; the 21 new and retargeted mutations are proved, the 615
+  retired are not run. The first sweep on Brad's named go is the measure of whether any surviving guard lost its only check.
+
+**Checks.** audit-board "v2.19 — the scope-down: …" and audit-import "v2.19 — a board file that carries cost estimates …";
+The gate (`validate:nightly`): every stage holds but layout's carried D ×8 (fuzz seed 362034012; suites 25.8 min).
 
 ## Colour: one token, one job
 

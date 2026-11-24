@@ -183,21 +183,12 @@ const MUTATIONS = [
   // The Spruills grid took the consolidated payload for the board's OWN appropriation. It is empty
   // on any board that simply carries its own requirements, so the panel reported $0.00M of
   // requirements and a DELTA of the whole budget as surplus.
-  { id: 'spdefs-no-fallback', area: 'model', what: "Spruills ignores the board's own requirements",
-    // v2.14 RV2-D: retargeted in place -- the own line now carries the board's master list, never DATA (spDefs)
-    find: 'data:_hasData(APPNS[a])? APPNS[a] : Object.assign({}, DATA, {items:BASE_ITEMS})',
-    repl: 'data:APPNS[a]' },
+  // spdefs-no-fallback: retired as obsolete in v2.19 -- spDefs went with item 150 (Spruills ignores the board's own requirements)
   // v1.95: the Spruills table by service, by year and for another appropriation (audit-board
   // 'v1.95 — the Spruills by service, by year and for another appropriation'; the money map's spGather cells)
-  { id: 'spgather-svc-first-service', area: 'spGather', what: 'every service’s row in the Spruills takes the first service’s ask',
-    find: '            block.rows[s][y]=(block.rows[s][y]||0)+(ask[i]||0);',
-    repl: '            block.rows[s][y]=(block.rows[s][y]||0)+(ask[0]||0);' },
-  { id: 'spgather-bud-screen-year', area: 'spGather', what: 'every year’s Available Funding is the year on screen’s budget',
-    find: '      const dv=(st.discSvc||[]).reduce((x,y2)=>x+y2,0), mv=(st.mandSvc||[]).reduce((x,y2)=>x+y2,0);',
-    repl: '      const dv=(S.discSvc||[]).reduce((x,y2)=>x+y2,0), mv=(S.mandSvc||[]).reduce((x,y2)=>x+y2,0);' },
-  { id: 'spgather-other-svc-own-list', area: 'spGather', what: 'another appropriation’s rows by service follow this board’s service list',
-    find: '          ((d.data&&d.data.services)||[]).forEach((s,i)=>{',
-    repl: '          ((DATA&&DATA.services)||[]).forEach((s,i)=>{' },
+  // spgather-svc-first-service: retired as obsolete in v2.19 -- spGather went with item 150 (every service’s row in the Spruills takes the first service’s ask)
+  // spgather-bud-screen-year: retired as obsolete in v2.19 -- spGather went with item 150 (every year’s Available Funding is the year on screen’s budget)
+  // spgather-other-svc-own-list: retired as obsolete in v2.19 -- spGather went with item 150 (another appropriation’s rows by service follow this board’s service list)
   { id: 'cum-skips-unfunded', area: 'tiers', what: 'cumulative counts only what a lane covered',
     find: '    const e=dT+mT+uT;\n    cum+=e;',
     repl: '    const e=dT+mT+uT;\n    cum+=dT+mT;' },
@@ -429,9 +420,7 @@ const MUTATIONS = [
   { id: 'handoff-copy-drops-exec', area: 'buildSavedHtml', what: 'the PMO copy goes out without the execution data it was built from',
     find: "execDb:L('execDb', EXDB),",    // v2.14 W2 (C27): retargeted to savedHtmlOf's new line
     repl: 'execDb:null,' },
-  { id: 'handoff-copy-drops-ace', area: 'buildSavedHtml', what: 'the PMO copy goes out without the cost estimate it was built from',
-    find: "aceDb:L('aceDb', ACEDB),",    // v2.14 W2 (C27): retargeted to savedHtmlOf's new line
-    repl: 'aceDb:null,' },
+  // handoff-copy-drops-ace: retired as obsolete in v2.19 -- its line in savedHtmlOf went with item 150 (the PMO copy goes out without the cost estimate it was built from)
   // A RENAME THAT MISSES A CALL SITE. This is the shape of the defect that shipped: the markup is
   // there, the box draws, the click raises a ReferenceError into a console nobody reads, and the
   // reviewer's only working control is "Tick all" -- accept everything or nothing.
@@ -967,25 +956,14 @@ const MUTATIONS = [
     repl: "    if(!(wsum>0)){ return out; }" },
 
   // ---- the funds flow: a plan year is the lane draw, and every total closes -------------------------
-  { id: 'flow-plan-year-allocation', area: 'flowPlanRecs', what: 'a plan year is answered from the allocation, so the flow counts money beyond both lanes as funding',
-    find: "      const vals=SVC.map(function(_,i){ return (p.d[i]||0)+(p.m[i]||0); });", repl: "      const vals=svcAlloc(it)||[];" },
-  { id: 'flow-prime-not-in-total', area: 'flowCalc', what: 'a prime’s money reaches its own line and not the prime total',
-    find: "      if(k){ F.prime[k].v+=amt; F.prime[k].rows.push(rec); F.primeTot+=amt; return; }",
-    repl: "      if(k){ F.prime[k].v+=amt; F.prime[k].rows.push(rec); return; }" },
-  { id: 'flow-grand-drops-other', area: 'flowCalc', what: 'TOTAL FUNDING forgets the other sources typed in',
-    find: "  F.grand=F.tot+F.ip+F.fms;", repl: "  F.grand=F.tot;" },
-  { id: 'flow-appn-uncounted', area: 'flowCalc', what: 'a dollar is counted in the total and in no appropriation',
-    find: "      F.tot+=amt; F.appn[sl]+=amt; F.rows++;", repl: "      F.tot+=amt; F.rows++;" },
-  { id: 'flow-sheet-us-funding-prints-grand', area: 'exportFlow', what: 'the US SERVICE FUNDING row prints the grand total instead of US funding',
-    find: "  sum.push([{v:'US SERVICE FUNDING',s:4},{v:F.tot,s:MB},'100.0%']);",
-    repl: "  sum.push([{v:'US SERVICE FUNDING',s:4},{v:F.grand,s:MB},'100.0%']);" },
-
+  // flow-plan-year-allocation: retired as obsolete in v2.19 -- flowPlanRecs went with item 150 (a plan year is answered from the allocation, so the flow counts money beyond both lanes as funding)
+  // flow-prime-not-in-total: retired as obsolete in v2.19 -- flowCalc went with item 150 (a prime’s money reaches its own line and not the prime total)
+  // flow-grand-drops-other: retired as obsolete in v2.19 -- flowCalc went with item 150 (TOTAL FUNDING forgets the other sources typed in)
+  // flow-appn-uncounted: retired as obsolete in v2.19 -- flowCalc went with item 150 (a dollar is counted in the total and in no appropriation)
+  // flow-sheet-us-funding-prints-grand: retired as obsolete in v2.19 -- exportFlow went with item 150 (the US SERVICE FUNDING row prints the grand total instead of US funding)
   // ---- the chart of accounts: the requirement, resolved the way the board resolves it ---------------
-  { id: 'coa-ask-ignores-override', area: 'coaAsk', what: 'the chart prints the payload’s ask and ignores this year’s override',
-    find: "  const v=(Array.isArray(o) && o.length===nsvc)? o : (it.ask||[]);", repl: "  const v=(it.ask||[]);" },
-  { id: 'coa-summary-drops-ask', area: 'coaSummary', what: 'the appropriation row counts requirements and no money',
-    find: "    b.n++; b.ask+=r.ask;", repl: "    b.n++;" },
-
+  // coa-ask-ignores-override: retired as obsolete in v2.19 -- coaAsk went with item 150 (the chart prints the payload’s ask and ignores this year’s override)
+  // coa-summary-drops-ask: retired as obsolete in v2.19 -- coaSummary went with item 150 (the appropriation row counts requirements and no money)
   // ---- the reprogramming log: deducts are negative, and the types stay apart ----------------------
   // v1.97 (item 81): exportReprog nets through rpNetM, exactly, by each row's own appropriation's service -- RETARGETED there, each
   // the same defect.
@@ -995,15 +973,10 @@ const MUTATIONS = [
   // v2.02: rp-subtotal-adds-deducts RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
 
   // ---- the ACE tie-out: funded, estimate, delta, and the line no office reports under ---------------
-  { id: 'ace-total-skips-unconfirmed', area: 'exportAceTieout', what: 'the board-funded total forgets every requirement that has not confirmed a line',
-    find: "        bTot+=r.f; if(e!=null) eTot+=e;", repl: "        if(e!=null){ bTot+=r.f; eTot+=e; }" },
-  { id: 'ace-delta-sign', area: 'exportAceTieout', what: 'the delta is estimate less funded, so a shortfall reads as a surplus',
-    find: "                   (e==null? '' : {v:r.f-e,s:N}),", repl: "                   (e==null? '' : {v:e-r.f,s:N})," },
-  { id: 'ace-pmo-total-drops-est', area: 'exportAceTieout', what: 'the per-PMO FY total forgets the estimate',
-    find: "        eY+=est; bY+=bd;", repl: "        bY+=bd;" },
-  { id: 'ace-stray-line-lost', area: 'exportAceTieout', what: 'an estimate line under a PMO no office reports under vanishes from the per-PMO sheet',
-    find: "        if(l.ap!==mySlug() || groups[l.pmo]) return;", repl: "        return;" },
-
+  // ace-total-skips-unconfirmed: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the board-funded total forgets every requirement that has not confirmed a line)
+  // ace-delta-sign: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the delta is estimate less funded, so a shortfall reads as a surplus)
+  // ace-pmo-total-drops-est: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the per-PMO FY total forgets the estimate)
+  // ace-stray-line-lost: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (an estimate line under a PMO no office reports under vanishes from the per-PMO sheet)
   // ---- the cost estimate beside the five-year plan (21 Sep 2026)
   // v2.04 (item 112): fydp-ace-other-appropriation RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the five-year workbook's old layout (Brad, 22 Oct 2026: the estimate and the position dropped; one Allocated figure, no count column).
   // v2.04 (item 112): fydp-ace-wrong-year RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the five-year workbook's old layout (Brad, 22 Oct 2026: the estimate and the position dropped; one Allocated figure, no count column).
@@ -1202,9 +1175,7 @@ const MUTATIONS = [
     repl: "      if(st.cycles[k]){ kept.push(k); }" },
   { id: 'cycle-delete-leaves-reference', area: 'blDelete', what: 'deleting the reference cycle leaves the reference dangling',
     find: "  if(MS.cycleRef===key){ MS.cycleRef=''; save(); }", repl: "  /* left dangling */" },
-  { id: 'cycle-spruills-one-year', area: 'pmoDetail', what: 'the Spruills reads a cycle for the year on screen only',
-    find: "          if(years.indexOf(+fy)<0) return;\n          const BA=blPmoAlloc(blSrc, pmoKey, +fy); if(!BA) return;",
-    repl: "          if(+fy!==+MS.cur) return;\n          const BA=blPmoAlloc(blSrc, pmoKey, +fy); if(!BA) return;" },
+  // cycle-spruills-one-year: retired as obsolete in v2.19 -- pmoDetail went with item 150 (the Spruills reads a cycle for the year on screen only)
   // ---- a copy proposes a new requirement -----------------------------------------------------------
   { id: 'proposal-dropped', area: 'pmoTake', what: 'a proposed requirement arrives and is never offered for review',
     find: "  held.added=(pkg.added||[]).slice();", repl: "  held.added=[];" },
@@ -1660,8 +1631,7 @@ const MUTATIONS = [
     find: "  if(bud){ bud.ts=now; W.push(['prio27buddb', JSON.stringify(bud), 'The imported BAE budget list', 'the BAE list']); }", repl: "  /* BAE list */" },
   { id: 'full-exec-left', area: 'fullImportText', what: 'a full import leaves the execution data behind',
     find: "  if(ex){ ex.ts=now; W.push(['prio27execdb', JSON.stringify(ex), 'The imported execution data', 'the execution data']); }", repl: "  /* execution */" },
-  { id: 'full-ace-left', area: 'fullImportText', what: 'a full import leaves the cost estimates behind',
-    find: "  if(ace){ ace.ts=now; W.push(['prio27acedb', JSON.stringify(ace), 'The cost estimates', 'the cost estimates']); }", repl: "  /* cost estimates */" },
+  // full-ace-left: retired as obsolete in v2.19 -- its line in fullImportText went with item 150 (a full import leaves the cost estimates behind)
   { id: 'full-rp-left', area: 'fullImportText', what: 'a full import leaves the reprogramming log behind',
     find: "  if(rp){ rp.ts=now; W.push(['prio27reprog', JSON.stringify(rp), 'The reprogramming log', 'the reprogramming log']); }", repl: "  /* reprogramming */" },
   { id: 'full-no-conflict-check', area: 'fullImportText', what: 'a full import discards the board’s own work without asking',
@@ -1808,15 +1778,11 @@ const MUTATIONS = [
   { id: "draw-filter-svc", area: "menus", what: "the Filter menu writes service names unescaped",
     find: "SVC.map((s,i)=>mi(esc(s),`svcFilter=${i};render()`",
     repl: "SVC.map((s,i)=>mi(s,`svcFilter=${i};render()`" },
-  { id: "draw-ace-keys", area: "menus", what: "the FYDP menu writes cost estimate names unescaped",
-    find: "aceSetKeys().sort().map(esc).join(', ')",
-    repl: "aceSetKeys().sort().join(', ')" },
+  // draw-ace-keys: retired as obsolete in v2.19 -- its line in syncBtns went with item 150 (the FYDP menu writes cost estimate names unescaped)
   { id: "draw-band-colour", area: "readableOn", what: "a band colour that is not a colour is written into a style as it came",
     find: "if(!c||!g) return /^var\\(--[A-Za-z0-9-]+\\)$/.test(String(hue))? hue : '#8892a4';",
     repl: "if(!c||!g) return hue;" },
-  { id: "draw-ace-office", area: "aceBody", what: "the cost estimate panel writes an office name unescaped",
-    find: "const lbl=present.map(esc).join(' + ')",
-    repl: "const lbl=present.join(' + ')" },
+  // draw-ace-office: retired as obsolete in v2.19 -- aceBody went with item 150 (the cost estimate panel writes an office name unescaped)
   { id: "draw-rec-office", area: "recRows", what: "the record panel’s office list writes names unescaped",
     find: "'<option value=\"'+esc(g)+'\"'+(grpOf(it)===g?' selected':'')+'>'+esc(g)",
     repl: "'<option value=\"'+g+'\"'+(grpOf(it)===g?' selected':'')+'>'+g" },
@@ -1987,169 +1953,69 @@ const MUTATIONS = [
   //   ids-action-always-add, ids-batch-not-recorded, ids-gone-not-listed, ids-forget-keeps-lines,
   //   ids-seq-ignores-issued, ids-other-appn-ids-ignored, ids-reused-id-allowed, ids-copy-carries-record.
   // The lane and funding mutations below were RETARGETED to the new pipeline (idsSources), each the same defect.
-  { id: 'ids-mand-line-dropped', area: 'idsSources', what: 'a service drawing mandatory loses its mandatory contribution, so its mandatory money is in no row',
-    find: "      if(m>0) out.push({id:id, svc:sv, lane:'mand', amount:m, approved:m});\n",
-    repl: "" },
-  { id: 'ids-mand-approved-zero', area: 'idsSources', what: 'the mandatory contribution goes with nothing approved',
-    find: "lane:'mand', amount:m, approved:m});",
-    repl: "lane:'mand', amount:m, approved:0});" },
-  { id: 'ids-disc-carries-whole-ask', area: 'idsSources', what: 'the discretionary contribution carries the whole requirement, so the mandatory draw is counted twice',
-    find: "lane:'disc', amount:d+u, approved:d});",
-    repl: "lane:'disc', amount:ask, approved:d});" },
-  { id: 'ids-mand-only-on-disc', area: 'idsSources', what: 'a service funded only from mandatory is filed under its discretionary budget',
-    find: "      if(m>0) out.push({id:id, svc:sv, lane:'mand',",
-    repl: "      if(m>0) out.push({id:id, svc:sv, lane:(d>0? 'mand' : 'disc')," },
+  // ids-mand-line-dropped: retired as obsolete in v2.19 -- idsSources went with item 150 (a service drawing mandatory loses its mandatory contribution, so its mandatory money is in no row)
+  // ids-mand-approved-zero: retired as obsolete in v2.19 -- idsSources went with item 150 (the mandatory contribution goes with nothing approved)
+  // ids-disc-carries-whole-ask: retired as obsolete in v2.19 -- idsSources went with item 150 (the discretionary contribution carries the whole requirement, so the mandatory draw is counted twice)
+  // ids-mand-only-on-disc: retired as obsolete in v2.19 -- idsSources went with item 150 (a service funded only from mandatory is filed under its discretionary budget)
   // THE OWNER'S A1, and the two defects PR #3 had against it
-  { id: 'ids-unfunded-on-mand', area: 'idsSources', what: 'a mandatory-only service that is short puts its unfunded dollars on the MANDATORY row (PR #3: 30/20)',
-    find: "      if(d>0 || u>0) out.push({id:id, svc:sv, lane:'disc', amount:d+u, approved:d});\n      if(m>0) out.push({id:id, svc:sv, lane:'mand', amount:m, approved:m});",
-    repl: "      if(d>0 || (u>0 && m<=0)) out.push({id:id, svc:sv, lane:'disc', amount:d+u, approved:d});\n      if(m>0) out.push({id:id, svc:sv, lane:'mand', amount:(d>0? m : m+u), approved:m});" },
+  // ids-unfunded-on-mand: retired as obsolete in v2.19 -- idsSources went with item 150 (a mandatory-only service that is short puts its unfunded dollars on the MANDATORY row (PR #3: 30/20))
   { id: 'ids-unfunded-mand-budget', area: 'budResolve', what: 'a mandatory choice answers the discretionary line, so unfunded dollars land on a mandatory budget (PR #3)',
     find: "  const storedKey=budStoredFor(A, svc, lane);",
     repl: "  const storedKey=budStoredFor(A, svc, lane) || ((lane==='disc' && A[svc+'|mand'])? svc+'|mand' : '');" },
-  { id: 'ids-unfunded-dropped', area: 'idsSources', what: 'the discretionary contribution leaves out the unfunded dollars',
-    find: "lane:'disc', amount:d+u, approved:d});",
-    repl: "lane:'disc', amount:d, approved:d});" },
-  { id: 'ids-zero-funded-dropped', area: 'idsSources', what: 'a requirement with no money is left out, so CCaR never tracks the unfunded record',
-    find: "      if(d>0 || u>0) out.push(",
-    repl: "      if(d>0 || (u>0 && m>0)) out.push(" },
-  { id: 'ids-zero-zero-row', area: 'idsSources', what: 'a fully mandatory-funded service gets a meaningless $0/$0 discretionary row',
-    find: "      if(d>0 || u>0) out.push(",
-    repl: "      if(true) out.push(" },
-  { id: 'ids-unfunded-ignores-choice', area: 'idsBuild', what: 'a budget chosen on a not-funded line is ignored and the rule is used',
-    find: "    const r=budResolve(x.id, x.svc, x.lane);",
-    repl: "    const r=(function(q){ if(x.approved===0 && q.status==='chosen' && q.rule.n) q.effective=q.rule.n; return q; })(budResolve(x.id, x.svc, x.lane));" },
+  // ids-unfunded-dropped: retired as obsolete in v2.19 -- idsSources went with item 150 (the discretionary contribution leaves out the unfunded dollars)
+  // ids-zero-funded-dropped: retired as obsolete in v2.19 -- idsSources went with item 150 (a requirement with no money is left out, so CCaR never tracks the unfunded record)
+  // ids-zero-zero-row: retired as obsolete in v2.19 -- idsSources went with item 150 (a fully mandatory-funded service gets a meaningless $0/$0 discretionary row)
+  // ids-unfunded-ignores-choice: retired as obsolete in v2.19 -- idsBuild went with item 150 (a budget chosen on a not-funded line is ignored and the rule is used)
   { id: 'ids-unfunded-panel-silent', area: 'budRecordHtml', what: 'the RECORD panel names no budget for an unfunded line the IDS export files under one',
     find: "    const title=unf? (r.effective?",
     repl: "    const title=unf? (false?" },
   // CONSOLIDATION: one row per FY + budget + control, every contributor in it
-  { id: 'ids-consolidation-bypassed', area: 'idsBuild', what: 'contributions are not consolidated: a row per requirement and lane, so one FY + budget + control appears twice',
-    find: "    const k=idsKey(fy, y.budget, y.ctl);\n    if(!by[k]){",
-    repl: "    const k=idsKey(fy, y.budget, y.ctl)+'|'+y.id+'|'+y.lane;\n    if(!by[k]){" },
-  { id: 'ids-first-contributor-wins', area: 'idsBuild', what: 'the first contribution on a row is kept and the rest dropped',
-    find: "    by[k].sources.push(y);",
-    repl: "    if(!by[k].sources.length) by[k].sources.push(y);" },
-  { id: 'ids-key-drops-control', area: 'idsBuild', what: 'rows are keyed by budget alone, so two control numbers on one budget merge',
-    find: "    const k=idsKey(fy, y.budget, y.ctl);\n    if(!by[k]){",
-    repl: "    const k=idsKey(fy, y.budget, '');\n    if(!by[k]){" },
-  { id: 'ids-key-drops-budget', area: 'idsBuild', what: 'rows are keyed by control alone, so one control on several budgets merges into one',
-    find: "    const k=idsKey(fy, y.budget, y.ctl);\n    if(!by[k]){",
-    repl: "    const k=idsKey(fy, '', y.ctl);\n    if(!by[k]){" },
-  { id: 'ids-multi-not-listed', area: 'idsBuild', what: 'a row consolidating several requirements is not disclosed for review',
-    find: "  const multi=rows.filter(function(r){ return r.reqs.length>1 || r.spells.length>1; });",
-    repl: "  const multi=rows.filter(function(r){ return false; });" },
-  { id: 'ids-shared-not-listed', area: 'idsBuild', what: 'a control used by several requirements across budgets is not listed for review',
-    find: "    return Object.keys(buds).length>1 && Object.keys(reqs).length>1;",
-    repl: "    return false;" },
-  { id: 'ids-zero-not-listed', area: 'idsBuild', what: 'rows uploaded with Approved 0 are not listed',
-    find: "  const zero=rows.filter(function(r){ return r.approved===0; });",
-    repl: "  const zero=[];" },
-  { id: 'ids-refno-gaps', area: 'idsBuild', what: 'Ref No skips numbers (IDS rule 2: 1..N with no gap)',
-    find: "  rows.forEach(function(r,i){ r.ref=i+1; });",
-    repl: "  rows.forEach(function(r,i){ r.ref=2*i+1; });" },
+  // ids-consolidation-bypassed: retired as obsolete in v2.19 -- idsBuild went with item 150 (contributions are not consolidated: a row per requirement and lane, so one FY + budget + control appears twice)
+  // ids-first-contributor-wins: retired as obsolete in v2.19 -- idsBuild went with item 150 (the first contribution on a row is kept and the rest dropped)
+  // ids-key-drops-control: retired as obsolete in v2.19 -- idsBuild went with item 150 (rows are keyed by budget alone, so two control numbers on one budget merge)
+  // ids-key-drops-budget: retired as obsolete in v2.19 -- idsBuild went with item 150 (rows are keyed by control alone, so one control on several budgets merges into one)
+  // ids-multi-not-listed: retired as obsolete in v2.19 -- idsBuild went with item 150 (a row consolidating several requirements is not disclosed for review)
+  // ids-shared-not-listed: retired as obsolete in v2.19 -- idsBuild went with item 150 (a control used by several requirements across budgets is not listed for review)
+  // ids-zero-not-listed: retired as obsolete in v2.19 -- idsBuild went with item 150 (rows uploaded with Approved 0 are not listed)
+  // ids-refno-gaps: retired as obsolete in v2.19 -- idsBuild went with item 150 (Ref No skips numbers (IDS rule 2: 1..N with no gap))
   // NOT UPLOADED, NEVER STOPPED
-  { id: 'ids-anomaly-uploaded', area: 'idsBuild', what: 'a contribution with a budget but no control number goes on Requirement v1 anyway',
-    find: "    if(why.length){ y.reasons=why; y.fixes=fix; excluded.push(y); } else inc.push(y);",
-    repl: "    if(why.length && !y.budget){ y.reasons=why; y.fixes=fix; excluded.push(y); } else inc.push(y);" },
-  { id: 'ids-anomaly-first-reason-only', area: 'idsBuild', what: 'an excluded contribution lists its first reason and drops the rest',
-    find: "    if(!r.exportable){ why.push.apply(why, r.reasons); fix.push(budFixOf(r)); }",
-    repl: "    if(!r.exportable && !why.length){ why.push.apply(why, r.reasons); fix.push(budFixOf(r)); }" },
-  { id: 'ids-halts-on-anomaly', area: 'exportIdsReq', what: 'missing data stops the workbook instead of being listed in it',
-    find: "  // 4. THE FILE\n",
-    repl: "  if(P.excluded.length) return idsRefuse('data', ['data missing'], 'data missing');\n  // 4. THE FILE\n" },
-  { id: 'ids-zero-rows-not-flagged', area: 'idsSheets', what: 'a workbook with no uploadable row does not say so at the top',
-    find: "  if(!P.rows.length){\n    ex.push([{v:'NO UPLOADABLE IDS ROWS', s:7}]);",
-    repl: "  if(false){\n    ex.push([{v:'NO UPLOADABLE IDS ROWS', s:7}]);" },
-  { id: 'ids-zero-rows-upload-ready', area: 'exportIdsReq', what: 'a workbook with no uploadable row is announced like any other',
-    find: "  if(!P.rows.length)\n    setStat(",
-    repl: "  if(false)\n    setStat(" },
-  { id: 'ids-ctl-leading-zero-kept', area: 'idsCtlOf', what: 'a Control No with a leading zero is written as a number, so 01004 becomes 1004',
-    find: "  if(v.charAt(0)==='0') return",
-    repl: "  if(false) return" },
-  { id: 'ids-ctl-letters-kept', area: 'idsCtlOf', what: 'a Control No that is not all digits is written anyway',
-    find: "  if(!/^[0-9]+$/.test(v)) return",
-    repl: "  if(false) return" },
+  // ids-anomaly-uploaded: retired as obsolete in v2.19 -- idsBuild went with item 150 (a contribution with a budget but no control number goes on Requirement v1 anyway)
+  // ids-anomaly-first-reason-only: retired as obsolete in v2.19 -- idsBuild went with item 150 (an excluded contribution lists its first reason and drops the rest)
+  // ids-halts-on-anomaly: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (missing data stops the workbook instead of being listed in it)
+  // ids-zero-rows-not-flagged: retired as obsolete in v2.19 -- idsSheets went with item 150 (a workbook with no uploadable row does not say so at the top)
+  // ids-zero-rows-upload-ready: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (a workbook with no uploadable row is announced like any other)
+  // ids-ctl-leading-zero-kept: retired as obsolete in v2.19 -- idsCtlOf went with item 150 (a Control No with a leading zero is written as a number, so 01004 becomes 1004)
+  // ids-ctl-letters-kept: retired as obsolete in v2.19 -- idsCtlOf went with item 150 (a Control No that is not all digits is written anyway)
   // THE FILE ITSELF
-  { id: 'ids-comment-first-row-only', area: 'idsSheets', what: 'the reason is written on the first row only',
-    find: "              {v:r.amount, s:X1}, {v:r.approved, s:X1}, reason]);",
-    repl: "              {v:r.amount, s:X1}, {v:r.approved, s:X1}, r.ref===1? reason : '']);" },
-  { id: 'ids-update-warning-missing', area: 'idsSheets', what: 'an Update file does not warn that CCaR may refuse records with Authorized allocations',
-    find: "  if(f.action==='Update'){\n    ex.push(",
-    repl: "  if(false){\n    ex.push(" },
-  { id: 'ids-update-box-silent', area: 'idsBody', what: 'the box does not warn when Update is chosen',
-    find: "    +(f.action==='Update'? '<div class=\"ids-warn\"",
-    repl: "    +(false? '<div class=\"ids-warn\"" },
-  { id: 'ids-update-preselected', area: 'idsFormReset', what: 'the box opens on Update instead of Add',
-    find: "  idsForm={reason:'', action:'Add', fid:idsFidCandidate(),",
-    repl: "  idsForm={reason:'', action:'Update', fid:idsFidCandidate()," },
-  { id: 'ids-export-records', area: 'exportIdsReq', what: 'an export writes a record of itself into the board',
-    find: "  if(MS.ids.org!==org){ MS.ids.org=org; save(); }",
-    repl: "  if(MS.ids.org!==org){ MS.ids.org=org; } MS.ids.last=f.fid; save();" },
-  { id: 'ids-org-saved-early', area: 'exportIdsReq', what: 'the ORG typed is kept even when the file is refused',
-    find: "  const f=opts||idsForm, probs=idsFormProblems(f);",
-    repl: "  const f=opts||idsForm, probs=idsFormProblems(f); if(!MS.ids) MS.ids={}; if(/^[0-9]+$/.test(String(f.org||'').trim())) MS.ids.org=+f.org;" },
+  // ids-comment-first-row-only: retired as obsolete in v2.19 -- idsSheets went with item 150 (the reason is written on the first row only)
+  // ids-update-warning-missing: retired as obsolete in v2.19 -- idsSheets went with item 150 (an Update file does not warn that CCaR may refuse records with Authorized allocations)
+  // ids-update-box-silent: retired as obsolete in v2.19 -- idsBody went with item 150 (the box does not warn when Update is chosen)
+  // ids-update-preselected: retired as obsolete in v2.19 -- idsFormReset went with item 150 (the box opens on Update instead of Add)
+  // ids-export-records: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (an export writes a record of itself into the board)
+  // ids-org-saved-early: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (the ORG typed is kept even when the file is refused)
   // THE PROMPT
-  { id: 'ids-reason-blank-ok', area: 'idsFormProblems', what: 'a blank reason is accepted',
-    find: "  if(!reason.trim()) out.push(",
-    repl: "  if(false) out.push(" },
-  { id: 'ids-reason-badchar-ok', area: 'idsFormProblems', what: 'a reason a spreadsheet cannot store is accepted',
-    find: "  else if(IDS_BADCH.test(reason)) out.push(",
-    repl: "  else if(false) out.push(" },
-  { id: 'ids-reason-cut', area: 'idsFormProblems', what: 'a reason longer than a cell holds is let through, to be cut by the spreadsheet',
-    find: "  else if(reason.length>32767) out.push(",
-    repl: "  else if(false) out.push(" },
-  { id: 'ids-action-delete-ok', area: 'idsFormProblems', what: 'an action other than Add or Update -- Delete -- is written',
-    find: "  if(IDS_ACTIONS.indexOf(f.action)<0) out.push(",
-    repl: "  if(false) out.push(" },
-  { id: 'ids-fid-shape-unchecked', area: 'idsFidProblem', what: 'a file ID not in the yyyyMMdd-NNNN shape is accepted',
-    find: "  if(!m) return 'the file ID must be",
-    repl: "  if(!m) return ''; if(0) return 'the file ID must be" },
-  { id: 'ids-fid-date-unchecked', area: 'idsFidProblem', what: 'a file ID whose date does not exist is accepted',
-    find: "  if(t.getFullYear()!==y || t.getMonth()!==mo-1 || t.getDate()!==d) return",
-    repl: "  if(false) return" },
-  { id: 'ids-fid-unconfirmed-ok', area: 'idsFormProblems', what: 'a file ID nobody confirmed as unused is accepted',
-    find: "  else if(!f.fidOk) out.push(",
-    repl: "  else if(false) out.push(" },
-  { id: 'ids-fid-sequence', area: 'idsFidCandidate', what: 'the candidate file ID is a fixed 0001 instead of the time of day',
-    find: "  return idsDay(t)+'-'+p2(t.getHours())+p2(t.getMinutes());",
-    repl: "  return idsDay(t)+'-0001';" },
-  { id: 'ids-org-missing-ok', area: 'idsFormProblems', what: 'no ORG, or the ORG symbol, is accepted',
-    find: "  if(!/^[0-9]+$/.test(org) || !(+org>0)) out.push(",
-    repl: "  if(false) out.push(" },
-  { id: 'ids-org-unconfirmed-ok', area: 'idsFormProblems', what: 'an ORG nobody confirmed for every row and service is accepted',
-    find: "  else if(!f.orgOk) out.push(",
-    repl: "  else if(false) out.push(" },
+  // ids-reason-blank-ok: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (a blank reason is accepted)
+  // ids-reason-badchar-ok: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (a reason a spreadsheet cannot store is accepted)
+  // ids-reason-cut: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (a reason longer than a cell holds is let through, to be cut by the spreadsheet)
+  // ids-action-delete-ok: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (an action other than Add or Update -- Delete -- is written)
+  // ids-fid-shape-unchecked: retired as obsolete in v2.19 -- idsFidProblem went with item 150 (a file ID not in the yyyyMMdd-NNNN shape is accepted)
+  // ids-fid-date-unchecked: retired as obsolete in v2.19 -- idsFidProblem went with item 150 (a file ID whose date does not exist is accepted)
+  // ids-fid-unconfirmed-ok: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (a file ID nobody confirmed as unused is accepted)
+  // ids-fid-sequence: retired as obsolete in v2.19 -- idsFidCandidate went with item 150 (the candidate file ID is a fixed 0001 instead of the time of day)
+  // ids-org-missing-ok: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (no ORG, or the ORG symbol, is accepted)
+  // ids-org-unconfirmed-ok: retired as obsolete in v2.19 -- idsFormProblems went with item 150 (an ORG nobody confirmed for every row and service is accepted)
   // THE REFUSALS, inside exportIdsReq and before anything else
-  { id: 'ids-locked-guard-removed', area: 'idsBoardRefusal', what: 'a locked cycle on screen is exported as if it were today’s plan',
-    find: "  if(CYCVIEW) return {kind:'locked',",
-    repl: "  if(false) return {kind:'locked'," },
-  { id: 'ids-copy-guard-removed', area: 'idsBoardRefusal', what: 'a PMO copy exports its own figures',
-    find: "  if(typeof SANDBOX!=='undefined' && SANDBOX) return {kind:'copy',",
-    repl: "  if(false) return {kind:'copy'," },
-  { id: 'ids-builds-before-guard', area: 'exportIdsReq', what: 'a workbook is built before the board on screen is checked',
-    find: "  const B=idsBoardRefusal();\n  if(B) return",
-    repl: "  buildXlsx([{name:'Requirement v1', rows:[]}]);\n  const B=idsBoardRefusal();\n  if(B) return" },
-  { id: 'ids-check-ignored', area: 'exportIdsReq', what: 'a failed internal check does not stop the workbook',
-    find: "  if(!P.check.ok){\n    const L=P.check.fails",
-    repl: "  if(false){\n    const L=P.check.fails" },
+  // ids-locked-guard-removed: retired as obsolete in v2.19 -- idsBoardRefusal went with item 150 (a locked cycle on screen is exported as if it were today’s plan)
+  // ids-copy-guard-removed: retired as obsolete in v2.19 -- idsBoardRefusal went with item 150 (a PMO copy exports its own figures)
+  // ids-builds-before-guard: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (a workbook is built before the board on screen is checked)
+  // ids-check-ignored: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (a failed internal check does not stop the workbook)
   // THE CHECK ITSELF
-  { id: 'ids-check-whole-dollar-off', area: 'idsCheck', what: 'a value that is not a whole dollar passes the check',
-    find: "  const whole=function(v){ return typeof v==='number' && Number.isInteger(v); };",
-    repl: "  const whole=function(v){ return typeof v==='number'; };" },
-  { id: 'ids-check-dup-key-off', area: 'idsCheck', what: 'two rows on one FY + Budget + Control pass the check',
-    find: "    if(keys[k]) fail('every FY + Budget + Control is one row',",
-    repl: "    if(false) fail('every FY + Budget + Control is one row'," },
-  { id: 'ids-check-identity-off', area: 'idsCheck', what: 'a contribution counted twice passes the identity check',
-    find: "  if(dup.length) fail('every contribution appears exactly once',",
-    repl: "  if(false) fail('every contribution appears exactly once'," },
-  { id: 'ids-check-per-service-off', area: 'idsCheck', what: 'a requirement and service whose Approveds miss its draws passes the check',
-    find: "    if(g.p!==w.dm) fail(",
-    repl: "    if(false) fail(" },
-  { id: 'ids-check-per-service-amount-off', area: 'idsCheck', what: 'a requirement and service whose Amounts miss the requirement passes the check',
-    find: "    if(g.a!==w.ask) fail(",
-    repl: "    if(false) fail(" },
-  { id: 'ids-recon-tie-wrong', area: 'idsSheets', what: 'the anomalies sheet reconciles against what was uploaded instead of every requirement',
-    find: "  ex.push(['Every requirement on the board (Amount); every dollar it funds, discretionary and mandatory (Approved)',\n    {v:P.check.req, s:X1}, {v:P.check.draw, s:X1}]);",
-    repl: "  ex.push(['Every requirement on the board (Amount); every dollar it funds, discretionary and mandatory (Approved)',\n    {v:P.tot.upAmt, s:X1}, {v:P.tot.upApp, s:X1}]);" },
+  // ids-check-whole-dollar-off: retired as obsolete in v2.19 -- idsCheck went with item 150 (a value that is not a whole dollar passes the check)
+  // ids-check-dup-key-off: retired as obsolete in v2.19 -- idsCheck went with item 150 (two rows on one FY + Budget + Control pass the check)
+  // ids-check-identity-off: retired as obsolete in v2.19 -- idsCheck went with item 150 (a contribution counted twice passes the identity check)
+  // ids-check-per-service-off: retired as obsolete in v2.19 -- idsCheck went with item 150 (a requirement and service whose Approveds miss its draws passes the check)
+  // ids-check-per-service-amount-off: retired as obsolete in v2.19 -- idsCheck went with item 150 (a requirement and service whose Amounts miss the requirement passes the check)
+  // ids-recon-tie-wrong: retired as obsolete in v2.19 -- idsSheets went with item 150 (the anomalies sheet reconciles against what was uploaded instead of every requirement)
   // ---- v1.92, revised before merge: ONE AUTHORITY ON A LINE'S BUDGET (budResolve), and what reads it ----------
   { id: 'bud-invalid-falls-back-to-rule', area: 'budResolve', what: 'a chosen budget that cannot be used is quietly replaced by the rule’s answer',
     find: "    out.status='invalid'; out.bad=c.bad;",
@@ -2294,18 +2160,10 @@ const MUTATIONS = [
     find: "  let li=0; aw.inc.forEach((x,j)=>{ if(awdKey(x)>=awdKey(aw.inc[li])) li=j; });",
     repl: "  let li=aw.inc.length-1;" },
   // ---- v1.93 (item 44): the IDS box gives Req. Approved by lane, summed from the contributions ----
-  { id: 'ids-lane-swapped', area: 'idsBuild', what: 'uploaded Approved by lane names discretionary as mandatory and the reverse',
-    find: "         upAppD:lane(upSrc,'disc'), upAppM:lane(upSrc,'mand'), exAppD:lane(excluded,'disc'), exAppM:lane(excluded,'mand')}};",
-    repl: "         upAppD:lane(upSrc,'mand'), upAppM:lane(upSrc,'disc'), exAppD:lane(excluded,'disc'), exAppM:lane(excluded,'mand')}};" },
-  { id: 'ids-lane-summary-total', area: 'idsBody', what: 'the summary line’s discretionary figure is the whole Approved',
-    find: "(discretionary <b>'+idsUsd(P.tot.upAppD)+'</b> · mandatory",
-    repl: "(discretionary <b>'+idsUsd(P.tot.upApp)+'</b> · mandatory" },
-  { id: 'ids-lane-draw-wrong', area: 'idsCheck', what: 'the mandatory draw the check reconciles to is the discretionary draw',
-    find: "want[id+'|'+sv]={id:id, ask:ask, dm:d+m}; req+=ask; draw+=d+m; drawD+=d; drawM+=m;",
-    repl: "want[id+'|'+sv]={id:id, ask:ask, dm:d+m}; req+=ask; draw+=d+m; drawD+=d; drawM+=d;" },
-  { id: 'ids-lane-recon-excluded', area: 'idsBody', what: 'the reconciliation’s mandatory column repeats the discretionary for what was left out',
-    find: "<td>'+idsUsd(P.tot.exAppD)+'</td><td>'+idsUsd(P.tot.exAppM)+'</td></tr>'",
-    repl: "<td>'+idsUsd(P.tot.exAppD)+'</td><td>'+idsUsd(P.tot.exAppD)+'</td></tr>'" },
+  // ids-lane-swapped: retired as obsolete in v2.19 -- idsBuild went with item 150 (uploaded Approved by lane names discretionary as mandatory and the reverse)
+  // ids-lane-summary-total: retired as obsolete in v2.19 -- idsBody went with item 150 (the summary line’s discretionary figure is the whole Approved)
+  // ids-lane-draw-wrong: retired as obsolete in v2.19 -- idsCheck went with item 150 (the mandatory draw the check reconciles to is the discretionary draw)
+  // ids-lane-recon-excluded: retired as obsolete in v2.19 -- idsBody went with item 150 (the reconciliation’s mandatory column repeats the discretionary for what was left out)
   // ---- v1.93 (item 42): Needs attention -- every entry a list, the count its length, Go to it at the field ----
   { id: 'att-oblig-funded-only', area: 'attLists', what: 'the obligation-date list counts only the funded requirements',
     find: "    if(!(inc || (aw && aw.d))) out.oblig.push(row);",
@@ -2575,48 +2433,23 @@ const MUTATIONS = [
   { id: 'fullimp-before-from-storage', area: 'fullImportPreHtml', what: 'the board-as-it-was file reads the mixed browser storage instead of what it held before',
     find: "  const rd=function(k){ if(Object.prototype.hasOwnProperty.call(held, k)) return held[k];",
     repl: "  const rd=function(k){ if(false) return held[k];" },
-  { id: 'ace-store-past-lsset', area: 'persistAce', what: 'the cost estimates are written past lsSet, and a refusal never reaches Save diagnostics',
-    // v2.09 W3: retargeted — the key is ACEDB_KEY (sealed in a copy); the same write past lsSet
-    find: "function persistAce(){ return lsSet(ACEDB_KEY, JSON.stringify(ACEDB), 'The cost estimates'); }",
-    repl: "function persistAce(){ try{ localStorage.setItem(ACEDB_KEY, JSON.stringify(ACEDB)); return true; }catch(e){ return false; } }" },
+  // ace-store-past-lsset: retired as obsolete in v2.19 -- persistAce went with item 150 (the cost estimates are written past lsSet, and a refusal never reaches Save diagnostics)
   { id: 'rp-store-past-lsset', area: 'persistRp', what: 'the reprogramming log is written past lsSet, and a refusal never reaches Save diagnostics',
     // v2.09 W3: retargeted — the key is RPDB_KEY (sealed in a copy); the same write past lsSet
     find: "function persistRp(){ return lsSet(RPDB_KEY, JSON.stringify(RPDB), 'The reprogramming log'); }",
     repl: "function persistRp(){ try{ localStorage.setItem(RPDB_KEY, JSON.stringify(RPDB)); return true; }catch(e){ return false; } }" },
   // item 49 (review R06): sharing a cost estimate -- driveAceFile, driveAcePush, driveAceReplace, driveAcePull
-  { id: 'acefile-unreadable-is-none', area: 'driveAceFile', what: 'a folder copy that cannot be read is taken for no copy, and share mine writes over it',
-    find: "  catch(e){ if(e && e.name==='NotFoundError') return {none:true};\n    return {bad:'it could not be read ('",
-    repl: "  catch(e){ return {none:true};\n    return {bad:'it could not be read ('" },
-  { id: 'acefile-unparseable-is-none', area: 'driveAceFile', what: 'a folder copy that will not parse, or is refused at the door, is taken for no copy',
-    find: "  try{ j=driveParse(txt); }\n  catch(e){ return {bad:",
-    repl: "  try{ j=driveParse(txt); }\n  catch(e){ return {none:true}; return {bad:" },
-  { id: 'acefile-half-is-none', area: 'driveAceFile', what: 'a folder copy with no estimate in it yet is taken for no copy',
-    find: "    return {bad:'it is not a whole estimate — it may still be syncing', txt:txt};",
-    repl: "    return {none:true};" },
-  { id: 'acefile-fingerprint-unchecked', area: 'driveAceFile', what: 'a folder estimate is trusted without checking its figures against its fingerprint',
-    find: "  if(!aceIntact(j.set) || (j.fp && j.set.fp && j.fp!==j.set.fp)) return {bad:",
-    repl: "  if(false) return {bad:" },
-  { id: 'acepush-clash-written', area: 'driveAcePush', what: 'share mine writes over a different estimate under the same name',
-    find: "      if(f.j){ clash.push({k:k, by:f.j.by||'unknown', ts:+f.j.ts||0, lines:+f.j.lines||0}); continue; }",
-    repl: "" },
-  { id: 'acereplace-no-history', area: 'driveAceReplace', what: 'replacing the folder’s estimate keeps no history copy of it first',
-    find: "    if(f.txt && await snapKeep(dir, 'ace', ",
-    repl: "    if(false && await snapKeep(dir, 'ace', " },
-  { id: 'acereplace-unasked', area: 'driveAceReplace', what: 'replacing the folder’s estimate goes ahead on a No',
-    find: "      +'the shared folder’s history first, and nothing is written if it cannot be kept.')) return false;",
-    repl: "      +'the shared folder’s history first, and nothing is written if it cannot be kept.')){}" },
-  { id: 'acereplace-stale', area: 'driveAceReplace', what: 'replacing writes over a folder copy that changed while the question was open',
-    find: "    if(g.none || g.txt!==f.txt){",
-    repl: "    if(false){" },
-  { id: 'acereplace-unreadable', area: 'driveAceReplace', what: 'a folder copy that cannot be read is replaced with no history copy kept',
-    find: "    if(!('txt' in f)){ setStat(",
-    repl: "    if(false){ setStat(" },
-  { id: 'acepull-unreadable-silent', area: 'driveAcePull', what: 'check the folder skips a file it cannot read, half-written or off its fingerprint, and says nothing',
-    find: "      if(f.bad){ bad.push({n:n, why:f.bad}); continue; }",
-    repl: "      if(f.bad) continue;" },
-  { id: 'acepull-error-swallowed', area: 'driveAcePull', what: 'check the folder says nothing when it cannot reach the folder',
-    find: "    if(!quiet) setStat('⚠ Could not check the folder for cost estimates — '",
-    repl: "    if(false) setStat('⚠ Could not check the folder for cost estimates — '" },
+  // acefile-unreadable-is-none: retired as obsolete in v2.19 -- driveAceFile went with item 150 (a folder copy that cannot be read is taken for no copy, and share mine writes over it)
+  // acefile-unparseable-is-none: retired as obsolete in v2.19 -- driveAceFile went with item 150 (a folder copy that will not parse, or is refused at the door, is taken for no copy)
+  // acefile-half-is-none: retired as obsolete in v2.19 -- driveAceFile went with item 150 (a folder copy with no estimate in it yet is taken for no copy)
+  // acefile-fingerprint-unchecked: retired as obsolete in v2.19 -- driveAceFile went with item 150 (a folder estimate is trusted without checking its figures against its fingerprint)
+  // acepush-clash-written: retired as obsolete in v2.19 -- driveAcePush went with item 150 (share mine writes over a different estimate under the same name)
+  // acereplace-no-history: retired as obsolete in v2.19 -- driveAceReplace went with item 150 (replacing the folder’s estimate keeps no history copy of it first)
+  // acereplace-unasked: retired as obsolete in v2.19 -- driveAceReplace went with item 150 (replacing the folder’s estimate goes ahead on a No)
+  // acereplace-stale: retired as obsolete in v2.19 -- driveAceReplace went with item 150 (replacing writes over a folder copy that changed while the question was open)
+  // acereplace-unreadable: retired as obsolete in v2.19 -- driveAceReplace went with item 150 (a folder copy that cannot be read is replaced with no history copy kept)
+  // acepull-unreadable-silent: retired as obsolete in v2.19 -- driveAcePull went with item 150 (check the folder skips a file it cannot read, half-written or off its fingerprint, and says nothing)
+  // acepull-error-swallowed: retired as obsolete in v2.19 -- driveAcePull went with item 150 (check the folder says nothing when it cannot reach the folder)
   // item 48 (integration): while a full import that could not be put back stands, nothing writes over the board file
   { id: 'impmixed-not-marked', area: 'fullImportUndone', what: 'a failed import that could not be put back leaves Save free in that page',
     find: "  _impRescue.mixed=true;\n", repl: "" },
@@ -2738,30 +2571,14 @@ const MUTATIONS = [
     find: "  if(!e.p.length){ const y=+e.fy;",
     repl: "  if(false){ const y=+e.fy;" },
   // item 55 (review R05): the Spruills and its PMO drill read each year's own projection by PMO
-  { id: 'spdrill-controls-are-asks', area: 'pmoDetail', what: 'the PMO drill takes each requirement’s ask as its allocation',
-    find: "      if(own) svcs.forEach((sv,i)=>{ bud[sv][y]=(bud[sv][y]||0)+((p.alloc||[])[i]||0); });",
-    repl: "      if(own) svcs.forEach((sv,i)=>{ bud[sv][y]=(bud[sv][y]||0)+((p.ask||[])[i]||0); });" },
-  { id: 'spdrill-other-appn-guessed', area: 'pmoDetail', what: 'another appropriation’s Controls are guessed from its asks',
-    find: "      if(own) svcs.forEach((sv,i)=>{ bud[sv][y]=(bud[sv][y]||0)+((p.alloc||[])[i]||0); });",
-    repl: "      svcs.forEach((sv,i)=>{ bud[sv][y]=(bud[sv][y]||0)+((p.alloc||p.ask||[])[i]||0); });" },
-  { id: 'spyear-on-screen-year', area: 'spOwnYear', what: 'every year of the Spruills is read from the year on screen',
-    find: "  const G=spProjByPmo(aceWithYear(fy, cycProjOf), MS.years[fy]);",
-    repl: "  const G=spProjByPmo(cycProjOf(), MS.years[fy]);" },
-  { id: 'spother-pmo-of-this-board', area: 'spOtherYear', what: 'another appropriation’s requirement is filed under the PMO this board’s state gives its id',
-    find: "    const g=spTitleGrp(recNameSrc(it), grpOf(it, st));",
-    repl: "    const g=spTitleGrp(recNameSrc(it), grpOf(it));" },
-  { id: 'spgather-own-rebuilt', area: 'spGather', what: 'the board’s own years are rebuilt from the list on screen, its added requirements again',
-    find: "      const G=(d.ms===MS)? spOwnYear(y) : spOtherYear(d, st);",
-    repl: "      const G=spOtherYear(d, st);" },
-  { id: 'spproj-prime-by-display-title', area: 'spProjByPmo', what: 'the PRIMES roll-up reads the display title, so no prime reaches its office',
-    find: "    const g=spTitleGrp(r.grp==='PRIMES'? spRecOf(r.id, st) : '', r.grp||'');",
-    repl: "    const g=spTitleGrp(r.grp==='PRIMES'? r.title : '', r.grp||'');" },
-  { id: 'blpmo-raw-pmo', area: 'blPmoAlloc', what: 'a locked cycle is read by its raw PMO roll-up while Board budgets rolls primes up',
-    find: "  const p=spProjByPmo(P, ((c.years||{})[f]) || (MS.years||{})[f])[pmoKey]; if(!p) return null;",
-    repl: "  const p=(P.pmo||{})[pmoKey]; if(!p) return null;" },
-  { id: 'spdrill-unknown-as-nothing', area: 'pmoDrillHtml', what: 'across appropriations, another appropriation’s unknown Controls are added in as nothing',
-    find: "    if(missAny){ elsewhere.push(b.name); years.forEach(y=>{ if(miss(y)) grand.miss[y]=true; }); }",
-    repl: "    if(false){ elsewhere.push(b.name); years.forEach(y=>{ if(miss(y)) grand.miss[y]=true; }); }" },
+  // spdrill-controls-are-asks: retired as obsolete in v2.19 -- pmoDetail went with item 150 (the PMO drill takes each requirement’s ask as its allocation)
+  // spdrill-other-appn-guessed: retired as obsolete in v2.19 -- pmoDetail went with item 150 (another appropriation’s Controls are guessed from its asks)
+  // spyear-on-screen-year: retired as obsolete in v2.19 -- spOwnYear went with item 150 (every year of the Spruills is read from the year on screen)
+  // spother-pmo-of-this-board: retired as obsolete in v2.19 -- spOtherYear went with item 150 (another appropriation’s requirement is filed under the PMO this board’s state gives its id)
+  // spgather-own-rebuilt: retired as obsolete in v2.19 -- spGather went with item 150 (the board’s own years are rebuilt from the list on screen, its added requirements again)
+  // spproj-prime-by-display-title: retired as obsolete in v2.19 -- spProjByPmo went with item 150 (the PRIMES roll-up reads the display title, so no prime reaches its office)
+  // blpmo-raw-pmo: retired as obsolete in v2.19 -- blPmoAlloc went with item 150 (a locked cycle is read by its raw PMO roll-up while Board budgets rolls primes up)
+  // spdrill-unknown-as-nothing: retired as obsolete in v2.19 -- pmoDrillHtml went with item 150 (across appropriations, another appropriation’s unknown Controls are added in as nothing)
   // item 55, Brad's Q2: the five-year plan files each year's money under the PMO that year assigns
   // v2.04 (item 112): retargeted to the five-year workbook's new code -- the same defect, where it now lives
   { id: 'fydp-row-one-pmo', area: "fydpBookVal", what: "every year of a requirement is filed under the office of its last held year, whatever each year assigned",
@@ -2920,8 +2737,8 @@ const MUTATIONS = [
     find: "      (svcFilter>=0 && SVC[svcFilter]!==undefined)? esc(SVC[svcFilter]) : 'any service')+",
     repl: "      (svcFilter>=0 && SVC[svcFilter]!==undefined)? SVC[svcFilter] : 'any service')+" },
   { id: 'menu-base-year-twice', area: 'syncBtns', what: 'Set base year is on two menus again',
-    find: "    grp('setup','codes','Codes and structure', I.bands+I.coa+I.rcn+I.si)+sep+",
-    repl: "    grp('setup','codes','Codes and structure', I.bands+I.coa+I.rcn+I.si+I.base)+sep+" },
+    find: "    grp('setup','codes','Codes and structure', I.bands+I.rcn+I.si)+sep+",   // v2.19: retargeted, Chart of Accounts gone
+    repl: "    grp('setup','codes','Codes and structure', I.bands+I.rcn+I.si+I.base)+sep+" },
   { id: 'menu-wbs-not-in-data', area: 'syncBtns', what: 'WBS from execution data is not with the data it reads',
     find: "      lbl('Execution — CCaR')+I.qpe+I.exw, '",
     repl: "      lbl('Execution — CCaR')+I.qpe, '" },
@@ -3076,7 +2893,7 @@ const MUTATIONS = [
     find: "    if(key===_AP.key) return 'board';\n", repl: "" },
   { id: 'v197w2-reprog-key-missed', area: 'fileKeyOf', what: 'the reprogramming log is not one of the lists the file carries (v1.96)',
     // v2.09 W3: retargeted — the keys are the constants (sealed in a copy); the same list missing the log
-    find: "[EXDB_KEY,ACEDB_KEY,RPDB_KEY,BUDDB_KEY].indexOf(key)>=0", repl: "[EXDB_KEY,ACEDB_KEY,BUDDB_KEY].indexOf(key)>=0" },
+    find: "[EXDB_KEY,RPDB_KEY,BUDDB_KEY].indexOf(key)>=0", repl: "[EXDB_KEY,BUDDB_KEY].indexOf(key)>=0" },   // v2.19: retargeted, ACEDB gone
   { id: 'v197w2-dest-key-missed', area: 'fileKeyOf', what: 'the destination list is not one of the lists the file carries, so a folder save acknowledges it',
     // v2.09 W3: retargeted — the keys are the constants (sealed in a copy); the same list missing the destinations
     find: "    if(key===DEST_KEY || [EXDB_KEY", repl: "    if([EXDB_KEY" },
@@ -3219,9 +3036,7 @@ const MUTATIONS = [
   { id: "v197w4-rename-ppbe-left", area: "svcRenameKeys", what: "a PPBE position stays under the old name",
     find: "    if(P.v===2){ P.lines=reKey(P.lines, false); P.val=reKey(P.val, false);\n",
     repl: "    if(P.v===2){\n" },
-  { id: "v197w4-rename-spruills-left", area: "svcRenameKeys", what: "the Spruills' service stays under the old name",
-    find: "  if(has(spSvc)){ spSvc=ren[spSvc]; MS.spSvc=spSvc; }",
-    repl: "" },
+  // v197w4-rename-spruills-left: retired as obsolete in v2.19 -- its line in svcRenameKeys went with item 150 (the Spruills' service stays under the old name)
   { id: "v197w4-filter-by-place", area: "svcSaveList", what: "the service filter stays on a place, now another service",
     find: "  if(svcFilter>=0) svcFilter=from.indexOf(svcFilter);",
     repl: "" },
@@ -3255,9 +3070,7 @@ const MUTATIONS = [
   { id: "v197w4-held-awards", area: "svcHeldBy", what: "the removal's award increments are not counted",
     find: "        ((aw && Array.isArray(aw.inc))? aw.inc : []).forEach(function(x){ if(x && Array.isArray(x.sv)) v.awd+=+x.sv[i]||0; }); });",
     repl: "        ((aw && Array.isArray(aw.inc))? aw.inc : []).forEach(function(x){ if(x && Array.isArray(x.sv)) v.awd+=0; }); });" },
-  { id: "v197w4-drill-svc-left", area: "svcSaveList", what: "the PMO drill stays scoped to a service that is gone",
-    find: "  if(spDrillSvc!=='ALL' && list.indexOf(spDrillSvc)<0 && old.indexOf(spDrillSvc)>=0){ spDrillSvc='ALL'; MS.spDrillSvc='ALL'; }",
-    repl: "" },
+  // v197w4-drill-svc-left: retired as obsolete in v2.19 -- its line in svcSaveList went with item 150 (the PMO drill stays scoped to a service that is gone)
   { id: "v197w4-journal-put-back-by-place", area: "jrnlUndoable", what: "a figure journalled before the list changed is put back by its old place, onto another service",
     find: "  && !jrnlBySvcPlace(e)\n",
     repl: "" },
@@ -3326,63 +3139,27 @@ const MUTATIONS = [
   { id: 'v197w6-plans-forced-mand-ask', area: 'fsDirVec', what: 'a requirement forced to Mand directs its whole ask, its trim included',
     find: "if(o.m==='mand') return {d:z, m:b};",
     repl: "if(o.m==='mand') return {d:z, m:it.ask.slice()};" },
-  { id: 'v197w6-flow-appn-own', area: 'flowCalc', what: 'every executed dollar is counted under this board’s appropriation',
-    find: 'F.tot+=amt; F.appn[sl]+=amt; F.rows++;',
-    repl: 'F.tot+=amt; F.appn[flowPlanSlug()]+=amt; F.rows++;' },
-  { id: 'v197w6-flow-appn-label', area: 'exportFlow', what: 'each appropriation’s line is labelled with the next appropriation’s name',
-    find: 'F.aps.forEach(sl=>sum.push([APPN_LBL[sl],{v:F.appn[sl],s:M},pct(F.appn[sl])]));',
-    repl: 'F.aps.forEach((sl,q)=>sum.push([APPN_LBL[F.aps[(q+1)%F.aps.length]],{v:F.appn[sl],s:M},pct(F.appn[sl])]));' },
-  { id: 'v197w6-flow-detail-appn', area: 'exportFlow', what: 'every detail line names this board’s appropriation, whichever it came from',
-    find: 'out.push([r.ttl,r.ev,APPN_LBL[r.ap],r.pmo,r.svc,',
-    repl: 'out.push([r.ttl,r.ev,APPN_LBL[flowPlanSlug()],r.pmo,r.svc,' },
-  { id: 'v197w6-flow-no-carry', area: 'flowEffFy', what: 'the OBBBA carry-over is ignored: FY25 mandatory stays in FY25',
-    find: 'return (PS && PS.on && rawFy===PS.from && flowIsPseudo(r,PS))? PS.to : rawFy;',
-    repl: 'return rawFy;' },
-  { id: 'v197w6-flow-raw-year', area: 'flowCalc', what: 'rows are filtered by the year they were imported under, not the year they count in',
-    find: 'if(YS.indexOf(eff)<0) return;',
-    repl: 'if(YS.indexOf(y)<0) return;' },
-  { id: 'v197w6-flow-pulled-twice', area: 'flowCalc', what: 'a carried row is reported as pulled in even when its own year is in the scope',
-    find: 'if(eff!==y && YS.indexOf(y)<0){ F.pseudo.v+=r[9]||0; F.pseudo.n++; }',
-    repl: 'if(eff!==y){ F.pseudo.v+=r[9]||0; F.pseudo.n++; }' },
-  { id: 'v197w6-flow-other-year', area: 'flowCalc', what: 'the partner and FMS money typed in is read from the year on screen, not the year exported',
-    find: 'YS.forEach(y=>{ const O=C.other[y]||{}; F.ip+=+O.ip||0; F.fms+=+O.fms||0; });',
-    repl: 'YS.forEach(y=>{ const O=C.other[MS.cur]||{}; F.ip+=+O.ip||0; F.fms+=+O.fms||0; });' },
-  { id: 'v197w6-flow-plan-this-year', area: 'flowPlanRecs', what: 'a planned year is answered from the year on screen, not its own state',
-    find: '  aceWithYear(fy, function(){\n    const T=tiers();\n    (S.order||[]).forEach(id=>{',
-    repl: '  (function(f){ return f(); })(function(){\n    const T=tiers();\n    (S.order||[]).forEach(id=>{' },
-  { id: 'v197w6-flow-unplanned-year', area: 'flowPlanRecs', what: 'a year nobody has planned is answered with the year on screen’s money',
-    find: '  if(!flowPlanHas(fy)) return out;\n',
-    repl: '' },
-  { id: 'v197w6-ace-est-year', area: 'exportAceTieout', what: 'each requirement’s estimate is read from the year on screen’s column',
-    find: 'let t=0; r.w.forEach(function(w){ t+=aceAmt(k, w, r.fy); });',
-    repl: 'let t=0; r.w.forEach(function(w){ t+=aceAmt(k, w, MS.cur); });' },
-  { id: 'v197w6-ace-pmo-year', area: 'exportAceTieout', what: 'each year’s PMO estimate is read from the year on screen’s column',
-    find: 'const est=aceEstPmo(k, ap, [sc.fy]);',
-    repl: 'const est=aceEstPmo(k, ap, [MS.cur]);' },
-  { id: 'v197w6-ace-stray-year', area: 'exportAceTieout', what: 'the stray line is stated at the year on screen’s figure in every year',
-    find: 'const v=(l.v&&l.v[sc.fy])||0; if(!v) return;',
-    repl: 'const v=(l.v&&l.v[MS.cur])||0; if(!v) return;' },
-  { id: 'v197w6-ace-orphan-year', area: 'exportAceTieout', what: 'the lines nothing claims are stated at the year on screen’s figure',
-    find: "return {w:w, v:aceAmt(k,w,sc.fy), ce:l.ce||'', pmo:l.pmo||''};",
-    repl: "return {w:w, v:aceAmt(k,w,MS.cur), ce:l.ce||'', pmo:l.pmo||''};" },
-  { id: 'v197w6-ace-across-year', area: 'exportAceTieout', what: 'the across-years matrix files every year’s row under the first year',
-    find: 'byId[r.id].y[r.fy]=r;',
-    repl: 'byId[r.id].y[scope[0]]=r;' },
-  { id: 'v197w6-ace-scan-onscreen', area: 'aceScan', what: 'every year of the tie-out is scanned against the year on screen’s board',
-    find: '  return aceWithYear(fy, function(){\n    const T=tiers(), idx=aceLinesBy(k, mySlug());',
-    repl: '  return (function(f){ return f(); })(function(){\n    const T=tiers(), idx=aceLinesBy(k, mySlug());' },
-  { id: 'v197w6-ace-breakout-year', area: 'exportAceTieout', what: 'the alignment breakout prints the year on screen’s allocation under every year',
-    find: 'const lines=aceWithYear(sc.fy, function(){ return aceAlignRows(r.id, TY[sc.fy]||(TY[sc.fy]=tiers())); });',
-    repl: 'const lines=aceAlignRows(r.id, TY[sc.fy]||(TY[sc.fy]=tiers()));' },
-  { id: 'v197w6-ace-breakout-note', area: 'exportAceTieout', what: 'the breakout’s note says again that its lines add up to what the board funds',
-    find: "+'line here is a funding line: the Line total column carries the requirement",
-    repl: "+'line here is a funding line, and the Line total column adds up to what the board funds; it carries the requirement" },
+  // v197w6-flow-appn-own: retired as obsolete in v2.19 -- flowCalc went with item 150 (every executed dollar is counted under this board’s appropriation)
+  // v197w6-flow-appn-label: retired as obsolete in v2.19 -- exportFlow went with item 150 (each appropriation’s line is labelled with the next appropriation’s name)
+  // v197w6-flow-detail-appn: retired as obsolete in v2.19 -- exportFlow went with item 150 (every detail line names this board’s appropriation, whichever it came from)
+  // v197w6-flow-no-carry: retired as obsolete in v2.19 -- flowEffFy went with item 150 (the OBBBA carry-over is ignored: FY25 mandatory stays in FY25)
+  // v197w6-flow-raw-year: retired as obsolete in v2.19 -- flowCalc went with item 150 (rows are filtered by the year they were imported under, not the year they count in)
+  // v197w6-flow-pulled-twice: retired as obsolete in v2.19 -- flowCalc went with item 150 (a carried row is reported as pulled in even when its own year is in the scope)
+  // v197w6-flow-other-year: retired as obsolete in v2.19 -- flowCalc went with item 150 (the partner and FMS money typed in is read from the year on screen, not the year exported)
+  // v197w6-flow-plan-this-year: retired as obsolete in v2.19 -- flowPlanRecs went with item 150 (a planned year is answered from the year on screen, not its own state)
+  // v197w6-flow-unplanned-year: retired as obsolete in v2.19 -- flowPlanRecs went with item 150 (a year nobody has planned is answered with the year on screen’s money)
+  // v197w6-ace-est-year: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (each requirement’s estimate is read from the year on screen’s column)
+  // v197w6-ace-pmo-year: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (each year’s PMO estimate is read from the year on screen’s column)
+  // v197w6-ace-stray-year: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the stray line is stated at the year on screen’s figure in every year)
+  // v197w6-ace-orphan-year: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the lines nothing claims are stated at the year on screen’s figure)
+  // v197w6-ace-across-year: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the across-years matrix files every year’s row under the first year)
+  // v197w6-ace-scan-onscreen: retired as obsolete in v2.19 -- aceScan went with item 150 (every year of the tie-out is scanned against the year on screen’s board)
+  // v197w6-ace-breakout-year: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the alignment breakout prints the year on screen’s allocation under every year)
+  // v197w6-ace-breakout-note: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the breakout’s note says again that its lines add up to what the board funds)
   { id: 'int-plans-legacy-split-whole', area: 'Two Spend Plans', what: 'a legacy split asks the plans for its whole basis, not the lane engine\u2019s placement',
     find: "  if(o.m==='split') return scalarSrcVec(o, b);              // legacy whole-requirement split\n",
     repl: "" },
-  { id: 'int-flow-typo-zero', area: 'Funds Flow', what: 'a Funds Flow figure that cannot be read is taken anyway (it used to become $0)',
-    find: "  if(r.why){ setStat('\u26a0 <b>That Funds Flow figure was not changed.</b> '+esc(r.why)+'.'); render(); return; }\n",
-    repl: "" },
+  // int-flow-typo-zero: retired as obsolete in v2.19 -- flowSetOther went with item 150 (a Funds Flow figure that cannot be read is taken anyway (it used to become $0))
   { id: 'int-amtm-not-millions', area: 'typed $M', what: 'a bare number typed in a $M field is read as dollars, not millions',
     find: "tm=/[\\d.]$/.test(t)? t+'M' : t;",
     repl: "tm=t;" },
@@ -3433,15 +3210,9 @@ const MUTATIONS = [
   { id: "v198-src-clin", area: "exportSrc", what: "the Spend Plan Source reads the CLIN\u2019s standard for every service again",
     find: "        const rk = clin? rcnOfClinSvc(id, clin.key, svc) : rcnAsgOf(id, svc);",
     repl: "        const rk = clin? rcnOfClin(id, clin.key, svc) : rcnAsgOf(id, svc);" },
-  { id: "v198-ace-nosplit", area: "aceAlignRows", what: "a line whose services are on different combinations prints one code for all of them",
-    find: "    if(ord.length<=1){ push0(kind, clin, key, w, v, ord.length? ord[0] : rk); return; }",
-    repl: "    if(true){ push0(kind, clin, key, w, v, ord.length? ord[0] : rk); return; }" },
-  { id: "v198-ace-rest-dropped", area: "aceAlignRows", what: "a split line drops the Navy and USMC money on it",
-    find: "    if(rest.some(function(x){ return Math.abs(x)>0.5; })) push0(kind, clin, key, w, rest, '');",
-    repl: "    /* the rest dropped */" },
-  { id: "v198-keys-old", area: "rcnKeysOf", what: "the mapping counts one combination per CLIN (and one per requirement), not what the breakout prints",
-    find: "  aceAlignRows(id).forEach(function(L){ if(L.rcn && out.indexOf(L.rcn)<0) out.push(L.rcn); });",
-    repl: "  if(clinApplies(id)){ clinList(id).forEach(function(c){ const k=rcnOfClin(id,c.key); if(k && out.indexOf(k)<0) out.push(k); }); } else { const k=rcnAsgOf(id); if(k) out.push(k); }" },
+  // v198-ace-nosplit: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (a line whose services are on different combinations prints one code for all of them)
+  // v198-ace-rest-dropped: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (a split line drops the Navy and USMC money on it)
+  // v198-keys-old: retired as obsolete in v2.19 -- rcnKeysOf went with item 150 (the mapping counts one combination per CLIN (and one per requirement), not what the breakout prints)
   { id: "v198-del-clin-left", area: "rcnDel", what: "removing a combination leaves the CLINs pointing at it (v1.97)",
     find: "      Object.keys(m).forEach(function(key){ if(m[key]===e.k) delete m[key]; });",
     repl: "      /* the CLINs left */" },
@@ -3482,8 +3253,8 @@ const MUTATIONS = [
     find: "  if(k) A[id][key][svc]=String(k); else delete A[id][key][svc];",
     repl: "  if(k) A[id][key][svc]=String(k);" },
   { id: "v198-reqmaps", area: "REQ_MAPS", what: "the per-requirement registry leaves out the CLINs\u2019 service choices",
-    find: "'rcnSvc','clinRcn','clinRcnSvc','aceMap',",
-    repl: "'rcnSvc','clinRcn','aceMap'," },
+    find: "'rcnSvc','clinRcn','clinRcnSvc','upl',",   // v2.19: retargeted, aceMap gone
+    repl: "'rcnSvc','clinRcn','upl'," },
   { id: "v198-copy-left", area: "yearCopy", what: "a copy to another year leaves the CLINs\u2019 service choices behind",
     find: "  cp(T.clinRcnSvc, (S.clinRcnSvc||{})[id]);   // and a service on it that differs (v1.98, item 83)\n",
     repl: "" },
@@ -3601,30 +3372,16 @@ const MUTATIONS = [
   { id: "v199-newreq-ccar-cut", area: "arAdd", what: "the new-requirement form cuts its CCaR record to 12 and adds the requirement",
     find: "  codes.forEach(function(c){ const t=c[1]==='wbs'? arWbsTake() : codeTake(arVal(c[0]), c[1]); if(t.why) R.bad.push({id:c[0], m:t.why}); else code[c[1]]=t.v; });",   // v2.07: the box
     repl: "  codes.forEach(function(c){ code[c[1]]=arVal(c[0]).trim().slice(0, codeMax(c[1])); });" },
-  { id: "v199-flow-export-lastyear", area: "exportFlow", what: "the funds-flow export writes the last year across every appropriation, not the panel's selection",
-    find: "  const F=flowCalc(), H=2, TI=7, SEC=6, M=12, MB=13;",
-    repl: "  const F=flowCalc(flowYears()[flowYears().length-1]), H=2, TI=7, SEC=6, M=12, MB=13;" },
-  { id: "v199-flow-switched-off-listed", area: "exportFlow", what: "an appropriation switched off on the panel is listed in the export's table",
-    find: "F.aps.forEach(sl=>sum.push([APPN_LBL[sl],{v:F.appn[sl],s:M},pct(F.appn[sl])]));",
-    repl: "APPN_SLUGS.forEach(sl=>sum.push([APPN_LBL[sl],{v:F.appn[sl],s:M},pct(F.appn[sl])]));" },
-  { id: "v199-flow-partner-unlabelled", area: "exportFlow", what: "the export's partner money is not said to be portfolio-wide",
-    find: "OTHER SOURCES \\u2014 PORTFOLIO-WIDE: in total funding, not an appropriation, not changed by the appropriation selection",
-    repl: "OTHER SOURCES \\u2014 IN TOTAL FUNDING, NOT AN APPROPRIATION" },
-  { id: "v199-exec-any-appn", area: "flowYearKind", what: "a year with execution for any appropriation is executed for every one",
-    find: "return flowExecYears(s).indexOf(+fy)>=0? 'exec' : 'plan'; }",
-    repl: "return flowExecYears().indexOf(+fy)>=0? 'exec' : 'plan'; }" },
-  { id: "v199-ace-estonly-dropped", area: "exportAceTieout", what: "an office with only estimate lines is left off the block and its total",
-    find: "          if(est0){ eY+=est0;",
-    repl: "          if(false){ eY+=est0;" },
-  { id: "v199-ace-estonly-panel", area: "aceBody", what: "the panel leaves an office with only estimate lines off its table and total",
-    find: "      if(est0){ eTot+=est0;",
-    repl: "      if(false){ eTot+=est0;" },
+  // v199-flow-export-lastyear: retired as obsolete in v2.19 -- exportFlow went with item 150 (the funds-flow export writes the last year across every appropriation, not the panel's selection)
+  // v199-flow-switched-off-listed: retired as obsolete in v2.19 -- exportFlow went with item 150 (an appropriation switched off on the panel is listed in the export's table)
+  // v199-flow-partner-unlabelled: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export's partner money is not said to be portfolio-wide)
+  // v199-exec-any-appn: retired as obsolete in v2.19 -- flowYearKind went with item 150 (a year with execution for any appropriation is executed for every one)
+  // v199-ace-estonly-dropped: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (an office with only estimate lines is left off the block and its total)
+  // v199-ace-estonly-panel: retired as obsolete in v2.19 -- aceBody went with item 150 (the panel leaves an office with only estimate lines off its table and total)
   { id: "v199-exec-import-unstaged", area: "importSrc", what: "an execution import writes each tab into the board as it reads it",
     find: "      nextAll[slug]=ex;",
     repl: "      nextAll[slug]=ex; EXDB.all[slug]=ex;" },
-  { id: "v199-ace-pull-unstaged", area: "driveAcePull", what: "a check of the folder takes each estimate as it reads it",
-    find: "      if(!have){ staged[j.key]=j.set; took.push(j.key); continue; }",
-    repl: "      if(!have){ staged[j.key]=j.set; ACEDB.sets[j.key]=j.set; took.push(j.key); continue; }" },
+  // v199-ace-pull-unstaged: retired as obsolete in v2.19 -- driveAcePull went with item 150 (a check of the folder takes each estimate as it reads it)
   // v2.02: v199-rp-kept-after RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: "v199-dest-touched-dropped", area: "destMigrate", what: "a destination list that only joins a name is changed in memory and never stored",
     find: "      if(al.fresh || al.touched) keep=true;      // v1.99 (item 95): a map entry",
@@ -3638,21 +3395,11 @@ const MUTATIONS = [
   { id: "v199-boot-other-appns", area: "sideBootCheck", what: "another appropriation's plan this browser holds and the file does not reads saved",
     find: "    else look(bk, fileOf(bk, PUBS[k]), board);",
     repl: "    else {}" },   // v2.14 RV2-B: retargeted (the call follows the stray test, sideboot-names-stray-as-saved-by-save)
-  { id: "v199-ace-restore-no-keep", area: "aceRestore", what: "an estimate is put back though the copy it replaces could not be kept",
-    find: "      if(kept!=='kept' || back!==f.txt){",
-    repl: "      if(false){" },
-  { id: "v199-ace-restore-no-readback", area: "aceRestore", what: "an estimate is put back though the kept copy does not read back as it was",
-    find: "      if(kept!=='kept' || back!==f.txt){",
-    repl: "      if(kept!=='kept'){" },
-  { id: "v199-ace-restore-no-reread", area: "aceRestore", what: "an estimate is put back over a copy that changed while the one before was kept",
-    find: "    if(f.none? !g.none : (g.none || g.txt!==f.txt)){",
-    repl: "    if(false){" },
-  { id: "v199-ace-restore-unpinned", area: "aceRestore", what: "the copy put back is read from the list as it stands after the question",
-    find: "    try{ txt=await snapRead(dir, pinName); }",
-    repl: "    try{ txt=await snapRead(dir, (_aceHist[i]||{}).name||pinName); }" },
-  { id: "v199-ace-restore-any-key", area: "aceRestore", what: "a kept copy holding another estimate is put back under this one's name",
-    find: "    if(driveAceName(j.key)!==target){",
-    repl: "    if(false){" },
+  // v199-ace-restore-no-keep: retired as obsolete in v2.19 -- aceRestore went with item 150 (an estimate is put back though the copy it replaces could not be kept)
+  // v199-ace-restore-no-readback: retired as obsolete in v2.19 -- aceRestore went with item 150 (an estimate is put back though the kept copy does not read back as it was)
+  // v199-ace-restore-no-reread: retired as obsolete in v2.19 -- aceRestore went with item 150 (an estimate is put back over a copy that changed while the one before was kept)
+  // v199-ace-restore-unpinned: retired as obsolete in v2.19 -- aceRestore went with item 150 (the copy put back is read from the list as it stands after the question)
+  // v199-ace-restore-any-key: retired as obsolete in v2.19 -- aceRestore went with item 150 (a kept copy holding another estimate is put back under this one's name)
   { id: "v199-snapmatch-unescaped", area: "snapMatch", what: "a name's '.' matches any character, so one estimate's history is listed as another's",
     find: "const q=function(x){ return String(x).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'); };",
     repl: "const q=function(x){ return String(x); };" },
@@ -3703,16 +3450,10 @@ const MUTATIONS = [
   { id: "v200-destkey-awards-raw", area: "recFields", what: "an imported destination key is drawn raw into the Which-awards-to <option value>, so it becomes markup",
     find: "'<option value=\"'+esc(e.k)+'\"'+(destOf(it).end===e.k?' selected':'')",
     repl: "'<option value=\"'+e.k+'\"'+(destOf(it).end===e.k?' selected':'')" },
-  { id: "v200-flow-to-raw", area: "flowRulesPanel", what: "the funds-flow 'counts as FY' value is drawn without coercion, so an imported flow.pseudo.to becomes markup",
-    find: "counts as FY <input class=\"btn\" style=\"font-size:10px;padding:4px 8px;width:66px\" value=\"'+(parseInt(flowPseudo().to)||'')+'\"",
-    repl: "counts as FY <input class=\"btn\" style=\"font-size:10px;padding:4px 8px;width:66px\" value=\"'+flowPseudo().to+'\"" },
+  // v200-flow-to-raw: retired as obsolete in v2.19 -- flowHtml went with item 150 (the funds-flow 'counts as FY' value is drawn without coercion, so an imported flow.pseudo.to becomes markup)
   // text fidelity: an escape where text is built or is not HTML changes what a person reads and what a workbook carries
-  { id: "v200-flowlabel-built-escaped", area: "flowCalc", what: "the funds-flow label is escaped when built, so a pseudo-appropriation named O&M reads O&amp;M on screen and in the workbook's Scope line",
-    find: "if(F.pseudo.n) F.label+=' \\u00b7 + '+F.pseudo.token+' FY'+(F.pseudo.from%100);",
-    repl: "if(F.pseudo.n) F.label+=' \\u00b7 + '+esc(F.pseudo.token)+' FY'+(F.pseudo.from%100);" },
-  { id: "v200-flowlabel-status-raw", area: "exportFlow", what: "the export status line draws the funds-flow label raw, so a hostile pseudo-appropriation name becomes markup",
-    find: "setStat('⬇ Exported: funds flow '+esc(F.label)+' — summary, prime detail, OGC detail.');",
-    repl: "setStat('⬇ Exported: funds flow '+F.label+' — summary, prime detail, OGC detail.');" },
+  // v200-flowlabel-built-escaped: retired as obsolete in v2.19 -- flowCalc went with item 150 (the funds-flow label is escaped when built, so a pseudo-appropriation named O&M reads O&amp;M on screen and in)
+  // v200-flowlabel-status-raw: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export status line draws the funds-flow label raw, so a hostile pseudo-appropriation name becomes markup)
   { id: "v200-confirm-escaped", area: "bmSeedFromPp", what: "the budget-authority confirm() escapes the service names, so a service named with & reads &amp; in the dialog",
     find: "says nothing about: '+v.absent.join(', ')",
     repl: "says nothing about: '+esc(v.absent.join(', '))" },
@@ -3733,9 +3474,7 @@ const MUTATIONS = [
   { id: "v200-pkgbody-issue-raw", area: "pkgBody", what: "the Issue button draws the next sequence raw (review A1b)",
     find: "' #'+esc(led.seq+1):''",
     repl: "' #'+(led.seq+1):''" },
-  { id: "v200-acenote-sets-raw", area: "importAceNote", what: "the cost-estimate set names a file carried are drawn raw (review A2)",
-    find: "esc(sets.sort().join(', '))",
-    repl: "sets.sort().join(', ')" },
+  // v200-acenote-sets-raw: retired as obsolete in v2.19 -- importAceNote went with item 150 (the cost-estimate set names a file carried are drawn raw (review A2))
   { id: "v200-posexec-counts-raw", area: "posExecLine", what: "the snapshot per-requirement counts are drawn raw (review A3d)",
     find: "' · '+esc(e.uniq)+' on one requirement · '",
     repl: "' · '+e.uniq+' on one requirement · '" },
@@ -3751,18 +3490,10 @@ const MUTATIONS = [
   { id: "v200-awdm-id-raw", area: "awardBlockHtml", what: "a requirement id is drawn raw into the award-date input id (review A3g)",
     find: "id=\"awdM-${esc(it.id)}\"",
     repl: "id=\"awdM-${it.id}\"" },
-  { id: "v200-flow-from-raw", area: "flowRulesPanel", what: "the funds-flow 'appropriated FY' value is drawn without coercion (review A3h)",
-    find: "value=\"'+(parseInt(flowPseudo().from)||'')+'\"",
-    repl: "value=\"'+flowPseudo().from+'\"" },
-  { id: "v200-flowreport-kept-raw", area: "flowImportReport", what: "a CCaR import report count (kept) is drawn raw (final review)",
-    find: "+'\">'+esc(t.kept||0)+'</td>'",
-    repl: "+'\">'+(t.kept||0)+'</td>'" },
-  { id: "v200-flowreport-nofy-raw", area: "flowImportReport", what: "a CCaR import report count (no FY) is drawn raw (final review)",
-    find: "+'\">'+esc(t.noFy||0)+'</td>'",
-    repl: "+'\">'+(t.noFy||0)+'</td>'" },
-  { id: "v200-flowreport-read-raw", area: "flowImportReport", what: "a CCaR import report count (read) is drawn raw (review A3h)",
-    find: "'<td>'+esc(t.read||0)+'</td>'",
-    repl: "'<td>'+(t.read||0)+'</td>'" },
+  // v200-flow-from-raw: retired as obsolete in v2.19 -- flowHtml went with item 150 (the funds-flow 'appropriated FY' value is drawn without coercion (review A3h))
+  // v200-flowreport-kept-raw: retired as obsolete in v2.19 -- flowImportReport went with item 150 (a CCaR import report count (kept) is drawn raw (final review))
+  // v200-flowreport-nofy-raw: retired as obsolete in v2.19 -- flowImportReport went with item 150 (a CCaR import report count (no FY) is drawn raw (final review))
+  // v200-flowreport-read-raw: retired as obsolete in v2.19 -- flowImportReport went with item 150 (a CCaR import report count (read) is drawn raw (review A3h))
   { id: "v200-pplbl-raw", area: "ppLbl", what: "the PPBE position label is built raw, so a position key's text becomes markup (review A3i)",
     find: "const ppLbl=k=>esc(ppLblTxt(k));",
     repl: "const ppLbl=k=>ppLblTxt(k);" },
@@ -3784,9 +3515,7 @@ const MUTATIONS = [
   { id: "v200-fname-qpe-raw", area: "importSrc", what: "the QPE import status line draws the file name raw (review C1)",
     find: "'\\ud83d\\udce5 Reading '+esc(f.name)",
     repl: "'\\ud83d\\udce5 Reading '+f.name" },
-  { id: "v200-fname-ace-raw", area: "importAce", what: "the cost-estimate import status line draws the file name raw (review C1)",
-    find: "'\\ud83d\\udcc8 Reading '+esc(f.name)",
-    repl: "'\\ud83d\\udcc8 Reading '+f.name" },
+  // v200-fname-ace-raw: retired as obsolete in v2.19 -- importAce went with item 150 (the cost-estimate import status line draws the file name raw (review C1))
   { id: "v200-jrnl-door-open", area: "inShapeWhy", what: "the import check no longer refuses a journal entry whose path names __proto__/constructor/prototype",
     find: "if(IN_KEY_BAD.has(String(e.p[j]))) return 'the change journal entry at '",
     repl: "if(false) return 'the change journal entry at '" },
@@ -3803,9 +3532,7 @@ const MUTATIONS = [
   { id: "v200-yearslist-door", area: "inShapeWhy", what: "the import check skips the plans under a years LIST, so their ids are never checked (full sweep, A3g)",
     find: "  if(!asPlan && o.years && typeof o.years==='object')\n",
     repl: "  if(!asPlan && o.years && typeof o.years==='object' && !Array.isArray(o.years))\n" },
-  { id: "v200-acenote-missing-raw", area: "importAceNote", what: "the cost-estimate names a file carried but did not bring across are drawn raw (review A2)",
-    find: "<b>' + esc(missing.sort().join(', ')) + '</b>, which was '",
-    repl: "<b>' + missing.sort().join(', ') + '</b>, which was '" },
+  // v200-acenote-missing-raw: retired as obsolete in v2.19 -- importAceNote went with item 150 (the cost-estimate names a file carried but did not bring across are drawn raw (review A2))
   { id: "v200-ccaridx-n-raw", area: "Data menu", what: "the CCaR records count is drawn raw in the Data menu on every render (full sweep)",
     find: "ccarIdx()? ((wholeOr(MS.ccarIdx.n,0))+' record'+(wholeOr(MS.ccarIdx.n,0)===1?'':'s')",
     repl: "ccarIdx()? ((MS.ccarIdx.n||0)+' record'+((MS.ccarIdx.n||0)===1?'':'s')" },
@@ -3824,12 +3551,8 @@ const MUTATIONS = [
   { id: "v200-qpe-err-raw", area: "importSrc", what: "the QPE import failure draws the reader's error text raw (full sweep)",
     find: "setStat('\\u26a0 Import failed: '+esc((e&&e.message)||e));",
     repl: "setStat('\\u26a0 Import failed: '+((e&&e.message)||e));" },
-  { id: "v200-acestamp-lines-raw", area: "aceStamp", what: "the cost-estimate stamp draws a non-list lines' length (full sweep)",
-    find: "+' \\u00b7 '+(Array.isArray(set.lines)?set.lines.length:0)+' cost lines'",
-    repl: "+' \\u00b7 '+(set.lines?set.lines.length:0)+' cost lines'" },
-  { id: "v200-acetie-lines-raw", area: "ACE tie-out", what: "the ACE tie-out draws a non-list lines' length (full sweep)",
-    find: "+(Array.isArray(set.lines)?set.lines.length:0)+' cost lines \\u00b7 '",
-    repl: "+(set.lines?set.lines.length:0)+' cost lines \\u00b7 '" },
+  // v200-acestamp-lines-raw: retired as obsolete in v2.19 -- aceStamp went with item 150 (the cost-estimate stamp draws a non-list lines' length (full sweep))
+  // v200-acetie-lines-raw: retired as obsolete in v2.19 -- aceBody went with item 150 (the ACE tie-out draws a non-list lines' length (full sweep))
   { id: "v200-writer-raw", area: "File menu", what: "the Take the pen line draws the writer's name raw (annex E2)",
     find: "esc(WRITER.by)+' holds the pen'",
     repl: "WRITER.by+' holds the pen'" },
@@ -3904,9 +3627,7 @@ const MUTATIONS = [
   { id: "v200-spmt-pmo-open", area: "inShapeWhy", what: "a submittal's office is not checked at the door (key sweep)",
     find: "    if(o.pmo!==undefined && o.pmo!==null && o.pmo!=='' && (w=inNameWhy(o.pmo, 'the office at '+path+'.pmo'))) return w;\n",
     repl: "" },
-  { id: "v200-ace-key-open", area: "importAce", what: "an estimate is filed under a built-in name its file carries (key sweep)",
-    find: "    if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '+inShow(key)+', a name every object already answers to \\u2014 rename the file and import it again');\n",
-    repl: "" },
+  // v200-ace-key-open: retired as obsolete in v2.19 -- importAce went with item 150 (an estimate is filed under a built-in name its file carries (key sweep))
   { id: "v200-exagg-plain", area: "exAgg", what: "the execution grid groups rows by office in a plain object (key sweep)",
     find: "  const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;",
     repl: "  const byP={}, byS={}; let tot=0, obl=0;" },
@@ -3946,15 +3667,9 @@ const MUTATIONS = [
   { id: "v200-cycproj-plain", area: "cycProjOf", what: "a locked cycle's projection groups by office in a plain object (key sweep)",
     find: "  const reqs=[], pmo=Object.create(null);",
     repl: "  const reqs=[], pmo={};" },
-  { id: "v200-spgather-plain", area: "spGather", what: "the five-year spend plan groups by office or service in a plain object (key sweep)",
-    find: "const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years,",
-    repl: "const block={name:d.name, rows:{}, req:{}, bud:{}, years," },
-  { id: "v200-pmodetail-plain", area: "pmoDetail", what: "the PMO drill keys estimate lines by service in plain objects (key sweep)",
-    find: "    const req=Object.create(null), bud=Object.create(null), hasBud={};",
-    repl: "    const req={}, bud={}, hasBud={};" },
-  { id: "v200-pmodetail-ctl-plain", area: "pmoDetail", what: "the PMO drill keys controls by service in a plain object (key sweep)",
-    find: "    const ctl=Object.create(null), ctlSvcLevel=(spFund!=='board' && !blSrc);",
-    repl: "    const ctl={}, ctlSvcLevel=(spFund!=='board' && !blSrc);" },
+  // v200-spgather-plain: retired as obsolete in v2.19 -- spGather went with item 150 (the five-year spend plan groups by office or service in a plain object (key sweep))
+  // v200-pmodetail-plain: retired as obsolete in v2.19 -- pmoDetail went with item 150 (the PMO drill keys estimate lines by service in plain objects (key sweep))
+  // v200-pmodetail-ctl-plain: retired as obsolete in v2.19 -- pmoDetail went with item 150 (the PMO drill keys controls by service in a plain object (key sweep))
   { id: "v200-cesummary-plain", area: "ceSummary", what: "the cost element panel groups by cost element in a plain object (key sweep)",
     find: "  const byCE=Object.create(null);\n  S.order.forEach(id=>{\n    const it=itemById(id); if(!it) return;\n    if(ceTab!=='ALL' && grpOf(it)!==ceTab) return;",
     repl: "  const byCE={};\n  S.order.forEach(id=>{\n    const it=itemById(id); if(!it) return;\n    if(ceTab!=='ALL' && grpOf(it)!==ceTab) return;" },
@@ -3976,9 +3691,7 @@ const MUTATIONS = [
   { id: "v200-entuse-plain", area: "flowEntUseMap", what: "the destination-use map keys destinations in plain objects (key sweep)",
     find: "function flowEntUseMap(){\n  const out=Object.create(null);",
     repl: "function flowEntUseMap(){\n  const out={};" },
-  { id: "v200-destresolve-plain", area: "flowDestResolve", what: "the destination resolver keys destinations in a plain object (key sweep)",
-    find: "function flowDestResolve(ids, axis){\n  const seen=Object.create(null);",
-    repl: "function flowDestResolve(ids, axis){\n  const seen={};" },
+  // v200-destresolve-plain: retired as obsolete in v2.19 -- flowDestResolve went with item 150 (the destination resolver keys destinations in a plain object (key sweep))
   { id: "v200-pmochoices-plain", area: "pmoChoices", what: "the office list for a submittal is gathered in a plain object (key sweep)",
     find: "function pmoChoices(){\n  const seen=Object.create(null);",
     repl: "function pmoChoices(){\n  const seen={};" },
@@ -3997,9 +3710,8 @@ const MUTATIONS = [
   { id: "v200-mipr-plain", area: "MIPR_LBL", what: "the MIPR type list answers built-in names (key sweep)",
     find: "const MIPR_LBL=Object.assign(Object.create(null), {direct:'MIPR Direct Cite', reimb:'MIPR Reimbursable'});",
     repl: "const MIPR_LBL={direct:'MIPR Direct Cite', reimb:'MIPR Reimbursable'};" },
-  { id: "v200-space-inherited", area: "syncViewPrefs", what: "a saved estimate choice that names a built-in is kept (key sweep)",
-    find: "    if(spAce!=='board' && !Object.prototype.hasOwnProperty.call(ACEDB.sets||{}, spAce)) spAce='board';",
-    repl: "    if(spAce!=='board' && !(ACEDB.sets||{})[spAce]) spAce='board';" },  { id: "v200-destfold-plain", area: "destFold", what: "a destination list's re-pointing is a plain object (key sweep)",
+  // v200-space-inherited: retired as obsolete in v2.19 -- syncViewPrefs went with item 150 (a saved estimate choice that names a built-in is kept (key sweep))
+  { id: "v200-destfold-plain", area: "destFold", what: "a destination list's re-pointing is a plain object (key sweep)",
     find: "function destFold(list, from, v186, refs){\n  const al=Object.create(null);",
     repl: "function destFold(list, from, v186, refs){\n  const al={};" },
   { id: "v200-destrefs-plain", area: "destRefs", what: "the destinations requirements use are gathered in a plain object (key sweep)",
@@ -4019,7 +3731,8 @@ const MUTATIONS = [
     repl: "  for(const bag of []) if(Array.isArray(o[bag])) for(let i=0;i<o[bag].length;i++){ const e=o[bag][i];" },
   { id: "v200-door-destmap-open", area: "inShapeWhy", what: "a requirement sent to a destination named after a built-in is taken at the door (key sweep)",
     find: "    for(const f of ['to','end']) if(IN_KEY_BAD.has(String(d[f]))) return",
-    repl: "    for(const f of []) if(IN_KEY_BAD.has(String(d[f]))) return" },  { id: "v200-id-dunder-open", area: "inIdWhy", what: "a requirement id that is one of the board's bookkeeping keys (__rem) is taken (key re-verification)",
+    repl: "    for(const f of []) if(IN_KEY_BAD.has(String(d[f]))) return" },
+  { id: "v200-id-dunder-open", area: "inIdWhy", what: "a requirement id that is one of the board's bookkeeping keys (__rem) is taken (key re-verification)",
     find: "  if(/^__/.test(v)) return what+' '+inShow(v)+' begins with two underscores, which the board keeps for its own bookkeeping (__rem, __cut)';\n",
     repl: "" },
   { id: "v200-pack-items-only-open", area: "inShapeWhy", what: "a data pack with only its items is not checked (key re-verification)",
@@ -4056,19 +3769,11 @@ const MUTATIONS = [
   { id: "v200-pmomatrix-plain", area: "exportExcel", what: "the workbook's PMO Matrix groups by office in a plain object (key re-verification)",
     find: "  const byGX=Object.create(null);",
     repl: "  const byGX={};" },
-  { id: "v200-spproj-plain", area: "spProjByPmo", what: "a cycle's projection is grouped by office in a plain object (key re-verification)",
-    find: "function spProjByPmo(P, st){\n  const out=Object.create(null);",
-    repl: "function spProjByPmo(P, st){\n  const out={};" },
-  { id: "v200-acegroups-plain", area: "acePmoGroups", what: "board offices are grouped by estimate office in a plain object (key re-verification)",
-    find: "function acePmoGroups(k){\n  const groups=Object.create(null);",
-    repl: "function acePmoGroups(k){\n  const groups={};" },
-  { id: "v200-stray-plain", area: "exportAceTieout", what: "the tie-out's unclaimed estimate lines are grouped in a plain object (key re-verification)",
-    find: "      const stray=Object.create(null);\n      (set.lines||[]).forEach(function(l){",
-    repl: "      const stray={};\n      (set.lines||[]).forEach(function(l){" },
+  // v200-spproj-plain: retired as obsolete in v2.19 -- spProjByPmo went with item 150 (a cycle's projection is grouped by office in a plain object (key re-verification))
+  // v200-acegroups-plain: retired as obsolete in v2.19 -- acePmoGroups went with item 150 (board offices are grouped by estimate office in a plain object (key re-verification))
+  // v200-stray-plain: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the tie-out's unclaimed estimate lines are grouped in a plain object (key re-verification))
   // v2.04 (item 112): v200-aceshare-plain RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the five-year workbook's old layout (Brad, 22 Oct 2026: the estimate and the position dropped; one Allocated figure, no count column).
-  { id: "v200-flowsub-inherited", area: "flowSubOf", what: "a funds-flow category named after a built-in reads back the built-in (key re-verification)",
-    find: "function flowSubOf(catKey){ const S2=flowSubs(), L=Object.prototype.hasOwnProperty.call(S2, catKey)? S2[catKey] : null; return (Array.isArray(L)&&L.length)? L : null; }",
-    repl: "function flowSubOf(catKey){ const L=flowSubs()[catKey]; return (L&&L.length)? L : null; }" },
+  // v200-flowsub-inherited: retired as obsolete in v2.19 -- flowSubOf went with item 150 (a funds-flow category named after a built-in reads back the built-in (key re-verification))
   { id: "v200-ppsetv-inherited", area: "ppSetV", what: "a PPBE figure for a line named after a built-in is written onto the built-in (key re-verification)",
     find: "  if(!Object.prototype.hasOwnProperty.call(P.val, sv)) P.val[sv]={};\n  if(!Object.prototype.hasOwnProperty.call(P.val[sv], k)) P.val[sv][k]={};",
     repl: "  if(!P.val[sv]) P.val[sv]={};\n  if(!P.val[sv][k]) P.val[sv][k]={};" },
@@ -4077,27 +3782,13 @@ const MUTATIONS = [
     repl: "    if(r && r.id && (+gone[r.id]||0) >= (+r.ts||0) && gone[r.id]){ mine.splice(i,1); buried++; }" },
   // v2.00 (R1, the review of main f9b4413; Brad, 11 Oct): execution precedence by appropriation and EFFECTIVE fiscal year.
   // The first five ids are the lost implementation's; scan-stops-early and mix-words-one-kind guard code this one adds.
-  { id: "v200-r1-raw-year-exec", area: "flowExecYears", what: "execution is decided by the year the workbook files a row under, not the year it counts in: FY26 reads its whole plan beside the FY25 OBBBA rows carried into it, and FY25 reads $0",
-    find: "  const EA=execAllOf(), PS=raw? null : flowPseudo(); const y={};",
-    repl: "  const EA=execAllOf(), PS=null; const y={};" },
-  { id: "v200-r1-saved-year-widens", area: "flowYears", what: "the year buttons offer only the years execution counts in, so a saved FY25-only selection whose rows all count as FY26 silently becomes all years",
-    find: "  flowExecYears(null, true).forEach(f=>y[f]=1);",
-    repl: "  flowExecYears().forEach(f=>y[f]=1);" },
-  { id: "v200-r1-mixed-disclosure-b", area: "flowIsMixed", what: "only a year holding both kinds is said to mix them: FY25 planned beside FY26 executed ($400M) is said neither on the panel nor in the export",
-    find: "function flowIsMixed(F){ return flowHasMoney(F.execV) && flowHasMoney(F.planV); }",
-    repl: "function flowIsMixed(F){ return F.mixYs.length>0; }" },
-  { id: "v200-r1-export-note", area: "exportFlow", what: "the export notes a same-year mix only, so the $400M of FY25 planned and FY26 executed carries no NOTE while the panel says it",
-    find: "  if(flowIsMixed(F)) sum.splice(3,0,['NOTE: planned and executed money in one total",
-    repl: "  if(F.mixYs.length) sum.splice(3,0,['NOTE: planned and executed money in one total" },
-  { id: "v200-r1-help-claim", area: "flowHtml (matching rules)", what: "the matching rules say again that with both years selected the total is unchanged",
-    find: "+'Each row is counted once, in its effective year \\u2014 never twice. A year with execution counted in it is read from that execution, never also from the plan; a year left with none is a planned year, read from this board\\u2019s allocation. So switching this on can change a total even with both years selected.</div>'",
-    repl: "+'Each row belongs to exactly one year either way, so it can never appear twice \\u2014 select both years and the total is unchanged.</div>'" },
-  { id: "v200-r1-scan-stops-early", area: "flowExecYears", what: "the year scan stops at each year's first row, so FY25's carried OBBBA row behind an ordinary one goes unseen and FY26 reads its plan beside it",
-    find: "      return !(PS&&PS.on&&+f===PS.from) || (y[+f] && y[PS.to]); }); }); });",
-    repl: "      return true; }); }); });" },
-  { id: "v200-r1-mix-words-one-kind", area: "flowMixWords", what: "a year of one kind is written as both, with an empty side: 'FY25: O&M planned,  executed; FY26:  planned, O&M executed'",
-    find: "  return 'FY'+(y%100)+': '+[m.plan.length? L(m.plan)+' planned' : '', m.exec.length? L(m.exec)+' executed' : '', m.none.length? L(m.none)+' not in this total' : ''].filter(Boolean).join(', ');",
-    repl: "  return 'FY'+(y%100)+': '+L(m.plan)+' planned, '+L(m.exec)+' executed'+(m.none.length? ', '+L(m.none)+' not in this total' : '');" },
+  // v200-r1-raw-year-exec: retired as obsolete in v2.19 -- flowExecYears went with item 150 (execution is decided by the year the workbook files a row under, not the year it counts in: FY26 reads its who)
+  // v200-r1-saved-year-widens: retired as obsolete in v2.19 -- flowYears went with item 150 (the year buttons offer only the years execution counts in, so a saved FY25-only selection whose rows all count)
+  // v200-r1-mixed-disclosure-b: retired as obsolete in v2.19 -- flowIsMixed went with item 150 (only a year holding both kinds is said to mix them: FY25 planned beside FY26 executed ($400M) is said neither )
+  // v200-r1-export-note: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export notes a same-year mix only, so the $400M of FY25 planned and FY26 executed carries no NOTE while th)
+  // v200-r1-help-claim: retired as obsolete in v2.19 -- flowHtml went with item 150 (the matching rules say again that with both years selected the total is unchanged)
+  // v200-r1-scan-stops-early: retired as obsolete in v2.19 -- flowExecYears went with item 150 (the year scan stops at each year's first row, so FY25's carried OBBBA row behind an ordinary one goes unseen a)
+  // v200-r1-mix-words-one-kind: retired as obsolete in v2.19 -- flowMixWords went with item 150 (a year of one kind is written as both, with an empty side: 'FY25: O&M planned,  executed; FY26:  planned, O&M )
   // v2.00 (R2, the same review; Brad, 11 Oct): an EEIC is checked in the form it is stored, trimmed and upper-cased.
   { id: "v200-r2-eeic-checked-raw", area: "rcnSet", what: "an EEIC is checked as typed (the v1.99 check), not in the form it is stored: ten ß pass as 10 characters and are kept as 20",
     find: "  if(field==='rcn' || field==='eeic'){ const r=codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field);",
@@ -4162,57 +3853,27 @@ const MUTATIONS = [
     repl: "    if(!base && !_saveBusy) driveBaseSet(mySlug(), theirs);\n" },
   // v2.00 (U1; Brad, 11 Oct: "Track the carried-row omission as a separate finding"; 12 Oct: "Proceed with U1 as its own commit"): a row carried into a year
   // neither imported nor planned is offered, and counted in ALL YEARS.
-  { id: "v200-u1-year-unoffered", area: "flowYears", what: "the year buttons offer the workbook's years and the plan window only: FY25 OBBBA rows carried into FY26, a year with neither, are counted in no year -- ALL YEARS $540M of $660M on the panel and in the export, nothing said, and a saved FY26 becomes all years",
-    find: "  flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1): and every year a row is COUNTED in, so ALL YEARS holds every dollar",
-    repl: "" },
-  { id: "v200-u1-own-appn-only", area: "flowYears", what: "only this board's appropriation opens the year its rows are carried into: Initial Spares' $20M carried into FY26 is in no year when O&M carries nothing ($540M of $560M)",
-    find: "  flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1)",
-    repl: "  flowExecYears(flowPlanSlug()).forEach(f=>y[f]=1);         // v2.00 (U1)" },
+  // v200-u1-year-unoffered: retired as obsolete in v2.19 -- flowYears went with item 150 (the year buttons offer the workbook's years and the plan window only: FY25 OBBBA rows carried into FY26, a yea)
+  // v200-u1-own-appn-only: retired as obsolete in v2.19 -- flowYears went with item 150 (only this board's appropriation opens the year its rows are carried into: Initial Spares' $20M carried into FY)
   // v2.00 (U14; Brad, 12 Oct: "ALL YEARS to include genuine stored plans and execution by effective year within the selected
   // appropriations. Never create or copy a budget merely because a year becomes available. Explicit saved selections must never
   // silently switch to ALL YEARS; retain an unavailable selection with a clear notice.")
-  { id: "v200-u14-stored-unoffered", area: "flowYears", what: "the year buttons offer the window, the workbook's years and the years a row is counted in, never a year the board holds a plan for: FY26's $300M plan on an FY27 window is in no year (ALL YEARS $640M of $940M), and a saved FY26 is lost when the base year moves",
-    find: "  flowStoredYears().forEach(f=>y[f]=1);           // v2.00 (U14): and every year this board holds a plan for -- read, never made",
-    repl: "" },
-  { id: "v200-u14-saved-falls-back", area: "flowSelYears", what: "a saved selection none of whose years is offered any more silently becomes ALL YEARS: a saved FY26, not available after the rule is switched off, reads $640M",
-    find: "  return sel? sel.filter(y=>all.indexOf(y)>=0) : all.slice();",
-    repl: "  const k=sel? sel.filter(y=>all.indexOf(y)>=0) : []; return k.length? k : all.slice();" },
-  { id: "v200-u14-export-notice-dropped", area: "exportFlow", what: "the export leaves out the NOTE naming a saved year the board cannot answer for, while the panel says it",
-    find: "  if(F.unavail.length) sum.splice(3,0,['NOTE: '+flowUnavailText(F, y=>'FY'+y)],[]);\n",
-    repl: "" },
-  { id: "v200-u14-label-dash-gap", area: "flowScopeLabel", what: "the ALL YEARS label runs a dash from its first year to its last: \"FY25–FY31 · all years\" over a FY26 that is in no total",
-    find: "runs(ys)+' \\u00b7 all years'",
-    repl: "FY(ys[0])+'\\u2013'+FY(ys[ys.length-1])+' \\u00b7 all years'" },
-  { id: "v200-u14-read-makes-year", area: "flowPlanRecs", what: "reading a year the board holds no plan for makes it a blank one: an ALL YEARS read writes FY28-FY31 into the board, and each is then a year it holds",
-    find: "  if(!flowPlanHas(fy)) return out;",
-    repl: "  if(!flowPlanHas(fy)){ MS.years[fy]=freshYearState(); return out; }" },
-  { id: "v200-u14-toggle-drops-saved", area: "flowToggleYear", what: "a toggle starts from the years counted, not the saved selection: switching FY27 on drops the saved FY26 the board cannot answer for now",
-    find: "  const all=flowYears(), cur=flowSavedYears()||all.slice();",
-    repl: "  const all=flowYears(), cur=flowSelYears();" },
-  { id: "v200-u14-toggle-collapses", area: "flowToggleYear", what: "a toggle that leaves as many saved years as are offered stores ALL YEARS, though one of them is a saved year not offered: the saved FY26 is dropped",
-    find: "  flowCfg().fys = (next.length===all.length && next.every(x=>all.indexOf(x)>=0))? null : next.sort();",
-    repl: "  flowCfg().fys = (next.length===all.length)? null : next.sort();" },
-  { id: "v200-u14-panel-notice-dropped", area: "flowHtml", what: "the panel leaves out its notice naming a saved year the board cannot answer for, while the export says it",
-    find: "    +(F.unavail.length? '<div class=\"flowunavail\"",
-    repl: "    +(false? '<div class=\"flowunavail\"" },
+  // v200-u14-stored-unoffered: retired as obsolete in v2.19 -- flowYears went with item 150 (the year buttons offer the window, the workbook's years and the years a row is counted in, never a year the bo)
+  // v200-u14-saved-falls-back: retired as obsolete in v2.19 -- flowSelYears went with item 150 (a saved selection none of whose years is offered any more silently becomes ALL YEARS: a saved FY26, not availa)
+  // v200-u14-export-notice-dropped: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export leaves out the NOTE naming a saved year the board cannot answer for, while the panel says it)
+  // v200-u14-label-dash-gap: retired as obsolete in v2.19 -- flowScopeLabel went with item 150 (the ALL YEARS label runs a dash from its first year to its last: \"FY25–FY31 · all years\" over a FY26 that is)
+  // v200-u14-read-makes-year: retired as obsolete in v2.19 -- flowPlanRecs went with item 150 (reading a year the board holds no plan for makes it a blank one: an ALL YEARS read writes FY28-FY31 into the b)
+  // v200-u14-toggle-drops-saved: retired as obsolete in v2.19 -- flowToggleYear went with item 150 (a toggle starts from the years counted, not the saved selection: switching FY27 on drops the saved FY26 the bo)
+  // v200-u14-toggle-collapses: retired as obsolete in v2.19 -- flowToggleYear went with item 150 (a toggle that leaves as many saved years as are offered stores ALL YEARS, though one of them is a saved year n)
+  // v200-u14-panel-notice-dropped: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel leaves out its notice naming a saved year the board cannot answer for, while the export says it)
   { id: "v200-u14-read-writes-marks", area: "rlgIsUpl", what: "asking whether a requirement is marked UPL makes the year's empty mark list, so the funds flow's first read of a year changes that year",
     find: "  const m=S.upl||{};",
     repl: "  const m=rlgUplMap();" },
-  { id: "v200-u14-chips-unlit-beside-unavailable", area: "flowHtml", what: "with a saved year the board cannot answer for and every offered year counted beside it, no year button is lit and ALL YEARS is not lit either: nothing on screen shows which years the total counts",
-    find: "(selY.length<yrs.length || F.unavail.length>0)",
-    repl: "(selY.length<yrs.length)" },
-  { id: "v200-u14-toggle-off-drops-saved", area: "flowToggleYear", what: "a year switched off, while another year stays counted, drops the saved years the board cannot answer for: FY26 leaves the saved selection, the label and the notice with nothing said, though the notice says switching a year on or off keeps it",
-    find: "  if(!next.some(x=>all.indexOf(x)>=0)) next.push(y);",
-    repl: "  if(cur.indexOf(y)>=0 && next.some(x=>all.indexOf(x)>=0)) next=next.filter(x=>all.indexOf(x)>=0);\n  if(!next.some(x=>all.indexOf(x)>=0)) next.push(y);" },
-  { id: "v200-u14-only-keeps-saved", area: "flowOneYear", what: "a year's only keeps the saved years the board cannot answer for: FY27's only stores [2026, 2027], so the notice never goes, though it says a year's only chooses again",
-    find: "function flowOneYear(y){ flowCfg().fys=[y]; flowSel=''; save(); render(); }",
-    repl: "function flowOneYear(y){ flowCfg().fys=flowUnavailYears().concat([y]); flowSel=''; save(); render(); }" },
-  { id: "v200-u14-allyears-keeps-saved", area: "flowAllYears", what: "ALL YEARS keeps the saved years the board cannot answer for: it stores every offered year and FY26, so the notice never goes, though it says ALL YEARS chooses again",
-    find: "function flowAllYears(){ flowCfg().fys=null; flowSel=''; save(); render(); }",
-    repl: "function flowAllYears(){ const u=flowUnavailYears(); flowCfg().fys=u.length? flowYears().concat(u).sort() : null; flowSel=''; save(); render(); }" },
-  { id: "v200-u14-notice-plural-it", area: "flowHtml", what: "the panel's notice says \"keeps it\" however many saved years the board cannot answer for: FY24 and FY26 \"stay in the saved selection\", and switching a year \"keeps it\"",
-    find: "switching a year on or off keeps '+(F.unavail.length===1?'it':'them')+'.</div>'",
-    repl: "switching a year on or off keeps it.</div>'" },
+  // v200-u14-chips-unlit-beside-unavailable: retired as obsolete in v2.19 -- flowHtml went with item 150 (with a saved year the board cannot answer for and every offered year counted beside it, no year button is lit )
+  // v200-u14-toggle-off-drops-saved: retired as obsolete in v2.19 -- flowToggleYear went with item 150 (a year switched off, while another year stays counted, drops the saved years the board cannot answer for: FY26)
+  // v200-u14-only-keeps-saved: retired as obsolete in v2.19 -- flowOneYear went with item 150 (a year's only keeps the saved years the board cannot answer for: FY27's only stores [2026, 2027], so the notic)
+  // v200-u14-allyears-keeps-saved: retired as obsolete in v2.19 -- flowAllYears went with item 150 (ALL YEARS keeps the saved years the board cannot answer for: it stores every offered year and FY26, so the not)
+  // v200-u14-notice-plural-it: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel's notice says \"keeps it\" however many saved years the board cannot answer for: FY24 and FY26 \"sta)
   // v2.00 (U20): a save waiting for another tab's save (the 'orbit-save' Web Lock) is under way, from the moment it is asked for until it ends.
   { id: "v200-u20-wait-uncounted", area: "saveSerial", what: "a save is counted as under way only once it holds the lock: one waiting for another tab's save is no save at all to ↶ Put back and to the folder's refresh, which takes the folder's copy as the one the work came from, so the waiting save writes over that copy without asking (with a history copy kept less than ten minutes before, it is gone after one more Save)",
     find: "  const go=function(){ return Promise.resolve().then(fn); };\n  const run=function(){\n    try{ if(typeof navigator!=='undefined' && navigator.locks && typeof navigator.locks.request==='function')\n      return navigator.locks.request('orbit-save', {mode:'exclusive'}, go); }catch(e){}\n    return go();\n  };\n  if(_saveBusy){ try{ setStat('⏳ A save is already under way — this one runs as soon as it finishes.'); }catch(e){} }\n  _saveBusy++;\n  const p=_saveChain.then(run, run);\n  const done=function(){ _saveBusy--; };\n  p.then(done, done);   // saved, refused, failed or thrown -- and the lock, where there is one, let go\n",
@@ -4261,109 +3922,43 @@ const MUTATIONS = [
     repl: "    if(kept==='occupied'){" },
   // v2.00 (U34, Codex's review as Brad supplied it, 12 Oct: "the malformed saved-year selection"): a saved year selection the
   // board did not write is read as no year, kept as saved and said -- never as ALL YEARS, never as a year it is not.
-  { id: "v200-yearsel-not-a-list-all-years", area: "flowSavedYears", what: "a saved year selection that is not a list reads as ALL YEARS again: \"2026\", {} or a bare 2027 counts every year, $540M, ALL YEARS lit, while the notice says nothing is counted",
-    find: "  if(C.fys==null) return null;\n  const s=(Array.isArray(C.fys)? C.fys : [])",
-    repl: "  if(!Array.isArray(C.fys)) return null;\n  const s=(Array.isArray(C.fys)? C.fys : [])" },
-  { id: "v200-yearsel-nothing-read-all-years", area: "flowSavedYears", what: "a saved list with no whole year in it reads as ALL YEARS again: [], [2026.5], [\"2027\"] and 5,000 × \"x\" count every year, $540M",
-    find: "  return s.sort();\n}\n// v2.00 (U34): what of the saved year selection",
-    repl: "  return s.length? s.sort() : null;\n}\n// v2.00 (U34): what of the saved year selection" },
-  { id: "v200-yearsel-number-coerced", area: "flowSavedYears", what: "the saved entries are read through Number() again: [\"2027\"] counts as FY27, [true] is said as a saved FY1, [null] as a saved FY0",
-    find: "(Array.isArray(C.fys)? C.fys : []).filter((y,i,a)=>flowYearOk(y) && a.indexOf(y)===i)",
-    repl: "(Array.isArray(C.fys)? C.fys : []).map(Number).filter((y,i,a)=>Number.isInteger(y) && a.indexOf(y)===i)" },
-  { id: "v200-yearsel-fraction-unsaid", area: "flowUnreadSaved", what: "only entries that are not numbers are said: [2026.5] counts nothing and says nothing; [2025, 2026.5] counts FY25 with nothing said of 2026.5",
-    find: "  const bad=v.filter(y=>!flowYearOk(y));",
-    repl: "  const bad=v.filter(y=>typeof y!=='number');" },
-  { id: "v200-yearsel-whole-unsaid", area: "flowUnreadSaved", what: "a saved selection that is not a list, or an empty one, counts nothing and says nothing: \"2026\" reads \"no year counted\" with no reason, on the panel and in the export",
-    find: "  if(!Array.isArray(v) || !v.length) return {whole:true, n:1, what:q(v)};",
-    repl: "  if(!Array.isArray(v) || !v.length) return null;" },
-  { id: "v200-yearsel-label-unsaid", area: "flowCalc", what: "the scope label leaves out what cannot be read: the panel, the chart and the export's Scope line say \"no year counted\" with no reason, while the notice says it",
-    find: "  if(UR) F.label+=' \\u00b7 '+(UR.whole?",
-    repl: "  if(false) F.label+=' \\u00b7 '+(UR.whole?" },
-  { id: "v200-yearsel-panel-unsaid", area: "flowHtml", what: "the panel leaves out its notice of a saved selection it cannot read, while the export says it",
-    find: "    +(F.unread? '<div class=\"flowunread\"",
-    repl: "    +(false? '<div class=\"flowunread\"" },
-  { id: "v200-yearsel-export-unsaid", area: "exportFlow", what: "the export leaves out its NOTE of a saved selection the board cannot read, while the panel says it",
-    find: "  if(F.unread) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);",
-    repl: "  if(false) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);" },
-  { id: "v200-yearsel-markup-unescaped", area: "flowHtml", what: "the panel prints the file's text as markup: a saved \"<b>x</b>\" is a bold x in the notice, not the text the file holds",
-    find: "+esc(flowUnreadText(F, y=>'FY'+(y%100)))+",
-    repl: "+flowUnreadText(F, y=>'FY'+(y%100))+" },
-  { id: "v200-yearsel-counted-unsaid", area: "flowUnreadText", what: "the notice says \"nothing is counted\" while a whole year beside the bad entry is counted: [2025, 2026.5] totals $40M under \"nothing is counted\"",
-    find: "+' kept as saved'+(F.fys.length?",
-    repl: "+' kept as saved'+(false?" },
-  { id: "v200-yearsel-plural-it", area: "flowUnreadText", what: "the notice says \"It is kept\" however many entries it cannot read: 5,000 × \"x\" read \"It is kept as saved\"",
-    find: "+(one?'It is':'They are')",
-    repl: "+'It is'" },
-  { id: "v200-yearsel-toggle-from-all", area: "flowToggleYear", what: "a toggle on a saved selection it cannot read starts from every year: FY27 switched on beside \"2026\" switches FY27 OFF and counts the other five, $40M",
-    find: "  const all=flowYears(), cur=flowSavedYears()||all.slice();",
-    repl: "  const all=flowYears(), cur=(flowSavedYears()||[]).length? flowSavedYears() : all.slice();" },
+  // v200-yearsel-not-a-list-all-years: retired as obsolete in v2.19 -- flowSavedYears went with item 150 (a saved year selection that is not a list reads as ALL YEARS again: \"2026\", {} or a bare 2027 counts every y)
+  // v200-yearsel-nothing-read-all-years: retired as obsolete in v2.19 -- flowSavedYears went with item 150 (a saved list with no whole year in it reads as ALL YEARS again: [], [2026.5], [\"2027\"] and 5,000 × \"x\" cou)
+  // v200-yearsel-number-coerced: retired as obsolete in v2.19 -- flowSavedYears went with item 150 (the saved entries are read through Number() again: [\"2027\"] counts as FY27, [true] is said as a saved FY1, [)
+  // v200-yearsel-fraction-unsaid: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (only entries that are not numbers are said: [2026.5] counts nothing and says nothing; [2025, 2026.5] counts FY)
+  // v200-yearsel-whole-unsaid: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (a saved selection that is not a list, or an empty one, counts nothing and says nothing: \"2026\" reads \"no ye)
+  // v200-yearsel-label-unsaid: retired as obsolete in v2.19 -- flowCalc went with item 150 (the scope label leaves out what cannot be read: the panel, the chart and the export's Scope line say \"no year)
+  // v200-yearsel-panel-unsaid: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel leaves out its notice of a saved selection it cannot read, while the export says it)
+  // v200-yearsel-export-unsaid: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export leaves out its NOTE of a saved selection the board cannot read, while the panel says it)
+  // v200-yearsel-markup-unescaped: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel prints the file's text as markup: a saved \"<b>x</b>\" is a bold x in the notice, not the text the f)
+  // v200-yearsel-counted-unsaid: retired as obsolete in v2.19 -- flowUnreadText went with item 150 (the notice says \"nothing is counted\" while a whole year beside the bad entry is counted: [2025, 2026.5] tota)
+  // v200-yearsel-plural-it: retired as obsolete in v2.19 -- flowUnreadText went with item 150 (the notice says \"It is kept\" however many entries it cannot read: 5,000 × \"x\" read \"It is kept as saved\")
+  // v200-yearsel-toggle-from-all: retired as obsolete in v2.19 -- flowToggleYear went with item 150 (a toggle on a saved selection it cannot read starts from every year: FY27 switched on beside \"2026\" switches)
   // v2.00 (U34, the verifiers' round, 13 Oct): the quote of a saved entry is cut between characters and never carries what
   // XML forbids; a selection holding what the board cannot read is never ALL YEARS; falsy values, both notices, the export's rows.
-  { id: "v200-yearsel-quote-xml-unsafe", area: "flowUnreadSaved", what: "the quote carries U+FFFE / U+FFFF as they are: a saved [\"\\uffff\", 2027] puts a character XML 1.0 forbids into the export's sheet, which is then not a well-formed workbook",
-    find: ".slice(0,82).replace(/[\\uFFFE\\uFFFF]/g, c=>'\\\\u'+c.charCodeAt(0).toString(16)));",
-    repl: ".slice(0,82));" },
-  { id: "v200-yearsel-quote-splits-char", area: "flowUnreadSaved", what: "the quote is cut by UTF-16 units: an entry of 45 emoji is cut inside the 20th -- half a character on the panel, U+FFFD in the export, neither in the file",
-    find: "q=x=>{ const t=Array.from(String(JSON.stringify(x)).slice(0,82)",
-    repl: "q=x=>{ const t=(s=>s.split(''))(String(JSON.stringify(x)).slice(0,82)" },
-  { id: "v200-yearsel-quote-uncut", area: "flowUnreadSaved", what: "the quote is not cut at 40 characters: an entry of 120 \"A\" is quoted whole, to 82 characters",
-    find: "    return t.length>40? t.slice(0,40).join('')+'\\u2026' : t.join(''); };",
-    repl: "    return t.join(''); };" },
-  { id: "v200-yearsel-falsy-all-years", area: "flowSavedYears", what: "a falsy saved selection reads as ALL YEARS again: \"\", 0 or false counts every year, $540M, while the notice says nothing is counted",
-    find: "  if(C.fys==null) return null;\n  const s=(Array.isArray(C.fys)? C.fys : [])",
-    repl: "  if(!C.fys) return null;\n  const s=(Array.isArray(C.fys)? C.fys : [])" },
-  { id: "v200-yearsel-falsy-unsaid", area: "flowUnreadSaved", what: "a falsy saved selection is not said: \"\", 0 or false counts no year with no reason given, on the panel, in the label and in the export",
-    find: "  if(v==null) return null;\n  if(!Array.isArray(v) || !v.length)",
-    repl: "  if(!v) return null;\n  if(!Array.isArray(v) || !v.length)" },
-  { id: "v200-yearsel-allyears-lit-unread", area: "flowHtml", what: "ALL YEARS is lit beside an entry the board cannot read when the years it can read are every year offered: [2025, 2027-2031, \"x\"] lights ALL YEARS under a notice saying \"this total counts FY25, FY27, ... only\"",
-    find: "!F.unavail.length && !F.unread,'ALL YEARS'",
-    repl: "!F.unavail.length,'ALL YEARS'" },
-  { id: "v200-yearsel-label-all-years-unread", area: "flowScopeLabel", what: "the scope label says \"all years\" beside an entry the board cannot read: [2025, 2027-2031, \"x\"] reads \"FY25, FY27–FY31 · all years\" on the panel and in the export's Scope line",
-    find: "!(un||[]).length && !ur)?",
-    repl: "!(un||[]).length)?" },
-  { id: "v200-yearsel-label-ur-unpassed", area: "flowCalc", what: "flowCalc does not tell the label what it cannot read: [2025, 2027-2031, \"x\"] reads \"· all years\" again",
-    find: "label:flowScopeLabel(YS,AS,UN,UR),",
-    repl: "label:flowScopeLabel(YS,AS,UN)," },
-  { id: "v200-yearsel-year-chips-unlit-unread", area: "flowHtml", what: "beside an entry the board cannot read, with every offered year read, no year button is lit: nothing on screen shows which years the total counts",
-    find: "(selY.length<yrs.length || F.unavail.length>0) || !!F.unread)",
-    repl: "(selY.length<yrs.length || F.unavail.length>0))" },
-  { id: "v200-yearsel-note-replaces-line", area: "exportFlow", what: "the export's U34 NOTE replaces the row under the Source line instead of being added: the other-sources line goes from the export when a saved entry cannot be read",
-    find: "  if(F.unread) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);",
-    repl: "  if(F.unread) sum.splice(3,1,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);" },
-  { id: "v200-yearsel-note-order", area: "exportFlow", what: "the export's NOTEs swap places: U34's NOTE comes first under the Scope line and U14's after it, unlike the panel, where U14's notice is first",
-    find: "  if(F.unread) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);\n  // v2.00 (U14): a saved year the board cannot answer for now, in the panel's words, first under the Scope line\n  if(F.unavail.length) sum.splice(3,0,['NOTE: '+flowUnavailText(F, y=>'FY'+y)],[]);",
-    repl: "  if(F.unavail.length) sum.splice(3,0,['NOTE: '+flowUnavailText(F, y=>'FY'+y)],[]);\n  // v2.00 (U14): a saved year the board cannot answer for now, in the panel's words, first under the Scope line\n  if(F.unread) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);" },
-  { id: "v200-yearsel-label-unsaid-beside-u14", area: "flowCalc", what: "the scope label says only U14's part when a saved year it cannot answer for sits beside an entry it cannot read: [2040, \"x\"] reads \"saved FY40 not available\" and nothing of \"x\"",
-    find: "  if(UR) F.label+=' \\u00b7 '+(UR.whole?",
-    repl: "  if(UR && !UN.length) F.label+=' \\u00b7 '+(UR.whole?" },
-  { id: "v200-yearsel-panel-unsaid-beside-u14", area: "flowHtml", what: "the panel shows only U14's notice when a saved year it cannot answer for sits beside an entry it cannot read: [2040, \"x\"] says nothing of \"x\" on screen",
-    find: "    +(F.unread? '<div class=\"flowunread\"",
-    repl: "    +(F.unread && !F.unavail.length? '<div class=\"flowunread\"" },
-  { id: "v200-yearsel-year-range", area: "flowYearOk", what: "a year must lie in 2000-2099: a saved [1999] on a board holding FY1999 rows -- a year the board offers and writes -- is said as an entry it cannot read, and its $7M is not counted",
-    find: "function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y); }",
-    repl: "function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y) && y>=2000 && y<=2099; }" },
-  { id: "v200-yearsel-plural-label", area: "flowCalc", what: "the scope label's plural is \"5000 saved entries not a year\" again",
-    find: "(UR.n===1?'entry not a year':'entries not years')",
-    repl: "(UR.n===1?'entry not a year':'entries not a year')" },
+  // v200-yearsel-quote-xml-unsafe: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (the quote carries U+FFFE / U+FFFF as they are: a saved [\"\\uffff\", 2027] puts a character XML 1.0 forbids in)
+  // v200-yearsel-quote-splits-char: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (the quote is cut by UTF-16 units: an entry of 45 emoji is cut inside the 20th -- half a character on the panel)
+  // v200-yearsel-quote-uncut: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (the quote is not cut at 40 characters: an entry of 120 \"A\" is quoted whole, to 82 characters)
+  // v200-yearsel-falsy-all-years: retired as obsolete in v2.19 -- flowSavedYears went with item 150 (a falsy saved selection reads as ALL YEARS again: \"\", 0 or false counts every year, $540M, while the notice )
+  // v200-yearsel-falsy-unsaid: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (a falsy saved selection is not said: \"\", 0 or false counts no year with no reason given, on the panel, in th)
+  // v200-yearsel-allyears-lit-unread: retired as obsolete in v2.19 -- flowHtml went with item 150 (ALL YEARS is lit beside an entry the board cannot read when the years it can read are every year offered: [202)
+  // v200-yearsel-label-all-years-unread: retired as obsolete in v2.19 -- flowScopeLabel went with item 150 (the scope label says \"all years\" beside an entry the board cannot read: [2025, 2027-2031, \"x\"] reads \"FY2)
+  // v200-yearsel-label-ur-unpassed: retired as obsolete in v2.19 -- flowCalc went with item 150 (flowCalc does not tell the label what it cannot read: [2025, 2027-2031, \"x\"] reads \"· all years\" again)
+  // v200-yearsel-year-chips-unlit-unread: retired as obsolete in v2.19 -- flowHtml went with item 150 (beside an entry the board cannot read, with every offered year read, no year button is lit: nothing on screen )
+  // v200-yearsel-note-replaces-line: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export's U34 NOTE replaces the row under the Source line instead of being added: the other-sources line go)
+  // v200-yearsel-note-order: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export's NOTEs swap places: U34's NOTE comes first under the Scope line and U14's after it, unlike the pan)
+  // v200-yearsel-label-unsaid-beside-u14: retired as obsolete in v2.19 -- flowCalc went with item 150 (the scope label says only U14's part when a saved year it cannot answer for sits beside an entry it cannot rea)
+  // v200-yearsel-panel-unsaid-beside-u14: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel shows only U14's notice when a saved year it cannot answer for sits beside an entry it cannot read: )
+  // v200-yearsel-year-range: retired as obsolete in v2.19 -- flowYearOk went with item 150 (a year must lie in 2000-2099: a saved [1999] on a board holding FY1999 rows -- a year the board offers and wri)
+  // v200-yearsel-plural-label: retired as obsolete in v2.19 -- flowCalc went with item 150 (the scope label's plural is \"5000 saved entries not a year\" again)
   // v2.00 (U34, the verifiers' second round, 13 Oct): every forbidden character of a quote is escaped; the cut's edge (40 whole,
   // 41 cut); partner and FMS money counted for the years read only; -2027 is a year as the board reads it.
-  { id: "v200-yearsel-quote-escape-first-only", area: "flowUnreadSaved", what: "only the first U+FFFE / U+FFFF of a quote is escaped: a saved [\"\\uffff\\ufffe\", 2027] puts the second raw into the export's sheet, which is then not a well-formed workbook",
-    find: ".replace(/[\\uFFFE\\uFFFF]/g, c=>",
-    repl: ".replace(/[\\uFFFE\\uFFFF]/, c=>" },
-  { id: "v200-yearsel-quote-cut-at-40-or-more", area: "flowUnreadSaved", what: "a quote of exactly 40 characters is given a \"…\" though nothing follows",
-    find: "    return t.length>40? t.slice(0,40)",
-    repl: "    return t.length>=40? t.slice(0,40)" },
-  { id: "v200-yearsel-quote-cut-above-41", area: "flowUnreadSaved", what: "a quote of 41 characters is shown whole, not cut at 40",
-    find: "    return t.length>40? t.slice(0,40)",
-    repl: "    return t.length>41? t.slice(0,40)" },
-  { id: "v200-yearsel-year-four-digits", area: "flowYearOk", what: "a year must have four digits: a saved [-2027] is said as an entry the board cannot read, not as U14's year it cannot answer for",
-    find: "function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y); }",
-    repl: "function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y) && y>=1000 && y<=9999; }" },
-  { id: "v200-yearsel-year-positive", area: "flowYearOk", what: "a year must be above zero: a saved [-2027] is said as an entry the board cannot read, not as U14's year it cannot answer for",
-    find: "function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y); }",
-    repl: "function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y) && y>0; }" },
-  { id: "v200-yearsel-other-sources-all-years", area: "flowCalc", what: "partner and FMS money is counted for every year when the saved selection cannot be read: \"2026\" says no year counted and exports $5M of total funding",
-    find: "  YS.forEach(y=>{ const O=C.other[y]||{}; F.ip+=+O.ip||0; F.fms+=+O.fms||0; });",
-    repl: "  (UR? flowYears() : YS).forEach(y=>{ const O=C.other[y]||{}; F.ip+=+O.ip||0; F.fms+=+O.fms||0; });" },
+  // v200-yearsel-quote-escape-first-only: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (only the first U+FFFE / U+FFFF of a quote is escaped: a saved [\"\\uffff\\ufffe\", 2027] puts the second raw i)
+  // v200-yearsel-quote-cut-at-40-or-more: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (a quote of exactly 40 characters is given a \"…\" though nothing follows)
+  // v200-yearsel-quote-cut-above-41: retired as obsolete in v2.19 -- flowUnreadSaved went with item 150 (a quote of 41 characters is shown whole, not cut at 40)
+  // v200-yearsel-year-four-digits: retired as obsolete in v2.19 -- flowYearOk went with item 150 (a year must have four digits: a saved [-2027] is said as an entry the board cannot read, not as U14's year it )
+  // v200-yearsel-year-positive: retired as obsolete in v2.19 -- flowYearOk went with item 150 (a year must be above zero: a saved [-2027] is said as an entry the board cannot read, not as U14's year it can)
+  // v200-yearsel-other-sources-all-years: retired as obsolete in v2.19 -- flowCalc went with item 150 (partner and FMS money is counted for every year when the saved selection cannot be read: \"2026\" says no year)
   // v2.00 (U36): a typed RCN / EEIC title over 80 characters was cut to 80 without a word, splitting an emoji; it is refused.
   { id: "v200-regtext-title-no-limit", area: "rcnSet", what: "a title over 80 characters is kept whole and nothing is said: 81 letters typed replace \"base\", and the RCN-EEIC sheet prints them",
     find: "    if(n>80){ codeRefusedIn(el, 'RCN / EEIC title not changed',",
@@ -4610,9 +4205,7 @@ const MUTATIONS = [
     repl: "  MS=cycCopy(c); MS.cur=y; MS.base=_cycStash.MS.base;" },
   // v2.00 (U10, the round-1 money review of 13 Oct): the doors that write a list every appropriation shares are refused before anything
   // is kept while a locked cycle is on screen.
-  { id: "v200-u10-ace-import-in-view", area: "importAce", what: "a cost estimate imported while PB27 is on screen is read and stored, the approved 2027ACE replaced after \"should not change. Replace it?\", and the ACE tie-out and FYDP Spend Plan read $4,321,000 in the view and on the working plan, while the board says \"Not kept\"",
-    find: "  if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }\n",
-    repl: "" },
+  // v200-u10-ace-import-in-view: retired as obsolete in v2.19 -- importAce went with item 150 (a cost estimate imported while PB27 is on screen is read and stored, the approved 2027ACE replaced after \"sho)
   { id: "v200-u10-bae-import-in-view", area: "importBud", what: "a BAE list imported while PB27 is on screen is stored, and the Spend Plan Source names its ANG budget on A's and R's ANG lines in the view and on the working plan, while the board says \"Not kept\"",
     find: "  if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }\n",
     repl: "" },
@@ -4636,30 +4229,14 @@ const MUTATIONS = [
     repl: "" },
   // v2.00 (U10, the round-2 test review of 13 Oct): the Spend Plan's choices are refused up front in a locked view, and a refusal puts
   // back the PPBE positions with the rest of the copy.
-  { id: "v200-u10-sp-choice-in-view", area: "spRefused", what: "the Spend Plan's choices are set and then saved in PB27's view, as before: the board says the change was not kept, the Spend Plan shows 2026ACE by Service, and the ACE tie-out from the view and from the working plan after leaving ties out 2026ACE ($333 for $900)",
-    find: "function spRefused(){ if(!cycBlock('Changing the spend plan')) return false; render(); return true; }",
-    repl: "function spRefused(){ return false; }" },
-  { id: "v200-u10-sp-ace-in-view", area: "setSpAce", what: "the Spend Plan's Cost data, chosen in PB27's view, is kept on the page while the board says it was not: the ACE tie-out from the view and from the working plan after leaving ties out 2026ACE ($333 for $900)",
-    find: "function setSpAce(v){ if(spRefused()) return; ",
-    repl: "function setSpAce(v){ " },
-  { id: "v200-u10-sp-by-in-view", area: "setSpBy", what: "By Service, pressed in PB27's view, is kept on the page while the board says it was not, and the working plan's Spend Plan is by service after leaving",
-    find: "function setSpBy(v){ if(spRefused()) return; ",
-    repl: "function setSpBy(v){ " },
-  { id: "v200-u10-sp-pmo-in-view", area: "setSpPmo", what: "the Spend Plan's PMO filter, set in PB27's view, is kept on the page while the board says it was not",
-    find: "function setSpPmo(v){ if(spRefused()) return; ",
-    repl: "function setSpPmo(v){ " },
-  { id: "v200-u10-sp-svc-in-view", area: "setSpSvc", what: "the Spend Plan's service filter, set in PB27's view, is kept on the page while the board says it was not",
-    find: "function setSpSvc(v){ if(spRefused()) return; ",
-    repl: "function setSpSvc(v){ " },
-  { id: "v200-u10-sp-prior-in-view", area: "setSpPrior", what: "◀ prior 2 FY, pressed in PB27's view, is kept on the page while the board says it was not",
-    find: "function setSpPrior(v){ if(spRefused()) return; ",
-    repl: "function setSpPrior(v){ " },
-  { id: "v200-u10-sp-drill-in-view", area: "setSpDrillSvc", what: "the PMO drill's service, set in PB27's view, is kept on the page while the board says it was not",
-    find: "function setSpDrillSvc(v){ if(spRefused()) return; ",
-    repl: "function setSpDrillSvc(v){ " },
-  { id: "v200-u10-sp-no-redraw", area: "spRefused", what: "a Spend Plan choice refused in PB27's view leaves the chosen estimate in its select on screen, as if it were kept",
-    find: "if(!cycBlock('Changing the spend plan')) return false; render(); return true; }",
-    repl: "if(!cycBlock('Changing the spend plan')) return false; return true; }" },
+  // v200-u10-sp-choice-in-view: retired as obsolete in v2.19 -- spRefused went with item 150 (the Spend Plan's choices are set and then saved in PB27's view, as before: the board says the change was not k)
+  // v200-u10-sp-ace-in-view: retired as obsolete in v2.19 -- setSpAce went with item 150 (the Spend Plan's Cost data, chosen in PB27's view, is kept on the page while the board says it was not: the AC)
+  // v200-u10-sp-by-in-view: retired as obsolete in v2.19 -- setSpBy went with item 150 (By Service, pressed in PB27's view, is kept on the page while the board says it was not, and the working plan')
+  // v200-u10-sp-pmo-in-view: retired as obsolete in v2.19 -- setSpPmo went with item 150 (the Spend Plan's PMO filter, set in PB27's view, is kept on the page while the board says it was not)
+  // v200-u10-sp-svc-in-view: retired as obsolete in v2.19 -- setSpSvc went with item 150 (the Spend Plan's service filter, set in PB27's view, is kept on the page while the board says it was not)
+  // v200-u10-sp-prior-in-view: retired as obsolete in v2.19 -- setSpPrior went with item 150 (◀ prior 2 FY, pressed in PB27's view, is kept on the page while the board says it was not)
+  // v200-u10-sp-drill-in-view: retired as obsolete in v2.19 -- setSpDrillSvc went with item 150 (the PMO drill's service, set in PB27's view, is kept on the page while the board says it was not)
+  // v200-u10-sp-no-redraw: retired as obsolete in v2.19 -- spRefused went with item 150 (a Spend Plan choice refused in PB27's view leaves the chosen estimate in its select on screen, as if it were k)
   { id: "v200-u10-reapply-keeps-ppbe", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's PPBE positions: USAF's FY27 position typed as $5,000 in PB27's view is printed by the FYDP Spend Plan taken from the view, for the $1,000 logged",
     find: "  MS=cycCopy(c); MS.cur=y;",
     repl: "  const P0=MS.ppbe; MS=cycCopy(c); MS.cur=y; MS.ppbe=P0;" },
@@ -4674,9 +4251,7 @@ const MUTATIONS = [
   { id: "v200-u10-state-import-race", area: "importState", what: "a returned package whose import started on the working plan is merged into browser storage once its file is read, though PB27 was put on screen meanwhile",
     find: "  r.onload=()=>{\n    if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }\n",
     repl: "  r.onload=()=>{\n" },
-  { id: "v200-u10-ace-import-race", area: "importAce", what: "a cost estimate whose import started on the working plan replaces the approved 2027ACE once its file is read, though PB27 was put on screen meanwhile ($4,321,000 for $900 in the ACE tie-out)",
-    find: "    if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }   // v2.00 (U10): as importBud\n",
-    repl: "" },
+  // v200-u10-ace-import-race: retired as obsolete in v2.19 -- importAce went with item 150 (a cost estimate whose import started on the working plan replaces the approved 2027ACE once its file is read, )
   { id: "v200-u10-bud-import-race", area: "importBud", what: "a BAE list whose import started on the working plan is stored once its file is read, though PB27 was put on screen meanwhile",
     find: "    if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }   // v2.00 (U10): and again once it is read -- a view put on screen meanwhile\n",
     repl: "" },
@@ -5294,9 +4869,7 @@ const MUTATIONS = [
     find: "  if(!confirm('Put back the work this browser kept aside on '",
     repl: "  if(keepScreen && !nowUnsaved){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify({t:Date.now(), why:'swap', by:whoIs()||'', ts:+MS.ts||0, base:baseGet(), saved:true})+'\\n'+JSON.stringify(MS)); }catch(e){} }\n  if(!confirm('Put back the work this browser kept aside on '" },
   // v2.00 (U61): an RCN / EEIC pointer of "__proto__" is a key like any other where a funding line's services are grouped.
-  { id: "v200-uproto-plain-grp", area: "aceAlignRows", what: "a funding line's Air Force services are grouped by their RCN / EEIC pointer in a plain object again: with USAF and ANG both on \"__proto__\" the pointer sets the object's prototype, and R1 asking 900 / 200 / 0 is two lines of [0, 200, 0] in the alignment lines and $200 twice in the ACE tie-out's Alignment Breakout -- USAF's $900 on no line, ANG's $200 on two (a prime's CLIN asking 400 / 300 / 0 the same: $300 twice)",
-    find: "    const grp=Object.create(null), ord=[];\n",
-    repl: "    const grp={}, ord=[];\n" },
+  // v200-uproto-plain-grp: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (a funding line's Air Force services are grouped by their RCN / EEIC pointer in a plain object again: with USAF)
   // v2.00 (U37): no export writes a character XML 1.0 forbids -- refused before a byte, the place named, every caller stopped.
   { id: "v200-u37-xlsx-unchecked", area: "buildXlsx", what: "the workbook writer no longer asks before it builds: a cell, a sheet name or a literal _xHHHH_ goes into the file as it is",
     find: "  if(_xlsxRefused(sheets)) return null;\n",
@@ -5327,12 +4900,8 @@ const MUTATIONS = [
     find: "  setStat('⚠ <b>'+what+' not exported</b> — '+esc(said)+'. No file was made; the text on the board is unchanged.');\n",
     repl: "" },
   // v200-u37-wrong-slide RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
-  { id: "v200-u37-ids-org-kept", area: "exportIdsReq", what: "the refused IDS export keeps the ORG typed into it, as if the file had been made",
-    find: "  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }\n  // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists\n  if(!MS.ids) MS.ids={};\n  if(MS.ids.org!==org){ MS.ids.org=org; save(); }\n",
-    repl: "  // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists\n  if(!MS.ids) MS.ids={};\n  if(MS.ids.org!==org){ MS.ids.org=org; save(); }\n  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }\n" },
-  { id: "v200-u37-ids-stale-note", area: "exportIdsReq", what: "the refused IDS export leaves the open box giving an earlier prompt problem (no reason given) as the reason it was not made",
-    find: "  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }\n",
-    repl: "  if(!bytes) return false;\n" },
+  // v200-u37-ids-org-kept: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (the refused IDS export keeps the ORG typed into it, as if the file had been made)
+  // v200-u37-ids-stale-note: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (the refused IDS export leaves the open box giving an earlier prompt problem (no reason given) as the reason it)
   { id: "v200-u37-name-past-31", area: "_xlsxRefused", what: "a sheet name is checked whole, not as written: a character past the 31 letters written refuses a workbook whose written name does not hold it",
     find: "    const nm=String(sheets[i].name).slice(0,31), rows=sheets[i].rows||[];",
     repl: "    const nm=String(sheets[i].name), rows=sheets[i].rows||[];" },
@@ -5342,12 +4911,8 @@ const MUTATIONS = [
   { id: "v200-u37-advice-board-only", area: "_xmlRefuse", what: "the refusal sends the person to change the text on the board, though text imported from a file has no editor there",
     find: "    +'Change that text where it was entered — on the board, or in the file it was imported from — and export '\n    +'again. A locked",
     repl: "    +'Change that text on the board and export '\n    +'again. A locked" },
-  { id: "v200-u37-png-unchecked", area: "flowPng", what: "the funds-flow chart image is not checked: its drawing, holding U+000B, goes into a Blob, and a browser says only \"Could not render the chart to an image\"",
-    find: "  const bad=XML_BADCH.exec(src);\n",
-    repl: "  const bad=null;\n" },
-  { id: "v200-u37-png-markup", area: "flowPng", what: "the chart image refusal names a label read aloud (\"Other Government Costs (OGCs) — Ctl[U+000B] — list its plan events\"), not the drawn text \"Ctl[U+000B]\"",
-    find: "    let t=(all.find(e=>!e.childElementCount && XML_BADCH.test(e.textContent))||{}).textContent||'';",
-    repl: "    let t='';" },
+  // v200-u37-png-unchecked: retired as obsolete in v2.19 -- flowPng went with item 150 (the funds-flow chart image is not checked: its drawing, holding U+000B, goes into a Blob, and a browser says o)
+  // v200-u37-png-markup: retired as obsolete in v2.19 -- flowPng went with item 150 (the chart image refusal names a label read aloud (\"Other Government Costs (OGCs) — Ctl[U+000B] — list its pla)
   { id: "v200-u37-guard-exportrlgplan", area: "exportRlgPlan", what: "the refused writer’s null is not checked: exportRlgPlan goes on to a Blob, a download and its own word after the refusal",
     find: "rows:out}], null, xlsxHouse('Funding Plan'));\n  if(!wb) return;\n  const a=document.createElement('a');\n",
     repl: "rows:out}], null, xlsxHouse('Funding Plan'));\n  const a=document.createElement('a');\n" },
@@ -5357,12 +4922,8 @@ const MUTATIONS = [
   { id: "v200-u37-guard-crexport", area: "crExport", what: "the refused writer’s null is not checked: crExport goes on to a Blob, a download and its own word after the refusal",
     find: "freeze:6, rows:out}], SRC_XTRA);\n  if(!bytes) return;\n",
     repl: "freeze:6, rows:out}], SRC_XTRA);\n" },
-  { id: "v200-u37-guard-exportidsreq", area: "exportIdsReq", what: "the refused writer’s null is not checked: exportIdsReq goes on to a Blob, a download and its own word after the refusal",
-    find: "  // box as the reason\n  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }\n",
-    repl: "  // box as the reason\n" },
-  { id: "v200-u37-guard-exportflow", area: "exportFlow", what: "the refused writer’s null is not checked: exportFlow goes on to a Blob, a download and its own word after the refusal",
-    find: "  const bytes=buildXlsx(sheets, null, xlsxHouse('Funds Flow'));\n  if(!bytes) return;\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Funds Flow - '",
-    repl: "  const bytes=buildXlsx(sheets, null, xlsxHouse('Funds Flow'));\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Funds Flow - '" },
+  // v200-u37-guard-exportidsreq: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (the refused writer’s null is not checked: exportIdsReq goes on to a Blob, a download and its own word after th)
+  // v200-u37-guard-exportflow: retired as obsolete in v2.19 -- exportFlow went with item 150 (the refused writer’s null is not checked: exportFlow goes on to a Blob, a download and its own word after the )
   { id: "v200-u37-guard-exportexview", area: "exportExView", what: "the refused writer’s null is not checked: exportExView goes on to a Blob, a download and its own word after the refusal",
     find: "  const bytes=buildXlsx(sheets, null, xlsxHouse('Active Year Execution'));\n  if(!bytes) return;\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Active Year Execution - '",
     repl: "  const bytes=buildXlsx(sheets, null, xlsxHouse('Active Year Execution'));\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Active Year Execution - '" },
@@ -5386,15 +4947,11 @@ const MUTATIONS = [
   { id: "v200-u37-guard-exportcsv", area: "exportCSV", what: "the refused writer’s null is not checked: exportCSV goes on to a Blob, a download and its own word after the refusal",
     find: "  const bytes=buildXlsx(sheets, extra, xlsxHouse('Priority Drill'));\n  if(!bytes) return;\n",
     repl: "  const bytes=buildXlsx(sheets, extra, xlsxHouse('Priority Drill'));\n" },
-  { id: "v200-u37-guard-exportacetieout", area: "exportAceTieout", what: "the refused writer’s null is not checked: exportAceTieout goes on to a Blob, a download and its own word after the refusal",
-    find: "  const bytes=buildXlsx(sheets, null, xlsxHouse('ACE Tie-Out'));\n  if(!bytes) return;\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName(document.title.replace(/FY\\d\\d/,FYL())+' \\u2014 ACE Tie-Out '",
-    repl: "  const bytes=buildXlsx(sheets, null, xlsxHouse('ACE Tie-Out'));\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName(document.title.replace(/FY\\d\\d/,FYL())+' \\u2014 ACE Tie-Out '" },
+  // v200-u37-guard-exportacetieout: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the refused writer’s null is not checked: exportAceTieout goes on to a Blob, a download and its own word after)
   { id: "v200-u37-guard-exportexcel", area: "exportExcel", what: "the refused writer’s null is not checked: exportExcel goes on to a Blob, a download and its own word after the refusal",
     find: "  const bytes=buildXlsx(sheets, XTRA, xlsxHouse('Prioritization Board'));\n  if(!bytes) return;\n",
     repl: "  const bytes=buildXlsx(sheets, XTRA, xlsxHouse('Prioritization Board'));\n" },
-  { id: "v200-u37-guard-exportcoa", area: "exportCoa", what: "the refused writer’s null is not checked: exportCoa goes on to a Blob, a download and its own word after the refusal",
-    find: "  const bytes=buildXlsx([s1,s2,s3], null, xlsxHouse('Chart of Accounts'));\n  if(!bytes) return;\n",
-    repl: "  const bytes=buildXlsx([s1,s2,s3], null, xlsxHouse('Chart of Accounts'));\n" },
+  // v200-u37-guard-exportcoa: retired as obsolete in v2.19 -- coaExportNow went with item 150 (the refused writer’s null is not checked: exportCoa goes on to a Blob, a download and its own word after the r)
   // v200-u37-guard-exportppt RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   // v2.00 (U37, review round 1): the checks the review added -- a styled cell, the 31st letter of a sheet name, the words.
   { id: "v200-u37-styled-unchecked", area: "_xlsxRefused", what: "a styled cell ({v, s}) is not checked: an RCN / EEIC title holding U+0001 goes raw into RCN-EEIC by Month",
@@ -5558,9 +5115,7 @@ const MUTATIONS = [
   // v2.00 (U37, review round 7, tests review): the deck and the chart image refuse U+FFFF as the workbook does; a cell past
   // column Z is named by its letters; the C1 controls, which XML 1.0 allows, are written.
   // v200-u37-deck-c0-only RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
-  { id: "v200-u37-png-c0-only", area: "flowPng", what: "the chart image checks the C0 controls only: a destination named Ctl<U+FFFF> goes into the drawing's Blob, and a browser says only \"Could not render\"",
-    find: "  const bad=XML_BADCH.exec(src);",
-    repl: "  const bad=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/.exec(src);" },
+  // v200-u37-png-c0-only: retired as obsolete in v2.19 -- flowPng went with item 150 (the chart image checks the C0 controls only: a destination named Ctl<U+FFFF> goes into the drawing's Blob, and)
   { id: "v200-u37-col-a-to-z", area: "_xlsxRefused", what: "the cell's column is spelled from one letter, A to Z: an RCN code holding U+000B, at O&M Raw Data AB2, is named by a character that is no column",
     find: "'sheet “'+nm+'”, cell '+_colL(c)+(r+1)+' holds '",
     repl: "'sheet “'+nm+'”, cell '+String.fromCharCode(65+c)+(r+1)+' holds '" },
@@ -5568,27 +5123,13 @@ const MUTATIONS = [
     find: "const XML_BADCH=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\uFFFE\\uFFFF]/;",
     repl: "const XML_BADCH=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFFFE\\uFFFF]/;" },
   // v2.00 (U44, the lead's dry run 13 Oct; fix round the same night; as merged onto CYCREG): a destination list that repeats a key, or holds "unassigned" / "destsplit", printed the funds flow's money twice; each destination is now one row, found where the board shows it; a file handed over with such a list is refused, the team's copies are read, and the user's own board is put right as it comes across (or, already holding one, says so and puts it right in one step); where a destination is picked each key is offered once, and the destinations panel marks a repeat and removes it alone.
-  { id: "v200-u44-cats-every-entry", area: "flowAxisCats", what: "the funds flow takes every entry of the list as a destination: a list holding dA twice prints Alpha Depot 1,100 twice beside an OGC total of 1,400, and OGC Detail sums 2,500 (the dry run's)",
-    find: ".filter(function(c,i){ return L.findIndex(function(x){ return x.k===c.to; })===i; })",
-    repl: ".filter(function(c,i){ return true; })" },
-  { id: "v200-u44-cats-last-name", area: "flowAxisCats", what: "a repeated key is one row under its LAST entry's name: R1, which the board shows on Alpha Depot, prints under Bravo Yard",
-    find: ".filter(function(c,i){ return L.findIndex(function(x){ return x.k===c.to; })===i; })",
-    repl: ".filter(function(c,i){ return L.map(function(x){ return x.k; }).lastIndexOf(c.to)===i; })" },
-  { id: "v200-u44-cats-by-key", area: "flowAxisCats", what: "a category is named by its entry's key again: the entry keyed \"unassigned\" is the Not yet assigned row itself, printed twice at 1,400 with Depot U's name lost (the dry run's)",
-    find: "  return L.map(function(e,i){ return {k:'e'+i, to:e.k, n:e.n, kind:e.kind, cat:'', ttl:''}; })",
-    repl: "  return L.map(function(e,i){ return {k:e.k, to:e.k, n:e.n, kind:e.kind, cat:'', ttl:''}; })" },
-  { id: "v200-u44-cat-by-text", area: "flowDestCat", what: "a requirement finds its destination by the key's text: R1 on \"1\", beside the number 1 and \"1\", prints under Depot One, which the board does not show R1 on",
-    find: "const c=ks.length? CATS.filter(function(x){ return x.to===ks[0]; })[0] : null;",
-    repl: "const c=ks.length? CATS.filter(function(x){ return String(x.to)===String(ks[0]); })[0] : null;" },
-  { id: "v200-u44-split-by-key", area: "flowDestCat", what: "one requirement on the destination keyed \"destsplit\" is counted on the split row: Depot S prints 0 and \"Split between destinations\" 1,100",
-    find: "  if(ks.length>1) return CATS[CATS.length-2];",
-    repl: "  if(ks.length>1 || ks[0]===DEST_SPLIT) return CATS[CATS.length-2];" },
-  { id: "v200-u44-resolve-as-text", area: "flowDestResolve", what: "a pointer comes back as text: R1 on the number 1 prints under Not yet assigned, though the board shows it on Depot One",
-    find: "    if(k && !seen[typeof k+' '+k]){ seen[typeof k+' '+k]=1; ks.push(k); }",
-    repl: "    if(k && !seen[String(k)]){ seen[String(k)]=1; ks.push(String(k)); }" },
-  { id: "v200-u44-titles-split-by-key", area: "flowHtml", what: "the panel says the title of one requirement on Depot S, keyed \"destsplit\", is one whose requirements point different ways",
-    find: "          if(r.length>1) split++; else if(!r.length) none++;",
-    repl: "          if(r.length>1 || r[0]===DEST_SPLIT) split++; else if(!r.length) none++;" },
+  // v200-u44-cats-every-entry: retired as obsolete in v2.19 -- flowAxisCats went with item 150 (the funds flow takes every entry of the list as a destination: a list holding dA twice prints Alpha Depot 1,10)
+  // v200-u44-cats-last-name: retired as obsolete in v2.19 -- flowAxisCats went with item 150 (a repeated key is one row under its LAST entry's name: R1, which the board shows on Alpha Depot, prints under )
+  // v200-u44-cats-by-key: retired as obsolete in v2.19 -- flowAxisCats went with item 150 (a category is named by its entry's key again: the entry keyed \"unassigned\" is the Not yet assigned row itsel)
+  // v200-u44-cat-by-text: retired as obsolete in v2.19 -- flowDestCat went with item 150 (a requirement finds its destination by the key's text: R1 on \"1\", beside the number 1 and \"1\", prints unde)
+  // v200-u44-split-by-key: retired as obsolete in v2.19 -- flowDestCat went with item 150 (one requirement on the destination keyed \"destsplit\" is counted on the split row: Depot S prints 0 and \"Spl)
+  // v200-u44-resolve-as-text: retired as obsolete in v2.19 -- flowDestResolve went with item 150 (a pointer comes back as text: R1 on the number 1 prints under Not yet assigned, though the board shows it on D)
+  // v200-u44-titles-split-by-key: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel says the title of one requirement on Depot S, keyed \"destsplit\", is one whose requirements point d)
   { id: "v200-u44-door-open", area: "inShapeWhy", what: "the door lets every destination list through: a file handed over holding dA twice, \"unassigned\", \"destsplit\", a key that is not text or an entry that is not one is taken by Import one appropriation",
     find: "    if(r) return (r.entry? IN_DEST_ENTRY+path+'.'+bag+'['+r.i+'] ' : IN_DEST_LIST+path+'.'+bag+' ')+r.what+'; '+r.why; }",
     repl: "    }" },
@@ -5631,9 +5172,7 @@ const MUTATIONS = [
   { id: "v200-u44-copies-strict", area: "inboundCheckOwn", what: "the team's own copies -- the shared folder's and the sidecar, through fetch or XMLHttpRequest -- go through the door as files handed over for their destination lists: a copy whose list an earlier ORBIT saved with dA twice cannot be read (the merge of U44's leave into CYCREG's inboundCheckOwn)",
     find: "_inRcnNext=own; _inDestNext=own; return inboundCheck(txt); }",
     repl: "_inRcnNext=own; return inboundCheck(txt); }" },
-  { id: "v200-u44-tab-by-place", area: "exportFlow", what: "a destination with no name gets a tab named by its place on the list (e8), not by its key (dZ) as before",
-    find: "tabName(c.n,c.to||c.k)",
-    repl: "tabName(c.n,c.k)" },
+  // v200-u44-tab-by-place: retired as obsolete in v2.19 -- exportFlow went with item 150 (a destination with no name gets a tab named by its place on the list (e8), not by its key (dZ) as before)
   { id: "v200-u44-picks-every-entry", area: "flowEntsAZ", what: "a destination is picked from every entry of the list: R1's Goes to offers dA as Alpha Depot and as Bravo Yard and shows Bravo Yard, though the board reads R1 as on Alpha Depot",
     find: "return all || L.findIndex(function(x){ return x.k===e.k; })===i; })",
     repl: "return true; })" },
@@ -5652,12 +5191,8 @@ const MUTATIONS = [
   { id: "v200-u44-fold-last-wins", area: "destFold", what: "a list holding \"unassigned\" twice (Depot U, then Depot V) read from the shared folder re-points R1, which the sending board shows on Depot U, to Depot V: the teammate's Funds Flow workbook prints its 1,100 under Depot V (verify-tests r1, M1)",
     find: "    if(once[typeof e.k+' '+e.k]) return; once[typeof e.k+' '+e.k]=1;\n",
     repl: "" },
-  { id: "v200-u44-cats-by-name", area: "flowAxisCats", what: "flowAxisCats keeps one category per NAME, not per key: dA as Alpha Depot then Bravo Yard prints a Bravo Yard row (0) and a Bravo Yard tab beside Alpha Depot 1,100 (verify-tests r1)",
-    find: ".filter(function(c,i){ return L.findIndex(function(x){ return x.k===c.to; })===i; })",
-    repl: ".filter(function(c,i){ return L.findIndex(function(x){ return x.n===c.n; })===i; })" },
-  { id: "v200-u44-resolve-untyped", area: "flowDestResolve", what: "flowDestResolve counts 1 and \"1\" as one destination: two requirements of one title on Depot One (1) and Depot Text (\"1\") print 1,500 under one of them, not on the split row (verify-tests r1)",
-    find: "    if(k && !seen[typeof k+' '+k]){ seen[typeof k+' '+k]=1; ks.push(k); }",
-    repl: "    if(k && !seen[k]){ seen[k]=1; ks.push(k); }" },
+  // v200-u44-cats-by-name: retired as obsolete in v2.19 -- flowAxisCats went with item 150 (flowAxisCats keeps one category per NAME, not per key: dA as Alpha Depot then Bravo Yard prints a Bravo Yard r)
+  // v200-u44-resolve-untyped: retired as obsolete in v2.19 -- flowDestResolve went with item 150 (flowDestResolve counts 1 and \"1\" as one destination: two requirements of one title on Depot One (1) and Depo)
   { id: "v200-u44-del-repeat-by-name", area: "flowDelEnt", what: "✕ tells a repeat by its NAME: on the dry run's list (dA twice, Alpha Depot both) ✕ on the second is not taken as the repeat it is (verify-tests r1)",
     find: "  if(rep && rep!==e){",
     repl: "  if(rep && rep.n!==e.n){" },
@@ -5803,9 +5338,7 @@ const MUTATIONS = [
   { id: "v200-u44-copy-number-only", area: "inShapeWhy", what: "the team's copy is refused only for a key that is a number: a copy holding the value true beside the text \"true\" is read, and R1, on \"true\" (Depot Text), comes across on Depot T",
     find: "return !x.entry && typeof o[bag][x.i].k!=='string'; })[0];",
     repl: "return !x.entry && typeof o[bag][x.i].k==='number'; })[0];" },
-  { id: "v200-u44-resolve-no-dedupe", area: "flowDestResolve", what: "flowDestResolve keeps every requirement's destination, not each once: R1 and R3, sharing a title and both on Alpha Depot, print their 1,500 on the split row",
-    find: "if(k && !seen[typeof k+' '+k]){ seen[typeof k+' '+k]=1; ks.push(k); }",
-    repl: "if(k){ ks.push(k); }" },
+  // v200-u44-resolve-no-dedupe: retired as obsolete in v2.19 -- flowDestResolve went with item 150 (flowDestResolve keeps every requirement's destination, not each once: R1 and R3, sharing a title and both on A)
   // v2.00 (U44, fix round 3, 18 Oct): a key the full import moves, followed where a copy it did not carry names it (verify-money r3, M1); the two ways a package goes back (S1)
   { id: "v200-u44-moved-unrecorded", area: "destOwnRight", what: "the full import moves \"unassigned\" but keeps no record of where it went: Full Fund, kept as this browser had it, opens with its R1 on a second \"Depot U\" made from its old name, where the board showed it on \"Depot U2\" (verify-money r3, M1)",
     find: "  if(DB) map.forEach(function(m){ if(m[1] || !destMovable(m[0])) return;",
@@ -5934,15 +5467,9 @@ const MUTATIONS = [
     find: "((n && DESTDB.gone.indexOf(x.k)<0) || (!n && destMovable(x.k)))? destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });",
     repl: "((n) || (!n && destMovable(x.k)))? destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });" },
   // v2.00 (U44, the money review 13 Oct, S1): a "what the money buys" category list that repeated a key printed that category's row twice; each key is one row, under its first category, and the ladder still places the money.
-  { id: "v200-u44-buys-rows-every-key", area: "flowCalc", what: "every category of the ladder is a row: a list holding soft twice prints Software 1,100 twice beside an OGC total of 1,400",
-    find: "keys:CATS.map(c=>c.k).filter((k,i,a)=>a.indexOf(k)===i)},",
-    repl: "keys:CATS.map(c=>c.k)}," },
-  { id: "v200-u44-buys-last-name", area: "flowCalc", what: "the LAST category with a key names its row: R1's 1,100 prints under \"Software again\"",
-    find: "    if(Object.prototype.hasOwnProperty.call(F.ext.by, c.k)) return;   // v2.00 (U44): the first category with the key names it\n",
-    repl: "" },
-  { id: "v200-u44-buys-tabs-every-cat", area: "exportFlow", what: "every category of the ladder gets a tab: \"Software again\" gets one, holding Software's lines a second time",
-    find: "  F.cats.filter((c,i)=>F.cats.findIndex(x=>x.k===c.k)===i).forEach(c=>sheets.push(",
-    repl: "  F.cats.forEach(c=>sheets.push(" },
+  // v200-u44-buys-rows-every-key: retired as obsolete in v2.19 -- flowCalc went with item 150 (every category of the ladder is a row: a list holding soft twice prints Software 1,100 twice beside an OGC tot)
+  // v200-u44-buys-last-name: retired as obsolete in v2.19 -- flowCalc went with item 150 (the LAST category with a key names its row: R1's 1,100 prints under \"Software again\")
+  // v200-u44-buys-tabs-every-cat: retired as obsolete in v2.19 -- exportFlow went with item 150 (every category of the ladder gets a tab: \"Software again\" gets one, holding Software's lines a second time)
   // v2.00 (U44, verify-tests r7, 19 Oct): a repeat's place at the edges fix round 6's checks did not reach -- a second removal,
   // a ✕ answered No, a board not put right that removed a repeat and loads a package
   { id: "v200-u44-del-place-naive", area: "flowDelEnt", what: "✕ on a repeat keeps it removed under its place on the list as it stands, not the place every board counts: a second removal (Charlie Yard after Bravo Yard) is kept under Bravo Yard's place again, the manager's Delta Yard takes Charlie Yard's key, and R2, on Delta Yard there, comes across on Charlie Yard, the workbook Charlie Yard 300 (verify-tests r7; QT6)",
@@ -6310,39 +5837,17 @@ const MUTATIONS = [
     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat(",
     repl: "  if(CYCVIEW){ setStat(" },
   // v2.00 (R1, Brad's decisions of 11 Oct): a mixed total is said by its money, with its amounts; stored rows apart from their effective year.
-  { id: "v200-r1-mixed-by-kind", area: "flowIsMixed", what: "a mix is decided by year kinds, not by the money in the total: $140M executed beside planned years holding $0 is said to be planned and executed money, on the panel and in the export",
-    find: "flowHasMoney(F.execV) && flowHasMoney(F.planV)",
-    repl: "F.execYs.length>0 && F.planYs.length>0" },
-  { id: "v200-r1-export-mix-by-kind", area: "exportFlow", what: "the export decides its planned-and-executed NOTE by year kinds while the panel decides by money: $100M executed beside FY27's $0 plan carries the NOTE",
-    find: "  if(flowIsMixed(F)) sum.splice(3,0,[",
-    repl: "  if(F.execYs.length && F.planYs.length) sum.splice(3,0,[" },
-  { id: "v200-r1-panel-mix-by-kind", area: "flowHtml", what: "the panel decides its planned-and-executed box by year kinds while the export decides by money: $140M executed, $0 planned is boxed as a mix",
-    find: "    +(flowIsMixed(F)? '<div class=\"flowmix\"",
-    repl: "    +(F.execYs.length && F.planYs.length? '<div class=\"flowmix\"" },
-  { id: "v200-r1-allyears-note-dropped", area: "exportFlow", what: "the export leaves the planned-and-executed NOTE out of the ALL YEARS view, the everyday FY25-executed, later-years-planned total",
-    find: "  if(flowIsMixed(F)) sum.splice(3,0,['NOTE: planned and executed money in one total \\u2014 '",
-    repl: "  if(flowIsMixed(F) && F.fys.length<flowYears().length) sum.splice(3,0,['NOTE: planned and executed money in one total \\u2014 '" },
-  { id: "v200-r1-allyears-box-dropped", area: "flowHtml", what: "the panel leaves its planned-and-executed box out of the ALL YEARS view while the export says it",
-    find: "    +(flowIsMixed(F)? '<div class=\"flowmix\" style=",
-    repl: "    +(flowIsMixed(F) && F.fys.length<flowYears().length? '<div class=\"flowmix\" style=" },
-  { id: "v200-r1-planned-beside-executed", area: "flowHtml", what: "the planned note calls its years PLANNED, not executed whatever the total holds: 'FY25 is PLANNED, not executed' over $100M executed and $300M planned",
-    find: "       +(flowHasMoney(F.execV)? '<b style=\"color:var(--gold)\">This total holds '",
-    repl: "       +(false? '<b style=\"color:var(--gold)\">This total holds '" },
-  { id: "v200-r1-amounts-total-as-executed", area: "flowHtml", what: "the planned note states the whole total as executed: 'This total holds $400.00M executed and $300.00M planned'",
-    find: "This total holds '+fM2(F.execV)+' executed and '",
-    repl: "This total holds '+fM2(F.tot)+' executed and '" },
-  { id: "v200-r1-stored-tooltip-unsaid", area: "flowHtml (year buttons)", what: "the FY25 button says FY25 'has no O&M execution imported' when its O&M rows were imported and are all counted in FY26",
-    find: "pl? (flowStoredIn(f, [flowPlanSlug()])? ",
-    repl: "pl? (false? " },
-  { id: "v200-r1-stored-note-unsaid", area: "flowHtml", what: "the planned note says nothing in scope has executed in FY25 when its rows are stored under FY25 and counted in FY26",
-    find: "MV=PY.filter(y=>flowStoredIn(y, [F.planSlug]))",
-    repl: "MV=[]" },
-  { id: "v200-r1-stored-by-effective-year", area: "flowStoredIn", what: "rows stored under a year are looked for by the year they count in, so FY25's rows, all counted in FY26, are never found under FY25: the button and the note say none were imported",
-    find: "function flowStoredIn(fy, aps){ return (aps||[]).some(a=>flowExecYears(a, true).indexOf(+fy)>=0); }",
-    repl: "function flowStoredIn(fy, aps){ return (aps||[]).some(a=>flowExecYears(a).indexOf(+fy)>=0); }" },
-  { id: "v200-r1-stored-note-any-appn", area: "flowBody (planned note)", what: "the planned note asks every appropriation in scope whether rows are stored under its planned year, so another appropriation's carried rows are given as the reason O&M's year is read from its plan",
-    find: "MV=PY.filter(y=>flowStoredIn(y, [F.planSlug]))",
-    repl: "MV=PY.filter(y=>flowStoredIn(y, F.aps))" },
+  // v200-r1-mixed-by-kind: retired as obsolete in v2.19 -- flowIsMixed went with item 150 (a mix is decided by year kinds, not by the money in the total: $140M executed beside planned years holding $0 )
+  // v200-r1-export-mix-by-kind: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export decides its planned-and-executed NOTE by year kinds while the panel decides by money: $100M execute)
+  // v200-r1-panel-mix-by-kind: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel decides its planned-and-executed box by year kinds while the export decides by money: $140M executed)
+  // v200-r1-allyears-note-dropped: retired as obsolete in v2.19 -- exportFlow went with item 150 (the export leaves the planned-and-executed NOTE out of the ALL YEARS view, the everyday FY25-executed, later-y)
+  // v200-r1-allyears-box-dropped: retired as obsolete in v2.19 -- flowHtml went with item 150 (the panel leaves its planned-and-executed box out of the ALL YEARS view while the export says it)
+  // v200-r1-planned-beside-executed: retired as obsolete in v2.19 -- flowHtml went with item 150 (the planned note calls its years PLANNED, not executed whatever the total holds: 'FY25 is PLANNED, not execute)
+  // v200-r1-amounts-total-as-executed: retired as obsolete in v2.19 -- flowHtml went with item 150 (the planned note states the whole total as executed: 'This total holds $400.00M executed and $300.00M planned')
+  // v200-r1-stored-tooltip-unsaid: retired as obsolete in v2.19 -- flowHtml went with item 150 (the FY25 button says FY25 'has no O&M execution imported' when its O&M rows were imported and are all counted )
+  // v200-r1-stored-note-unsaid: retired as obsolete in v2.19 -- flowHtml went with item 150 (the planned note says nothing in scope has executed in FY25 when its rows are stored under FY25 and counted in)
+  // v200-r1-stored-by-effective-year: retired as obsolete in v2.19 -- flowStoredIn went with item 150 (rows stored under a year are looked for by the year they count in, so FY25's rows, all counted in FY26, are ne)
+  // v200-r1-stored-note-any-appn: retired as obsolete in v2.19 -- flowHtml went with item 150 (the planned note asks every appropriation in scope whether rows are stored under its planned year, so another )
   // v2.00 UI chunk 3 (M1, Brad 12 Oct): "All submissions at once" is all or nothing. A file that would ask is refused before
   // anything loads; a real run that fails part-way is put back whole; the message says only what is checked to be true.
   // Each is caught by audit-ui.mjs.
@@ -6550,12 +6055,9 @@ const MUTATIONS = [
   { id: "v202-d3-wide-at-once", area: "pmoRound", what: "the wide band is tried first, so a share that is a whole dollar can be moved a dollar it did not need to move",
     find: "  return tryBand(false) || tryBand(true);", repl: "  return tryBand(true);" },
   // v2.02 (D5a; Brad, 21 Oct): audit-recon "v2.02 (D5a)".
-  { id: "v202-d5a-funded-is-allocation", area: "aceAlignRows", what: "the breakout's Funded column prints each line's allocation again",
-    find: "      out.forEach(function(L, j){ L.f[i]=parts[j]; });", repl: "      out.forEach(function(L, j){ L.f[i]=+L.v[i]||0; });" },
-  { id: "v202-d5a-funded-on-first-line", area: "aceAlignRows", what: "a requirement's funded dollars all go on its first line",
-    find: "      const parts=apportion(F[i], out.map(function(L){ return Math.max(0, +L.v[i]||0); }));", repl: "      const parts=out.map(function(L, j){ return j? 0 : F[i]; });" },
-  { id: "v202-d5a-column-unprinted", area: "exportAceTieout", what: "the Funded column prints nothing",
-    find: ".concat(isFf? [c.ce] : [c.rcn, c.eeic, c.si], [{v:L.ftot||0,s:N}]));", repl: ".concat(isFf? [c.ce] : [c.rcn, c.eeic, c.si], [{v:0,s:N}]));" },
+  // v202-d5a-funded-is-allocation: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (the breakout's Funded column prints each line's allocation again)
+  // v202-d5a-funded-on-first-line: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (a requirement's funded dollars all go on its first line)
+  // v202-d5a-column-unprinted: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the Funded column prints nothing)
   // v2.02 (D4; Brad, 21 Oct): audit-import "v2.02 (D4)".
   { id: "v202-d4-pull-replaces", area: "driveExecPull", what: "a refresh replaces this browser's whole execution store with the folder's: an import not yet shared is lost",
     find: "    const r=exMerge(EXDB, theirs);", repl: "    const r={db:theirs, took:Object.keys(theirs.all||{})};" },
@@ -6576,8 +6078,7 @@ const MUTATIONS = [
     find: "    if(J && typeof J==='object' && typeof J.build==='string'){ const nb=inNewerWhy(fullBuildOf(\"const BUILD='\"+J.build)); if(nb) return nb; }\n", repl: "" },
   { id: "v202-d6a-same-build-refused", area: "inNewerWhy", what: "a file written by this very build is refused as newer",
     find: "(b[0]===me[0] && b[1]>me[1])", repl: "(b[0]===me[0] && b[1]>=me[1])" },
-  { id: "v202-d7b-partner-year-unoffered", area: "flowYears", what: "partner or FMS money typed for a year nothing else offers drops out of ALL YEARS, unsaid",
-    find: "  flowOtherYears().forEach(f=>y[f]=1);            // v2.02 (D7b): and every year partner or FMS money is typed for\n", repl: "" },
+  // v202-d7b-partner-year-unoffered: retired as obsolete in v2.19 -- flowYears went with item 150 (partner or FMS money typed for a year nothing else offers drops out of ALL YEARS, unsaid)
   { id: "v202-d7c-outside-unsaid", area: "switchYear", what: "a year made outside the FYDP window is made without a word",
     find: "all years save and share together.'+esc(outside));", repl: "all years save and share together.');" },
   { id: "v202-d7c-inside-said", area: "switchYear", what: "every new year is said to be outside the window",
@@ -6821,21 +6322,11 @@ const MUTATIONS = [
     repl: "+((false && ccarNameOfNum(c.ccar))?" },
   // ==== end v2.04 (item 108) ====
   // ==== v2.04 (item 109): the AI review round trip ====
-  { id: 'v204-109-figure-unchecked', area: "aiRead", what: "a figure the AI quotes is never checked against the board",
-    find: "if(r.figure!==null && !isNaN(r.figure) && Math.round(r.figure)!==Math.round(r.board)){",
-    repl: "if(false){" },
-  { id: 'v204-109-unknown-req', area: "aiRead", what: "a finding about a requirement the board does not hold reads as an ordinary one",
-    find: "if(!it || (S.order||[]).indexOf(r.id)<0){",
-    repl: "if(false){" },
-  { id: 'v204-109-value-unchecked', area: "aiRead", what: "a suggested value that is not one of the board's is offered as one",
-    find: "if(aiFieldOpts(r.field).indexOf(r.value)<0){",
-    repl: "if(false){" },
-  { id: 'v204-109-door-skipped', area: "aiRead", what: "the AI's answer skips the import door",
-    find: "const why=inboundCheck(X.text); if(why) return {why:why};",
-    repl: "const why='';" },
-  { id: 'v204-109-request-unf', area: "aiFig", what: "the request tells the AI nothing is unfunded",
-    find: "if(m==='unf') return fydpUnf(r);",
-    repl: "if(m==='unf') return 0;" },
+  // v204-109-figure-unchecked: retired as obsolete in v2.19 -- aiRead went with item 150 (a figure the AI quotes is never checked against the board)
+  // v204-109-unknown-req: retired as obsolete in v2.19 -- aiRead went with item 150 (a finding about a requirement the board does not hold reads as an ordinary one)
+  // v204-109-value-unchecked: retired as obsolete in v2.19 -- aiRead went with item 150 (a suggested value that is not one of the board's is offered as one)
+  // v204-109-door-skipped: retired as obsolete in v2.19 -- aiRead went with item 150 (the AI's answer skips the import door)
+  // v204-109-request-unf: retired as obsolete in v2.19 -- aiFig went with item 150 (the request tells the AI nothing is unfunded)
   // ==== end v2.04 (item 109) ====
   // ==== v2.04 (item 106): Clear this computer ====
   { id: 'v204-106-clear-everything', area: "clearComputerKeys", what: "Clear this computer removes keys ORBIT does not own",
@@ -7306,8 +6797,7 @@ const MUTATIONS = [
     find: "    if(v.pid) parts.push(FL('pid')+' '+v.pid);", repl: "" },
   { id: 'v207-bae-register-bad-date', area: "budRegBody", what: "a BAE file entry with no readable date stops every redraw while the BAE register is open",
     find: "esc(isFinite(new Date(x && x.ts))? new Date(x.ts).toISOString().slice(0,10) : '—')", repl: "esc(new Date(x.ts).toISOString().slice(0,10))" },
-  { id: 'v207-spruills-estimate-no-totals', area: "spBodyDraw", what: "an estimate whose appropriations carry no totals stops every redraw while the Spruills is open",
-    find: "        b.req[y]=(A.tot||{})[y];", repl: "        b.req[y]=A.tot[y];" },
+  // v207-spruills-estimate-no-totals: retired as obsolete in v2.19 -- spBodyDraw went with item 150 (an estimate whose appropriations carry no totals stops every redraw while the Spruills is open)
   // ==== end v2.07 item 121 -- what the test agents found ====
   // ==== v2.07 item 121 -- the adversarial review (checks in audit-other and audit-import, each proved against its fix reverted) ====
   { id: 'v207-rv-arread-zero-rounding-silent', area: "arRead", what: "a figure typed in the Add box that rounds to $0 (\"0.40\" for STOVL) is added as $0 and the status line says nothing of it",
@@ -8073,8 +7563,8 @@ const MUTATIONS = [
     find: 'RPDB_KEY=\'prio27reprog\'+SIDE_SFX',
     repl: 'RPDB_KEY=\'prio27reprog\'' },
   { id: 'v209-w3-side-filekey-literal', area: 'fileKeyOf', what: 'a copy\'s own lists are not counted as lists its file carries, so a change to one reads saved',
-    find: '[EXDB_KEY,ACEDB_KEY,RPDB_KEY,BUDDB_KEY].indexOf(key)>=0',
-    repl: '[\'prio27execdb\',\'prio27acedb\',\'prio27reprog\',\'prio27buddb\'].indexOf(key)>=0' },
+    find: '[EXDB_KEY,RPDB_KEY,BUDDB_KEY].indexOf(key)>=0',   // v2.19: retargeted, ACEDB gone
+    repl: '[\'prio27execdb\',\'prio27reprog\',\'prio27buddb\'].indexOf(key)>=0' },
   { id: 'v209-w3-sidecheck-copy-skipped', area: 'sideBootCheck', what: 'a copy opened with lists its file lacks reads saved',
     find: 'function sideBootCheck(){\n  sideBootNote.keys=[];\n',
     repl: 'function sideBootCheck(){\n  sideBootNote.keys=[];\n  if(SANDBOX) return;\n' },
@@ -8360,214 +7850,85 @@ const MUTATIONS = [
   // ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
   // Each is caught by audit-other.mjs "v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)",
   // proved one at a time (recovery/v210/proofs-A.json, proved-A.jsonl).
-  { id: 'v210-a-opn-counted', area: "fdcModel", what: "OPN's estimate lines are counted into O&M's requirement",
-    find: "if(l.ap===ap && inG(svcs, l.svc) && Object.prototype.hasOwnProperty.call(l.v, y)) t+=D$(+l.v[y]||0);",
-    repl: "if((l.ap===ap || (ap==='om' && l.ap==='opn')) && inG(svcs, l.svc) && Object.prototype.hasOwnProperty.call(l.v, y)) t+=D$(+l.v[y]||0);" },
-  { id: 'v210-a-line-unrounded', area: "fdcModel", what: "an estimate line ($M times a million) is added as the float it is, so the requirement carries cents",
-    find: "t+=D$(+l.v[y]||0);",
-    repl: "t+=(+l.v[y]||0);" },
-  { id: 'v210-a-group-ignored', area: "fdcModel", what: "a service sheet adds every service, so each one is the Summary",
-    find: "const inG=function(svcs, sv){ return !svcs || svcs.indexOf(sv)>=0; };",
-    repl: "const inG=function(svcs, sv){ return true; };" },
-  { id: 'v210-a-usaf-no-ang', area: "FDC_GROUPS", what: "the USAF sheet leaves out ANG and AFRC",
-    find: "{name:'USAF', title:'USAF CTOL', air:'USAF F-35A', svcs:['USAF','ANG','AFRC']}",
-    repl: "{name:'USAF', title:'USAF CTOL', air:'USAF F-35A', svcs:['USAF']}" },
-  { id: 'v210-a-unheld-year-zero', area: "fdcModel", what: "a year an appropriation logs no position for prints $0 controls, not —",
-    find: "if(!Q || !fdcPosHeld(Q, y)) return null;",
-    repl: "if(!Q) return null;" },
+  // v210-a-opn-counted: retired as obsolete in v2.19 -- fdcModel went with item 150 (OPN's estimate lines are counted into O&M's requirement)
+  // v210-a-line-unrounded: retired as obsolete in v2.19 -- fdcModel went with item 150 (an estimate line ($M times a million) is added as the float it is, so the requirement carries cents)
+  // v210-a-group-ignored: retired as obsolete in v2.19 -- fdcModel went with item 150 (a service sheet adds every service, so each one is the Summary)
+  // v210-a-usaf-no-ang: retired as obsolete in v2.19 -- FDC_GROUPS went with item 150 (the USAF sheet leaves out ANG and AFRC)
+  // v210-a-unheld-year-zero: retired as obsolete in v2.19 -- fdcModel went with item 150 (a year an appropriation logs no position for prints $0 controls, not —)
   { id: 'v210-a-held-any-year', area: "fdcPosHeld", what: "a position held for any year counts as held for every year",
     find: "return !!F && typeof F==='object' && Object.prototype.hasOwnProperty.call(F, y); }); });",
     repl: "return !!F && typeof F==='object'; }); });" },
-  { id: 'v210-a-tot-skips-null', area: "fdcModel", what: "a FYDP total adds the years it has and skips the one with nothing to state",
-    find: "if(x===null) return null; t+=x; } return t; };",
-    repl: "if(x===null) continue; t+=x; } return t; };" },
-  { id: 'v210-a-sum-from-prior-year', area: "fdcModel", what: "the FYDP total runs from the year before the cycle",
-    find: "for(let y=Y; y<=Y+4; y++) sum.push(y);",
-    repl: "for(let y=Y-1; y<=Y+3; y++) sum.push(y);" },
-  { id: 'v210-a-years-from-cycle-year', area: "fdcModel", what: "the columns start at the cycle year, leaving out the year before it",
-    find: "for(let y=Y-1; y<=Y+4; y++) years.push(y);",
-    repl: "for(let y=Y; y<=Y+5; y++) years.push(y);" },
-  { id: 'v210-a-delta-sign', area: "fdcModel", what: "the Summary's delta is requirement less funding, so a shortfall reads as a surplus",
-    find: "R.push(line('Delta ('+ACE+' vs '+CYC+')', 'delta', less(fund, rq), ap));",
-    repl: "R.push(line('Delta ('+ACE+' vs '+CYC+')', 'delta', less(rq, fund), ap));" },
-  { id: 'v210-a-delta-no-intl-funding', area: "fdcModel", what: "the Summary's delta leaves out the International Funding typed in",
-    find: "R.push(line('Delta ('+ACE+' vs '+CYC+')', 'delta', less(fund, rq), ap));",
-    repl: "R.push(line('Delta ('+ACE+' vs '+CYC+')', 'delta', less(ctl, rq), ap));" },
-  { id: 'v210-a-pct-disc-only', area: "fdcModel", what: "% Funded counts discretionary only",
-    find: "R.push(pct('% Funded', fund, rq, ap));",
-    repl: "R.push(pct('% Funded', d, rq, ap));" },
-  { id: 'v210-a-pct-zero-req', area: "fdcModel", what: "% Funded divides by a requirement of $0",
-    find: "const frac=function(f, r){ return (f===null || r===null || r===0)? null : f/r; };",
-    repl: "const frac=function(f, r){ return (f===null || r===null)? null : f/r; };" },
-  { id: 'v210-a-pct-tot-one-year', area: "fdcModel", what: "the FYDP % Funded is one year's, not the FYDP totals'",
-    find: "tot:frac(tot(fund), tot(rq))}, x||{}); };",
-    repl: "tot:frac(fund[1], rq[1])}, x||{}); };" },
-  { id: 'v210-a-intl-req-not-added', area: "fdcModel", what: "International Req is not added to the appropriation's requirement",
-    // v2.12 RV6: retargeted -- the Controls are each year's total (lane(p, 't')), which a one-figure position whose lanes cannot be
-    // divided still states (S05); the requirement's line beside it is unchanged
-    find: "ctl=lane(p, 't'), rq=plus(us, ir), fund=plus(ctl, fi)",
-    repl: "ctl=lane(p, 't'), rq=us, fund=plus(ctl, fi)" },
-  { id: 'v210-a-intl-on-service-sheets', area: "fdcModel", what: "International Req is added to the service sheets too",
-    find: "const us=req(a.k, g.svcs), p=pos(a.k, g.svcs)",
-    repl: "const us=plus(req(a.k, g.svcs), intl('ir', a.k)), p=pos(a.k, g.svcs)" },
-  { id: 'v210-a-total-two-apps', area: "fdcModel", what: "the Summary's total section leaves Spares out of the US requirement",
-    find: "T.us=plus(T.us, us); T.ir=plus(T.ir, ir);",
-    repl: "if(a.k!=='sp') T.us=plus(T.us, us); T.ir=plus(T.ir, ir);" },
-  { id: 'v210-a-svc-total-last-only', area: "fdcModel", what: "a service sheet's Total Sustainment requirement is the last appropriation's alone",
-    find: "tu=plus(tu, us); td=plus(td, d); tm=plus(tm, m);",
-    repl: "tu=us; td=plus(td, d); tm=plus(tm, m);" },
-  { id: 'v210-a-uncarried-year-zero', area: "fdcModel", what: "a year the estimate carries no column for prints a $0 requirement, not —",
-    find: "if(!carried[y]) return null;",
-    repl: "if(!carried[y]) return 0;" },
+  // v210-a-tot-skips-null: retired as obsolete in v2.19 -- fdcModel went with item 150 (a FYDP total adds the years it has and skips the one with nothing to state)
+  // v210-a-sum-from-prior-year: retired as obsolete in v2.19 -- fdcModel went with item 150 (the FYDP total runs from the year before the cycle)
+  // v210-a-years-from-cycle-year: retired as obsolete in v2.19 -- fdcModel went with item 150 (the columns start at the cycle year, leaving out the year before it)
+  // v210-a-delta-sign: retired as obsolete in v2.19 -- fdcModel went with item 150 (the Summary's delta is requirement less funding, so a shortfall reads as a surplus)
+  // v210-a-delta-no-intl-funding: retired as obsolete in v2.19 -- fdcModel went with item 150 (the Summary's delta leaves out the International Funding typed in)
+  // v210-a-pct-disc-only: retired as obsolete in v2.19 -- fdcModel went with item 150 (% Funded counts discretionary only)
+  // v210-a-pct-zero-req: retired as obsolete in v2.19 -- fdcModel went with item 150 (% Funded divides by a requirement of $0)
+  // v210-a-pct-tot-one-year: retired as obsolete in v2.19 -- fdcModel went with item 150 (the FYDP % Funded is one year's, not the FYDP totals')
+  // v210-a-intl-req-not-added: retired as obsolete in v2.19 -- fdcModel went with item 150 (International Req is not added to the appropriation's requirement)
+  // v210-a-intl-on-service-sheets: retired as obsolete in v2.19 -- fdcModel went with item 150 (International Req is added to the service sheets too)
+  // v210-a-total-two-apps: retired as obsolete in v2.19 -- fdcModel went with item 150 (the Summary's total section leaves Spares out of the US requirement)
+  // v210-a-svc-total-last-only: retired as obsolete in v2.19 -- fdcModel went with item 150 (a service sheet's Total Sustainment requirement is the last appropriation's alone)
+  // v210-a-uncarried-year-zero: retired as obsolete in v2.19 -- fdcModel went with item 150 (a year the estimate carries no column for prints a $0 requirement, not —)
   { id: 'v210-a-pos-unrounded', area: "fdcModel", what: "a position's figures are added as stored, cents and all",
     // v2.12 RV6: retargeted -- FYDP Disconnects reads each service's lanes through ppLanesOf (S05), which rounds a split position's
     // figures at the door; the v2.10 A fixture's cents are on the discretionary figures
     find: "  if(Q && Q.split){ const sd=D$(c.d), sm=",
     repl: "  if(Q && Q.split){ const sd=c.d, sm=" },
-  { id: 'v210-a-lanes-swapped', area: "fdcModel", what: "the Summary's Discretionary line prints the mandatory figures",
-    find: "R.push(line('Discretionary', 'ital', d, ap));",
-    repl: "R.push(line('Discretionary', 'ital', m, ap));" },
-  { id: 'v210-a-ff-label', area: "FDC_APS", what: "Full Fund's section is labelled Full Fund, not Procurement and Prod Support as on Brad's slides",
-    find: "{k:'ff', band:'PROCUREMENT', req:'Prod Support'}",
-    repl: "{k:'ff', band:'FULL FUND', req:'Full Fund'}" },
-  { id: 'v210-a-ace-label-raw', area: "fdcAceLbl", what: "the estimate is named as it is filed (2025ACE), not as its slides name it (2025 ACE)",
-    find: "return m? m[1]+' ACE' : String(k||'');",
-    repl: "return String(k||'');" },
-  { id: 'v210-a-model-mark', area: "FDC_MARK", what: "the marking is not CUI//REL TO US DoW",
-    find: "const FDC_MARK='CUI//REL TO US DoW';",
-    repl: "const FDC_MARK='CUI';" },
-  { id: 'v210-a-footer-month', area: "fdcModel", what: "the footer names the wrong month",
-    find: "footer:FDC_MONTHS[now.getMonth()]+' '",
-    repl: "footer:FDC_MONTHS[(now.getMonth()+1)%12]+' '" },
-  { id: 'v210-a-own-from-storage', area: "fdcStores", what: "the board on screen's positions are read from browser storage, not the store it holds (MS)",
-    // v2.12 RV6: retargeted -- the own branch carries the store and its services too (S05: the own base is read from it)
-    find: "if(a.k===own){ out.ppbe=(MS && MS.ppbe && typeof MS.ppbe==='object')? MS.ppbe : {}; out.st=MS; out.own=true; out.svc=SVC.slice(); return out; }",
-    repl: "if(false){ }" },
-  { id: 'v210-a-file-copy-ignored', area: "fdcStores", what: "another appropriation is read from browser storage alone, never from the file's copy",
-    find: "let r; try{ r=fydpStoreLocal(a.k); }catch(e){",
-    repl: "let r; try{ r={st:JSON.parse(localStorage.getItem(_SLUGMAP[a.k].key)||'null'), why:''}; }catch(e){" },
-  { id: 'v210-a-cycles-own-only', area: "fdcCycs", what: "the cycle picker offers only the cycles logged on the board on screen",
-    find: "stores.forEach(function(s){ if(s.ppbe) Object.keys(s.ppbe).forEach(function(k){ if(FDC_CYC_RE.test(k)",
-    repl: "stores.slice(0,1).forEach(function(s){ if(s.ppbe) Object.keys(s.ppbe).forEach(function(k){ if(FDC_CYC_RE.test(k)" },
-  { id: 'v210-a-cycle-default-newest', area: "fdcState", what: "the box starts on the newest cycle logged, not the working plan's",
-    find: "cyc=(MS && cycs.indexOf(String(MS.cycle||''))>=0)? String(MS.cycle) : (cycs[0]||'');",
-    repl: "cyc=cycs[0]||'';" },
-  { id: 'v210-a-aces-oldest-first', area: "fdcAces", what: "the cost estimates are offered oldest first, and the oldest is picked to start",
-    find: "((+S0[b].ts||0)-(+S0[a].ts||0))",
-    repl: "((+S0[a].ts||0)-(+S0[b].ts||0))" },
-  { id: 'v210-a-cyc-picker-who', area: "fdcHtml", what: "the cycle picker names every appropriation with a store as logging the cycle",
-    find: "const by=st.stores.filter(function(s){ return fdcHeld(s, k); })",
-    repl: "const by=st.stores.filter(function(s){ return !!s.ppbe; })" },
-  { id: 'v210-a-no-ace-why', area: "fdcState", what: "with no cost estimate loaded the box does not say where one comes from",
-    find: "if(!aces.length) why='No cost estimate is loaded: Data \\u203a Import Annual Cost Estimate\\u2026 brings one in.';",
-    repl: "if(!aces.length) why='';" },
-  { id: 'v210-a-intl-read-as-dollars', area: "fdcIntlSet", what: "an International figure is read in dollars, so 12.5 is $13",
-    find: "r=amtReadM(el.value), msg=",
-    repl: "r=amtRead(el.value), msg=" },
-  { id: 'v210-a-negative-taken', area: "fdcIntlSet", what: "an International figure below zero is taken",
-    find: "r=amtReadM(el.value), msg=",
-    repl: "r=amtReadM(el.value, {neg:true}), msg=" },
-  { id: 'v210-a-refusal-clears', area: "fdcIntlSet", what: "a refused International figure clears the one that was there",
-    find: "if(r.why){ el.value=fdcInShow(was);",
-    repl: "if(r.why){ M[fy]=0; el.value=fdcInShow(0);" },
-  { id: 'v210-a-intl-saved', area: "fdcIntlSet", what: "the International figures are written into the board's store and saved",
-    find: "M[fy]=(r.v===null)? 0 : r.v;",
-    repl: "M[fy]=(r.v===null)? 0 : r.v; MS.fdcIntl=FDC_INTL; save();" },
-  { id: 'v210-a-input-shows-dollars', area: "fdcInShow", what: "an International box shows dollars, which then read back as millions",
-    find: "return '$'+((Number.isInteger(v)? v : 0)/1e6).toLocaleString('en-US', {maximumFractionDigits:6});",
-    repl: "return '$'+(Number.isInteger(v)? v : 0).toLocaleString('en-US');" },
-  { id: 'v210-a-tab-lost', area: "fdcIntlSet", what: "a Tab out of an International figure leaves the keyboard on that figure (the box controller hands it back as the figures redraw)",
-    find: "if(nx){ try{ nx.focus({preventScroll:true}); }catch(x){} }",
-    repl: "if(nx){ void nx; }" },
-  { id: 'v210-a-cells-stale', area: "fdcIntlSet", what: "the figures an International entry moves are not drawn again",
-    find: "if(td) td.innerHTML=fdcCell(r0, v);",
-    repl: "if(td) void v;" },
-  { id: 'v210-a-redraw-under-typing', area: "fdcSync", what: "a render redraws the box under a figure being typed, taking the field and its text",
-    find: "if(a && a.tagName==='INPUT' && el.contains(a)){ if(tab) _fdcStale=true; return; }",
-    repl: "void a;" },
+  // v210-a-lanes-swapped: retired as obsolete in v2.19 -- fdcModel went with item 150 (the Summary's Discretionary line prints the mandatory figures)
+  // v210-a-ff-label: retired as obsolete in v2.19 -- FDC_APS went with item 150 (Full Fund's section is labelled Full Fund, not Procurement and Prod Support as on Brad's slides)
+  // v210-a-ace-label-raw: retired as obsolete in v2.19 -- fdcAceLbl went with item 150 (the estimate is named as it is filed (2025ACE), not as its slides name it (2025 ACE))
+  // v210-a-model-mark: retired as obsolete in v2.19 -- FDC_MARK went with item 150 (the marking is not CUI//REL TO US DoW)
+  // v210-a-footer-month: retired as obsolete in v2.19 -- fdcModel went with item 150 (the footer names the wrong month)
+  // v210-a-own-from-storage: retired as obsolete in v2.19 -- fdcStores went with item 150 (the board on screen's positions are read from browser storage, not the store it holds (MS))
+  // v210-a-file-copy-ignored: retired as obsolete in v2.19 -- fdcStores went with item 150 (another appropriation is read from browser storage alone, never from the file's copy)
+  // v210-a-cycles-own-only: retired as obsolete in v2.19 -- fdcCycs went with item 150 (the cycle picker offers only the cycles logged on the board on screen)
+  // v210-a-cycle-default-newest: retired as obsolete in v2.19 -- fdcState went with item 150 (the box starts on the newest cycle logged, not the working plan's)
+  // v210-a-aces-oldest-first: retired as obsolete in v2.19 -- fdcAces went with item 150 (the cost estimates are offered oldest first, and the oldest is picked to start)
+  // v210-a-cyc-picker-who: retired as obsolete in v2.19 -- fdcHtml went with item 150 (the cycle picker names every appropriation with a store as logging the cycle)
+  // v210-a-no-ace-why: retired as obsolete in v2.19 -- fdcState went with item 150 (with no cost estimate loaded the box does not say where one comes from)
+  // v210-a-intl-read-as-dollars: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (an International figure is read in dollars, so 12.5 is $13)
+  // v210-a-negative-taken: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (an International figure below zero is taken)
+  // v210-a-refusal-clears: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (a refused International figure clears the one that was there)
+  // v210-a-intl-saved: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (the International figures are written into the board's store and saved)
+  // v210-a-input-shows-dollars: retired as obsolete in v2.19 -- fdcInShow went with item 150 (an International box shows dollars, which then read back as millions)
+  // v210-a-tab-lost: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (a Tab out of an International figure leaves the keyboard on that figure (the box controller hands it back as t)
+  // v210-a-cells-stale: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (the figures an International entry moves are not drawn again)
+  // v210-a-redraw-under-typing: retired as obsolete in v2.19 -- fdcSync went with item 150 (a render redraws the box under a figure being typed, taking the field and its text)
   // v2.12 (item 134): retargeted to the render list with the fit box beside it -- the same defect, where it now lives
-  { id: 'v210-a-not-in-render', area: "render", what: "render() never draws the box, so it never opens",
-    find: "spBody(); ppBody(); fitBody(); fdcSync(); exBody();",
-    repl: "spBody(); ppBody(); fitBody(); exBody();" },
-  { id: 'v210-a-tab-pressed-stuck', area: "fdcHtml", what: "the Summary tab stays pressed whatever sheet is shown",
-    find: "aria-pressed=\"'+(i===fdcTabOn? 'true' : 'false')+'\"",
-    repl: "aria-pressed=\"'+(i===0? 'true' : 'false')+'\"" },
-  { id: 'v210-a-subtitle-raw', area: "fdcHtml", what: "a sheet's subtitle (the estimate's label) is written into the page as markup",
-    find: "<div class=\"fdct2\">'+esc(sh.subtitle)+'</div>",
-    repl: "<div class=\"fdct2\">'+sh.subtitle+'</div>" },
-  { id: 'v210-a-option-raw', area: "fdcHtml", what: "the estimate picker writes an estimate's label into the page as markup",
-    find: "'>'+esc(fdcAceLbl(k))+(s.ts?",
-    repl: "'>'+fdcAceLbl(k)+(s.ts?" },
-  { id: 'v210-a-mark-not-on-page', area: "fdcHtml", what: "the box's page carries no marking above the title",
-    find: "<div class=\"fdcpage\" id=\"fdcPage\"><div class=\"fdcmark\">'+esc(M.marking)+'</div>",
-    repl: "<div class=\"fdcpage\" id=\"fdcPage\">" },
-  { id: 'v210-a-keep-note-gone', area: "fdcHtml", what: "the box no longer says the International figures are kept for this session only",
-    find: "The International figures typed on the Summary are kept for this session only: they are not saved with the board, '",
-    repl: "The International figures typed on the Summary are kept: they are saved with the board, '" },
-  { id: 'v210-a-note-missing-year', area: "fdcNotes", what: "the box does not say an appropriation logs no position for some years",
-    find: "if(miss.length) out.push(",
-    repl: "if(false) out.push(" },
-  { id: 'v210-a-note-lone-service', area: "fdcNotes", what: "the box does not name a service counted on the Summary alone",
-    find: "if(M.note) out.push(M.note);",
-    repl: "if(false) out.push(M.note);" },
-  { id: 'v210-a-shortfall-not-red', area: "fdcMoney", what: "a shortfall prints with a minus sign, not red in parentheses",
-    find: "return v<0? '<span class=\"neg\">('+s+')</span>' : s;",
-    repl: "return v<0? '-'+s : s;" },
-  { id: 'v210-a-null-shown-zero', area: "fdcMoney", what: "nothing to state prints $0, not —",
-    find: "if(v===null || v===undefined) return '—';",
-    repl: "if(v===null || v===undefined) return '$0';" },
-  { id: 'v210-a-copy-offered', area: "uiFlyItems", what: "a PMO copy's FYDP ▸ offers FYDP Disconnects",
-    find: "+ ((typeof SANDBOX!=='undefined' && SANDBOX)? '' : it('FYDP Disconnects…'",
-    repl: "+ ((false)? '' : it('FYDP Disconnects…'" },
-  { id: 'v210-a-copy-opens', area: "toggleFdc", what: "a PMO copy opens FYDP Disconnects when it is called",
-    find: "if(!fdcOpen && typeof SANDBOX!=='undefined' && SANDBOX){",
-    repl: "if(false){" },
-  { id: 'v210-a-export-unmarked', area: "exportFdc", what: "the file is named without the locked view's mark",
-    find: "const name=expName(fdcFileName(M));",
-    repl: "const name=fdcFileName(M);" },
-  { id: 'v210-a-export-without-intl', area: "exportFdc", what: "the workbook is handed a model without the International figures typed in the box",
-    find: "const out=fdcSheets(M);",
-    repl: "const out=fdcSheets(fdcModel({intl:{ir:{}, if:{}}}));" },
+  // v210-a-not-in-render: retired as obsolete in v2.19 -- its line in render went with item 150 (render() never draws the box, so it never opens)
+  // v210-a-tab-pressed-stuck: retired as obsolete in v2.19 -- fdcHtml went with item 150 (the Summary tab stays pressed whatever sheet is shown)
+  // v210-a-subtitle-raw: retired as obsolete in v2.19 -- fdcHtml went with item 150 (a sheet's subtitle (the estimate's label) is written into the page as markup)
+  // v210-a-option-raw: retired as obsolete in v2.19 -- fdcHtml went with item 150 (the estimate picker writes an estimate's label into the page as markup)
+  // v210-a-mark-not-on-page: retired as obsolete in v2.19 -- fdcHtml went with item 150 (the box's page carries no marking above the title)
+  // v210-a-keep-note-gone: retired as obsolete in v2.19 -- fdcHtml went with item 150 (the box no longer says the International figures are kept for this session only)
+  // v210-a-note-missing-year: retired as obsolete in v2.19 -- fdcNotes went with item 150 (the box does not say an appropriation logs no position for some years)
+  // v210-a-note-lone-service: retired as obsolete in v2.19 -- fdcNotes went with item 150 (the box does not name a service counted on the Summary alone)
+  // v210-a-shortfall-not-red: retired as obsolete in v2.19 -- fdcMoney went with item 150 (a shortfall prints with a minus sign, not red in parentheses)
+  // v210-a-null-shown-zero: retired as obsolete in v2.19 -- fdcMoney went with item 150 (nothing to state prints $0, not —)
+  // v210-a-copy-offered: retired as obsolete in v2.19 -- its line in uiFlyItems went with item 150 (a PMO copy's FYDP ▸ offers FYDP Disconnects)
+  // v210-a-copy-opens: retired as obsolete in v2.19 -- toggleFdc went with item 150 (a PMO copy opens FYDP Disconnects when it is called)
+  // v210-a-export-unmarked: retired as obsolete in v2.19 -- exportFdc went with item 150 (the file is named without the locked view's mark)
+  // v210-a-export-without-intl: retired as obsolete in v2.19 -- exportFdc went with item 150 (the workbook is handed a model without the International figures typed in the box)
   // v2.10 integration: A's exportFdc meets B's fdcSheets -- each undoes what the end-to-end part holds
-  { id: 'v210-int-export-drops-sheets', area: "exportFdc", what: "Export writes only the Summary: the four service sheets fdcSheets laid out never reach the file",
-    find: "const bytes=buildXlsx(out.sheets, out.extra);", repl: "const bytes=buildXlsx(out.sheets.slice(0,1), out.extra);" },
-  { id: 'v210-int-export-house-style', area: "exportFdc", what: "Export asks for the house style, which repaints the slides' colours and drops the page set-up",
-    find: "const bytes=buildXlsx(out.sheets, out.extra);", repl: "const bytes=buildXlsx(out.sheets, out.extra, xlsxHouse('FYDP Disconnects'));" },
+  // v210-int-export-drops-sheets: retired as obsolete in v2.19 -- exportFdc went with item 150 (Export writes only the Summary: the four service sheets fdcSheets laid out never reach the file)
+  // v210-int-export-house-style: retired as obsolete in v2.19 -- exportFdc went with item 150 (Export asks for the house style, which repaints the slides' colours and drops the page set-up)
   // v2.10 review (fixer a): each caught by its own "v2.10 review — FYDP Disconnects: …" block in audit-other.mjs, proved one at a
   // time (recovery/v210/proofs-RV-a.json, proved-RV-a.jsonl). A-1, the alias:
-  { id: 'v210-rv-a-alias-dropped', area: "FDC_GROUPS", what: "a service sheet takes a service by its own name alone: Full Fund's USMC-B reaches no sheet, STOVL prints PROCUREMENT controls $0 and the four sheets stop adding up to the Summary",
-    find: "if(a && g.svcs.indexOf(a)<0) g.svcs.push(a); });",
-    repl: "if(a && g.svcs.indexOf(a)<0) void a; });" },
+  // v210-rv-a-alias-dropped: retired as obsolete in v2.19 -- FDC_GROUPS went with item 150 (a service sheet takes a service by its own name alone: Full Fund's USMC-B reaches no sheet, STOVL prints PROCU)
   // A-2, a figure left by a click
-  { id: 'v210-rv-a-click-not-waited', area: "fdcIntlSet", what: "an International figure left by a click is drawn into the box at once, the box controller hands the keyboard back to it, and the next figure lands in the year just left",
-    find: "const paint=function(f){ if(away && !tab) setTimeout(f, 0); else f(); };",
-    repl: "const paint=function(f){ f(); };" },
+  // v210-rv-a-click-not-waited: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (an International figure left by a click is drawn into the box at once, the box controller hands the keyboard b)
   // A-3, the shared folder
-  { id: 'v210-rv-a-folder-not-read', area: "fdcStores", what: "with the team on the shared folder another appropriation is read from this browser's older copy, not the folder's",
-    find: "if(!r.why && driveStoreOn()){",
-    repl: "if(false){" },
-  { id: 'v210-rv-a-reading-unsaid', area: "fdcStores", what: "an appropriation the folder has not answered for yet is drawn as one with no position logged",
-    find: "if(!F){ out.wait=true; return out; }",
-    repl: "if(!F){ return out; }" },
-  { id: 'v210-rv-a-folder-fail-falls-back', area: "fdcFolderRead", what: "a shared folder that cannot be read falls back to this browser's older copy without a word",
-    find: "fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){ fin((r && typeof r==='object')? r : loc); },",
-    repl: "fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){ fin((r && typeof r==='object' && !r.why)? r : loc); }," },
-  { id: 'v210-rv-a-answer-not-drawn', area: "fdcFolderRead", what: "the box stays on Reading the shared folder after the folder has answered",
-    find: "if(!starting && _fdcFold===R) fdcSync();",
-    repl: "void starting;" },
-  { id: 'v210-rv-a-export-not-waiting', area: "exportFdc", what: "Export pressed while the shared folder is being read does not wait for it: it refuses, and nothing is downloaded",
-    find: "if(!R.done){",
-    repl: "if(false){" },
-  { id: 'v210-rv-a-read-once', area: "toggleFdc", what: "the shared folder is read once a session, so a newer save there never reaches the box again",
-    find: "if(fdcOpen) _fdcFold=null;",
-    repl: "void 0;" },
-  { id: 'v210-rv-a-pick-lost-reading', area: "fdcHtml", what: "while the shared folder is read the cycle picked falls back, so a cycle only another appropriation logs is lost",
-    find: "if(!st.reading){ fdcAceK=st.ace; fdcCycK=st.cyc; }",
-    repl: "fdcAceK=st.ace; fdcCycK=st.cyc;" },
+  // v210-rv-a-folder-not-read: retired as obsolete in v2.19 -- fdcStores went with item 150 (with the team on the shared folder another appropriation is read from this browser's older copy, not the folde)
+  // v210-rv-a-reading-unsaid: retired as obsolete in v2.19 -- fdcStores went with item 150 (an appropriation the folder has not answered for yet is drawn as one with no position logged)
+  // v210-rv-a-folder-fail-falls-back: retired as obsolete in v2.19 -- fdcFolderRead went with item 150 (a shared folder that cannot be read falls back to this browser's older copy without a word)
+  // v210-rv-a-answer-not-drawn: retired as obsolete in v2.19 -- fdcFolderRead went with item 150 (the box stays on Reading the shared folder after the folder has answered)
+  // v210-rv-a-export-not-waiting: retired as obsolete in v2.19 -- exportFdc went with item 150 (Export pressed while the shared folder is being read does not wait for it: it refuses, and nothing is download)
+  // v210-rv-a-read-once: retired as obsolete in v2.19 -- toggleFdc went with item 150 (the shared folder is read once a session, so a newer save there never reaches the box again)
+  // v210-rv-a-pick-lost-reading: retired as obsolete in v2.19 -- fdcHtml went with item 150 (while the shared folder is read the cycle picked falls back, so a cycle only another appropriation logs is los)
   // the skeptic's route (v2.10 review, after e29f128): the folder reads, Full Fund's copy in it does not
-  { id: 'v210-rv-a-copy-unreadable-falls-back', area: "fdcFolderRead", what: "Full Fund's copy in the shared folder, mid-sync or cut short or not a board, is replaced by this browser's older copy without a word, or Full Fund is said to have no position",
-    find: "fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){",
-    repl: "fydpWhen(fydpStoreFolder(a.k, loc), function(r){" },
+  // v210-rv-a-copy-unreadable-falls-back: retired as obsolete in v2.19 -- fdcFolderRead went with item 150 (Full Fund's copy in the shared folder, mid-sync or cut short or not a board, is replaced by this browser's old)
   { id: 'v210-rv-a-strict-not-a-board-taken', area: "fydpStoreFolder", what: "a copy in the shared folder that is not a saved board is passed over for this browser's copy, without a word",
     find: "if(strict && !none && !(j && j.store)) return bad('is not a saved board');",
     repl: "" },
@@ -8575,163 +7936,61 @@ const MUTATIONS = [
     find: "if(strict && !(e && e.name==='NotFoundError')) return bad(",
     repl: "if(strict) return bad(" },
   // the second skeptic's route (after 72b56db): nothing readable logs a position, and Full Fund's copy cannot be read
-  { id: 'v210-rv-a-unread-listed-as-none', area: "fdcState", what: "an appropriation whose shared-folder copy could not be read is said to log no PPBE position",
-    find: "const who=unread.length? or(read) : 'O&M, Full Fund or Initial Spares';",
-    repl: "const who='O&M, Full Fund or Initial Spares';" },
-  { id: 'v210-rv-a-unread-unsaid', area: "fdcState", what: "with no position readable, the appropriation whose copy could not be read is not named",
-    find: "+(said? ' '+said : '');",
-    repl: ";" },
+  // v210-rv-a-unread-listed-as-none: retired as obsolete in v2.19 -- fdcState went with item 150 (an appropriation whose shared-folder copy could not be read is said to log no PPBE position)
+  // v210-rv-a-unread-unsaid: retired as obsolete in v2.19 -- fdcState went with item 150 (with no position readable, the appropriation whose copy could not be read is not named)
   // ==== end v2.10 A ====
 
   // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
   // fdcSheets: the slides' look (audit-other "v2.10 B (item 130) — the FYDP Disconnects workbook")
-  { id: 'v210-b-money-not-red', area: 'fdcSheets', what: 'a shortfall shows in parentheses but black: the money format loses its [Red] section',
-    find: `MONEY:'$#,##0,,;[Red]($#,##0,,)'`,
-    repl: `MONEY:'$#,##0,,;($#,##0,,)'` },
-  { id: 'v210-b-money-thousands', area: 'fdcSheets', what: 'the money format shows thousands, not millions, so $4,234 reads $4,234,101',
-    find: `MONEY:'$#,##0,,;[Red]($#,##0,,)'`,
-    repl: `MONEY:'$#,##0,;[Red]($#,##0,)'` },
-  { id: 'v210-b-pct-decimal', area: 'fdcSheets', what: '% Funded shows a decimal place the slides do not have',
-    find: `PCT:'0%', FONT:'Arial'`,
-    repl: `PCT:'0.0%', FONT:'Arial'` },
-  { id: 'v210-b-navy-house', area: 'fdcSheets', what: 'the navy is the house style’s, not the slides’ 1F3864',
-    find: `FDC_XL={NAVY:'1F3864',`,
-    repl: `FDC_XL={NAVY:'1B2A4A',` },
-  { id: 'v210-b-band-colour', area: 'fdcSheets', what: 'an appropriation’s band is the service-heading blue, not its own light blue',
-    find: `BAND:'8DB4E2', SVCHDR:'9BC2E6'`,
-    repl: `BAND:'9BC2E6', SVCHDR:'9BC2E6'` },
-  { id: 'v210-b-svchdr-colour', area: 'fdcSheets', what: 'a service sheet’s heading row takes the band’s blue',
-    find: `SVCHDR:'9BC2E6', SEP:'404040'`,
-    repl: `SVCHDR:'8DB4E2', SEP:'404040'` },
-  { id: 'v210-b-sep-colour', area: 'fdcSheets', what: 'the separator between sections is the grid’s grey, not dark grey',
-    find: `SEP:'404040', GRID:'808080'`,
-    repl: `SEP:'808080', GRID:'808080'` },
-  { id: 'v210-b-grid-black', area: 'fdcSheets', what: 'the table’s grid is drawn black, not grey',
-    find: `GRID:'808080', INK:'000000'`,
-    repl: `GRID:'000000', INK:'000000'` },
-  { id: 'v210-b-font-calibri', area: 'fdcSheets', what: 'the sheets are in Calibri, not the slides’ Arial',
-    find: `FONT:'Arial', LBL:52`,
-    repl: `FONT:'Calibri', LBL:52` },
-  { id: 'v210-b-label-width', area: 'fdcSheets', what: 'column A is narrower than 52, and the longest labels run into the figures',
-    find: `LBL:52, YR:13}`,
-    repl: `LBL:40, YR:13}` },
-  { id: 'v210-b-year-width', area: 'fdcSheets', what: 'the year columns are wider than 13',
-    find: `LBL:52, YR:13}`,
-    repl: `LBL:52, YR:15}` },
-  { id: 'v210-b-bold-plain', area: 'fdcSheets', what: 'a total line (ACE required, controls) is not bold',
-    find: `const FDC_LINE={bold:{b:1},`,
-    repl: `const FDC_LINE={bold:{},` },
-  { id: 'v210-b-sub-flush', area: 'fdcSheets', what: 'US Only and International Req Total are not indented under their total',
-    find: ` sub:{indent:2}, ital:`,
-    repl: ` sub:{}, ital:` },
-  { id: 'v210-b-ital-upright', area: 'fdcSheets', what: 'Discretionary and Mandatory are not italic',
-    find: ` ital:{i:1, indent:2}, delta:`,
-    repl: ` ital:{indent:2}, delta:` },
-  { id: 'v210-b-delta-no-rule', area: 'fdcSheets', what: 'the delta line has no heavy rule above it',
-    find: ` delta:{rule:1}, pct:{}};`,
-    repl: ` delta:{}, pct:{}};` },
-  { id: 'v210-b-rule-thin', area: 'fdcSheets', what: 'the delta’s rule is the grid’s thin grey, not a heavy black line',
-    find: `top: o.rule? ['medium',X.INK] : ['thin',X.GRID]`,
-    repl: `top: o.rule? ['thin',X.GRID] : ['thin',X.GRID]` },
-  { id: 'v210-b-null-zero', area: 'fdcSheets', what: 'a year with no position prints $0 instead of —',
-    find: `(typeof v==='number' && isFinite(v))? v : '—'`,
-    repl: `(typeof v==='number' && isFinite(v))? v : 0` },
-  { id: 'v210-b-negative-abs', area: 'fdcSheets', what: 'a shortfall is printed as a positive figure',
-    find: `(typeof v==='number' && isFinite(v))? v : '—'`,
-    repl: `(typeof v==='number' && isFinite(v))? Math.abs(v) : '—'` },
-  { id: 'v210-b-total-is-last-year', area: 'fdcSheets', what: 'the FYDP total column prints the last year again, not the model’s total',
-    find: `fig(j<n-1? (r.vals||[])[j] : r.tot)`,
-    repl: `fig(j<n-1? (r.vals||[])[j] : (r.vals||[])[n-2])` },
-  { id: 'v210-b-years-shifted', area: 'fdcSheets', what: 'each figure lands a year early: FY27 holds FY28’s',
-    find: `fig(j<n-1? (r.vals||[])[j] : r.tot)`,
-    repl: `fig(j<n-1? (r.vals||[])[j+1] : r.tot)` },
-  { id: 'v210-b-pct-as-money', area: 'fdcSheets', what: '% Funded is written in the money format, so 88% reads $0',
-    find: `fmt: pct? X.PCT : X.MONEY`,
-    repl: `fmt: X.MONEY` },
-  { id: 'v210-b-figures-left', area: 'fdcSheets', what: 'the figures are not right-aligned',
-    find: `grid:1, h:'right', fmt:`,
-    repl: `grid:1, fmt:` },
-  { id: 'v210-b-label-blank', area: 'fdcSheets', what: 'a line’s label is left out',
-    find: `rows.push([{v:tx(r.label), s:lab}]`,
-    repl: `rows.push([{v:'', s:lab}]` },
-  { id: 'v210-b-marking-top-gone', area: 'fdcSheets', what: 'the CUI marking above the title is left out',
-    find: `    across(model.marking, {b:1, h:'center'});\n`,
-    repl: `` },
-  { id: 'v210-b-marking-foot-gone', area: 'fdcSheets', what: 'the CUI marking is not in the footer row',
-    find: `, {v:tx(model.marking), s:look({b:1, h:'center'})}]);`,
-    repl: `]);` },
-  { id: 'v210-b-footer-text-gone', area: 'fdcSheets', what: 'the footer row loses the month and the office',
-    find: `rows.push([{v:tx(model.footer), s:`,
-    repl: `rows.push([{v:'', s:` },
-  { id: 'v210-b-footer-colour', area: 'fdcSheets', what: 'the footer text is black, not the slides’ grey',
-    find: `look({sz:12, color:X.FOOT})`,
-    repl: `look({sz:12})` },
-  { id: 'v210-b-footer-no-blank', area: 'fdcSheets', what: 'the footer row sits against the table with no blank row between',
-    find: `    if(rows[rows.length-1].length) rows.push([]);\n`,
-    repl: `` },
-  { id: 'v210-b-footer-off-centre', area: 'fdcSheets', what: 'the footer’s marking is merged across every year column, so it is not under the top marking',
-    find: `    const k=n-4;\n`,
-    repl: `    const k=n;\n` },
-  { id: 'v210-b-title-size', area: 'fdcSheets', what: 'the title is 22 point, not 26',
-    find: `{b:1, sz:26, h:'center'}, 36);`,
-    repl: `{b:1, sz:22, h:'center'}, 36);` },
-  { id: 'v210-b-subtitle-size', area: 'fdcSheets', what: 'the subtitle is 18 point, not 22',
-    find: `{b:1, sz:22, h:'center'}, 30);`,
-    repl: `{b:1, sz:18, h:'center'}, 30);` },
-  { id: 'v210-b-titles-unmerged', area: 'fdcSheets', what: 'the marking and the titles are not merged across the table',
-    find: `rows.push([{v:tx(text), s:look(o)}]); merges.push({r:r, c:0, cs:W});`,
-    repl: `rows.push([{v:tx(text), s:look(o)}]);` },
-  { id: 'v210-b-titles-short', area: 'fdcSheets', what: 'the title rows keep the default height and the 26 point title is cut',
-    find: `merges.push({r:r, c:0, cs:W}); if(ht) heights[r]=ht; };`,
-    repl: `merges.push({r:r, c:0, cs:W}); };` },
-  { id: 'v210-b-over-unmerged', area: 'fdcSheets', what: 'the band over the years is not merged',
-    find: `      merges.push({r:rows.length, c:1, cs:n});\n`,
-    repl: `` },
-  { id: 'v210-b-over-fill-stops', area: 'fdcSheets', what: 'the band over the years paints its first column only',
-    find: `return {v: j? '' : tx(sh.over), s:nv};`,
-    repl: `return j? '' : {v:tx(sh.over), s:nv};` },
-  { id: 'v210-b-corner-size', area: 'fdcSheets', what: 'the corner label is full size, not 9 point',
-    find: `s:look({b:1, sz:9})}`,
-    repl: `s:look({b:1})}` },
-  { id: 'v210-b-summary-head-blue', area: 'fdcSheets', what: 'the Summary’s heading row is the service sheets’ light blue, not navy',
-    find: `const hd= sum? {b:1, color:X.WHITE, fill:X.NAVY, grid:1}`,
-    repl: `const hd= sum? {b:1, fill:X.SVCHDR, grid:1}` },
-  { id: 'v210-b-head-left', area: 'fdcSheets', what: 'the year headings are not centred',
-    find: `const hc=Object.assign({h:'center'}, hd);`,
-    repl: `const hc=hd;` },
-  { id: 'v210-b-gap-dropped', area: 'fdcSheets', what: 'the blank row between the Summary’s sections is left out',
-    find: `if(r.t==='gap'){ rows.push([]); return; }`,
-    repl: `if(r.t==='gap'){ return; }` },
-  { id: 'v210-b-band-black-text', area: 'fdcSheets', what: 'a band’s label is black, not white',
-    find: `{b:1, color:X.WHITE, fill: r.t==='navy'? X.NAVY : X.BAND, grid:1}`,
-    repl: `{b:1, fill: r.t==='navy'? X.NAVY : X.BAND, grid:1}` },
-  { id: 'v210-b-total-band-light', area: 'fdcSheets', what: 'the total section’s band is light blue like an appropriation’s, not navy',
-    find: `fill: r.t==='navy'? X.NAVY : X.BAND`,
-    repl: `fill: X.BAND` },
-  { id: 'v210-b-band-fill-stops', area: 'fdcSheets', what: 'a band paints its label’s cell only, not across the table',
-    find: `[{v: r.t==='sep'? '' : tx(r.label), s:s}].concat(heads.map(function(){ return {v:'', s:s}; })));`,
-    repl: `[{v: r.t==='sep'? '' : tx(r.label), s:s}]);` },
-  { id: 'v210-b-sep-full-height', area: 'fdcSheets', what: 'the separator is a full row, not a thin 9 point bar',
-    find: `        if(r.t==='sep') heights[rows.length]=9;\n`,
-    repl: `` },
-  { id: 'v210-b-gridlines-on', area: 'fdcSheets', what: 'the sheets print with gridlines, which the slides do not have',
-    find: `grid:false, page:{wide:1, tall:1}};`,
-    repl: `page:{wide:1, tall:1}};` },
-  { id: 'v210-b-pages-tall', area: 'fdcSheets', what: 'a sheet prints as many pages tall as it takes, not on one page as a slide',
-    find: `grid:false, page:{wide:1, tall:1}};`,
-    repl: `grid:false, page:{wide:1, tall:0}};` },
-  { id: 'v210-b-no-page', area: 'fdcSheets', what: 'the sheets say nothing of the page: portrait, at full size, across pages',
-    find: `grid:false, page:{wide:1, tall:1}};`,
-    repl: `grid:false};` },
-  { id: 'v210-b-styles-unshared', area: 'fdcSheets', what: 'every style declares its own copy of the money format and its fills',
-    find: `const e={share:1, fill:o.fill||false,`,
-    repl: `const e={fill:o.fill||false,` },
-  { id: 'v210-b-style-off-by-one', area: 'fdcSheets', what: 'a cell is written in the style after its own',
-    find: `    return (seen[k]=XF_EXTRA0+extra.length-1);`,
-    repl: `    return (seen[k]=XF_EXTRA0+extra.length);` },
-  { id: 'v210-b-sheets-reversed', area: 'fdcSheets', what: 'the sheets come out last first: USN CV before the Summary',
-    find: `const sheets=((model && model.sheets) || []).map(function(sh){`,
-    repl: `const sheets=((model && model.sheets) || []).slice().reverse().map(function(sh){` },
+  // v210-b-money-not-red: retired as obsolete in v2.19 -- FDC_XL went with item 150 (a shortfall shows in parentheses but black: the money format loses its [Red] section)
+  // v210-b-money-thousands: retired as obsolete in v2.19 -- FDC_XL went with item 150 (the money format shows thousands, not millions, so $4,234 reads $4,234,101)
+  // v210-b-pct-decimal: retired as obsolete in v2.19 -- FDC_XL went with item 150 (% Funded shows a decimal place the slides do not have)
+  // v210-b-navy-house: retired as obsolete in v2.19 -- FDC_XL went with item 150 (the navy is the house style’s, not the slides’ 1F3864)
+  // v210-b-band-colour: retired as obsolete in v2.19 -- FDC_XL went with item 150 (an appropriation’s band is the service-heading blue, not its own light blue)
+  // v210-b-svchdr-colour: retired as obsolete in v2.19 -- FDC_XL went with item 150 (a service sheet’s heading row takes the band’s blue)
+  // v210-b-sep-colour: retired as obsolete in v2.19 -- FDC_XL went with item 150 (the separator between sections is the grid’s grey, not dark grey)
+  // v210-b-grid-black: retired as obsolete in v2.19 -- FDC_XL went with item 150 (the table’s grid is drawn black, not grey)
+  // v210-b-font-calibri: retired as obsolete in v2.19 -- FDC_XL went with item 150 (the sheets are in Calibri, not the slides’ Arial)
+  // v210-b-label-width: retired as obsolete in v2.19 -- FDC_XL went with item 150 (column A is narrower than 52, and the longest labels run into the figures)
+  // v210-b-year-width: retired as obsolete in v2.19 -- FDC_XL went with item 150 (the year columns are wider than 13)
+  // v210-b-bold-plain: retired as obsolete in v2.19 -- FDC_LINE went with item 150 (a total line (ACE required, controls) is not bold)
+  // v210-b-sub-flush: retired as obsolete in v2.19 -- FDC_LINE went with item 150 (US Only and International Req Total are not indented under their total)
+  // v210-b-ital-upright: retired as obsolete in v2.19 -- FDC_LINE went with item 150 (Discretionary and Mandatory are not italic)
+  // v210-b-delta-no-rule: retired as obsolete in v2.19 -- FDC_LINE went with item 150 (the delta line has no heavy rule above it)
+  // v210-b-rule-thin: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the delta’s rule is the grid’s thin grey, not a heavy black line)
+  // v210-b-null-zero: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a year with no position prints $0 instead of —)
+  // v210-b-negative-abs: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a shortfall is printed as a positive figure)
+  // v210-b-total-is-last-year: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the FYDP total column prints the last year again, not the model’s total)
+  // v210-b-years-shifted: retired as obsolete in v2.19 -- fdcSheets went with item 150 (each figure lands a year early: FY27 holds FY28’s)
+  // v210-b-pct-as-money: retired as obsolete in v2.19 -- fdcSheets went with item 150 (% Funded is written in the money format, so 88% reads $0)
+  // v210-b-figures-left: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the figures are not right-aligned)
+  // v210-b-label-blank: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a line’s label is left out)
+  // v210-b-marking-top-gone: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the CUI marking above the title is left out)
+  // v210-b-marking-foot-gone: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the CUI marking is not in the footer row)
+  // v210-b-footer-text-gone: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the footer row loses the month and the office)
+  // v210-b-footer-colour: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the footer text is black, not the slides’ grey)
+  // v210-b-footer-no-blank: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the footer row sits against the table with no blank row between)
+  // v210-b-footer-off-centre: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the footer’s marking is merged across every year column, so it is not under the top marking)
+  // v210-b-title-size: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the title is 22 point, not 26)
+  // v210-b-subtitle-size: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the subtitle is 18 point, not 22)
+  // v210-b-titles-unmerged: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the marking and the titles are not merged across the table)
+  // v210-b-titles-short: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the title rows keep the default height and the 26 point title is cut)
+  // v210-b-over-unmerged: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the band over the years is not merged)
+  // v210-b-over-fill-stops: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the band over the years paints its first column only)
+  // v210-b-corner-size: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the corner label is full size, not 9 point)
+  // v210-b-summary-head-blue: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the Summary’s heading row is the service sheets’ light blue, not navy)
+  // v210-b-head-left: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the year headings are not centred)
+  // v210-b-gap-dropped: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the blank row between the Summary’s sections is left out)
+  // v210-b-band-black-text: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a band’s label is black, not white)
+  // v210-b-total-band-light: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the total section’s band is light blue like an appropriation’s, not navy)
+  // v210-b-band-fill-stops: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a band paints its label’s cell only, not across the table)
+  // v210-b-sep-full-height: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the separator is a full row, not a thin 9 point bar)
+  // v210-b-gridlines-on: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the sheets print with gridlines, which the slides do not have)
+  // v210-b-pages-tall: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a sheet prints as many pages tall as it takes, not on one page as a slide)
+  // v210-b-no-page: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the sheets say nothing of the page: portrait, at full size, across pages)
+  // v210-b-styles-unshared: retired as obsolete in v2.19 -- fdcSheets went with item 150 (every style declares its own copy of the money format and its fills)
+  // v210-b-style-off-by-one: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a cell is written in the style after its own)
+  // v210-b-sheets-reversed: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the sheets come out last first: USN CV before the Summary)
   // the writer's options for it (buildXlsx, _stylesXml): opt-in, and every other workbook written as before
   { id: 'v210-b-font-name-ignored', area: '_stylesXml', what: 'a font that names Arial is written as Calibri',
     find: `<name val="'+_xesc(f.name||'Calibri')+'"/></font>'`,
@@ -8773,523 +8032,210 @@ const MUTATIONS = [
 ` },
   // v2.10 review (WB-1): the indented lines are drawn indented (audit-other "v2.10 review — the FYDP Disconnects workbook draws
   // its indented lines indented")
-  { id: 'v210-rv-b-indent-flush', area: 'fdcSheets', what: 'an indented line names no horizontal alignment, so Excel does not draw the indent and prints it flush with the bold totals',
-    find: `align:{h:o.h || (o.indent? 'left' : undefined), v:'center', indent:o.indent||0}`,
-    repl: `align:{h:o.h, v:'center', indent:o.indent||0}` },
-  { id: 'v210-rv-b-left-everywhere', area: 'fdcSheets', what: 'every look with no alignment of its own is made left, not only an indented one: the bold, delta and % labels change too',
-    find: `h:o.h || (o.indent? 'left' : undefined)`,
-    repl: `h:o.h || 'left'` },
+  // v210-rv-b-indent-flush: retired as obsolete in v2.19 -- fdcSheets went with item 150 (an indented line names no horizontal alignment, so Excel does not draw the indent and prints it flush with the)
+  // v210-rv-b-left-everywhere: retired as obsolete in v2.19 -- fdcSheets went with item 150 (every look with no alignment of its own is made left, not only an indented one: the bold, delta and % labels c)
   // ==== end v2.10 B ====
 
   // ==== v2.11: FYDP Disconnects -- the workbook names the services counted on the Summary only ====
   // Brad, 27 Oct 2026: "add the workbook note line". Each is caught by audit-other "v2.11 — the FYDP Disconnects workbook says..."
-  { id: 'v211-note-not-carried', area: "fdcModel", what: "the model carries no note, so the workbook never says which services are counted on the Summary only",
-    find: "if(note) M.note=note;",
-    repl: "void note;" },
-  { id: 'v211-note-not-written', area: "fdcSheets", what: "the workbook leaves the note out, and a service tab prints $0 controls with nothing to say why",
-    find: "if(model.note){",
-    repl: "if(false){" },
-  { id: 'v211-note-always', area: "fdcSheets", what: "every workbook gets a note row, an empty one when no service is ungrouped -- v2.10's workbook no longer",
-    find: "if(model.note){",
-    repl: "if(true){" },
-  { id: 'v211-note-summary-only', area: "fdcSheets", what: "the note is written on the Summary alone, not on the service tabs whose $0 it explains",
-    find: "if(model.note){",
-    repl: "if(model.note && sum){" },
-  { id: 'v211-note-unmerged', area: "fdcSheets", what: "the note is not merged across the table, so it wraps inside column A",
-    find: "merges.push({r:nr, c:0, cs:W});",
-    repl: "" },
-  { id: 'v211-note-not-wrapped', area: "fdcSheets", what: "the note is not wrapped, so a long one runs off the page",
-    find: "look({i:1, sz:10, h:'left', wrap:1})",
-    repl: "look({i:1, sz:10, h:'left'})" },
-  { id: 'v211-wrap-dropped', area: "fdcSheets", what: "a look that asks for wrapping is written without it",
-    find: "if(o.wrap) e.align.wrap=1;",
-    repl: "" },
-  { id: 'v211-note-one-line', area: "fdcSheets", what: "the note's row keeps the default height, so a two-line note shows its first line only",
-    find: "heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));",
-    repl: "" },
+  // v211-note-not-carried: retired as obsolete in v2.19 -- fdcModel went with item 150 (the model carries no note, so the workbook never says which services are counted on the Summary only)
+  // v211-note-not-written: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the workbook leaves the note out, and a service tab prints $0 controls with nothing to say why)
+  // v211-note-always: retired as obsolete in v2.19 -- fdcSheets went with item 150 (every workbook gets a note row, an empty one when no service is ungrouped -- v2.10's workbook no longer)
+  // v211-note-summary-only: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note is written on the Summary alone, not on the service tabs whose $0 it explains)
+  // v211-note-unmerged: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note is not merged across the table, so it wraps inside column A)
+  // v211-note-not-wrapped: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note is not wrapped, so a long one runs off the page)
+  // v211-wrap-dropped: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a look that asks for wrapping is written without it)
+  // v211-note-one-line: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note's row keeps the default height, so a two-line note shows its first line only)
   // the review's page-1: sized by its length, a note of long unbroken names was cut at the top and bottom
-  { id: 'v211-note-height-by-length', area: "fdcSheets", what: "the note's row is sized by its length, and a note of long names wraps to more lines than that and is cut",
-    find: "heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));",
-    repl: "heights[nr]=Math.min(409, Math.max(15, 14*Math.ceil(nt.length/120)));" },
-  { id: 'v211-note-height-uncapped', area: "fdcSheets", what: "a note past Excel's 409-point row limit is written taller than Excel will hold",
-    find: "heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));",
-    repl: "heights[nr]=Math.max(15, 14*fdcWrapLines(nt, 120));" },
-  { id: 'v211-wrap-ignores-long-word', area: "fdcWrapLines", what: "a word longer than a line is counted as one line, and the lines it really takes are cut",
-    find: "if(n>w){ if(cur){ lines++; cur=0; } lines+=Math.floor(n/w); cur=n%w; return; }",
-    repl: "" },
-  { id: 'v211-wrap-packs-past-width', area: "fdcWrapLines", what: "words are packed past the line's width, so fewer lines are counted than the note wraps to",
-    find: "if(cur && cur+1+n>w){ lines++; cur=0; }",
-    repl: "if(cur && cur+1+n>2*w){ lines++; cur=0; }" },
-  { id: 'v211-note-cut', area: "fdcSheets", what: "the note is cut short in the workbook, and no longer says what the box says",
-    find: "const nr=rows.length, nt=tx(model.note);",
-    repl: "const nr=rows.length, nt=tx(model.note).slice(0, 80);" },
-  { id: 'v211-note-against-footer', area: "fdcSheets", what: "the note sits on the row above the footer, with no blank row between",
-    find: "heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));\n      rows.push([]);",
-    repl: "heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));" },
-  { id: 'v211-lone-estimate-unseen', area: "fdcLoneSay", what: "an estimate line in no group is not named: only positions are",
-    find: "const set=ACEDB.sets[st.ace]||{}, grouped=Object.create(null), lone=[];",
-    repl: "const set={}, grouped=Object.create(null), lone=[];" },
+  // v211-note-height-by-length: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note's row is sized by its length, and a note of long names wraps to more lines than that and is cut)
+  // v211-note-height-uncapped: retired as obsolete in v2.19 -- fdcSheets went with item 150 (a note past Excel's 409-point row limit is written taller than Excel will hold)
+  // v211-wrap-ignores-long-word: retired as obsolete in v2.19 -- fdcWrapLines went with item 150 (a word longer than a line is counted as one line, and the lines it really takes are cut)
+  // v211-wrap-packs-past-width: retired as obsolete in v2.19 -- fdcWrapLines went with item 150 (words are packed past the line's width, so fewer lines are counted than the note wraps to)
+  // v211-note-cut: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note is cut short in the workbook, and no longer says what the box says)
+  // v211-note-against-footer: retired as obsolete in v2.19 -- fdcSheets went with item 150 (the note sits on the row above the footer, with no blank row between)
+  // v211-lone-estimate-unseen: retired as obsolete in v2.19 -- fdcLoneSay went with item 150 (an estimate line in no group is not named: only positions are)
   // ==== end v2.11 ====
 
   // ==== v2.12 W1 (item 132): the ACE import by its header titles, the WBS tree, PSM inside Air Vehicle ====
   // The import reads by header title on any sheet (audit-other "v2.12 W1 —"); each row's reason, the category map, Depot
   // Activation, whole dollars at the door, the WBS tree and its E breakouts; PSM inside Air Vehicle and the stored {} healed on
   // opening; the AV + PSM split up the tree (audit-recon "v2.12 W1 —"); the report and mapping box drawn as text (audit-hostile).
-  { id: 'v212-w1-header-first-sheet', area: "aceFindHeader", what: "the import reads the first sheet only again: the 2026 file opens on its Cover, which has no header, and is refused",
-    find: "  names.forEach(function(nm){\n    const rows=sheets[nm]||[], lim=",
-    repl: "  names.slice(0,1).forEach(function(nm){\n    const rows=sheets[nm]||[], lim=" },
-  { id: 'v212-w1-header-last-wins', area: "aceFindHeader", what: "the last row carrying a few titles wins over the row carrying most of them: the Notes sheet is read as the estimate",
-    find: "if(n>=ACE_HDR_MIN && (!best || n>best.n)) best=",
-    repl: "if(n>=ACE_HDR_MIN) best=" },
-  { id: 'v212-w1-title-punctuation', area: "aceTitleN", what: "a title is compared with its punctuation kept: \"Rollup Value\" is not \"Rollup Value?\", and a renamed spelling has to be asked for",
-    find: "function aceTitleN(v){ return String(v==null? '' : v).toLowerCase().replace(/[^a-z0-9]/g,''); }",
-    repl: "function aceTitleN(v){ return String(v==null? '' : v).toLowerCase().replace(/\\s+/g,''); }" },
-  { id: 'v212-w1-remembered-ignored', area: "aceFindHeader", what: "an answer given in the mapping box is not used again: the same layout is asked about every time",
-    // v2.12 RV1: retargeted -- a remembered answer is resolved by its title through memCol (review R00)
-    find: "    if(m){ const i=memCol(F, m); if(i>=0){ col[F.f]=i; how[F.f]='remembered'; return; }",
-    repl: "    if(false){ const i=memCol(F, m); if(i>=0){ col[F.f]=i; how[F.f]='remembered'; return; }" },
-  { id: 'v212-w1-remembered-not-kept', area: "aceImportGo", what: "the answers given in the mapping box are not kept with the estimates: the same layout is asked about again",
-    // v2.12 RV1: retargeted -- the remembered layout carries `at` and `none` beside the titles (review R00, R25)
-    find: "      ACEDB.cols[H.sig]={map:m, at:at, none:none, ts:Date.now(), by:set.by, file:ctx.file};",
-    repl: "      void m;" },
-  { id: 'v212-w1-unanswered-taken', area: "aceImportGo", what: "a required field left unanswered in the mapping box is read as nothing: the file is imported with PALS/O&S blank, and nothing checks it",
-    find: "    if(miss.length) throw new Error('the estimate has no column for '",
-    repl: "    if(false) throw new Error('the estimate has no column for '" },
-  { id: 'v212-w1-cols-not-merged', area: "importStores", what: "the layouts a colleague answered for do not come across with an ordinary import",
-    find: "      ACEDB.cols[sig]=ac.cols[sig]; n++; });",
-    repl: "      void sig; });" },
-  { id: 'v212-w1-dtype-kept', area: "aceParse", what: "rows in another dollar type are read beside the then-year ones: constant-year dollars are counted as then-year",
-    find: "    if(!(dt.indexOf('ty')===0 || dt.indexOf('thenyear')===0)){",
-    repl: "    if(false){" },
-  { id: 'v212-w1-rollup-kept', area: "aceParse", what: "a rollup row is read as a line: every dollar under a subtotal is counted twice",
-    find: "    if(aceTitleN(aceCellT(row, H, 'roll')).indexOf('y')===0){ out('rollup'",
-    repl: "    if(aceTitleN(aceCellT(row, H, 'roll')).indexOf('y')===9){ out('rollup'" },
-  { id: 'v212-w1-blank-unnamed', area: "aceParse", what: "a row with a blank Support Line Category is not told apart as a summary row: it is left out as a category ORBIT does not map",
-    find: "    if(!slcN){ out('blank'",
-    repl: "    if(false){ out('blank'" },
-  { id: 'v212-w1-milpers-kept', area: "aceParse", what: "MILPERS rows are read",
-    find: "==='milpers'){ out('milpers'",
-    repl: "==='milpers-x'){ out('milpers'" },
-  { id: 'v212-w1-partner-kept', area: "aceParse", what: "partner and FMS lines are read as the JPO’s",
-    find: "if(u && u!=='us'){ out('partner'",
-    repl: "if(false){ out('partner'" },
-  { id: 'v212-w1-jpo-kept', area: "aceParse", what: "a row the JPO does not manage is read",
-    find: "    if(aceTitleN(aceCellT(row, H, 'jpo')).indexOf('y')!==0){ out('jpo'",
-    repl: "    if(aceTitleN(aceCellT(row, H, 'jpo')).indexOf('y')<0 && false){ out('jpo'" },
-  { id: 'v212-w1-svcmgd-unnamed', area: "aceParse", what: "Service Mgd is left out as an office ORBIT does not know, its dollars not stated as its own reason",
-    find: "    if(pmoN==='servicemgd'){ out('svcmgd'",
-    repl: "    if(false){ out('svcmgd'" },
-  { id: 'v212-w1-pals-unchecked', area: "aceParse", what: "a row whose PALS/O&S disagrees with its Support Line Category is read",
-    find: "    if((pals==='os' && cat.ap!=='om') || (pals==='pals' && cat.ap==='om')){ out('pals'",
-    repl: "    if(false){ out('pals'" },
-  { id: 'v212-w1-svc-unread-kept', area: "aceParse", what: "a row whose service cannot be read is kept, as a line with no service",
-    find: "    if(!svc){ const sT=aceCellT(row, H, 'svc')",
-    repl: "    if(false){ const sT=aceCellT(row, H, 'svc')" },
-  { id: 'v212-w1-slc-ils', area: "ACE_SLC", what: "Other ILS lands on no ORBIT cost element",
-    find: "  put('Other ILS', 'ff', 'Other ILS Production');",
-    repl: "  put('Other ILS', 'ff', 'Other ILS');" },
-  { id: 'v212-w1-depot-pmo-first', area: "aceDepotCe", what: "Depot Activation is settled by the PMO before CES2: an Air Vehicle row in the software branch reads Depot Standup Air Vehicle",
-    find: "  if(aceTitleN(ces2)==='softwaredepotstandup') return 'Depot Standup Software';\n  if(pmo==='PP') return 'Depot Standup Propulsion';\n  if(pmo==='AV') return 'Depot Standup Air Vehicle';",
-    repl: "  if(pmo==='AV') return 'Depot Standup Air Vehicle';\n  if(aceTitleN(ces2)==='softwaredepotstandup') return 'Depot Standup Software';\n  if(pmo==='PP') return 'Depot Standup Propulsion';" },
-  { id: 'v212-w1-depot-silent', area: "aceParse", what: "a Depot Activation row the rules cannot settle is kept with no cost element and not named",
-    find: "if(!ce) named('depot', r, wbsT,",
-    repl: "if(false) named('depot', r, wbsT," },
-  { id: 'v212-w1-paren-positive', area: "aceMoney", what: "(1.5) reads +1.5 again: a credit counted as a cost",
-    find: "    if(neg) x=-x;\n",
-    repl: "\n" },
-  { id: 'v212-w1-cents-kept', area: "aceMoney", what: "a figure is kept as $M times a million, with its fraction: the lines and the reasons do not add to the dollar",
-    find: "  return D$(x*1e6);\n}",
-    repl: "  return x*1e6;\n}" },
-  { id: 'v212-w1-p-unchecked', area: "aceParse", what: "a WBS whose letter disagrees with PALS/O&S is not named",
-    find: "if((pals==='pals' && !isP) || (pals==='os' && isP)) named('p'",
-    repl: "if(false) named('p'" },
-  { id: 'v212-w1-level-unchecked', area: "aceParse", what: "a Level that is not the paragraph’s depth is not named",
-    find: "      if(!(lvT!=='' && +lvT===lv)) named('level'",
-    repl: "      if(false) named('level'" },
+  // v212-w1-header-first-sheet: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (the import reads the first sheet only again: the 2026 file opens on its Cover, which has no header, and is ref)
+  // v212-w1-header-last-wins: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (the last row carrying a few titles wins over the row carrying most of them: the Notes sheet is read as the est)
+  // v212-w1-title-punctuation: retired as obsolete in v2.19 -- aceTitleN went with item 150 (a title is compared with its punctuation kept: \"Rollup Value\" is not \"Rollup Value?\", and a renamed spelli)
+  // v212-w1-remembered-ignored: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (an answer given in the mapping box is not used again: the same layout is asked about every time)
+  // v212-w1-remembered-not-kept: retired as obsolete in v2.19 -- aceImportGo went with item 150 (the answers given in the mapping box are not kept with the estimates: the same layout is asked about again)
+  // v212-w1-unanswered-taken: retired as obsolete in v2.19 -- aceImportGo went with item 150 (a required field left unanswered in the mapping box is read as nothing: the file is imported with PALS/O&S bla)
+  // v212-w1-cols-not-merged: retired as obsolete in v2.19 -- its line in importStores went with item 150 (the layouts a colleague answered for do not come across with an ordinary import)
+  // v212-w1-dtype-kept: retired as obsolete in v2.19 -- aceParse went with item 150 (rows in another dollar type are read beside the then-year ones: constant-year dollars are counted as then-year)
+  // v212-w1-rollup-kept: retired as obsolete in v2.19 -- aceParse went with item 150 (a rollup row is read as a line: every dollar under a subtotal is counted twice)
+  // v212-w1-blank-unnamed: retired as obsolete in v2.19 -- aceParse went with item 150 (a row with a blank Support Line Category is not told apart as a summary row: it is left out as a category ORBI)
+  // v212-w1-milpers-kept: retired as obsolete in v2.19 -- aceParse went with item 150 (MILPERS rows are read)
+  // v212-w1-partner-kept: retired as obsolete in v2.19 -- aceParse went with item 150 (partner and FMS lines are read as the JPO’s)
+  // v212-w1-jpo-kept: retired as obsolete in v2.19 -- aceParse went with item 150 (a row the JPO does not manage is read)
+  // v212-w1-svcmgd-unnamed: retired as obsolete in v2.19 -- aceParse went with item 150 (Service Mgd is left out as an office ORBIT does not know, its dollars not stated as its own reason)
+  // v212-w1-pals-unchecked: retired as obsolete in v2.19 -- aceParse went with item 150 (a row whose PALS/O&S disagrees with its Support Line Category is read)
+  // v212-w1-svc-unread-kept: retired as obsolete in v2.19 -- aceParse went with item 150 (a row whose service cannot be read is kept, as a line with no service)
+  // v212-w1-slc-ils: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Other ILS lands on no ORBIT cost element)
+  // v212-w1-depot-pmo-first: retired as obsolete in v2.19 -- aceDepotCe went with item 150 (Depot Activation is settled by the PMO before CES2: an Air Vehicle row in the software branch reads Depot Stan)
+  // v212-w1-depot-silent: retired as obsolete in v2.19 -- aceParse went with item 150 (a Depot Activation row the rules cannot settle is kept with no cost element and not named)
+  // v212-w1-paren-positive: retired as obsolete in v2.19 -- aceMoney went with item 150 ((1.5) reads +1.5 again: a credit counted as a cost)
+  // v212-w1-cents-kept: retired as obsolete in v2.19 -- aceMoney went with item 150 (a figure is kept as $M times a million, with its fraction: the lines and the reasons do not add to the dollar)
+  // v212-w1-p-unchecked: retired as obsolete in v2.19 -- aceParse went with item 150 (a WBS whose letter disagrees with PALS/O&S is not named)
+  // v212-w1-level-unchecked: retired as obsolete in v2.19 -- aceParse went with item 150 (a Level that is not the paragraph’s depth is not named)
   // v2.12 RV4: retargeted -- the zero count now asks for a WBS (second review S01); the same defect, the row carried as a line
-  { id: 'v212-w1-zero-row-lined', area: "aceParse", what: "a paragraph with no dollar is carried as a line holding nothing",
-    find: "    if(!any){ if(code) rep.kept.zero++; continue; }",
-    repl: "    if(!any){ if(code) rep.kept.zero++; }" },
+  // v212-w1-zero-row-lined: retired as obsolete in v2.19 -- aceParse went with item 150 (a paragraph with no dollar is carried as a line holding nothing)
   // v2.12 RV4: retargeted -- step 1 now asks for no text in the year cells too (second review S01); the same defect
-  { id: 'v212-w1-formatting-counted', area: "aceParse", what: "a row with no WBS and no dollar is read as data: the formatting between rows is counted as left out",
-    find: "    if(!code && !any && !odd.length){ rep.notData++; continue; }",
-    repl: "    if(false){ rep.notData++; continue; }" },
-  { id: 'v212-w1-total-short', area: "aceParse", what: "the sheet’s own dollars are not added up, so the report cannot say every dollar is kept or in a reason",
-    find: "    rep.total.rows++; sum(rep.total.v, vec);",
-    repl: "    rep.total.rows++;" },
-  { id: 'v212-w1-values-as-keys', area: "aceParse", what: "the values a reason counts are keys again: a PMO reading \"__proto__\" re-parents the list, \"constructor\" is lost, and the dollar types go unsaid",
-    find: "  const count=function(list, t){ for(let i=0;i<list.length;i++) if(list[i][0]===t){ list[i][1]++; return; } list.push([t, 1]); };",
-    repl: "  const count=function(list, t){ list[t]=(list[t]||0)+1; };" },
-  { id: 'v212-w1-builtin-title-remembered', area: "aceImportGo", what: "a column titled \"constructor\" is remembered as the PMO’s title: the board refuses its own saved file at the import check",
-    find: "      if(!IN_KEY_BAD.has(t)) map[F.f]=t; });",
-    repl: "      map[F.f]=t; });" },
-  { id: 'v212-w1-report-year-ignored', area: "aceRepBody", what: "the report’s year column prints every year added up, whatever year is chosen",
-    find: "const vOf=function(o){ o=o||{}; if(aceRepYr==='all')",
-    repl: "const vOf=function(o){ o=o||{}; if(true)" },
-  { id: 'v212-w1-conflict-silent', area: "aceTree", what: "a paragraph two rows name differently is not named",
-    find: "      if(a.rows.length<50) a.rows.push(row);",
-    repl: "      if(false) a.rows.push(row);" },
-  { id: 'v212-w1-suffix-plain', area: "aceTree", what: "a suffixed line’s headings are its number with the last segment dropped: the ECU lines fold under Propulsion",
-    // v2.12 RV1: retargeted -- once a heading takes the suffix every heading below it does (review R03, R09, R26, K08)
-    find: "      const h=(suf && on)? base+suf : base;",
-    repl: "      const h=base;" },
-  { id: 'v212-w1-suffix-always', area: "aceTree", what: "every heading above a suffixed line takes the suffix, even where its name is the unsuffixed heading’s: P6.5.1.2E is not under Government",
-    // v2.12 RV1: retargeted with the suffix's carry (review R03, R09, R26, K08)
-    find: "      const h=(suf && on)? base+suf : base;",
-    repl: "      const h=suf? base+suf : base;" },
-  { id: 'v212-w1-suffix-file-order', area: "aceTree", what: "the lines are read in file order, so a breakout before its twin is judged against no unsuffixed name",
-    find: "  kept.forEach(function(K){ if(K.code && !aceSuffixOf(K.code)) walk(K, true); });\n  kept.forEach(function(K){ if(K.code && aceSuffixOf(K.code)) walk(K, false); });",
-    repl: "  kept.forEach(function(K){ if(K.code) walk(K, !aceSuffixOf(K.code)); });" },
-  { id: 'v212-w1-tree-parent-plain', area: "aceTree", what: "a line’s own paragraph hangs under its number with the last segment dropped, not under the heading its breakout names",
-    find: "    put(K.ap, K.code, n, K.ces[n-1]||'', up, K.row, plain);",
-    repl: "    put(K.ap, K.code, n, K.ces[n-1]||'', segs.slice(0,n-1).join('.'), K.row, plain);" },
-  { id: 'v212-w1-xlsb-read', area: "importAce", what: "an .xlsb is read as if it were an .xlsx, and refused for being \"not an .xlsx workbook\", with nothing said about saving it as one",
-    find: "  if(/\\.xlsb$/i.test(f.name)){",
-    repl: "  if(false){" },
+  // v212-w1-formatting-counted: retired as obsolete in v2.19 -- aceParse went with item 150 (a row with no WBS and no dollar is read as data: the formatting between rows is counted as left out)
+  // v212-w1-total-short: retired as obsolete in v2.19 -- aceParse went with item 150 (the sheet’s own dollars are not added up, so the report cannot say every dollar is kept or in a reason)
+  // v212-w1-values-as-keys: retired as obsolete in v2.19 -- aceParse went with item 150 (the values a reason counts are keys again: a PMO reading \"__proto__\" re-parents the list, \"constructor\" is)
+  // v212-w1-builtin-title-remembered: retired as obsolete in v2.19 -- aceImportGo went with item 150 (a column titled \"constructor\" is remembered as the PMO’s title: the board refuses its own saved file at the )
+  // v212-w1-report-year-ignored: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the report’s year column prints every year added up, whatever year is chosen)
+  // v212-w1-conflict-silent: retired as obsolete in v2.19 -- aceTree went with item 150 (a paragraph two rows name differently is not named)
+  // v212-w1-suffix-plain: retired as obsolete in v2.19 -- aceTree went with item 150 (a suffixed line’s headings are its number with the last segment dropped: the ECU lines fold under Propulsion)
+  // v212-w1-suffix-always: retired as obsolete in v2.19 -- aceTree went with item 150 (every heading above a suffixed line takes the suffix, even where its name is the unsuffixed heading’s: P6.5.1.)
+  // v212-w1-suffix-file-order: retired as obsolete in v2.19 -- aceTree went with item 150 (the lines are read in file order, so a breakout before its twin is judged against no unsuffixed name)
+  // v212-w1-tree-parent-plain: retired as obsolete in v2.19 -- aceTree went with item 150 (a line’s own paragraph hangs under its number with the last segment dropped, not under the heading its breakou)
+  // v212-w1-xlsb-read: retired as obsolete in v2.19 -- importAce went with item 150 (an .xlsb is read as if it were an .xlsx, and refused for being \"not an .xlsx workbook\", with nothing said ab)
   { id: 'v212-w1-xlsb-unnamed', area: "xlsxRead", what: "a binary workbook named .xlsx says only that it has no workbook part",
     find: "  if(!wbx && Object.prototype.hasOwnProperty.call(entries, 'xl/workbook.bin'))",
     repl: "  if(false)" },
-  { id: 'v212-w1-other-dollars-taken', area: "aceImportGo", what: "a file with no then-year row is not refused for it: it is \"every row left out\", with no word of the types it holds",
-    find: "    if(R.total.rows && !R.thenYear) throw",
-    repl: "    if(false) throw" },
-  { id: 'v212-w1-report-not-opened', area: "aceImportGo", what: "the Spruills opens after an import, not its report",
-    find: "    aceRepK=key; aceRepOpen=true; render();",
-    repl: "    aceRepK=key; spOpen=true; render();" },
-  { id: 'v212-w1-data-item-gone', area: "syncBtns", what: "the import report is not on the Data card",
-    find: "lbl('Cost estimates')+I.acei+I.acer+I.acet)+",
-    repl: "lbl('Cost estimates')+I.acei+I.acet)+" },
+  // v212-w1-other-dollars-taken: retired as obsolete in v2.19 -- aceImportGo went with item 150 (a file with no then-year row is not refused for it: it is \"every row left out\", with no word of the types it)
+  // v212-w1-report-not-opened: retired as obsolete in v2.19 -- aceImportGo went with item 150 (the Spruills opens after an import, not its report)
+  // v212-w1-data-item-gone: retired as obsolete in v2.19 -- its line in syncBtns went with item 150 (the import report is not on the Data card)
   { id: 'v212-w1-xlsx-row-numbers', area: "xlsxRead", what: "the row a sheet’s titles are on is counted from the rows in the file: Excel leaves empty rows out, and the import names the wrong row",
     find: "        if(!rno){ const rd=attrs.match(/r=\"[A-Z]+(\\d+)\"/); if(rd) rno=+rd[1]; }\n",
     repl: "" },
-  { id: 'v212-w1-spruills-alert', area: "spBodyDraw", what: "the Spruills’ import button only says the import is staged here again",
-    find: "onclick=\"document.getElementById(\\'aceFile\\').click()\">",
-    repl: "onclick=\"alert(\\'staged\\')\">" },
-  { id: 'v212-w1-heal-off', area: "applyStore", what: "a 2026 estimate’s stored {} stays: PSM is read as its own estimate office, at $0",
-    find: "  aceAlignHeal();          // v2.12 (item 132)",
-    repl: "  void 0;          // v2.12 (item 132)" },
-  { id: 'v212-w1-heal-any-year', area: "aceAlignHeal", what: "an older estimate’s alignment is replaced too",
-    find: "    if(aceYearOf(k)>=2026 && v && typeof v==='object'",
-    repl: "    if(aceYearOf(k)>=0 && v && typeof v==='object'" },
-  { id: 'v212-w1-heal-choice', area: "aceAlignHeal", what: "an alignment someone set is replaced with the default",
-    find: "&& !Array.isArray(v) && !Object.keys(v).length){",
-    repl: "&& !Array.isArray(v)){" },
-  { id: 'v212-w1-heal-silent', area: "boot", what: "the alignment replaced on opening is never said",
-    find: "ACE_BOOTED=true;\ntry{ aceHealSay(true); }catch(e){}",
-    repl: "ACE_BOOTED=true;" },
-  { id: 'v212-w1-default-own', area: "aceAlignDefault", what: "PSM is its own estimate office again",
-    find: "function aceAlignDefault(){ return {PSM:'AV'}; }",
-    repl: "function aceAlignDefault(){ return {}; }" },
-  { id: 'v212-w1-split-prefix', area: "aceLineUp", what: "a line is claimed by its number’s prefixes rather than up the estimate’s tree: P6.2.2 claims the ECU breakout P6.2.2.1E",
-    find: "function aceLineUp(k, ap, w){ const up=aceWbsUp(k, ap, w); if(up.length) return up;",
-    repl: "function aceLineUp(k, ap, w){ const up=aceNormWbs(w).split('.').map(function(_,i,a){ return a.slice(0,a.length-i).join('.'); }); if(up.length) return up;" },
-  { id: 'v212-w1-split-exact-only', area: "aceLineUp", what: "a requirement on a heading claims no line beneath it",
-    find: "function aceLineUp(k, ap, w){ const up=aceWbsUp(k, ap, w); if(up.length) return up;",
-    repl: "function aceLineUp(k, ap, w){ const up=aceWbsUp(k, ap, w); if(false) return up;" },
-  { id: 'v212-w1-split-first-claimant', area: "aceGroupSplit", what: "a line two offices claim goes to the first of them, a split nobody agreed",
-    find: "      if(gs.length===1) out.by[gs[0]]+=v; else out.shared+=v;",
-    repl: "      if(gs.length>=1) out.by[gs[0]]+=v; else out.shared+=v;" },
-  { id: 'v212-w1-split-year-figures', area: "aceGroupSplit", what: "every year’s parts are read at the year on screen’s figures",
-    find: "      const v=+((l.v&&l.v[sc.fy])||0); if(!v) return;",
-    repl: "      const v=+((l.v&&l.v[MS.cur])||0); if(!v) return;" },
-  { id: 'v212-w1-split-claims-screen-year', area: "aceScan", what: "every year’s claims are the year on screen’s WBS",
-    find: "                 claims:aceWbsOf(id)});",
-    repl: "                 claims:(function(){ var st=MS.years[MS.base]||S; return (st.wbs&&st.wbs[id]||[]).map(function(e){ return aceNormWbs(e.w); }); })()});" },
-  { id: 'v212-w1-split-panel-gone', area: "aceBody", what: "the tie-out panel shows AV + PSM combined with no part for either office",
-    find: "    if(bs.length>1){\n      const sp=aceGroupSplit(k, ap, bs, scans);",
-    repl: "    if(false){\n      const sp=aceGroupSplit(k, ap, bs, scans);" },
-  { id: 'v212-w1-split-workbook-gone', area: "exportAceTieout", what: "the tie-out workbook shows AV + PSM combined with no part for either office",
-    find: "        if(bs.length>1){\n          const sp=aceGroupSplit(k, ap, bs, [sc]);",
-    repl: "        if(false){\n          const sp=aceGroupSplit(k, ap, bs, [sc]);" },
-  { id: 'v212-w1-split-in-total', area: "exportAceTieout", what: "the parts are added into the year’s TOTAL beside the row they break down: the estimate is counted twice",
-    find: "            rows.push(['FY'+(sc.fy%100), '\\u21b3 '+g+': the lines only its requirements claim',",
-    repl: "            eY+=e; rows.push(['FY'+(sc.fy%100), '\\u21b3 '+g+': the lines only its requirements claim'," },
-  { id: 'v212-w1-draw-rep-named', area: "aceRepBody", what: "a named row’s text is drawn into the report as markup",
-    find: "+'<td style=\"text-align:left\">'+esc(n.what||'')+'</td><td>'",
-    repl: "+'<td style=\"text-align:left\">'+(n.what||'')+'</td><td>'" },
-  { id: 'v212-w1-draw-rep-conflict', area: "aceRepBody", what: "a name a row gave a paragraph is drawn into the report as markup",
-    find: "map(function(a){ return esc(a.n)+' <span style=\"color:var(--dim)\">(row'",
-    repl: "map(function(a){ return a.n+' <span style=\"color:var(--dim)\">(row'" },
-  { id: 'v212-w1-draw-rep-sheet', area: "aceRepBody", what: "the sheet’s name is drawn into the report as markup",
-    find: "Read from sheet <b>'+esc(R.sheet)+'</b>",
-    repl: "Read from sheet <b>'+R.sheet+'</b>" },
-  { id: 'v212-w1-draw-col-file', area: "aceColDraw", what: "the file’s name is drawn into the mapping box as markup",
-    find: "'+esc(C.file)+'",
-    repl: "'+C.file+'" },
-  { id: 'v212-w1-draw-col-header', area: "aceColDraw", what: "a heading of the file is drawn into the mapping box’s pickers as markup",
-    find: "+'\">'+esc(aceColL(o.i)+' · '+o.t)+'</option>'",
-    repl: "+'\">'+aceColL(o.i)+' · '+o.t+'</option>'" },
+  // v212-w1-spruills-alert: retired as obsolete in v2.19 -- spBodyDraw went with item 150 (the Spruills’ import button only says the import is staged here again)
+  // v212-w1-heal-off: retired as obsolete in v2.19 -- its line in applyStore went with item 150 (a 2026 estimate’s stored {} stays: PSM is read as its own estimate office, at $0)
+  // v212-w1-heal-any-year: retired as obsolete in v2.19 -- aceAlignHeal went with item 150 (an older estimate’s alignment is replaced too)
+  // v212-w1-heal-choice: retired as obsolete in v2.19 -- aceAlignHeal went with item 150 (an alignment someone set is replaced with the default)
+  // v212-w1-heal-silent: retired as obsolete in v2.19 -- null went with item 150 (the alignment replaced on opening is never said)
+  // v212-w1-default-own: retired as obsolete in v2.19 -- aceAlignDefault went with item 150 (PSM is its own estimate office again)
+  // v212-w1-split-prefix: retired as obsolete in v2.19 -- aceLineUp went with item 150 (a line is claimed by its number’s prefixes rather than up the estimate’s tree: P6.2.2 claims the ECU breakout )
+  // v212-w1-split-exact-only: retired as obsolete in v2.19 -- aceLineUp went with item 150 (a requirement on a heading claims no line beneath it)
+  // v212-w1-split-first-claimant: retired as obsolete in v2.19 -- aceGroupSplit went with item 150 (a line two offices claim goes to the first of them, a split nobody agreed)
+  // v212-w1-split-year-figures: retired as obsolete in v2.19 -- aceGroupSplit went with item 150 (every year’s parts are read at the year on screen’s figures)
+  // v212-w1-split-claims-screen-year: retired as obsolete in v2.19 -- aceScan went with item 150 (every year’s claims are the year on screen’s WBS)
+  // v212-w1-split-panel-gone: retired as obsolete in v2.19 -- aceBody went with item 150 (the tie-out panel shows AV + PSM combined with no part for either office)
+  // v212-w1-split-workbook-gone: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the tie-out workbook shows AV + PSM combined with no part for either office)
+  // v212-w1-split-in-total: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the parts are added into the year’s TOTAL beside the row they break down: the estimate is counted twice)
+  // v212-w1-draw-rep-named: retired as obsolete in v2.19 -- aceRepBody went with item 150 (a named row’s text is drawn into the report as markup)
+  // v212-w1-draw-rep-conflict: retired as obsolete in v2.19 -- aceRepBody went with item 150 (a name a row gave a paragraph is drawn into the report as markup)
+  // v212-w1-draw-rep-sheet: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the sheet’s name is drawn into the report as markup)
+  // v212-w1-draw-col-file: retired as obsolete in v2.19 -- aceColDraw went with item 150 (the file’s name is drawn into the mapping box as markup)
+  // v212-w1-draw-col-header: retired as obsolete in v2.19 -- aceColDraw went with item 150 (a heading of the file is drawn into the mapping box’s pickers as markup)
   // v2.12 RV1 (the review of W1's import; recovery/v212/notes-RV1.md): a stored report read through aceRepOf, the header read by
   // title with duplicates and optional columns asked about, the file key, a figure only when the cell is one, an E breakout a
   // whole branch, and every Support Line Category, a header tie and a blank US/PTN/FMS cell pinned (audit-other "v2.12 RV1 —",
   // the hostile sweep).
-  { id: 'v212-rv1-card-trusts-report', area: "syncBtns", what: "the Data card reads the stored report as it is: a count that is text is printed into the card",
-    find: "(function(){ const k=aceRepNewest(), s=k? aceSet(k) : null, Q=aceRepOf(s), R=Q.R;",
-    repl: "(function(){ const k=aceRepNewest(), s=k? aceSet(k) : null, Q={state:(s&&s.rep&&s.rep.reasons)?'ok':'none'}, R=s&&s.rep;" },
-  { id: 'v212-rv1-box-trusts-report', area: "aceRepBody", what: "the report box reads the stored report as it is: one missing its totals throws inside render(), a year that is text is drawn",
-    find: "set=aceSet(k), Q=aceRepOf(set), R=Q.R;",
-    repl: "set=aceSet(k), Q=(set&&set.rep)? {state:'ok', R:set.rep} : {state:'none'}, R=Q.R;" },
-  { id: 'v212-rv1-repof-counts-any', area: "aceRepOf", what: "a count that is not a whole number is taken as it is",
-    find: "  const cnt=function(x, w, dflt){ if(x===undefined && dflt!==undefined) return dflt; return isCnt(x)? x : no(w); };",
-    repl: "  const cnt=function(x, w, dflt){ if(x===undefined && dflt!==undefined) return dflt; return x; };" },
-  { id: 'v212-rv1-repof-figures-any', area: "aceRepOf", what: "a figure that is not a number, under a key that is not a year, is taken as it is",
-    find: "Object.keys(x).forEach(function(y){ if(isYr(y) && typeof x[y]==='number' && isFinite(x[y])) o[y]=x[y]; else no(w); }); return o; };",
-    repl: "Object.keys(x).forEach(function(y){ o[y]=x[y]; }); return o; };" },
-  { id: 'v212-rv1-repof-years-any', area: "aceRepOf", what: "a year that is not a year is taken as one",
-    find: "years:list(R.years, 'its years').map(function(y){ return isYr(y)? +y : no('a year that is not a year'); }),",
-    repl: "years:list(R.years, 'its years')," },
-  { id: 'v212-rv1-repof-lists-quiet', area: "aceRepOf", what: "a list given as anything else is read as empty, and the report as whole",
-    find: "  const list=function(x, w){ if(x===undefined) return []; return Array.isArray(x)? x : no(w)||[]; };",
-    repl: "  const list=function(x, w){ if(x===undefined) return []; return Array.isArray(x)? x : []; };" },
-  { id: 'v212-rv1-repof-core-unchecked', area: "aceRepOf", what: "a report with no kept rows or sheet total is read anyway: aceRepOf throws inside render()",
-    find: "  ['reasons','kept','total'].forEach(function(k){ if(!isObj(R[k])) no('its '+k+' are missing'); });\n",
-    repl: "" },
-  { id: 'v212-rv1-box-trusts-ties', area: "aceRepBody", what: "the report box prints the stored ties flag, not what its figures add up to",
-    find: "'<div class=\"hint acerep-ties\" style=\"margin-bottom:8px\">'+(aceRepTies(R)? ",
-    repl: "'<div class=\"hint acerep-ties\" style=\"margin-bottom:8px\">'+(set.rep.ties? " },
-  { id: 'v212-rv1-box-bad-unsaid', area: "aceRepBody", what: "a report that cannot be read is drawn as if it were one",
-    find: "  if(Q.state==='bad'){\n    h+='<div class=\"hint acerep-bad\">",
-    repl: "  if(false){\n    h+='<div class=\"hint acerep-bad\">" },
-  { id: 'v212-rv1-box-bad-no-counts', area: "aceRepBody", what: "a report that cannot be read leaves out the row counts the estimate recorded",
-    find: "+'), so nothing of it is shown rather than a figure it may not hold. The estimate’s own lines are as they were imported. Rows left out, as '\n      +'recorded: '+skipSaid()+'.",
-    repl: "+'), so nothing of it is shown rather than a figure it may not hold. The estimate’s own lines are as they were imported. Rows left out, as '\n      +'recorded: '+'." },
-  { id: 'v212-rv1-dup-title-first', area: "aceFindHeader", what: "a title the header carries twice is read from its first column again: a column A titled Rollup Value? keeps every subtotal",
-    find: "  hdr.forEach(function(c, i){ const n=aceTitleN(c); if(n) (at[n]||(at[n]=[])).push(i); });",
-    repl: "  hdr.forEach(function(c, i){ const n=aceTitleN(c); if(n && !at[n]) at[n]=[i]; });" },
-  { id: 'v212-rv1-remembered-first-of-two', area: "aceFindHeader", what: "a remembered title two columns share is read from the first of them, not the one the person picked",
-    find: "    return (cs.length>1 && cs.indexOf(i)>=0)? i : -1; };",
-    repl: "    return (cs.length>1)? cs[0] : -1; };" },
-  { id: 'v212-rv1-remembered-at-not-kept', area: "aceImportGo", what: "the column an answer was given for is not kept beside its title: the same layout is asked about again",
-    find: "        if(Object.prototype.hasOwnProperty.call(map, F.f)){ m[F.f]=map[F.f]; at[F.f]=H.col[F.f]; } });",
-    repl: "        if(Object.prototype.hasOwnProperty.call(map, F.f)){ m[F.f]=map[F.f]; } });" },
-  { id: 'v212-rv1-year-twice-read', area: "aceFindHeader", what: "a fiscal year heading two columns is read from the first, the other dropped while the report says every dollar ties",
-    find: "  if(twice.length) throw new Error('the titles on '+where+' head more than one column with the same fiscal year",
-    repl: "  if(false) throw new Error('the titles on '+where+' head more than one column with the same fiscal year" },
-  { id: 'v212-rv1-optional-not-asked', area: "aceFindHeader", what: "an optional column renamed is read as absent with no question: a retitled US/PTN/FMS keeps the partner and FMS lines",
-    find: "    if(F.req || F.ask==='always' || (F.ask==='depth' && deep()>=F.lv)) need.push(F.f);",
-    repl: "    if(F.req) need.push(F.f);" },
-  { id: 'v212-rv1-ces-depth-ignored', area: "aceFindHeader", what: "every CES column a file lacks is asked about, however shallow its paragraphs",
-    find: "    if(F.req || F.ask==='always' || (F.ask==='depth' && deep()>=F.lv)) need.push(F.f);",
-    repl: "    if(F.req || F.ask==='always' || F.ask==='depth') need.push(F.f);" },
-  { id: 'v212-rv1-none-not-remembered', area: "aceImportGo", what: "an answer of \"no such column\" is not remembered: the same layout is asked about again",
-    find: "      asked.forEach(function(F){ if(H.how[F.f]==='none'){ none.push(F.f); return; }",
-    repl: "      asked.forEach(function(F){ if(H.how[F.f]==='none'){ return; }" },
+  // v212-rv1-card-trusts-report: retired as obsolete in v2.19 -- its line in syncBtns went with item 150 (the Data card reads the stored report as it is: a count that is text is printed into the card)
+  // v212-rv1-box-trusts-report: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the report box reads the stored report as it is: one missing its totals throws inside render(), a year that is)
+  // v212-rv1-repof-counts-any: retired as obsolete in v2.19 -- aceRepOf went with item 150 (a count that is not a whole number is taken as it is)
+  // v212-rv1-repof-figures-any: retired as obsolete in v2.19 -- aceRepOf went with item 150 (a figure that is not a number, under a key that is not a year, is taken as it is)
+  // v212-rv1-repof-years-any: retired as obsolete in v2.19 -- aceRepOf went with item 150 (a year that is not a year is taken as one)
+  // v212-rv1-repof-lists-quiet: retired as obsolete in v2.19 -- aceRepOf went with item 150 (a list given as anything else is read as empty, and the report as whole)
+  // v212-rv1-repof-core-unchecked: retired as obsolete in v2.19 -- aceRepOf went with item 150 (a report with no kept rows or sheet total is read anyway: aceRepOf throws inside render())
+  // v212-rv1-box-trusts-ties: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the report box prints the stored ties flag, not what its figures add up to)
+  // v212-rv1-box-bad-unsaid: retired as obsolete in v2.19 -- aceRepBody went with item 150 (a report that cannot be read is drawn as if it were one)
+  // v212-rv1-box-bad-no-counts: retired as obsolete in v2.19 -- aceRepBody went with item 150 (a report that cannot be read leaves out the row counts the estimate recorded)
+  // v212-rv1-dup-title-first: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (a title the header carries twice is read from its first column again: a column A titled Rollup Value? keeps ev)
+  // v212-rv1-remembered-first-of-two: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (a remembered title two columns share is read from the first of them, not the one the person picked)
+  // v212-rv1-remembered-at-not-kept: retired as obsolete in v2.19 -- aceImportGo went with item 150 (the column an answer was given for is not kept beside its title: the same layout is asked about again)
+  // v212-rv1-year-twice-read: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (a fiscal year heading two columns is read from the first, the other dropped while the report says every dollar)
+  // v212-rv1-optional-not-asked: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (an optional column renamed is read as absent with no question: a retitled US/PTN/FMS keeps the partner and FMS)
+  // v212-rv1-ces-depth-ignored: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (every CES column a file lacks is asked about, however shallow its paragraphs)
+  // v212-rv1-none-not-remembered: retired as obsolete in v2.19 -- aceImportGo went with item 150 (an answer of \"no such column\" is not remembered: the same layout is asked about again)
   // v2.12 RV4: retargeted -- the duplicate-title branch now reads the same line (second review S03), so the find carries the line above it
-  { id: 'v212-rv1-none-not-read', area: "aceFindHeader", what: "a remembered \"no such column\" is not read back: the same layout is asked about again",
-    find: "      if((at[m]||[]).length>1){ dup[F.f]=at[m].slice(); need.push(F.f); return; } }\n    if(!F.req && memNone.indexOf(F.f)>=0){ how[F.f]='none'; return; }\n",
-    repl: "      if((at[m]||[]).length>1){ dup[F.f]=at[m].slice(); need.push(F.f); return; } }\n" },
-  { id: 'v212-rv1-unanswered-optional-taken', area: "aceImportGo", what: "an optional field asked about and left unanswered is read as absent: every row is US, unasked",
-    find: "    if(unans.length) throw new Error('no answer was given for '",
-    repl: "    if(false) throw new Error('no answer was given for '" },
-  { id: 'v212-rv1-no-usptn-unsaid', area: "aceImportGo", what: "a file read with no US/PTN/FMS column does not say that every row was read as US",
-    find: "      +(H.col.usptn>=0? '' : ' This file has no US/PTN/FMS column, so every row was read as US.')",
-    repl: "      +''" },
-  { id: 'v212-rv1-dup-unexplained', area: "aceColDraw", what: "the box asks about a title the file carries twice without naming its columns",
-    find: "+(why? '<div class=\"hint acecol-why\" data-f=\"'+esc(f)+'\">'+esc(why)+'</div>' : '')",
-    repl: "+''" },
-  { id: 'v212-rv1-optional-no-none', area: "aceColDraw", what: "the box offers no \"this file has no such column\" for an optional field",
-    find: "        : '<option value=\"\">— choose —</option><option value=\"none\">— this file has no such column —</option>')",
-    repl: "        : '<option value=\"\">— choose —</option>')" },
+  // v212-rv1-none-not-read: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (a remembered \"no such column\" is not read back: the same layout is asked about again)
+  // v212-rv1-unanswered-optional-taken: retired as obsolete in v2.19 -- aceImportGo went with item 150 (an optional field asked about and left unanswered is read as absent: every row is US, unasked)
+  // v212-rv1-no-usptn-unsaid: retired as obsolete in v2.19 -- aceImportGo went with item 150 (a file read with no US/PTN/FMS column does not say that every row was read as US)
+  // v212-rv1-dup-unexplained: retired as obsolete in v2.19 -- aceColDraw went with item 150 (the box asks about a title the file carries twice without naming its columns)
+  // v212-rv1-optional-no-none: retired as obsolete in v2.19 -- aceColDraw went with item 150 (the box offers no \"this file has no such column\" for an optional field)
   // v2.12 RV4: retargeted -- the pattern now starts with a greedy ^.* (second review S00), so the find is the new pattern
-  { id: 'v212-rv1-key-word-boundary', area: "importAce", what: "the file key needs a word boundary after the year again: 2026ACE_final and FY2026ACE meet no locked-replace question",
-    find: "/^.*(?:^|\\D)(20\\d\\d)(?!\\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i",
-    repl: "/(20\\d\\d)\\b.*?\\bACE\\b/i" },
+  // v212-rv1-key-word-boundary: retired as obsolete in v2.19 -- importAce went with item 150 (the file key needs a word boundary after the year again: 2026ACE_final and FY2026ACE meet no locked-replace qu)
   // v2.12 RV4: retargeted -- the same defect on the new pattern (second review S00): its greedy start kept, the non-letter dropped
-  { id: 'v212-rv1-key-ace-in-word', area: "importAce", what: "ACE is matched at the end of any word after the year: 2026 Workspace is filed as 2026ACE",
-    find: "/^.*(?:^|\\D)(20\\d\\d)(?!\\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i",
-    repl: "/^.*(?:^|\\D)(20\\d\\d)(?!\\d).*?ACE(?![A-Za-z])/i" },
-  { id: 'v212-rv1-money-scrape', area: "aceMoney", what: "a year cell of text is stripped to its digits again: FY27 TBD reads $27,000,000",
-    find: "    const c=aceMoneyCell(raw); if(!c.fig) return 0;",
-    repl: "    const c=aceMoneyCell(raw); if(!c.fig) c.s=c.s.replace(/[^0-9.\\-]/g,'');" },
-  { id: 'v212-rv1-money-unicode-minus', area: "aceMoneyCell", what: "the minus sign an exhibit pastes is not a minus: −1.5 reads as nothing",
-    find: "  let s=String(raw==null? '' : raw).trim().replace(/\\u2212/g,'-').replace(/[$\\s]/g,'');",
-    repl: "  let s=String(raw==null? '' : raw).trim().replace(/[$\\s]/g,'');" },
-  { id: 'v212-rv1-money-dollar-paren', area: "aceMoneyCell", what: "the parentheses are looked for before the dollar sign comes off: $(1.5) reads as nothing",
-    find: "  let s=String(raw==null? '' : raw).trim().replace(/\\u2212/g,'-').replace(/[$\\s]/g,'');\n  let neg=false;\n  const p=/^\\((.*)\\)$/.exec(s); if(p){ neg=true; s=p[1]; }\n",
-    repl: "  let s=String(raw==null? '' : raw).trim().replace(/\\u2212/g,'-');\n  let neg=false;\n  const p=/^\\((.*)\\)$/.exec(s); if(p){ neg=true; s=p[1]; }\n  s=s.replace(/[$\\s]/g,'');\n" },
-  { id: 'v212-rv1-money-commas-loose', area: "aceIsFig", what: "commas are allowed anywhere in a figure: 1,5 reads $15,000,000",
-    find: "(?:(?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d*)?|\\.\\d+)",
-    repl: "(?:(?:[\\d,]+)(?:\\.\\d*)?|\\.\\d+)" },
-  { id: 'v212-rv1-text-cell-unnamed', area: "aceParse", what: "a row with a year cell of text that is not a figure is not named",
-    find: "    if(odd.length) named('text', r, wbsT, odd.join(' · '), vec);\n",
-    repl: "" },
-  { id: 'v212-rv1-dash-named', area: "aceMoneyOdd", what: "a bare dash, the file saying nothing, is named as text that is not a figure",
-    find: "  if(!t || /^[-\\u2012\\u2013\\u2014\\u2212]+$/.test(t)) return false;",
-    repl: "  if(!t) return false;" },
-  { id: 'v212-rv1-suffix-no-carry', area: "aceTree", what: "each level decides its suffix on its own again: an E line folds back under its twin where a lower name repeats",
-    find: "      if(suf && bn && own && !aceNameSame(own, bn)) on=true;",
-    repl: "      on=!!(suf && bn && own && !aceNameSame(own, bn));" },
-  { id: 'v212-rv1-slc-airframe-dropped', area: "ACE_SLC", what: "Airframe PGSE is dropped from the map: its rows are left out as a category ORBIT does not map",
-    find: "['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach",
-    repl: "['Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach" },
-  { id: 'v212-rv1-slc-avionics-dropped', area: "ACE_SLC", what: "Avionics PGSE is dropped from the map: its rows are left out as a category ORBIT does not map",
-    find: "['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach",
-    repl: "['Airframe PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach" },
-  { id: 'v212-rv1-slc-engine-dropped', area: "ACE_SLC", what: "Engine PGSE is dropped from the map: its rows are left out as a category ORBIT does not map",
-    find: "['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach",
-    repl: "['Airframe PGSE','Avionics PGSE','Fixed JPO Support','JRE'].forEach" },
-  { id: 'v212-rv1-slc-fixedjpo-dropped', area: "ACE_SLC", what: "Fixed JPO Support is dropped from the map: its rows are left out as a category ORBIT does not map",
-    find: "['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach",
-    repl: "['Airframe PGSE','Avionics PGSE','Engine PGSE','JRE'].forEach" },
-  { id: 'v212-rv1-slc-jre-dropped', area: "ACE_SLC", what: "JRE is dropped from the map: its rows are left out as a category ORBIT does not map",
-    find: "['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach",
-    repl: "['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support'].forEach" },
-  { id: 'v212-rv1-slc-same-ce', area: "ACE_SLC", what: "the five categories named as their cost element land on no cost element",
-    find: "].forEach(function(t){ put(t, 'ff', t); });",
-    repl: "].forEach(function(t){ put(t, 'ff', ''); });" },
-  { id: 'v212-rv1-slc-pecte-opn', area: "ACE_SLC", what: "PEC TRNG EQ is filed under OPN",
-    find: "  put('PEC TRNG EQ', 'ff', 'Peculiar Training Equip');",
-    repl: "  put('PEC TRNG EQ', 'opn', 'Peculiar Training Equip');" },
-  { id: 'v212-rv1-slc-pecte-ce', area: "ACE_SLC", what: "PEC TRNG EQ lands on Full Mission Simulators",
-    find: "  put('PEC TRNG EQ', 'ff', 'Peculiar Training Equip');",
-    repl: "  put('PEC TRNG EQ', 'ff', 'Full Mission Simulators');" },
-  { id: 'v212-rv1-slc-fms-sims-ce', area: "ACE_SLC", what: "PEC TRNG EQ (Full Mission Sims) lands on Peculiar Training Equip",
-    find: "  put('PEC TRNG EQ (Full Mission Sims)', 'ff', 'Full Mission Simulators');",
-    repl: "  put('PEC TRNG EQ (Full Mission Sims)', 'ff', 'Peculiar Training Equip');" },
-  { id: 'v212-rv1-slc-pes-sp', area: "ACE_SLC", what: "Production Eng Support is filed under Initial Spares",
-    find: "  put('Production Eng Support', 'ff', 'Production Engineering Support');",
-    repl: "  put('Production Eng Support', 'sp', 'Production Engineering Support');" },
-  { id: 'v212-rv1-slc-pubs-ce', area: "ACE_SLC", what: "Pubs / Tech Data lands on no cost element",
-    find: "  put('Pubs / Tech Data', 'ff', 'Pubs/Tech Data');",
-    repl: "  put('Pubs / Tech Data', 'ff', '');" },
-  { id: 'v212-rv1-slc-spares-ap', area: "ACE_SLC", what: "Initial Spares is filed under Full Fund",
-    find: "put('Initial Spares', 'sp', '');",
-    repl: "put('Initial Spares', 'ff', '');" },
-  { id: 'v212-rv1-slc-opn-ap', area: "ACE_SLC", what: "Other Proc (OPN) is filed under Initial Spares",
-    find: "put('Other Proc (OPN)', 'opn', '');",
-    repl: "put('Other Proc (OPN)', 'sp', '');" },
-  { id: 'v212-rv1-header-tie-last', area: "aceFindHeader", what: "two sheets carrying the same titles: the later one is read (a copied tab’s dollars)",
-    find: "if(n>=ACE_HDR_MIN && (!best || n>best.n)) best=",
-    repl: "if(n>=ACE_HDR_MIN && (!best || n>=best.n)) best=" },
-  { id: 'v212-rv1-blank-us-partner', area: "aceParse", what: "a blank US/PTN/FMS cell is read as not US: the row is left out as partner or FMS",
-    find: "if(u && u!=='us'){ out('partner'",
-    repl: "if(u!=='us'){ out('partner'" },
-  { id: 'v212-rv1-card-unescaped-sum', area: "syncBtns", what: "the Data card sums a report’s counts without reading them as numbers, and prints the sum as markup",
-    find: "         if(Q.state==='bad') return esc(k)+': its import report cannot be read — import the workbook again';\n         const out=Object.keys(R.reasons).reduce(function(a, x){ return a+R.reasons[x].rows; }, 0);\n         return esc(k)+': '+esc(R.kept.lines)+' lines kept · '+esc(out)+' row'",
-    repl: "         if(Q.state==='bad'){ const R0=s.rep; const out0=Object.keys(R0.reasons||{}).reduce(function(a, x){ return a+((R0.reasons[x]||{}).rows||0); }, 0); return esc(k)+': '+out0+' rows left out'; }\n         const out=Object.keys(R.reasons).reduce(function(a, x){ return a+R.reasons[x].rows; }, 0);\n         return esc(k)+': '+esc(R.kept.lines)+' lines kept · '+esc(out)+' row'" },
+  // v212-rv1-key-ace-in-word: retired as obsolete in v2.19 -- importAce went with item 150 (ACE is matched at the end of any word after the year: 2026 Workspace is filed as 2026ACE)
+  // v212-rv1-money-scrape: retired as obsolete in v2.19 -- aceMoney went with item 150 (a year cell of text is stripped to its digits again: FY27 TBD reads $27,000,000)
+  // v212-rv1-money-unicode-minus: retired as obsolete in v2.19 -- aceMoneyCell went with item 150 (the minus sign an exhibit pastes is not a minus: −1.5 reads as nothing)
+  // v212-rv1-money-dollar-paren: retired as obsolete in v2.19 -- aceMoneyCell went with item 150 (the parentheses are looked for before the dollar sign comes off: $(1.5) reads as nothing)
+  // v212-rv1-money-commas-loose: retired as obsolete in v2.19 -- aceIsFig went with item 150 (commas are allowed anywhere in a figure: 1,5 reads $15,000,000)
+  // v212-rv1-text-cell-unnamed: retired as obsolete in v2.19 -- aceParse went with item 150 (a row with a year cell of text that is not a figure is not named)
+  // v212-rv1-dash-named: retired as obsolete in v2.19 -- aceMoneyOdd went with item 150 (a bare dash, the file saying nothing, is named as text that is not a figure)
+  // v212-rv1-suffix-no-carry: retired as obsolete in v2.19 -- aceTree went with item 150 (each level decides its suffix on its own again: an E line folds back under its twin where a lower name repeats)
+  // v212-rv1-slc-airframe-dropped: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Airframe PGSE is dropped from the map: its rows are left out as a category ORBIT does not map)
+  // v212-rv1-slc-avionics-dropped: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Avionics PGSE is dropped from the map: its rows are left out as a category ORBIT does not map)
+  // v212-rv1-slc-engine-dropped: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Engine PGSE is dropped from the map: its rows are left out as a category ORBIT does not map)
+  // v212-rv1-slc-fixedjpo-dropped: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Fixed JPO Support is dropped from the map: its rows are left out as a category ORBIT does not map)
+  // v212-rv1-slc-jre-dropped: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (JRE is dropped from the map: its rows are left out as a category ORBIT does not map)
+  // v212-rv1-slc-same-ce: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (the five categories named as their cost element land on no cost element)
+  // v212-rv1-slc-pecte-opn: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (PEC TRNG EQ is filed under OPN)
+  // v212-rv1-slc-pecte-ce: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (PEC TRNG EQ lands on Full Mission Simulators)
+  // v212-rv1-slc-fms-sims-ce: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (PEC TRNG EQ (Full Mission Sims) lands on Peculiar Training Equip)
+  // v212-rv1-slc-pes-sp: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Production Eng Support is filed under Initial Spares)
+  // v212-rv1-slc-pubs-ce: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Pubs / Tech Data lands on no cost element)
+  // v212-rv1-slc-spares-ap: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Initial Spares is filed under Full Fund)
+  // v212-rv1-slc-opn-ap: retired as obsolete in v2.19 -- ACE_SLC went with item 150 (Other Proc (OPN) is filed under Initial Spares)
+  // v212-rv1-header-tie-last: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (two sheets carrying the same titles: the later one is read (a copied tab’s dollars))
+  // v212-rv1-blank-us-partner: retired as obsolete in v2.19 -- aceParse went with item 150 (a blank US/PTN/FMS cell is read as not US: the row is left out as partner or FMS)
+  // v212-rv1-card-unescaped-sum: retired as obsolete in v2.19 -- its line in syncBtns went with item 150 (the Data card sums a report’s counts without reading them as numbers, and prints the sum as markup)
   // ---- v2.12 RV4 (the second review of the cost estimate import: S00-S03, S21; recovery/v212/notes-RV4.md) ----
-  { id: 'v212-rv4-key-first-year', area: "importAce", what: "the file key takes the first year that ACE follows, not the nearest: PB2027 2026 SUST ACE meets the locked 2027ACE's replace question",
-    find: "/^.*(?:^|\\D)(20\\d\\d)(?!\\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i",
-    repl: "/(?:^|\\D)(20\\d\\d)(?!\\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i" },
-  { id: 'v212-rv4-textrow-formatting', area: "aceParse", what: "a row with no WBS whose year cells are figures written as text is filed as formatting again: counted nowhere, named nowhere",
-    find: "    if(!code && !any && !odd.length){ rep.notData++; continue; }",
-    repl: "    if(!code && !any){ rep.notData++; continue; }" },
-  { id: 'v212-rv4-textrow-zero-in-tree', area: "aceParse", what: "a kept row with no WBS and no dollar is counted as a paragraph with no dollar, in the tree",
-    find: "    if(!any){ if(code) rep.kept.zero++; continue; }",
-    repl: "    if(!any){ rep.kept.zero++; continue; }" },
-  { id: 'v212-rv4-text-unsaid', area: "aceImportGo", what: "the status line says nothing of the kept rows whose year cells are text, read as nothing",
-    find: "      +(nText? ' ⚠ '+nText+' kept row'+(nText===1?' holds':'s hold')+' a year cell of text that is not a figure, read as nothing: named in the report.' : '')",
-    repl: "      +''" },
-  { id: 'v212-rv4-up-first-row', area: "aceTree", what: "a heading two rows place under different parents keeps the first row's parent: the AV + PSM split changes with the order of the rows",
-    find: "    W[ap][c].up=take;\n",
-    repl: "" },
-  { id: 'v212-rv4-up-plain-wins', area: "aceTree", what: "a heading two rows place under different parents goes under the plain heading: the breakout holds nothing and PSM's part is $0",
-    find: "    const take=cand.filter(function(u){ return u!==plain; })[0];",
-    repl: "    const take=(cand.indexOf(plain)>=0)? plain : cand[0];" },
-  { id: 'v212-rv4-ups-unsorted', area: "aceTree", what: "the headings two rows place differently are listed in the order the rows came in, so the report reads differently for one file",
-    find: "  ups.sort(function(a, b){ return a.ap<b.ap? -1 : (a.ap>b.ap? 1 : (a.code<b.code? -1 : (a.code>b.code? 1 : 0))); });\n",
-    repl: "" },
-  { id: 'v212-rv4-ups-unnamed', area: "aceParse", what: "a heading two rows place under different parents is settled but not named in the report",
-    find: "  rep.ups=T.ups;",
-    repl: "  rep.ups=[];" },
-  { id: 'v212-rv4-ups-rows-dropped', area: "aceTree", what: "the rows that gave each parent are not kept",
-    find: "    if(ur.length<50 && ur.indexOf(row)<0) ur.push(row);",
-    repl: "    if(ur.length<50 && ur.indexOf(row)<0 && false) ur.push(row);" },
-  { id: 'v212-rv4-repof-ups-dropped', area: "aceRepOf", what: "a stored report's parent disagreements are not read: the box never shows them",
-    find: "  N.ups=list(R.ups, 'its parents').map(",
-    repl: "  N.ups=[].map(" },
-  { id: 'v212-rv4-ups-box-missing', area: "aceRepBody", what: "the report box does not show the headings two rows place under different parents",
-    find: "  if(R.ups.length){\n    const nm=function(ap, c){",
-    repl: "  if(false){\n    const nm=function(ap, c){" },
-  { id: 'v212-rv4-ups-box-no-rule', area: "aceRepBody", what: "the report box names the disagreements without saying the rule that settled them",
-    find: ": it goes under the breakout heading (the one carrying the letter), whatever order the rows are in</div>'",
-    repl: "</div>'" },
-  { id: 'v212-rv4-ups-not-counted', area: "aceImportGo", what: "the status line does not count the parent disagreements among the rows named for a look",
-    find: "    const nNamed=R.named.length+R.conflicts.length+R.ups.length;",
-    repl: "    const nNamed=R.named.length+R.conflicts.length;" },
-  { id: 'v212-rv4-dup-other-title-asked', area: "aceFindHeader", what: "a title the file carries twice, answered with a column of another title, is asked again on every import",
-    find: "      const i=(m===n)? memCol(F, n) : (m? memCol(F, m) : -1);",
-    repl: "      const i=(m===n)? memCol(F, n) : -1;" },
-  { id: 'v212-rv4-dup-none-asked', area: "aceFindHeader", what: "an optional field titled twice and answered \"no such column\" is asked again on every import",
-    find: "      if(!F.req && memNone.indexOf(F.f)>=0){ how[F.f]='none'; return; }\n      dup[F.f]=cs.slice(); need.push(F.f); return;",
-    repl: "      dup[F.f]=cs.slice(); need.push(F.f); return;" },
-  { id: 'v212-rv4-guide-every-named-row', area: "helpDoc", what: "the guide claims the report shows every named row again (it shows 40 of each kind)",
-    find: "the named rows (40 of each kind on screen)",
-    repl: "every named row" },
-  { id: 'v212-rv4-guide-optional-dropped', area: "helpDoc", what: "the guide no longer says the optional columns are asked about, nor that no such column is an answer",
-    find: "; also a missing <i>US/PTN/FMS</i> or <i>CCAR Element</i>, and CES<i>k</i> where paragraphs reach level <i>k</i>, which may be answered <b>no such column</b> (no <i>US/PTN/FMS</i>: every row is US)",
-    repl: "" },
-  { id: 'v212-rv4-guide-dup-title-dropped', area: "helpDoc", what: "the guide no longer says a title heading two columns is asked about",
-    find: "when its title is missing or heads two columns",
-    repl: "when its title is missing" },
-  { id: 'v212-rv4-guide-unreadable-dropped', area: "helpDoc", what: "the guide no longer says a report not in ORBIT's shape is unreadable",
-    find: "; one not in ORBIT’s shape is said to be unreadable",
-    repl: "" },
-  { id: 'v212-rv4-guide-parent-rule-dropped', area: "helpDoc", what: "the guide does not say how a heading two rows place under different parents is settled",
-    find: "; a heading two rows place under different parents goes under the breakout one, and is named",
-    repl: "" },
-  { id: 'v212-rv4-cap-guide-disagree', area: "aceRepBody", what: "the report box's cap moves and the guide still says 40",
-    find: "const ACE_REP_CAP=40;",
-    repl: "const ACE_REP_CAP=50;" },
-  { id: 'v212-rv4-norows-left-out-said', area: "aceImportGo", what: "a sheet whose rows were kept with no dollar read is refused as if every row were left out, naming no reason",
-    find: "      : (R.kept.rows? 'no row carries a dollar ORBIT can read: '",
-    repl: "      : (false? 'no row carries a dollar ORBIT can read: '" },
-  { id: 'v212-rv4-norows-text-unsaid', area: "aceImportGo", what: "the refusal of a sheet kept with nothing read does not name the rows that hold text",
-    find: "          +(txtRows.length? ', and row'+(txtRows.length===1?' ':'s ')+txtRows.join(', ')",
-    repl: "          +(false? ', and row'+(txtRows.length===1?' ':'s ')+txtRows.join(', ')" },
-  { id: 'v212-rv4-ups-box-unescaped', area: "aceRepBody", what: "the report box draws a heading's code from the file as markup",
-    find: "+R.ups.slice(0, ACE_REP_CAP).map(function(c){ return '<tr><td style=\"text-align:left\">'+esc(c.code)+' <span",
-    repl: "+R.ups.slice(0, ACE_REP_CAP).map(function(c){ return '<tr><td style=\"text-align:left\">'+c.code+' <span" },
+  // v212-rv4-key-first-year: retired as obsolete in v2.19 -- importAce went with item 150 (the file key takes the first year that ACE follows, not the nearest: PB2027 2026 SUST ACE meets the locked 202)
+  // v212-rv4-textrow-formatting: retired as obsolete in v2.19 -- aceParse went with item 150 (a row with no WBS whose year cells are figures written as text is filed as formatting again: counted nowhere, )
+  // v212-rv4-textrow-zero-in-tree: retired as obsolete in v2.19 -- aceParse went with item 150 (a kept row with no WBS and no dollar is counted as a paragraph with no dollar, in the tree)
+  // v212-rv4-text-unsaid: retired as obsolete in v2.19 -- aceImportGo went with item 150 (the status line says nothing of the kept rows whose year cells are text, read as nothing)
+  // v212-rv4-up-first-row: retired as obsolete in v2.19 -- aceTree went with item 150 (a heading two rows place under different parents keeps the first row's parent: the AV + PSM split changes with)
+  // v212-rv4-up-plain-wins: retired as obsolete in v2.19 -- aceTree went with item 150 (a heading two rows place under different parents goes under the plain heading: the breakout holds nothing and )
+  // v212-rv4-ups-unsorted: retired as obsolete in v2.19 -- aceTree went with item 150 (the headings two rows place differently are listed in the order the rows came in, so the report reads differen)
+  // v212-rv4-ups-unnamed: retired as obsolete in v2.19 -- aceParse went with item 150 (a heading two rows place under different parents is settled but not named in the report)
+  // v212-rv4-ups-rows-dropped: retired as obsolete in v2.19 -- aceTree went with item 150 (the rows that gave each parent are not kept)
+  // v212-rv4-repof-ups-dropped: retired as obsolete in v2.19 -- aceRepOf went with item 150 (a stored report's parent disagreements are not read: the box never shows them)
+  // v212-rv4-ups-box-missing: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the report box does not show the headings two rows place under different parents)
+  // v212-rv4-ups-box-no-rule: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the report box names the disagreements without saying the rule that settled them)
+  // v212-rv4-ups-not-counted: retired as obsolete in v2.19 -- aceImportGo went with item 150 (the status line does not count the parent disagreements among the rows named for a look)
+  // v212-rv4-dup-other-title-asked: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (a title the file carries twice, answered with a column of another title, is asked again on every import)
+  // v212-rv4-dup-none-asked: retired as obsolete in v2.19 -- aceFindHeader went with item 150 (an optional field titled twice and answered \"no such column\" is asked again on every import)
+  // v212-rv4-guide-every-named-row: retired as obsolete in v2.19 -- went with item 150 (the guide claims the report shows every named row again (it shows 40 of each kind))
+  // v212-rv4-guide-optional-dropped: retired as obsolete in v2.19 -- went with item 150 (the guide no longer says the optional columns are asked about, nor that no such column is an answer)
+  // v212-rv4-guide-dup-title-dropped: retired as obsolete in v2.19 -- went with item 150 (the guide no longer says a title heading two columns is asked about)
+  // v212-rv4-guide-unreadable-dropped: retired as obsolete in v2.19 -- went with item 150 (the guide no longer says a report not in ORBIT's shape is unreadable)
+  // v212-rv4-guide-parent-rule-dropped: retired as obsolete in v2.19 -- went with item 150 (the guide does not say how a heading two rows place under different parents is settled)
+  // v212-rv4-cap-guide-disagree: retired as obsolete in v2.19 -- ACE_REP_CAP went with item 150 (the report box's cap moves and the guide still says 40)
+  // v212-rv4-norows-left-out-said: retired as obsolete in v2.19 -- aceImportGo went with item 150 (a sheet whose rows were kept with no dollar read is refused as if every row were left out, naming no reason)
+  // v212-rv4-norows-text-unsaid: retired as obsolete in v2.19 -- aceImportGo went with item 150 (the refusal of a sheet kept with nothing read does not name the rows that hold text)
+  // v212-rv4-ups-box-unescaped: retired as obsolete in v2.19 -- aceRepBody went with item 150 (the report box draws a heading's code from the file as markup)
   // ==== end v2.12 W1 ====
 
   // ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
-  { id: 'v212-w2-take-unlisted', area: "wbsTake", what: "a WBS code the estimate does not hold is taken when typed, so a typo again leaves a requirement out of every rollup",
-    find: "  if(c && P.has[c]) return codeTake(c, 'wbs');", repl: "  if(c) return codeTake(c, 'wbs');" },
-  { id: 'v212-w2-take-whole-text', area: "wbsTake", what: "a paragraph picked from the list is stored as \"code — path\", or refused for the path’s length",
-    find: "  if(c && P.has[c]) return codeTake(c, 'wbs');", repl: "  if(c && P.has[c]) return codeTake(t, 'wbs');" },
-  { id: 'v212-w2-no-list-refused', area: "wbsTake", what: "with no estimate naming the appropriation, every paragraph typed is refused, so no WBS can be entered at all",
-    find: "  if(!P.k) return codeTake(t, 'wbs');                 // nothing to pick from", repl: "  if(!P.k) return {why:'nothing to pick from'};                 // nothing to pick from" },
+  // v212-w2-take-unlisted: retired as obsolete in v2.19 -- its line in wbsTake went with item 150 (a WBS code the estimate does not hold is taken when typed, so a typo again leaves a requirement out of every r)
+  // v212-w2-take-whole-text: retired as obsolete in v2.19 -- its line in wbsTake went with item 150 (a paragraph picked from the list is stored as \"code — path\", or refused for the path’s length)
+  // v212-w2-no-list-refused: retired as obsolete in v2.19 -- its line in wbsTake went with item 150 (with no estimate naming the appropriation, every paragraph typed is refused, so no WBS can be entered at all)
   { id: 'v212-w2-codein-dash', area: "wbsCodeIn", what: "a paragraph picked as \"code — path\" is read as one long code, and refused",
-    find: "function wbsCodeIn(t){ return aceNormWbs(String(t==null? '' : t).split(/\\s+[-–—]\\s+/)[0]); }", repl: "function wbsCodeIn(t){ return aceNormWbs(String(t==null? '' : t)); }" },
-  { id: 'v212-w2-picked-shown-whole', area: "wbsPickedIn", what: "a paragraph picked from the list stays in its field as \"code — path\", which the field cannot show whole",
-    find: "const c=wbsCodeIn(t); if(P.has[c] && t.trim()!==c) el.value=c;", repl: "const c=wbsCodeIn(t);" },
-  { id: 'v212-w2-sort-as-text', area: "wbsPick", what: "the list is in text order, 1.10 before 1.2, not the estimate’s own order",
-    find: "  codes.sort(wbsCmp);\n  codes.forEach(function(c){ path[c]=", repl: "  codes.sort();\n  codes.forEach(function(c){ path[c]=" },
-  { id: 'v212-w2-suggest-any-appn', area: "wbsSuggest", what: "another appropriation’s estimate lines on the same CCaR record are suggested",
-    find: "    if(!l || l.ap!==P.ap || String(l.ccar==null? '' : l.ccar).trim().toUpperCase()!==cc) return;", repl: "    if(!l || String(l.ccar==null? '' : l.ccar).trim().toUpperCase()!==cc) return;" },
-  { id: 'v212-w2-suggest-case', area: "wbsSuggest", what: "an estimate line whose CCAR Element is written in another letter case is not suggested",
-    find: "    if(!l || l.ap!==P.ap || String(l.ccar==null? '' : l.ccar).trim().toUpperCase()!==cc) return;", repl: "    if(!l || l.ap!==P.ap || String(l.ccar==null? '' : l.ccar).trim()!==cc) return;" },
-  { id: 'v212-w2-suggest-unmarked', area: "wbsListOpts", what: "the suggested paragraphs are not marked as suggested in the list",
-    find: "'<option value=\"'+esc(wbsOptLbl(c, P))+'\" label=\"'+esc(tag)+'\"></option>'", repl: "'<option value=\"'+esc(wbsOptLbl(c, P))+'\"></option>'" },
-  { id: 'v212-w2-kept-not-said', area: "wbsFieldSay", what: "a stored paragraph the estimate does not hold reads as a typing mistake, not as kept as stored",
-    find: "  if(kept!==undefined && t===String(kept==null? '' : kept).trim())", repl: "  if(false)" },
-  { id: 'v212-w2-field-no-name', area: "wbsFieldSay", what: "the paragraph a field holds is shown without its name",
-    find: "  if(P.has[c]) return c+(P.path[c]? ' — '+P.path[c] : '');", repl: "  if(P.has[c]) return c;" },
+    find: "function wbsCodeIn(t){ return wbsNorm(String(t==null? '' : t).split(/\\s+[-–—]\\s+/)[0]); }", repl: "function wbsCodeIn(t){ return wbsNorm(String(t==null? '' : t)); }" },   // v2.19: retargeted, aceNormWbs is wbsNorm
+  // v212-w2-picked-shown-whole: retired as obsolete in v2.19 -- wbsPickedIn went with item 150 (a paragraph picked from the list stays in its field as \"code — path\", which the field cannot show whole)
+  // v212-w2-sort-as-text: retired as obsolete in v2.19 -- its line in wbsPick went with item 150 (the list is in text order, 1.10 before 1.2, not the estimate’s own order)
+  // v212-w2-suggest-any-appn: retired as obsolete in v2.19 -- wbsSuggest went with item 150 (another appropriation’s estimate lines on the same CCaR record are suggested)
+  // v212-w2-suggest-case: retired as obsolete in v2.19 -- wbsSuggest went with item 150 (an estimate line whose CCAR Element is written in another letter case is not suggested)
+  // v212-w2-suggest-unmarked: retired as obsolete in v2.19 -- wbsListOpts went with item 150 (the suggested paragraphs are not marked as suggested in the list)
+  // v212-w2-kept-not-said: retired as obsolete in v2.19 -- its line in wbsFieldSay went with item 150 (a stored paragraph the estimate does not hold reads as a typing mistake, not as kept as stored)
+  // v212-w2-field-no-name: retired as obsolete in v2.19 -- its line in wbsFieldSay went with item 150 (the paragraph a field holds is shown without its name)
   { id: 'v212-w2-ar-unchecked', area: "arWbsTake", what: "the Add box takes any WBS within 40 characters, in or out of the estimate",
     find: "  return (arFin && arFin.wbsFrom && raw.trim()===String(arFin.wbsFrom).trim())? codeTake(raw, 'wbs') : wbsTake(raw);", repl: "  return codeTake(raw, 'wbs');" },
-  { id: 'v212-w2-ar-list-stale', area: "arUpdate", what: "the Add box’s list is drawn before the CCaR record is typed and never again, so it suggests nothing",
-    find: "  if(arWbsCc!==WP.k+'|'+wcc){ const dl=arEl('arWbsList');", repl: "  if(arWbsCc===null){ const dl=arEl('arWbsList');" },
-  { id: 'v212-w2-ar-no-list', area: "arDraw", what: "the Add box’s WBS field offers no list to pick from",
-    find: "+arField('arWbs', 'wbs', arInp('arWbs', {req:1, ph:wbsPick().k? 'a paragraph code or name' : 'e.g. 1.2.3', list:'arWbsList'})", repl: "+arField('arWbs', 'wbs', arInp('arWbs', {req:1, ph:wbsPick().k? 'a paragraph code or name' : 'e.g. 1.2.3'})" },
-  { id: 'v212-w2-er-raw-stored', area: "erRead", what: "a paragraph picked in the edit box is stored as \"code — path\"",
-    find: "  if(String(D.wbs||'').trim()!==String(V.wbs||'').trim()){ const P=wbsPick(), c=wbsCodeIn(D.wbs); if(P.k && P.has[c]) D.wbs=c; }", repl: "" },
+  // v212-w2-ar-list-stale: retired as obsolete in v2.19 -- its line in arUpdate went with item 150 (the Add box’s list is drawn before the CCaR record is typed and never again, so it suggests nothing)
+  // v212-w2-ar-no-list: retired as obsolete in v2.19 -- its line in arDraw went with item 150 (the Add box’s WBS field offers no list to pick from)
+  // v212-w2-er-raw-stored: retired as obsolete in v2.19 -- its line in erRead went with item 150 (a paragraph picked in the edit box is stored as \"code — path\")
   { id: 'v212-w2-er-save-unchecked', area: "erSave", what: "the edit box saves a WBS the estimate does not hold",
     find: "  if(ch.wbs!==undefined && !bad.some(function(b){ return b[0]==='erWbs'; })){ const r=wbsTake(D.wbs); if(r.why) bad.push(['erWbs', r.why]); }", repl: "" },
-  { id: 'v212-w2-er-no-name', area: "erUpdate", what: "the edit box shows a paragraph with no name, and a stored one the estimate does not hold unflagged",
-    find: "    : wbsFieldSay(wtx, WP, wcc, V.wbs);", repl: "    : '';" },
-  { id: 'v212-w2-er-split-unflagged', area: "erUpdate", what: "a split line the estimate does not hold is not flagged in the edit box",
-    find: "  const wx=split? wbsUnlistedOf(erOpen, WP) : [];\n  if(wn){", repl: "  const wx=[];\n  if(wn){" },
-  { id: 'v212-w2-panel-no-list', area: "wbsBody", what: "the WBS lines offer no list to pick from",
-    find: "(P.k? ' list=\"wbsDl\"' : '')", repl: "''" },
-  { id: 'v212-w2-panel-no-name', area: "wbsBody", what: "a WBS line is shown with no name, and one the estimate does not hold unflagged",
-    find: "      +((nm || off)? '<div class=\"wbsnm'+(off? ' off' : '')+'\">'", repl: "      +((false)? '<div class=\"wbsnm'+(off? ' off' : '')+'\">'" },
+  // v212-w2-er-no-name: retired as obsolete in v2.19 -- its line in erUpdate went with item 150 (the edit box shows a paragraph with no name, and a stored one the estimate does not hold unflagged)
+  // v212-w2-er-split-unflagged: retired as obsolete in v2.19 -- its line in erUpdate went with item 150 (a split line the estimate does not hold is not flagged in the edit box)
+  // v212-w2-panel-no-list: retired as obsolete in v2.19 -- its line in wbsBody went with item 150 (the WBS lines offer no list to pick from)
+  // v212-w2-panel-no-name: retired as obsolete in v2.19 -- its line in wbsBody went with item 150 (a WBS line is shown with no name, and one the estimate does not hold unflagged)
   { id: 'v212-w2-setnum-unchecked', area: "wbsSetNum", what: "a WBS line takes any paragraph typed, in or out of the estimate",
     find: "  const r=(String(val==null? '' : val).trim()===String(list[i].w==null? '' : list[i].w).trim())? codeTake(val, 'wbs') : wbsTake(val);", repl: "  const r=codeTake(val, 'wbs');" },
   { id: 'v212-w2-quick-browser-prompt', area: "uiPrompt", what: "the quick box is the browser’s own prompt, which cannot offer the list",
     find: "  if(!(o && o.list)) try{ v=window.prompt(", repl: "  if(true) try{ v=window.prompt(" },
-  { id: 'v212-w2-quick-unchecked', area: "wbsQuick", what: "the quick box takes any paragraph typed, in or out of the estimate",
-    find: "    const r=(String(v).trim()===was.trim())? codeTake(v, 'wbs') : wbsTake(v, P);", repl: "    const r=codeTake(v, 'wbs');" },
-  { id: 'v212-w2-quick-kept-refused', area: "wbsQuick", what: "the quick box refuses the paragraph a requirement already holds, left as it is, when the estimate does not hold it",
-    find: "    const r=(String(v).trim()===was.trim())? codeTake(v, 'wbs') : wbsTake(v, P);", repl: "    const r=wbsTake(v, P);" },
+  // v212-w2-quick-unchecked: retired as obsolete in v2.19 -- its line in wbsQuick went with item 150 (the quick box takes any paragraph typed, in or out of the estimate)
+  // v212-w2-quick-kept-refused: retired as obsolete in v2.19 -- its line in wbsQuick went with item 150 (the quick box refuses the paragraph a requirement already holds, left as it is, when the estimate does not hol)
   { id: 'v212-w2-att-prime-any-clin', area: "wbsStateOf", what: "a prime with a CLIN carrying money and no WBS is not listed, so long as another CLIN has one",
     find: "cl.some(function(x){ return x.has; }) && cl.every(function(x){ return x.has || !x.money; });", repl: "cl.some(function(x){ return x.has; });" },
   { id: 'v212-w2-att-prime-money-blind', area: "wbsStateOf", what: "a prime is listed for a CLIN that carries no money",
@@ -9301,26 +8247,20 @@ const MUTATIONS = [
     find: "    cov.of++; cov.fof+=wf;", repl: "    cov.of++;" },
   { id: 'v212-w2-att-title-bare', area: "attBody", what: "Without a WBS’s heading states no coverage",
     find: "  if(ttl) ttl.textContent=K.t+(cv? ", repl: "  if(ttl) ttl.textContent=K.t+(false? " },
-  { id: 'v212-w2-att-wbsx-missing', area: "attLists", what: "a stored paragraph the estimate does not hold is never listed",
-    find: "const wx=wbsUnlistedOf(id, WP); if(wx.length) out.wbsx.push(", repl: "const wx=wbsUnlistedOf(id, WP); if(false) out.wbsx.push(" },
-  { id: 'v212-w2-att-wbsx-no-clins', area: "wbsUnlistedOf", what: "a prime’s CLIN paragraph the estimate does not hold is never listed",
-    find: "  if(st.prime) st.clins.forEach(function(x){ x.lines.forEach(function(e){ if(e) add(e.w, ' (CLIN '+String(x.c.clin||'').slice(0, 20)+')'); }); });", repl: "  if(st.prime) [];" },
+  // v212-w2-att-wbsx-missing: retired as obsolete in v2.19 -- its line in attLists went with item 150 (a stored paragraph the estimate does not hold is never listed)
+  // v212-w2-att-wbsx-no-clins: retired as obsolete in v2.19 -- wbsUnlistedOf went with item 150 (a prime’s CLIN paragraph the estimate does not hold is never listed)
   { id: 'v212-w2-posture-silent', area: "scoreboard", what: "Needs attention holds the list of requirements without a WBS, and its strip has no entry to open it",
     find: "        +(A.wbs.length? ae('wbs', '▦', A.wbs.length+' without a WBS') : '')", repl: "        +''" },
   { id: 'v212-w2-go-nowhere', area: "attGo", what: "Go to it on a requirement without a WBS opens nothing to fill",
-    find: "  if(k==='wbs' || k==='wbsx'){ if(clinApplies(id)) clinGo(id); else openEdit(id, 'wbs'); return; }", repl: "" },
+    find: "  if(k==='wbs'){ if(clinApplies(id)) clinGo(id); else openEdit(id, 'wbs'); return; }", repl: "" },   // v2.19: retargeted, wbsx gone
   { id: 'v212-w2-go-prime-edit', area: "attGo", what: "Go to it on a prime without a WBS opens its record, where a prime’s WBS cannot be set, not its CLIN drill",
-    find: "  if(k==='wbs' || k==='wbsx'){ if(clinApplies(id)) clinGo(id); else openEdit(id, 'wbs'); return; }", repl: "  if(k==='wbs' || k==='wbsx'){ openEdit(id, 'wbs'); return; }" },
+    find: "  if(k==='wbs'){ if(clinApplies(id)) clinGo(id); else openEdit(id, 'wbs'); return; }", repl: "  if(k==='wbs'){ openEdit(id, 'wbs'); return; }" },   // v2.19: retargeted, wbsx gone
   { id: 'v212-w2-go-split-hidden', area: "openEdit", what: "Go to it on a split leaves the keyboard on a hidden field",
     find: "  if(f && f.hidden && erAt==='wbs'){ const sb=erEl('erWbsSplit'); if(sb && !sb.hidden) f=sb; }", repl: "" },
-  { id: 'v212-w2-bulk-none', area: "matBulk", what: "Classify offers no bulk set for the WBS",
-    find: "    if(WP.k) out['wbs']={opts:", repl: "    if(false) out['wbs']={opts:" },
-  { id: 'v212-w2-bulk-erases-split', area: "matBulk", what: "a bulk WBS lands on a requirement split across paragraphs, erasing the split",
-    find: "return ptypeOf(it.id)!=='PRIME' && L.length<=1 && !((L[0]||{}).v||[]).length; },", repl: "return ptypeOf(it.id)!=='PRIME'; }," },
-  { id: 'v212-w2-bulk-on-primes', area: "matBulk", what: "a bulk WBS lands on primes, whose WBS is per CLIN",
-    find: "return ptypeOf(it.id)!=='PRIME' && L.length<=1 && !((L[0]||{}).v||[]).length; },", repl: "return L.length<=1 && !((L[0]||{}).v||[]).length; }," },
-  { id: 'v212-w2-mat-no-name', area: "matBody", what: "the Classify grid shows a paragraph with no name",
-    find: "        else if(nm) own='<div class=\"wbsnm\">'+esc(nm)+'</div>'; }", repl: "        }" },
+  // v212-w2-bulk-none: retired as obsolete in v2.19 -- its line in matBulk went with item 150 (Classify offers no bulk set for the WBS)
+  // v212-w2-bulk-erases-split: retired as obsolete in v2.19 -- its line in matBulk went with item 150 (a bulk WBS lands on a requirement split across paragraphs, erasing the split)
+  // v212-w2-bulk-on-primes: retired as obsolete in v2.19 -- its line in matBulk went with item 150 (a bulk WBS lands on primes, whose WBS is per CLIN)
+  // v212-w2-mat-no-name: retired as obsolete in v2.19 -- its line in matBody went with item 150 (the Classify grid shows a paragraph with no name)
   { id: 'v212-w2-src-blank', area: "srcRowsOf", what: "the Spend Plan Source’s WBS column is blank on every line again",
     find: "      r[23]=srcWbsCell(wc||'', WP);", repl: "      r[23]='';" },
   { id: 'v212-w2-src-no-name', area: "srcWbsCell", what: "the WBS column carries the code with no name",
@@ -9342,42 +8282,27 @@ const MUTATIONS = [
     find: "hit=true; a+=e.ask[i]||0; l+=e.alloc[i]||0; });", repl: "if(hit) return; hit=true; a+=e.ask[i]||0; l+=e.alloc[i]||0; });" },
   { id: 'v212-w2-fydp-tab-order', area: "fydpBookModel", what: "with Full Fund on screen the STOVL tab moves to the end, after the services it used to precede",
     find: "SVC.forEach(function(s){ s=fydpSvcFold(s); if(svcs.indexOf(s)<0) svcs.push(s); });", repl: "SVC.forEach(function(s){ if(svcs.indexOf(s)<0) svcs.push(s); });" },
-  { id: 'v212-w2-draw-wbsname', area: "wbsBody", what: "a WBS name from a file is drawn as markup beside its paragraph",
-    find: "(off? '⚠ not a paragraph of the '+esc(wbsSrcLbl(P))+' — kept as stored' : esc(nm))", repl: "(off? '⚠ not a paragraph of the '+esc(wbsSrcLbl(P))+' — kept as stored' : nm)" },
-  { id: 'v212-w2-draw-datalist', area: "wbsListOpts", what: "a WBS name from a file is written raw into the picker’s list",
-    find: "P.codes.filter(function(c){ return sg.indexOf(c)<0; }).map(function(c){ return '<option value=\"'+esc(wbsOptLbl(c, P))+'\"></option>'; })", repl: "P.codes.filter(function(c){ return sg.indexOf(c)<0; }).map(function(c){ return '<option value=\"'+wbsOptLbl(c, P)+'\"></option>'; })" },
-  { id: 'v212-w2-draw-wbsx', area: "attBody", what: "a stored WBS paragraph from a file is drawn as markup in Needs attention",
-    find: "'<td class=\"attwbsx\" style=\"text-align:left;white-space:normal\">'+esc(r.n.join(' \\u00b7 '))+'</td><td>'", repl: "'<td class=\"attwbsx\" style=\"text-align:left;white-space:normal\">'+r.n.join(' \\u00b7 ')+'</td><td>'" },
+  // v212-w2-draw-wbsname: retired as obsolete in v2.19 -- its line in wbsBody went with item 150 (a WBS name from a file is drawn as markup beside its paragraph)
+  // v212-w2-draw-datalist: retired as obsolete in v2.19 -- wbsListOpts went with item 150 (a WBS name from a file is written raw into the picker’s list)
+  // v212-w2-draw-wbsx: retired as obsolete in v2.19 -- its line in attBody went with item 150 (a stored WBS paragraph from a file is drawn as markup in Needs attention)
   // ---- v2.12 RV2: the second review's W2 findings (K00-K07, K09, K14-K17) ----
-  { id: 'v212-rv2-unlisted-whole-text', area: "wbsUnlisted", what: "a paragraph stored as CCaR writes it (\"1.2.1 - Organizational\") is flagged as not in the estimate, while the box names it 1.2.1",
-    find: "function wbsUnlisted(w, P){ P=P||wbsPick(); const c=wbsCodeIn(w);", repl: "function wbsUnlisted(w, P){ P=P||wbsPick(); const c=aceNormWbs(w);" },
-  { id: 'v212-rv2-bulk-get-whole-text', area: "matBulk", what: "Classify reads a paragraph stored as \"1.2.1 - Organizational\" as another value than 1.2.1",
-    find: "const w=String((wbsReq(it.id)[0]||{}).w||'').trim(), c=wbsCodeIn(w);", repl: "const w=String((wbsReq(it.id)[0]||{}).w||'').trim(), c=aceNormWbs(w);" },
+  // v212-rv2-unlisted-whole-text: retired as obsolete in v2.19 -- wbsUnlisted went with item 150 (a paragraph stored as CCaR writes it (\"1.2.1 - Organizational\") is flagged as not in the estimate, while the)
+  // v212-rv2-bulk-get-whole-text: retired as obsolete in v2.19 -- its line in matBulk went with item 150 (Classify reads a paragraph stored as \"1.2.1 - Organizational\" as another value than 1.2.1)
   // v2.12 RV5: retargeted -- aceWbsOf reads wbsStateOf's lines now (S11); the same defect
-  { id: 'v212-rv2-acewbsof-whole-text', area: "aceWbsOf", what: "the tie-out claims \"1.2.1-ORGANIZATIONAL\", which matches no estimate line, for a paragraph stored as CCaR writes it",
-    find: "  return wbsStateOf(id).lines.map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })", repl: "  return wbsStateOf(id).lines.map(function(e){ return (e && e.w)? aceNormWbs(e.w) : ''; })" },
-  { id: 'v212-rv2-er-rewrites-stored', area: "erUpdate", what: "the edit box shortens a stored \"code - name\" paragraph as it opens: dirty with nothing typed, and a Save of another field rewrites it",
-    find: "  { const w0=erEl('erWbs'); if(w0 && String(w0.value).trim()!==String((erSnap||{}).wbs||'').trim()) wbsPickedIn(w0); }", repl: "  { const w0=erEl('erWbs'); wbsPickedIn(w0); }" },
-  { id: 'v212-rv2-ar-rewrites-carried', area: "arUpdate", what: "the Add box rewrites a paragraph carried from another year as it opens to finish",
-    find: "  { const w0=arEl('arWbs'); if(w0 && !(arFin && arFin.wbsFrom && String(w0.value).trim()===String(arFin.wbsFrom).trim())) wbsPickedIn(w0); }", repl: "  { const w0=arEl('arWbs'); wbsPickedIn(w0); }" },
-  { id: 'v212-rv2-quick-rewrites-stored', area: "wbsQuick", what: "the quick box shortens the stored paragraph as it opens, and OK rewrites it",
-    find: "    pick:function(el){ if(el && String(el.value).trim()!==was.trim()) wbsPickedIn(el, P); }} : null);", repl: "    pick:function(el){ wbsPickedIn(el, P); }} : null);" },
+  // v212-rv2-acewbsof-whole-text: retired as obsolete in v2.19 -- aceWbsOf went with item 150 (the tie-out claims \"1.2.1-ORGANIZATIONAL\", which matches no estimate line, for a paragraph stored as CCaR wr)
+  // v212-rv2-er-rewrites-stored: retired as obsolete in v2.19 -- its line in erUpdate went with item 150 (the edit box shortens a stored \"code - name\" paragraph as it opens: dirty with nothing typed, and a Save of )
+  // v212-rv2-ar-rewrites-carried: retired as obsolete in v2.19 -- its line in arUpdate went with item 150 (the Add box rewrites a paragraph carried from another year as it opens to finish)
+  // v212-rv2-quick-rewrites-stored: retired as obsolete in v2.19 -- its line in wbsQuick went with item 150 (the quick box shortens the stored paragraph as it opens, and OK rewrites it)
   { id: 'v212-rv2-quick-esc-unguarded', area: "uipPanel", what: "the WBS quick box drops what was typed on Esc without asking",
     find: "<input id=\"uipVal\" data-held=\"1\" ", repl: "<input id=\"uipVal\" " },
-  { id: 'v212-rv2-drill-no-name', area: "clinTable", what: "the CLIN drill shows a CLIN's paragraph with no name, and one the estimate does not hold unflagged",
-    find: "+'</button>'+wbsClinSay(pid, c.key)+'</td>'", repl: "+'</button></td>'" },
-  { id: 'v212-rv2-drill-unflagged', area: "wbsClinSay", what: "the CLIN drill does not flag a CLIN's paragraph the estimate does not hold",
-    find: "  if(off.length) return '<div class=\"wbsnm off\">", repl: "  if(false) return '<div class=\"wbsnm off\">" },
-  { id: 'v212-rv2-draw-clinsay', area: "wbsClinSay", what: "a CLIN's stored paragraph from a file is drawn as markup under its WBS button",
-    find: "': '+esc(off.join(', '))+'</div>';", repl: "': '+off.join(', ')+'</div>';" },
+  // v212-rv2-drill-no-name: retired as obsolete in v2.19 -- its line in clinTable went with item 150 (the CLIN drill shows a CLIN's paragraph with no name, and one the estimate does not hold unflagged)
+  // v212-rv2-drill-unflagged: retired as obsolete in v2.19 -- wbsClinSay went with item 150 (the CLIN drill does not flag a CLIN's paragraph the estimate does not hold)
+  // v212-rv2-draw-clinsay: retired as obsolete in v2.19 -- wbsClinSay went with item 150 (a CLIN's stored paragraph from a file is drawn as markup under its WBS button)
   { id: 'v212-rv2-review-bare', area: "pmoFmtVal", what: "the PMO review and its change report show a proposed paragraph with no name, and one the estimate does not hold unflagged",
     find: "return v.map(function(e){ return wbsReviewTxt(e && e.w); }).join(' · ');", repl: "return v.map(function(e){ return (e&&e.w)||'(unnamed WBS)'; }).join(' · ');" },
-  { id: 'v212-rv2-review-unflagged', area: "wbsReviewTxt", what: "the PMO review does not flag a proposed paragraph the board's estimate does not hold",
-    find: "  if(wbsUnlisted(t, P)) return t+' (not in the '+wbsSrcLbl(P)+')';", repl: "" },
-  { id: 'v212-rv2-skip-said-never', area: "matBulk", what: "Classify's bulk WBS says a split requirement and the primes \"never offer\" the field",
-    find: "              skip:function(it){ return ptypeOf(it.id)==='PRIME'?", repl: "              skipX:function(it){ return ptypeOf(it.id)==='PRIME'?" },
-  { id: 'v212-rv2-skip-split-as-prime', area: "matBulk", what: "Classify calls a requirement with a WBS split a prime",
-    find: "              skip:function(it){ return ptypeOf(it.id)==='PRIME'?", repl: "              skip:function(it){ return true?" },
+  // v212-rv2-review-unflagged: retired as obsolete in v2.19 -- its line in wbsReviewTxt went with item 150 (the PMO review does not flag a proposed paragraph the board's estimate does not hold)
+  // v212-rv2-skip-said-never: retired as obsolete in v2.19 -- its line in matBulk went with item 150 (Classify's bulk WBS says a split requirement and the primes \"never offer\" the field)
+  // v212-rv2-skip-split-as-prime: retired as obsolete in v2.19 -- its line in matBulk went with item 150 (Classify calls a requirement with a WBS split a prime)
   { id: 'v212-rv2-att-any-line', area: "attLists", what: "Without a WBS leaves out a requirement whose split leaves money unassigned, or a prime funded on a service no CLIN carries, while the export sends that money blank",
     find: "    if(ws.has && !(wbl>0.5)) cov.n++;", repl: "    if(ws.has) cov.n++;" },
   { id: 'v212-rv2-cov-all-funded', area: "attLists", what: "Without a WBS's heading counts every funded dollar of a requirement with any paragraph, including those that go out blank",
@@ -9436,12 +8361,9 @@ const MUTATIONS = [
   { id: 'v212-rv5-door-not-list', area: "inClinsWhy", what: "the import check takes a prime's CLINs that are not a list",
     find: "    if(!Array.isArray(L)) return 'the CLINs at '+p+' are not a list ('", repl: "    if(false) return 'the CLINs at '+p+' are not a list ('" },
   // S11: the tie-out's claims are the paragraphs the one rule reads
-  { id: 'v212-rv5-acewbsof-every-clin', area: "aceWbsOf", what: "the tie-out claims every paragraph ever stored on a requirement, whatever its type, and a removed CLIN's",
-    find: "  return wbsStateOf(id).lines.map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })", repl: "  return [].concat(wbsReq(id), [].concat.apply([], Object.keys(((S.clinWbs||{})[id])||{}).map(function(k){ return S.clinWbs[id][k]||[]; }))).map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })" },
-  { id: 'v212-rv5-acewbsof-type-switch', area: "aceWbsOf", what: "a prime switched to an OGC still claims its CLINs' paragraphs in the tie-out's AV + PSM split",
-    find: "  return wbsStateOf(id).lines.map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })", repl: "  return (clinApplies(id)? wbsStateOf(id).lines : [].concat(wbsReq(id), [].concat.apply([], Object.keys(((S.clinWbs||{})[id])||{}).map(function(k){ return S.clinWbs[id][k]||[]; })))).map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })" },
-  { id: 'v212-rv5-acewbsof-removed-clin', area: "aceWbsOf", what: "a CLIN removed in the drill still claims its paragraph in the tie-out's AV + PSM split",
-    find: "  return wbsStateOf(id).lines.map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })", repl: "  return (clinApplies(id)? [].concat.apply([], Object.keys(((S.clinWbs||{})[id])||{}).map(function(k){ return S.clinWbs[id][k]||[]; })) : wbsStateOf(id).lines).map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })" },
+  // v212-rv5-acewbsof-every-clin: retired as obsolete in v2.19 -- aceWbsOf went with item 150 (the tie-out claims every paragraph ever stored on a requirement, whatever its type, and a removed CLIN's)
+  // v212-rv5-acewbsof-type-switch: retired as obsolete in v2.19 -- aceWbsOf went with item 150 (a prime switched to an OGC still claims its CLINs' paragraphs in the tie-out's AV + PSM split)
+  // v212-rv5-acewbsof-removed-clin: retired as obsolete in v2.19 -- aceWbsOf went with item 150 (a CLIN removed in the drill still claims its paragraph in the tie-out's AV + PSM split)
   // S12, S15: the PMO review shows a proposed requirement's WBS
   { id: 'v212-rv5-review-new-no-wbs', area: "pmoFmtVal", what: "the PMO review and its change report show no WBS for a proposed new requirement, which lands with it",
     find: "    if(wb.length) parts.push(FL('wbs')+' '+pmoFmtVal('wbs', wb));", repl: "" },
@@ -9457,8 +8379,7 @@ const MUTATIONS = [
     find: "    if(has.length===ps.length && ps.every(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }", repl: "    if(ps.some(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }" },
   { id: 'v212-rv5-exw-unlisted-written', area: "execWbsScan", what: "WBS from execution data writes a paragraph the estimate the pickers offer does not hold",
     find: "    if(off.length){ rec.off=off; scan.unlisted.push(rec); return; }", repl: "" },
-  { id: 'v212-rv5-exw-unnamed', area: "exwBody", what: "WBS from execution data shows a paragraph ready to write with no name",
-    find: "+'<td style=\"text-align:left\">'+esc(pr.para)+(wbsPathOf(pr.para)? ' — '+esc(wbsPathOf(pr.para)) : '')+'</td>'", repl: "+'<td style=\"text-align:left\">'+esc(pr.para)+'</td>'" },
+  // v212-rv5-exw-unnamed: retired as obsolete in v2.19 -- its line in exwBody went with item 150 (WBS from execution data shows a paragraph ready to write with no name)
   { id: 'v212-rv5-exw-para-whole', area: "srcWbsPara", what: "the column's \"code - name\" is not read to its code, so ORBIT's own Spend Plan Source is read back as nothing",
     find: "  const head=wbsCodeIn(raw);", repl: "  const head=raw.toUpperCase();" },
   // S20: the draw writes nothing, measured from a state no draw has touched
@@ -9585,13 +8506,8 @@ const MUTATIONS = [
     find: "  const cp=JSON.parse(JSON.stringify(orig));",
     repl: "  const cp=orig;" },
   // ---- where it shows: the box, Needs attention, Budget Management, the UPL line on each surface
-  { id: 'v212-w3-box-blames-position', area: "fitBody", what: "an over on a service the position says nothing about is blamed on the position",
-    // v2.12 RV3: retargeted -- the over's words are fitVs's (R15), which names the position only where the base is read from it
-    find: "  const a=+X.add[i]||0, b=+X.base[i]||0, what=(r.from[i]==='pos')? key : 'the board’s own budget';",
-    repl: "  const a=+X.add[i]||0, b=+X.base[i]||0, what=key;" },
-  { id: 'v212-w3-fitgo-no-select', area: "fitGo", what: "Go to it closes the box and selects nothing",
-    find: "  if(+fy!==+MS.cur){ switchYear(+fy); if(+MS.cur!==+fy) return; }\n  setCur(id);",
-    repl: "  if(+fy!==+MS.cur){ switchYear(+fy); if(+MS.cur!==+fy) return; }" },
+  // v212-w3-box-blames-position: retired as obsolete in v2.19 -- fitVs went with item 150 (an over on a service the position says nothing about is blamed on the position)
+  // v212-w3-fitgo-no-select: retired as obsolete in v2.19 -- fitGo went with item 150 (Go to it closes the box and selects nothing)
   { id: 'v212-w3-att-missing', area: "scoreboard", what: "Needs attention says nothing while a year is over",
     find: "        if(FM && FM.over) fitE=",
     repl: "        if(false) fitE=" },
@@ -9672,16 +8588,9 @@ const MUTATIONS = [
   { id: 'v212-rv3-over-screen-year', area: "fitModel", what: "an over in a year not on screen is not counted, so Needs attention says nothing of it",
     find: "           over:ys.reduce(function(n,y){ return n+years[y].over; }, 0),",
     repl: "           over:ys.reduce(function(n,y){ return n+(+y===+MS.cur? years[y].over : 0); }, 0)," },
-  { id: 'v212-rv3-fitgo-no-switch', area: "fitGo", what: "Go to it on another year's over selects the requirement in the year on screen",
-    find: "  fitOpen=false;\n  if(+fy!==+MS.cur){ switchYear(+fy); if(+MS.cur!==+fy) return; }",
-    repl: "  fitOpen=false;" },
-  { id: 'v212-rv3-over-vs-position-alone', area: "fitVs", what: "an over against the position plus added funding is said to be against the position alone",
-    find: "  if(Math.abs(a)<=0.5) return what;",
-    repl: "  return what;" },
-  { id: 'v212-rv3-withheld-said-added', area: "fitVs", what: "a withheld (negative) source is said to be added funding",
-    // v2.12 RV6: retargeted -- the sentence carries the floor too (S07)
-    find: "  return what+(a>0? ' plus added funding' : ' less withheld funding')+' ('+fM(b)+(a>0? ' + ' : ' − ')+fM(Math.abs(a))+fl+')';",
-    repl: "  return what+' plus added funding ('+fM(b)+' + '+fM(a)+')';" },
+  // v212-rv3-fitgo-no-switch: retired as obsolete in v2.19 -- fitGo went with item 150 (Go to it on another year's over selects the requirement in the year on screen)
+  // v212-rv3-over-vs-position-alone: retired as obsolete in v2.19 -- fitVs went with item 150 (an over against the position plus added funding is said to be against the position alone)
+  // v212-rv3-withheld-said-added: retired as obsolete in v2.19 -- fitVs went with item 150 (a withheld (negative) source is said to be added funding)
   { id: 'v212-rv3-att-names-tag', area: "fitOverLbl", what: "Needs attention names the tag whatever the overs are against",
     // v2.12 RV6: retargeted -- the entry words withheld funding apart from added (S07)
     find: "  if(key && p===n) return key+adj(FM.overPosAdd, FM.overPosLess);",
@@ -9699,9 +8608,7 @@ const MUTATIONS = [
   { id: 'v212-rv3-view-null-pos-old', area: "baPos", what: "a lock an earlier v2.12 build stored with pos:null reads as a lock from before v2.12",
     find: "    if(c && Object.prototype.hasOwnProperty.call(c, 'pos') && p===null) return {key:String(c.from||CYCVIEW), P:null, lock:CYCVIEW};\n    return null;",
     repl: "    return null;" },
-  { id: 'v212-rv3-view-hint-reads-pos', area: "fitBody", what: "the view of a lock that read no position says its years read the position as locked",
-    find: "    +(M.lock? (M.has? 'Viewing <b>'",
-    repl: "    +(M.lock? (true? 'Viewing <b>'" },
+  // v212-rv3-view-hint-reads-pos: retired as obsolete in v2.19 -- fitBody went with item 150 (the view of a lock that read no position says its years read the position as locked)
   { id: 'v212-rv3-lock-year-untagged', area: "fitSrcSay", what: "each year of a lock that read no position says the plan is untagged",
     find: "  if(!r.has) return (r.lock? 'This lock kept no '+key+' position for '+appnName(mySlug())+': every base is the board’s own, as locked.'",
     repl: "  if(!r.has) return (r.lock? 'The plan is untagged: every base is the board’s own, from Budget Management.'" },
@@ -9743,12 +8650,8 @@ const MUTATIONS = [
   { id: 'v212-rv3-fydp-upl-summed', area: "fydpBookApp", what: "the five-year workbook adds the services' UPL together: one line per lane",
     find: "    sv.forEach(function(s, i){ const f=fydpSvcFold(s); if(upl[y].svc.indexOf(f)<0) upl[y].svc.push(f);",
     repl: "    sv.forEach(function(s, i){ const f='all services'; if(upl[y].svc.indexOf(f)<0) upl[y].svc.push(f);" },
-  { id: 'v212-rv3-guide-no-fit-entry', area: "helpDoc", what: "the guide's Needs attention list leaves out the 🏛 entry",
-    find: " The first entry, <b>🏛 N over BES28</b>, opens the fit to the PPBE position instead (see <i>Budget authority from the PPBE position</i>).</p>",
-    repl: "</p>" },
-  { id: 'v212-rv3-guide-position-only', area: "helpDoc", what: "the guide says no report states more than the position, though added funding is drawn on top",
-    find: "no report states more than the budget authority (the position plus added funding).",
-    repl: "no report states more than the position." },
+  // v212-rv3-guide-no-fit-entry: retired as obsolete in v2.19 -- went with item 150 (the guide's Needs attention list leaves out the 🏛 entry)
+  // v212-rv3-guide-position-only: retired as obsolete in v2.19 -- went with item 150 (the guide says no report states more than the position, though added funding is drawn on top)
   // ---- v2.12 RV6: the second review of item 134 (S04-S09, S14, S17-S19)
   // S04, S05, S14, S17, S18: one rule for a one-figure position (ppLanesOf), read by the live budget, Take and FYDP Disconnects
   { id: 'v212-rv6-split-read-as-total', area: "ppLanesOf", what: "a split position is read as one figure per line: its Discretionary and Mandatory are added and divided again by the own base",
@@ -9772,30 +8675,16 @@ const MUTATIONS = [
     find: "    +'.'+esc(oneSaid)+' These are the board", repl: "    +'.'+' These are the board" },
   { id: 'v212-rv6-state-moved-by-edit', area: "bmPpState", what: "a base edited after the take reads as a position that has changed since it was taken",
     find: "  const now=bmPpVec(pp.key, pp.fy, {disc:pp.disc||[], mand:pp.mand||[]});", repl: "  const now=bmPpVec(pp.key, pp.fy);" },
-  { id: 'v212-rv6-fdc-all-disc', area: "fdcModel", what: "FYDP Disconnects prints a one-figure position as all Discretionary and $0 Mandatory",
-    find: "ppSvcsOf(Q).forEach(function(sv){ if(!inG(svcs, sv)) return; const L=lanesOf(SBY[ap], Q, sv, y);",
-    repl: "ppSvcsOf(Q).forEach(function(sv){ if(!inG(svcs, sv)) return; const c0=ppSvcFy(Q, sv, y), L={d:D$(c0.d), m:D$(c0.m), t:D$(c0.d)+D$(c0.m)};" },
-  { id: 'v212-rv6-fdc-board-base', area: "fdcModel", what: "another appropriation's one-figure position is divided by THIS board's own base",
-    find: "    const B=Q.split? null : baseOf(s, y), i=", repl: "    const B=Q.split? null : baseOf(SBY[mySlug()], y), i=" },
-  { id: 'v212-rv6-fdc-svc-by-position', area: "fdcOwnBase", what: "another appropriation's own base is read by this board's service positions, not its own list",
-    find: "  return B? {svc:s.svc, disc:B.disc, mand:B.mand} : {why:'bad'};", repl: "  return B? {svc:SVC.slice(0, n), disc:B.disc, mand:B.mand} : {why:'bad'};" },
-  { id: 'v212-rv6-fdc-year-guessed', area: "fdcOwnBase", what: "a year an appropriation holds no plan for is read as an own base of $0, not said",
-    find: "  if(!Y || typeof Y!=='object') return {why:'year'};",
-    repl: "  if(!Y || typeof Y!=='object') return {svc:s.svc, disc:s.svc.map(function(){ return 0; }), mand:s.svc.map(function(){ return 0; })};" },
-  { id: 'v212-rv6-own-base-reads-cache', area: "bmOwnOf", what: "a year's own base is read from its budget cache (the live figure), not its Budget Management base",
-    find: "  const bm=(Y.bm && typeof Y.bm==='object' && !Array.isArray(Y.bm))? Y.bm : {disc:Y.discSvc, mand:Y.mandSvc};",
-    repl: "  const bm={disc:Y.discSvc, mand:Y.mandSvc};" },
-  { id: 'v212-rv6-own-base-no-cache', area: "bmOwnOf", what: "a year with no Budget Management components yet is a base that cannot be read, though its board opens it on the budget it holds",
-    find: "  const bm=(Y.bm && typeof Y.bm==='object' && !Array.isArray(Y.bm))? Y.bm : {disc:Y.discSvc, mand:Y.mandSvc};",
-    repl: "  const bm=(Y.bm && typeof Y.bm==='object' && !Array.isArray(Y.bm))? Y.bm : {};" },
-  { id: 'v212-rv6-fdc-ctl-from-lanes', area: "fdcModel", what: "a year whose one figure cannot be divided prints no Controls, though the figure is known",
-    find: "    const d=lane(p, 'd'), m=lane(p, 'm'), ctl=lane(p, 't'), rq", repl: "    const d=lane(p, 'd'), m=lane(p, 'm'), ctl=plus(d, m), rq" },
-  { id: 'v212-rv6-fdc-unsaid', area: "fdcOneSay", what: "FYDP Disconnects divides a one-figure position and the box and workbook say nothing of it",
-    find: "    if(parts.length) out.push(M.cyc.label+' gives '+s.name+' one figure per line: '+parts.join('; ')+'.');\n", repl: "" },
-  { id: 'v212-rv6-fdc-nobase-unsaid', area: "fdcOneSay", what: "a year whose own base cannot be read prints — and nothing says why",
-    find: "    by(o.none).forEach(function(e){ const many=e.ys.length>1;", repl: "    [].forEach(function(e){ const many=e.ys.length>1;" },
-  { id: 'v212-rv6-fdc-note-not-written', area: "fdcModel", what: "the workbook and box carry the v2.11 note alone: the one-figure sentences are not in the model",
-    find: "  const note=[fdcLoneSay(st, M)].concat(fdcOneSay(st, M, ONE)).filter(Boolean).join(' ');", repl: "  const note=fdcLoneSay(st, M);" },
+  // v212-rv6-fdc-all-disc: retired as obsolete in v2.19 -- fdcModel went with item 150 (FYDP Disconnects prints a one-figure position as all Discretionary and $0 Mandatory)
+  // v212-rv6-fdc-board-base: retired as obsolete in v2.19 -- fdcModel went with item 150 (another appropriation's one-figure position is divided by THIS board's own base)
+  // v212-rv6-fdc-svc-by-position: retired as obsolete in v2.19 -- fdcOwnBase went with item 150 (another appropriation's own base is read by this board's service positions, not its own list)
+  // v212-rv6-fdc-year-guessed: retired as obsolete in v2.19 -- fdcOwnBase went with item 150 (a year an appropriation holds no plan for is read as an own base of $0, not said)
+  // v212-rv6-own-base-reads-cache: retired as obsolete in v2.19 -- bmOwnOf went with item 150 (a year's own base is read from its budget cache (the live figure), not its Budget Management base)
+  // v212-rv6-own-base-no-cache: retired as obsolete in v2.19 -- bmOwnOf went with item 150 (a year with no Budget Management components yet is a base that cannot be read, though its board opens it on th)
+  // v212-rv6-fdc-ctl-from-lanes: retired as obsolete in v2.19 -- fdcModel went with item 150 (a year whose one figure cannot be divided prints no Controls, though the figure is known)
+  // v212-rv6-fdc-unsaid: retired as obsolete in v2.19 -- fdcOneSay went with item 150 (FYDP Disconnects divides a one-figure position and the box and workbook say nothing of it)
+  // v212-rv6-fdc-nobase-unsaid: retired as obsolete in v2.19 -- fdcOneSay went with item 150 (a year whose own base cannot be read prints — and nothing says why)
+  // v212-rv6-fdc-note-not-written: retired as obsolete in v2.19 -- fdcModel went with item 150 (the workbook and box carry the v2.11 note alone: the one-figure sentences are not in the model)
   // S06: a lock taken before v2.12 is said as a lock of a tagged plan
   { id: 'v212-rv6-old-lock-untagged', area: "fitSrcSay", what: "each year of a lock taken before v2.12 says the plan is untagged",
     find: "  if(!r.key && CYCVIEW){ const c=blGet(CYCVIEW),", repl: "  if(false){ const c=blGet(CYCVIEW)," },
@@ -9808,8 +8697,7 @@ const MUTATIONS = [
     find: "(add && less)? ' with funding added and withheld' : add?", repl: "(add && less)? ' plus added funding' : add?" },
   { id: 'v212-rv6-att-less-unsaid', area: "fitOverLbl", what: "overs in lanes with withheld funding are said with nothing of it",
     find: "add? ' plus added funding' : less? ' less withheld funding' : '';", repl: "add? ' plus added funding' : '';" },
-  { id: 'v212-rv6-floor-unsaid', area: "fitVs", what: "an over whose budget authority is floored at $0 states it as the base less what was withheld",
-    find: "  const fl=(b+a<-0.5)? ', floored at $0' : '';", repl: "  const fl='';" },
+  // v212-rv6-floor-unsaid: retired as obsolete in v2.19 -- fitVs went with item 150 (an over whose budget authority is floored at $0 states it as the base less what was withheld)
   // S08: the v1 shape keeps its figure as written, so words are said
   { id: 'v212-rv6-v1-words-zero', area: "ppNorm", what: "a v1 position's figure written as words is $0 budget authority, in silence",
     find: "      flat.forEach(y=>{ out.val[sv]._legacy[y]={d:node[y], m:0}; });", repl: "      flat.forEach(y=>{ out.val[sv]._legacy[y]={d:ppNum(node[y])||0, m:0}; });" },
@@ -9819,9 +8707,7 @@ const MUTATIONS = [
   { id: 'v212-rv6-lock-moves-more-dropped', area: "cycLock", what: "a lock that moves more figures than the eight it lists says nothing of the rest",
     find: "+(moves.length>8? '; and '+(moves.length-8)+' more' : '')+'. What the lanes fund moves with it.'", repl: "+'. What the lanes fund moves with it.'" },
   // S09: the guide
-  { id: 'v212-rv6-guide-one-figure-gone', area: "helpDoc", what: "the guide never states the one-figure rule",
-    find: " A position logged one figure per line sets each service’s total for the year, split between discretionary and mandatory as the board’s own base for that service and year splits it (all discretionary where that base is $0); Take from a PPBE position and FYDP Disconnects read it so too.",
-    repl: "" },
+  // v212-rv6-guide-one-figure-gone: retired as obsolete in v2.19 -- went with item 150 (the guide never states the one-figure rule)
   // ==== end v2.12 W3 ====
 
   // ==== v2.13 (item 136): one PPBE cycle for every appropriation, chosen in the context bar ====
@@ -9903,8 +8789,7 @@ const MUTATIONS = [
     find: "  if(typeof SANDBOX!=='undefined' && SANDBOX){ setStat('The PPBE cycle is chosen on the portfolio board: this PMO copy reads '+(MS.cycle? blLbl(MS.cycle) : 'no PPBE cycle')+', as published.'); render(); return; }", repl: "" },
   { id: 'v213-136-offer-not-kept', area: "boot", what: "the opening's offer to put every appropriation on one cycle is not kept unread, so a later opening line takes it away",
     find: "_statQuiet=false; (A.mixed? statKeep : setStat)(", repl: "_statQuiet=false; setStat(" },
-  { id: 'v213-136-fit-panel-silent', area: "fitBody", what: "the Fit panel the figure opens never says what the figure says",
-    find: "      if(Q.pos.length) h+='<div class=\"fitctl\"", repl: "      if(false) h+='<div class=\"fitctl\"" },
+  // v213-136-fit-panel-silent: retired as obsolete in v2.19 -- fitBody went with item 150 (the Fit panel the figure opens never says what the figure says)
   { id: 'v213-136-fit-blanked-stale', area: "cycBarSync", what: "a save with no redraw after it blanks the figure",
     find: "  if(f && F!==undefined){", repl: "  if(f){" },
   { id: 'v213-136-fit-mixed-unnamed', area: "cycFitTxt", what: "beside a Mixed bar the figure does not say which cycle it is against",
@@ -9964,8 +8849,7 @@ const MUTATIONS = [
     find: "    if(W===MS){ baLiveAll(); }\n", repl: "" },
   { id: 'v213-rv-storage-memo', area: "storage listener", what: "another appropriation moved in another tab is still read with the cycle it had",
     find: "try{ window.addEventListener('storage', function(e){ _cycAllMemo=null;", repl: "try{ window.addEventListener('storage', function(e){" },
-  { id: 'v213-rv-panel-unreadable-unsaid', area: "fitBody", what: "the Fit panel's line does not say which service the position cannot be read for",
-    find: "        +(Q.bad.length? '; not counted, '+esc(key)+' cannot be read for: '+esc(Q.bad.join(', ')) : '')+'.</div>'; }", repl: "        +'.</div>'; }" },
+  // v213-rv-panel-unreadable-unsaid: retired as obsolete in v2.19 -- fitBody went with item 150 (the Fit panel's line does not say which service the position cannot be read for)
   { id: 'v213-rv-tip-unreadable-as-none', area: "cycFitSums", what: "a service the position cannot be read for is named as one it gives no controls for",
     find: "if(r.bad && r.bad[i]) o.bad.push(sv+' ('+r.bad[i]+')'); else o.own.push(sv); return; }", repl: "o.own.push(sv); return; }" },
   { id: 'v213-rv-lock-said-missing', area: "cycFitTxt", what: "a locked view of a lock that kept no position says the position is missing now",
@@ -10113,9 +8997,7 @@ const MUTATIONS = [
   { id: 'v214-w2-rescue-swapped', area: 'impFileRescue', what: '“the file you imported” downloads the new board instead',
     find: '  const r=R && R.rescue && R.rescue[which]; if(!r) return false;',
     repl: '  const r=R && R.rescue && R.rescue[(which===\'inc\' && R.rescue.html)? \'html\' : which]; if(!r) return false;' },
-  { id: 'v214-w2-lists-from-memory', area: 'boardPubOf', what: 'the new file carries this page’s cost estimates, not the import’s',
-    find: 'aceDb:L(\'prio27acedb\', ACEDB)',
-    repl: 'aceDb:ACEDB' },
+  // v214-w2-lists-from-memory: retired as obsolete in v2.19 -- its line in boardPubOf went with item 150 (the new file carries this page’s cost estimates, not the import’s)
   { id: 'v214-w2-drops-cycles', area: 'boardPubOf', what: 'the new file leaves out the locked cycles the import carries',
     find: '  Object.keys(_SLUGMAP).forEach(function(k){ const ck=_SLUGMAP[k].key+\'-cyc\'; if(has(ck)){ const v=pj(by[ck]); if(v) byAp[k]=v; } });\n',
     repl: '' },
@@ -10651,8 +9533,7 @@ const MUTATIONS = [
     find: "      +(strays.length? '\\nNot included: '", repl: "      +(false? '\\nNot included: '" },
   { id: 'v214-rv1-c-sendback-stray', area: "pkgSendBack", what: "⬆ Send back sends Full Fund's blank work back as Full Fund",
     find: "  if(strayHeld(ap)){ setStat('\\u26a0 '+esc(nm)+' was <b>not sent back</b>: '", repl: "  if(false){ setStat('\\u26a0 '+esc(nm)+' was <b>not sent back</b>: '" },
-  { id: 'v214-rv1-c-spdefs-reads-blank', area: "spDefs", what: "the Spruills on O&M print Full Fund off its blank work: no position, no budget",
-    find: "      st=strayOr(APPN_SLUG[a], st);     // v2.14 RV1-C", repl: "      // v2.14 RV1-C" },
+  // v214-rv1-c-spdefs-reads-blank: retired as obsolete in v2.19 -- spDefs went with item 150 (the Spruills on O&M print Full Fund off its blank work: no position, no budget)
   { id: 'v214-rv1-c-byband-reads-blank', area: "exportCSV", what: "the Priority Drill's requirements by band across every appropriation counts Full Fund as having none",
     find: "      st=strayOr(k, st);                // v2.14 RV1-C", repl: "      // v2.14 RV1-C" },
   { id: 'v214-rv1-c-export-list-drops', area: "exportOneAppn", what: "Export one appropriation does not offer Full Fund, which the file holds",
@@ -10897,8 +9778,7 @@ const MUTATIONS = [
     find: "  const busy=to.filter(p=>p.unsaved), go=to.filter(p=>!p.unsaved);", repl: "  const busy=to.filter(p=>false), go=to;" },
   { id: 'v214-rv2-b-ladder-refused-last-only', area: "bandCopyAll", what: "the ladder copy with two appropriations refused by browser storage names only the last",
     find: "Browser storage refused '+esc(refused.join(', '))", repl: "Browser storage refused '+esc(refused.slice(-1).join(', '))" },
-  { id: 'v214-rv2-b-spdefs-storage-first', area: "spDefs", what: "on O&M the Spruills print FY27 Full Fund requirements off this browser's older Full Fund ($0) while the file and Save hold $5,000,000 more",
-    find: "      try{ st=apStoreOf(APPN_SLUG[a]).st; }catch(e){ st=null; }", repl: "      try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[APPN_SLUG[a]].key)||'null'); }catch(e){}" },
+  // v214-rv2-b-spdefs-storage-first: retired as obsolete in v2.19 -- spDefs went with item 150 (on O&M the Spruills print FY27 Full Fund requirements off this browser's older Full Fund ($0) while the file a)
   { id: 'v214-rv2-b-byband-storage-first', area: "exportCSV", what: "the Priority Drill's requirements by band across every appropriation counts this browser's older Full Fund (2), not the one Save writes (3)",
     find: ": apStoreOf(k).st; }catch(e){ st=null; /* absent is normal */ }", repl: ": JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){ st=null; /* absent is normal */ }" },
   { id: 'v214-rv2-b-sideboot-stray-counted', area: "sideBootCheck", what: "every opening on O&M says 💾 Save writes this browser's blank Full Fund work into the file, which it never does",
@@ -10978,11 +9858,8 @@ const MUTATIONS = [
   { id: 'v214-rv2-d-rcn-left-words', area: "rcnBody", what: "typing lost from a row the load changed, beside a row still exactly as it was, is said to be in a row with no key, never why it did not go to the row alike",
     find: "asLeft=lost.some(function(x){ return fate[x.rs]==='left'; });", repl: "asLeft=false;" },
   // v2.14 RV2-D (spruills-other-appn-base-requirements-zero, spruills-checks-cannot-reach-a-real-board)
-  { id: 'v214-rv2-d-spdefs-other-pack', area: "spDefs", what: "Spruills reads another appropriation's requirements as $0 on a program file: Full Fund shows a surplus, the PMO drill $0 and the chart of accounts none of its requirements",
-    // v2.14 RV2-D (the check of this fix): retargeted in place -- a plan's pack only where the plan is read as one
-    find: "data:_hasData(APPNS[a])? APPNS[a] : ((st && st.years && _hasPack(st))? st.dataPack : APPNS[a])", repl: "data:APPNS[a]" },
-  { id: 'v214-rv2-d-spdefs-own-doubled', area: "spDefs", what: "the chart of accounts lists every added requirement of the appropriation on screen twice, and counts its dollars twice",
-    find: "Object.assign({}, DATA, {items:BASE_ITEMS})", repl: "DATA" },
+  // v214-rv2-d-spdefs-other-pack: retired as obsolete in v2.19 -- spDefs went with item 150 (Spruills reads another appropriation's requirements as $0 on a program file: Full Fund shows a surplus, the PM)
+  // v214-rv2-d-spdefs-own-doubled: retired as obsolete in v2.19 -- spDefs went with item 150 (the chart of accounts lists every added requirement of the appropriation on screen twice, and counts its dolla)
   // v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out)
   { id: 'v214-rv2-d-byband-ghost', area: "exportCSV", what: "the Priority Drill's count by band across every appropriation counts an id an older ORBIT's Put back left in another appropriation's order: O&M 5 beside a year holding 4",
     find: "yr.order.forEach(id=>{ if(onList && !onList.has(id)) return; const bid", repl: "yr.order.forEach(id=>{ const bid" },
@@ -10995,19 +9872,16 @@ const MUTATIONS = [
     find: "        r.twice? pl(r.twice,", repl: "        false? pl(r.twice," },
   // v2.14 RV2-D (also noticed: said only at the end of opening; roll forward copied what a mend set aside)
   { id: 'v214-rv2-d-mend-later-unsaid', area: "applyStore", what: "a list of added requirements mended by a load once the board is open is mended without a word",
-    find: "if(ACE_BOOTED && _customMended.length>m0){", repl: "if(false && ACE_BOOTED && _customMended.length>m0){" },
+    find: "if(BOARD_OPENED && _customMended.length>m0){", repl: "if(false && BOARD_OPENED && _customMended.length>m0){" },   // v2.19: retargeted, ACE_BOOTED is BOARD_OPENED
   { id: 'v214-rv2-d-roll-copies-aside', area: "pmoYearStart", what: "Roll forward copies what a mend set aside into the new year, which then holds entries it never had",
     // v2.14 RV2-D (the check of this fix): the line now sits in the one roll forward, shared by the year switch and PMO Apply
     find: "delete seed.customAside;", repl: "void 0;" },
   { id: 'v214-rv2-d-roll-own-copy', area: "switchYear", what: "the year switch rolls forward its own copy of the year again, and copies what a mend set aside into the new year",
     find: "      seed=pmoYearStart(y, true);", repl: "      seed=JSON.parse(JSON.stringify(S)); delete seed.ts; shiftAwardYears(seed, y-MS.cur);" },
   // v2.14 RV2-D (the check of spruills-other-appn-base-requirements-zero: a year another appropriation's plan has not started)
-  { id: 'v214-rv2-d-coa-year-not-held', area: "coaRows", what: "the chart of accounts lists another appropriation's requirements for a year its plan has not started, at their shipped asks, flagged as a board never opened",
-    find: "    if(coaYearNotHeld(d, Y)) return;", repl: "    void 0;" },
-  { id: 'v214-rv2-d-coa-not-held-unsaid', area: "exportCoa", what: "the chart of accounts leaves an appropriation off for a year its plan has not started without a word",
-    find: "  if(notHeldTxt) s1.rows.push([{v:notHeldTxt,s:0}]);", repl: "" },
-  { id: 'v214-rv2-d-spdefs-flat-pack', area: "spDefs", what: "a store in no year's shape has its pack listed as delivered at the shipped figures, while its own edits say otherwise",
-    find: "((st && st.years && _hasPack(st))? st.dataPack", repl: "((st && _hasPack(st))? st.dataPack" },
+  // v214-rv2-d-coa-year-not-held: retired as obsolete in v2.19 -- coaRows went with item 150 (the chart of accounts lists another appropriation's requirements for a year its plan has not started, at their)
+  // v214-rv2-d-coa-not-held-unsaid: retired as obsolete in v2.19 -- coaExportNow went with item 150 (the chart of accounts leaves an appropriation off for a year its plan has not started without a word)
+  // v214-rv2-d-spdefs-flat-pack: retired as obsolete in v2.19 -- spDefs went with item 150 (a store in no year's shape has its pack listed as delivered at the shipped figures, while its own edits say ot)
   // ---- end RV2-D ----
   // ==== end v2.14 review round 2 fixes ====
   // ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
@@ -11132,14 +10006,10 @@ const MUTATIONS = [
     find: "    _tabClash[k]={theirs:ev.newValue, t:Date.now()};\n", repl: "" },
   { id: "v215-w2-tab-unsaid", area: "tabWrote", what: "another tab's save of Full Fund is marked but not said until a door refuses",
     find: "    if(!was) statKeep(", repl: "    if(false) statKeep(" },
-  { id: "v215-w2-fdc-no-redraw", area: "tabWrote", what: "FYDP Disconnects left open is not drawn again when another tab saves",
-    find: "  try{ if(fdcOpen) fdcSync(true); }catch(e){}", repl: "  try{}catch(e){}" },
-  { id: "v215-w2-fdc-redraw-under-typing", area: "fdcSync", what: "another tab's save draws FYDP Disconnects again under a figure being typed",
-    find: "  if(a && a.tagName==='INPUT' && el.contains(a)){ if(tab) _fdcStale=true; return; }", repl: "  if(a && a.tagName==='INPUT' && el.contains(a) && !tab){ return; }" },
-  { id: "v215-w2-fdc-export-unchecked", area: "exportFdc", what: "Export writes figures the box on screen does not show",
-    find: "  if(fdcOpen && _fdcSig!==null && fdcSigOf(M)!==_fdcSig){", repl: "  if(false){" },
-  { id: "v215-w2-fdc-typed-sig-stale", area: "fdcIntlSet", what: "an International figure typed and Export pressed at once is refused as figures that moved",
-    find: "  if(!_fdcStale){ try{ _fdcSig=fdcSigOf(fdcModel()); }catch(e){} }", repl: "" },
+  // v215-w2-fdc-no-redraw: retired as obsolete in v2.19 -- its line in tabWrote went with item 150 (FYDP Disconnects left open is not drawn again when another tab saves)
+  // v215-w2-fdc-redraw-under-typing: retired as obsolete in v2.19 -- fdcSync went with item 150 (another tab's save draws FYDP Disconnects again under a figure being typed)
+  // v215-w2-fdc-export-unchecked: retired as obsolete in v2.19 -- exportFdc went with item 150 (Export writes figures the box on screen does not show)
+  // v215-w2-fdc-typed-sig-stale: retired as obsolete in v2.19 -- fdcIntlSet went with item 150 (an International figure typed and Export pressed at once is refused as figures that moved)
   { id: "v215-w2-ladder-adopted-early", area: "bandsAdoptPending", what: "a ladder held for Initial Spares is taken into the empty board its opening starts from, and lost",
     find: "  if(typeof _bandsHold!=='undefined' && _bandsHold) return false;     // v2.15 W2", repl: "  // v2.15 W2" },
   { id: "v215-w2-ladder-never-adopted", area: "opening", what: "a ladder held for Initial Spares never reaches its board",
@@ -11289,28 +10159,19 @@ const MUTATIONS = [
     find: `fydpWhen(fydpStoreFolder(a.k, loc, true), function(got){`, repl: `fydpWhen(fydpStoreFolder(a.k, loc), function(got){` },
   { id: 'v215-w4-apfold-lax', area: 'apFoldRead', what: 'the Spruills and Locks by appropriation take a folder copy that cannot be read as no copy, and print this browser’s older copy',
     find: `fydpStoreFolder(k, loc, true)`, repl: `fydpStoreFolder(k, loc)` },
-  { id: 'v215-w4-spdefs-unread-shown', area: 'spDefs', what: 'an appropriation whose folder copy cannot be read, or has not answered, is printed from this browser’s older copy',
-    find: `if(fo.why || fo.wait){ defs.push(`, repl: `if(false){ defs.push(` },
-  { id: 'v215-w4-spdefs-older-copy', area: 'spDefs', what: 'the Spruills prints this browser’s older copy beside a newer one in the folder',
-    find: `      st=fo.st;`, repl: `      st=st;` },
+  // v215-w4-spdefs-unread-shown: retired as obsolete in v2.19 -- spDefs went with item 150 (an appropriation whose folder copy cannot be read, or has not answered, is printed from this browser’s older c)
+  // v215-w4-spdefs-older-copy: retired as obsolete in v2.19 -- spDefs went with item 150 (the Spruills prints this browser’s older copy beside a newer one in the folder)
   { id: 'v215-w4-apfold-older-wins', area: 'apFoldOf', what: 'the folder’s newer copy is never taken: every reader prints this browser’s older one',
     find: `if(r.folder && r.st && (+r.st.ts||0)>((st && +st.ts)||0)) return {st:r.st, folder:true};`, repl: `` },
   { id: 'v215-w4-apfold-wait-ignored', area: 'apFoldOf', what: 'before the folder has answered, this browser’s copy is printed as if it were the newest',
     find: `return R.done? {st:st} : {st:st, wait:true};`, repl: `return {st:st};` },
-  { id: 'v215-w4-sp-reading-draws', area: 'spBodyDraw', what: 'the Spruills draws its tables before the folder has answered, stating figures it has not read',
-    find: `  if(waitFor.length){`, repl: `  if(false){` },
-  { id: 'v215-w4-sp-no-read', area: 'spBody', what: 'the Spruills never reads the shared folder',
-    find: `  if(!_apFold && apFoldOn()) apFoldRead();     // v2.15 W4 (item 131): the other appropriations'`, repl: `  // the other appropriations'` },
-  { id: 'v215-w4-sp-no-reread', area: 'toggleSp', what: 'the Spruills reads the folder once and keeps that answer: a save there since is never read',
-    find: `  if(spOpen) _apFold=null;`, repl: `` },
-  { id: 'v215-w4-sp-why-silent', area: 'spBodyDraw', what: 'an appropriation whose folder copy cannot be read prints — with nothing to say why',
-    find: `if(b.foldWhy) h+=`, repl: `if(false) h+=` },
-  { id: 'v215-w4-coa-lists-unread', area: 'coaRows', what: 'the chart of accounts lists an appropriation whose folder copy cannot be read, as delivered',
-    find: `    if(d.foldWhy || d.foldWait) return;`, repl: `` },
-  { id: 'v215-w4-coa-unread-silent', area: 'coaExportNow', what: 'the chart of accounts leaves out an appropriation it could not read without a word',
-    find: `if(unreadTxt) s1.rows.push(`, repl: `if(false) s1.rows.push(` },
-  { id: 'v215-w4-coa-no-folder', area: 'exportCoa', what: 'the chart of accounts never reads the shared folder: it lists this browser’s older copy',
-    find: `if(apFoldOn()){ setStat(`, repl: `if(false){ setStat(` },
+  // v215-w4-sp-reading-draws: retired as obsolete in v2.19 -- spBodyDraw went with item 150 (the Spruills draws its tables before the folder has answered, stating figures it has not read)
+  // v215-w4-sp-no-read: retired as obsolete in v2.19 -- spBody went with item 150 (the Spruills never reads the shared folder)
+  // v215-w4-sp-no-reread: retired as obsolete in v2.19 -- toggleSp went with item 150 (the Spruills reads the folder once and keeps that answer: a save there since is never read)
+  // v215-w4-sp-why-silent: retired as obsolete in v2.19 -- spBodyDraw went with item 150 (an appropriation whose folder copy cannot be read prints — with nothing to say why)
+  // v215-w4-coa-lists-unread: retired as obsolete in v2.19 -- coaRows went with item 150 (the chart of accounts lists an appropriation whose folder copy cannot be read, as delivered)
+  // v215-w4-coa-unread-silent: retired as obsolete in v2.19 -- coaExportNow went with item 150 (the chart of accounts leaves out an appropriation it could not read without a word)
+  // v215-w4-coa-no-folder: retired as obsolete in v2.19 -- exportCoa went with item 150 (the chart of accounts never reads the shared folder: it lists this browser’s older copy)
   { id: 'v215-w4-locks-no-fold', area: 'cycOverview', what: 'Locks by appropriation shows this browser’s older working tag beside a newer one in the folder',
     find: `if(fo.folder){ const P=cycPlanOf(fo.st); held=!!P.counts; tag=P.tag; }`, repl: `` },
   { id: 'v215-w4-locks-unread-counted', area: 'cycOverview', what: 'Locks by appropriation shows an appropriation whose folder copy cannot be read, or has not answered, from this browser’s copy',
@@ -11320,8 +10181,7 @@ const MUTATIONS = [
   { id: 'v215-w4-bl-no-reread', area: 'toggleBl', what: 'PPBE cycles reuses the Spruills’ folder answer: it never reads the folder again on opening',
     find: `if(blOpen) _apFold=null;`, repl: `` },
   // v2.15 W4 (item 135): another appropriation's budget, as its own board last worked it out (the same block)
-  { id: 'v215-w4-sp-pos-note-gone', area: 'spBodyDraw', what: 'the Spruills prints another appropriation’s Available Funding with no word that it is what its own board last worked out from its position',
-    find: `if(b.posTag && spFund==='board') h+=`, repl: `if(false) h+=` },
+  // v215-w4-sp-pos-note-gone: retired as obsolete in v2.19 -- spBodyDraw went with item 150 (the Spruills prints another appropriation’s Available Funding with no word that it is what its own board last )
   // v2.15 W4 (item 131): the house style's indents -- audit-other "v2.15 W4 — every dressed workbook draws its indents"
   { id: 'v215-w4-house-title-flush', area: '_houseBase', what: 'the title band is written indent="1" with no horizontal alignment, so Excel prints it flush',
     find: `align:{h:'left',v:'center',indent:1}, title:1}`, repl: `align:{v:'center',indent:1}, title:1}` },
@@ -11348,14 +10208,10 @@ const MUTATIONS = [
     // v2.15 review RV-D: retargeted -- a null request is no request, and not said
     find: `bad=function(v){ return v!==undefined && v!==null && !Array.isArray(v); }`, repl: `bad=function(v){ return v!==undefined; }` },
   // v2.15 W4 (item 135): audit-other "v2.15 W4 — a cost estimate imported again since v2.12 says why it disagrees"
-  { id: 'v215-w4-ace-clash-why-gone', area: 'aceClashWhy', what: 'an estimate imported before v2.12 and one imported again since disagree with no word of why',
-    find: `(a && b && nw(a)!==nw(b))`, repl: `(false)` },
-  { id: 'v215-w4-ace-clash-why-always', area: 'aceClashWhy', what: 'every disagreement is blamed on an import before v2.12, two v2.12 imports included',
-    find: `(a && b && nw(a)!==nw(b))`, repl: `(a && b)` },
-  { id: 'v215-w4-ace-clash-file-silent', area: 'importStores', what: 'a file import that leaves a disagreeing estimate alone does not say why',
-    find: `+esc(clashWhy));`, repl: `);` },
-  { id: 'v215-w4-ace-clash-folder-silent', area: 'driveAcePull', what: 'the folder read that leaves a disagreeing estimate alone does not say why',
-    find: `+esc(clash.map(function(c){ return c.why||''; }).filter(Boolean)[0]||'')`, repl: `` },
+  // v215-w4-ace-clash-why-gone: retired as obsolete in v2.19 -- aceClashWhy went with item 150 (an estimate imported before v2.12 and one imported again since disagree with no word of why)
+  // v215-w4-ace-clash-why-always: retired as obsolete in v2.19 -- aceClashWhy went with item 150 (every disagreement is blamed on an import before v2.12, two v2.12 imports included)
+  // v215-w4-ace-clash-file-silent: retired as obsolete in v2.19 -- its line in importStores went with item 150 (a file import that leaves a disagreeing estimate alone does not say why)
+  // v215-w4-ace-clash-folder-silent: retired as obsolete in v2.19 -- driveAcePull went with item 150 (the folder read that leaves a disagreeing estimate alone does not say why)
   // v2.15 W4 (item 146): audit-other "v2.15 W4 — the edit box takes a stored SI code, or a stored none, back to the PMO and prime rules"
   { id: 'v215-w4-si-follow-nothing-only', area: 'erDraw', what: 'the rules’ option is offered only where nothing is stored: a stored none or code cannot be taken back to the rules',
     find: `+(raw===undefined? erOpt(`, repl: `+(raw===undefined && cur==='\\u0004'? erOpt(` },
@@ -11418,8 +10274,7 @@ const MUTATIONS = [
     find: `if(made!==I.tag || pkgCanon(pIn)!==pkgCanon(pNow)) cycInBa(out, I.tag, pNow);`, repl: `` },
   { id: 'v215-rv-b-cache-mark-skipped', area: 'cycInBa', what: 'a year whose budget cannot be worked out here (other services) is worked out against this board’s services instead of marked',
     find: `if(!same || !T.bm || !w(T.bm.disc) || !w(T.bm.mand)){ T.baStale=key||'(untagged)'; return; }`, repl: `` },
-  { id: 'v215-rv-b-spruills-stale-printed', area: 'spGather', what: 'the Spruills print a marked year’s budget, worked out under another cycle, under this one’s name',
-    find: `if(d.ms!==MS && st.baStale){ block.bud[y]=undefined; block.stale=String(st.baStale); return; }`, repl: `` },
+  // v215-rv-b-spruills-stale-printed: retired as obsolete in v2.19 -- spGather went with item 150 (the Spruills print a marked year’s budget, worked out under another cycle, under this one’s name)
   { id: 'v215-rv-b-own-mark-kept', area: 'applyBudget', what: 'the appropriation’s own board works the budget out and leaves the mark: the Spruills go on printing — for it',
     find: `delete S.baStale;           // v2.15 review RV-B (B2): its own board has worked the cache out`, repl: `` },
   // v2.15 review RV-B (B3): audit-import "v2.15 review RV-B (B3) — a Save that stops after the two-copies question leaves both copies standing"
@@ -11503,8 +10358,7 @@ const MUTATIONS = [
     find: "      if(!k || used[k]) k='new|'+y+'|'+id;", repl: "      if(!k) k='new|'+y+'|'+id;" },
   { id: 'v216-148-old-lock-board-ids', area: 'fydpProjAdded', what: 'a projection taken before v2.16 (no added flag) reads every NEW- id as a board-data requirement, the same work in every year, and crosses the numbers again',
     find: "function fydpProjAdded(r){ return !!(r && (r.custom===true || (r.custom===undefined && /^NEW-/.test(String(r.id))))); }", repl: "function fydpProjAdded(r){ return !!(r && r.custom===true); }" },
-  { id: 'v216-148-ai-by-number', area: 'aiRequestText', what: 'the AI review request lists another year’s figures for the requirement of the same number, not the same work',
-    find: "    D.held.forEach(function(y){ const yid=fydpSameIn(LK, MS.cur, id, y);", repl: "    D.held.forEach(function(y){ const yid=String(id);" },
+  // v216-148-ai-by-number: retired as obsolete in v2.19 -- aiRequestText went with item 150 (the AI review request lists another year’s figures for the requirement of the same number, not the same work)
   // ==== end v2.16 (item 148) ====
   // ==== v2.17 (item 149.1-149.6: the 21 Nov review's faults that could put a wrong value in the board) ====
   { id: 'v217-149-date-typed-taken', area: 'awdDateIn', what: "a date box stores a typed date at every keystroke again: 01/15/2027 is stored as 15 January of the year 2",
@@ -11584,6 +10438,34 @@ const MUTATIONS = [
   { id: 'v218-149-att-at-top', area: 'ATT_WHERE', what: "messages send the reader to Needs attention at the top of a page that does not show it",
     find: "const ATT_WHERE='Needs attention, on the Funding page';", repl: "const ATT_WHERE='Needs attention, at the top';" },
   // ==== end v2.18 ====
+  // ==== v2.19 (item 150): the scope-down -- the over list in Needs attention, its Go to, the store's drop and Save's warning ====
+  { id: 'v219-150-over-not-listed', area: 'attOverHtml', what: "the over list leaves out every service and lane the requirements hold past its budget authority",
+    find: "      if(X.over[i]>0.5) over.push({k:k, i:i, X:X}); else if(X.un[i]>0.5) un.push({k:k, i:i, X:X}); }); });", repl: "      if(X.un[i]>0.5) un.push({k:k, i:i, X:X}); }); });" },
+  { id: 'v219-150-un-not-listed', area: 'attOverHtml', what: "the over list leaves out the budget authority nobody holds",
+    find: "      if(X.over[i]>0.5) over.push({k:k, i:i, X:X}); else if(X.un[i]>0.5) un.push({k:k, i:i, X:X}); }); });", repl: "      if(X.over[i]>0.5) over.push({k:k, i:i, X:X}); }); });" },
+  { id: 'v219-150-over-no-vs', area: 'attOverHtml', what: "an over no longer says what it is measured against (BES28, the board's own budget, added or withheld funding)",
+    find: "requirements hold <b>'+fM(X.over[i])+'</b> more than '+esc(fitVs(X, r, i, key))+' — reduce a requirement</div>'", repl: "requirements hold <b>'+fM(X.over[i])+'</b> more than the budget authority — reduce a requirement</div>'" },
+  { id: 'v219-150-over-rows-dropped', area: 'attOverHtml', what: "an over no longer lists the requirements holding money there",
+    find: "      (X.rows[i]||[]).forEach(function(q){\n        h+='<tr'+(q.short? ' class=\"short\"' : '')", repl: "      [].forEach(function(q){\n        h+='<tr'+(q.short? ' class=\"short\"' : '')" },
+  { id: 'v219-150-fitctl-gone', area: 'attOverHtml', what: "the over list no longer says what the cycle's controls leave each year",
+    find: "    if(FM.key && r.logged){ const Q=cycFitSums(F);", repl: "    if(false){ const Q=cycFitSums(F);" },
+  { id: 'v219-150-src-unsaid', area: 'attOverHtml', what: "the over list no longer says which position each year's base was read from",
+    find: "      +'<span style=\"font-size:10px;color:var(--mut)\">'+esc(fitSrcSay(r))+'</span></div>';\n    // v2.13 (item 136)", repl: "      +'<span style=\"font-size:10px;color:var(--mut)\"></span></div>';\n    // v2.13 (item 136)" },
+  { id: 'v219-150-overgo-no-year', area: 'attOverGo', what: "Go to it on an over in another year selects the requirement in the year on screen",
+    find: "  if(+fy!==+MS.cur){ switchYear(+fy); if(+MS.cur!==+fy) return; }\n  attGo('over', id);", repl: "  attGo('over', id);" },
+  { id: 'v219-150-store-keeps-retired', area: 'retiredDrop', what: "a store opened with the removed features' own keys keeps them, and the next Save writes them again",
+    find: "    ['aceAlign','coaDef','coaDefTs','ids','spAce','spBy','spDrillSvc','spPmo','spPrior','spSvc'].forEach(", repl: "    [].forEach(" },
+  { id: 'v219-150-store-keeps-flow', area: 'retiredDrop', what: "a store opened with the funds flow chart's settings keeps them",
+    find: "    if(raw.flow && typeof raw.flow==='object') FLOW_RETIRED.forEach(", repl: "    if(false) FLOW_RETIRED.forEach(" },
+  { id: 'v219-150-store-keeps-acemap', area: 'retiredDrop', what: "each year's tie to an estimate line stays in the store",
+    find: "if(st && typeof st==='object' && Object.prototype.hasOwnProperty.call(st, 'aceMap')) delete st.aceMap;", repl: "void st;" },
+  { id: 'v219-150-store-drops-rules', area: 'retiredDrop', what: "opening a store drops the prime rules too, which the destinations still read",
+    find: "const FLOW_RETIRED=['aps',", repl: "const FLOW_RETIRED=['rules','aps'," },
+  { id: 'v219-150-save-silent-on-ace', area: 'saveDrops', what: "Save writes over a file holding cost estimates without naming them",
+    find: "  if(ace.length) out.push('Cost estimate'", repl: "  if(false) out.push('Cost estimate'" },
+  { id: 'v219-150-wbs-refused', area: 'wbsTake', what: "a typed WBS paragraph is refused as not in an estimate that no longer exists",
+    find: "return t? codeTake(t, 'wbs') : {v:''};", repl: "return t? {why:'it is not a paragraph of the estimate'} : {v:''};" },
+  // ==== end v2.19 ====
 
 ];
 

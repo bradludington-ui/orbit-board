@@ -1,7 +1,8 @@
 // A FULL IMPORT TOO BIG FOR BROWSER STORAGE, WRITTEN INTO A NEW FILE -- IN A REAL BROWSER (v2.14, item 141; Brad, 2 Nov 2026:
 // "I'm unable to import my full board to the newest Orbit version"). jsdom has no IndexedDB of its own, no user activation, no
 // downloads and no "Leave site?"; this opens the program in Chromium with browser storage seeded from a page of its own, imports a
-// board built here every run (a small board saved by the board's own code, its cost estimate padded past the 5,242,880 characters
+// board built here every run (a small board saved by the board's own code, its reprogramming log -- carried byte for byte, never
+// drawn; the cost estimate it used until v2.19, item 150, removed it -- padded past the 5,242,880 characters
 // a browser keeps, in pieces under the import check's 200,000-character text limit), and checks:
 //
 //   A. BRAD'S ALERT IS GONE: the import is refused exactly as before -- browser storage byte-identical -- and the box offers
@@ -54,7 +55,7 @@ const J = JSON.stringify;
   while ((m = at.exec(self))) if (/localStorage|sessionStorage/.test(self.slice(m.index, m.index + 600))) hit++;
   if (hit) { console.log(`\n${hit} init script(s) in tools/import-file.mjs touch browser storage: set it with seedLs() instead (see the header)\n`); process.exit(1); } }
 
-// ── THE BOARD, built here every run by the board's own code: O&M and Full Fund, a locked cycle, the estimate past the limit ──
+// ── THE BOARD, built here every run by the board's own code: O&M and Full Fund, a locked cycle, the log past the limit ──
 const PROG = readFileSync(FILE, 'utf8');
 const dir = mkdtempSync(join(tmpdir(), 'orbit-fileimport-'));
 process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });
@@ -69,7 +70,7 @@ const ap = (html, appn, items, disc) => {
 const F = ap(PROG, 'FULL FUND', [mk('F1', 'AV', [700, 100, 60]), mk('F2', 'TSS', [500, 90, 30])], [900, 150, 60]);
 const O = ap(F.ev('buildSavedHtml()'), 'O&M', [mk('A', 'AV', [900, 200, 100]), mk('B', 'PSM', [400, 100, 50]), mk('C', 'AV', [300, 50, 20])], [2000, 600, 300]);
 O.ev(`(function(){ const blob=[]; for(let i=0;i<29;i++) blob.push('a'+String(i).padStart(4,'0')+'x'.repeat(189995));
-  ACEDB={ts:Date.now(), sets:{'2026ACE':{label:'2026ACE', ts:Date.now(), blob:blob}}}; return 'ok'; })()`);
+  RPDB={ts:Date.now(), entries:blob.map(function(b){ return {n:b}; })}; return 'ok'; })()`);   // v2.19 (item 150): was the cost estimate (ACEDB)
 const SRC = O.ev('buildSavedHtml()');
 const SRCN = 'ORBIT Live.html', PROGN = 'ORBIT v2.14.html';
 writeFileSync(join(dir, SRCN), SRC);
@@ -179,7 +180,7 @@ console.log('\nB. written with the name suggested, opened, saved twice');
   const written = name ? readFileSync(join(dir, name), 'utf8') : '';
   chk('B · the file written carries the stamp the note names', !!name && written.includes('"impFile"'), name);
   const ls = await lsOf(p);
-  chk('B · the import’s keys are cleared', !('prio27om' in ls) && !('prio27ff' in ls) && !('prio27acedb' in ls), J(Object.keys(ls)));
+  chk('B · the import’s keys are cleared', !('prio27om' in ls) && !('prio27ff' in ls) && !('prio27reprog' in ls), J(Object.keys(ls)));
   chk('B · the page reopened and says it is held', /ORBIT wrote the imported board into “/.test(await p.textContent('#shareStat')));
   const { p: q } = await open(ctx, name, { pickAs: name });       // its first Save chooses the file itself
   chk('B · the written file says it is the import', /Full board imported into this file/.test(await q.textContent('#shareStat')));
