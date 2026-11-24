@@ -295,9 +295,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'lane counts', 'spills to mand — any mandatory draw',
     cnt('spills to mand', /spills to mand (\d+)/),
     ids.filter(id => sum(T[id].m) > 0.005).length);
-  chk(name, 'lane counts', 'unfunded — any unfunded dollar',
+  // v2.18 (item 149.8): the count follows the dollars -- short of the REQUIREMENT, per service floored (a trim counts), which is the
+  // Total UFR tile's reading; it counted only allocated dollars no lane could pay (T.u), and missed every requirement short by a trim
+  chk(name, 'lane counts', 'unfunded — any unfunded dollar (short of its requirement, trims included)',
     cnt('unfunded', /unfunded (\d+)/),
-    ids.filter(id => sum(T[id].u) > 0.005).length);
+    ids.filter(id => sc.items.find(x => x.id === id).ask.reduce((a, v, i) => a + Math.max(0, (v || 0) - (T[id].d[i] || 0) - (T[id].m[i] || 0)), 0) > 0.005).length);
 
   // ---- the per-service unfunded warning in the header ----
   const warn = textOf('#svcWarn') || '';
@@ -10558,6 +10560,111 @@ await (async () => {
   }
 })();
 // ==== end v2.17 ====
+
+// ==== v2.18 (item 149.7-149.17: labels that print the wrong thing) ====
+// v2.18 (item 149): WHAT THE 21 NOV REVIEW FOUND PRINTING THE WRONG THING. Each part fails on v2.17 (1d88e3c) unless it says CONTROL.
+await (async () => {
+  const name = 'v2.18 — the row, the tiles, the record and the journal print what they name (item 149.7-149.17)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask, grp) => ({ id, grp: grp || 'AV', team: grp || 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: 'JSF' + id, fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    // E then A spend USAF discretionary; B (starred) is paid by mandatory alone; C (starred) is short beyond both lanes; D is short
+    // only by a trim (allocated $100 of $300, all of it drawn)
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'],
+      items: [mk('E', [100, 0, 0]), mk('A', [900, 200, 100]), mk('B', [500, 0, 0], 'PSM'), mk('C', [300, 0, 0]), mk('D', [0, 300, 0], 'PSM')],
+      disc: [1000, 600, 300], mand: [500, 150, 80], order: ['E', 'A', 'B', 'C', 'D'], mc: { B: true, C: true }, alloc: { D: { m: 't', v: 100 } } });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Pat'); window.alert=function(){}; window.__cf=[]; window.__ans=[];
+      window.confirm=function(m){ window.__cf.push(String(m)); return window.__ans.length? window.__ans.shift() : true; }; uiMode='review'; render(); 'ok'`);
+    const T = (id, k) => B.ev(`(function(){ var t=tiers(); return Math.round(${k}); })()`);
+    chk(name, 'fixture', 'B is paid by mandatory alone, D is short only by its trim',
+      B.ev(`(function(){ var t=tiers(); return JSON.stringify([t.B.dT, t.B.mT, t.D.uT, unfTotOf(itemById('D'),t.D)]); })()`), J([0, 500, 0, 200]));
+    const rowTxt = id => B.ev(`(document.getElementById('row-${id}')||{}).textContent||''`);
+    // 149.7 -- the row's MC short is the record's ★ MC shortage (requirement less discretionary)
+    chk(name, '149.7 row', 'a starred row paid by mandatory reads MC short $500, as its record does', /MC short \$500/.test(rowTxt('B')), true);
+    B.ev(`setCur('B'); render(); 'ok'`);
+    chk(name, '149.7 record', 'CONTROL: the record’s ★ MC shortage reads $500', /\$500/.test(B.ev(`[].filter.call(document.querySelectorAll('#inspector .insp-f'), function(f){ return /MC shortage/.test(f.textContent); }).map(function(f){ return f.textContent; }).join('')`)), true);
+    // 149.8 -- the count and the filter follow the dollars
+    chk(name, '149.8 count', 'the Total UFR tile counts the 2 requirements its dollars come from (C and D)',
+      B.ev(`(function(){ var K=tierTotals(tiers()); return JSON.stringify([K.u2N, K.uN, window.UI_KPI? window.UI_KPI.uN : -1]); })()`), J([2, 1, 2]));
+    B.ev(`laneFilter='unf'; render(); 'ok'`);
+    chk(name, '149.8 filter', 'Any unfunded portion lists C and D', B.ev(`JSON.stringify(gridIds())`), J(['C', 'D']));
+    chk(name, '149.8 chip', 'the fit strip’s unfunded count is the same 2', B.ev(`fitCounts(tiers()).unf`), '2');
+    B.ev(`laneFilter=''; render(); 'ok'`);
+    // 149.9 -- the lane hover is the record's Unfunded
+    chk(name, '149.9 hover', 'D’s lane hover says Unfunded $200, not $0',
+      B.ev(`(document.querySelector('#row-D .lanec')||{}).title||''`).includes('Unfunded $200'), true);
+    // 149.12 -- the record's box is Funded
+    B.ev(`setCur('A'); render(); 'ok'`);
+    const fls = J(JSON.parse(B.ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .insp-f .fl'), function(f){ return f.textContent; }))`)).filter(x => /^(Funded|Allocated)$/.test(x)));
+    chk(name, '149.12 Funded', 'the record names d+m paid “Funded”, never “Allocated”', fls, J(['Funded']));
+    // 149.13 -- Cumulative allocation, with a hover, on the heading and the row
+    chk(name, '149.13 heading', 'the heading names the allocation and explains itself',
+      B.ev(`(function(){ var h=document.querySelector('#gridHead .cum'); return JSON.stringify([h&&h.textContent, !!(h&&/allocation/.test(h.title||'')), !!((document.querySelector('#row-A .num.cum')||{}).title)]); })()`),
+      J(['Cumulative allocation', true, true]));
+    // 149.11 -- the grey line names the office chosen now, read before the PMO button is redrawn
+    B.ev(`filter='PSM'; 'ok'`);
+    chk(name, '149.11 office', 'the line names PSM the moment PSM is chosen', B.ev(`uiPmoLabel()`), 'PSM');
+    B.ev(`filter='ALL'; render(); 'ok'`);
+    chk(name, '149.11 back', 'and All offices once it is back', B.ev(`uiPmoLabel()`), 'All offices');
+    // 149.14 -- next walks the list as shown, and the record behind follows the box
+    B.ev(`filter='PSM'; render(); setCur('B'); openEdit('B','rec'); erStep(1); 'ok'`);
+    chk(name, '149.14 next', 'with PSM showing, next from B opens D (not C), and the record behind is D',
+      B.ev(`JSON.stringify([erOpen, curRow])`), J(['D', 'D']));
+    B.ev(`erStep(1); 'ok'`);
+    chk(name, '149.14 wrap', 'and wraps within the list', B.ev(`erOpen`), 'B');
+    B.ev(`erClose(); filter='ALL'; render(); 'ok'`);
+    // 149.15 -- the budget block says how many lines have no budget
+    B.ev(`BUDDB={ts:1700000000009, files:[], rows:['USAF O&M- CAM Discretionary AV'].map(budParseName).filter(Boolean)}; _budRegCache=null; setCur('A'); render(); 'ok'`);
+    const foot = id => B.ev(`(function(){ setCur(${J(id)}); render(); var f=document.querySelector('#inspector .budfoot'); return f? f.textContent : '(no foot)'; })()`);
+    chk(name, '149.15 missing', 'A’s ANG and AFRC lines have no budget: said, and never “every line follows the rule”',
+      J([/2 of 3 lines have no budget/.test(foot('A')), /follows the rule/.test(foot('A'))]), J([true, false]));
+    chk(name, '149.15 control', 'CONTROL: E’s one line follows the rule, and the block says so', /every line follows the rule/.test(foot('E')), true);
+    B.ev(`BUDDB={ts:1700000000010, files:[], rows:[]}; _budRegCache=null; render(); 'ok'`);
+    // 149.16 -- History for an added requirement, in plain names; the journal narrowed to it; the search box keeps the caret; a line
+    // about one year's NEW-n is named from its own year
+    B.ev(`reqCreate('AV', {title:'', event:'EXTRA', ask:[50,0,0]}); save(); render(); 'ok'`);
+    const nid = B.ev(`S.custom[S.custom.length-1].id`);
+    B.ev(`setAsk(${J(nid)}, 0, '70'); save(); render(); 'ok'`);
+    chk(name, '149.16 added', 'an added requirement’s last change is shown, in the record’s name for the field',
+      B.ev(`(function(){ var h=uiLastEditHtml(${J(nid)}); return JSON.stringify([!!h, /Requirement value/.test(h), /custom/.test(h)]); })()`), J([true, true, false]));
+    B.ev(`S.recNames.A='Renamed A'; save(); 'ok'`);
+    chk(name, '149.16 plain', 'a renamed record name reads “CCaR record name”, never “recNames”',
+      B.ev(`(function(){ var h=uiLastEditHtml('A'); return JSON.stringify([/CCaR record name/.test(h), /recNames/.test(h)]); })()`), J([true, false]));
+    B.ev(`setCur(${J(nid)}); render(); jrnlFor(${J(nid)}); 'ok'`);
+    chk(name, '149.16 narrowed', 'the record’s History opens the journal on this requirement alone',
+      B.ev(`(function(){ var n=(MS.jrnl||[]).filter(function(e){ return e.p && String(e.p[1])===${J(nid)} && +e.fy===+MS.cur; }).length;
+        return JSON.stringify([n>0, document.querySelectorAll('#jrnlBody .jrnl-res tr').length-1===Math.min(n,300), !!document.querySelector('#jrnlBody .jrnl-req')]); })()`), J([true, true, true]));
+    chk(name, '149.16 search', 'typing in the search box redraws the results and keeps the box (and its caret)',
+      B.ev(`(function(){ var i=document.querySelector('#jrnlBody input'); i.value='zz'; i.dispatchEvent(new Event('input',{bubbles:true}));
+        return JSON.stringify([document.querySelector('#jrnlBody input')===i, /Nothing matches/.test(document.querySelector('#jrnlBody .jrnl-res').textContent)]); })()`), J([true, true]));
+    B.ev(`toggleJrnl(); 'ok'`);
+    chk(name, '149.16 closed', 'CONTROL: closing the journal lets go of the requirement', B.ev(`jrnlReq===null`), 'true');
+    // FY28, started empty, mints the same NEW-n for another requirement; FY27's line keeps FY27's name
+    B.ev(`window.__ans=[false,true]; switchYear(MS.cur+1); reqCreate('PSM', {title:'', event:'OTHER', ask:[10,0,0]}); save(); render(); 'ok'`);
+    chk(name, 'fixture FY28', 'FY28’s added requirement has the same number as FY27’s', B.ev(`S.custom[0].id`), nid);
+    chk(name, '149.16 year', 'with FY28 on screen, FY27’s line about ' + nid + ' is named EXTRA, not OTHER',
+      B.ev(`(function(){ var e=(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='custom' && e.p[1]===${J(nid)} && e.p[2]==='ask' && +e.fy===2027; }).pop();
+        var l=e? diagPlain(jrnlLabel(e)) : ''; return JSON.stringify([/EXTRA/.test(l), /OTHER/.test(l)]); })()`), J([true, false]));
+    // 149.10 -- Go to FY27 opens the requirement the line names, and one click leads back
+    B.ev(`itemById(${J(nid)}).prior={fy:2027, id:'C'}; save(); setCur(${J(nid)}); render(); 'ok'`);
+    B.ev(`(function(){ var b=document.querySelector('#inspector .insp-prior button'); if(b) b.click(); })(); 'ok'`);
+    chk(name, '149.10 go', 'Go to FY27 opens C in FY27 (not FY27’s own ' + nid + ')', B.ev(`JSON.stringify([MS.cur, curRow])`), J([2027, 'C']));
+    chk(name, '149.10 back offered', 'C’s record offers the way back', !!B.ev(`(document.querySelector('#inspector .insp-back button')||{}).textContent||''`), true);
+    B.ev(`(function(){ var b=document.querySelector('#inspector .insp-back button'); if(b) b.click(); })(); 'ok'`);
+    chk(name, '149.10 back', 'one click leads back to FY28 ' + nid, B.ev(`JSON.stringify([MS.cur, curRow])`), J([2028, nid]));
+    // 149.17 -- Help is no longer the page before v2.00, and says where Needs attention is
+    const help = B.ev(`(document.getElementById('helpDoc')||{}).innerHTML||''`);
+    chk(name, '149.17 help', 'Help names View › Record panel and Needs attention on the Funding page, and no longer “stays in view as you scroll, in three lines”',
+      J([/View › Record panel/.test(help), /Needs attention<\/b> on the <b>Funding<\/b> page/.test(help), /in three lines/.test(help), /On a laptop-sized screen the panel slides over/.test(help)]), J([true, true, false, false]));
+    chk(name, '149.17 messages', 'the not-drawn flag sends the reader to the Funding page, not “at the top”', B.ev(`typeof ATT_WHERE==='string' && /Funding page/.test(ATT_WHERE)`), 'true');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.18 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

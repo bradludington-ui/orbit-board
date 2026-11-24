@@ -3083,7 +3083,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // v1.90: the row's flag is a status now; the fix list opens from Needs attention, and the hover says so
   chk(name, 'B · flag', 'its hover names each service and lane, typed, drawn and why',
     ev(`(function(){ const c=[...document.querySelectorAll('#row-B .exc')].find(function(x){ return /not drawn/.test(x.textContent); }); return c? c.getAttribute('title') : ''; })()`),
-    'USAF Disc: typed $400, drew $200 \u2014 USAF discretionary ran out above this rank\nANG Disc: typed $200, drew $150 \u2014 ANG discretionary ran out above this rank\nANG Mand: typed $100, drew $60 \u2014 ANG mandatory ran out above this rank\nThe fix list is under Needs attention, at the top.');
+    // v2.18 (item 149.17): the row's hover says where Needs attention is -- the Funding page, never "at the top"
+    'USAF Disc: typed $400, drew $200 \u2014 USAF discretionary ran out above this rank\nANG Disc: typed $200, drew $150 \u2014 ANG discretionary ran out above this rank\nANG Mand: typed $100, drew $60 \u2014 ANG mandatory ran out above this rank\nThe fix list is under Needs attention, on the Funding page.');
   // THE BY SERVICE TABLE'S "drew" LINES ARE THE SAME FACT: one per line, per requirement
   // in the RECORD panel's By service table
   chk(name, 'agree', 'each requirement shows one "drew" line per listed line in its By service table',
@@ -3444,7 +3445,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'sections', 'and no section carries a paragraph written for the card build', other.join(', ') || 'none', 'none');
   ev(`helpGo('o-find'); 'ok'`);
   chk(name, 'sections', 'a section reads this build’s way of working, not the other’s',
-    /RECORD<\/b> panel on the right/.test(ev(`document.getElementById('helpBody').innerHTML`)) === (build === 'grid'), true);
+    /RECORD<\/b> panel, which slides over the list/.test(   // v2.18 (item 149.17): the record slides over; it is not "on the right"
+    ev(`document.getElementById('helpBody').innerHTML`)) === (build === 'grid'), true);
   ev(`helpGo('o-what'); 'ok'`);
   ev(`(function(){ const a=document.querySelector('#helpBody a[data-go]'); if(a) a.onclick(); return 'ok'; })()`);
   chk(name, 'sections', 'a link inside the guide goes to its section', ev(`(document.querySelector('#helpBody h2')||{}).textContent`), 'Send it back');

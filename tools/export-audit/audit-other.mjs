@@ -5313,7 +5313,8 @@ await (async () => {
     // fields and a Needs attention list that held neither B's unassigned part nor a prime's money on no CLIN. Both are on it now.
     chk(name, 'said', 'the status line names B and C, how many lines each, and the list that holds both',
       X.ev(`document.getElementById('shareStat').textContent.replace(/^.*?(⚠ \\d+ lines? go(es)? out with no WBS paragraph.*?fix\\.).*$/, '$1').trim()`),
-      '⚠ 4 lines go out with no WBS paragraph, on 2 requirements: B event (3 lines), C event — Needs attention › ▦ without a WBS lists each, with what to fix.');
+      // v2.18 (item 149.17): the message says where Needs attention is
+      '⚠ 4 lines go out with no WBS paragraph, on 2 requirements: B event (3 lines), C event — Needs attention, on the Funding page › ▦ without a WBS lists each, with what to fix.');
     chk(name, 'said', 'and that list holds B and C, with the dollars the file sends blank',
       X.ev(`JSON.stringify(attLists().wbs.map(function(r){ return [r.id, r.blank]; }))`), J([['B', 300], ['C', 90]]));
     // the reconciliation of the offices' planning shares reads the same lines: they still add to the draw (a CONTROL that the
@@ -5617,7 +5618,8 @@ await (async () => {
       J(blank), J({ A: 300, C: 90, P: 80, Q: 100 }));
     chk(name, 'one reading', 'the message names the four, and points to the list that holds every one of them, with what to fix',
       X.ev(`document.getElementById('shareStat').textContent.replace(/^.*?(⚠ \\d+ lines? go(es)? out with no WBS paragraph.*?fix\\.).*$/, '$1')`),
-      '⚠ 5 lines go out with no WBS paragraph, on 4 requirements: A event (2 lines), C event, P event, Q event — Needs attention › ▦ without a WBS lists each, with what to fix.');
+      // v2.18 (item 149.17): the message says where Needs attention is
+      '⚠ 5 lines go out with no WBS paragraph, on 4 requirements: A event (2 lines), C event, P event, Q event — Needs attention, on the Funding page › ▦ without a WBS lists each, with what to fix.');
     chk(name, 'one reading', 'every requirement it names is on the list',
       J(Object.keys(blank).every(id => A.rows.some(r => r[0] === id))), 'true');
     // v2.12 RV5 (S20): MEASURED FROM A STATE NO DRAW HAS TOUCHED. This took its snapshot after the fixture had drawn the board many
