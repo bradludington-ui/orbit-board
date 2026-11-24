@@ -5299,6 +5299,32 @@ because the journal had been renamed to the record's field labels ("Navy SI code
 check pins. **A wording change reaches every suite that quotes the old words: grep all of them before the gate** (v2.05's rule, met
 four times in this version).
 
+### v2.19 (item 150): ORBIT scoped down to what it is for
+
+Brad, 24 Nov 2026: *"The focus of this dashboard is the building of FYDP requirements, prioritization, and allocation of funding to
+support program managers and leadership in knowing where their funds are being used and what's not being used."* Removed: the
+cost estimate (import, tie-out, alignment, folder share, WBS picker), the Spruills and PMO drill, FYDP Disconnects, the Fit box, the
+Funds Flow, the IDS Batch Import, the Chart of Accounts and the AI Review. `NEXT-VERSION.md` › Shipped › v2.19 has every decision.
+**The sections above that describe them are the record of why the code was the way it was; none of that code is in the file now.**
+
+- **What an older file kept for them is dropped on opening, never refused.** `retiredDrop()` runs in `normalizeStore` (it holds its
+  own key list inside it: a store is opened while the script is still being read). `MS.flow` keeps the destination list and the
+  prime `rules` (`flowCfg()` makes only those); the destinations, *Goes to* and the SI codes still read them. Save's HOLD ON names a
+  file's cost estimates as removed on purpose (`saveDrops`); a full import leaves them out and says so.
+- **The over list is the Fit box's successor** (`attOverHtml`, `attOverGo`, `fitVs`), under Needs attention's 🏛 entry and the cycle
+  bar's figure (`fitShow()` opens it). `fitModel` is unchanged. Its classes are the box's (`.fithint`, `.fityr`, `.fitctl`, `.fitover`,
+  `table.fitrows`), so a sentence is found as before, in `#attBody`.
+- **A WBS is typed** (`wbsTake` → `codeTake`); the quick box asks through the browser's own prompt (`uiPrompt` uses its in-app box only
+  with a list).
+- **The BUILD stamp is `const BUILD='vN.NN (date)';` exactly** -- the board reads another file's version by that shape (`fullBuildOf`),
+  and `npm run check` now fails on any other. The v2.19 bump wrote spaces round the `=` and nothing noticed until a suite read it.
+- **What it leaves:** a test of a surface that stays but whose only money surface went (the destination list's duplicate keys,
+  U44; the RCN pointer `__proto__`, U61) was dropped rather than rebuilt; the 21 new and retargeted mutations are proved, the 615
+  retired are not run. The first sweep on Brad's named go is the measure of whether any surviving guard lost its only check.
+
+**Checks.** audit-board "v2.19 — the scope-down: …" and audit-import "v2.19 — a board file that carries cost estimates …";
+21 mutations proved, 21 CAUGHT (`recovery/v219/proved-v219.jsonl`); 3,241 targets.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

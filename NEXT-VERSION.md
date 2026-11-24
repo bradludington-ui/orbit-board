@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.18** (item 149.7–149.17), merged 24 Nov 2026 (PR #76). Then **v2.19** (item 150, the scope-down), then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.19** (item 150, the scope-down), built 24 Nov 2026; merge waits on Brad's word. Then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
 
 ## Open
 
@@ -119,44 +119,6 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
 - **149.51 A hand pointer over rows** (v2.19). A row opens its record wherever you click, but the pointer stays an arrow. **Change:** Show the hand over rows.
 - **149.52 More requirements on screen** (v2.19). 323 px of bars and tiles sit above the first row. Trimming the heading line would also clear the one layout check that has failed since v2.00. *Brad's board:* About 10 rows fit in your window. View › Compact shows about 15 today, with no change to the board. **Change:** Trim the heading line (item 36 does it).
 - **149.53 Checks for what this review found** (v2.19). No automatic check reads the four tiles, the row’s MC flag, the lane hover or the record’s Allocated box, and none types a date with the keyboard. That is how the wrong dates and the wrong labels above went unseen. **Change:** Each fix arrives with a check that fails without it.
-
-#### 150. Scope ORBIT down to what it is for (Brad, 24 Nov 2026)
-- **Asked:** Brad, 24 Nov 2026: *"I want to refine ORBIT to what I initially intended it to be used for. It's grown too much and I
-  need to scope down."* *"The focus of this dashboard is the building of FYDP requirements, prioritization, and allocation of funding
-  to support program managers and leadership in knowing where their funds are being used and what's not being used."*
-- **Remove:**
-  - **The Annual Cost Estimate (ACE):** its import, its Data card, and the ACE tie-out panel. This also takes out everything that
-    reads the estimate (the estimate alignment, the WBS tree, the folder share of estimates and their earlier copies).
-  - **From FYDP ▸:** Spruills (and its PMO drill), FYDP Disconnects, Fit to the PPBE position (the panel), and the Funds Flow (Sewer
-    Chart) with its export.
-  - **From Reports & exports:** ACE Tie-Out, IDS Batch Import, Chart of Accounts, and the whole AI Review section (export the
-    request, import the answer, the answer's list).
-- **Brad's answers (24 Nov 2026):**
-  - **Saved data: drop it on save.** A file that holds a cost estimate, IDS or AI Review state, or Funds Flow settings is opened as
-    usual. Its next Save writes the file without that data. Save asks once before writing over data the file holds and the board
-    does not carry (`saveDrops`, v2.14); it will name the cost estimates there, and that question must say plainly that they were
-    removed on purpose, so it is not read as a fault.
-  - **WBS is typed freely**, checked for length only, as before v2.12. The WBS field, its Needs attention list *Without a WBS*,
-    the Spend Plan Source's WBS column and WBS from execution data stay. *WBS not in the estimate* goes.
-  - **Fit to the PPBE position: the panel only.** These stay, because they show money not being used:
-    - the unallocated / over figure beside the PPBE cycle in the top bar;
-    - the UPL line under the list;
-    - the "🏛 N over" entry in Needs attention, which will open what is over in place of the panel.
-
-    Budget authority keeps reading live from the PPBE position (item 134).
-  - **Order: next, as v2.19.** The review items 149.18–149.53 move to v2.20. **Item 133 is withdrawn** (see Withdrawn).
-- **Kept, though it sits near what goes:**
-  - The destination list and *Goes to*: they live in the Funds Flow's settings today and move out with nothing lost.
-  - PPBE Budget Positions, the five-year spend plan, Cycles & compare.
-  - The Spend Plan Source, the BAE budget rules (`budResolve`), and the CR views.
-- **What building it involves:**
-  - Removing each surface's code, found by a call graph, as item 104 and v2.05 did.
-  - The guide's sections and every menu path that names them (`npm run menus`).
-  - Retiring each removed surface's checks and mutations as obsolete, with a comment where each stood.
-  - Their rows in the money map and the money-coverage registry, and the defect register's entries guarded only by removed code
-    (named, not deleted silently).
-  - The import door still reads an older file that carries the dropped data: it is taken and dropped, never refused.
-  - The left-menu map (`npm run leftmenu`).
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
@@ -619,6 +581,92 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.19 — 24 Nov 2026: ORBIT scoped down to what it is for (item 150) -- built on Brad's "Go" of 24 Nov; merge waits on his word
+
+**Removed** (each surface's code found by a call graph, as item 104 and v2.05 did): the Annual Cost Estimate (its import, column
+mapping and import report, its Data card, the folder share of estimates and their earlier copies, the estimate's WBS tree and office
+alignment, each requirement's tie to an estimate line), the ACE Tie-Out, FYDP › Spruills and its PMO drill, FYDP › FYDP Disconnects,
+FYDP › Fit to the PPBE position (the box), FYDP › Funds Flow and its export and chart image, Reports & exports › IDS Batch Import,
+Chart of Accounts and the whole AI Review section. FYDP ▸ is now the five-year spend plan and PPBE Budget Positions; Reports &
+exports' last section is *CCaR Files* (the Spend Plan Source). Help lost its IDS, cost-estimate and funds-flow sections and every
+path to them; nothing else in it grew.
+
+**As Brad answered:**
+- **Saved data is dropped on save.** `retiredDrop()` (in `normalizeStore`) takes off a plan's `aceAlign`, `coaDef`, `coaDefTs`, `ids`,
+  the Spruills' `sp*` choices, the funds-flow chart's settings (the flow keeps its destination list and the prime rules, which the
+  destinations and the SI codes still read) and every year's `aceMap`; the browser's `prio27acedb` copy is removed on opening; the
+  saved file carries no `aceDb`. A full import leaves a file's estimates out and says so; 💾 Save over a file that still holds them names
+  them in its HOLD ON as *removed from ORBIT in v2.19 on purpose*. The import check does not refuse such a file.
+- **A WBS is typed freely**, checked for length only (`wbsTake` → `codeTake`). *Without a WBS* stays; *WBS not in the estimate* is gone.
+  The Spend Plan Source's WBS column carries the code only, as it did with no estimate loaded (decided in the build; a name typed
+  after the code is not sent).
+- **The Fit box goes; its figures stay.** The cycle bar's unallocated/over figure, the UPL line and Needs attention's 🏛 entry stay.
+  The entry opens *Requirements against the budget authority* (`attOverHtml`), which says what the box said that is acted on: which
+  position each year reads (`fitSrcSay`, the one-figure rule of R37 with it), what a lock kept, each year's controls line
+  (`.fitctl`), each over as a sentence with what it is measured against (`fitVs`) and the requirements holding money there, with Go to
+  it (`attOverGo`: that year on screen first), and what is unallocated. The full base / added / held / drawn table is gone with the box.
+
+**Found while building, fixed:**
+- The new BUILD stamp was written `const BUILD = '…'` (spaces round `=`); the board reads another file's version by
+  `const BUILD='v…` exactly, so the newer-version refusal and the full import's version gate read nothing. `npm run check` now
+  holds the stamp's shape.
+- Pre-Flight Check counted the IDS file's contributions and would have thrown on opening.
+- The over list cut "▲ the lane cannot pay $X" at 1024 and 800 wide (`npm run layout` R); the cell wraps.
+- `verify-file` counted a v2.18 file's dropped `aceMap` as a loss; it notes it as left out on purpose, and such a file is certified.
+
+**Checks.**
+- New: audit-board "v2.19 — the scope-down: …" (no handler reaches a removed feature, the guide names none, the over list, Go to
+  it from another year, the store's drop; 10 fail on v2.18) and audit-import "v2.19 — a board file that carries cost estimates opens
+  without them, …" (built by v2.18's own program; 13 of 18 fail on v2.18, the 5 that pass are CONTROLs).
+- Retired with their features: 615 mutations (a comment where each stood), and the suites' blocks that tested only removed surfaces
+  (each a comment naming it). Adapted: blocks that tested what stays through a removed surface (the locked-view refusals, side
+  lists across a reload, refused storage, the stray rule, a full import's writes -- nine keys now). Dropped though their surfaces
+  partly stay: the destination list's duplicate-key block (U44) and the RCN pointer `__proto__` block (U61), whose money was read off
+  the funds flow and the ACE alignment lines; the `snapMatch` escaping check went with the estimate-history block.
+- 13 new mutations (`v219-150-*`) and 8 retargeted, 21 of 21 CAUGHT (`recovery/v219/proved-v219.jsonl`); 3,241 targets, each once.
+- Money coverage 19/19 surfaces; money map 252 cells (97 proven, 155 n/a, 0 open); trace matrix 75 cells; the defect register keeps
+  15 entries and moves 5 to a `retired` list (their surfaces are gone).
+- Browser checks: every one passes but layout's carried D ×8; standards 0 findings. `tools/ace-seed.mjs` is gone.
+
+#### 150 (as logged)
+- **Asked:** Brad, 24 Nov 2026: *"I want to refine ORBIT to what I initially intended it to be used for. It's grown too much and I
+  need to scope down."* *"The focus of this dashboard is the building of FYDP requirements, prioritization, and allocation of funding
+  to support program managers and leadership in knowing where their funds are being used and what's not being used."*
+- **Remove:**
+  - **The Annual Cost Estimate (ACE):** its import, its Data card, and the ACE tie-out panel. This also takes out everything that
+    reads the estimate (the estimate alignment, the WBS tree, the folder share of estimates and their earlier copies).
+  - **From FYDP ▸:** Spruills (and its PMO drill), FYDP Disconnects, Fit to the PPBE position (the panel), and the Funds Flow (Sewer
+    Chart) with its export.
+  - **From Reports & exports:** ACE Tie-Out, IDS Batch Import, Chart of Accounts, and the whole AI Review section (export the
+    request, import the answer, the answer's list).
+- **Brad's answers (24 Nov 2026):**
+  - **Saved data: drop it on save.** A file that holds a cost estimate, IDS or AI Review state, or Funds Flow settings is opened as
+    usual. Its next Save writes the file without that data. Save asks once before writing over data the file holds and the board
+    does not carry (`saveDrops`, v2.14); it will name the cost estimates there, and that question must say plainly that they were
+    removed on purpose, so it is not read as a fault.
+  - **WBS is typed freely**, checked for length only, as before v2.12. The WBS field, its Needs attention list *Without a WBS*,
+    the Spend Plan Source's WBS column and WBS from execution data stay. *WBS not in the estimate* goes.
+  - **Fit to the PPBE position: the panel only.** These stay, because they show money not being used:
+    - the unallocated / over figure beside the PPBE cycle in the top bar;
+    - the UPL line under the list;
+    - the "🏛 N over" entry in Needs attention, which will open what is over in place of the panel.
+
+    Budget authority keeps reading live from the PPBE position (item 134).
+  - **Order: next, as v2.19.** The review items 149.18–149.53 move to v2.20. **Item 133 is withdrawn** (see Withdrawn).
+- **Kept, though it sits near what goes:**
+  - The destination list and *Goes to*: they live in the Funds Flow's settings today and move out with nothing lost.
+  - PPBE Budget Positions, the five-year spend plan, Cycles & compare.
+  - The Spend Plan Source, the BAE budget rules (`budResolve`), and the CR views.
+- **What building it involves:**
+  - Removing each surface's code, found by a call graph, as item 104 and v2.05 did.
+  - The guide's sections and every menu path that names them (`npm run menus`).
+  - Retiring each removed surface's checks and mutations as obsolete, with a comment where each stood.
+  - Their rows in the money map and the money-coverage registry, and the defect register's entries guarded only by removed code
+    (named, not deleted silently).
+  - The import door still reads an older file that carries the dropped data: it is taken and dropped, never refused.
+  - The left-menu map (`npm run leftmenu`).
+
 
 ### v2.18 — 24 Nov 2026: what the review of the Requirements page found printing the wrong thing (item 149.7–149.17) -- built on Brad's "Go with recommendations" of 21 Nov (and "ORBIT v2.18", 24 Nov), on main 1d88e3c; merged on Brad's word of 24 Nov (PR #76)
 
