@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.19** (item 150, the scope-down), merged 24 Nov 2026 (PR #78). Then v2.20 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.19** (item 150, the scope-down), merged 24 Nov 2026 (PR #78). Then v2.20 (item 149.18–149.53). Item 133 is withdrawn. Item 151 (copy controls between PPBE cycles) is logged, waiting on Brad's answers.
 
 ## Open
 
@@ -28,6 +28,40 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   allocation; the RCN-EEIC tab prorates a split prime's ask by the CLIN allocation; FYDP Disconnects' workbook prints — without
   saying why.
 - **Items 100 and 107 (Azure):** left until hosting is chosen.
+
+#### 151. Copy one PPBE cycle's controls into another, in PPBE Budget Positions (Brad, 24 Nov 2026)
+- **Asked:** Brad, 24 Nov 2026: *"Let's add the ability to migrate controls from one PPBE cycle to another in the PPBE Budget Position section."*
+- **What he sees today:** each position (`MS.ppbe['BES|2028']`, one per appropriation) is typed in from empty. Moving to the
+  next cycle (POM28 → BES28 → PB28) means typing every line and every year again: per service, its lines (RCN / EEIC, SI code
+  or cost element), Disc and Mand where the split is on, and the $K setting. The only way to start from figures is Budget
+  Management's *Take from a PPBE position*, which writes the board's base, not another position.
+- **What the code holds (read on v2.19, 93b901d):** a position is `{v:2, split, lines:{svc:[…]}, val:{svc:{line:{fy:{d,m}}}},
+  unit:{svc:'k'}, kx}`, keyed by fiscal year, never by an offset from the cycle year, so figures copy across cycles as they
+  stand. `MS.ppbe` is outside the change journal (the $K undo keeps its own record, `P.kx`, for that reason). A position the
+  plan is tagged with is live budget authority (item 134, `baLiveAll`), so copying into the tagged cycle moves the board's
+  budget at once.
+- **Proposed:** in the PPBE Budget Positions box, beside Delete, **Copy controls from another cycle…** for the position on
+  screen. It lists this appropriation's other logged positions (POM28, BES28 …), with each one's service count and total.
+  - A preview names, per service, the lines and years it brings, what the target already holds, and the total before and after.
+  - OK copies lines, figures, the split and the $K setting (`unit`; never `kx`, which is the source's own undo record); the
+    source is left as it was. One `save()`, `baLiveAll()`, one status line naming both cycles and the totals.
+  - **Undo the copy** from the same place, putting back the target exactly as it was (kept as `P.mig = {from, t, by, was}`,
+    the way `P.kx` keeps the ×1,000), refused once a figure has been typed since, naming it.
+  - Refused on a locked cycle's view and in a PMO copy (`cycBlock`, as every position writer).
+  - Checks: an audit-board block holding every copied cell to the source's, a target with figures of its own, a service only
+    one side has, $K on one side, a split onto an unsplit target, the undo, and the budget authority of a tagged target moving;
+    the box in panels, dialogs, keys and standards.
+- **Questions for Brad (recommended answer first):**
+  1. **Copy or move?** Copy, the source kept as it was (a locked cycle's figures are the record of what was logged).
+  2. **A target that already holds figures:** ask, then replace the target whole (recommended), or fill only what is blank, or
+     add the two together.
+  3. **Which years:** every fiscal year the source logs (recommended; a year outside the target's window is still copied and
+     named, as the box already names it), or only the years in the target's window.
+  4. **Which services:** all (recommended), with a tick per service in the preview to leave one out.
+  5. **Across appropriations** (O&M's BES28 into Full Fund's): no (recommended); a position is one appropriation's, and
+     another appropriation's figures worked out on this page would be a second engine (v1.85's rule).
+  6. **Retag after copying into a newer cycle:** offer *Retag every appropriation as …* in the status line (recommended,
+     as a lock does), never retag unasked.
 
 #### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
 - **Asked:** Brad, 21 Nov 2026: *"review the front landing page where my requirements are listed to include the pop up window after clicking a requirement ... for redundant clicks and information ... simplicity but usefulness."*
