@@ -938,11 +938,8 @@ const MUTATIONS = [
   // The offices moved off a chip strip that showed the selection at a glance. A menu does not, so
   // the button has to carry it -- otherwise the board shows one office's requirements while looking
   // like it shows the portfolio, which is a briefing error waiting to happen.
-  { id: 'pmo-button-silent', area: 'syncBtns', what: 'the PMO button stops naming the office that is selected',
-    find: `    if(bp) bp.textContent=''
-      + (filter==='ALL'? 'All offices' : filter)`,
-    repl: `    if(bp) bp.textContent=''
-      + 'All offices'` },
+  { id: 'pmo-button-silent', area: 'pmoBtnLabel', what: 'the PMO button stops naming the office that is selected',   // v2.18: retargeted (the label is pmoBtnLabel, shared with the grey line)
+    find: "function pmoBtnLabel(){ return (filter==='ALL'? 'All offices' : String(filter))+", repl: "function pmoBtnLabel(){ return 'PMO'+" },
   { id: 'pmo-hides-empty-office', area: 'syncBtns', what: 'an office with no requirements is left out of the menu, so one just added looks like it failed',
     find: `        const empty=keys.filter(function(g){ return !counts[g]; });
         if(!empty.length) return '';`,
@@ -1644,7 +1641,7 @@ const MUTATIONS = [
   { id: 'nd-shortall-missing', area: 'ndData', what: 'set all to drawn says the shortfall does not move',
     find: "    if(any) SVC.forEach(function(sv, i){ shortAll+=t.u[i]||0; });", repl: "    /* the shortfall is not counted */" },
   { id: 'nd-filter-shows-all', area: 'render', what: 'the not-drawn filter shows every requirement',
-    find: "    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t))) return;", repl: "    if(laneFilter==='nd'? false : (laneFilter && !fitPass(t))) return;" },
+    find: "    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t, it))) return;", repl: "    if(laneFilter==='nd'? false : (laneFilter && !fitPass(t, it))) return;" },   // v2.18: retargeted (fitPass takes the requirement)
   { id: 'nd-row-flag-missing', area: 'render', what: 'the row carries no flag',
     find: "    if(ndData().ids[id]) _exc.push(['▲',", repl: "    if(false) _exc.push(['▲'," },
   { id: 'nd-set-wrong-lane', area: 'ndSetDrawn', what: 'set to drawn lowers the discretionary figure whichever lane the line is',
@@ -11541,6 +11538,52 @@ const MUTATIONS = [
   { id: 'v217-149-order-says-fy27', area: 'resetOrder', what: "Reset priority order says FY27 on any year",
     find: "  if(!confirm('Reset the '+FYL()+' priority order for EVERY office?", repl: "  if(!confirm('Reset the FY27 priority order for EVERY office?" },
   // ==== end v2.17 ====
+  // ==== v2.18 (item 149.7-149.17: labels that print the wrong thing) ====
+  { id: 'v218-149-mc-row-less-mand', area: 'render', what: "a starred row's MC short is the requirement less discretionary less mandatory again",
+    find: "    const _mcs=S.mc[id]? _vsum(mcShortSvcOf(it,t)) : 0;", repl: "    const _mcs=S.mc[id]? _u : 0;" },
+  { id: 'v218-149-unf-filter-allocated', area: 'fitPass', what: "Any unfunded portion counts only allocated dollars no lane could pay",
+    find: "function fitUnf(t, it){ return it? unfTotOf(it,t)>0.005 : t.uT>0.005; }", repl: "function fitUnf(t, it){ return t.uT>0.005; }" },
+  { id: 'v218-149-unf-count-allocated', area: 'tierTotals', what: "the Total UFR tile counts only requirements with allocated dollars no lane could pay",
+    find: "uN:u2N,", repl: "uN:uN," },
+  { id: 'v218-149-u2n-from-lane', area: 'tierTotals', what: "the count beside Total UFR is taken from what fell beyond both lanes",
+    find: "    if(unfTotOf(it,p)>0.005) u2N++;", repl: "    if(p.uT>0.005) u2N++;" },
+  { id: 'v218-149-filter-without-item', area: 'render', what: "the list's filter is handed no requirement, so it falls back to the lane reading",
+    find: "    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t, it))) return;", repl: "    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t))) return;" },
+  { id: 'v218-149-hover-lane-u', area: 'render', what: "the row's lane hover says the lane shortfall, $0 on a row short only by a trim",
+    find: "· Unfunded ${fM(_u)}", repl: "· Unfunded ${fM(t.uT)}" },
+  { id: 'v218-149-record-allocated', area: 'inspectorBody', what: "the record's d+m box is named Allocated again",
+    find: "      + inspField('Funded', fM(dT + mT), 'big')", repl: "      + inspField('Allocated', fM(dT + mT), 'big')" },
+  { id: 'v218-149-cum-heading', area: 'render', what: "the running total is headed Cumulative, with nothing saying of what",
+    find: "const CU=['Cumulative allocation','r cum',CUM_TIP];", repl: "const CU=['Cumulative','r cum'];" },
+  { id: 'v218-149-pmo-line-stale', area: 'uiPmoLabel', what: "the grey line reads the office off the PMO button, drawn after it",
+    find: "function uiPmoLabel(){ try{ return pmoBtnLabel(); }catch(e){ return ''; } }", repl: "function uiPmoLabel(){ const b=document.getElementById('b_pmo'); return b? b.textContent.replace(/\\s*▾\\s*$/,'').trim() : ''; }" },
+  { id: 'v218-149-er-whole-order', area: 'erOrder', what: "the edit box walks the whole priority order, not the list as shown",
+    find: "  if(g.indexOf(id)>=0) return g;\n", repl: "\n" },
+  { id: 'v218-149-er-record-stays', area: 'openEdit', what: "the record behind the edit box stays on the requirement it opened on",
+    find: "  try{ if(typeof curRow!=='undefined' && curRow!==id) setCur(id, true); }catch(e){}", repl: "  /* gone */" },
+  { id: 'v218-149-bud-every-line', area: 'budRecordHtml', what: "the budget block says every line follows the rule over lines with no budget",
+    find: "    if(!r.effective) noBud++;", repl: "    /* counted nowhere */" },
+  { id: 'v218-149-lastedit-no-added', area: 'uiLastEdit', what: "History shows nothing for a requirement added on the board",
+    find: "    // a line filed by place (before v2.14) in this year may have changed it without naming it\n    const it=itemById(id); if(!it) return null;", repl: "    // a line filed by place (before v2.14) in this year may have changed it without naming it\n    const it=itemById(id); if(!it || it.custom) return null;" },
+  { id: 'v218-149-field-internal', area: 'jrnlFieldName', what: "the last change and the journal print the container's internal name",
+    find: "  if(Object.prototype.hasOwnProperty.call(REQ_FIELD, k)) return FL(k);\n", repl: "\n" },
+  { id: 'v218-149-custom-field-internal', area: 'jrnlFieldName', what: "an added requirement's field is named by its internal key",
+    find: "    if(Object.prototype.hasOwnProperty.call(JRNL_CUSTOM_F, f)) return FL(JRNL_CUSTOM_F[f]);\n", repl: "\n" },
+  { id: 'v218-149-jrnl-not-narrowed', area: 'jrnlReqHas', what: "the record's History opens the whole journal",
+    find: "  const R=jrnlReq; if(!R) return true;", repl: "  const R=null; if(!R) return true;" },
+  { id: 'v218-149-jrnl-redraws-box', area: 'jrnlBody', what: "typing in the journal's search redraws the box with the results",
+    find: "  if(resultsOnly && res && cn){ res.innerHTML=r; cn.textContent=cnt; return; }", repl: "  /* the whole panel, box and all */" },
+  { id: 'v218-149-jrnl-name-this-year', area: 'jrnlItemOf', what: "a line about another year's added requirement is named from the year on screen",
+    find: "    if(y===+MS.cur){ const it=itemById(id);", repl: "    if(true){ const it=itemById(id);" },
+  { id: 'v218-149-goto-year-only', area: 'priorHtml', what: "Go to FY.. switches the year and leaves the record on whatever it named there",
+    find: "onclick=\"priorGo('+jsa(it.id)+')\">Go to FY", repl: "onclick=\"switchYear('+L.fy+')\">Go to FY" },
+  { id: 'v218-149-no-way-back', area: 'priorBackHtml', what: "the requirement Go to FY.. opened offers no way back",
+    find: "  const B=priorBack; if(!B || !B.to ||", repl: "  const B=null; if(!B || !B.to ||" },
+  { id: 'v218-149-help-three-lines', area: 'helpDoc', what: "Help says the top of the board stays in view in three lines again",
+    find: "<p>Only the top line stays in view as you scroll:", repl: "<p>The top of the board stays in view as you scroll, in three lines:" },
+  { id: 'v218-149-att-at-top', area: 'ATT_WHERE', what: "messages send the reader to Needs attention at the top of a page that does not show it",
+    find: "const ATT_WHERE='Needs attention, on the Funding page';", repl: "const ATT_WHERE='Needs attention, at the top';" },
+  // ==== end v2.18 ====
 
 ];
 

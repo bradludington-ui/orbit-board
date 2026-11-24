@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.16** (item 148) and **v2.17** (item 149.1–149.6, built on it): both built, awaiting Brad's merge, then v2.18 and v2.19 (the rest of item 149), then **v2.20** (item 133).
+Current version: **v2.18** (item 149.7–149.17): built, awaiting Brad's merge (v2.16 and v2.17 are merged, PR #58). Then v2.19 (item 149.18–149.53), then **v2.20** (item 133).
 
 ## Open
 
@@ -54,6 +54,8 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   - 149.6: Reset priority order names the year on screen, says it replaces the master order for every office and cannot be put back,
     is refused (with a message) while one office is showing, and confirms on the message line; the two messages that promised it
     undoes a published order are corrected.
+
+- **v2.18 as built (149.7–149.17):** see Shipped › v2.18. 149.11 fixes the stale office only; the line's new job is 149.36 (v2.19).
 
 *Can put a wrong value in the board:*
 - **149.1 A date typed into the Award date box is stored wrong** (v2.17). Typing a date with the keyboard stores a date at every keystroke. 01/15/2027 was stored as 15 January of the year 2. Retyping only the month of 9 April 2027 left 9 January 2027, which moved $3.09M into January and into the CR window on the test board, with no message. It has been this way since the first version. The calendar picker and the “+ add date” box store the right date. *Brad's board:* Until this is fixed, use the calendar icon or “+ add date”, and check any row whose award year reads 2. It was measured in the same browser engine Edge uses, not on Edge itself. **Change:** Take the date only when you leave the box or press Enter. List any award dated outside the fiscal year under Needs attention, so one already stored is found. Today such a date goes out on the Spend Plan Source as a 1902 date.
@@ -577,6 +579,42 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.18 — 24 Nov 2026: what the review of the Requirements page found printing the wrong thing (item 149.7–149.17) -- built on Brad's "Go with recommendations" of 21 Nov (and "ORBIT v2.18", 24 Nov), on main 1d88e3c; merge waits on his word
+
+No figure is worked out differently. Each label now prints the figure the stated rules name:
+- **149.7** A starred row's *MC short* is the requirement less discretionary (`mcShortSvcOf`), the record's ★ MC shortage and the
+  banner's; it printed requirement less discretionary less mandatory.
+- **149.8** The Total UFR tile's count (`tierTotals().u2N`), the fit strip's *unfunded* count and *Filter › Any unfunded portion*
+  follow the dollars: requirement less discretionary less mandatory (`unfTotOf`, through `fitUnf`), so a requirement short only by
+  a trim is counted and listed. The whole-budget scorecard's "reqs beyond both lanes" keeps its own count beside its own figure.
+- **149.9** The row's lane hover prints the record's Unfunded.
+- **149.10** *Go to FY27* (`priorGo`) switches the year, selects and scrolls to the requirement the line names, and that record offers
+  *↩ Back to FY28* (`priorBackHtml`, `priorBackGo`); the way back is this page's alone, never the board's. A row hidden by the
+  list's search or filters is said, never unhidden.
+- **149.11** The grey line beside *Requirements* reads the office from the selection (`pmoBtnLabel`, shared with the PMO button),
+  not off the button's face, which was drawn after it. *Built smaller than logged:* the line still repeats the selectors;
+  "Showing 8 of 36" is item 149.36 (v2.19).
+- **149.12** The record's d+m box is *Funded*.
+- **149.13** The column is *Cumulative allocation*, with a one-line hover on its heading and on each row (`CUM_TIP`).
+- **149.14** The edit box's ↑ prev / next ↓ walk the list as shown (`erOrder`: one office, a search, a filter; the whole order only
+  for a requirement opened from outside the list), and `openEdit` selects the box's requirement behind it.
+- **149.15** The budget block's foot says how many lines have no budget ("2 of 3 lines have no budget — the export sends them
+  blank"); "every line follows the rule" only when it is so.
+- **149.16** History shows the last change of an added requirement (filed by id since v2.14; a line filed by place in that year
+  still says nothing), in the record's own field names (`jrnlFieldName`: `REQ_FIELD`, then the journal's names; never "recNames");
+  its button opens the change journal narrowed to that requirement and year (`jrnlFor`, ✕ Every requirement); the journal's search
+  redraws its results only, so the box keeps its caret (it typed "abc" as "cba"); a line is named from its own year
+  (`jrnlItemOf`), so FY27's NEW-2 is never named after FY28's.
+- **149.17** Help: the top line is the only one that stays in view; the record slides over unless *View › Record panel* docks it;
+  Needs attention is on the Funding page. Each rewritten paragraph is shorter than the one it replaced (1,915 → 1,141, 400 → 372,
+  703 → 627 characters). The four messages that sent a reader to Needs attention say where it is (`ATT_WHERE`).
+
+**Checks.** audit-board "v2.18 — the row, the tiles, the record and the journal print what they name (item 149.7-149.17)" (fails
+on v2.17 1d88e3c: 15 failing checks before it throws on the missing `jrnlFor`). Changed on purpose: audit-board's "trimmed rows,
+partial coverage" lane count (the oracle now counts a requirement short of its ask, trims included) and audit-import's v1.86
+not-drawn hover (the message's new words). **Mutations:** 22 new (`v218-149-*`), 2 retargeted (`pmo-button-silent`,
+`nd-filter-shows-all`); 3,843 targets, each once; all 24 CAUGHT, none by a throw (`recovery/v215/proved-v218.jsonl`). No sweep.
 
 ### v2.17 — 21 Nov 2026: what the review of the Requirements page found could put a wrong value in the board (item 149.1–149.6) -- built on Brad's "Go with recommendations" of 21 Nov, on top of v2.16; merge waits on his word
 

@@ -5268,6 +5268,33 @@ print the wrong thing (149.7–149.17); v2.19 the clicks, repeats and additions;
 - **Reset to the full requirement** is on the row menu only in Fund mode and only where it changes something (`allocResettable`),
   and says what it did. **Reset priority order** names the year, says it cannot be put back, and is refused while one office shows.
 
+### v2.18 (item 149.7–149.17): the row, the tiles, the record and the journal print what they name
+
+Brad's "Go with recommendations" of 21 Nov 2026 (the second of three versions from the review of the Requirements page). No figure
+is worked out differently; each label now prints the figure the stated rules name. `NEXT-VERSION.md` › Shipped › v2.18 has each item.
+
+- **A row's MC short is `mcShortSvcOf`** (requirement less discretionary), never `unfTotOf`: the Mission Critical rule above. A
+  surface that prints a starred requirement's shortage reads it, as the record and the banner do.
+- **"Unfunded" counts follow the dollars.** The Total UFR tile counts `tierTotals().u2N` (requirements with `unfTotOf` > 0); the fit
+  strip's count and *Any unfunded portion* read `fitUnf(t, it)`. `t.uT` / `uN` is *beyond both lanes* and is printed only beside
+  that figure. A count beside a figure counts that figure's requirements.
+- **`ATT_WHERE`** says where Needs attention is (the Funding page). A message that sends a reader somewhere names the place as it is.
+- **`priorGo` / `priorBackGo`**: a link to another year opens the requirement it names and offers the way back (`priorBack`, a `var`
+  because the RECORD panel can be drawn before its line is read). Never leave `curRow` naming an id across a year switch: an added
+  requirement's id is its own year's number.
+- **`pmoBtnLabel()`** is the one statement of the office selection; the grey line and the PMO button both read it. Never read a
+  label off another control's face: the order they are drawn in decides whether it is current.
+- **`erOrder(id)`**: the edit box walks `gridIds()` when the requirement is on the list as shown; `openEdit` selects its requirement
+  behind the box (quietly).
+- **The journal:** `jrnlFieldName(e)` names a field (`REQ_FIELD`, then `JRNL_NAMES`; an added requirement's field is `p[2]`);
+  `jrnlItemOf(e)` names the requirement from the line's own year; `jrnlFor(id)` narrows the journal to one requirement of one year
+  (`jrnlReq`, let go on close); `jrnlBody(true)` redraws the results only, so a search box keeps its caret. A box someone types in
+  is never redrawn by its own input handler.
+- **Help is at its size limit** (70,000 characters as the browser draws it): v2.18's rewrites each came out shorter.
+
+**Checks.** audit-board "v2.18 — the row, the tiles, the record and the journal print what they name (item 149.7-149.17)"; 22
+`v218-149-*` mutations and 2 retargeted, all CAUGHT (`recovery/v215/proved-v218.jsonl`); 3,843 targets.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
