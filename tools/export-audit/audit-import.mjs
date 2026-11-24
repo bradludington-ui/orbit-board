@@ -15433,7 +15433,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     J(KEPT.filter(k => ls2[k] !== ls1[k] || !(k in ls1))), '[]');
   chk(name, '(c) the note', 'it names the keys and what each is called, never a record or the report; a hash for each key that held something; plain text only',
     J(m && [m.keys, m.says, Object.keys(m.h).sort(), J(m).includes('<'), m.how, m.name, m.from]),
-    J([W2_KEYS.slice(0, 9), W2_SAY.slice(0, 9), W2_KEYS.slice(0, 9).filter(k => r.held[k] != null).sort(), false, 'file', nm, 'new-board.html']));
+    // v2.19 (item 150): every key but the report -- eight now, the cost estimates gone (it was slice(0, 9) of ten)
+    J([W2_KEYS.slice(0, -1), W2_SAY.slice(0, -1), W2_KEYS.slice(0, -1).filter(k => r.held[k] != null).sort(), false, 'file', nm, 'new-board.html']));
   chk(name, '(c) the note', 'each hash is of what the key held when the import was refused',
     J(m && Object.keys(m.h).filter(k => m.h[k] !== T.ev(`sideHash(${J(r.held[k])})`))), '[]');
   chk(name, '(c) reopened', 'the page went to reopen, and said where the board is', J([navs(T, e0) >= 1, status(T.ev).startsWith('⬅ Full board imported into “' + nm + '” — written and read back whole.')]), J([true, true]));
@@ -18243,28 +18244,26 @@ await (async () => {
     const Pc = JSON.parse(J(P)); { const yc = Pc.appns.om.years[Pc.appns.om.cur]; yc.custom = yc.custom.filter(x => x && typeof x.id === 'string'); }
     const fyOm = +P.appns.om.cur;
     // v2.19 (item 150): Spruills, the PMO drill and the chart of accounts are gone. What still reads another appropriation's added
-    // requirements is the Priority Drill's "requirements by band, across every appropriation in this file": it must run, and count
-    // O&M's A and NEW-2 -- two requirements, each once -- as the expectation below does (the same file mended by hand)
-    const other = (B2, how) => { let sheets;
-      try { sheets = JSON.parse(w209ev(B2, `(function(){ globalThis.__ob=buildXlsx; buildXlsx=function(sh){ globalThis.__s=sh; return new Uint8Array(0); };
-        try{ exportCSV(); }finally{ buildXlsx=globalThis.__ob; } return JSON.stringify(globalThis.__s||[]); })()`)); } catch (e) { return J(['THREW']); }
-      for (const sh of sheets) { const i = (sh.rows || []).findIndex(r => r && cv(r[0]) === 'REQUIREMENTS BY BAND, ACROSS EVERY APPROPRIATION IN THIS FILE');
-        if (i >= 0) { const row = sh.rows.slice(i).find(r => r && cv(r[0]) === 'O&M');
-          return J([row ? row.slice(1).reduce((a, c) => a + (typeof cv(c) === 'number' ? cv(c) : 0), 0) : 'no O&M row']); } }
-      return J(['no section']); };
+    // requirements is the five-year spend plan (fydpGather, each appropriation opened as its own board): it must run, and count O&M's
+    // A and NEW-2 -- two requirements, each once -- as the expectation below does (the same file mended by hand). (The Priority
+    // Drill's across-appropriations section is drawn only when two appropriations hold a plan, and Full Fund holds none here.)
+    const fyReqs = async (X, k) => { try {
+        X.ev(`window.__fg=null; fydpGather(fydpData('working'), function(A){ window.__fg=A.filter(function(a){ return a.k===${J(k)}; }).map(function(a){ return [a.why, a.D? (a.D.proj[a.D.held[0]].reqs||[]).length : null]; }); }); 'ok'`);
+        await W1H.until(() => X.ev('window.__fg!==null') === true, 3000); return X.ev('JSON.stringify(window.__fg)'); } catch (e) { return J(['THREW ' + String((e && e.message) || e).slice(0, 80)]); } };
+    const other = (B2, how) => fyReqs(B2, 'om');
     // v2.14 RV2-D (spruills-other-appn-base-requirements-zero): THE TRUE FIGURE IS $1,400, A's $1,200 AND NEW-2's $200. This block pinned
     // $200 -- NEW-2 alone -- because Spruills read another appropriation's master list from the consolidated payload only, which a
     // program file never carries, and so counted none of O&M's requirement A from its plan's own data pack. That was the wrong figure.
     const C = boot({ html: v14With(PROGRAM, Pc), appn: 'FULL FUND' });
     chk(name, '(d) fixture', 'the same file with the two entries taken out by hand: from Full Fund, the Priority Drill counts O&M’s A and NEW-2, once each',
-      other(C, 'clean'), J([2]));
+      await other(C, 'clean'), J([['', 2]]));
     const Df = boot({ html: v14With(PROGRAM, P), appn: 'FULL FUND' });
-    chk(name, '(d) another appropriation, the file’s copy', 'from Full Fund, O&M’s damaged list in the file: the Priority Drill runs and counts O&M’s two requirements',
-      other(Df, 'file'), J([2]));   // v2.19 (item 150): was Spruills' $1,400 (v2.14 RV2-D, above)
+    chk(name, '(d) another appropriation, the file’s copy', 'from Full Fund, O&M’s damaged list in the file: the five-year plan runs and counts O&M’s two requirements',
+      await other(Df, 'file'), J([['', 2]]));   // v2.19 (item 150): was Spruills' $1,400 (v2.14 RV2-D, above)
     chk(name, '(d) another appropriation, the file’s copy', 'no page error', J(Df.errors.map(e => String(e).slice(0, 80))), '[]');
     const Ds = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
     chk(name, '(d) another appropriation, this browser’s copy', 'from Full Fund, O&M’s damaged list in this browser (as v2.13 left it): the same',
-      other(Ds, 'storage'), J([2]));   // v2.19 (item 150): was Spruills' $1,400 (v2.14 RV2-D, above)
+      await other(Ds, 'storage'), J([['', 2]]));   // v2.19 (item 150): was Spruills' $1,400 (v2.14 RV2-D, above)
     chk(name, '(d) another appropriation, this browser’s copy', 'no page error', J(Ds.errors.map(e => String(e).slice(0, 80))), '[]');
     // v2.14 RV1-D (the check of this fix): (e) THE FULL IMPORT'S DOOR LETS THE DAMAGE THROUGH ONLY WHERE THE IMPORT MENDS IT. The first cut
     // passed it in any plan the file carried, a locked cycle's year included, which nothing mends: the import took it and the reopened
@@ -19508,19 +19507,16 @@ await (async () => {
     chk(name, '(a) from browser storage', 'the opening says it, kept unread',
       w209ev(B, `String(STAT_LOG.some(function(m){ return !m.read && /The list of added requirements was mended on opening<\\/b> — FY27: 1 second entry for a requirement already on the list set aside in the file, where nothing counts it\\./.test(m.html); }))`), 'true');
     chk(name, '(a) from browser storage', 'no page error', J(B.errors.map(e => String(e).slice(0, 80))), '[]');
-    // v2.19 (item 150): the chart of accounts and the Spruills are gone. The Priority Drill's "requirements by band, across every
-    // appropriation in this file" counts O&M's requirements on its own board (b) and from Full Fund (c): three, each once
-    const byBand = X => { let sheets;
-      try { sheets = JSON.parse(w209ev(X, `(function(){ globalThis.__ob=buildXlsx; buildXlsx=function(sh){ globalThis.__s=sh; return new Uint8Array(0); };
-        try{ exportCSV(); }finally{ buildXlsx=globalThis.__ob; } return JSON.stringify(globalThis.__s||[]); })()`)); } catch (e) { return 'THREW'; }
-      for (const sh of sheets) { const i = (sh.rows || []).findIndex(r => r && cv(r[0]) === 'REQUIREMENTS BY BAND, ACROSS EVERY APPROPRIATION IN THIS FILE');
-        if (i >= 0) { const row = sh.rows.slice(i).find(r => r && cv(r[0]) === 'O&M'); return row ? row.slice(1).reduce((a, c) => a + (typeof cv(c) === 'number' ? cv(c) : 0), 0) : 'no O&M row'; } }
-      return 'no section'; };
+    // v2.19 (item 150): the chart of accounts and the Spruills are gone. The five-year spend plan reads O&M's requirements on its own
+    // board (b) and from Full Fund (c), O&M opened as its own board: three, each once
+    const fyReqs = async (X, k) => { try {
+        X.ev(`window.__fg=null; fydpGather(fydpData('working'), function(A){ window.__fg=A.filter(function(a){ return a.k===${J(k)}; }).map(function(a){ return [a.why, a.D? (a.D.proj[a.D.held[0]].reqs||[]).length : null]; }); }); 'ok'`);
+        await W1H.until(() => X.ev('window.__fg!==null') === true, 3000); return X.ev('JSON.stringify(window.__fg)'); } catch (e) { return J(['THREW ' + String((e && e.message) || e).slice(0, 80)]); } };
     // (b) on O&M's own board: every requirement once
-    chk(name, '(b) the Priority Drill, on O&M’s own board', 'O&M counts A, NEW-2 and NEW-3 once each: 3 requirements', J(byBand(B)), J(3));
+    chk(name, '(b) the five-year plan, on O&M’s own board', 'O&M counts A, NEW-2 and NEW-3 once each: 3 requirements', await fyReqs(B, 'om'), J([['', 3]]));
     // (c) from Full Fund: O&M's raw store, read as its own board would open it, before that board has mended it
     const Bf = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
-    chk(name, '(c) from Full Fund', 'the Priority Drill counts O&M’s A, NEW-2 and NEW-3 once each: 3 requirements', J(byBand(Bf)), J(3));
+    chk(name, '(c) from Full Fund', 'the five-year plan counts O&M’s A, NEW-2 and NEW-3 once each: 3 requirements', await fyReqs(Bf, 'om'), J([['', 3]]));
     // (d) v2.13's board file, full imported: taken, mended as it comes across, and said in its question
     const N = boot();
     let imp = [null, []];
