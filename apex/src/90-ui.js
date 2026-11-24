@@ -49,7 +49,7 @@ const ui = {
   find: ui_findNew(),       // Find a requirement: the words typed, the pickers, the order, the one opened
   reqs: null, reqFor: null, // the requirement list of the model on screen
   cal: { pmo: null, ap: null, fy: null },              // the Award calendar's three pickers
-  ch: { pmo: null, ap: null, fy: null },               // the Charts view's three pickers (§26)
+  ch: { pmo: null, ap: null, fy: null, ipt: null },    // the Charts view's pickers (§26; IPT §62)
   pmo: { key: undefined, fy: null, win: 3 },           // My PMO: the office (undefined until picked or remembered), the FY, and how many months its first list looks ahead (review I32)
   ovFy: undefined,          // the Overview's fiscal year: undefined until picked (the execution year, if it has a block), 'all', or an FY
   model: null, modelErr: null, pending: false,
@@ -993,18 +993,127 @@ function ui_chOff(b, sl, M) {
   return ' <span class="choff" data-c="' + (after + nod) + '">Plus ' + ui_e(SP.fmtMText(after + nod)) + ' ($M) of Actual Execution ' + ui_e(where)
     + ', which is not on this line' + (sl && typeof sl.oblPct === 'number' && isFinite(sl.oblPct) ? ': the slide block’s Total, which counts it, is ' + ui_e(SP.fmtPct(sl.oblPct)) : '') + '.</span>';
 }
+// §62 (Brad, 24 Nov 2026, of a mock-up: "Go with B and build it") WHAT MOVED SINCE THE LAST PULL: SP.movedOf over
+// SP.diffPulls, the lines the pickers leave. A line is the pulls' own (appropriation, FY, PMO, title, plan event, CCaR);
+// with an IPT picked, only the lines of the IPT's requirements (a dropped one is in none). Worked out once per pair of
+// pulls and settings.
+const UI_MOVED_MAX = 5;
+function ui_chDiff() {
+  const st = ui_state(), prev = (st && st.pulls && st.pulls.previous) || {}, cur = ui_pulls(), set = ui_settings(), sk = JSON.stringify(set);
+  if (!ui.chD || ui.chD.prev !== prev || ui.chD.cur !== cur || ui.chD.sk !== sk) {
+    let D = {};
+    try { D = ui_fn('diffPulls') ? SP.diffPulls(prev, cur, set) : {}; } catch (e) { D = {}; }
+    ui.chD = { prev, cur, sk, D };
+  }
+  return ui.chD.D;
+}
+// a pull line's requirement key, as SP.requirementsOf writes it: its block (appropriation|FY), then PMO, title and CCaR
+const ui_lineReq = l => l.parts[0] + '|' + l.parts[1] + '|' + l.parts[2] + '\u0000' + l.parts[3] + '\u0000' + l.parts[5];
+function ui_chMoved(M, F, list, all) {
+  const m = c => ui_e(SP.fmtMText(c)), D = ui_chDiff(), keys = new Set(list.map(r => r.key));
+  const head = '<section class="card chcard" data-ch="moved"><h3>What moved since the last pull ($M)</h3>';
+  if (!ui_fn('movedOf') || !Object.keys(D).length) return head + '<p class="cardnote" id="uiMvNone">Only one pull so far. After the next import of an appropriation, this shows what moved in it.</p></section>';
+  const keep = l => (F.ap === null || l.ap === F.ap) && (F.fy === null || String(l.fy) === F.fy) && (F.pmo === null || l.parts[2] === F.pmo)
+    && (F.ipt === null || keys.has(ui_lineReq(l)));
+  const X = SP.movedOf(D, keep, UI_MOVED_MAX);
+  const day = t => (typeof t === 'string' && /^\d{4}-\d{2}-\d{2}/.test(t) ? Number(t.slice(8, 10)) + ' ' + SP.CAL_MONTHS[Number(t.slice(5, 7)) - 1] + ' ' + t.slice(0, 4) : 'an earlier date');
+  const when = X.aps.length === 1 ? ' (' + ui_e(X.aps[0].label) + ': imported ' + day(X.aps[0].importedAt[1]) + ', against ' + day(X.aps[0].importedAt[0]) + ')'
+    : ' (' + X.aps.map(a => ui_e(a.label)).join(', ') + ')';
+  const tile = (id, w, v, cls, sign) => '<div class="chmv' + (cls ? ' ' + cls : '') + '" id="' + id + '" data-c="' + v + '"><span>' + w + '</span><b>' + (sign && v > 0 ? '+' : '') + m(v) + '</b></div>';
+  const h = head + '<p class="cardnote">This pull against the one it replaced' + when + ', for the requirements shown. Money “moved later” when its plan events’ dates moved to later months; a line that moved both ways counts by where its money ended up.</p>'
+    + '<div class="chmvs">' + tile('uiMvLater', 'Moved later', X.later, X.later > 0 ? 'bad' : '') + tile('uiMvEarlier', 'Moved earlier', X.earlier) + tile('uiMvNew', 'New plan events', X.added)
+    + tile('uiMvGone', 'Dropped', X.dropped) + tile('uiMvPlace', 'Amounts changed in place', X.inPlace, '', true) + '</div>';
+  if (!X.byPmo.length) return h + '<p class="cardnote" id="uiMvNoMove">No plan event moved between months.</p></section>';
+  // by PMO: earlier to the left of the line, later to the right, on one scale
+  const W = 640, L = 210, mid = L + 90, rowH = 30, Hh = 28 + X.byPmo.length * rowH, mx = Math.max(1, ...X.byPmo.map(p => Math.max(p.later, p.earlier))), sc = v => v / mx * (W - mid - 70);
+  let g = '<text x="' + mid + '" y="14" text-anchor="middle" class="ax">earlier ◂ ▸ later</text><line class="chnow" x1="' + mid + '" x2="' + mid + '" y1="20" y2="' + (Hh - 4) + '"/>';
+  X.byPmo.forEach((p, i) => {
+    const y = 24 + i * rowH, we = Math.min(mid - L, sc(p.earlier));
+    g += '<text x="' + (L - 6) + '" y="' + (y + 15) + '" text-anchor="end">' + ui_e(p.label) + '</text>';
+    if (p.earlier > 0) g += '<rect class="mv-e" data-c="' + p.earlier + '" x="' + (mid - we).toFixed(1) + '" y="' + (y + 3) + '" width="' + we.toFixed(1) + '" height="16"><title>' + ui_e(p.label + ': moved earlier ' + SP.fmtMText(p.earlier) + ' ($M)') + '</title></rect>';
+    if (p.later > 0) g += '<rect class="mv-l" data-c="' + p.later + '" x="' + mid + '" y="' + (y + 3) + '" width="' + sc(p.later).toFixed(1) + '" height="16"><title>' + ui_e(p.label + ': moved later ' + SP.fmtMText(p.later) + ' ($M)') + '</title></rect>'
+      + '<text class="chv" x="' + (mid + sc(p.later) + 5).toFixed(1) + '" y="' + (y + 15) + '">' + m(p.later) + '</text>';
+  });
+  const svg = '<svg class="chsvg chmvsvg" viewBox="0 0 ' + W + ' ' + Hh + '" style="max-width:' + W + 'px" role="img" aria-label="Money that moved between months since the last pull, by PMO: earlier to the left, later to the right.">' + g + '</svg>';
+  const apName = id => (SP.APS.find(a => a.id === id) || { label: id }).label;
+  // the months a line's money left or reached, most money first: two at most, then how many more
+  const mons = L => ui_e(L.slice(0, 2).map(x => SP.ymWords(x.ym)).join(', ') + (L.length > 2 ? ' +' + (L.length - 2) + ' more' : ''));
+  const rows = X.top.map(t => {
+    const i = all.findIndex(x => x.key === ui_lineReq(t.line));
+    return '<tr><th scope="row" class="lab">' + (i < 0 ? ui_e(t.line.title) : '<button type="button" class="tg" data-act="reqopen" data-i="' + i + '" data-fkey="chmv:' + i + '">' + ui_e(t.line.title) + '</button>')
+      + '<span class="fsub">' + ui_e(t.line.pmo) + ' · ' + ui_e(apName(t.line.ap)) + ' FY' + t.line.fy + '</span></th>'
+      + '<td class="lab">' + ui_e(t.line.pe) + '</td><td class="lab">' + mons(t.was) + '</td><td class="lab">' + mons(t.now) + '</td><td class="n" data-c="' + t.cents + '">' + m(t.cents) + '</td></tr>';
+  }).join('');
+  const tbl = X.top.length ? '<div class="tw"><table class="cht chmvt" id="uiChMoved"><caption>Biggest moves later ($M)</caption><thead><tr><th scope="col" class="lab">Requirement</th><th scope="col" class="lab">Plan event</th>'
+    + '<th scope="col" class="lab">Was</th><th scope="col" class="lab">Now</th><th scope="col" class="n">$M</th></tr></thead><tbody>' + rows + '</tbody>'
+    + (X.restN ? '<tfoot><tr><th scope="row" class="lab" colspan="4">And ' + SP.fmtInt(X.restN) + ' more: What changed lists every one</th><td class="n" data-c="' + X.restC + '">' + m(X.restC) + '</td></tr></tfoot>' : '') + '</table></div>'
+    : '<p class="cardnote">Nothing moved later.</p>';
+  return h + '<div class="chside"><div class="chpic" style="max-width:' + W + 'px">' + svg + '<p class="chkey"><span class="chk"><i class="mv-e"></i>Moved earlier</span><span class="chk"><i class="mv-l"></i>Moved later</span></p></div>'
+    + '<div class="chfigs">' + tbl + '</div></div></section>';
+}
+// §62 WILL IT REACH THE OSD GOAL BY SEPTEMBER: SP.goalLandingOf, the blocks the burn-up draws (it follows the Appropriation
+// and FY pickers, not the PMO picker). Brad chose B: the quarter-by-quarter table shows only with an FY picked; with FY on
+// All one line names the years that fall short.
+function ui_chGoal(M, O, F) {
+  const m = c => ui_e(SP.fmtMText(c)), pct = v => ui_e(SP.fmtPct(v));
+  const G = ui_fn('goalLandingOf') ? SP.goalLandingOf(O).filter(x => F.ap === null || x.ap === F.ap) : [];
+  let h = '<section class="card chcard" data-ch="goal"><h3>Will it reach the OSD goal by September? ($M)</h3><p class="cardnote">Where each appropriation and year lands at the end of September if every plan event awards on its date, as its slide block counts it, against September’s OSD goal. '
+    + 'Short means the plan, carried out as written, does not reach the goal. A block’s figure, so it follows the Appropriation and FY pickers and not the PMO picker.</p>';
+  if (!G.length) return h + '<p class="cardnote">No block for what is picked.</p></section>';
+  const W = 1000, L = 170, bw = 560, rowH = 32, Hh = 10 + G.length * rowH + 28, x = v => L + Math.max(0, Math.min(1.05, v)) / 1.05 * bw;
+  let g = '';
+  G.forEach((b, i) => {
+    const y = 8 + i * rowH, nm = b.apLabel + ' FY' + b.fy;
+    g += '<g class="glrow" data-bk="' + ui_e(b.key) + '"><text x="' + (L - 8) + '" y="' + (y + 15) + '" text-anchor="end">' + ui_e(nm) + '</text>'
+      + '<rect class="gl-bg" x="' + L + '" y="' + (y + 3) + '" width="' + bw + '" height="16"/>'
+      + (b.land > b.now ? '<rect class="chb-projected" x="' + x(b.now).toFixed(1) + '" y="' + (y + 3) + '" width="' + (x(b.land) - x(b.now)).toFixed(1) + '" height="16"><title>' + ui_e(nm + ': planned by 30 Sep ' + SP.fmtPct(b.land)) + '</title></rect>' : '')
+      + (b.now > 0 ? '<rect class="chb-awarded" x="' + L + '" y="' + (y + 3) + '" width="' + (x(b.now) - L).toFixed(1) + '" height="16"><title>' + ui_e(nm + ': obligated so far ' + SP.fmtPct(b.now)) + '</title></rect>' : '')
+      + (b.goal !== null ? '<line class="glmark" x1="' + x(b.goal).toFixed(1) + '" x2="' + x(b.goal).toFixed(1) + '" y1="' + y + '" y2="' + (y + 22) + '"><title>' + ui_e(nm + ': OSD goal for September ' + SP.fmtPct(b.goal)) + '</title></line>' : '')
+      + '<text class="glsay' + (b.short > 0 ? ' short' : b.short === 0 ? ' ok' : '') + '" x="' + (L + bw + 14) + '" y="' + (y + 15) + '" data-short="' + (b.short === null ? '' : b.short) + '">'
+      + (b.goal === null ? 'lands at ' + pct(b.land) + ': no OSD goal for September' : b.short > 0 ? 'lands at ' + pct(b.land) + ' against ' + pct(b.goal) + ': short ' + m(b.short) : 'lands at ' + pct(b.land) + ': reaches the goal (' + pct(b.goal) + ')') + '</text></g>';
+  });
+  const ky = Hh - 8;
+  g += '<rect class="chb-awarded" x="' + L + '" y="' + (ky - 10) + '" width="12" height="12"/><text x="' + (L + 16) + '" y="' + ky + '">Obligated so far</text>'
+    + '<rect class="chb-projected" x="' + (L + 130) + '" y="' + (ky - 10) + '" width="12" height="12"/><text x="' + (L + 146) + '" y="' + ky + '">Planned by 30 Sep</text>'
+    + '<line class="glmark" x1="' + (L + 272) + '" x2="' + (L + 272) + '" y1="' + (ky - 12) + '" y2="' + (ky + 3) + '"/><text x="' + (L + 280) + '" y="' + ky + '">OSD goal for September</text>';
+  h += '<svg class="chsvg chgoalsvg" viewBox="0 0 ' + W + ' ' + Hh + '" style="max-width:' + Math.round(W * 1.3) + 'px" role="img" aria-label="Obligated so far and planned by 30 September, as a share of each block’s basis, against September’s OSD goal. Each block’s figures are written beside its bar.">' + g + '</svg>';
+  const short = G.filter(b => b.short > 0);
+  if (F.fy === null) {
+    h += '<p class="glline" id="uiChGoalLine">' + (short.length ? 'Pick an FY above to see, quarter by quarter, what has to award to stay on the goal. Short: '
+      + short.map(b => '<strong>' + ui_e(b.apLabel) + ' FY' + b.fy + '</strong> (' + m(b.short) + ')').join(', ') + '.' : 'Every appropriation and year shown reaches its September goal on the plan as written.') + '</p>';
+  } else if (short.length) {
+    h += short.map(b => '<div class="tw"><table class="cht chgoalt" data-bk="' + ui_e(b.key) + '"><caption>' + ui_e(b.apLabel) + ' FY' + b.fy + ': what has to award to stay on the goal ($M)</caption><thead><tr><th scope="col" class="lab"><span class="vh">Figure</span></th>'
+      + b.quarters.map(q => '<th scope="col" class="n">By ' + ui_e(q.label) + '</th>').join('') + '</tr></thead><tbody>'
+      + [['OSD goal', 'goal'], ['Planned to have awarded', 'plan'], ['Short of the goal', 'short']].map(([w, k]) => '<tr' + (k === 'short' ? ' class="glshort"' : '') + '><th scope="row" class="lab">' + w + '</th>'
+        + b.quarters.map(q => '<td class="n" data-k="' + k + '" data-c="' + q[k] + '">' + (k === 'short' && q.short === 0 ? '-' : m(q[k])) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>').join('');
+  } else h += '<p class="glline" id="uiChGoalLine">Every appropriation shown for FY' + ui_e(F.fy) + ' reaches its September goal on the plan as written.</p>';
+  return h + '</section>';
+}
 function ui_vCharts(M) {
   const all = ui_reqs(M), P = ui_reqPicks(all), F = ui.ch;
   if (F.pmo !== null && !P.pmos.some(p => p[0] === F.pmo)) F.pmo = null;
   if (F.ap !== null && !P.aps.some(p => p[0] === F.ap)) F.ap = null;
   if (F.fy !== null && !P.fys.some(p => p[0] === F.fy)) F.fy = null;
-  const list = all.filter(r => (F.pmo === null || r.pmoKey === F.pmo) && (F.ap === null || r.ap === F.ap) && (F.fy === null || String(r.fy) === F.fy));
+  // §62 IPT (Brad, 24 Nov 2026): with a PMO picked, its Sub-PMOs as on PMO Spend Plan (§58); a choice that PMO does not have
+  // is taken off. Picked, the requirements are the IPT's own model's (its rows alone), and each still opens the requirement
+  // it is (found by its key among every requirement's).
+  const ipts = F.pmo === null ? [] : ui_iptList(F.pmo);
+  if (F.ipt !== null && !ipts.some(x => x.key === F.ipt)) F.ipt = null;
+  const iptOn = SP.IPT_PICK !== false && (ipts.length > 1 || (ipts.length === 1 && ipts[0].key !== UI_NO_IPT));
+  if (!iptOn) F.ipt = null;
+  let src = all;
+  if (F.ipt !== null) { const Mi = ui_iptModel(F.ipt); if (!ui.chIpt || ui.chIpt.M !== Mi) ui.chIpt = { M: Mi, reqs: SP.requirementsOf(Mi) }; src = ui.chIpt.reqs; }
+  const list = src.filter(r => (F.pmo === null || r.pmoKey === F.pmo) && (F.ap === null || r.ap === F.ap) && (F.fy === null || String(r.fy) === F.fy));
+  const allAt = r => all.findIndex(x => x.key === r.key);
+  const reqBtn = (r, key) => { const i = allAt(r); return i < 0 ? '<span class="tg">' + ui_e(r.title) + '</span>' : '<button type="button" class="tg" data-act="reqopen" data-i="' + i + '" data-fkey="' + key + ':' + i + '">' + ui_e(r.title) + '</button>'; };
+  const iptLabel = F.ipt === null ? '' : (ipts.find(x => x.key === F.ipt) || { label: '' }).label;
   const head = '<div class="ovhead"><h2 class="ovtitle">Charts</h2><span class="ovsub">The Award calendar, My PMO and the Overview, drawn. Data through ' + ui_e(M.asOfLabel) + '.</span></div>'
     + '<p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p>'
-    + '<div class="findbar">' + ui_pickSel('chf', F.pmo, 'pmo', 'PMO', P.pmos) + ui_pickSel('chf', F.ap, 'ap', 'Appropriation', P.aps) + ui_pickSel('chf', F.fy, 'fy', 'FY', P.fys) + '</div>';
+    + '<div class="findbar">' + ui_pickSel('chf', F.pmo, 'pmo', 'PMO', P.pmos) + (iptOn ? ui_pickSel('chf', F.ipt, 'ipt', 'IPT', ipts.map(x => [x.key, x.label])) : '') + ui_pickSel('chf', F.ap, 'ap', 'Appropriation', P.aps) + ui_pickSel('chf', F.fy, 'fy', 'FY', P.fys) + '</div>';
   if (!list.length) return head + '<p class="none">No requirement is counted.</p>';
   const C = SP.chartsOf(M, list), m = c => ui_e(SP.fmtMText(c)), num = v => typeof v === 'number' && isFinite(v);
-  const count = '<p class="findcount" id="uiChCount" role="status">' + SP.fmtInt(C.n) + (C.n === 1 ? ' requirement' : ' requirements') + '</p>';
+  const count = '<p class="findcount" id="uiChCount" role="status">' + SP.fmtInt(C.n) + (C.n === 1 ? ' requirement' : ' requirements')
+    + (F.ipt !== null ? '. <span id="uiChIpt">IPT ' + ui_e(iptLabel) + ': only the rows whose Sub-PMO is ' + (F.ipt === UI_NO_IPT ? 'blank' : ui_e(iptLabel)) + '.</span>' : '') + '</p>';
   // B awards by month
   const key = (cls, w) => '<span class="chk"><i class="' + cls + '"></i>' + w + '</span>';
   const cardB = '<section class="card chcard" data-ch="months"><h3>Awards by month ($M)</h3><p class="cardnote">How much is landing each month. '
@@ -1036,7 +1145,7 @@ function ui_vCharts(M) {
   const cardD = '<section class="card chcard" data-ch="late"><h3>Late awards, most money first</h3><p class="cardnote">Not awarded, and past its projected date. '
     + (C.late.length ? '<strong id="uiChLate" data-c="' + C.lateCents + '">' + m(C.lateCents) + ' ($M) on ' + SP.fmtInt(C.late.length) + (C.late.length === 1 ? ' requirement' : ' requirements') + '.</strong> Darker is older.' : '') + '</p>'
     + (C.late.length ? '<table class="cht chlate"><thead><tr><th scope="col" class="lab">Requirement</th><th scope="col">Not awarded ($M)</th><th scope="col">Was due</th></tr></thead><tbody>'
-      + lateTop.map(l => '<tr data-rk="' + all.indexOf(l.req) + '"><th scope="row" class="lab">' + ui_reqBtn(l.req, all, 'chlate') + '<span class="fsub">' + ui_e(l.req.ccar) + ' · ' + ui_e(l.req.pmo) + ' · ' + ui_e(l.req.apLabel) + ' FY' + l.req.fy + '</span></th>'
+      + lateTop.map(l => '<tr data-rk="' + allAt(l.req) + '"><th scope="row" class="lab">' + reqBtn(l.req, 'chlate') + '<span class="fsub">' + ui_e(l.req.ccar) + ' · ' + ui_e(l.req.pmo) + ' · ' + ui_e(l.req.apLabel) + ' FY' + l.req.fy + '</span></th>'
         + '<td class="chbarc"><span class="chlbar a' + Math.min(4, l.age) + '" style="width:' + (l.cents / lmax * 70).toFixed(1) + '%"></span><span class="chpct" data-c="' + l.cents + '">' + m(l.cents) + '</span></td>'
         + '<td class="chdue" data-age="' + l.age + '">' + ui_e(SP.ymWords(l.ym)) + '<span class="fsub">' + (l.age === 0 ? 'the month just closed' : l.age === 1 ? '1 month ago' : l.age + ' months ago') + '</span></td></tr>').join('')
       + '</tbody></table>' + (rest.length ? '<p class="cardnote" id="uiChLateMore">And ' + SP.fmtInt(rest.length) + ' more, ' + m(rest.reduce((s, l) => s + l.cents, 0)) + ' ($M): My PMO lists every one.</p>' : '')
@@ -1061,7 +1170,9 @@ function ui_vCharts(M) {
         + (end && end.kind === 'plan' ? ' The plan reaches ' + ui_e(SP.fmtPct(end.v)) + ' by ' + ui_e(end.label) + '.' : '') + ui_chOff(b, sl, M) + '</p></figure>'; }).join('') + '</div>'
       + '<p class="chkey">' + key('bk-act', 'Actual through ' + ui_e(M.asOfLabel)) + key('bk-plan', 'Plan for the rest of the year') + key('bk-goal', 'OSD goal') + '</p>'
       : '<p class="cardnote">No block for what is picked.</p>') + '</section>';
-  return head + count + cardB + '<div class="chtwo">' + cardC + cardD + '</div>' + cardF + cardA;
+  // §62 what moved since the last pull, and will it reach the goal by September
+  const cardH = ui_chMoved(M, F, list, all), cardG = ui_chGoal(M, O, F);
+  return head + count + cardB + cardH + cardG + '<div class="chtwo">' + cardC + cardD + '</div>' + cardF + cardA;
 }
 
 // THE CHARTS, LINED UP (Brad, 12 Nov 2026: "line them up by appropriation and year order. Right now it's hard to find
@@ -3720,7 +3831,7 @@ function ui_onChange(ev) {
     case 'pubhead': if (ui_need('setPublish', 'Publish')) { SP.setPublish({ [t.getAttribute('data-f')]: t.value }); ui_render(); } return;
     case 'calf': case 'chf': {
       const f = t.getAttribute('data-f');
-      if (f === 'pmo' || f === 'ap' || f === 'fy') { ui[act === 'chf' ? 'ch' : 'cal'][f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
+      if (f === 'pmo' || f === 'ap' || f === 'fy' || (f === 'ipt' && act === 'chf')) { ui[act === 'chf' ? 'ch' : 'cal'][f] = t.value === UI_FIND_ALL ? null : t.value.slice(1); ui_render(); }
       return;
     }
     case 'ufrrank': { const e = ui.reg.ufr && ui.reg.ufr[Number(t.getAttribute('data-i'))]; if (e) ui_ufrRank(e, t.value); return; }
