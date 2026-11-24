@@ -2067,6 +2067,84 @@ SP.chartsOf = function chartsOf(M, reqs) {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// §62 WILL IT REACH THE OSD GOAL BY SEPTEMBER (Brad, 24 Nov 2026, of a mock-up: "Go with B and build it"). Each block's
+// own Obligation % month by month, as its slide block and the burn-up print it (actual through Data through, the plan
+// after), read at September against September's OSD goal, and turned into dollars on the same base the % is of (the slide
+// block's basis), so the $M and the % can never disagree. Nothing here is a new rule: it is the burn-up's last month.
+//   O  SP.overviewOf(M, fy)
+//   -> [{ key, ap, apLabel, fy, basis, now, land, goal, short, quarters: [{label, goal, plan, short}] }]
+// now: the Obligation % of the last actual month (0 before any); land: September's; goal: September's OSD goal, null where
+// the block has none. short: cents the plan, carried out as written, leaves under the goal at 30 Sep (0 when it reaches
+// it); null with no goal. quarters: 31 Dec, 31 Mar, 30 Jun and 30 Sep, each the goal and the plan in cents of the basis,
+// rounded to the cent, and what the plan leaves under the goal (never below 0); [] with no goal or no basis.
+// ---------------------------------------------------------------------------------------------------------------
+SP.goalLandingOf = function goalLandingOf(O) {
+  const num = v => typeof v === 'number' && isFinite(v), QS = [[2, '31 Dec'], [5, '31 Mar'], [8, '30 Jun'], [11, '30 Sep']];
+  return ((O && O.charts) || []).map(c => {
+    const b = O.rows.find(r => r.key === c.key), sl = SP.slideOf(b) || {}, basis = num(sl.basis) ? sl.basis : 0, ms = c.months || [];
+    const lastA = ms.reduce((a, x, i) => (x.kind === 'actual' && num(x.v) ? i : a), -1);
+    const sep = ms[11] || {}, land = num(sep.v) ? sep.v : (lastA >= 0 ? ms[lastA].v : 0), goal = num(sep.goal) ? sep.goal : null;
+    // the plan at a quarter's end: that month's %, else the last month before it that has one (a month with no figure has
+    // nothing more landing in it)
+    const pctAt = i => { for (let j = i; j >= 0; j--) if (num(ms[j] && ms[j].v)) return ms[j].v; return 0; };
+    const quarters = goal === null || basis <= 0 ? [] : QS.filter(([i]) => num(ms[i] && ms[i].goal)).map(([i, label]) => {
+      const g = Math.round(ms[i].goal * basis), p = Math.round(pctAt(i) * basis);
+      return { label, goal: g, plan: p, short: Math.max(0, g - p) };
+    });
+    return { key: c.key, ap: b ? b.ap : null, apLabel: c.apLabel, fy: c.fy, basis, now: lastA >= 0 ? ms[lastA].v : 0, land, goal,
+      short: goal === null ? null : Math.max(0, Math.round((goal - land) * basis)), quarters };
+  });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// §62 WHAT MOVED SINCE THE LAST PULL: SP.diffPulls's lines (the pull on screen against the one it replaced), added up the
+// way a reader asks it. A changed line's money that moved between months (diffPulls' `moved`, which leaves out what only
+// grew or shrank in place) is "later" when the months it went to are, weighted by the dollars, later than the months it
+// left, and "earlier" otherwise: a line that sent 10 to March and 4 back to November moved 14 and counts by where it ended
+// up. New lines are their whole amount, dropped lines theirs, and a changed line's change in amount is "in place". A line
+// with a row that could not be read is in none of them, as on What changed.
+//   D     SP.diffPulls(previous, current, settings)
+//   keep  (line) -> bool: the lines the pickers leave
+//   -> { aps: [{ap, label, importedAt: [prev, cur]}], later, earlier, added, dropped, inPlace,
+//        byPmo: [{label, later, earlier}] (most moved first), top: [{line, was, now, cents}] (moved later, most first),
+//        restN, restC (the moved-later lines past the first `max`) }
+// was / now: the months the line's moved money left and went to, most money first ([{ym, cents}]): a line can leave two
+// months and land in one, and naming only the largest of each read "Apr 2027 to Mar 2027" on a line that moved later.
+// ---------------------------------------------------------------------------------------------------------------
+SP.movedOf = function movedOf(D, keep, max) {
+  const out = { aps: [], later: 0, earlier: 0, added: 0, dropped: 0, inPlace: 0, byPmo: [], top: [], restN: 0, restC: 0 };
+  const ok = typeof keep === 'function' ? keep : () => true, lim = Number.isInteger(max) && max > 0 ? max : 5;
+  const ymN = ym => Number(ym.slice(0, 4)) * 12 + Number(ym.slice(5, 7));
+  const most = L => L.slice().sort((a, b) => b.cents - a.cents || eng_cmp(a.ym, b.ym));
+  const pm = new Map(), later = [];
+  for (const ap of Object.keys(D || {})) {
+    const d = D[ap];
+    out.aps.push({ ap, label: d.label, importedAt: d.importedAt });
+    for (const l of d.leaves.new) if (ok(l)) out.added += l.after;
+    for (const l of d.leaves.gone) if (ok(l)) out.dropped += l.before;
+    for (const l of d.leaves.changed) {
+      if (!ok(l)) continue;
+      out.inPlace += l.change;
+      if (!l.moved || !l.moved.cents) continue;
+      const w = L => { let s = 0, n = 0; for (const x of L) { s += ymN(x.ym) * x.cents; n += x.cents; } return n ? s / n : 0; };
+      const isLater = w(l.moved.to) > w(l.moved.from), c = l.moved.cents;
+      out[isLater ? 'later' : 'earlier'] += c;
+      const k = SP.normKey(l.pmo);
+      let p = pm.get(k);
+      if (!p) pm.set(k, (p = { label: l.pmo, later: 0, earlier: 0 }));
+      p[isLater ? 'later' : 'earlier'] += c;
+      if (isLater) later.push({ line: l, was: most(l.moved.from), now: most(l.moved.to), cents: c });
+    }
+  }
+  out.byPmo = [...pm.values()].sort((a, b) => (b.later + b.earlier) - (a.later + a.earlier) || eng_cmp(a.label, b.label));
+  later.sort((a, b) => b.cents - a.cents || eng_cmp(a.line.key, b.line.key));
+  out.top = later.slice(0, lim);
+  out.restN = Math.max(0, later.length - lim);
+  out.restC = later.slice(lim).reduce((s, x) => s + x.cents, 0);
+  return out;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // §30 HOW OLD THE DATA IS (Brad, 16 Nov 2026: "Include a data upload date that is visible at the top so we know when it
 // was last updated and the individual knows how useful that data is"). From the calendar days the CCaR pulls on screen
 // were imported (this computer's days, 'YYYY-MM-DD'), and today's.

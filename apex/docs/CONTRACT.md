@@ -2699,3 +2699,29 @@ than the chart may grow (§60), so the table sits against it.
 
 `test/charts.test.mjs` (the two columns and what each holds, the column's width); checked in Chromium at 2400, 1920, 1600,
 1366 and 420 px (beside, beside, beneath, beneath, beneath; no sideways scroll).
+
+## 62. Charts: what moved since the last pull, will it reach the goal, and IPT (Brad, 24 Nov 2026)
+
+Brad, of a mock-up of three additions (*"Concur on recommendations"*, then *"Go with B and build it"*):
+
+- **What moved since the last pull** (`SP.movedOf` over `SP.diffPulls`, the pull on screen against the one it replaced,
+  the lines the pickers leave). Five figures: moved later, moved earlier, new plan events (their amounts), dropped (theirs),
+  and amounts changed in place (a changed line's change). A changed line's moved money (diffPulls' `moved`, which leaves out
+  what only grew or shrank) is later when the months it went to are later than the months it left, weighted by the dollars,
+  so a line that moved both ways counts by where its money ended up. By PMO as bars (earlier left, later right, never netted
+  across PMOs) and the biggest moves later in a table (five, then how many more and how much), each with every month its
+  money left and reached; a requirement still on the board opens from it. A line with a row that could not be read is in
+  none of them, as on What changed. With one pull, the card says so.
+- **Will it reach the OSD goal by September?** (`SP.goalLandingOf`). For each block the burn-up draws: obligated so far (the
+  last actual month's Obligation %), where it lands at September on the plan as written, and September's OSD goal, as a bar,
+  and in words beside it (*lands at 71.40% against 80.00%: short 112.30*, or *reaches the goal*). The dollars are the % of the
+  slide block's own basis, so they cannot disagree with the %. A block's figure, so it follows the Appropriation and FY
+  pickers and not the PMO picker, as the burn-up does. **Option B**: with FY on All, one line names the years that fall
+  short; with an FY picked, each short year of it gets a table of the goal, the plan and the shortfall at 31 Dec, 31 Mar,
+  30 Jun and 30 Sep (a quarter end with no figure takes the last month before it that has one).
+- **IPT** on Charts: with a PMO picked, its Sub-PMOs as on PMO Spend Plan (§58). Picked, every PMO-side chart is the IPT's
+  own rows (its model, `ui_iptModel`), and the count says which IPT; the goal card and the burn-up, block figures, do not
+  change. A PMO set back to All, or to one without that IPT, takes the IPT off.
+
+`test/charts-62.test.mjs` (both functions against inputs built by hand; the page on a plan imported twice, the IPT, and
+option B); `charts.test.mjs` counts seven cards.

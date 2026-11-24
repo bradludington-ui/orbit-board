@@ -777,3 +777,17 @@ table.pubdocs thead th:nth-last-child(-n+2){text-align:center}
 @media print{.chside{display:block}}
 
 .chside .cht.chmonths{margin-top:0}
+/* §62 what moved since the last pull, and will it reach the goal */
+.chmvs{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 10px}
+.chmv{background:var(--cell);border:1px solid var(--sline);border-radius:6px;padding:5px 12px;min-width:120px}
+.chmv span{display:block;font-size:12px;color:var(--smut)}.chmv b{font-size:17px}.chmv.bad b{color:var(--wine)}
+.mv-l{fill:#b4601f;background:#b4601f}.mv-e{fill:#5f8fc4;background:#5f8fc4}
+.chmvt caption,.chgoalt caption{text-align:left;font-weight:700;color:var(--sink);padding:0 0 3px;font-size:12px}
+.chsvg .gl-bg{fill:var(--cell);stroke:var(--sline)}.chsvg .glmark{stroke:var(--sink);stroke-width:3}
+.chsvg .glsay{font-weight:700}.chsvg .glsay.short{fill:var(--wine)}.chsvg .glsay.ok{fill:#0b6b2e}
+.chgoalt tr.glshort td{color:var(--wine);font-weight:700}
+.glline{margin:8px 0 0;padding:7px 12px;background:var(--cell);border:1px solid var(--sline);border-radius:6px}
+.chsvg.chgoalsvg text,.chsvg.chmvsvg text{font-size:12px}
+.cht.chgoalt{width:auto;min-width:min(100%,36em)}
+.chmvt td{white-space:nowrap}.chmvt th.lab{min-width:14em}
+@media (max-width:760px){.chsvg.chgoalsvg{min-width:760px}.chsvg.chmvsvg{min-width:520px}}

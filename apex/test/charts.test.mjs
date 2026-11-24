@@ -111,7 +111,7 @@ try {
 
   // ============================================================================================ the page
   let m = await T.view('charts');
-  C.eq('Charts is in the menu, and draws five cards', [T.pressed(), [...m.querySelectorAll('.chcard')].map(c => c.getAttribute('data-ch'))], ['charts', ['months', 'pmos', 'late', 'heat', 'burn']]);
+  C.eq('Charts is in the menu, and draws seven cards (§62 added what moved and the goal)', [T.pressed(), [...m.querySelectorAll('.chcard')].map(c => c.getAttribute('data-ch'))], ['charts', ['months', 'moved', 'goal', 'pmos', 'late', 'heat', 'burn']]);
   const rects = () => [...T.main().querySelectorAll('.chsvg rect.chb')].map(r => [X.cols.find(c => c.index === Number(r.getAttribute('data-col'))).label, r.getAttribute('data-k'), Number(r.getAttribute('data-c'))]);
   C.eq('awards by month: a bar part for each figure that is not zero, and no other', rects(), [['Prior Yr', 'awarded', D(2e6)], ['Prior Yr', 'late', D(0.5e6)], ['Oct', 'awarded', D(4e6)],
     ['Dec', 'projected', D(2e6)], ['Feb', 'projected', D(2e6)], ['Mar', 'projected', D(5e6)], ['Jun', 'projected', D(1e6)], ['No date', 'projected', D(0.7e6)]]);
