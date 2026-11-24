@@ -606,6 +606,11 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   done, the undo, the live budget, a reopen, the undo refused after a figure is typed, a locked view. `npm run layout` T: the
   preview inside the box at 1920, 1366 and 1024. **Mutations:** 16 new (`v220-151-*`), each CAUGHT by the block
   (`recovery/v215/proved-v220.jsonl`); 3,257 targets, each once. No sweep (Brad's rule of 20 Oct).
+  **The gate:** every suite whole (8 banners + the legacy line); panels, dialogs, keys, leftmenu, menus, dropdowns and standards (0 new
+  findings) pass; `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone,
+  as on main (defect register 15 known, 41 mutations; coverage 19/19; money map 252 cells, 97 proven, 155 n/a, 0 open; trace
+  matrix 75 cells; fuzz seed 699120401; verify-file self-test held; suites 26.2 min). Layout T failed on the first cut (the
+  years cell cut by `.fctab`'s fixed layout) and holds after the fix.
 
 #### 151 (as logged)
 ##### Copy one PPBE cycle's controls into another, in PPBE Budget Positions (Brad, 24 Nov 2026)
