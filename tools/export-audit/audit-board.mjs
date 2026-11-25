@@ -10904,6 +10904,39 @@ await (async () => {
 })();
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
+// v2.22 integration: the seams between the three builders. W1 added the Incomplete filter (incOnly) and W2 the "search is on"
+// line, Clear all and the reveal that takes off whatever hides a requirement; each was written without the other. W3 named the
+// requirement on the Reassign line (pmoReassignLbl) and the office picker's line (dd_pmo) is the integration's. Each check below reads the
+// joined behaviour: Incomplete is said, cleared and revealed like every other filter, and the Offices menu prints the name.
+// FAILS ON f478068's parents (afc06bf without the integration lines): Clear all and the reveal left Incomplete on.
+await (async () => {
+  const name = 'v2.22 integration — Incomplete is a filter like the others, and the office picker names the requirement to reassign';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [30, 10]), it('B', 'AV', [20, 0])], disc: [100, 100], mand: [0, 0], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); render(); 'ok'`);
+    // the Offices menu, as drawn
+    const off = ev(`(function(){ setCur('B'); syncBtns(); return document.getElementById('dd_pmo').textContent; })()`);
+    const tB = ev(`dispTitle(itemById('B'))`);
+    chk(name, 'reassign', 'the office picker’s Reassign line names the requirement on the record', J(off.indexOf('Reassign ' + tB) >= 0), 'true');
+    // Incomplete: said, cleared, revealed, and counted on the Filter button
+    ev(`incOnly=true; render(); 'ok'`);
+    chk(name, 'incomplete', 'the "search is on" line names Incomplete records', J(/Incomplete records/.test(ev(`listOnSay()`))), 'true');
+    ev(`listClearAll(); 'ok'`);
+    chk(name, 'incomplete', 'Clear all takes Incomplete off', ev(`String(incOnly)`), 'false');
+    ev(`incOnly=true; render(); 'ok'`);
+    const rv = ev(`(function(){ var r=listReveal('A'); return JSON.stringify([incOnly, String(r||'')]); })()`);
+    chk(name, 'incomplete', 'revealing a requirement takes Incomplete off and says so', J([JSON.parse(rv)[0], /Incomplete records/.test(JSON.parse(rv)[1])]), J([false, true]));
+    ev(`incOnly=true; render(); toggleMenu('view'); 'ok'`);
+    const clr = ev(`(function(){ var b=[].filter.call(document.querySelectorAll('[onclick]'), function(e){ return /incOnly=false/.test(e.getAttribute('onclick')) && /mcOnly=false/.test(e.getAttribute('onclick')); }); return String(b.length); })()`);
+    chk(name, 'incomplete', 'the Filter menu’s Clear all filters takes Incomplete off with the rest (a control is drawn for it)', J(Number(clr) > 0), 'true');
+    ev(`incOnly=false; render(); 'ok'`);
+    chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.22 integration (the lead) ====
 
 {

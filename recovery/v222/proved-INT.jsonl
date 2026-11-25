@@ -1,0 +1,7 @@
+{"id": "v222-int-clearall-keeps-inc", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-cd15222f.mjs", "detail": ""}
+{"id": "v222-int-reveal-keeps-inc", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-cd15222f.mjs", "detail": ""}
+{"id": "v222-int-onsay-silent-inc", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-cd15222f.mjs", "detail": ""}
+{"id": "v222-int-menu-clear-keeps-inc", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-cd15222f.mjs", "detail": ""}
+{"id": "v222-int-reassign-unnamed", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-cd15222f.mjs", "detail": ""}
+{"id": "v222-w1-find-box-silent", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-193fe592.mjs", "detail": ""}
+{"id": "v222-w2-clearall-keeps-mc", "verdict": "CAUGHT", "fails": ["8"], "threw": 0, "suite": "_slim-prove-bac9a021.mjs", "detail": ""}

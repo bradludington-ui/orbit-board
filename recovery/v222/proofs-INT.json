@@ -1,0 +1,30 @@
+[
+ {
+  "id": "v222-int-clearall-keeps-inc",
+  "caughtBy": "audit-board / v2.22 integration"
+ },
+ {
+  "id": "v222-int-reveal-keeps-inc",
+  "caughtBy": "audit-board / v2.22 integration"
+ },
+ {
+  "id": "v222-int-onsay-silent-inc",
+  "caughtBy": "audit-board / v2.22 integration"
+ },
+ {
+  "id": "v222-int-menu-clear-keeps-inc",
+  "caughtBy": "audit-board / v2.22 integration"
+ },
+ {
+  "id": "v222-int-reassign-unnamed",
+  "caughtBy": "audit-board / v2.22 integration"
+ },
+ {
+  "id": "v222-w1-find-box-silent",
+  "caughtBy": "audit-board / v2.22 W1 \u2014 the money bar"
+ },
+ {
+  "id": "v222-w2-clearall-keeps-mc",
+  "caughtBy": "audit-other / v2.22 W2 \u2014 the list\u2019s search"
+ }
+]

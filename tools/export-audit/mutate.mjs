@@ -10785,6 +10785,16 @@ const MUTATIONS = [
     find: "  if(t.closest('#list .row, button, input, select, textarea, a, label, summary, [onclick], [role=\"button\"], [tabindex], .modal-bg, #uiSide, #topStack, .mdd, .uiPop')) return;\n  drawerClose();", repl: "  return;" },
   // ==== end v2.22 W3 ====
   // ==== v2.22 integration (the lead) ====
+  { id: 'v222-int-clearall-keeps-inc', area: "listClearAll", what: "Clear the search and filters leaves Incomplete records on",
+    find: "  mcOnly=false; incOnly=false; svcFilter=-1; laneFilter=''; ptypeFilter='';", repl: "  mcOnly=false; svcFilter=-1; laneFilter=''; ptypeFilter='';" },
+  { id: 'v222-int-reveal-keeps-inc', area: "listReveal", what: "revealing a requirement leaves Incomplete records on, so it stays hidden",
+    find: "    if(incOnly){ incOnly=false; off.push('Incomplete records'); }", repl: "" },
+  { id: 'v222-int-onsay-silent-inc', area: "listOnSay", what: "the 'search is on' line does not say Incomplete records is hiding requirements",
+    find: "  if(incOnly) on.push('Incomplete records');   // v2.22 integration", repl: "" },
+  { id: 'v222-int-menu-clear-keeps-inc', area: "syncBtns", what: "the Filter menu's Clear all filters leaves Incomplete records on",
+    find: '"mcOnly=false;incOnly=false;svcFilter=-1;', repl: '"mcOnly=false;svcFilter=-1;' },
+  { id: 'v222-int-reassign-unnamed', area: "syncBtns", what: "the office picker's Reassign line says 'a requirement' with one on the record",
+    find: "      mi(esc(pmoReassignLbl()),\"mRun(pmoReassignHint)\",false,", repl: "      mi('⇄ Reassign a requirement…',\"mRun(pmoReassignHint)\",false," },
   // ==== end v2.22 integration (the lead) ====
 
 ];
