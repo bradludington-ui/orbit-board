@@ -40201,10 +40201,16 @@ function xfTabHtml(id){
       +' title="'+esc(lbl+((kind==='q')? '' : drewTip(val, drew, cap)))+'" onfocus="this.select()"'
       +' onchange="xfSet('+Y.y+','+jsa(Y.id)+','+jsa(kind)+','+i+',this.value)">'+note+'</td>';
   };
-  const tot=function(kind, i){ let t=0, any=false;
+  // v2.23 RV-B (B2): the total is what was DRAWN, and the boxes above it hold what was DIRECTED -- so under a Disc or Mand total the
+  // directed sum is stated (directedLine), against the caps the cells were measured by, as the RECORD card and Funding by service do.
+  // Summed without it, boxes of 300 + 300 sat over a total of $200 with nothing to say why ("Directed is not drawn").
+  const tot=function(kind, i){ let t=0, any=false, dir=0, cap=0;
     M.ys.forEach(function(Y){ if(!Y.r || !fydp(Y.y)) return; any=true;
-      t+=(kind==='q')? Y.r.ask[i] : (kind==='d')? Y.r.d[i] : (kind==='m')? (Y.mand? Y.r.m[i] : 0) : Y.r.u[i]; });
-    return '<td class="xftot'+((kind==='u' && t>0.5)? ' xfu' : '')+'">'+(any? fM(t) : '—')+'</td>'; };
+      t+=(kind==='q')? Y.r.ask[i] : (kind==='d')? Y.r.d[i] : (kind==='m')? (Y.mand? Y.r.m[i] : 0) : Y.r.u[i];
+      if(kind==='d'){ dir+=Y.r.dv? (+Y.r.dv[i]||0) : Y.r.d[i]; cap+=Y.r.bs[i]; }
+      else if(kind==='m' && Y.mand){ dir+=Y.r.mv? (+Y.r.mv[i]||0) : Y.r.m[i]; cap+=Y.r.bs[i]-Y.r.d[i]; } });
+    return '<td class="xftot'+((kind==='u' && t>0.5)? ' xfu' : '')+'">'+(any? fM(t) : '—')
+      +((any && (kind==='d' || kind==='m'))? directedLine(dir, t, cap) : '')+'</td>'; };
   const lines=[['q', 'Requirement'], ['d', 'Discretionary'], ['m', 'Mandatory'], ['u', 'Unfunded']].filter(function(l){ return l[0]!=='m' || anyMand; });
   const body=SVC.map(function(sname, i){
     return lines.map(function(l, k){
@@ -40312,6 +40318,9 @@ function xfAddOpen(id, y){
   const g=(typeof SANDBOX!=='undefined' && SANDBOX)? myPmo() : grpOf(src, T);
   if(typeof SANDBOX!=='undefined' && SANDBOX && grpOf(src, T)!==g){ setStat('⚠ This requirement is '+esc(grpOf(src, T))+'’s; this copy adds for '+esc(g)+'. Nothing was added.'); return; }
   XFA={id:id, y:y, sy:S0.y, sid:S0.id, g:g, title:dispTitle(src, T), ask:askVecOf(src.ask), ccar:ccarOf(src, T)||'', pid:((T.pid||{})[S0.id])||''};
+  // v2.23 RV-B (B1): linked to the LINE the source belongs to, never the source itself, so every year of the work keys to one line
+  const L=xfLineLink(id, S0.y, S0.id, y, {title:XFA.title, grp:g, ccar:XFA.ccar});
+  XFA.lfy=L? L.fy : S0.y;
   xfAddDraw();
   const bg=document.getElementById('xfAddPanel'); if(bg) bg.classList.add('open');
 }
@@ -40329,7 +40338,8 @@ function xfAddDraw(){
   const A=XFA, el=document.getElementById('xfAddBody'), t=document.getElementById('xfAddTtl'); if(!A || !el) return;
   const fy='FY'+(A.y%100), sfy='FY'+(A.sy%100);
   if(t) t.textContent='Add to '+fy;
-  el.innerHTML='<p class="xflead"><b>'+esc(A.title)+'</b> is not in '+fy+'’s plan. Adding it makes a new '+fy+' requirement, linked to '+sfy
+  const lfy='FY'+((A.lfy||A.sy)%100);     // v2.23 RV-B (B1): the year the link names, which is the line's, not always the source's
+  el.innerHTML='<p class="xflead"><b>'+esc(A.title)+'</b> is not in '+fy+'’s plan. Adding it makes a new '+fy+' requirement, linked to '+lfy
       +'’s as the same work, so the years read as one line.</p>'
     +'<div class="xfstart"><div class="xfk">Starts from '+sfy+'</div>'
     +'<div>Requirement by service, <b>'+fM(xfSum(A.ask))+'</b> in all · office '+esc(A.g)+(A.ccar? ' · CCaR '+esc(A.ccar) : '')+(A.pid? ' · '+esc(A.pid) : '')+' · the record fields</div>'
@@ -40363,10 +40373,19 @@ function xfAddDo(){
   const T=(MS.years||{})[A.sy], src=T? yrItemOf(T, A.sid) : null;
   const say=function(m){ const e=document.getElementById('xfAddMsg'); if(e) e.textContent=m; };
   if(!Y || !Y.held || Y.r || !src){ say('Nothing was added: '+(!Y || !Y.held? 'FY'+(A.y%100)+' is not on the board' : Y.r? 'FY'+(A.y%100)+' holds this requirement now' : 'FY'+(A.sy%100)+' no longer holds the requirement it starts from')+'.'); return; }
+  // v2.23 RV-B (B1): the link is the source's LINE, read again now; a year that already holds that line is refused (defence in depth:
+  // Y.r reads the work from the year on screen, this from the source), and so is a link that would not put the new one on the line
+  const L=xfLineLink(A.id, A.sy, A.sid, A.y, {title:A.title, grp:A.g, ccar:A.ccar});
+  if(!L){ say('Nothing was added: the years could not be read.'); return; }
+  const had=xfLineHeld(A.y, L.ks);
+  if(had){ say('Nothing was added: FY'+(A.y%100)+' already holds this work, as '+had+'.'); return; }
+  if(!L.ok){ say('Nothing was added: a requirement added to FY'+(A.y%100)+' would not read as the same work as FY'+(A.sy%100)+'’s.'); return; }
+  A.lfy=L.fy;
   const vec=xfAddVec(A, p);
   let nid='';
   aceWithYear(A.y, function(){
     nid=reqCreate(A.g, {title:src.title||'', event:src.event||'', ask:vec}, {y:A.sy, id:A.sid});
+    xfLinkLine(nid, L);
     // award dates are not carried: that year's awards are its own decision (reqCreate carries them for From another year)
     if(nid && S.awards) delete S.awards[nid];
   });
@@ -40374,7 +40393,7 @@ function xfAddDo(){
   const fy='FY'+(A.y%100), t=A.title;
   xfAddClose();
   save(); render();
-  setStat('＋ <b>'+esc(t)+'</b> added to '+fy+' ('+fM(xfSum(vec))+'), linked to FY'+(A.sy%100)+'’s as the same work, last in '+fy+'’s priority order. '+esc(FYL())+' is still on screen.');
+  setStat('＋ <b>'+esc(t)+'</b> added to '+fy+' ('+fM(xfSum(vec))+'), linked to FY'+(A.lfy%100)+'’s as the same work, last in '+fy+'’s priority order. '+esc(FYL())+' is still on screen.');
 }
 // ── FILL ACROSS ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 // The requirement from one year into the later years that hold it, copied or grown N% a year, previewed as was → becomes per
@@ -41152,6 +41171,62 @@ function rkScen(){
 }
 // ==== end v2.23 review RV-A ====
 // ==== v2.23 review RV-B ====
+// B1. ADD TO A YEAR LINKS TO THE LINE, NOT TO THE YEAR IT STARTS FROM. The source is the nearest year holding the work, which can be a
+// LATER year: FY29's Kit added to FY28, then to FY27, started FY27's from FY28's and linked it there -- a link pointing forward.
+// fydpLineKeys walks the years oldest first and resolves a forward link one step only (FY28 is not keyed yet when FY27 is read), so
+// FY27's Kit keyed as a line of its own: the tab still read "not in FY27's plan / Add to FY27…", and a further Add put the work in
+// FY27 twice. fydpLineKeys (and the five-year workbook's join) is not changed here -- that is Brad's. The link names the line's anchor
+// instead, read off the line's key ('new|Y|ID' is Y's ID; 'id|X' is X), with every year of the line as fallbacks, and the one chosen
+// is the one that reproduces that key when fydpLineKeys reads the years with the new requirement in them (xfLineSim).
+// THE LINE is the one the tab reads the work by: the requirement on screen's (fydpSameIn). The source is that same work, but where the
+// tab found it only as a rolled copy (xfRolledIn: a year between them numbered other work with the id) its own key is a line of its
+// own, and a requirement linked there is still "not in" the year to the tab. Only where no link reaches the on-screen line is the
+// source's line tried.
+// {fy, id, k: the line's key, ks: every line this work is on, ok: the link puts the new requirement on line k}, or null.
+function xfLineLink(id, sy, sid, ty, row){
+  const C=xfDataNow(); if(!C || !C.LK || !C.D) return null;
+  const ks=[];
+  [[MS.cur, id], [sy, sid]].forEach(function(p){ const k=(C.LK[p[0]] && C.LK[p[0]][String(p[1])]) || ''; if(k && ks.indexOf(k)<0) ks.push(k); });
+  if(!ks.length) return {fy:+sy, id:String(sid), k:'', ks:ks, ok:false};
+  let first=null;
+  for(let j=0; j<ks.length; j++){
+    const k=ks[j], cands=[], seen=Object.create(null);
+    const add=function(fy, x){ fy=+fy; x=String(x==null? '' : x); const q=fy+'|'+x; if(!fy || !x || seen[q]) return; seen[q]=1; cands.push({fy:fy, id:x}); };
+    const m=/^new\|(\d+)\|([\s\S]*)$/.exec(k);
+    if(m) add(m[1], m[2]); else if(k.indexOf('id|')===0) add(sy, k.slice(3));     // a board-data id is one line in every year: named by the year it starts from
+    C.D.held.slice().sort(function(a, b){ return a-b; }).forEach(function(y){
+      const kk=C.LK[y]||{}; for(const x in kk){ if(kk[x]===k) add(y, x); } });
+    if(!first && cands.length) first=cands[0];
+    for(let i=0; i<cands.length; i++){ if(xfLineSim(C, ty, cands[i], row)===k) return {fy:cands[i].fy, id:cands[i].id, k:k, ks:ks, ok:true}; }
+  }
+  first=first||{fy:+sy, id:String(sid)};
+  return {fy:first.fy, id:first.id, k:ks[0], ks:ks, ok:false};
+}
+// the key fydpLineKeys gives a new requirement of year ty linked to `link`, read with the years exactly as they are plus that one row
+function xfLineSim(C, ty, link, row){
+  const P=C.D.proj[ty]; if(!P) return '';
+  const ph='\u0001xf-add', X={proj:{}};
+  C.D.held.forEach(function(y){ X.proj[y]=C.D.proj[y]; });
+  X.proj[ty]=Object.assign({}, P, {reqs:(P.reqs||[]).concat([{id:ph, custom:true, prior:{fy:+link.fy, id:String(link.id)},
+    title:String((row && row.title)||''), grp:String((row && row.grp)||''), ccar:String((row && row.ccar)||'')}])});
+  const K=fydpLineKeys(X, C.D.held);
+  return (K[ty] && K[ty][ph]) || '';
+}
+// the requirement of year ty already on one of the lines `ks` ('' when none) -- DEFENCE IN DEPTH: the tab's own test (Y.r) reads the
+// work by the on-screen line only, and a year can hold the work on the SOURCE's line (a board saved by the first cut of Add to a year
+// linked it there), where the tab says "not in" and a further Add would put it in twice
+function xfLineHeld(ty, ks){
+  const C=xfDataNow(), kk=C && C.LK && C.LK[ty]; if(!kk || !ks || !ks.length) return '';
+  for(const x in kk){ if(ks.indexOf(kk[x])>=0) return x; }
+  return '';
+}
+// the link reqCreate made (to the year it started from) is re-pointed at the line; run inside the new requirement's year. A
+// requirement reqCreate did not link is left alone.
+function xfLinkLine(nid, L){
+  if(!nid || !L) return;
+  const it=(S.custom||[]).filter(function(c){ return c && c.id===nid; })[0];
+  if(it && it.prior) it.prior={fy:+L.fy, id:String(L.id)};
+}
 // ==== end v2.23 review RV-B ====
 // ==== v2.23 review RV-C ====
 // The review of item 159 (Allocate and mandatory off), its C findings: work the draft could lose, and what mandatory off left behind.

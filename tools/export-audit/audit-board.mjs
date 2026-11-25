@@ -11377,12 +11377,15 @@ await (async () => {
     ev(`window.__ans=[false, false]; xfAddOpen('NEW-1', 2030); 'ok'`);
     chk(name, 'add', 'Cancel to roll forward and to blank: FY30 is not started and no box opens', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`)]), J(['false', false]));
     ev(`window.__ans=[false, true]; xfAddOpen('NEW-1', 2030); 'ok'`);
-    chk(name, 'add', 'started blank: the box opens, starting from FY29, the nearest year holding the work', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`), /linked to FY29’s/.test(ev(`document.getElementById('xfAddBody').textContent`))]), J(['true', true, true]));
+    // v2.23 RV-B (B1): the box starts from FY29 (the nearest year holding the work) and links to the LINE that work is on, whose anchor is
+    // FY27's NEW-1 (FY29's NEW-2 is linked there) -- it linked to FY29's NEW-2, which joins only while the link points back
+    chk(name, 'add', 'started blank: the box opens, starting from FY29, the nearest year holding the work, linked to FY27’s, the line it is on', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`), /Starts from FY29/.test(ev(`document.getElementById('xfAddBody').textContent`)), /linked to FY27’s/.test(ev(`document.getElementById('xfAddBody').textContent`))]), J(['true', true, true, true]));
     ev(`document.getElementById('xfAddGrow').checked=true; document.getElementById('xfAddPct').value='10'; xfAddSay(); xfAddDo(); 'ok'`);
-    const ad = JSON.parse(ev(`(function(){ var T=MS.years[2030], c=(T.custom||[]).filter(function(x){ return x.prior && x.prior.id==='NEW-2'; })[0];
+    // v2.23 RV-B (B1): FY30's new requirement is found by its title (its link names the line's anchor now, FY27's NEW-1)
+    const ad = JSON.parse(ev(`(function(){ var T=MS.years[2030], c=(T.custom||[]).filter(function(x){ return x.title==='Field kit'; })[0];
       return JSON.stringify(c? [c.prior, c.ask, T.order[T.order.length-1]===c.id, !!(T.awards||{})[c.id], !!(T.mc||{})[c.id], grpOf(c, T), MS.cur] : null); })()`));
-    chk(name, 'add', 'FY30’s new requirement: linked to FY29’s NEW-2, its requirement grown 10% to whole dollars, last in FY30’s order, no award dates, no star, PSM; FY27 still on screen',
-      J(ad), J([{ fy: 2029, id: 'NEW-2' }, [61, 0], true, false, false, 'PSM', 2027]));
+    chk(name, 'add', 'FY30’s new requirement: linked to FY27’s NEW-1 (the line FY29’s NEW-2 is on), its requirement grown 10% to whole dollars, last in FY30’s order, no award dates, no star, PSM; FY27 still on screen',
+      J(ad), J([{ fy: 2027, id: 'NEW-1' }, [61, 0], true, false, false, 'PSM', 2027]));
     ev(`window.__xd('NEW-1'); 'ok'`);
     chk(name, 'add', 'and the tab reads it as the same work in FY30', ev(`String((window.__in(2030,'q',0)||{}).value)`), '61');
     // 11. Add to FY31 by rolling it forward from FY27: it holds the very requirement, so nothing more is added
@@ -11395,7 +11398,7 @@ await (async () => {
       /FY32: not filled/.test(ev(`document.getElementById('xfFillPrev').textContent`)), ev(`document.getElementById('xfFillGo').textContent`)]), J(['2027', '2032', true, 'Fill 4 years']));
     ev(`xfFillDo(); 'ok'`);
     chk(name, 'fill', 'Fill: $44, $48, $53, $59 by year (40 × 1.1^n, whole dollars), FY29’s other work still $999, FY27 still $40',
-      J(JSON.parse(ev(`JSON.stringify([window.__ask(2028,'NEW-1'), window.__ask(2029,'NEW-2'), (MS.years[2030].custom.filter(function(x){ return x.prior && x.prior.id==='NEW-2'; })[0]||{}).ask, window.__ask(2031,'NEW-1'), window.__ask(2029,'NEW-1'), window.__ask(2027,'NEW-1')])`))),
+      J(JSON.parse(ev(`JSON.stringify([window.__ask(2028,'NEW-1'), window.__ask(2029,'NEW-2'), (MS.years[2030].custom.filter(function(x){ return x.title==='Field kit'; })[0]||{}).ask, window.__ask(2031,'NEW-1'), window.__ask(2029,'NEW-1'), window.__ask(2027,'NEW-1')])`))),
       J([[44, 0], [48, 0], [53, 0], [59, 0], [999, 0], [40, 0]]));
     chk(name, 'fill', 'never a Disc or Mand figure, in any year', ev(`JSON.stringify([2027,2028,2029,2030,2031].map(function(y){ return [MS.years[y].fsrc, MS.years[y].alloc]; }))`), al0);
     chk(name, 'fill', 'one save, and the journal files each year’s line under its year', J([+ev(`String(_saveGen)`) - g2, JSON.parse(ev(`JSON.stringify(MS.jrnl.slice(${j2}).map(function(e){ return e.fy; }).sort())`))]), J([1, [2028, 2029, 2030, 2031]]));
@@ -11404,7 +11407,7 @@ await (async () => {
     const sp = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#recYrs > button, #recYrs > .recyr'), function(e){ return e.tagName+':'+e.textContent+':'+(e.getAttribute('onclick')||''); }))`));
     chk(name, 'strip', 'FY27 marked, FY28-FY31 each a button to the same work (FY29’s is NEW-2), each with its lane word; then Manage across the FYDP to the page at its tab',
       J(sp), J(['SPAN:FY27 ' + fm(40) + ' · Unfunded:', 'BUTTON:FY28 ' + fm(44) + ' · Unfunded:recYearGo(2028,"NEW-1")', 'BUTTON:FY29 ' + fm(48) + ' · Unfunded:recYearGo(2029,"NEW-2")',
-        'BUTTON:FY30 ' + fm(53) + ' · Unfunded:recYearGo(2030,' + J(ev(`(MS.years[2030].custom.filter(function(x){ return x.prior && x.prior.id==='NEW-2'; })[0]||{}).id`)) + ')',
+        'BUTTON:FY30 ' + fm(53) + ' · Unfunded:recYearGo(2030,' + J(ev(`(MS.years[2030].custom.filter(function(x){ return x.title==='Field kit'; })[0]||{}).id`)) + ')',
         'BUTTON:FY31 ' + fm(59) + ' · Unfunded:recYearGo(2031,"NEW-1")', 'BUTTON:Manage across the FYDP ›:reqPageOpen("NEW-1","fydp")']));
     // 14. text from a file is drawn as text in the Add box
     ev(`xfModel('NEW-1').ys.forEach(function(Y){ if(!Y.r) return; var T=MS.years[Y.y]; T.titles=T.titles||{}; T.titles[Y.id]='<img src=x onerror="window.__pw=1">'; });
@@ -11952,6 +11955,134 @@ await (async () => {
 })();
 // ==== end v2.23 review RV-A ====
 // ==== v2.23 review RV-B ====
+// v2.23 review RV-B: two defects in Across the FYDP (item 158), each reproduced by a reviewer and a skeptic, driven here through the
+// tab's rendered controls (reqPageOpen(id,'fydp'), its Add to FYxx… buttons, the Add box's own button, its boxes' change events).
+//   B1. Add to a year linked the new requirement to the year it STARTED FROM, which can be a later year. fydpLineKeys resolves a forward
+//       link one step only, so FY29's Kit added to FY28 and then to FY27 (started from FY28) keyed FY27's as a line of its own: FY27 still
+//       read "not in FY27's plan / Add to FY27…", and a further Add put the work in FY27 twice. Fixed by linking to the LINE's anchor
+//       (xfLineLink). The second fixture has the tab find its source only as a rolled copy (a year between numbered other work with the
+//       id), so the source's own line is not the line the tab reads; and a year holding the work on that other line is refused (xfLineHeld).
+//   B2. The Discretionary and Mandatory FYDP totals summed what was DRAWN under boxes that hold what was DIRECTED, with nothing to say so
+//       (boxes 300 + 300 over a total of $200). The total now carries directedLine, as the RECORD card and Funding by service do.
+// Expectations come from the fixtures' own figures. FAILS ON 56aa6c6 (B1: FY27 not held after the second Add; FY32 not held; FY30
+// takes a second Field kit. B2: no "directed" line under the total).
+await (async () => {
+  const __bm = _v223w1Mark();
+  const name = 'v2.23 review RV-B — Across the FYDP: Add to a year links to the line, never forward to the year it started from; the Disc and Mand totals say what was directed';
+  try {
+    const J = JSON.stringify;
+    const mk = (base) => {
+      const B = boot(), ev = B.ev;
+      seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('B', 'AV', [200, 50])], disc: [400, 100], mand: [100, 50], order: ['A', 'B'] });
+      ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        S.order.forEach(function(id){ seedSplit(id); }); MS.base=${base}; save(); render();
+        window.__ans=[]; window.confirm=function(){ return window.__ans.length? window.__ans.shift() : true; }; window.alert=function(){};
+        window.__stat=function(){ return (document.getElementById('shareStat')||{}).textContent||''; };
+        window.__heads=function(){ return JSON.stringify([].map.call(document.querySelectorAll('#reqPage #xfTab thead th.xfyh'), function(e){ return e.querySelector('b').textContent+' | '+(e.querySelector('.xfsub')||{}).textContent; })); };
+        window.__addBtn=function(fy){ return [].filter.call(document.querySelectorAll('#reqPage #xfTab button.xfaddb'), function(x){ return x.textContent.indexOf('Add to FY'+fy)===0; })[0]||null; };
+        window.__box=function(){ return (document.getElementById('xfAddBody')||{}).textContent||''; };
+        window.__open=function(){ return document.getElementById('xfAddPanel').classList.contains('open'); };
+        window.__kits=function(y, t){ return JSON.stringify(((MS.years[y]||{}).custom||[]).filter(function(c){ return c.title===t; }).map(function(c){ return [c.id, c.prior||null]; })); };
+        'ok'`);
+      return B;
+    };
+    const head = (ev, fy) => JSON.parse(ev(`window.__heads()`)).filter(h => h.indexOf('FY' + fy + ' |') === 0)[0] || 'none';
+    // ── B1, fixture 1: base FY27, FY28 and FY29 rolled forward, FY29 on screen; Kit made in FY29 (unlinked)
+    {
+      const B = mk(2027), ev = B.ev;
+      ev(`window.__ans=[true]; switchYear(2028); window.__ans=[true]; switchYear(2029); window.__k=reqCreate('PSM',{title:'Kit',event:'Kit',ask:[40,0]}); save(); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      chk(name, 'B1 fixture', 'CONTROL: Kit is FY29’s NEW-1, FY29 on screen, FY27 and FY28 do not hold it', J([ev(`window.__k`), ev(`String(MS.cur)`), head(ev, 27), head(ev, 28)]),
+        J(['NEW-1', '2029', 'FY27 | not in FY27’s planAdd to FY27…', 'FY28 | not in FY28’s planAdd to FY28…']));
+      ev(`window.__addBtn(28).click(); document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 add FY28', 'Add to FY28 (from FY29): FY28 holds Kit, linked to FY29’s', J([head(ev, 28), ev(`window.__kits(2028,'Kit')`)]), J(['FY28 | #3 of 3 · Unfunded', J([['NEW-1', { fy: 2029, id: 'NEW-1' }]])]));
+      ev(`window.__addBtn(27).click(); 'ok'`);
+      const bx = ev(`window.__box()`);
+      chk(name, 'B1 add FY27', 'the box for FY27 starts from FY28 (the nearest year) and names the year it links to: FY29’s, the line’s', J([ev(`String(window.__open())`), /Starts from FY28/.test(bx), /linked to FY29’s/.test(bx), /linked to FY28’s/.test(bx)]), J(['true', true, true, false]));
+      ev(`document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 add FY27', 'the status line names FY29 as the year linked', /linked to FY29’s as the same work/.test(ev(`window.__stat()`)), true);
+      chk(name, 'B1 add FY27', 'FY27’s Kit is linked to FY29’s (the line), never forward to FY28’s', ev(`window.__kits(2027,'Kit')`), J([['NEW-1', { fy: 2029, id: 'NEW-1' }]]));
+      chk(name, 'B1 one line', 'the tab reads FY27 as holding Kit, with no Add to FY27', J([head(ev, 27), ev(`String(!!window.__addBtn(27))`)]), J(['FY27 | #3 of 3 · Unfunded', 'false']));
+      chk(name, 'B1 one line', 'the five-year join keys Kit to one line in all three years', ev(`(function(){ var C=xfDataNow(); return JSON.stringify([2027,2028,2029].map(function(y){ return C.LK[y]['NEW-1']; })); })()`),
+        J(['new|2029|NEW-1', 'new|2029|NEW-1', 'new|2029|NEW-1']));
+      ev(`setCur(window.__k); recYearsFill(); 'ok'`);
+      chk(name, 'B1 one line', 'the RECORD strip reads FY27 too', /FY27 \$40/.test(ev(`(document.getElementById('recYrs')||{}).textContent`)), true);
+      chk(name, 'B1 errors', 'no page error', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+    // ── B1, fixture 2: base FY28, FY27 on screen holds Field kit (NEW-1); FY29 started blank holds OTHER work as NEW-1, so FY31 rolled
+    // forward from FY27 is found by the tab only as a rolled copy (its own key is a line of its own); FY30 started blank holds a Field kit
+    // linked to FY31's (as the first cut of Add to a year made one); FY32 not started.
+    {
+      const B = mk(2028), ev = B.ev;
+      ev(`window.__k=reqCreate('PSM',{title:'Field kit',event:'Field kit',ask:[40,0]}); save(); render();
+        window.__ans=[false, true]; switchYear(2029); reqCreate('AV',{title:'Other work',event:'Other work',ask:[999,0]}); save();
+        switchYear(2027); window.__ans=[false, true]; switchYear(2030); switchYear(2027); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      ev(`window.__ans=[true]; window.__addBtn(31).click(); 'ok'`);
+      chk(name, 'B1 fixture 2', 'CONTROL: FY31 rolled forward from FY27 holds Field kit as NEW-1, and the tab reads it as the same work', J([ev(`window.__kits(2031,'Field kit')`), head(ev, 31), ev(`String(window.__open())`)]),
+        J([J([['NEW-1', null]]), 'FY31 | #3 of 3 · Unfunded', 'false']));
+      chk(name, 'B1 fixture 2', 'CONTROL: FY31’s own line is not the on-screen one', ev(`(function(){ var C=xfDataNow(); return JSON.stringify([C.LK[2027]['NEW-1'], C.LK[2031]['NEW-1']]); })()`), J(['new|2027|NEW-1', 'new|2031|NEW-1']));
+      ev(`aceWithYear(2030, function(){ reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[40,0]}, {y:2031, id:'NEW-1'}); }); save(); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      chk(name, 'B1 fixture 2', 'CONTROL: FY30 holds a Field kit on FY31’s line, which the tab reads as not in FY30', J([ev(`window.__kits(2030,'Field kit')`), head(ev, 30)]),
+        J([J([['NEW-1', { fy: 2031, id: 'NEW-1' }]]), 'FY30 | not in FY30’s planAdd to FY30…']));
+      // defence in depth: Add to FY30 starts from FY31, and FY30 already holds the work on FY31's line -- refused, nothing added
+      ev(`window.__addBtn(30).click(); document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 defence', 'Add to FY30 is refused: FY30 already holds this work, as NEW-1; still one Field kit there', J([/already holds this work, as NEW-1/.test(ev(`(document.getElementById('xfAddMsg')||{}).textContent`)), ev(`window.__kits(2030,'Field kit')`)]),
+        J([true, J([['NEW-1', { fy: 2031, id: 'NEW-1' }]])]));
+      ev(`var __c=[].filter.call(document.querySelectorAll('#xfAddPanel button'), function(b){ return b.textContent==='Cancel'; })[0]; if(__c) __c.click(); 'ok'`);
+      // FY32, started blank, starts from FY31 (the nearest) and links to the line the tab reads the work by: FY27's
+      ev(`window.__ans=[false, true]; window.__addBtn(32).click(); 'ok'`);
+      const bx = ev(`window.__box()`);
+      chk(name, 'B1 FY32', 'the box for FY32 starts from FY31 and links to FY27’s', J([ev(`String(window.__open())`), /Starts from FY31/.test(bx), /linked to FY27’s/.test(bx)]), J(['true', true, true]));
+      ev(`document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 FY32', 'FY32’s Field kit is linked to FY27’s NEW-1, and the tab reads FY32 as holding it, with no Add to FY32', J([ev(`window.__kits(2032,'Field kit')`), head(ev, 32), ev(`String(!!window.__addBtn(32))`)]),
+        J([J([['NEW-1', { fy: 2027, id: 'NEW-1' }]]), 'FY32 | #1 of 1 · Unfunded', 'false']));
+      chk(name, 'B1 errors', 'no page error (fixture 2)', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+    // ── B1, fixture 3: the line's own anchor is not always the link that reaches it. FY27's P (on screen, NEW-1) carries a link FORWARD
+    // to FY29's NEW-1 (as a board saved by an older ORBIT can), and FY29's NEW-1 is other work linked to a year before the window. So P's
+    // line is 'new|2029|NEW-1', yet a link to FY29's NEW-1 read from inside FY29 lands on the OTHER work's line. The link is the one that
+    // reproduces P's line (xfLineSim): FY27's P.
+    {
+      const B = mk(2027), ev = B.ev;
+      ev(`window.__k=reqCreate('PSM',{title:'P kit',event:'P kit',ask:[40,0]}); save(); render();
+        window.__ans=[false, true]; switchYear(2029); reqCreate('AV',{title:'Other work',event:'Other work',ask:[999,0]}); MS.years[2029].custom[0].prior={fy:2026, id:'NEW-9'}; save();
+        switchYear(2027); itemById(window.__k).prior={fy:2029, id:'NEW-1'}; save(); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      chk(name, 'B1 fixture 3', 'CONTROL: P’s line is new|2029|NEW-1 and FY29’s NEW-1 (other work) is on new|2026|NEW-9; FY29 does not hold P',
+        J([ev(`(function(){ var C=xfDataNow(); return JSON.stringify([C.LK[2027]['NEW-1'], C.LK[2029]['NEW-1']]); })()`), head(ev, 29)]),
+        J([J(['new|2029|NEW-1', 'new|2026|NEW-9']), 'FY29 | not in FY29’s planAdd to FY29…']));
+      ev(`window.__addBtn(29).click(); document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 fixture 3', 'Add to FY29: the new P kit is linked to FY27’s P (never to FY29’s other work), and the tab reads FY29 as holding it',
+        J([ev(`window.__kits(2029,'P kit')`), head(ev, 29), ev(`(function(){ var C=xfDataNow(); return C.LK[2029]['NEW-2']; })()`)]),
+        J([J([['NEW-2', { fy: 2027, id: 'NEW-1' }]]), 'FY29 | #2 of 2 · Unfunded', 'new|2029|NEW-1']));
+      chk(name, 'B1 errors', 'no page error (fixture 3)', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+    // ── B2: base FY27, FY28 rolled; B's USAF discretionary directed 300 in each year, of which its lane pays 100 a year
+    {
+      const B = mk(2027), ev = B.ev;
+      ev(`window.__ans=[true]; switchYear(2028); switchYear(2027); reqPageOpen('B', 'fydp'); 'ok'`);
+      const type = (y, k, si, v) => ev(`(function(){ var i=document.querySelector('#reqPage #xfTab input[data-y="${y}"][data-xf="${k}"][data-si="${si}"]'); if(!i) return 'no box'; i.focus(); i.value=${J(v)}; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); return 'ok'; })()`);
+      chk(name, 'B2 type', 'CONTROL: both boxes typed', J([type(2027, 'd', 0, '300'), (ev(`reqPageOpen('B','fydp'); 'ok'`), type(2028, 'd', 0, '300'))]), J(['ok', 'ok']));
+      ev(`reqPageOpen('B','fydp'); 'ok'`);
+      const tot = (cls) => JSON.parse(ev(`(function(){ var r=document.querySelectorAll('#reqPage #xfTab tbody tr.${cls}')[0], c=r.querySelectorAll('td'), t=c[c.length-1], d=t.querySelector('.drew');
+        return JSON.stringify([t.textContent, d? d.getAttribute('title') : null]); })()`));
+      const fm = v => ev(`fM(${v})`);
+      chk(name, 'B2 fixture', 'CONTROL: FY27 and FY28 each hold 300 directed and drew 100', ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage #xfTab tbody tr.xf-d')[0].querySelectorAll('td'), function(e){ var i=e.querySelector('input'); return (i? i.value+'|' : '')+e.textContent; }).slice(1,3))`),
+        J(['300|drew ' + fm(100), '300|drew ' + fm(100)]));
+      chk(name, 'B2 total', 'the USAF Discretionary FYDP total is what was drawn ($200), and says what was directed ($600)', J(tot('xf-d')[0]), J(fm(200) + 'directed ' + fm(600)));
+      chk(name, 'B2 total', 'measured against the caps the cells were: the lanes could supply, not the allocation', tot('xf-d')[1], 'the cells above were directed higher than the lanes could supply');
+      chk(name, 'B2 total', 'CONTROL: Mandatory drew all it was directed ($200): no directed line', J(tot('xf-m')), J([fm(200), null]));
+      // FY27's USAF mandatory directed 150: the basis (the requirement, $200) less the $100 discretionary drew leaves it $100
+      type(2027, 'm', 0, '150'); ev(`reqPageOpen('B','fydp'); 'ok'`);
+      chk(name, 'B2 mand', 'Mandatory: $200 drawn, directed $250, and the cap that refused it is the allocation, not the lane', J(tot('xf-m')),
+        J([fm(200) + 'directed ' + fm(250), 'the cells above were directed higher than the allocation covers']));
+      // mandatory off in FY28 (its directed 100 stays on the split): the total counts directed only where mandatory is on
+      ev(`MS.years[2028].mandOff=true; save(); render(); reqPageOpen('B','fydp'); 'ok'`);
+      chk(name, 'B2 mand off', 'with mandatory off in FY28, its directed 100 is not counted: $100 drawn (FY27), directed $150 (FY27’s alone)', J(tot('xf-m')[0]), J(fm(100) + 'directed ' + fm(150)));
+      chk(name, 'B2 errors', 'no page error (B2)', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _v223w1Release(__bm, []);
+  await _v223w1Settle();
+})();
 // ==== end v2.23 review RV-B ====
 // ==== v2.23 review RV-C ====
 // v2.23 review RV-C (item 159's C findings): Allocate's draft and a board replaced under it (C1), the mandatory switch's journal

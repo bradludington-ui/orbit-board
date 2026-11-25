@@ -1,0 +1,58 @@
+[
+ {
+  "id": "v223-rvb-link-not-repointed",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-link-source-line-only",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-link-unsimulated",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-held-unchecked",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-held-cur-only",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-box-names-source",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-open-no-link",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-stat-names-source",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-no-directed",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-dir-drawn",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-cap-zero",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-mand-dir-drawn",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-mand-cap",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-mand-off-counted",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ }
+]
