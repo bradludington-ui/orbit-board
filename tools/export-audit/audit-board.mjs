@@ -9673,19 +9673,24 @@ await (async () => {
     ev(`(function(){ var h=document.querySelector('.hdr'), f=document.getElementById('cycFit');
       Object.defineProperty(h, 'clientWidth', {configurable:true, get:function(){ return window.__cw; }});
       Object.defineProperty(h, 'scrollWidth', {configurable:true, get:function(){ var w=1000, c=h.classList;
-        if(c.contains('tight1')) w-=100; if(c.contains('cyc1') && f.textContent===f.getAttribute('data-s')) w-=100; if(c.contains('cyc2')) w-=50; if(c.contains('tight3')) w-=50; if(c.contains('tight4')) w-=50; return w; }}); })(); 'ok'`);
+        if(c.contains('tight1')) w-=100; if(c.contains('cyc1') && f.textContent===f.getAttribute('data-s')) w-=100; if(c.contains('cyc2')) w-=50; if(c.contains('tight3')) w-=50; if(c.contains('tight4')) w-=50;
+        if(c.contains('cmd1')) w-=50;   // v2.22 W1: the find box's step (its magnifier alone), taken right after the labels go
+        return w; }}); })(); 'ok'`);
     const at = cw => JSON.parse(ev(`window.__cw=${cw}; fitTop(); JSON.stringify([document.querySelector('.hdr').className, document.getElementById('cycFit').textContent])`));
     chk(name, 'the steps', 'room for it all: nothing changes', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
     chk(name, 'the steps', 'first the labels go, and nothing else', J(at(900)), J(['hdr tight1', 'FY27 · $541K unallocated · ⚠ $50 over']));
-    chk(name, 'the steps', 'then the figure shortens', J(at(800)), J(['hdr tight1 cyc1', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'then it leaves the bar for the list', J(at(750)), J(['hdr tight1 cyc1 cyc2', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'then the fourth step, and the bar fits on one line -- never wrapped while a step is left', J(at(700)), J(['hdr tight1 cyc1 cyc2 tight3', '$541K · ⚠ $50']));
+    // v2.22 W1 (item 155): the find box's own step (cmd1, its magnifier alone) comes next, before the figure gives up a word -- every
+    // step after it moved down 50px of stand-in room, and the wrap is still last
+    chk(name, 'the steps', 'then the find box shows its magnifier alone (v2.22), and the figure stays whole', J(at(850)), J(['hdr tight1 cmd1', 'FY27 · $541K unallocated · ⚠ $50 over']));
+    chk(name, 'the steps', 'then the figure shortens', J(at(800)), J(['hdr tight1 cmd1 cyc1', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then it leaves the bar for the list', J(at(700)), J(['hdr tight1 cmd1 cyc1 cyc2', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then the fourth step, and the bar fits on one line -- never wrapped while a step is left', J(at(650)), J(['hdr tight1 cmd1 cyc1 cyc2 tight3', '$541K · ⚠ $50']));
     // v2.21 (item 152): a fifth step, the wordmark's O and the save state's dot alone (Save moved into this bar), before any wrap
-    chk(name, 'the steps', 'then the fifth step (v2.21), and the bar fits on one line', J(at(650)), J(['hdr tight1 cyc1 cyc2 tight3 tight4', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(600)), J(['hdr tight1 cyc1 cyc2 tight3 tight4 tight2', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then the fifth step (v2.21), and the bar fits on one line', J(at(600)), J(['hdr tight1 cmd1 cyc1 cyc2 tight3 tight4', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(550)), J(['hdr tight1 cmd1 cyc1 cyc2 tight3 tight4 tight2', '$541K · ⚠ $50']));
     chk(name, 'the steps', 'and given room again, it comes back whole', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
     // moved into the list: the list leads with the whole sentence, opening Fit to the PPBE position; the button carries the over
-    at(750);
+    at(700);   // v2.22 W1: the figure leaves the bar at 700 now (cmd1 took 50 first)
     ev(`toggleMenu('cyc'); 'ok'`);
     const L = JSON.parse(ev(`(function(){ var b=document.querySelector('#dd_cyc .cycfit-in button.mi'), first=document.querySelector('#dd_cyc button');
       return JSON.stringify({txt:b? b.textContent.replace(/\\s+/g,' ').trim() : 'none', on:b? b.getAttribute('onclick') : '', first:first===b, fover:document.getElementById('b_cyc').classList.contains('fover'),
@@ -10205,8 +10210,9 @@ await (async () => {
     const fls = J(JSON.parse(B.ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .insp-f .fl'), function(f){ return f.textContent; }))`)).filter(x => /^(Funded|Allocated)$/.test(x)));
     chk(name, '149.12 Funded', 'the record names d+m paid “Funded”, never “Allocated”', fls, J(['Funded']));
     // 149.13 -- Cumulative allocation, with a hover, on the heading and the row
+    // v2.22 W1 (item 155): the running total left Review (Review reads Funded and the status) and stays in Rank, where it is read here
     chk(name, '149.13 heading', 'the heading names the allocation and explains itself',
-      B.ev(`(function(){ var h=document.querySelector('#gridHead .cum'); return JSON.stringify([h&&h.textContent, !!(h&&/allocation/.test(h.title||'')), !!((document.querySelector('#row-A .num.cum')||{}).title)]); })()`),
+      B.ev(`(function(){ uiMode='rank'; render(); var h=document.querySelector('#gridHead .cum'); var r=JSON.stringify([h&&h.textContent, !!(h&&/allocation/.test(h.title||'')), !!((document.querySelector('#row-A .num.cum')||{}).title)]); uiMode='review'; render(); return r; })()`),
       J(['Cumulative allocation', true, true]));
     // 149.11 -- the grey line names the office chosen now, read before the PMO button is redrawn
     B.ev(`filter='PSM'; 'ok'`);
@@ -10471,20 +10477,23 @@ await (async () => {
     chk(name, 'menu', 'its entries are words, in order', J(mn.words),
       J(['Requirements', 'Funding', 'FYDP', 'Execution', 'Cycles & compare', 'Brief', 'Reports & exports', 'Imports & exports', 'Data', 'Program offices', 'Audit', 'History & recovery', 'Setup']));
     // 4. the rows' title band
-    const band = () => ev(`(document.getElementById('gridBand')||{}).textContent||''`);
+    // v2.22 W1: the band's title is its own span now, beside the table's filter chips
+    const band = () => ev(`(document.getElementById('gridBandT')||{}).textContent||''`);
     chk(name, 'band', 'the rows carry a title band: FY2027 O&M · Priority order (1–N)', band(), 'FY2027 O&M · Priority order (1–N)');
     ev(`filter='PSM'; render(); 'ok'`);
     chk(name, 'band', 'one office showing: the band names it', band(), 'FY2027 O&M · Priority order (1–N) · PSM');
     ev(`filter='ALL'; render(); 'ok'`);
     // 5. each row's lane cell carries its lane, and its word
-    const ln = JSON.parse(ev(`JSON.stringify(['A','B','C','D'].map(function(id){ var c=document.querySelector('#row-'+id+' .lanec'); return c? [c.getAttribute('data-lk'), (c.querySelector('.ll')||{}).textContent||''] : null; }))`));
-    chk(name, 'lanes', 'A discretionary, B both lanes, C mandatory, D unfunded, each cell saying so in words',
-      J(ln), J([['disc', 'Discretionary'], ['split', 'Both'], ['mand', 'Mandatory'], ['unf', 'Unfunded']]));
+    // v2.22 W1 (item 155): the colour is on the cell's status pill now, keyed by its own data-lk; "Both" reads "Both lanes"
+    const ln = JSON.parse(ev(`JSON.stringify(['A','B','C','D'].map(function(id){ var c=document.querySelector('#row-'+id+' .lanec'), p=c&&c.querySelector('.pill'); return c? [c.getAttribute('data-lk'), p? p.getAttribute('data-lk') : null, (c.querySelector('.ll')||{}).textContent||''] : null; }))`));
+    chk(name, 'lanes', 'A discretionary, B both lanes, C mandatory, D unfunded, each cell and its pill saying so in words',
+      J(ln), J([['disc', 'disc', 'Discretionary'], ['split', 'split', 'Both lanes'], ['mand', 'mand', 'Mandatory'], ['unf', 'unf', 'Unfunded']]));
     // 6. the status colours: green discretionary, yellow both and mandatory, red unfunded, with black, black and white words
     const css = ev(`(document.getElementById('uiApexCss')||{}).textContent||''`);
     const tok = k => (new RegExp('--' + k + ':(#[0-9a-fA-F]{6})').exec(css) || [])[1] || null;
     chk(name, 'colours', 'the three tokens are APEX’s: #00B050, #FFD700, #C00000', J([tok('apxOk'), tok('apxMid'), tok('apxBad')].map(x => x && x.toUpperCase())), J(['#00B050', '#FFD700', '#C00000']));
-    const rule = lk => { const m = new RegExp('\\.lanec\\[data-lk="' + lk + '"\\][^{]*\\{([^}]*)\\}').exec(css); return m ? m[1].replace(/\s+/g, '') : null; };
+    // v2.22 W1 (item 155): on the status pill (.lanec[data-lk] .pill[data-lk="…"]), the cell itself plain
+    const rule = lk => { const m = new RegExp('\\.lanec\\[data-lk\\] \\.pill\\[data-lk="' + lk + '"\\][^{]*\\{([^}]*)\\}').exec(css); return m ? m[1].replace(/\s+/g, '') : null; };
     chk(name, 'colours', 'disc green with black words; both and mandatory yellow with black; unfunded red with white',
       J(['disc', 'split', 'mand', 'unf'].map(rule)), J(['background:var(--apxOk);color:#000', 'background:var(--apxMid);color:#000', 'background:var(--apxMid);color:#000', 'background:var(--apxBad);color:#fff']));
     // 7. the unsaved badge
@@ -10500,6 +10509,180 @@ await (async () => {
 })();
 // ==== end v2.21 ====
 // ==== v2.22 W1 ====
+// v2.22 W1 (items 155, 154, 149.28/35/36/37/38/39/41/44/45/46/51): THE PAGE AND THE FUNDING PAGE. Brad, 25 Nov 2026, on the concept
+// canvas: "I like it all ... Let's go". What jsdom can hold (it lays nothing out; tools/look-fits.mjs holds the widths): the money bar --
+// the whole board in priority order whatever the list shows, a block per requirement sized by its requirement and coloured by the rule,
+// runs with their ranks, its sentences at the places the rows' cutlines are drawn, a block selecting its requirement by pointer and by
+// keyboard; the tiles' figures, meters and "whole board"; the heading's "Showing N of M"; the rows' Funded and status pill and second
+// line; Incomplete; the filter chips set from either side; Needs attention from the Requirements page; the Funding page's tiles, bars and
+// entries; the header's find box; the left menu's headings; one Add requirement. Every expected figure is worked out here from the
+// fixture's own asks and the engine's per-service draws (tiers()), never read back from the surface under test.
+// THE FIXTURE MAKES THE RULES DISAGREE: G discretionary; A forced to mandatory high in the order (it draws mandatory while discretionary is
+// NOT dry, so the cutline must not be drawn at A -- a "first mandatory draw" rule would put it there); B trimmed (its lane is
+// discretionary, yet it is short: red, never green); C both lanes, starred and short of discretionary (the cutline and Mission Critical
+// fall here, #4); D mandatory and short (the full-budget line, #5); E nothing drawn. FAILS ON THE SLOT COMMIT (41ea5d7): no money bar,
+// no cutlinesOf, no pill, no Funded cell, no chips, the old tiles and posture.
+await (async () => {
+  const name = 'v2.22 W1 — the money bar, the tiles, the rows, the chips and the Funding page (items 155, 154, 149.35-149.46)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    const ASK = { G: [20, 10], A: [100, 40], B: [80, 30], C: [120, 40], D: [100, 20], E: [10, 0] };
+    const ORDER = ['G', 'A', 'B', 'C', 'D', 'E'];
+    seed(ev, { services: ['USAF', 'ANG'], items: ORDER.map(id => it(id, ['B', 'D'].includes(id) ? 'PSM' : 'AV', ASK[id])),
+      disc: [150, 60], mand: [150, 60], order: ORDER, mc: { C: true }, fsrc: { A: { m: 'mand' } }, alloc: { B: { m: 't', v: 60 } } });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      filter='ALL'; laneFilter=''; mcOnly=false; incOnly=false; uiMode='review'; uiApply(); save(); render(); 'ok'`);
+    // the engine's draws, per requirement and service; everything expected below is restated from these and the asks
+    const D = JSON.parse(ev(`(function(){ var T=tiers(), o={}; S.order.forEach(function(id){ var t=T[id]; o[id]={d:t.d, m:t.m}; }); return JSON.stringify(o); })()`));
+    const unf = id => ASK[id].reduce((a, v, i) => a + Math.max(0, v - D[id].d[i] - D[id].m[i]), 0);
+    const dT = id => sum(D[id].d), mT = id => sum(D[id].m), askT = id => sum(ASK[id]);
+    const colour = id => unf(id) > 0.005 ? 'unf' : (dT(id) > 0.005 && mT(id) <= 0.005 ? 'disc' : (mT(id) > 0.005 ? 'both' : 'none'));
+    chk(name, 'fixture', 'every colour occurs, B is red though discretionary pays all it draws, and A draws mandatory with discretionary not dry',
+      J([ORDER.map(colour), mT('B'), unf('B') > 0, mT('A') > 0, dT('A')]), J([['disc', 'both', 'unf', 'both', 'unf', 'unf'], 0, true, true, 0]));
+    // 1. THE MONEY BAR
+    const bar = () => JSON.parse(ev(`(function(){ var m=document.getElementById('moneyBar');
+      return JSON.stringify({ runs:[].map.call(m.querySelectorAll('.mbrun'), function(r){ return [r.className.replace('mbrun c-',''), r.getAttribute('aria-label'), +r.style.flexGrow]; }),
+        blocks:[].map.call(m.querySelectorAll('.mbb'), function(b){ return [b.getAttribute('data-id'), +b.style.flexGrow, b.closest('.mbrun').className.replace('mbrun c-',''), b.getAttribute('aria-label')]; }),
+        say:[].map.call(m.querySelectorAll('.mbsay span'), function(s){ return s.textContent; }), lb:(m.querySelector('.mbbar')||{}).getAttribute? m.querySelector('.mbbar').getAttribute('role') : null }); })()`));
+    const b0 = bar();
+    chk(name, 'money bar', 'one block per requirement, in priority order, each sized by its requirement and coloured by the rule',
+      J(b0.blocks.map(b => b.slice(0, 3))), J(ORDER.map(id => [id, askT(id), colour(id)])));
+    chk(name, 'money bar', 'the blocks add to the board’s total requirement', sum(b0.blocks.map(b => b[1])), sum(ORDER.map(askT)));
+    chk(name, 'money bar', 'a run of one colour carries its word and its ranks; a yellow run says which lanes',
+      J(b0.runs.map(r => r[1])), J(['Discretionary #1', 'Mandatory #2', 'Unfunded in part or whole #3', 'Both lanes #4', 'Unfunded in part or whole #5–6']));
+    chk(name, 'money bar', 'each block names its requirement and figures: B funded $60, unfunded $50',
+      b0.blocks[2][3], '#3 B event: requirement $110, funded ' + '$' + (dT('B') + mT('B')) + ', unfunded $' + unf('B'));
+    // the sentences, and the bands between the rows: one computation, one place -- the discretionary line before C (#4), not before A
+    const bands = () => JSON.parse(ev(`(function(){ var out=[], prev=null; [].forEach.call(document.getElementById('list').children, function(e){
+      if(e.classList.contains('cutline')) out.push([e.className.replace('cutline ',''), prev]); if(e.classList.contains('row')) prev=e.id.replace('row-',''); });
+      return JSON.stringify(out); })()`));
+    chk(name, 'cutlines', 'the bands between the rows: discretionary and Mission Critical after B (#3), the full-budget line after C (#4)',
+      J(bands()), J([['cut-disc', 'B'], ['cut-mc', 'B'], ['cut-mand', 'C']]));
+    chk(name, 'cutlines', 'the bar says the same places, from the same computation',
+      J(b0.say), J(['▼ Discretionary lanes begin exhausting at #4 · $210 BA', '★ Mission Critical short $40 of $160 · program floor $250', '▼ Full-budget limit at #5 · $420']));
+    chk(name, 'cutlines', 'cutlinesOf is the one statement of where', ev(`JSON.stringify(cutlinesOf(tiers(), tierTotals(tiers())))`),
+      J({ disc: { id: 'C', rank: 4, ba: 210 }, mc: { need: 40, tot: 160, floor: 250 }, unf: { id: 'D', rank: 5, ba: 420 } }));
+    // the whole board whatever the list shows: PSM only, and a search, leave the bar as it was
+    ev(`filter='PSM'; render(); 'ok'`);
+    chk(name, 'money bar', 'one office showing: the bar is still the whole board', J(bar().blocks.map(b => b[0])), J(ORDER));
+    chk(name, 'heading', 'and the heading says what is showing: Showing 2 of 6 requirements', ev(`document.getElementById('uiSubT').textContent`), 'Showing 2 of 6 requirements');
+    chk(name, 'tiles', 'and every tile says it is the whole board', ev(`document.querySelectorAll('#uiKpis .k .wb').length`), '4');
+    ev(`filter='ALL'; render(); 'ok'`);
+    chk(name, 'heading', 'everything showing: 6 requirements, and no tile says "whole board"',
+      J([ev(`document.getElementById('uiSubT').textContent`), ev(`String(document.querySelectorAll('#uiKpis .k .wb').length)`)]), J(['6 requirements', '0']));
+    // a block selects its requirement: by pointer, and from the keyboard (one tab stop, arrows, Enter)
+    ev(`setCur('G'); document.querySelector('#moneyBar .mbb[data-id="D"]').click(); 'ok'`);
+    chk(name, 'money bar', 'a click on D’s block selects D, and its block says so', J([ev(`curRow`), ev(`document.querySelector('#moneyBar .mbb[data-id="D"]').getAttribute('aria-selected')`)]), J(['D', 'true']));
+    ev(`(function(){ var bx=document.querySelector('#moneyBar .mbbar'); bx.focus(); MB_KB=-1;
+      ['Home','ArrowRight','ArrowRight'].forEach(function(k){ bx.dispatchEvent(new KeyboardEvent('keydown', {key:k, bubbles:true})); });
+      bx.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); })(); 'ok'`);
+    chk(name, 'money bar', 'from the keyboard: Home, two arrows and Enter select B, the third; the list box names it as active',
+      J([ev(`curRow`), ev(`document.querySelector('#moneyBar .mbbar').getAttribute('aria-activedescendant')`), b0.lb]), J(['B', 'mb_2', 'listbox']));
+    // 2. THE TILES: Requirement, Funded, Unfunded (149.41), a meter each, no round mark (149.39)
+    const K = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#uiKpis .k'), function(k){ var m=k.querySelector('.km i');
+      return [k.querySelector('.l').textContent, +k.querySelector('.v').getAttribute('data-v'), m? +parseFloat(m.style.width).toFixed(1) : null, k.querySelector('.x').textContent]; }))`));
+    const tot = sum(ORDER.map(askT)), dU = sum(ORDER.map(dT)), mU = sum(ORDER.map(mT)), uT = sum(ORDER.map(unf));
+    const pct = (a, b) => +(a / b * 100).toFixed(1);
+    chk(name, 'tiles', 'Total requirement, Discretionary, Mandatory, Unfunded: their figures, meters and lines',
+      J(K.map(k => k.slice(0, 3))), J([['Total requirement', tot, pct(dU + mU, tot)], ['Discretionary', dU, pct(dU, 210)], ['Mandatory', mU, pct(mU, 210)], ['Unfunded', uT, pct(uT, tot)]]));
+    const left = l => l <= 0.5 ? ' · all drawn' : ' · $' + l + ' left', nShort = ORDER.filter(id => unf(id) > 0.005).length;
+    chk(name, 'tiles', 'the lines: the incomplete count, what is left of each BA, how many of the six are short',
+      J(K.map(k => k[3])), J(['6 requirements · 6 incomplete', 'of $210 BA' + left(210 - dU), 'of $210 BA' + left(210 - mU), nShort + ' of 6 requirements short']));
+    chk(name, 'tiles', 'no round mark on a tile, and the plain Editable chip is not shown',
+      J([ev(`String(document.querySelectorAll('#uiKpis .k .ic, #uiKpis .k svg').length)`), ev(`String(document.getElementById('uiEdChip').hidden)`)]), J(['0', 'true']));
+    // 3. THE ROWS: Funded with its meter, the status pill with what is unfunded under it, the second line
+    const row = id => JSON.parse(ev(`(function(){ var r=document.getElementById('row-${id}'), f=r.querySelector('.fundc'), l=r.querySelector('.lanec');
+      return JSON.stringify({ f:f? f.querySelector('.fv').textContent : null, w:f? +parseFloat(f.querySelector('.fmeter b').style.width).toFixed(1) : null,
+        pill:l && l.querySelector('.pill')? l.querySelector('.pill').textContent : null, unf:l && l.querySelector('.unfx')? l.querySelector('.unfx').textContent : '',
+        gear:/⚙/.test(l? l.textContent : ''), cum:!!r.querySelector('.cum'), t2:r.querySelector('.t2').textContent.replace(/\\s+/g,' ').trim() }); })()`));
+    chk(name, 'rows', 'the heads: Requirement, then Funded and Status; the running total is Rank’s',
+      ev(`[].map.call(document.querySelectorAll('#gridHead > div'), function(d){ return d.textContent; }).join('|')`), '#|PMO|Requirement|Decision band|FY27 requirement|Funded|Status|★|');
+    const rb = row('B'), rd = row('D'), rg = row('G');
+    chk(name, 'rows', 'B: funded $60 (55% of $110), Discretionary, unfunded $50 under it -- the record’s Unfunded; no gear, no cumulative',
+      J([rb.f, rb.w, rb.pill, rb.unf, rb.gear, rb.cum]), J(['$' + (dT('B') + mT('B')), pct(dT('B') + mT('B'), askT('B')), 'Discretionary', 'unfunded $' + unf('B'), false, false]));
+    chk(name, 'rows', 'D: funded $30 (discretionary and mandatory), Mandatory, unfunded $90; G: Discretionary, nothing under it',
+      J([rd.f, rd.pill, rd.unf, rg.pill, rg.unf]), J(['$' + (dT('D') + mT('D')), 'Mandatory', 'unfunded $' + unf('D'), 'Discretionary', '']));
+    chk(name, 'rows', 'the lane hover keeps its reading (149.9): the record’s Unfunded', ev(`document.querySelector('#row-B .lanec').title`), 'Disc $60 · Mand $0 · Unfunded $50');
+    // "N to complete" is the proposal gate's count of what reqNeeds() finds missing
+    const gate = JSON.parse(ev(`JSON.stringify(pmoProposalGate('G'))`));
+    chk(name, 'rows', '“N to complete” on the row is what the record’s checklist still needs, named in its hover',
+      J([/(\d+) to complete/.exec(rg.t2) && +/(\d+) to complete/.exec(rg.t2)[1], ev(`[].filter.call(document.querySelectorAll('#row-G .t2 .exc.todo'), function(e){ return /complete/.test(e.textContent); })[0].title`)]),
+      J([gate.length, 'Still needed on this record: ' + gate.join(', ') + '. Open the record to finish it.']));
+    // the second line: new / continues (149.38), the record name only when it adds words (149.37), a damaged award (149.28)
+    ev(`(function(){ var a=itemById('A'), b=itemById('B'); a.custom=true; b.custom=true; b.prior={fy:2026, id:'R9'};
+      S.recNames=S.recNames||{}; S.recNames.C='C-event'; S.recNames.D='D event extra words';
+      S.awards=S.awards||{}; S.awards.E={mode:'single', fix:{how:'repair', n:['x'], orig:'{}'}}; S.awards.G={mode:'single', d:'2027-03', day:4};
+      render(); })(); 'ok'`);
+    chk(name, 'second line', 'an added requirement says new, or continues FY26; the CCaR record name shows only where it adds words',
+      J([/^new\b/.test(row('A').t2), /^continues FY26\b/.test(row('B').t2), /C-event/.test(row('C').t2), /D event extra words/.test(row('D').t2), /ADDED/.test(ev(`document.getElementById('list').textContent`))]),
+      J([true, true, false, true, false]));
+    chk(name, 'second line', 'a damaged award date says “Award needs repair”; a good one its date', J([/Award needs repair/.test(row('E').t2), /Award 4 Mar 27/.test(row('G').t2)]), J([true, true]));
+    // 4. THE CHIPS: they set the filters the Filter menu sets, and either side shows the other's
+    const chips = () => JSON.parse(ev(`JSON.stringify(['fc_all','fc_unf','fc_mc','fc_inc'].map(function(id){ var b=document.getElementById(id); return b.getAttribute('aria-pressed')+' '+b.textContent.replace(/\\s+/g,' ').trim(); }))`));
+    chk(name, 'chips', 'as opened: All lanes on; Unfunded (the requirements short), Mission Critical 1, Incomplete 6 off', J(chips()), J(['true All lanes', 'false Unfunded ' + nShort, 'false ★ Mission Critical 1', 'false Incomplete 6']));
+    ev(`document.getElementById('fc_unf').click(); 'ok'`);
+    chk(name, 'chips', 'Unfunded sets the Filter menu’s Any unfunded portion: the list is B, D and E, and the menu ticks it',
+      J([ev(`laneFilter`), ev(`JSON.stringify(gridIds())`), ev(`(function(){ syncBtns(); var m=[].filter.call(document.querySelectorAll('#dd_view .mi'), function(e){ return /Any unfunded portion/.test(e.textContent); })[0]; return m? m.querySelector('.chk').textContent : 'none'; })()`), chips().slice(0, 2)]),
+      J(['unf', J(['B', 'D', 'E']), '✓', ['false All lanes', 'true Unfunded ' + nShort]]));
+    ev(`laneFilter='mand'; render(); 'ok'`);
+    chk(name, 'chips', 'a lane filter set from the Filter menu shows as a chip that takes it off', J([ev(`document.getElementById('fc_lane').hidden`), ev(`document.getElementById('fc_lane').textContent`)]), J([false, '◨ Spilling into mandatory ✕']));
+    ev(`document.getElementById('fc_lane').click(); document.getElementById('fc_mc').click(); 'ok'`);
+    chk(name, 'chips', 'and Mission Critical sets mcOnly: C alone', J([ev(`laneFilter`), ev(`String(mcOnly)`), ev(`JSON.stringify(gridIds())`)]), J(['', 'true', J(['C'])]));
+    // G made complete (a prime contract, so its WBS is per CLIN; its category, Goes to, description and impact statement)
+    ev(`mcOnly=false; S.ptype={G:'PRIME'}; S.obCat={G:'PMO LM Contract'}; S.dest={G:{to:'lm'}}; S.desc={G:'d'}; S.cons={G:'c'}; render(); 'ok'`);
+    chk(name, 'chips', 'CONTROL: the checklist now finds nothing missing on G', ev(`JSON.stringify(pmoProposalGate('G'))`), '[]');
+    ev(`document.getElementById('fc_inc').click(); 'ok'`);
+    chk(name, 'chips', 'Incomplete lists the records the checklist finds something missing on: all but G, and its count says 5',
+      J([ev(`JSON.stringify(gridIds())`), ev(`document.getElementById('fc_incN').textContent`), /to complete/.test(row('A').t2)]), J([J(ORDER.slice(1)), '5', true]));
+    ev(`incOnly=false; render(); 'ok'`);
+    // Needs attention from the Requirements page (149.46): the Funding page's entries, the same calls
+    const pop = JSON.parse(ev(`(function(){ document.getElementById('fc_att').click(); var p=document.getElementById('uiAttPop');
+      var a=[].map.call(p.querySelectorAll('button.e'), function(b){ return [b.getAttribute('onclick'), b.textContent.replace(/\\s+/g,' ').trim()]; });
+      var f=[].map.call(document.querySelectorAll('#posture .ppatt button.e'), function(b){ return ['uiPopsClose();'+b.getAttribute('onclick'), b.textContent.replace(/\\s+/g,' ').trim()]; });
+      return JSON.stringify({open:p.classList.contains('open'), a:a, f:f, n:document.getElementById('fc_attN').textContent}); })()`));
+    chk(name, 'needs attention', 'the chip opens the Funding page’s entries with their own calls, and counts them',
+      J([pop.open, pop.a.length > 0, J(pop.a) === J(pop.f), +pop.n === pop.f.length]), J([true, true, true, true]));
+    const k1 = ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#uiAttPop button.e'), function(b){ return /attShow\\(/.test(b.getAttribute('onclick')); })[0];
+      var k=/attShow\\("(\\w+)"\\)/.exec(b.getAttribute('onclick'))[1]; b.click(); return k; })()`);
+    await new Promise(r => setTimeout(r, 20));
+    chk(name, 'needs attention', 'an entry opens its list and the popup closes', J([ev(`String(attOpen)`), ev(`String(document.getElementById('uiAttPop').classList.contains('open'))`)]), J([k1, 'false']));
+    ev(`attClose(); 'ok'`);
+    // 5. THE FUNDING PAGE (item 154): the tiles' figures where the checks read them, the bars, the entries with their counts
+    ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+    const P = JSON.parse(ev(`(function(){ var pe=document.getElementById('posture'), g=function(s){ return [].map.call(pe.querySelectorAll(s), function(e){ return +e.getAttribute('data-v'); }); };
+      return JSON.stringify({ lanes:g('.pplanes [data-v]'), mc:g('.pp.mc .v')[0], whole:g('.pp:nth-child(3) .v')[0], svc:g('.ppsvc [data-v]'),
+        bars:[].map.call(pe.querySelectorAll('.ppsvc .bar i'), function(i){ return +parseFloat(i.style.width).toFixed(1); }),
+        segs:[].map.call(pe.querySelectorAll('.ppbar .seg'), function(s){ return [s.className.replace('seg ',''), +s.style.flexGrow]; }),
+        ent:[].map.call(pe.querySelectorAll('.ppatt button.e'), function(b){ return [b.textContent.replace(/\\s+/g,' ').trim(), (b.querySelector('.c')||{}).textContent]; }),
+        tiles:[].map.call(pe.querySelectorAll('.pptiles .ppt > .k'), function(k){ return k.textContent; }) }); })()`));
+    const uS = [0, 1].map(i => ORDER.reduce((a, id) => a + Math.max(0, ASK[id][i] - D[id].d[i] - D[id].m[i]), 0));
+    chk(name, 'Funding page', 'four tiles: Discretionary, Mandatory, Mission critical, Whole budget', J(P.tiles), J(['Discretionary', 'Mandatory', '★ Mission critical · 1 must-pay', 'Whole budget']));
+    chk(name, 'Funding page', 'the lanes’ BA and left, the whole budget’s unfunded, by service -- where the checks have always read them',
+      J([P.lanes, P.whole, P.svc]), J([[210, 210 - dU, 210, 210 - mU], uT, uS]));
+    chk(name, 'Funding page', 'Unfunded by service is a bar per service against the largest, never netted', J(P.bars), J(uS.map(v => +(v / Math.max(...uS) * 100).toFixed(1))));
+    chk(name, 'Funding page', 'the bar: discretionary, mandatory and unfunded, adding to the requirement exactly',
+      J([P.segs, sum(P.segs.map(s => s[1]))]), J([[['d', dU], ['m', mU], ['u', uT]], tot]));
+    chk(name, 'Funding page', 'each Needs attention entry reads as before, its count set apart as a badge',
+      J(P.ent.every(e => e[1] && new RegExp('^\\S+ ' + e[1] + ' ').test(e[0]))), 'true');
+    chk(name, 'Funding page', 'the Funding page states its figures in its own tiles: no second set on it', ev(`String(/\\[data-mode="fund"\\] #uiKpis\\{display:none\\}/.test(document.getElementById('v222w1').textContent))`), 'true');
+    ev(`uiMode='review'; uiApply(); render(); 'ok'`);
+    // 6. THE FRAME: the find box, the menu's headings, one Add requirement, the task bar in the heading
+    const fr = JSON.parse(ev(`(function(){ var got=[]; var h=function(e){ got.push((e.ctrlKey?'Ctrl+':'')+e.key); }; document.addEventListener('keydown', h);
+      document.getElementById('cmdOpen').click(); document.removeEventListener('keydown', h);
+      var m=document.getElementById('uiSide'), seq=[].map.call(m.children, function(e){ return e.classList.contains('uiGrp')? '['+e.textContent+']' : e.id.replace('uiNav_',''); });
+      return JSON.stringify({ key:got, inHdr:!!document.querySelector('.hdr #cmdOpen'), seq:seq, add:document.querySelectorAll('#uiAddBtn').length, toolAdd:document.getElementById('toolAdd').className,
+        tbar:!!document.querySelector('#uiPage .uiHd .tbar'), top:!!document.querySelector('#topStack .tbar, #topStack #posture') }); })()`));
+    chk(name, 'frame', 'the find box is in the header and asks for the palette the way Ctrl K does', J([fr.inHdr, fr.key]), J([true, ['Ctrl+k']]));
+    chk(name, 'frame', 'the left menu reads PLAN, its pages, then BOARD from Reports & exports', J(fr.seq),
+      J(['[Plan]', 'req', 'fund', 'fydp', 'exec', 'cyc', 'brief', '[Board]', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup']));
+    chk(name, 'frame', 'one Add requirement, in the main-button look, the task bar in the page’s heading and nothing of it in the sticky top',
+      J([fr.add, fr.toolAdd, fr.tbar, fr.top]), J([0, 'btn pri', true, false]));
+    chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.22 W1 ====
 // ==== v2.22 W2 ====
 // ==== end v2.22 W2 ====

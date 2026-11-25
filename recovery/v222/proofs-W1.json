@@ -1,0 +1,142 @@
+[
+ {
+  "id": "v222-w1-bar-follows-filter",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-bar-trim-green",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-bar-sized-by-funded",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-bar-run-no-ranks",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-bar-say-off-by-one",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-cut-first-mandatory",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-rows-own-cutline",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-funded-disc-only",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-unfx-lane-reading",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-tile-disc-of-ask",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-whole-board-never",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-showing-of-shown",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-todo-miscounts",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-incomplete-filter-open",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-chip-not-pressed",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-attpop-other-call",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-svc-bars-netted",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-segs-lane-reading",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-find-box-silent",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-cmd1-not-reset",
+  "caughtBy": "audit-board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v222-w1-editable-always",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-recname-one-char",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-added-not-new",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-award-repair-bare",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-bar-enter-dead",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-bar-click-dead",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-fund-shows-kpis",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-second-add",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v222-w1-menu-no-plan",
+  "caughtBy": "audit-board / v2.22 W1 — the money bar"
+ },
+ {
+  "id": "v221-152-lane-key-fixed",
+  "caughtBy": "audit-board / v2.21 — ORBIT in APEX"
+ },
+ {
+  "id": "v221-152-unf-not-red",
+  "caughtBy": "audit-board / v2.21 — ORBIT in APEX"
+ },
+ {
+  "id": "posture-svc-lane-reading",
+  "caughtBy": "audit-board / the funding posture prints the scorecards"
+ },
+ {
+  "id": "posture-total-lane-reading",
+  "caughtBy": "audit-board / the funding posture prints the scorecards"
+ },
+ {
+  "id": "posture-left-is-ba",
+  "caughtBy": "audit-board / the funding posture prints the scorecards"
+ },
+ {
+  "id": "posture-mc-need",
+  "caughtBy": "audit-board / the funding posture prints the scorecards"
+ }
+]

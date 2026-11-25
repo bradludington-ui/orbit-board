@@ -58,8 +58,8 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
                   uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'",
                   msgClose: 'msgOpen(',   // v2.03 (item 19): the session's messages, opened by ⚠ N unread; v2.19 (item 150): the AI review list removed with its feature
                   // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
-                  // page (#uiAddBtn, uiAddReq) -- the Review tools' own button and the folded menu item call toggleAdd too
-                  toggleAdd: 'uiAddReq(' };
+                  // page -- v2.22 W1 (149.35): the one Add requirement is the Review tools' own (#toolAdd, toggleAdd); the second went
+                  toggleAdd: '#toolAdd' };   // a button named by its id: the folded Tools menu calls toggleAdd too, out of sight
                   // v2.19 (item 150): the cost estimate import's report and mapping box removed with their feature
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   // v2.14 W2 (item 141): the file route's box has no backdrop click (closing must not be a stray click while a file is being
@@ -85,6 +85,8 @@ const outside = id => p.evaluate(id => { const bg = document.getElementById(id),
 const openBox = async box => {
   const how = await p.evaluate(pat => {
     // a menu item runs the switch through mRun(name), a button calls name(...): the name alone, as a word
+    // v2.22 W1 (149.35): an opener named by its id (#toolAdd, the one Add requirement)
+    if (pat[0] === '#') { const e = document.querySelector(pat); if (e && e.getClientRects().length) { e.setAttribute('data-probe', '1'); return { btn: true }; } return null; }
     const nm = /\($/.test(pat) ? new RegExp('\\b' + pat.slice(0, -1) + '\\b') : null;
     const has = e => { const oc = e.getAttribute('onclick') || ''; return nm ? nm.test(oc) : oc.indexOf(pat) >= 0; };
     const mi = [...document.querySelectorAll('.menu[id^="m_"] .mdd button, .menu[id^="m_"] .mdd .mi')].find(has);
@@ -178,8 +180,9 @@ for (const box of BOXES) {
     if (typeof dlgSync === 'function') dlgSync(); }, box.id); continue; }
   const s1 = await st();
   // v2.07 (item 121): the Add box, opened by Enter on Add requirement, hands the keyboard back to that button
-  if (box.id === 'addPanel' && (how.fn || s1.id !== 'uiAddBtn'))
-    bad.push(`addPanel: ${how.fn ? 'Enter on #uiAddBtn did not open it' : 'closing left the keyboard on ' + s1.id + ', not on #uiAddBtn'}`);
+  // v2.22 W1 (149.35): the one Add requirement is #toolAdd
+  if (box.id === 'addPanel' && (how.fn || s1.id !== 'toolAdd'))
+    bad.push(`addPanel: ${how.fn ? 'Enter on #toolAdd did not open it' : 'closing left the keyboard on ' + s1.id + ', not on #toolAdd'}`);
   if (!how.fn) {
     const want = how.menu ? 'b_' + how.menu : (how.left ? 'uiNav_' + how.left : null);
     if (s1.in || s1.id === 'body' || (want && s1.id !== want && !(await p.evaluate(() => !!document.activeElement.closest('.menu')))))

@@ -3350,7 +3350,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // v2.00 (menu, 19 Oct): THE FILE MENU IS GONE. Each of its groups has its own entry on the left menu -- Program offices,
   // Audit (Writer and team's journal, history, pen and name), Imports & exports (Boards and appropriations) -- and Save, Save a
   // copy, Live view and Save diagnostics went to Save at its foot, Save's ▾ and Setup.
-  const lab = JSON.parse(B.ev(`JSON.stringify(['uiNav_rep','uiNav_imp','uiNav_data','uiNav_pmo','uiNav_aud','uiNav_hist','uiNav_setup'].map(function(id){ const e=document.getElementById(id); return e? e.getAttribute('data-tip') : null; }))`));
+  // v2.22 W1: read each entry's own words -- v2.21 (item 152) took the data-tip stand-ins off the menu (it is always words), and this
+  // read them, so it failed on the slot commit itself; and BOARD now heads the menu from Reports & exports on (item 155)
+  const lab = JSON.parse(B.ev(`JSON.stringify(['uiNav_rep','uiNav_imp','uiNav_data','uiNav_pmo','uiNav_aud','uiNav_hist','uiNav_setup'].map(function(id){ const e=document.getElementById(id); return e? e.textContent.replace(/[▸]/g,'').trim() : null; }))`));
+  chk(name, 'left menu', 'the BOARD heading stands right before Reports & exports (v2.22 W1)', B.ev(`(function(){ var p=document.getElementById('uiNav_rep').previousElementSibling; return p? p.className+' '+p.textContent : ''; })()`), 'uiGrp Board');
   chk(name, 'left menu', 'Reports & exports, then Board: Imports & exports, Data, Program offices, Audit, History & recovery, Setup', lab.join(' | '),
     'Reports & exports | Imports & exports | Data | Program offices | Audit | History & recovery | Setup');
   const items = B.ev(`(function(){ syncBtns(); return [document.getElementById('saveBtn').textContent].concat(['dd_save','dd_offices','dd_audit','dd_setup','dd_boards'].map(function(k){ return document.getElementById(k).textContent; })).join(' ¦ '); })()`);
@@ -3361,8 +3364,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // v1.90: Budget year became Reports & exports, Data, Setup and the mode tools -- the copy is in none of them
   chk(name, 'one home', 'the PMO copy is under Program offices and nowhere else', /Publish PMO copy|Review submittals|Submit input/.test(B.ev(`['dd_reports','dd_data','dd_setup','dd_audit','dd_boards','dd_save','dd_kept','dd_fy','dd_modetools','t_review','t_rank','t_fund','t_compare','t_brief'].map(function(k){ const e=document.getElementById(k); return e? e.textContent : ''; }).join(' ')`)), false);
   const P = boot({ html: v184Publish(B.ev) });
-  chk(name, 'copy', 'in a copy, ✉ Submit input is in Save’s place at the left menu’s foot, and the bar button stays',
-    /Submit input/.test(P.ev(`(function(){ const b=document.getElementById('saveBtn'); return b && b.closest('#uiSide .uiSave')? b.textContent : ''; })()`)) + ' ' + /Submit input/.test(P.ev(`document.getElementById('subBanner').textContent`)), 'true true');
+  // v2.22 W1: Save is in the header since v2.21 (item 152), not at the left menu's foot -- this read the foot, and failed on the slot commit
+  chk(name, 'copy', 'in a copy, ✉ Submit input is in Save’s place in the header, and the bar button stays',
+    /Submit input/.test(P.ev(`(function(){ const b=document.getElementById('saveBtn'); return b && b.closest('.hdr #uiSave')? b.textContent : ''; })()`)) + ' ' + /Submit input/.test(P.ev(`document.getElementById('subBanner').textContent`)), 'true true');
   // v1.96 (item 65): in a copy it is the one way out, so it is unfolded on top, and a copy has no Program offices group.
   // v2.00 (menu): it is the Save spot itself, and Program offices is not shown and holds nothing
   chk(name, 'copy', 'in a copy, ✉ Submit input is the Save spot (pmoSubmit), not in a list, and there is no Program offices',
