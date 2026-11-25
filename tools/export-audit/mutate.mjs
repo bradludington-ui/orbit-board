@@ -11088,6 +11088,14 @@ const MUTATIONS = [
     find: "['Mandatory','r hide760 mandc']", repl: "['Mandatory','r hide760']" },
   // ==== end v2.23 W3 ====
   // ==== v2.23 integration (the lead) ====
+  // ==== v2.23 review RV-A ====
+  // ==== end v2.23 review RV-A ====
+  // ==== v2.23 review RV-B ====
+  // ==== end v2.23 review RV-B ====
+  // ==== v2.23 review RV-C ====
+  // ==== end v2.23 review RV-C ====
+  // ==== v2.23 review RV-D ====
+  // ==== end v2.23 review RV-D ====
   // ==== end v2.23 integration (the lead) ====
 
 ];

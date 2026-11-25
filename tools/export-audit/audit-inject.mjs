@@ -807,6 +807,14 @@ const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding he
 }
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
+// ==== v2.23 review RV-A ====
+// ==== end v2.23 review RV-A ====
+// ==== v2.23 review RV-B ====
+// ==== end v2.23 review RV-B ====
+// ==== v2.23 review RV-C ====
+// ==== end v2.23 review RV-C ====
+// ==== v2.23 review RV-D ====
+// ==== end v2.23 review RV-D ====
 // ==== end v2.23 integration (the lead) ====
 
 for (const id of INJ_EXPECT) if (!SEEN.has(id) && !FID.has(id)) failures.push({ finding: id, what: 'this block never ran — is it after the report, or in a .then the exit beat?', got: 'never ran', want: 'ran' });

@@ -6853,6 +6853,14 @@ function w1LockAsBefore() {
 // ==== v2.23 W3 ====
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
+// ==== v2.23 review RV-A ====
+// ==== end v2.23 review RV-A ====
+// ==== v2.23 review RV-B ====
+// ==== end v2.23 review RV-B ====
+// ==== v2.23 review RV-C ====
+// ==== end v2.23 review RV-C ====
+// ==== v2.23 review RV-D ====
+// ==== end v2.23 review RV-D ====
 // ==== end v2.23 integration (the lead) ====
 // ==== v2.16 (item 148) ====
 // Brad, 19 Nov 2026, from the real board: "GEX/GATES is somehow being confused with the Option Year requirement in the five year
