@@ -89,6 +89,17 @@ where W1's Esc already reverted), and the mutation is caught by it.
 - `v223-rva-a1-page-unmarked` → `npm run across`: G fails the same 3.
 - `v223-rva-a3-disabled-first` → `npm run reqpage`: F fails at 1440 and 1024 (focus on the `<aside>`).
 
+## Results on the final tree
+
+- `npm run check`: all checks passed. `mcount`: 3,531 entries, every one matches once.
+- **audit-other whole: ALL CHECKS PASSED.**
+- **audit-board whole: 4 FAILING, all from before RV-A and outside it. The same 4 fail on 56aa6c6** (the two blocks run alone on that
+  board): W1's "the requirement page" block expects the tabs without W2's Across the FYDP (`tabs`, and twice under `a tab fails`: 5
+  vs 6 tabs), and v2.22 W3's RECORD card bar expects no Open full page. These are the integration's (W1's checks written before W2's
+  tab merged, v2.22's before Open full page). Left for the lead; every RV-A block passes.
+- Browser: `npm run reqpage` ALL CHECKS PASSED (with F and the two harness fixes); `npm run across` passes A–G at every width;
+  `npm run keys` and `npm run record` pass; `npm run standards`: 0 findings, nothing new.
+
 ## Known gaps
 
 - The Rank board does not carry the list's 🔒 locked-view line either (the list draws it inside `#list` too); the header tag and the
