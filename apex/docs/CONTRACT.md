@@ -2725,3 +2725,24 @@ Brad, of a mock-up of three additions (*"Concur on recommendations"*, then *"Go 
 
 `test/charts-62.test.mjs` (both functions against inputs built by hand; the page on a plan imported twice, the IPT, and
 option B); `charts.test.mjs` counts seven cards.
+
+## 63. The Discretionary PDFs count each Mandatory line in its record's Required (Brad, 25 Nov 2026)
+
+*"On the Discretionary PDFs, we have the Mandatory funded items as UFRs at the end of each report. I also need the mandatory
+amounts to be included in the requirement totals on each line item, so that the unfundeds are also visible in the spend plan
+itself just like the manual imports. If a record is already listed, the mandatory amounts should feed into that line's
+requirement totals. The summary chart at the top right of the spend plan should also reflect those updates. The summary of
+my UFRs should equal the sum of my shortfall/deltas."*
+
+This replaces §52/§55's "a Mandatory line adds nothing to Required" for the Discretionary download. `SP.publishData` takes a
+Mandatory line (`mand`) as it takes a UFR tracker line: into the atom of its appropriation, fiscal year, PMO (the pull's) and
+CCaR record, by service, so Required = Approved + its amount and Delta = -its amount on that record's line. A record that
+already has Discretionary money takes it on its own line; one with Mandatory money alone is a line of its own with Approved
+$0, titled by its CCaR record's title, its plan events its description, and is not flagged. The section's totals by
+service at the top right, the break page's Required and every subtotal follow, and in every Discretionary PDF the
+unfunded list's total equals the sum of the Deltas of its spend plan pages. Approved, Obligated and Remaining stay the
+Discretionary money alone, and the notes and the list's footnote say so. The Discretionary and Mandatory download is
+unchanged (its body counts Mandatory as Approved and its list is the tracker's alone).
+
+`test/ufr-mandatory.test.mjs` (Required, a listed record, a Mandatory-only record, the list against the deltas in every
+document, Initial Spares, the other download unchanged).

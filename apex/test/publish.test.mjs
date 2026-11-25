@@ -523,7 +523,7 @@ try {
     for (let i = 0; i < 200 && got.length === keep; i++) await settle(10);
     const g = got[got.length - 1]; writeFileSync(join(tmp.dir, 'uid.pdf'), g.data);
     const dt = spawnSync('pdftotext', ['-layout', join(tmp.dir, 'uid.pdf'), '-'], { encoding: 'utf8' }).stdout;
-    C.chk('§55 Discretionary hands over its own PDF, named so, saying it is the Discretionary money alone', g.name === 'APEX Spend Plan - O&M - Discretionary.pdf' && /Discretionary: every figure in this PDF is the Discretionary money alone/.test(dt), g.name + ' ' + got.length + ' ' + doc2.querySelector('.msg').textContent);
+    C.chk('§55 Discretionary hands over its own PDF, named so, saying it is the Discretionary money alone', g.name === 'APEX Spend Plan - O&M - Discretionary.pdf' && /Discretionary: Approved, Obligated and Remaining in this PDF are/.test(dt.replace(/\s+/g, ' ')), g.name + ' ' + got.length + ' ' + doc2.querySelector('.msg').textContent);
     got.splice(keep); }
   // §33.7 the built-in emblem is printed unless the plan holds another or asks for none
   const embBytes = Buffer.from(S2.EMBLEM_DEFAULT.split(',')[1], 'base64');
