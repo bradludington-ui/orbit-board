@@ -125,7 +125,13 @@ at 1440 and 1024).
   money bar (blocks to a pixel of their share, filling the bar, words never cut; not in Brief, Funding, ≤760); C Columns greyed in a
   narrow room and live with room; D the hand over a row; E Funded, the pill and "unfunded $X" whole with a nine-digit figure at
   1920–1024, the chips 24px and clickable; F the Funding page's tiles, bars and entries on screen, no figure cut, entries 24px.
-  Fails on the slot commit.
+  Fails on the slot commit: 34 failures, every section failing (B's "not drawn in Brief / on the Funding page / at 700px" are
+  CONTROLs: nothing is drawn there on the slot either).
+- **Every suite whole and every browser check, once, on 02e7288** (each through heavy.sh): audit-board, -other, -import, -recon,
+  -hostile, -inject, -ui, audit (excel), legacy-fsrc, boot-same — ALL CHECKS PASSED (8 banners + the legacy line + boot-same's).
+  keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, pointer, controls, colours, pmosave, look — pass. standards — 0
+  known, 0 new findings. layout — fails D ×8 only, the carried failure (see Known gaps). Also: `npm run check`, money coverage (19/19),
+  the money map (current), and the trace matrix (75 cells, every link holds).
 - Existing checks changed on purpose, each with its `// v2.22 W1` comment:
   - audit-board "v2.15 W1 — the context bar gives the PPBE cycle’s figure less room…": the stand-in widths carry `cmd1` (50px), and
     every step after it is 50px further down; the wrap is still last.
@@ -143,8 +149,24 @@ at 1440 and 1024).
     checks the BOARD heading stands before Reports & exports.
 
 ## Mutations
-New (`v222-w1-*`, 29) and retargeted (`v221-152-lane-key-fixed`, `v221-152-unf-not-red`) — proofs in `proofs-W1.json`,
-results in `proved-W1.jsonl`.
+- **New, 29 (`v222-w1-*`)**: the bar follows the filter, a trimmed requirement reads green, blocks sized by funded, a run without its
+  ranks, the bar's sentence off by one, the cutline at the first mandatory draw, the rows' band by a rule of its own, Funded the
+  discretionary alone, "unfunded $X" the lane reading, the Discretionary tile's meter against the requirement, "whole board" never,
+  Showing N of N, the to-complete count one short, Incomplete filtering nothing, the Unfunded chip never pressed, the Needs attention
+  popup running another call, Unfunded by service netted, the Funding bar's lane reading, the find box silent, `cmd1` never taken off,
+  the plain Editable chip shown, the record name by one character, ADDED back, the bare "Award", Enter and a click on the bar dead,
+  the Funding page showing both sets of tiles, the second Add requirement's look, the PLAN heading gone.
+- **Retargeted, 2**: `v221-152-lane-key-fixed` and `v221-152-unf-not-red` (the status colour is the pill's now; same defect).
+- **Proved again because their lines moved**: `posture-svc-lane-reading`, `posture-total-lane-reading`, `posture-left-is-ba`,
+  `posture-mc-need` (the posture's lines are kept as text, the strip rewritten round them).
+- **All 35 CAUGHT by a failed check, none by a block that threw** (`prove.py`, JOBS=1 under heavy.sh, on 02e7288's board):
+  `proofs-W1.json`, `proved-W1.jsonl`. Each new one is caught by audit-board "v2.22 W1 — the money bar, …", but `v222-w1-cmd1-not-reset`
+  (by "v2.15 W1 — the context bar gives…"); the two retargets by "v2.21 — ORBIT in APEX’s look…"; the four posture ones by "the funding
+  posture prints the scorecards’ figures".
+- mcount after the last change: 3,295 entries, each target matching once.
+- Not a mutation, browser only: look-fits A–F (find box, money bar widths and words, Columns greyed, the pointer, cut figures and chips,
+  the Funding page), each shown failing on the slot commit (below).
+- None retired.
 
 ## For the integration
 - **The find box → the palette (W2):** `cmdOpenGo()` dispatches `keydown {key:'k', ctrlKey:true}` on `document`. If W2's handler
