@@ -60,6 +60,9 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
                   msgClose: 'msgOpen(',   // v2.03 (item 19): the session's messages, opened by ⚠ N unread; v2.19 (item 150): the AI review list removed with its feature
                   // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
                   // page -- v2.22 W1 (149.35): the one Add requirement is the Review tools' own (#toolAdd, toggleAdd); the second went
+                  // v2.23 W2 (item 158): Add to a year and Fill across open from the requirement page's Across the FYDP tab; on this
+                  // board, which holds one year, they are opened by their switches (PRE starts the year to add to)
+                  xfAddClose: 'window.__xfAddGo()', xfFillClose: 'window.__xfFillGo()',
                   toggleAdd: '#toolAdd' };   // a button named by its id: the folded Tools menu calls toggleAdd too, out of sight
                   // v2.19 (item 150): the cost estimate import's report and mapping box removed with their feature
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
@@ -138,7 +141,12 @@ const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilt
   // one-entry W carrying .full); something unsaved on the page, so step 1 shows with its button and its checkbox. Taken off after
   impFilePanel: [`window.__impFileGo=function(){ DIRTY=true; var W=[[_AP.key, '{}', 'x', 'the O&M plan']]; W.full={rep:'r'};
     fullImportUndone({ok:false, at:0, why:'QuotaExceededError', back:true, now:['was'], held:[localStorage.getItem(_AP.key)]}, W, 'the text', 'ORBIT Live.html'); }`,
-    `delete window.__impFileGo; try{ impFileShut(); }catch(e){} _impFileLast=null; DIRTY=false; syncBtns()`] };
+    `delete window.__impFileGo; try{ impFileShut(); }catch(e){} _impFileLast=null; DIRTY=false; syncBtns()`],
+  // v2.23 W2 (item 158): a year started blank to add the first requirement to, taken away after
+  xfAddPanel: [`window.__xfY=MS.cur+1; if(!MS.years[window.__xfY]) MS.years[window.__xfY]=pmoYearStart(window.__xfY, false); _recYrC=null;
+    window.__xfAddGo=function(){ xfAddOpen(S.order[0], window.__xfY); }`,
+    `delete window.__xfAddGo; try{ xfAddClose(); }catch(e){} delete MS.years[window.__xfY]; _recYrC=null; render()`],
+  xfFillPanel: [`window.__xfFillGo=function(){ xfFillOpen(S.order[0]); }`, `delete window.__xfFillGo; try{ xfFillClose(); }catch(e){}`] };
 for (const box of BOXES) {
   // the in-app prompt (uipPanel) is skipped: it opens only where the browser has no prompt of its own (Electron) -- v2.19 (item
   // 150): with the cost estimate gone, the WBS quick box asks through the browser's prompt too (keyboard-reach T) -- its Cancel

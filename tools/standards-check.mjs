@@ -476,6 +476,32 @@ for (const build of BUILDS) {
     if (!ifShown.n || !ifResc) record(build, theme, { sc: 'coverage', key: 'the file route’s box was not on screen whole to measure',
       detail: `the box with step 1 ${ifShown.n ? 'was' : 'was NOT'} shown; with both rescues ${ifResc ? 'was' : 'was NOT'}` + (ifShown.err ? ' (' + ifShown.err + ')' : ''), n: 1 });
 
+    // v2.23 W2 (item 158): ACROSS THE FYDP -- the tab, with a second year started blank (so a year to add to and boxes in two years
+    // are drawn), then Add to a year and Fill across, each open. Until the requirement page is merged the tab is drawn the way the page
+    // draws it (REQPG_TABS' html into #reqPage); once reqPageOpen draws it, through that. Each must be on screen, or the run fails.
+    const xfShown = await page.evaluate(() => { try {
+      if (typeof REQPG_TABS === 'undefined' || !REQPG_TABS.some(t => t.k === 'fydp')) return { n: false };
+      openMenu = null; rowMenuId = null; syncBtns(); render();
+      const id = S.order[0], y = MS.cur + 1; window.__xfKeep = { y, had: !!MS.years[y] };
+      if (!MS.years[y]) MS.years[y] = pmoYearStart(y, false);
+      _recYrC = null;
+      try { reqPageOpen(id, 'fydp'); } catch (e) {}
+      const rp = document.getElementById('reqPage');
+      if (!(rp && !rp.hidden && rp.querySelector('#xfTab'))) { const t = REQPG_TABS.filter(x => x.k === 'fydp')[0]; rp.hidden = false; rp.innerHTML = t.html(id); t.after(id); window.__xfKeep.mine = true; }
+      const tab = !!rp.querySelector('#xfTab input.xfin') && !!rp.querySelector('#xfTab .xfaddb');
+      window.__xfKeep.id = id; return { n: tab };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const xfAdd = await page.evaluate(() => { try { xfAddOpen(window.__xfKeep.id, window.__xfKeep.y); return !!document.querySelector('#xfAddPanel.open #xfAddGo'); } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const xfFill = await page.evaluate(() => { try { xfAddClose(); xfFillOpen(window.__xfKeep.id); return !!document.querySelector('#xfFillPanel.open #xfFillGo'); } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { xfFillClose(); const k = window.__xfKeep || {}; if (k.y && !k.had) delete MS.years[k.y];
+      const rp = document.getElementById('reqPage'); if (k.mine && rp) { rp.innerHTML = ''; rp.hidden = true; }
+      _recYrC = null; render(); } catch (e) {} });
+    if (!xfShown.n || !xfAdd || !xfFill) record(build, theme, { sc: 'coverage', key: 'Across the FYDP was not on screen whole to measure',
+      detail: `the tab with its boxes and an Add button ${xfShown.n ? 'was' : 'was NOT'} shown; Add to a year ${xfAdd ? 'was' : 'was NOT'}; Fill across ${xfFill ? 'was' : 'was NOT'}` + (xfShown.err ? ' (' + xfShown.err + ')' : ''), n: 1 });
+
     // v2.19 (item 150): the cost estimate import's report and mapping box measures removed with their feature
     // v2.12 (item 134): THE OVERS, measured with one on screen (v2.19, item 150: Needs attention's list, attShow('over'), where the
     // Fit to the PPBE position box was -- fitShow() opens it): the plan tagged with a position that gives the

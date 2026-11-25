@@ -20847,6 +20847,63 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== v2.23 W1 ====
 // ==== end v2.23 W1 ====
 // ==== v2.23 W2 ====
+// v2.23 W2 (item 158): ACROSS THE FYDP IN A PMO COPY. The contract (§1.2): requirement values only -- Disc and Mand are the portfolio
+// team's (allocLocked) -- and only in the years the copy submits for; Add to a year makes the office's own proposal there, never another
+// office's requirement; and a figure the office typed for another year travels in that year's part of the submittal. And the board's
+// side: what the tab wrote into a year not on screen survives save -> reopen. FAILS ON THE SLOT COMMIT (9f82139): there is no tab.
+await (async () => {
+  const name = 'v2.23 W2 — Across the FYDP in a PMO copy: requirement values only, in the years it submits for, its own proposals, sent by year; and a save -> reopen';
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    // the board: base FY27, FY28 rolled forward; A is PSM's, B is AV's
+    const b0 = boot(); seed(b0.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('B', 'AV', [200, 50])], disc: [400, 100], mand: [100, 50], order: ['A', 'B'] });
+    b0.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.order.forEach(function(id){ seedSplit(id); }); save(); window.confirm=function(){ return true; }; switchYear(2028); switchYear(2026); switchYear(2027);
+      window.__d=document.createElement('div'); document.body.appendChild(window.__d); 'ok'`);
+    const tab = (ev, id) => ev(`(function(){ var t=REQPG_TABS.filter(function(x){ return x.k==='fydp'; })[0]; window.__d=window.__d||document.body.appendChild(document.createElement('div'));
+      window.__d.innerHTML=t.html(${J(id)}); t.after(${J(id)}); return 'ok'; })()`);
+    // the board's own save -> reopen: a figure written into FY28 from FY27 comes back in FY28
+    tab(b0.ev, 'A');
+    b0.ev(`(function(){ var i=window.__d.querySelector('input[data-y="2028"][data-xf="q"][data-si="1"]'); i.value='120'; i.dispatchEvent(new Event('change',{bubbles:true})); })(); 'ok'`);
+    const R = boot({ html: b0.ev('buildSavedHtml()') });
+    chk(name, 'reopen', 'ANG 120 typed for FY28 on the board survives save -> reopen in FY28, FY27 untouched', J([R.ev(`JSON.stringify(MS.years[2028].asks.A)`), R.ev(`JSON.stringify(itemById('A').ask)`), R.ev(`String(MS.cur)`)]), J(['[300,120]', '[300,100]', '2027']));
+    // the copy, opened for PSM
+    const html = b0.ev(`(function(){ var cap=null, _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      try{ localStorage.setItem('prio27who','Portfolio Lead'); }catch(e){} window.confirm=function(){ return true; }; try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+    chk(name, 'fixture', 'CONTROL: the copy was published', html.length > 1000, true);
+    const P = boot({ html }), ev = P.ev;
+    ev(`try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); };
+      window.__ans=[]; window.confirm=function(){ return window.__ans.length? window.__ans.shift() : true; }; 'ok'`);
+    chk(name, 'fixture', 'CONTROL: a PMO copy, for PSM, submitting for FY27-FY31', J([ev(`String(SANDBOX)`), ev(`String(myPmo())`), ev(`String(!!pmoBaseOf(2028) && !!pmoBaseOf(2029))`)]), J(['true', 'PSM', 'true']));
+    tab(ev, 'A');
+    chk(name, 'copy', 'Disc and Mand are read, never boxes; the requirement is a box in FY27 and FY28',
+      J([ev(`String(window.__d.querySelectorAll('input[data-xf="d"], input[data-xf="m"]').length)`), ev(`String(window.__d.querySelectorAll('input[data-xf="q"][data-y="2027"], input[data-xf="q"][data-y="2028"]').length)`)]), J(['0', '4']));
+    chk(name, 'copy', 'FY26, held but a year the copy does not submit for: read, no box, no Add (CONTROL: FY26 is in the copy)',
+      J([ev(`String(!!MS.years[2026] && !pmoBaseOf(2026))`), ev(`String(window.__d.querySelectorAll('input[data-y="2026"]').length)`), ev(`String(window.__d.querySelectorAll('.xfrov').length>0)`)]), J(['true', '0', 'true']));
+    const f0 = ev(`JSON.stringify([MS.years[2027].fsrc, MS.years[2028].fsrc])`);
+    ev(`xfSet(2028,'A','d',0,'5'); 'ok'`);
+    chk(name, 'copy', 'a Disc figure handed to the writer anyway is refused, saying the allocation is the portfolio team’s', J([ev(`JSON.stringify([MS.years[2027].fsrc, MS.years[2028].fsrc])`) === f0, /portfolio team/.test(ev(`window.__al.join(' ')`))]), J([true, true]));
+    ev(`(function(){ var i=window.__d.querySelector('input[data-y="2028"][data-xf="q"][data-si="0"]'); i.value='321'; i.dispatchEvent(new Event('change',{bubbles:true})); })(); 'ok'`);
+    chk(name, 'copy', 'the requirement typed for FY28 lands in FY28; FY27 on screen', J([ev(`JSON.stringify(MS.years[2028].asks.A)`), ev(`String(MS.cur)`)]), J(['[321,120]', '2027']));
+    // Add to FY29 (not started in the copy): asked once, started blank, the office's own proposal, linked to FY28's
+    ev(`window.__ans=[true]; xfAddOpen('A', 2029); xfAddDo(); 'ok'`);
+    const ad = JSON.parse(ev(`(function(){ var c=((MS.years[2029]||{}).custom||[])[0]; return JSON.stringify(c? [c.id, c.prior, c.ask, grpOf(c, MS.years[2029])] : null); })()`));
+    chk(name, 'add', 'Add to FY29 in the copy: started blank, a proposal of PSM’s own (NEW-PSM-n) linked to FY28’s A, at FY28’s figures',
+      J(ad), J(['NEW-PSM-' + ad?.[0]?.split('-').pop(), { fy: 2028, id: 'A' }, [321, 120], 'PSM']));
+    const n29 = ev(`String(((MS.years[2029]||{}).custom||[]).length)`);
+    ev(`xfAddOpen('B', 2029); 'ok'`);
+    chk(name, 'add', 'another office’s requirement is not added from this copy', J([ev(`String(((MS.years[2029]||{}).custom||[]).length)`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`)]), J([n29, false]));
+    // the submittal carries FY28's figure under FY28
+    const pk = JSON.parse(ev(`(function(){ var cap=null, _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap||'null'; })()`));
+    const y28 = pk && pk.byYear && pk.byYear['2028'];
+    chk(name, 'submit', 'the submittal sends A’s FY28 requirement under FY28', J(y28 && y28.items && y28.items.A && y28.items.A.asks), J([321, 120]));
+    chk(name, 'errors', 'no page error', b0.errors.length + R.errors.length + P.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  } finally { bootRelease(__bm); await settleBoards(); }
+})();
 // ==== end v2.23 W2 ====
 // ==== v2.23 W3 ====
 // ==== end v2.23 W3 ====
