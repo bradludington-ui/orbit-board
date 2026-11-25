@@ -1773,6 +1773,79 @@ html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav)
 </style>
 <style id="v222w3">
 /* v2.22 W3: its own rules go here (contract §2) */
+/* v2.22 W3 (item 155, the concept's record; 149.18-149.50): THE RECORD AS A CARD. Docked beside the table (View › Record panel ›
+   Docked beside the table, above 1400px) it is a card on the page; sliding over the table it is the same card at the window's edge.
+   Presentation only: every control keeps its call. A section a jump goes to is brought under the pinned head (.rechead). */
+html.ui-on #inspector{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 3px rgba(24,32,41,.14);font-size:12px;overflow-x:hidden}
+html.ui-on:not(.ui-dock) #inspector{border-radius:0;border-width:0 0 0 1px}
+@media (max-width:1400px){ html.ui-on #inspector{border-radius:0;border-width:0 0 0 1px} }
+/* the pinned head: the bar, the name, the strip -- one sticky block, so nothing scrolls over it and nothing lands under it */
+#inspector .rechead{position:sticky;top:0;z-index:3;background:var(--panel);padding:10px 14px 0;border-bottom:1px solid var(--line)}
+#inspector .recbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--mut)}
+#inspector .recbar .recpos{font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px}
+#inspector .recbar .recpos b{color:var(--ink)}
+#inspector .recbar .sp{flex:1 1 auto}
+#inspector .recbar button{min-height:26px;min-width:24px;padding:2px 9px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;font-size:11.5px;cursor:pointer;box-sizing:border-box}
+#inspector .recbar button:hover:not(:disabled){border-color:var(--edge2)}
+#inspector .recbar button:disabled{opacity:.5;cursor:default}
+#inspector .recbar button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* ✕ Close only where the record slides over the table: docked, the card closes nothing */
+#inspector .recx{display:none}
+html.ui-on:not(.ui-dock) #inspector .recx{display:inline-flex;align-items:center}
+@media (max-width:1400px){ #inspector .recx{display:inline-flex;align-items:center} }
+#inspector .rechead .insp-ttl{font-size:18px;font-weight:800;line-height:1.25;margin:6px 0 2px;overflow-wrap:anywhere}
+html.ui-on #inspector .rechead .uiDTabs{position:static;margin:4px -14px 0;padding:0 8px;border-bottom:0;background:transparent}
+html.ui-on #inspector .insp-bd{padding:10px 14px 14px}
+/* the lane with its word in APEX's status colours (black on green and yellow, white on red: 7.4, 15.4 and 6.2 to 1), the office,
+   and the ★ switch */
+#inspector .recchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px}
+#inspector .recpill,#inspector .recchip,#inspector .recmc{display:inline-flex;align-items:center;min-height:24px;box-sizing:border-box;padding:2px 10px;border-radius:12px;font-size:11.5px;font-weight:800;line-height:1.2}
+#inspector .recpill[data-lk="disc"]{background:var(--apxOk,#00B050);color:#000}
+#inspector .recpill[data-lk="split"],#inspector .recpill[data-lk="mand"]{background:var(--apxMid,#FFD700);color:#000}
+#inspector .recpill[data-lk="unf"]{background:var(--apxBad,#C00000);color:#fff}
+#inspector .recchip{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-weight:700}
+#inspector .recmc{border:1px solid var(--edge);background:var(--panel);color:var(--ink);font-family:inherit;cursor:pointer}
+#inspector .recmc.on{border-color:var(--amber);color:var(--amber)}
+#inspector .recmc:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* the one line of figures (149.31) */
+#inspector .insp-sum{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+#inspector .insp-sum .insp-f.empty{border-style:solid}
+/* the lines that say what it is (149.47, 149.48, 149.50), what is still needed (149.21), a refusal (149.27), a locked view (149.49) */
+#inspector .recflds,#inspector .recyrs,#inspector .recclin,#inspector .recneed{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:11.5px;margin:4px 0 8px;line-height:1.35}
+#inspector .rl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;color:var(--mut)}
+#inspector .recf i{color:var(--dim);font-style:normal}
+#inspector .recf b{overflow-wrap:anywhere}
+#inspector .recyr{font:inherit;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:6px;min-height:24px;box-sizing:border-box;display:inline-flex;align-items:center}
+#inspector button.recyr{border:1px solid var(--edge);background:var(--panel);color:var(--ink);cursor:pointer}
+#inspector span.recyr.cur{background:var(--sel,var(--panel2));border:1px solid var(--line2);color:var(--ink)}
+#inspector span.recyr.none{color:var(--dim)}
+#inspector .recneed .qb{min-height:24px}
+#inspector .recmsg{display:none}
+#inspector .recmsg.on{display:block;margin:0 0 8px;padding:6px 9px;border-left:3px solid var(--red);background:var(--panel2);font-size:11.5px;line-height:1.4}
+#inspector .recro{margin:0 0 8px;padding:6px 9px;border-left:3px solid var(--amber);background:var(--panel2);font-size:11.5px;line-height:1.4}
+/* 149.18: sliding over the table, the scrim dims the page and no longer takes the click meant for what is under it */
+html.ui-on:not(.ui-dock) .drawerscrim.on{pointer-events:none;background:rgba(0,0,0,.16);cursor:default}
+@media (max-width:1400px){ .drawerscrim.on{pointer-events:none;background:rgba(0,0,0,.16);cursor:default} }
+/* the budget block (149.34): the name the file prints, whole, once per line */
+#inspector .budname{font-weight:700;overflow-wrap:anywhere;margin:0 0 2px;line-height:1.3}
+#inspector .budname.none{color:var(--dim);font-weight:600}
+/* the awards (149.43): one block per award, stacked, so every service, the totals and the buttons are inside the record */
+#inspector .awdinc{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+#inspector .awdone{border:1px solid var(--line2);border-radius:8px;padding:6px 8px;background:var(--panel2)}
+#inspector .awdhd{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:11px}
+#inspector .awdhd .awdn{font-weight:800}
+#inspector .awdhd .sp{flex:1 1 auto}
+#inspector .awdsvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:4px 8px;margin-top:5px}
+#inspector .awdsvg label{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;min-width:0}
+#inspector .awdsvg label span{flex:0 0 46px;overflow-wrap:anywhere}
+#inspector .awdsvg input{flex:1 1 auto;min-width:0;width:100%;text-align:right}
+#inspector .awdft{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:5px;font-size:10.5px}
+#inspector .awdft b{font-variant-numeric:tabular-nums}
+#inspector table.awdsum{border-collapse:collapse;font-size:10.5px;margin-top:6px;width:100%;table-layout:fixed}
+#inspector table.awdsum th,#inspector table.awdsum td{padding:2px 6px;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#inspector table.awdsum th:first-child,#inspector table.awdsum td:first-child{text-align:left}
+#inspector table.awdsum tr.awdbal th,#inspector table.awdsum tr.awdbal td{border-top:1px solid var(--line2);font-weight:800}
+#inspector .awdtools{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:6px}
 </style>
 <style id="v222int">
 /* v2.22 INT: its own rules go here (contract §2) */
@@ -2096,7 +2169,7 @@ html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav)
 <p>In <b>PPBE Budget Positions</b> each service can be set to <i>figures entered in $K</i>, for exhibits printed in thousands: a plain number typed there is read as that many thousand dollars (15,828 is $15,828,000), a figure with its own unit (15.8M) is read as written, the boxes show thousands, and every total is in dollars. Setting it on a service that already holds figures asks whether those were typed in $K; if they were, they are multiplied by 1,000, and <i>undo the ×1,000</i> beside the setting puts them back.</p>
 <div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
 <h4>Everything else on the requirement</h4>
-<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title opens the record at it), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b> — one box for the whole record: the plan event, the CCaR record and PID, prime contract or OGC, PMO (to hand a requirement to another office; it asks first and says what follows), obligation category, the cost element, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z; a destination that is not a government activity clears which awards to and the MIPR type), the description, the impact statement and the note. The CCaR record name is read from the CCaR records list and is not typed. The box lists what is still needed; you can save before it is complete. In a copy, it says at the top when what you change will not be sent — another office’s requirement, or a year the copy cannot submit — and the 🧾 CLIN drill is read only: nothing in it is sent.</p>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title opens the record at it), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line prints the budget and says how it was settled — chosen, by rule — not picked, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b> — one box for the whole record: the plan event, the CCaR record and PID, prime contract or OGC, PMO (to hand a requirement to another office; it asks first and says what follows), obligation category, the cost element, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z; a destination that is not a government activity clears which awards to and the MIPR type), the description, the impact statement and the note. The CCaR record name is read from the CCaR records list and is not typed. The box lists what is still needed; you can save before it is complete. In a copy, it says at the top when what you change will not be sent — another office’s requirement, or a year the copy cannot submit — and the 🧾 CLIN drill is read only: nothing in it is sent.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
 <p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. One box builds the whole record, for the office this copy submits for and no other (it asks once, if the copy does not know the office yet): the plan event, prime contract or OGC, the CCaR record and PID, the requirement value by service with a BAE budget for each service that has a value, the classification, where the money goes, and the narrative. The record’s name is never typed: it is read from the CCaR records list as the record is typed, and the list’s short description fills an empty description. The band, ★ Mission Critical, the award dates and RCN / EEIC are not in the box: the portfolio team sets them. It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
@@ -17036,7 +17109,8 @@ function budClearAll(id){
     +'</b> — every line follows the rule again.');
 }
 // v1.92: how a line's budget was settled, in the resolver's words -- the panel never judges a name itself.
-const BUD_HOW={chosen:'chosen', rule:'automatic by rule', ccar:'from CCaR',
+// v2.22 W3 (149.24 c, Brad: "the record stops saying 'automatic' for a line nobody picked"): by rule -- not picked
+const BUD_HOW={chosen:'chosen', rule:'by rule \u2014 not picked', ccar:'from CCaR',
   ambiguous:'not set \u2014 several fit; pick one', none:'not set \u2014 none fits', 'no-list':'not set \u2014 no BAE list'};
 function budRecordHtml(id, it){
   const head='<div class="insp-lbl">BAE budget <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">'
@@ -17085,9 +17159,16 @@ function budRecordHtml(id, it){
     } else {
       how=r.exportable? r.status : 'unset';
       sayHow=(unf? (q.part? 'unfunded part · ' : 'no money yet · ') : '')+(BUD_HOW[r.status]||r.status);
-      opts='<option value="">'+(r.rule.n? '— the rule: '+esc(r.rule.n)+' —'
+      // v2.22 W3 (149.34): a line the rule settles prints the rule's name once, whole, above its picker (budname) -- not again in it
+      opts='<option value="">'+(r.rule.n? '— keep the rule —'
           : (pick.length? '— choose one of '+pick.length+' —' : '— none match —'))+'</option>';
     }
+    // v2.22 W3 (149.34): THE NAME THE FILE PRINTS, WHOLE, ONCE PER LINE. A closed picker cannot wrap, so the longest Air Force names
+    // were cut at the end, where the office is; and the rule's name was said twice, in the picker and under it. The line prints the
+    // budget the Spend Plan Source prints (budResolve's own answer), wrapping where it must, and the picker below is for changing it.
+    const bn=(r.status==='invalid')? '<div class="budname bad">\u2717 '+esc(r.stored)+'</div>'
+      : (r.effective? '<div class="budname">'+esc(r.effective)+'</div>'
+      : '<div class="budname none">no budget \u2014 '+(unf? 'none named yet' : 'the file sends this line blank')+'</div>');
     opts+=pick.map(function(b){ return opt(b, r.status==='chosen'? r.effective : ''); }).join('');
     const setter=unf? 'budUnfSet('+jsa(id)+','+jsa(q.svc)+',this.value)'
                     : 'budLineSet('+jsa(id)+','+jsa(q.svc)+',this.value,'+jsa(q.lane)+')';
@@ -17107,8 +17188,8 @@ function budRecordHtml(id, it){
           +' \u00b7 not used for unfunded dollars</div>';
     }
     return '<tr><th scope="row">'+esc(q.svc)+'<span class="budlane">'+laneTxt+'</span></th>'
-      +'<td><select aria-label="'+esc('BAE budget, '+label)+'" title="'+esc(title)+'" onchange="'+setter+'">'+opts+'</select>'
-      +'<div class="budhow '+how+'">'+sayHow+'</div>'+kept+'</td>'
+      +'<td>'+bn+'<div class="budhow '+how+'">'+sayHow+'</div>'
+      +'<select aria-label="'+esc('BAE budget, '+label)+'" title="'+esc(title)+'" onchange="'+setter+'">'+opts+'</select>'+kept+'</td>'
       +'<td>'+(r.storedKey? '<button type="button" class="qb" onclick="budLineClear('+jsa(id)+','+jsa(q.svc)+','+jsa(q.lane)+')"'
         +' aria-label="'+esc('Clear the '+label+' budget')+'" title="back to the rule">clear</button>' : '')+'</td></tr>';
   }).join('');
@@ -26915,35 +26996,35 @@ function awardBlockHtml(it){
       <span style="font-size:9.5px;color:var(--dim)">${!isInc? (aw&&aw.d? ((aw.day?'day '+aw.day+' (baseline) · ':'')+'full funded amount ('+fM(funded)+(pw.mT>0.5 && pw.dT>0.5? ' — '+lanes(pw.dT,pw.mT) : '')+') forecasts in this month'):'no date — funded amount shows as UNSCHEDULED in the forecast'):''}</span>
       &nbsp;&nbsp;<label style="font-size:10.5px;cursor:pointer"><input type="checkbox" ${isInc?'checked':''} onchange="toggleAwdInc(${jsa(it.id)},${Math.round(funded)})"> <b style="color:${isInc?'var(--green)':'var(--dim)'}">Incremental funding</b></label>
       ${isInc? (()=>{
+        // v2.22 W3 (149.43): ONE BLOCK PER AWARD, STACKED. The awards were one table a column per service: three of six services, the
+        // totals and both buttons sat past the record's edge, and its first column, headed Month, held a whole date. Each award is
+        // now a block of its own -- its date (headed Date), a box per service, its total, how it splits and what remains -- and the
+        // services' totals and the balance are a table a row per service under them, so every figure and button is inside the record.
+        // The figures are the ones the table printed: the same incTot, landSvc's split (awdSplitOf), the same balance.
         const svTots=SVC.map((s,i)=>(aw.inc||[]).reduce((a,x)=>a+((x.sv||[])[i]||0),0));
         const fSv=SVC.map((s,i)=>(pw.d[i]||0)+(pw.m[i]||0));   // funded, both lanes, per service
         const bal=funded-incSum;
-        return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
-        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${esc(s)}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--dim);padding:2px 6px" title="how this award splits: discretionary fills the awards forward from the first, mandatory backward from the last">Disc · Mand</th><th style="color:var(--blue);padding:2px 6px" title="funded dollars, both lanes, still unscheduled after this award — the last one has to clear it">Remaining</th><th></th></tr>
-        ${(()=>{ let run=funded; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); const q=sp.by[i]||{dv:0,mv:0}; return `<tr>
-          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" data-awd="${esc(it.id)}" data-awd-i="${i}" onchange="awdDateIn(this,${jsa(it.id)},${i})" onkeydown="awdDateKey(this,event)" onblur="awdDateLeave(this)" title="click for the calendar — this award's obligation date (day sets the CR half-month window)">${a.fx? awdFxTag(a.fx) : ''}</td>
-          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${esc(s)} award for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}, both lanes"></td>`).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
-          <td class="awdsplit" style="padding:2px 6px;white-space:nowrap;color:var(--dim)" title="placed by the board's one rule: discretionary forward from the first award, mandatory backward from the last">${lanes(q.dv,q.mv)}</td>
-          <td style="padding:2px 6px;font-weight:800;white-space:nowrap;color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}" title="${Math.abs(run)<1?'fully scheduled at this award':(run<0? fM(-run)+' MORE has been scheduled than is funded':fM(run)+' of the funded amount is still unscheduled after this award')}">${Math.abs(run)<1?'✓ $0':fM(run)}</td>
-          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd(${jsa(it.id)},${i})" title="remove this award">✕</button></td></tr>`; }).join(''); })()}
-        <tr><td style="padding:2px 6px;color:var(--dim);font-weight:700">Σ by service</td>
-          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${esc(s)}: awards ${fM(svTots[i])} vs funded ${fM(fSv[i])} (discretionary ${fM(pw.d[i]||0)} + mandatory ${fM(pw.m[i]||0)})">${fM(svTots[i])}</td>`).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td><td></td></tr>
-        <tr class="awdbal"><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="funded dollars, discretionary + mandatory, the awards have not yet put on a date, per service">Balance to schedule — discretionary + mandatory</td>
+        let run=funded;
+        const blocks=(aw.inc||[]).map((a,i)=>{ run-=incTot(a); const q=sp.by[i]||{dv:0,mv:0}; return `<div class="awdone" data-i="${i}">
+          <div class="awdhd"><span class="awdn">Award ${i+1}</span><label>Date <input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" data-awd="${esc(it.id)}" data-awd-i="${i}" onchange="awdDateIn(this,${jsa(it.id)},${i})" onkeydown="awdDateKey(this,event)" onblur="awdDateLeave(this)" title="click for the calendar — this award's obligation date (day sets the CR half-month window)"></label>${a.fx? awdFxTag(a.fx) : ''}
+            <span class="sp"></span><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd(${jsa(it.id)},${i})" title="remove this award" aria-label="Remove award ${i+1}">✕</button></div>
+          <div class="awdsvg">${SVC.map((s,si)=>`<label><span>${esc(s)}</span><input value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${esc(s)} award for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}, both lanes"></label>`).join('')}</div>
+          <div class="awdft"><span>Total <b style="color:var(--gold)">${fM(incTot(a))}</b></span>
+            <span class="awdsplit" style="color:var(--dim)" title="placed by the board's one rule: discretionary forward from the first award, mandatory backward from the last">${lanes(q.dv,q.mv)}</span>
+            <span title="${Math.abs(run)<1?'fully scheduled at this award':(run<0? fM(-run)+' MORE has been scheduled than is funded':fM(run)+' of the funded amount is still unscheduled after this award')}">Remaining <b style="color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}">${Math.abs(run)<1?'✓ $0':fM(run)}</b></span></div>
+        </div>`; }).join('');
+        return `<div class="awdinc">${blocks}</div>
+        <table class="awdsum"><tr><th>Service</th><th title="what the awards schedule for the service, both lanes">Scheduled</th><th title="funded dollars, discretionary + mandatory, the awards have not yet put on a date">Balance</th></tr>
           ${SVC.map((s,i)=>{ const r=fSv[i]-svTots[i];
-            return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${esc(s)}: funded ${fM(fSv[i])} (discretionary ${fM(pw.d[i]||0)} + mandatory ${fM(pw.m[i]||0)}) less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'—':fM(r)}</td>`; }).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(bal)<1?'var(--green)':(bal<0?'var(--red)':'var(--blue)')}">${Math.abs(bal)<1?'✓ $0':fM(bal)}</td>
-          <td style="padding:2px 6px;white-space:nowrap;color:var(--blue)">${(sp.ud+sp.um)>=1? lanes(sp.ud,sp.um)+' undated' : ''}</td>
-          <td colspan="2" style="padding:2px 6px">${(Math.abs(bal)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining balance, discretionary + mandatory, on the latest award, per service — the residual mod">↵ put on last</button>`:''}</td></tr>
+            return `<tr class="awdsvc"><td>${esc(s)}</td><td style="font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${esc(s)}: awards ${fM(svTots[i])} vs funded ${fM(fSv[i])} (discretionary ${fM(pw.d[i]||0)} + mandatory ${fM(pw.m[i]||0)})">${fM(svTots[i])}</td><td style="font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${esc(s)}: funded ${fM(fSv[i])} (discretionary ${fM(pw.d[i]||0)} + mandatory ${fM(pw.m[i]||0)}) less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'—':fM(r)}</td></tr>`; }).join('')}
+          <tr class="awdbal"><th style="color:var(--blue)" title="funded dollars, discretionary + mandatory, the awards have not yet put on a date, per service">Balance to schedule — discretionary + mandatory</th><td style="color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td style="color:${Math.abs(bal)<1?'var(--green)':(bal<0?'var(--red)':'var(--blue)')}">${Math.abs(bal)<1?'✓ $0':fM(bal)}</td></tr>
         </table>
-        <span style="display:inline-block;margin-top:4px">
-          <input type="date" id="awdM-${esc(it.id)}" min="${fyMin()}" max="${fyMax()}" onkeydown="if(event.key==='Enter'){event.preventDefault();addAwd(${jsa(it.id)});}" title="pick the new award's date from the calendar, or type it and press Enter">
-          <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an award at the picked date">＋ add date</button></span>
-        <span style="font-size:9.5px;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'};margin-left:8px">awards ${fM(incSum)} vs <b>funded</b> ${fM(funded)}${pw.mT>0.5? ' (discretionary '+fM(pw.dT)+' + mandatory '+fM(pw.mT)+')' : ''}${Math.abs(bal)<1?' ✓':''}</span>
+        <div class="awdtools">${(Math.abs(bal)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining balance, discretionary + mandatory, on the latest award, per service — the residual mod">↵ put on last</button>`:''}
+          <input type="date" id="awdM-${esc(it.id)}" min="${fyMin()}" max="${fyMax()}" onkeydown="if(event.key==='Enter'){event.preventDefault();addAwd(${jsa(it.id)});}" title="pick the new award's date from the calendar, or type it and press Enter" aria-label="The new award's date">
+          <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an award at the picked date">＋ add date</button></div>
+        <div style="font-size:9.5px;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'};margin-top:4px">awards ${fM(incSum)} vs <b>funded</b> ${fM(funded)}${pw.mT>0.5? ' (discretionary '+fM(pw.dT)+' + mandatory '+fM(pw.mT)+')' : ''}${Math.abs(bal)<1?' ✓':''}</div>
         <div style="font-size:9.5px;color:var(--dim);margin-top:2px">ℹ Each award is the whole award, both lanes. Discretionary fills them forward from the first; mandatory fills them backward from the last, so it always awards last.</div>
-        ${(sp.ud+sp.um)>=1? `<div class="awdundated" style="font-size:9.5px;color:var(--blue);margin-top:2px">ℹ ${lanes(sp.ud,sp.um)} is not on a date yet — it forecasts as UNSCHEDULED until the awards cover it.</div>`:''}
-      </div>`;})():''}
+        ${(sp.ud+sp.um)>=1? `<div class="awdundated" style="font-size:9.5px;color:var(--blue);margin-top:2px">ℹ ${lanes(sp.ud,sp.um)} is not on a date yet — it forecasts as UNSCHEDULED until the awards cover it.</div>`:''}`;})():''}
       ${awdFixHtml(it.id)}
     </div>`;
 }
@@ -26969,8 +27050,8 @@ function awdFixHtml(id){
     +(Array.isArray(fx.n)? fx.n : []).map(function(t){ return '<div style="margin-top:2px">'+esc(String(t))+'</div>'; }).join('')
     +'<div style="margin-top:3px;color:var(--dim)">The award as it was saved, kept with it'
       +(typeof fx.at==='number'? ' (repaired '+esc(new Date(fx.at).toLocaleString())+')' : '')+':</div>'
-    +'<div class="awdorig" style="font-family:monospace;word-break:break-all;color:var(--dim)">'
-      +esc(o.length>400? o.slice(0,400)+' \u2026 ('+o.length.toLocaleString()+' characters, all of them kept)' : o)+'</div>'
+    // v2.22 W3 (149.43): the award as it was saved, said as a sentence -- it was printed as the code it was kept in
+    +'<div class="awdorig" style="overflow-wrap:anywhere;color:var(--dim)">'+esc(awdOrigSay(o))+'</div>'
     +(fx.ok? '' : '<button class="qb" style="margin-top:4px" onclick="awdFixOk('+jsa(id)+')" title="take it off Needs attention; the award as it was saved stays with it">\u2713 Checked \u2014 clear the mark</button>')
     +'</div>';
 }
@@ -33559,7 +33640,8 @@ function erDraw(){
   const ord=erOrder(id), at=ord.indexOf(id);
   const ns=erNotSent(id), prop=erIsProposal(id);
   let h='<div class="ar-top"><div class="ar-who er-who"><b>'+esc(dispTitle(it))+'</b> · '+esc(grpOf(it))
-    +(at>=0? ' · #'+(at+1)+' of '+ord.length : '')+' · recorded against <b>'+FYL()+'</b> only'
+    // v2.22 W3 (149.40): the year is said once, in the box's heading -- it was said there, here and under the office
+    +(at>=0? ' · #'+(at+1)+' of '+ord.length : '')
     // the buttons are named by what they show (WCAG 2.5.3), and say where they go in their tooltip
     +'<span class="er-nav"><button type="button" class="qb" onclick="erStep(-1)" title="'+esc(at>0? dispTitle(itemById(ord[at-1]))||'' : (ord.length? dispTitle(itemById(ord[ord.length-1]))||'' : ''))+'">↑ prev</button>'
     +'<button type="button" class="qb" onclick="erStep(1)" title="'+esc(ord.length? dispTitle(itemById(ord[(at+1)%ord.length]))||'' : '')+'">next ↓</button></span></div>'
@@ -33572,7 +33654,8 @@ function erDraw(){
     siF=erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
       // v2.15 W4 (item 146): offered whenever the stored value is one of the five or "none", not only with nothing stored -- a stored "no
       // SI code" (or a code chosen by hand) could not be taken back to the rules from the box (setSi's rule: picked, nothing is stored)
-      +(raw===undefined? erOpt('\u0004', '— follows the PMO and prime rules —', cur) : '')
+      // v2.22 W3 (149.40): "follows the PMO and prime rules" said plainly
+      +(raw===undefined? erOpt('\u0004', '— the code its office and contract give —', cur) : '')
       +((raw!==undefined && !siKnown(raw))? '<option value="'+esc(cur)+'" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
       +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1});
   }
@@ -33589,9 +33672,10 @@ function erDraw(){
     +'<button type="button" id="erPtO" aria-pressed="false" onclick="erPt(\'OGC\')">OGC</button></div>'
     +'<input type="hidden" id="erPtype" data-held="1" value="'+esc(V.ptype)+'"></div>'
     +erField('erGrp', 'grp', erSel('erGrp', GROUPS.concat(GROUPS.indexOf(V.grp)<0? [V.grp] : []).map(function(g){
-        return erOpt(g, g+(g===it.grp? ' (from the file)' : ''), V.grp); }).join(''), {dis:prop}),
+        // v2.22 W3 (149.40): plain words -- "(from the file)" was printed beside the office of a record somebody typed in
+        return erOpt(g, g+((g===it.grp && grpOf(it)!==it.grp)? ' (where it was first filed)' : ''), V.grp); }).join(''), {dis:prop}),
       {span:1, note:prop? 'a requirement this copy proposes keeps the office it was added for'
-        : (grpOf(it)!==it.grp? 'moved from '+esc(it.grp)+' for '+FYL()+' · ' : '')+FYL()+' only — moving it asks first'})
+        : (grpOf(it)!==it.grp? 'moved from '+esc(it.grp)+' this year · ' : '')+'this year only — moving it asks first'})
     +'</div></section>'
     +'<section class="ar-sec" aria-labelledby="erS2"><h4 id="erS2">Classification</h4><div class="ar-grid">'
     +erField('erOb', 'obCat', erSel('erOb', erOpt('', '— not set —', V.obCat)+erKeep(V.obCat, OB_CATS.indexOf(V.obCat)>=0)
@@ -33641,7 +33725,8 @@ function erDraw(){
     +erField('erMipr', 'mipr', erSel('erMipr', erOpt('', '— not set —', V.mipr)+erKeep(V.mipr, !!MIPR_LBL[V.mipr])+Object.keys(MIPR_LBL).map(function(k){
         return erOpt(k, MIPR_LBL[k], V.mipr); }).join('')), {req:1, hide:1, tag:'OGC',
         note:'prints on the \u{1F3AF} Priority Drill, not the Spend Plan Source'})
-    +'</div><div class="ar-note">The value by service, the BAE budgets, the decision band, ★, the awards and Planning are set in the RECORD panel.</div></section></div>';
+    // v2.22 W3 (149.20): said as it is -- the record beside the box sets these, ★ Mission Critical by its switch at the top
+    +'</div><div class="ar-note">The value by service, the BAE budgets, the decision band, ★ Mission Critical (the switch at the top of the record), the awards and Planning are set in the RECORD panel.</div></section></div>';
   h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="erS5"><h4 id="erS5">Narrative</h4><div class="ar-grid ar-g1">'
     +erField('erDesc', 'desc', '<textarea id="erDesc" data-held="1" oninput="erDescTyped()">'+esc(V.desc)+'</textarea>', {req:1, tag:'filled from the CCaR list when empty'})
     +erField('erCons', 'cons', '<textarea id="erCons" data-held="1" placeholder="what is lost, and when, if it is not funded" oninput="erUpdate()">'+esc(V.cons)+'</textarea>', {req:1})
@@ -33650,9 +33735,12 @@ function erDraw(){
     +'<section class="ar-sec" aria-labelledby="erS6"><h4 id="erS6">Required<span id="erReadyN"></span></h4><ul class="ar-chk" id="erChk"></ul>'
     +'<div class="ar-sum">Saving with fields still needed is fine: the list is a reminder.'+(typeof SANDBOX!=='undefined' && SANDBOX && prop? ' A proposal is held back at Submit until it is complete.' : '')
     // D5's way there: the value and the budgets are the RECORD panel's
-    +' <button type="button" class="qb" id="erToPanel" onclick="erGo(\'record\')">The value and budgets, in the RECORD panel…</button></div></section></div></div>';
+    // v2.22 W3 (149.21): it saves first -- the way to the value and budgets asked to throw away what was typed
+    +' <button type="button" class="qb" id="erToPanel" onclick="erSaveGo(\'record\')">Save and go to the value and budgets</button></div></section></div></div>';
   h+='<div class="ar-ft" id="erFt"><div id="erMsg" class="ar-msg" role="alert" aria-live="assertive"></div><span class="sp"></span>'
     +'<button type="button" class="btn" onclick="erClose()">Cancel</button>'
+    // v2.22 W3 (149.21): completing records one after another -- Save, then the next requirement in the list, in one press
+    +(ord.length>1? '<button type="button" class="btn" id="erSaveNext" onclick="erSaveGo(\'next\')">Save and next</button>' : '')
     +'<button type="button" class="btn pri" id="erSaveBtn" onclick="erSave()">Save</button></div>';
   el.innerHTML=h;
   erUpdate();
@@ -33740,9 +33828,9 @@ function erUpdate(){
     rt.classList.toggle('dim', !nm);
     // where the name shown comes from, said as it is: the list, a name typed before v2.08 (kept), or the file
     const tg=erEl('erRecTag'); if(tg) tg.textContent= !nm? 'read, never typed'
-      : (same && typed)? 'typed before v2.08, kept'
+      : (same && typed)? 'typed by hand earlier, kept'   // v2.22 W3 (149.40): plain words
       // a requirement with no record of its own is named by its CLINs' record in the list (v2.08 second review: "from the file")
-      : ((cc? ccarNameOfNum(cc) : (same && ccarRecNameOf(it)))? 'from the CCaR records list' : 'from the file'); }
+      : ((cc? ccarNameOfNum(cc) : (same && ccarRecNameOf(it)))? 'from the CCaR records list' : 'the requirement’s own title'); }
   const need=reqNeeds(erDraft(D)), miss=need.filter(function(x){ return !x.ok; });
   const ch=erEl('erChk');
   if(ch) ch.innerHTML = need.map(function(x){ const lbl=arShort(x.l);
@@ -33786,12 +33874,28 @@ function erGo(what){
   try{ const b=document.querySelector('#inspector [onclick^="toggleRec("]'); if(b) b.focus(); }catch(e){}
   // the RECORD panel shows the box's own requirement (after ↑ prev / next ↓ it showed the one the box opened on), and the
   // keyboard goes to its value once the box controller has lifted the panel's inert (v2.08 second review)
-  if(what==='record'){ try{ if(curRow!==id) setCur(id); try{ dlgSync(); }catch(e){}
-    const h='setAsk('+JSON.stringify(id)+',', i=[].filter.call(document.querySelectorAll('#inspector input[onchange]'), function(x){
-      return (x.getAttribute('onchange')||'').indexOf(h)===0; })[0];
-    if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){} return; }
+  if(what==='record'){ erToRecord(id); return; }
   // the drill is opened, never toggled shut when it was already open -- and opened where it can be used (clinGo)
   if(what==='clin') clinGo(id); else toggleWbs('req', id, '');
+}
+function erToRecord(id){
+  try{ if(curRow!==id) setCur(id); try{ dlgSync(); }catch(e){}
+    const h='setAsk('+JSON.stringify(id)+',', i=[].filter.call(document.querySelectorAll('#inspector input[onchange]'), function(x){
+      return (x.getAttribute('onchange')||'').indexOf(h)===0; })[0];
+    if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){}
+}
+// v2.22 W3 (149.21): SAVE, THEN GO ON. "Save and next" opens the next requirement in the list as shown (erStep's order) at the top of
+// the box; "Save and go to the value and budgets" puts the keyboard on the record's value (erGo's way, which asked to throw away
+// what was typed). A save that is refused, or an office move answered Cancel, leaves the box open with the typing in it.
+function erSaveGo(what){
+  if(!erOn()) return;
+  const id=erOpen, ord=erOrder(id), at=ord.indexOf(id);
+  erSave();
+  if(erOn()) return;
+  if(what==='next'){ if(ord.length<2) return;
+    const t=ord[(at+1+ord.length)%ord.length]; if(itemById(t)) openEdit(t, 'rec'); return; }
+  try{ const b=document.querySelector('#inspector [onclick^="toggleRec("]'); if(b) b.focus(); }catch(e){}
+  erToRecord(id);
 }
 function erSave(){
   if(!erOn()) return;
@@ -35553,9 +35657,14 @@ function gridIds(){ return gridRows().map(function(r){ return r.id.replace(/^row
 
 function setCur(id, quiet){
   if(!id) return;
+  // v2.22 W3 (149.19): a record opened -- another requirement, or the record reopened by a click -- starts at its top. It opened
+  // part-way down, wherever the last one was scrolled.
+  const ins0 = document.getElementById('inspector');
+  const fresh = curRow !== id || !!(ins0 && drawerNarrow() && !ins0.classList.contains('open'));
   curRow = id;
   gridMark();
   inspectorBody();
+  if(fresh && ins0) ins0.scrollTop = 0;
   // v2.09 (item 125): quiet selects and nothing more -- for a click that was USING a control in the row (see the delegate)
   if(quiet) return;
   // Selecting a row is what OPENS the drawer -- the guide says "click any row, its record opens on
@@ -35787,6 +35896,9 @@ function inspectorBody(){
     if(held.length) inspHeldBack(el, held); }
 }
 function inspectorDraw(el){
+  // v2.22 W3 (149.50): the requirement's other years first -- reading them opens each year (aceWithYear), which rebuilds the
+  // requirement list, so it is read before this record's requirement is looked up
+  const Yrs = recYearsOf(curRow);
   const it = curRow && DATA.items.filter(function(x){ return x.id === curRow; })[0];
   if(!it){
     el.innerHTML = drawerBar() + '<div class="insp-empty">No requirement selected.<br>'
@@ -35841,7 +35953,7 @@ function inspectorDraw(el){
     // keystroke, seeded from the draw it was already producing. So the box always holds a figure
     // and always takes one -- what the lane walk produced until it is typed over.
     const cell = (kind, val, drew, cap) => {
-      return '<input class="' + kind + '" value="' + (val ? Math.round(val).toLocaleString() : '')
+      return '<input class="' + kind + '" data-col="' + kind + '" data-si="' + i + '" value="' + (val ? Math.round(val).toLocaleString() : '')
         + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 dollars directed to '
         + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY') + esc(drewTip(val, drew, cap))
         + '" onchange="setFsrcSvc('+jsa(id)+','+jsa(kind)+',' + i + ',this.value)">'
@@ -35849,7 +35961,7 @@ function inspectorDraw(el){
     };
     // REQ IS THE REQUIREMENT VALUE, and it is edited here now -- this column absorbed the row
     // expander's six per-service ask inputs when that editor was retired in this build.
-    const reqCell = '<input class="q" value="' + (ask ? Math.round(ask).toLocaleString() : '')
+    const reqCell = '<input class="q" data-col="q" data-si="' + i + '" value="' + (ask ? Math.round(ask).toLocaleString() : '')
       + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 ' + FYL()
       + ' requirement value. Editing it moves the unfunded deltas with it."'
       + ' onchange="setAsk('+jsa(id)+',' + i + ',this.value)">';
@@ -35889,7 +36001,7 @@ function inspectorDraw(el){
     // cell turns from an em dash into a figure.
     // v2.01: the UFR column is as wide as its widest figure (78px at least, as before), so no UFR figure is cut
     + '<colgroup><col style="width:58px"><col><col><col><col style="width:' + ufrColW + '"></colgroup>'
-    + '<tr><th class="l">Service</th><th>Req</th><th>Disc</th><th>Mand</th><th>UFR</th></tr>'
+    + '<tr><th class="l">Service</th><th>Requirement</th><th>Disc</th><th>Mand</th><th>Unfunded</th></tr>'
     + SVC.map(svcRow).join('')
     + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fig(askTot(it))
     + (it.custom ? '' : ' <button class="qb" onclick="resetAsk('+jsa(id)+')"'
@@ -35902,21 +36014,24 @@ function inspectorDraw(el){
       + (uT > 0.005 ? laneShortNote(uT) : '') + '</td></tr>'
     + '</table>';
 
-  el.innerHTML = drawerBar() +
-    '<div class="insp-hd"><b>#' + (pos>=0? pos+1 : '—') + ' · RECORD</b>'
-      + '<span style="flex:1"></span>'
-      + '<span class="insp-kbd">J</span><span class="insp-kbd">K</span>'
-      + '<span style="color:var(--dim);font-size:10px">' + (pos>=0? (pos+1) : '—') + ' of ' + ids.length + '</span></div>'
-    + '<div class="insp-bd">'
+  // v2.22 W3 (item 155; 149.19): THE RECORD AS A CARD, WITH ONE PINNED BAR. The bar is the record's own and pinned at its top:
+  // the position, ‹ Previous and Next › (J and K, as buttons -- 149.18), and ✕ Close where the record slides over; the name on its
+  // own line under it (it wraps rather than being cut: layout-fits K reads every record whole). It replaced "RECORD" said twice,
+  // the position said twice and the J / K drawn as if they were keys (the 21 Nov review). recBarHtml in the v2.22 W3 slot.
+  el.innerHTML = '<div class="rechead">' + recBarHtml(id, pos, ids)
     + '<div class="insp-ttl">' + esc(dispTitle(it))
       + ' <button type="button" class="tedit" onclick="openEdit('+jsa(id)+',&quot;titles&quot;)" title="Rename the requirement — its plan event, in the record" aria-label="Rename the requirement">\u270e</button></div>'
-    // WHAT IT IS, IN ONE QUIET LINE. \u2605 MC is a triage decision made while scanning the list, so the
-    // ROW owns it; this says it, it does not set it. The band is not echoed: its own field below
-    // shows and sets it (v1.86 -- the two chip rows that stood here pushed the editors off the screen).
-    + '<div class="insp-meta">' + (S.mc[id] ? '<span style="color:var(--amber)">\u2605 Mission Critical</span>' : '\u2606 not Mission Critical')
-      + ' \u00b7 ' + esc(grpOf(it))
-      + (((S.costElem||{})[id]) ? ' \u00b7 ' + esc((S.costElem||{})[id]) : '')
-      + (ndData().ids[id] ? ' \u00b7 ' + ndRowChip(id) : '') + '</div>'
+    + '</div>'
+    + '<div class="insp-bd">'
+    + recRoHtml()          // v2.22 W3 (149.49): read only in a locked view, with Leave the view
+    + recMsgHtml(id)       // v2.22 W3 (149.27): a figure the board refused, said here as well as on the top line
+    // WHAT IT IS, IN ONE LINE: the lane in APEX's colours with its word, the office, and the \u2605 switch (v2.22 W3, 149.20; Brad's
+    // answer amends the v1.91 row rule: the row and the record both set \u2605, by the row's own call). The band is not echoed:
+    // its own field below shows and sets it (v1.86 -- the two chip rows that stood here pushed the editors off the screen).
+    + recChipsHtml(id, it, t)
+    + '<div class="insp-meta">'
+      + (((S.costElem||{})[id]) ? esc((S.costElem||{})[id]) : '')
+      + (ndData().ids[id] ? (((S.costElem||{})[id])? ' \u00b7 ' : '') + ndRowChip(id) : '') + '</div>'
     + priorHtml(it)      // v2.06 (item 117): the requirement it continues, for trend data
     + priorBackHtml(id)  // v2.18 (item 149.10): the way back after Go to FY..
     // v2.09 review: a copy on a year it does not submit for says so here, where the value boxes edit -- only the edit box did
@@ -35951,18 +36066,22 @@ function inspectorDraw(el){
                 'the whole record, in one box: plan event, CCaR, PID, PMO, category, WBS, destination, the narrative\u2026',
                 FLI('rec'), C.un? C.un+' of '+C.n+' still needed' : 'all '+C.n+' set')
           + '</div>'; })()
-    + '<div class="insp-g">'
-      + cycDeltaInsp(id)
-      + inspField(FYL() + ' requirement', fM(askTot(it)), 'big')
-      + inspField('Funded', fM(dT + mT), 'big')   // v2.18 (item 149.12): d+m PAID, never the allocation: named for what it is
-      + inspField('Discretionary', fM(dT))
-      + inspField('Mandatory', fM(mT))
+    + recNeedHtml(id)      // v2.22 W3 (149.21): what is still needed, by name, each opening the box at its field
+    // v2.22 W3 (149.31): ONE LINE IN PLACE OF THE SIX BOXES. Requirement, Discretionary, Mandatory and Unfunded were the By service
+    // table's TOTAL line a second time, on the same screen, and on a laptop they pushed that line off the bottom. The line keeps what
+    // the table does not say in one figure -- Requirement, Funded (d+m PAID, never the allocation: v2.18, 149.12) and Unfunded --
+    // and \u2605 MC shortage only where the requirement is starred and short (requirement less discretionary, mcShortSvcOf).
+    + '<div class="insp-g insp-sum">'
+      + inspField('Requirement', fM(askTot(it)), 'big')
+      + inspField('Funded', fM(dT + mT), 'big')
       + inspField('Unfunded', unfT > 0.005 ? '<span style="color:var(--unf)">' + fM(unfT) + '</span>' : '\u2014',
-                  unfT > 0.005 ? '' : 'empty')
-      + inspField('\u2605 MC shortage', (S.mc[id] && mcShort > 0.005)
-                  ? '<span style="color:var(--amber)">' + fM(mcShort) + '</span>'
-                  : (S.mc[id] ? 'covered' : '\u2014'), (S.mc[id] && mcShort > 0.005) ? '' : 'empty')
+                  'big' + (unfT > 0.005 ? '' : ' empty'))
+      + ((S.mc[id] && mcShort > 0.005) ? inspField('\u2605 MC shortage', '<span style="color:var(--amber)">' + fM(mcShort) + '</span>', 'big') : '')
+      + cycDeltaInsp(id)
       + '</div>'
+    + recYearsHtml(id, Yrs)   // v2.22 W3 (149.50): its value in each year of the window, each a button to that year
+    + recFieldsHtml(id, it)   // v2.22 W3 (149.47): obligation category, WBS and Goes to, in one line
+    + recClinHtml(id)      // v2.22 W3 (149.48): a prime contract's CLINs, and the way to its breakdown
     // FUNDING IS STILL SETTABLE HERE, beside the money it describes. Split is the one setting there
     // is, so a requirement left on the legacy lane walk needs a way to convert -- and with the row's
     // picker gone this is the only per-requirement way to do it. Typing into any Disc or Mand box
@@ -35994,8 +36113,9 @@ function inspectorDraw(el){
             + (BAND_OF(id)===b.id?' selected':'') + '>'+i+' · '+esc(b.n)+'</option>'; }).join('')
         + '</select></div></div>'
       + '</div>'
-    + '<div class="insp-lbl">By service — money is not fungible across them'
-      + ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand \u2014 this IS the allocation; UFR is the remainder</span>'
+    // v2.22 W3 (149.41): Requirement, Funded and Unfunded are the words on this screen -- the table's Req and UFR said them otherwise
+    + '<div class="insp-lbl svclbl">By service — money is not fungible across them'
+      + ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand \u2014 this IS the allocation; Unfunded is the remainder \u00b7 \u2193 and \u2191 move down a column</span>'
       + '</div>'
     + svc
     + budRecordHtml(id, it)
@@ -36055,14 +36175,9 @@ document.addEventListener('keydown', function(e){
   try{ if(DLG.stack.length) return; }catch(x){}
   const k = e.key.toLowerCase();
   if(k !== 'j' && k !== 'k') return;
-  const ids = gridIds(); if(!ids.length) return;
-  const i = ids.indexOf(curRow);
-  const next = (k === 'j') ? Math.min(ids.length - 1, i + 1) : Math.max(0, i - 1);
-  if(next === i) return;
+  if(!gridIds().length) return;
   e.preventDefault();
-  setCur(ids[next]);
-  const r = document.getElementById('row-' + ids[next]);
-  if(r && r.scrollIntoView) r.scrollIntoView({block:'nearest'});
+  recStep(k === 'j' ? 1 : -1);   // v2.22 W3 (149.18): the step the record's ‹ Previous and Next › take
 });
 
 // THE BOARD'S render() IS TWO PARTS: renderBoard() draws the rows, the tiles and the panels; the wrapper below keeps the
@@ -37181,18 +37296,22 @@ function uiLastEditHtml(id){
 function uiDrawerTabs(){
   if(!UI2 || !UI2.on) return;
   const ins=document.getElementById('inspector'); if(!ins) return;
-  const bd=ins.querySelector('.insp-bd'); if(!bd || bd.querySelector('.uiDTabs')) return;
+  const bd=ins.querySelector('.insp-bd'); if(!bd || ins.querySelector('.uiDTabs')) return;
   const strip=document.createElement('div'); strip.className='uiDTabs'; strip.setAttribute('role','group'); strip.setAttribute('aria-label','Record sections');
+  // v2.22 W3 (149.33): a record opened starts on Overview, at its top (setCur); the highlight then follows the scroll (recTabSync)
+  if(!ins.scrollTop) UI_DTAB='overview';
   strip.innerHTML=[['overview','Overview'],['funding','Funding'],['history','History']].map(function(t){
     return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab('+jsa(t[0])+')">'+t[1]+'</button>'; }).join('');
-  const meta=bd.querySelector('.insp-meta');
-  if(meta && meta.parentNode===bd) bd.insertBefore(strip, meta.nextSibling); else bd.insertBefore(strip, bd.firstChild);
+  // v2.22 W3 (149.33): the strip is pinned with the record's bar and name (.rechead), so a jump never lands under it
+  const head=ins.querySelector('.rechead');
+  if(head) head.appendChild(strip);
+  else { const meta=bd.querySelector('.insp-meta');
+    if(meta && meta.parentNode===bd) bd.insertBefore(strip, meta.nextSibling); else bd.insertBefore(strip, bd.firstChild); }
   const id=(typeof curRow!=='undefined' && curRow)? String(curRow) : '';
   const last=uiLastEditHtml(id);
-  const ov=document.createElement('div'); ov.className='uiDOv';
-  ov.innerHTML='<div><b>Lifecycle</b> <span class="d">pending — the board has no lifecycle field for a requirement yet</span></div>'
-    +(last? '<div>'+last+'</div>' : '');
-  strip.parentNode.insertBefore(ov, strip.nextSibling);
+  // v2.22 W3 (149.32): the fixed "Lifecycle pending -- the board has no lifecycle field" line is gone; the last recorded edit stays
+  { const ov=document.createElement('div'); ov.className='uiDOv'; ov.innerHTML=last? '<div>'+last+'</div>' : '';
+    const at=bd.querySelector('.recchips'); if(at && at.nextSibling) bd.insertBefore(ov, at.nextSibling); else bd.insertBefore(ov, bd.firstChild); }
   const hist=document.createElement('div'); hist.className='uiDHist';
   hist.innerHTML='<div class="h">History</div>'+(last? '<p>'+last+'</p>' : '')
     +'<p>What changed on this board — from what, to what, by whom — is kept in the change journal; '
@@ -37205,11 +37324,15 @@ function uiDTab(k){
   const ins=document.getElementById('inspector'); if(!ins) return;
   [].slice.call(ins.querySelectorAll('.uiDTabs button')).forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-k')===k? 'true' : 'false'); });
   const bd=ins.querySelector('.insp-bd'); if(!bd) return;
+  // v2.22 W3 (149.33): EACH JUMP LANDS, just under the pinned bar, name and strip. Overview did nothing once scrolled (it scrolled to
+  // the strip, which is pinned); Funding landed with the By service table's own headings under the strip. The highlight stays on the
+  // section asked for while the jump settles (recTabSync takes over from the next scroll of the reader's own).
+  _recTabAt=Date.now();
   let to=null;
-  if(k==='overview') to=bd.querySelector('.uiDTabs');
-  else if(k==='funding') to=bd.querySelector('.insp-lbl') || bd.querySelector('.insp-split');
-  else to=bd.querySelector('.uiDHist');
-  try{ if(to) to.scrollIntoView({block:'start', behavior:'auto'}); }catch(e){}
+  if(k==='funding') to=bd.querySelector('.insp-lbl.svclbl') || bd.querySelector('.insp-split');
+  else if(k==='history') to=bd.querySelector('.uiDHist');
+  try{ if(k==='overview') ins.scrollTop=0;
+    else if(to) ins.scrollTop=Math.max(0, ins.scrollTop+recSecTop(ins, to)-6); }catch(e){}
 }
 // ── ADD REQUIREMENT: offered where the board offers it -- Review (#toolAdd in the Review tools, and the folded
 // Review tools menu). The button is hidden elsewhere, and this handler refuses outside Review as well.
@@ -37524,6 +37647,240 @@ async function uiSubMany(inp){
 // ==== v2.22 W2 ====
 // ==== end v2.22 W2 ====
 // ==== v2.22 W3 ====
+// ── v2.22 W3 (item 155; 149.18-149.50): THE RECORD AS A CARD ────────────────────────────────────────────────────────────────
+// The RECORD panel is drawn by inspectorDraw(); what it reads here is the record's own: the pinned bar and its ‹ Previous / Next ›
+// (J / K as buttons), the lane with its word and the ★ switch, the one line of figures, a requirement's other years, its record
+// fields and a prime's CLINs in a line each, what is still needed by name, a refused figure said inside the record, a locked view
+// said read only, and the record's keyboard and pointer. Nothing here works a figure out: every one is the lane walk's (tiers()),
+// unfSvcOf's, mcShortSvcOf's, a year's projection (cycProjOf, the figures a lock takes), or a field's own reader. Every var below is
+// read through a function that cannot throw: the board draws the record while this script is still being read, before these
+// lines run (the BANDS_STD rule).
+var REC_LANE_WORD={disc:'Discretionary', split:'Both lanes', mand:'Mandatory', unf:'Unfunded'};
+// THE PINNED BAR (149.19, 149.18): the position in the list as shown, ‹ Previous and Next › -- real buttons, the J and K keys'
+// own step (recStep) -- and ✕ Close where the record slides over the table (drawerClose, as before). Its name sits under it.
+function recBarHtml(id, pos, ids){
+  const n=ids.length, first=pos<=0, last=pos<0 || pos>=n-1;
+  return '<div class="recbar"><span class="recpos">'+(pos>=0? '<b>#'+(pos+1)+'</b> of '+n : 'not in the list as shown · '+n+' listed')+' · Record</span>'
+    +'<span class="sp"></span>'
+    +'<button type="button" class="recnav" data-step="-1" onclick="recStep(-1)"'+(pos>=0 && first? ' disabled' : '')
+      +' title="The requirement above this one in the list (K)" aria-label="Previous requirement">‹ Previous</button>'
+    +'<button type="button" class="recnav" data-step="1" onclick="recStep(1)"'+(pos>=0 && last? ' disabled' : '')
+      +' title="The requirement below this one in the list (J)" aria-label="Next requirement">Next ›</button>'
+    +'<button type="button" class="recx" onclick="drawerClose()" title="Close (Esc)">✕ Close</button></div>';
+}
+// ONE STEP THROUGH THE LIST AS SHOWN: J and K, and the bar's two buttons. A requirement opened from outside the list (Needs
+// attention, the edit box) steps from the top. The keyboard stays on the button pressed, on the record it now shows.
+function recStep(d){
+  const ids=gridIds(); if(!ids.length) return;
+  const i=ids.indexOf(curRow), next=i<0? 0 : (d>0? Math.min(ids.length-1, i+1) : Math.max(0, i-1));
+  if(i>=0 && next===i) return;
+  const a=document.activeElement, nav=(a && a.closest && a.closest('#inspector .recbar'))? a.getAttribute('data-step') : null;
+  setCur(ids[next]);
+  const r=document.getElementById('row-'+ids[next]);
+  if(r && r.scrollIntoView) try{ r.scrollIntoView({block:'nearest'}); }catch(e){}
+  if(nav!==null){ const b=document.querySelector('#inspector .recbar [data-step="'+nav+'"]'), o=document.querySelector('#inspector .recbar [data-step="'+(-nav)+'"]');
+    try{ if(b && !b.disabled) b.focus(); else if(o) o.focus(); }catch(e){} }
+}
+// 149.49: A LOCKED VIEW SAYS SO AT THE TOP OF THE RECORD. The page was marked; the record's boxes and buttons all looked live, a
+// figure typed there quietly came back, and the reason was on the dimmed top line.
+function recRoHtml(){
+  if(typeof CYCVIEW==='undefined' || !CYCVIEW) return '';
+  return '<div class="recro" role="note">🔒 <b>'+blLbl(CYCVIEW)+'</b> is a locked cycle: this record is read only, and nothing typed or picked here is kept. '
+    +'<button type="button" class="qb" onclick="cycLeave()">Leave the view</button></div>';
+}
+// 149.27: A REFUSED FIGURE IS SAID INSIDE THE RECORD. "12x" typed into a value box: the old figure came back and the reason was only
+// on the top line, dimmed and part under the record; a good entry after it left the refusal standing. The record's own fields are
+// watched: what the board said while one of them was being changed is read off the message line (setStat counts, _statN), and
+// a refusal is kept for that requirement until a figure is taken on it. The words are the board's own, never a second sentence.
+var REC_MSG=null;   // {id, h}: the refusal to say in that requirement's record
+function recMsgHtml(id){
+  const m=(typeof REC_MSG!=='undefined' && REC_MSG && REC_MSG.id===id)? REC_MSG.h : '';
+  return '<div class="recmsg'+(m? ' on' : '')+'" id="recMsg" role="status">'+m+'</div>';
+}
+function recMsgPaint(){ const el=document.getElementById('recMsg'); if(!el) return;
+  const m=(REC_MSG && REC_MSG.id===curRow)? REC_MSG.h : '';
+  el.innerHTML=m; el.className='recmsg'+(m? ' on' : ''); }
+document.addEventListener('change', function(e){ const t=e.target;
+  if(t && t.closest && t.closest('#inspector') && /^(INPUT|SELECT)$/.test(t.tagName)){ t.__recN=_statN; t.__recId=curRow; } }, true);
+document.addEventListener('change', function(e){ const t=e.target;
+  if(!t || t.__recN===undefined) return;
+  const n0=t.__recN, id=t.__recId; t.__recN=undefined;
+  const st=document.getElementById('shareStat'), said=(_statN>n0 && st)? st.innerHTML : '';
+  if(said && diagIsWarn(said)) REC_MSG={id:id, h:said};
+  else if(REC_MSG && REC_MSG.id===id) REC_MSG=null;
+  recMsgPaint();
+});
+// WHAT IT IS (149.20, item 155): the lane in APEX's colours WITH ITS WORD -- the word is what a colour-deficient reader goes by --,
+// the office, and the ★ switch. The switch is the row's own call (the row and the record both set ★, Brad's answer to 149.20).
+function recChipsHtml(id, it, t){
+  const lk=laneOf(t), on=!!S.mc[id];
+  return '<div class="recchips"><span class="recpill" data-lk="'+lk+'">'+REC_LANE_WORD[lk]+'</span>'
+    +'<span class="recchip" title="the office the requirement is filed under in '+esc(FYL())+'">'+esc(grpOf(it))+'</span>'
+    +'<button type="button" class="recmc'+(on? ' on' : '')+'" aria-pressed="'+(on? 'true' : 'false')+'" onclick="S.mc['+jsa(id)+']=!S.mc['+jsa(id)+'];save();render()"'
+      +' title="★ Mission Critical — this must be paid this year'+(on? ' (on — click to clear)' : '')+'">'+(on? '★' : '☆')+' Mission Critical</button></div>';
+}
+// 149.47: WHAT A REQUIREMENT IS, WITHOUT OPENING THE EDITOR -- its obligation category, WBS and Goes to, each as its own reader
+// says it, in one line. Read only: the edit box is where they are changed (v2.08).
+function recFieldsHtml(id, it){
+  const ob=obCatOf(id), pr=ptypeOf(id)==='PRIME', w=wbsReq(id), dk=destOf(it).to, de=dk? flowEnt(dk) : null;
+  const wv=pr? 'per CLIN' : (!w.length? '' : (w.length===1? String(w[0].w||'') : 'split over '+w.length+' lines'));
+  const f=function(k, v, none){ return '<span class="recf"><span class="rl">'+esc(FL(k))+'</span> '+(v? '<b>'+esc(v)+'</b>' : '<i>'+none+'</i>')+'</span>'; };
+  return '<div class="recflds">'+f('obCat', ob, 'not set')+f('wbs', wv, 'not set')+f('dest', de? de.n : dk, 'not logged')+'</div>';
+}
+// 149.48: A PRIME CONTRACT'S RECORD SAYS SO -- how many CLINs and what they request, read without writing anything (clinReadOnly:
+// clinList makes the CLIN containers it reads), and the way to its CLIN breakdown (clinGo: closes what is over the row first).
+function recClinHtml(id){
+  if(ptypeOf(id)!=='PRIME') return '';
+  let n=0, req=0;
+  try{ clinReadOnly([id], function(){ const L=clinList(id); n=L.length; L.forEach(function(c){ req+=clinAskTot(c); }); }); }catch(e){}
+  return '<div class="recclin">Prime contract, '+(n? n+' CLIN'+(n===1? '' : 's')+', requested '+fM(req)+'.' : 'no CLINs yet.')
+    +' <button type="button" class="qb" onclick="clinGo('+jsa(id)+')">Open the CLIN breakdown</button></div>';
+}
+// 149.21: WHAT IS STILL NEEDED, BY NAME, under the three buttons -- the required list's own (reqNeeds), each a button to its field:
+// a field of the record opens the edit box at it; the value and the budgets are the record's own, below.
+var REC_NEED_AT={titles:'titles', ptype:'ptype', obCat:'obCat', wbs:'wbs', dest:'dest', destEnd:'destEnd', mipr:'mipr', desc:'desc', cons:'cons'};
+function recNeedHtml(id){
+  let N=[]; try{ N=reqNeeds(reqDraftOf(id)||{}); }catch(e){ return ''; }
+  const miss=N.filter(function(x){ return !x.ok && !x.w; }); if(!miss.length) return '';
+  return '<div class="recneed"><span class="rl">Still needed:</span> '+miss.map(function(x){
+    return '<button type="button" class="qb" onclick="recNeedGo('+jsa(id)+','+jsa(x.k)+')">'+esc(arShort(x.l))+'</button>'; }).join(' ')+'</div>';
+}
+function recNeedGo(id, k){
+  if(k==='asks' || k==='budgetAsg'){
+    const e=document.querySelector(k==='asks'? '#inspector input[data-col="q"]' : '#inspector table.budtab select, #inspector .budnone button');
+    if(e){ try{ e.focus(); if(e.scrollIntoView) e.scrollIntoView({block:'center'}); }catch(x){} }
+    return;
+  }
+  openEdit(id, (typeof REC_NEED_AT!=='undefined' && REC_NEED_AT[k]) || 'rec');
+}
+// 149.50: THE SAME REQUIREMENT'S OTHER YEARS, each a button to that year. Its value in a year is that year's projection -- the
+// figures a lock takes (fydpData, cycProjOf) -- and the requirement in that year is the same WORK, found by the rule v2.16 set for
+// the five-year plan (fydpLineKeys, fydpSameIn), never by its id: an added requirement's id is its own year's number. A year that
+// holds no such requirement says so. Worked out once per change of the board (every edit goes through save(), which moves
+// _saveGen) and BEFORE the record is drawn: fydpData opens each year through aceWithYear, which rebuilds the requirement list.
+var _recYrC=null;
+// the requirement in year y that is the same work as requirement `id` of year y0 ('' when that year holds none) -- v2.16's rule
+// (249abe0), removed with the AI review in v2.19 and put back for this line
+function fydpSameIn(K, y0, id, y){
+  const k=K[y0] && K[y0][String(id)]; if(!k || !K[y]) return '';
+  if(+y===+y0) return String(id);
+  const m=K[y]; for(const x in m){ if(m[x]===k) return x; }
+  return '';
+}
+function recYearsOf(id){
+  if(!id || typeof MS==='undefined' || !MS || !MS.years || typeof fydpData!=='function') return null;
+  let W=[]; try{ W=fydpWindow(); }catch(e){ return null; }
+  const held=W.filter(function(y){ return !!MS.years[y]; });
+  if(held.length<2) return null;
+  const k=[_saveGen, MS.cur, held.join(','), (typeof CYCVIEW!=='undefined'? CYCVIEW : ''), _fyMoves].join('|');
+  if(typeof _recYrC==='undefined' || !_recYrC || _recYrC.k!==k || _recYrC.ms!==MS){
+    let D=null, LK=null;
+    try{ D=fydpData('working'); LK=fydpLineKeys(D, D.held); }catch(e){ return null; }
+    _recYrC={k:k, ms:MS, D:D, LK:LK};
+  }
+  const C=_recYrC;
+  return C.D.held.map(function(y){
+    const yid=fydpSameIn(C.LK, MS.cur, id, y);
+    const r=yid? ((C.D.proj[y]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null;
+    return {y:+y, id:yid, ask:r? fydpSum(r.ask) : null};
+  });
+}
+function recYearsHtml(id, Y){
+  if(!Y || Y.length<2) return '';
+  return '<div class="recyrs"><span class="rl">Requirement by year</span> '+Y.map(function(r){
+    const lbl='FY'+(r.y%100)+' '+(r.ask===null? '—' : fM(r.ask));
+    if(r.y===+MS.cur) return '<span class="recyr cur" title="the year on screen">'+lbl+'</span>';
+    if(r.ask===null) return '<span class="recyr none" title="FY'+(r.y%100)+' holds no requirement that is this one">'+lbl+'</span>';
+    return '<button type="button" class="recyr" onclick="recYearGo('+r.y+','+jsa(r.id)+')" title="open this requirement in FY'+(r.y%100)+'">'+lbl+'</button>';
+  }).join('')+'</div>';
+}
+function recYearGo(y, yid){
+  switchYear(y);
+  if(+MS.cur!==+y) return;   // refused (a PMO copy's other year, a locked cycle without it): it says why
+  if(!reqShow(yid)) setStat('ℹ FY'+(y%100)+' '+esc(dispTitle(itemById(yid)||{id:yid}))+' is open in the record; its row is hidden by the search or a filter on the list.');
+}
+// 149.28: THE MENU LINE NAMES THE REQUIREMENT. PMO › Reassign a requirement… opened the edit box for whichever requirement was
+// marked, without naming it. The label is this one function, for the menu to read (syncBtns: For the integration).
+function pmoReassignLbl(){
+  const it=(typeof curRow!=='undefined' && curRow)? itemById(curRow) : null;
+  return it? '⇄ Reassign '+dispTitle(it)+'…' : '⇄ Reassign a requirement…';
+}
+// ── the record's keyboard and pointer ──
+// 149.23: THE DOWN ARROW GOES DOWN A COLUMN. Six values down one column was 15 Tab presses (Requirement, Disc, Mand across). In
+// the By service table, Down and Up go to the same column on the next or the previous service; Tab and Enter are as they were. The
+// field is left first, as a browser leaves it -- its figure is applied (its change) and the record redrawn -- and the keyboard
+// then goes to the box standing in the next service's place.
+document.addEventListener('keydown', function(e){
+  if((e.key!=='ArrowDown' && e.key!=='ArrowUp') || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  const t=e.target; if(!t || t.tagName!=='INPUT' || !t.closest || !t.closest('#inspector .insp-split')) return;
+  const col=t.getAttribute('data-col'), si=+t.getAttribute('data-si'); if(!col) return;
+  const to=si+(e.key==='ArrowDown'? 1 : -1); if(to<0 || to>=SVC.length) return;
+  e.preventDefault();
+  try{ t.blur(); }catch(x){}
+  const n=document.querySelector('#inspector .insp-split input[data-col="'+col+'"][data-si="'+to+'"]');
+  if(n) try{ n.focus(); n.select(); }catch(x){}
+});
+// 149.18: A CLICK ON ANOTHER REQUIREMENT MOVES THE RECORD TO IT. Sliding over the table, the record's scrim took the first click on
+// anything else -- another row, Filter, Save, the left menu -- and only closed the record. The scrim still dims the page and no
+// longer takes the click (its pointer-events, v222w3): a row clicked is selected as ever, and the record moves to it; anything
+// else gets its click. A click on the page itself, on nothing that does anything, closes the record as the scrim did.
+document.addEventListener('click', function(e){
+  if(!drawerNarrow()) return;
+  const p=document.getElementById('inspector'); if(!p || !p.classList.contains('open')) return;
+  const t=e.target; if(!t || !t.closest || p.contains(t)) return;
+  if(t.closest('#list .row, button, input, select, textarea, a, label, summary, [onclick], [role="button"], [tabindex], .modal-bg, #uiSide, #topStack, .mdd, .uiPop')) return;
+  drawerClose();
+});
+// 149.28: THE FIRST CLICK ON ANOTHER ROW IS KEPT AFTER TYPING. A figure typed in the record and left by a click on another row is
+// applied as the press goes down, and the redraw replaced the rows under the pointer: the browser then delivered the click to the
+// list, not a row, and nothing was selected. The press is noted; if no click reached a row and the row pressed was redrawn, the
+// row standing in its place under the pointer is selected as the click would have.
+var REC_ROWP=null;
+document.addEventListener('pointerdown', function(e){ const t=e.target, row=t && t.closest && t.closest('#list .row');
+  REC_ROWP=(row && !t.closest('input, select, textarea, button, a, label, .clin-detail'))? {id:row.id.replace(/^row-/,''), el:t, clicked:false} : null; }, true);
+window.addEventListener('click', function(e){ const t=e.target;
+  if(REC_ROWP && t && t.closest && t.closest('#list .row')) REC_ROWP.clicked=true; }, true);
+document.addEventListener('pointerup', function(e){ const P=REC_ROWP; if(!P) return; const up=e.target;
+  setTimeout(function(){ if(REC_ROWP!==P) return; REC_ROWP=null;
+    if(P.clicked || P.el.isConnected) return;   // the click reached its row, or nothing was redrawn: the browser's own
+    const r=document.getElementById('row-'+P.id);
+    if(r && up && up.nodeType===1 && r.contains(up)) setCur(P.id); }, 0); }, true);
+// 149.33: THE STRIP'S THREE JUMPS LAND, AND THE HIGHLIGHT FOLLOWS. The strip is pinned with the bar, so a section is brought to just
+// under them -- never under the strip, which hid the By service table's own headings -- and Overview goes to the top whatever is
+// scrolled. Scrolling moves the highlight to the section being read; a jump keeps it on the one asked for.
+var _recTabAt=0;
+function recSecTop(ins, el){ const h=ins.querySelector('.rechead');
+  return el.getBoundingClientRect().top-(h? h.getBoundingClientRect().bottom : ins.getBoundingClientRect().top); }
+function recTabSync(){
+  const ins=document.getElementById('inspector'); if(!ins || Date.now()-(_recTabAt||0)<400) return;
+  const f=ins.querySelector('.insp-lbl.svclbl'), h=ins.querySelector('.uiDHist');
+  let k='overview';
+  if(f && recSecTop(ins, f)<=24) k='funding';
+  if(h && (recSecTop(ins, h)<=24 || (ins.scrollTop>0 && ins.scrollTop+ins.clientHeight>=ins.scrollHeight-2 && recSecTop(ins, h)<ins.clientHeight))) k='history';
+  if(k===UI_DTAB) return;
+  UI_DTAB=k;
+  [].slice.call(ins.querySelectorAll('.uiDTabs button')).forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-k')===k? 'true' : 'false'); });
+}
+(function(){ try{ const ins=document.getElementById('inspector'); if(ins) ins.addEventListener('scroll', recTabSync, {passive:true}); }catch(e){} })();
+// 149.43: A REPAIRED AWARD'S RECORD, AS A SENTENCE. What was kept (awdOrigText) is the award as the file held it; it was shown as that
+// code. Read here only to be said: a single date, or each increment's date and dollars; anything that is not an award is quoted, and
+// a long one is shortened in the saying only (the record keeps every character, v1.96).
+function awdOrigSay(o){
+  const t=String(o==null? '' : o);
+  let v=null; try{ v=JSON.parse(t); }catch(e){ v=null; }
+  const cut=function(x){ x=String(x); return x.length>200? x.slice(0,200)+'… ('+x.length.toLocaleString()+' characters, all of them kept)' : x; };
+  const dt=function(a){ return (a && a.d!=null)? String(a.d)+(a.day!=null? ', day '+String(a.day) : '') : 'no date'; };
+  const sum=function(sv){ if(!Array.isArray(sv)) return ''; let n=0, ok=true;
+    sv.forEach(function(x){ const f=+x; if(isFinite(f)) n+=f; else ok=false; });
+    return ' for '+(ok? fM(n) : 'figures that could not all be read')+' over '+sv.length+' service'+(sv.length===1? '' : 's'); };
+  if(v && typeof v==='object' && !Array.isArray(v)){
+    if(v.mode==='inc' && Array.isArray(v.inc))
+      return 'Saved as incremental funding with '+v.inc.length+' award'+(v.inc.length===1? '' : 's')+(v.inc.length? ': ' : '.')
+        +v.inc.map(function(a){ return (a && typeof a==='object')? dt(a)+sum(a.sv) : cut(JSON.stringify(a)); }).join('; ')+(v.inc.length? '.' : '');
+    return 'Saved as one award dated '+dt(v)+(v.mode && v.mode!=='single'? ' (marked "'+cut(v.mode)+'")' : '')+'.';
+  }
+  return t? 'Saved as text that is not an award: “'+cut(t)+'”.' : 'Saved with nothing in it.';
+}
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====

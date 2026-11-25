@@ -498,7 +498,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     var rows=[].slice.call(ins.querySelectorAll('table.budtab tr')).map(function(tr){
       var th=tr.querySelector('th'), sel=tr.querySelector('select'), how=tr.querySelector('.budhow');
       return {svc:th.firstChild.textContent, lane:th.querySelector('.budlane').textContent, value:sel.value,
-        title:sel.getAttribute('title')||'', first:sel.options[0].textContent,
+        title:sel.getAttribute('title')||'', first:sel.options[0].textContent, name:(tr.querySelector('.budname')||{}).textContent||'',
         how:how.className.replace('budhow','').trim(), clear:!!tr.querySelector('button')}; });
     var all=ins.querySelector('.budfoot button'), fam=ins.querySelector('#budfam');
     return JSON.stringify({rows:rows, clearAll:all? all.textContent : '', fam:fam? fam.value : null,
@@ -552,8 +552,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     f.rows.map(r => r.svc + ' ' + r.lane).join(', '), 'USAF not funded yet');
   chk(name, 'lines', 'with nothing chosen, nothing to clear', f.rows[0].clear + ' · ' + (f.clearAll || 'no Clear all'), 'false · no Clear all');
   const ud = a.rows.find(r => r.svc === 'USAF' && r.lane === 'discretionary') || {};
-  chk(name, 'rule', 'a line the rule settles says so, naming the budget the file prints', ud.how + ' · ' + ud.first,
-    'rule · — the rule: ' + DISC_AV + ' —');
+  // v2.22 W3 (149.34): the line prints the rule's budget once, whole (budname), and its picker no longer repeats it
+  chk(name, 'rule', 'a line the rule settles says so, naming the budget the file prints', ud.how + ' · ' + ud.first + ' · ' + ud.name,
+    'rule · — keep the rule — · ' + DISC_AV);
   const sm = a.rows.find(r => r.svc === 'STOVL' && r.lane === 'mandatory') || {};
   chk(name, 'not set', 'two lane-less names fit STOVL mandatory and no CCaR settles it: not set', sm.how, 'unset');
   chk(name, 'not set', 'and the file leaves that $13 line blank', onFile(13), '');
@@ -2265,7 +2266,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const d0 = ev(`siDefault(itemById('A'))`), dPP = ev(`(function(){ var g=S.grp.A; S.grp.A='PP'; var d=siDefault(itemById('A')); if(g===undefined) delete S.grp.A; else S.grp.A=g; return d; })()`);
     chk(name, 'SI code', 'fixture: A’s derived code changes when it moves to PP', d0 !== dPP, true);
     ev(`toggleRec('A'); 'ok'`);
-    chk(name, 'SI code', 'with no code stored, the picker says it follows the PMO and prime rules', ev(`(function(){ var s=document.getElementById('erSi'); return s.options[s.selectedIndex].text; })()`), '— follows the PMO and prime rules —');
+    // v2.22 W3 (149.40): said in plain words
+    chk(name, 'SI code', 'with no code stored, the picker says it follows the PMO and prime rules', ev(`(function(){ var s=document.getElementById('erSi'); return s.options[s.selectedIndex].text; })()`), '— the code its office and contract give —');
     putIn(ev, 'erGrp', 'PP'); btn(ev, 'erSaveBtn');
     chk(name, 'SI code', 'moved to PP in the same Save, it still follows: nothing stored, the code is PP’s', J([ev(`S.si.A===undefined`), ev(`siOf(itemById('A'))`)]), J([true, dPP]));
     ev(`S.grp.B='PP'; save(); 'ok'`);
@@ -2280,7 +2282,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     ev(`S.wbs.A=[{w:'1.1', v:[]}]; S.ptype.B='PRIME'; save(); setCur('A'); render(); toggleRec('A'); 'ok'`);
     const btnCount = ev(`(function(){ erClose(); setCur('A'); render(); var t=[].map.call(document.querySelectorAll('#inspector .insp-act .a2'), function(e){ return e.textContent; })[2]; toggleRec('A'); return t; })()`);
     chk(name, 'words', 'the box’s Required count and the 📋 button say the same thing', ev(`document.getElementById('erReadyN').textContent`), btnCount);
-    chk(name, 'words', 'the record name drawn from the file says so', ev(`document.getElementById('erRecTag').textContent`), 'from the file');
+    // v2.22 W3 (149.40): plain words -- "from the file" was said of records somebody typed in
+    chk(name, 'words', 'the record name drawn from the file says so', ev(`document.getElementById('erRecTag').textContent`), 'the requirement’s own title');
     chk(name, 'words', 'a WBS of one line can be split from the box', J([ev(`document.getElementById('erWbsGo').hidden`), ev(`document.getElementById('erWbsSplit').hidden`), ev(`document.getElementById('erWbsSplit').textContent`)]), J([false, false, 'Split it by service…']));
     ev(`erGo('record'); 'ok'`);
     chk(name, 'words', 'the way to the value and budgets closes the box and puts the keyboard in the RECORD panel’s value', J([ev(`erOn()`), ev(`(document.activeElement.getAttribute('onchange')||'').indexOf('setAsk(')===0`)]), J([false, true]));
@@ -2369,7 +2372,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       const r = ev(`document.getElementById('erRecT').textContent+' | '+document.getElementById('erRecTag').textContent`); ev(`erClose(); 'ok'`); return r; };
     chk(name, 'record name source', 'a prime named by its CLINs’ one record: from the CCaR records list', line('A'), 'DEPOT RECORD ONE | from the CCaR records list');
     chk(name, 'record name source', 'one named by several: from the CCaR records list', line('B'), 'Multiple records (2) | from the CCaR records list');
-    chk(name, 'record name source', 'one the list does not name shows its file title: from the file', line('D'), 'PACK TITLE | from the file');
+    chk(name, 'record name source', 'one the list does not name shows its file title: from the file', line('D'), 'PACK TITLE | the requirement’s own title');   // v2.22 W3 (149.40)
   });
 
   // ---- the note under RCN / EEIC follows what the box holds, the requirement's own and each service's
@@ -3570,7 +3573,7 @@ function w1LockAsBefore() {
     ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); S.si={B:'', C:'OT'}; save(); window.confirm=function(){ return true; }; 'ok'`);
     chk(name, 'the fixture', 'CONTROL: B and C are in PP, which derives EN; B stores none by hand, C stores OT by hand', ev(`JSON.stringify([siDefault(itemById('B')), siOf(itemById('B')), siOf(itemById('C'))])`), J(['EN', '', 'OT']));
     const opts = id => JSON.parse(ev(`(function(){ openEdit(${J(id)},'si'); var s=document.getElementById('erSi'); var o=s? [].map.call(s.options, function(x){ return [x.value, x.text]; }) : null; return JSON.stringify(o); })()`));
-    const FOL = ['\u0004', '— follows the PMO and prime rules —'];
+    const FOL = ['\u0004', '— the code its office and contract give —'];   // v2.22 W3 (149.40): plain words
     chk(name, 'nothing stored (a CONTROL)', 'A, with nothing stored, is offered the rules’ option, selected', J([(opts('A') || []).some(o => o[0] === FOL[0] && o[1] === FOL[1]), ev(`document.getElementById('erSi').value`)]), J([true, FOL[0]]));
     ev(`erClose(); 'ok'`);
     for (const [id, was] of [['B', ''], ['C', 'OT']]) {
