@@ -3625,6 +3625,7 @@ const W2F = {
 };
 const W2H = `(function(){
   window.__g=function(id){ return document.getElementById(id); };
+  window.__v=function(id){ var e=__g(id); return e? String(e.value) : '(no #'+id+')'; };   // a field's value, or that it is not there
   window.__set=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.focus(); e.value=v;
     e.dispatchEvent(new Event('input', {bubbles:true})); e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
   window.__pick=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.value=v; if(e.value!==String(v)) return 'not offered';
@@ -3820,6 +3821,12 @@ const w2Boot = (sc = W2F, o = {}) => {
       const acts = JSON.parse(C.ev(`(function(){ CMD.acts=null; return JSON.stringify({sb:!!SANDBOX, hs:cmdActions().map(function(a){ return a.h; })}); })()`));
       chk(name, 'PMO copy', 'nothing of Program offices is offered (Publish PMO copy, Review submittals, the submittal loads), and Save is ✉ Submit input',
         J([acts.sb, acts.hs.filter(h => /publishPmoCopy|subOpenReview|uiPmoLoad/.test(h)), acts.hs.includes('pmoSubmit()'), acts.hs.includes('saveInPlace()')]), J([true, [], true, false]));
+      // the copy also leaves Program offices' list empty, so that alone could not tell: on the board, an entry the menu does not
+      // show offers nothing even where its list holds items
+      const hid = JSON.parse(B.ev(`(function(){ CMD.acts=null; var was=cmdActions().filter(function(a){ return /publishPmoCopy/.test(a.h); }).length;
+        __g('uiNav_pmo').hidden=true; CMD.acts=null; var now=cmdActions().filter(function(a){ return a.nav==='uiNav_pmo'; }).length;
+        __g('uiNav_pmo').hidden=false; CMD.acts=null; return JSON.stringify([was, now]); })()`));
+      chk(name, 'hidden entry', 'Program offices hidden on the board: none of its items is offered (CONTROL: shown, Publish PMO copy is)', J(hid), J([1, 0]));
     }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
@@ -3906,15 +3913,15 @@ const w2Boot = (sc = W2F, o = {}) => {
     chk(name, 'budget', 'AV: USAF has three names, so none is picked; ANG’s only name is by hand only, so it is not picked', J([ev(`__g('arB0').value`), ev(`__g('arB1').value`)]), J(['', '']));
     ev(`__g('addPanel').querySelector('h3 button.x').click(); dlgSync(); setPmoFilter('PSM'); 'ok'`);
     // ADD AND START ANOTHER: the office kept, the form emptied (the only budget picked again), the keyboard on the plan event
-    const fill = ev1 => `__set('arEvent', ${J(ev1)}); __g('arPtP').click(); __set('arV0', '200'); __pick('arOb', 'PMO LM Contract'); __pick('arTo', 'lm');
+    const fill = ev1 => `__set('arEvent', ${J(ev1)}); __click('#arPtP'); __set('arV0', '200'); __pick('arOb', 'PMO LM Contract'); __pick('arTo', 'lm');
       __set('arDesc', 'd'); __set('arCons', 'c'); 'ok'`;
     ev(`toggleAdd(); ${fill('first added')}`);
     chk(name, 'start another', 'CONTROL: the form is complete, its budget the one picked for it', J([ev(`__g('arAddBtn').textContent`), ev(`__g('arB0').value`)]), J(['Add requirement', BAE[0]]));
     chk(name, 'start another', 'Add and start another is beside Add requirement, a native button', JSON.parse(ev(`JSON.stringify(__btns('#arFt button'))`)), JSON.parse(J(['Cancel', 'Add and open its record', 'Add and start another', 'Add requirement'])));
     ev(`window.__sv=[]; Element.prototype.scrollIntoView=function(){ window.__sv.push(this.id); }; __click('#arAddMore'); 'ok'`);
     chk(name, 'start another', 'added; the box stays open for PSM with the form empty, the only budget picked again, the keyboard on the plan event, and says what it added',
-      J([ev(`S.order.join(',')`), ev(`String(arOpen)`), ev(`arOff`), ev(`__g('arEvent').value+'|'+__g('arV0').value+'|'+__g('arDesc').value`), ev(`__g('arB0').value`),
-        ev(`document.activeElement && document.activeElement.id`), ev(`__g('arMsg').textContent`)]),
+      J([ev(`S.order.join(',')`), ev(`String(arOpen)`), ev(`arOff`), ev(`__v('arEvent')+'|'+__v('arV0')+'|'+__v('arDesc')`), ev(`__v('arB0')`),
+        ev(`document.activeElement && document.activeElement.id`), ev(`(__g('arMsg')||{textContent:'(no message line)'}).textContent`)]),
       J(['NEW-1', 'true', 'PSM', '||', BAE[0], 'arEvent', 'Added NEW-1 — first added. The form is empty for the next one, for PSM.']));
     chk(name, 'start another', 'and the list went to the new row', ev(`String(__sv.indexOf('row-NEW-1')>=0)`), 'true');
     ev(`${fill('second added')}; __sv=[]; __click('#arAddBtn'); 'ok'`);

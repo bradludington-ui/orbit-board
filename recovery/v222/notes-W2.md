@@ -45,7 +45,7 @@ the CCaR record, the PID, the record name, the prime contract / OGC tag, the cos
   filters** (`listClearAll`).
 - **While a search is on and its box has scrolled away**, `#qAway` (a navy line right after the title band, sticky under the header)
   says *Searching for "x" — N requirements shown* with **Clear the search**; `html.q-away` moves the column heads down under it.
-  `qAwaySync` runs on scroll, resize, every list redraw (a `MutationObserver` on `#list`) and every keystroke.
+  `qAwaySync` runs on scroll, resize, every keystroke, and a turn after every list redraw (`listSearchQ`, render()'s read of the search; not a `MutationObserver` on `#list`, whose record queue kept every redraw's removed rows while a top-to-bottom suite ran, and audit-board ran out of heap on them).
 
 **Filter (149.26).** `filterFirstOpen()` opens the Funding group until this browser has opened or closed one of Filter's groups by
 hand (kept in memory only; `menuGrp` stores a person's choice as before). The divider above the first group is gone.
@@ -162,7 +162,7 @@ Proofs: `recovery/v222/proofs-W2.json` (56 ids) and `recovery/v222/proved-W2.jso
 
 ## For the integration
 
-- **`render()` lines W2 changed** (all marked `v2.22 W2`): `const q=listQ();`, the predicate call
+- **`render()` lines W2 changed** (all marked `v2.22 W2`): `const q=listSearchQ();`, the predicate call
   (`if(q && !listSearchHit(it, q, hardOpen? liveRank[id] : rank)) return;`), the empty test
   (`if(h.indexOf('class="row ')<0) h=listEmptyHtml(h);` — it replaced `if(!h) h=…`, and `listEmptyHtml` keeps banners drawn with
   `style="margin:0 0 8px` — the locked view's and discretionary-only's: if W1 restyles those banners, keep that marker or tell

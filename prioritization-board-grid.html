@@ -29595,7 +29595,7 @@ function render(){
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
   arSync(); scoreboard(); chips(); attBody(); pmoBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); ppBody(); exBody(); pkgBody(); syncBtns();
-  const q=listQ();   // v2.22 W2 (item 149.25): the search's text, read by the one predicate below (listSearchHit)
+  const q=listSearchQ();   // v2.22 W2 (item 149.25): the search's text, read by the one predicate below (listSearchHit)
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
   const MR=masterRanks();
@@ -37678,7 +37678,14 @@ function qAwaySync(){
   try{ document.documentElement.classList.toggle('q-away', away); }catch(e){}
 }
 try{ window.addEventListener('scroll', qAwaySync, {passive:true}); window.addEventListener('resize', qAwaySync); }catch(e){}
-try{ const L=document.getElementById('list'); if(L && typeof MutationObserver!=='undefined') new MutationObserver(function(){ qSync(); }).observe(L, {childList:true}); }catch(e){}
+// render()'s read of the search: the text, and the ✕ and the note brought up to date once the list it is about has been drawn (a
+// turn later, one pending at a time). NOT a MutationObserver on #list: every redraw's removed rows wait in an observer's record
+// queue until the loop turns, and a test suite that runs top to bottom never turns it -- audit-board ran out of heap on them.
+var _qSyncT=0;
+function listSearchQ(){
+  if(!_qSyncT){ try{ _qSyncT=setTimeout(function(){ _qSyncT=0; qSync(); }, 0); }catch(e){ _qSyncT=0; } }
+  return listQ();
+}
 
 // WHAT THE LIST SAYS WHEN IT HOLDS NO ROW (items 149.25, 149.29, 149.30): render()'s one call. A search or a filter that finds
 // nothing says "No requirements match", names what is on, and offers the way back; an empty year leads with Add requirement ›
