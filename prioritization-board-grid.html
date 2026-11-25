@@ -4039,6 +4039,7 @@ function switchAppn(a, asked){
     return false;
   }
   try{ liveLeaving(); }catch(e){}
+  if(typeof avDraftDrop==='function') avDraftDrop();   // v2.23 review RV-C (C9): the switch is certain only here
   reopenPage(); return true; }
 // ── PPBE CYCLES: THE LOCKED FIVE-YEAR PLANS ──────────────────────────────────────────────────
 // A cycle is the FYDP window frozen under a PPBE cycle key ('PB|2027' reads PB27): every year in
@@ -4363,13 +4364,16 @@ const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;
    capV is the most this cell could have drawn: basisSvcOf() for discretionary, and that less the
    discretionary already drawn for mandatory. Passing nothing keeps the lane wording, which is the
    honest default for a caller that does not know the cap. */
-const drewWhy = (drawnV, capV) => (typeof capV === 'number' && drawnV >= capV - 0.005)
+// v2.23 review RV-C (C3): offFy -- a mandatory cell in a year with mandatory funding off (mandOn) -- names that, never a dry lane:
+// the lane is not dry, it is switched off, and "ran out above this rank" sent a reader hunting money that was never the constraint.
+const drewWhy = (drawnV, capV, offFy) => offFy ? 'mandatory funding is off in FY'+(offFy%100)
+  : (typeof capV === 'number' && drawnV >= capV - 0.005)
   ? 'the allocation for this service stops at '+fM(capV)
     +' \u2014 raise the allocation to draw more'
   : 'the lane could not supply the rest';
 // On a CELL: what the lane actually supplied, under the figure that was typed.
-const drewLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
-  ? '<div class="drew" title="'+drewWhy(drawnV, capV)+'">drew '+fM(drawnV)+'</div>' : '';
+const drewLine = (directedV, drawnV, capV, offFy) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="'+drewWhy(drawnV, capV, offFy)+'">drew '+fM(drawnV)+'</div>' : '';
 // On a TOTAL: what the cells above it were directed to, since the total itself is what was drawn.
 const directedLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
   ? '<div class="drew" title="the cells above were directed higher than '
@@ -4377,8 +4381,8 @@ const directedLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
                                                            : 'the lanes could supply')+'">'
     + 'directed '+fM(directedV)+'</div>' : '';
 // The same fact in a tooltip, for the box the figure was typed into.
-const drewTip = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
-  ? ' \u2014 '+fM(drawnV)+' of it could be drawn ('+drewWhy(drawnV, capV)+'); '+fM(directedV-drawnV)
+const drewTip = (directedV, drawnV, capV, offFy) => drewGap(directedV, drawnV)
+  ? ' \u2014 '+fM(drawnV)+' of it could be drawn ('+drewWhy(drawnV, capV, offFy)+'); '+fM(directedV-drawnV)
     + ' could not and shows as this service\u2019s UFR' : '';
 /* ---- SET HIGHER THAN IT DRAWS (v1.86) --------------------------------------------------------------
    Brad, 26 Sep 2026: "I need a quicker way within the dashboard main view to identify quickly and
@@ -4418,7 +4422,9 @@ function ndData(){
         const atAsk=dM>=bs[i]-dD-0.005;
         list.push({id:id, rank:MR[id], i:i, lane:'m', typed:tM, drew:dM, gap:tM-dM,
           short:Math.max(0, u-Math.max(0, Math.min(tD+dM, ask)-dD-dM)),
-          why: atAsk? 'the '+sv+' requirement value stops at '+fM(bs[i]) : sv+' mandatory ran out above this rank'});
+          // v2.23 review RV-C (C3): in a year with mandatory funding off no mandatory dollar is drawn, by the rule, not a dry lane
+          why: !mandOn()? sv+' mandatory: '+drewWhy(dM, bs[i]-dD, +MS.cur)
+            : atAsk? 'the '+sv+' requirement value stops at '+fM(bs[i]) : sv+' mandatory ran out above this rank'});
         any=true;
       }
     });
@@ -5319,6 +5325,7 @@ function uiSetMode(m){
   if(UI_MODES.indexOf(m)<0) return;
   // v2.23 W3 (item 159): leaving Allocate with changes not saved asks first; Cancel stays
   if(uiMode==='alloc' && m!=='alloc' && typeof avLeave==='function' && !avLeave('Leaving Allocate')) return;
+  if(uiMode==='alloc' && m!=='alloc' && typeof avDraftDrop==='function') avDraftDrop();   // v2.23 review RV-C (C9): the switch is certain
   uiMode=m; lsSet('spmtMode', m, 'Your workspace mode');
   openMenu=null; uiApply(); render();
 }
@@ -7778,6 +7785,7 @@ function switchYear(y){
     } else { setStat('\u2139 FY'+(y%100)+' was not started. Still on '+FYL()+'.'); try{ render(); }catch(e){} return; }
     MS.years[y]=seed;
   }
+  if(y!==MS.cur && typeof avDraftDrop==='function') avDraftDrop();   // v2.23 review RV-C (C9): the switch is certain only here
   MS.years[MS.cur]=S;
   MS.cur=y; _fyMoves++;
   FYMON = fyMonths(y);
@@ -7978,6 +7986,7 @@ function yearCopy(id, y, mode, opts){
   cp(T.titles, S.titles[id]);   // an added requirement carries its rename too, like any other
   cp(T.ccar, ccarOf(it)||undefined); cp(T.pid, (S.pid||{})[id]);
   cp(T.costElem, (S.costElem||{})[id]); cp(T.fsrc, S.fsrc[id]);
+  const mandZero=yrMandOffCarry(T, tid);   // v2.23 review RV-C (C3): no mandatory dollar into a year with mandatory funding off
   cp(T.grp, (S.grp||{})[id]);            // the office it was moved to, not the one in the file
   cp(T.si, (S.si||{})[id]);              // only if set BY HAND — a derived code is never stored
   cp(T.dest, (S.dest||{})[id]);          // where the money goes, both hops
@@ -8016,7 +8025,7 @@ function yearCopy(id, y, mode, opts){
     } else if(!S.removed.includes(id)) S.removed.push(id);
     S.order=S.order.filter(x=>x!==id);
     Object.keys(S.pmoOrder||{}).forEach(g=>{ if(Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=S.pmoOrder[g].filter(x=>x!==id); });
-  }  return {ok:true, status:'copied', tid:tid};
+  }  return {ok:true, status:'copied', tid:tid, mandZero:mandZero};
 }
 
 function xferYear(id, code){
@@ -8044,7 +8053,8 @@ function xferYear(id, code){
   const _r=yearCopy(id, y, mode);
   if(!_r.ok) return;
   save(); render();
-  setStat((mode==='c'?'🗓 Copied':'🗓 Moved')+' "'+esc(nm)+'" to FY'+(y%100)+' — switch there from the 🗓 menu to see it'+(MS.years[y].order.length===1?' (FY'+(y%100)+' was created blank; this is its first requirement)':'')+'.');
+  setStat((mode==='c'?'🗓 Copied':'🗓 Moved')+' "'+esc(nm)+'" to FY'+(y%100)+' — switch there from the 🗓 menu to see it'+(MS.years[y].order.length===1?' (FY'+(y%100)+' was created blank; this is its first requirement)':'')+'.'
+    +(_r.mandZero>0? ' ℹ Mandatory funding is off in FY'+(y%100)+', so its '+fM(_r.mandZero)+' of mandatory went across as $0: its discretionary went as it is.' : ''));   // v2.23 review RV-C (C3)
 }
 function resetYear(){
   if(cycBlock('Resetting a year')) return;
@@ -8137,12 +8147,14 @@ function rollApply(){
       +String.fromCharCode(10)
       +'Each copy carries the requirement value, allocation, decision band and every classification, '
       +'with award dates shifted by the year difference. '+FYL()+' is not changed.')) return;
-  let made=0, skipped=0, failed=0;
+  let made=0, skipped=0, failed=0, mz=0;
+  const mzY={};
   p.years.forEach(function(y){
     p.ids.forEach(function(id){
       let r;
       try{ r=yearCopy(id, y, 'c', {skipExisting:true}); }
       catch(e){ failed++; return; }
+      if(r && r.mandZero>0){ mz+=r.mandZero; mzY['FY'+(y%100)]=1; }   // v2.23 review RV-C (C3)
       if(r && r.ok) made++;
       else if(r && r.status==='exists') skipped++;
       else failed++;
@@ -8153,7 +8165,8 @@ function rollApply(){
     +p.years.map(function(y){ return 'FY'+(y%100); }).join(', ')
     +(skipped? ' · <b>'+skipped+'</b> already there and left alone' : '')
     +(failed? ' · <b style="color:var(--amber)">'+failed+' could not be copied</b>' : '')
-    +'. '+FYL()+' is unchanged — switch year from the 🗓 menu to see them.');
+    +'. '+FYL()+' is unchanged — switch year from the 🗓 menu to see them.'
+    +(mz>0? ' ℹ Mandatory funding is off in '+Object.keys(mzY).join(', ')+', so '+fM(mz)+' of mandatory went across as $0 there.' : ''));   // v2.23 review RV-C (C3)
 }
 function rollBody(){
   const bg=document.getElementById('rollPanel'), el=document.getElementById('rollBody');
@@ -8610,6 +8623,7 @@ function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && !/^
   && !jrnlCustomPlace(e)
   && !jrnlOlderLine(e)                                   // v2.14 RV1-D (d28-writes-false-journal-line)
   && !jrnlRemovedLine(e)                                 // v2.17 (item 149.3)
+  && !jrnlMandOffLine(e)                                 // v2.23 review RV-C (C2)
   && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }
 // v1.97 (item 80): AN ENTRY RECORDED BEFORE THE SERVICE LIST CHANGED holds its figures by the places they had then, and
 // put back it would land on whichever service holds that place now. One whose path or value carries a place or a list
@@ -8636,6 +8650,12 @@ function jrnlUndo(i){
   // v2.14 RV1-D (held, also noticed): nor a field of an added requirement that has left the year -- deleted, or moved to another year
   { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && g && jrnlUndoable(g) && jrnlFieldGone(g)){
     setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — that added requirement is no longer in FY'+((g.fy||MS.cur)%100)+'. Nothing was changed.'); return; } }
+  // v2.23 review RV-C (C2): the mandatory switch is turned on or off with its own switch, which asks what happens to the money
+  { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && jrnlMandOffLine(g)){ setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — '+esc(jrnlNotMandOff())+' Nothing was changed.'); return; } }
+  // v2.23 review RV-C (C3): NOR A MANDATORY FIGURE ABOVE $0 INTO A YEAR WITH MANDATORY FUNDING OFF -- setFsrcSvc's own rule. Put back,
+  // it was directed and never drawn, with no box anywhere to see or clear it, and ▲ not drawn blamed a dry lane. Before the question.
+  { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && jrnlUndoable(g) && jrnlMandBack(g)){ setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — mandatory funding is off in FY'+(((g.fy||MS.cur))%100)
+    +', so a mandatory figure above $0 would draw nothing. Turn mandatory funding on with Allocate’s switch first. Nothing was changed.'); return; } }
   if(cycBlock('Putting a change back')) return;
   const e=(MS.jrnl||[])[i];
   if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, a figure recorded by its service’s place before the service list changed, or the value is too large to have been recorded in full.'); return; }
@@ -8663,7 +8683,8 @@ const JRNL_NAMES={alloc:'allocation', asks:'ask', band:'decision band', tier:'ti
   si:'sustainment indicator', wbs:'WBS', fsrc:'funding source', awards:'award timing', mc:'must-carry',
   bm:'budget', removed:'removed requirements', custom:'added requirements', ptype:'classification',
   budgetAsg:'budget assignment', dest:'destination', reprog:'reprogramming', crHalf:'CR timing',
-  absorb:'absorbing requirement', band2:'band', rcn:'requirement control number', pmoOrder:'office ranking'};
+  absorb:'absorbing requirement', band2:'band', rcn:'requirement control number', pmoOrder:'office ranking',
+  mandOff:'mandatory funding (on or off)'};   // v2.23 review RV-C (C2)
 // v2.18 (item 149.16): A FIELD IS NAMED IN PLAIN WORDS -- the record's own name for it (REQ_FIELD), then the journal's, never the
 // container's internal name ("recNames"). An added requirement's fields are filed under 'custom' by its id; the field is p[2].
 const JRNL_CUSTOM_F={ask:'asks', event:'titles', grp:'grp'};
@@ -8732,6 +8753,7 @@ function jrnlPlaceTitle(e){ const rep=!!(e && e.rep);
 // v2.14 RV1-D (d28-writes-false-journal-line): what the journal says of a line an ORBIT older than v2.14 wrote (jrnlOlderLine)
 const JRNL_OLDER='recorded by an ORBIT older than v2.14, which tried to put this change back and could not: nothing changed on the board.';
 function jrnlShow(v, p){
+  if(p && p[0]==='mandOff') return v===true? 'off' : 'on';   // v2.23 review RV-C (C2): S.mandOff, true or not set
   if(v===null||v===undefined) return '<span style="color:var(--dim)">not set</span>';
   // v2.00 (U58): an SI code that is not text reads as saved, by its JSON -- .join() read ["AT"] as AT and threw on [{"toString":null}].
   // Before the size mark, which jrnlVal only ever writes as a number over JRNL_BIG: a saved {"_b":{"toString":null}} is the value
@@ -8818,6 +8840,7 @@ function jrnlBody(resultsOnly){
             ? '<button class="btn" style="font-size:10px;padding:2px 7px" onclick="jrnlUndo('+x.i+')">↶ Put back</button>'
             // v2.14 (item 124): a line about added requirements that is not put back says so, and why, on hover
             : jrnlRemovedLine(e)? '<span class="hint" style="margin:0" title="'+esc(JRNL_NOT_REMOVED)+'">not put back here</span>'   // v2.17 (149.3)
+            : jrnlMandOffLine(e)? '<span class="hint" style="margin:0" title="'+esc(jrnlNotMandOff())+'">not put back here</span>'   // v2.23 review RV-C (C2)
             : (Array.isArray(e.p) && !/^\(/.test(String(e.p[0])) && jrnlCustomPlace(e))
               ? '<span class="hint" style="margin:0" title="'+esc(typeof e.p[1]==='number' ? jrnlPlaceTitle(e) : JRNL_NOT_WHOLE)+'">not put back here</span>' : '')
         +'</td></tr>';
@@ -24749,6 +24772,7 @@ function cycView(key){
       +'which kept a projection and no state. It can still be compared.');
     return;
   }
+  if(typeof avDraftDrop==='function') avDraftDrop();   // v2.23 review RV-C (C9): the view is certain only here
   if(CYCVIEW) cycLeave(true);
   MS.years[MS.cur]=S;
   _cycStash={MS:MS, S:S, dirty:DIRTY, title:document.title};
@@ -31808,11 +31832,11 @@ async function driveStorePull(quiet){
     else if(theirs!==base){ driveClashSay(j, false); render(); }
     return false;
   }
-  if(DIRTY){
+  if(DIRTY || avHeld()){
     // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board
-    // losing what somebody had just typed.
+    // losing what somebody had just typed. v2.23 review RV-C (C1): Allocate's draft is unsaved work too.
     setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())
-      +' to the shared folder '+esc(liveAge(theirs))+', and you have unsaved changes. '
+      +' to the shared folder '+esc(liveAge(theirs))+', and you have unsaved changes'+(avHeld()? ' (in Allocate)' : '')+'. '
       +'Nothing was replaced. Save yours, or reload to take theirs.');
     render(); return false;
   }
@@ -36754,9 +36778,9 @@ function inspectorDraw(el){
     const cell = (kind, val, drew, cap) => {
       return '<input class="' + kind + '" data-col="' + kind + '" data-si="' + i + '" value="' + (val ? Math.round(val).toLocaleString() : '')
         + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 dollars directed to '
-        + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY') + esc(drewTip(val, drew, cap))
+        + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY') + esc(drewTip(val, drew, cap, (kind === 'm' && !mandOn()) ? +MS.cur : 0))
         + '" onchange="setFsrcSvc('+jsa(id)+','+jsa(kind)+',' + i + ',this.value)">'
-        + drewLine(val, drew, cap);
+        + drewLine(val, drew, cap, (kind === 'm' && !mandOn()) ? +MS.cur : 0);
     };
     // REQ IS THE REQUIREMENT VALUE, and it is edited here now -- this column absorbed the row
     // expander's six per-service ask inputs when that editor was retired in this build.
@@ -37635,8 +37659,10 @@ function sharedArrived(st){
   // opened and somebody has typed, and a later time on it -- another clock -- said nothing about whether the work on screen
   // was in any saved copy. Work typed in this session: nothing is replaced. Work no saved copy has from before: kept
   // aside first, or nothing is loaded.
-  if(DIRTY){
-    setStat('\u26a0 The shared state file ('+esc(fmtTs(st.ts))+') arrived after you started working, so <b>nothing was replaced</b>. '
+  // v2.23 review RV-C (C1): AND ALLOCATE'S DRAFT. Not in the board yet (DIRTY is false), it was still work typed in this session:
+  // loaded under it, the next Save in Allocate wrote its figures over the shared copy's, asking nothing.
+  if(DIRTY || avHeld()){
+    setStat('\u26a0 The shared state file ('+esc(fmtTs(st.ts))+') arrived after you started working'+(avHeld()? ' (Allocate holds changes not saved)' : '')+', so <b>nothing was replaced</b>. '
       +'\ud83d\udcbe Save yours, or <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one</button> '
       +'(what you have is kept aside first).');
     return;
@@ -40462,20 +40488,33 @@ function avDiscardAll(){ AV.draft={}; AV.was={}; AV.bad={}; AV.sel={}; }
 function avSync(){
   const ap=(function(){ try{ return mySlug(); }catch(e){ return ''; } })(), fy=(typeof MS!=='undefined' && MS)? MS.cur : 0;
   const cy=(typeof CYCVIEW!=='undefined' && CYCVIEW) || '';
-  if(AV.fy===fy && AV.ap===ap && AV.cyc===cy) return;
-  const n=avChangeN();
-  if(n && AV.fy) try{ setStat('⚠ The allocation view’s '+n+' unsaved change'+(n===1?'':'s')+' belonged to FY'+(AV.fy%100)+(AV.cyc? ' as locked' : '')
-    +' and were dropped: the board on screen is another plan now.'); }catch(e){}
-  avDiscardAll(); AV.fy=fy; AV.ap=ap; AV.cyc=cy;
+  // v2.23 review RV-C (C1): AND THE PLAN ITSELF. A load that replaces the board on screen -- Put back work kept aside, the shared
+  // state file, the shared folder's copy, Load theirs -- keeps the year and the appropriation and replaces MS. The draft was typed
+  // against the plan it replaced, and kept, the next Save wrote its figures over the newer ones, asking nothing.
+  const ms=(typeof MS!=='undefined')? MS : null;
+  if(AV.fy===fy && AV.ap===ap && AV.cyc===cy && AV.ms===ms) return;
+  const n=avChangeN(), nb=Object.keys(AV.bad||{}).length;
+  if((n || nb) && AV.fy){
+    const same=(AV.fy===fy && AV.ap===ap && AV.cyc===cy);
+    try{ statKeep('⚠ Allocate’s '+(n+nb)+' unsaved change'+((n+nb)===1?' was':'s were')+' '+(same
+      ? 'dropped: the board on screen was replaced by another saved copy of '+esc(FYL())+' (a load, a put back, or a copy that arrived), and '
+        +((n+nb)===1? 'it was' : 'they were')+' typed against figures that copy may not hold. Type '+((n+nb)===1? 'it' : 'them')+' again against the board as it is now.'
+      : 'typed in FY'+(AV.fy%100)+(AV.cyc? ' as locked' : '')+', and dropped: the board on screen is another plan now.')); }catch(e){}
+  }
+  avDiscardAll(); AV.fy=fy; AV.ap=ap; AV.cyc=cy; AV.ms=ms;
 }
 // Leaving the view, the year, the appropriation or the working plan with a draft asks first. OK discards; Cancel keeps it.
+// v2.23 review RV-C (C9): IT ONLY ASKS. The draft is discarded by avDraftDrop(), where each caller's switch is certain: switchYear
+// can still be refused or cancelled after this (a year not started: Cancel at roll forward, Cancel at start empty), cycView (a cycle
+// holding no year), switchAppn (storage refusing the choice, the page holding work on screen only). Discarded here, a switch that did
+// not happen had already thrown the draft away.
 function avLeave(what){
   let n=0; try{ n=avChangeN() + Object.keys(AV.bad||{}).length; }catch(e){ n=0; }
   if(!n) return true;
-  if(!confirm(what+' leaves Allocate with '+n+' change'+(n===1?'':'s')+' not saved.\n\nOK discards '+(n===1?'it':'them')
-    +'. Cancel keeps '+(n===1?'it':'them')+' so you can Save first.')) return false;
-  avDiscardAll(); return true;
+  return !!confirm(what+' leaves Allocate with '+n+' change'+(n===1?'':'s')+' not saved.\n\nOK discards '+(n===1?'it':'them')
+    +'. Cancel keeps '+(n===1?'it':'them')+' so you can Save first.');
 }
+function avDraftDrop(){ try{ avDiscardAll(); }catch(e){} }
 function avUnload(ev){
   try{ if((typeof _leaving!=='undefined' && _leaving) || !(avChangeN() || Object.keys(AV.bad).length)) return; ev.preventDefault(); ev.returnValue=''; return ''; }catch(e){}
 }
@@ -40555,13 +40594,14 @@ function avBox(M, id, k, i, r, c, title){
 }
 function avHead(M){
   const n=avChangeN(), ro=avRO(), nb=Object.keys(AV.bad).length;
-  const sw=function(lbl, on, h, t){ return '<button type="button" class="avsw" aria-pressed="'+(on?'true':'false')+'" onclick="'+h+'"'+(t? ' title="'+esc(t)+'"' : '')+'>'+lbl+'</button>'; };
+  // v2.23 review RV-C (C7): each control carries data-k, which avDraw finds the keyboard's place by after the redraw
+  const sw=function(lbl, on, h, t, k){ return '<button type="button" class="avsw" data-k="'+k+'" aria-pressed="'+(on?'true':'false')+'" onclick="'+h+'"'+(t? ' title="'+esc(t)+'"' : '')+'>'+lbl+'</button>'; };
   let h='<div class="avbar">'
-    +'<span class="avgrp" role="group" aria-label="View">'+sw('Sheet', AV.view==='sheet', 'avView(&quot;sheet&quot;)', 'Every requirement and every service')
-      +sw('One lane', AV.view==='lane', 'avView(&quot;lane&quot;)', 'One service at a time, counting its lane down row by row')+'</span>'
-    +'<span class="avgrp" role="group" aria-label="Edit or present">'+sw('Edit', !AV.present, 'avPresent(false)', 'Type figures: one person edits')
-      +sw('Present (read only)', AV.present, 'avPresent(true)', 'The same screen, read only, in larger type for the room')+'</span>'
-    +'<button type="button" class="avmand" role="switch" aria-checked="'+(M.mOn?'true':'false')+'" onclick="mandSwitch()"'
+    +'<span class="avgrp" role="group" aria-label="View">'+sw('Sheet', AV.view==='sheet', 'avView(&quot;sheet&quot;)', 'Every requirement and every service', 'ui:sheet')
+      +sw('One lane', AV.view==='lane', 'avView(&quot;lane&quot;)', 'One service at a time, counting its lane down row by row', 'ui:lane')+'</span>'
+    +'<span class="avgrp" role="group" aria-label="Edit or present">'+sw('Edit', !AV.present, 'avPresent(false)', 'Type figures: one person edits', 'ui:edit')
+      +sw('Present (read only)', AV.present, 'avPresent(true)', 'The same screen, read only, in larger type for the room', 'ui:present')+'</span>'
+    +'<button type="button" class="avmand" data-k="ui:mand" role="switch" aria-checked="'+(M.mOn?'true':'false')+'" onclick="mandSwitch()"'
       +(ro? ' aria-disabled="true"' : '')+' title="'+esc(ro==='locked'? 'A locked cycle is read only' : (ro==='copy'? 'Set by the portfolio team: not in a PMO copy'
         : 'Mandatory funding for '+FYL()+' only: off, no requirement draws mandatory money this year'))+'"><span class="avk" aria-hidden="true"></span>Mandatory funding: '
       +(M.mOn? 'On' : 'Off for '+FYL())+'</button>'
@@ -40569,9 +40609,9 @@ function avHead(M){
   if(!ro && !AV.present){
     h+=(n? '<span class="avn">'+n+' change'+(n===1?'':'s')+' not saved</span>' : '')
       +(nb? '<span class="avn bad">'+nb+' box'+(nb===1?'':'es')+' not read</span>' : '')
-      +'<button type="button" class="btn" onclick="avReview()"'+(n? '' : ' disabled')+'>Review changes</button>'
-      +'<button type="button" class="btn" onclick="avDiscard()"'+((n||nb)? '' : ' disabled')+'>Discard</button>'
-      +'<button type="button" class="btn pri" onclick="avSave()"'+(n? '' : ' disabled')+'>Save</button>';
+      +'<button type="button" class="btn" data-k="ui:review" onclick="avReview()"'+(n? '' : ' disabled')+'>Review changes</button>'
+      +'<button type="button" class="btn" data-k="ui:discard" onclick="avDiscard()"'+((n||nb)? '' : ' disabled')+'>Discard</button>'
+      +'<button type="button" class="btn pri" data-k="ui:save" onclick="avSave()"'+(n? '' : ' disabled')+'>Save</button>';
   }
   h+='</div>';
   if(ro) h+='<div class="avro-line" role="note">'+(ro==='locked'? '🔒 A locked cycle is on screen: read only. Nothing here can change it.'
@@ -40645,7 +40685,7 @@ function avLane(M){
   const mOn=M.mOn, i=Math.min(AV.svc, SVC.length-1), sv=SVC[i]||'', L=(AV.lane==='m' && mOn)? 'm' : 'd';
   let h='<div class="avtabs" role="group" aria-label="Service">'+SVC.map(function(s, j){
     const a=M.tot.ask[j], f=M.tot.d[j]+M.tot.m[j], pc=avPct(f, a);
-    return '<button type="button" class="avtab" aria-pressed="'+(j===i?'true':'false')+'" onclick="avSvc('+j+')"><b>'+esc(s)+'</b><span>'+fMc(a)+' asked · '+Math.round(pc)+'% met</span>'
+    return '<button type="button" class="avtab" data-k="ui:svc:'+j+'" aria-pressed="'+(j===i?'true':'false')+'" onclick="avSvc('+j+')"><b>'+esc(s)+'</b><span>'+fMc(a)+' asked · '+Math.round(pc)+'% met</span>'
       +'<span class="avm" aria-hidden="true"><i style="width:'+pc.toFixed(2)+'%"></i></span></button>'; }).join('')+'</div>';
   const a=M.tot.ask[i], dD=M.tot.d[i], dM=M.tot.m[i], u=M.tot.u[i], bD=M.ba.d[i], bM=M.ba.m[i];
   const lD=bD-M.tot.dD[i], lM=bM-M.tot.dM[i], all=bD+bM, cant=Math.max(0, a-all);
@@ -40662,13 +40702,13 @@ function avLane(M){
   const ids=M.shown.filter(function(id){ const x=M.R[id]; return x.ask[i]>0 || x.dir.d[i]>0 || x.dir.m[i]>0; });
   const nSel=ids.filter(function(id){ return AV.sel[id]; }).length;
   if(!ro) h+='<div class="aved"><span class="avlbl">Editing:</span><span class="avgrp" role="group" aria-label="Lane">'
-      +'<button type="button" class="avsw" aria-pressed="'+(L==='d'?'true':'false')+'" onclick="avLaneK(&quot;d&quot;)">Discretionary</button>'
-      +(mOn? '<button type="button" class="avsw" aria-pressed="'+(L==='m'?'true':'false')+'" onclick="avLaneK(&quot;m&quot;)">Mandatory</button>' : '')+'</span>'
+      +'<button type="button" class="avsw" data-k="ui:lk:d" aria-pressed="'+(L==='d'?'true':'false')+'" onclick="avLaneK(&quot;d&quot;)">Discretionary</button>'
+      +(mOn? '<button type="button" class="avsw" data-k="ui:lk:m" aria-pressed="'+(L==='m'?'true':'false')+'" onclick="avLaneK(&quot;m&quot;)">Mandatory</button>' : '')+'</span>'
     +'<span class="avh">Left after counts down the lane being edited, in priority order; the other lane is shown and can be typed in too.</span><span class="avsp"></span>'
     +'<span>'+nSel+' selected:</span>'
-    +'<button type="button" class="btn" onclick="avBulk(&quot;full&quot;)"'+(nSel? '' : ' disabled')+'>Fund to the requirement</button>'
-    +'<button type="button" class="btn" onclick="avBulk(&quot;cut&quot;)"'+(nSel? '' : ' disabled')+'>Cut by %…</button>'
-    +'<button type="button" class="btn" onclick="avBulk(&quot;zero&quot;)"'+(nSel? '' : ' disabled')+'>Set to $0</button></div>';
+    +'<button type="button" class="btn" data-k="ui:bulk:full" onclick="avBulk(&quot;full&quot;)"'+(nSel? '' : ' disabled')+'>Fund to the requirement</button>'
+    +'<button type="button" class="btn" data-k="ui:bulk:cut" onclick="avBulk(&quot;cut&quot;)"'+(nSel? '' : ' disabled')+'>Cut by %…</button>'
+    +'<button type="button" class="btn" data-k="ui:bulk:zero" onclick="avBulk(&quot;zero&quot;)"'+(nSel? '' : ' disabled')+'>Set to $0</button></div>';
   // Left after: the edited lane's budget authority less what is directed to it, row by row down the WHOLE order (a narrowed list
   // shows its rows' figures, never a count of only what is shown)
   const left={}; let run=(L==='d'? bD : bM);
@@ -40681,14 +40721,14 @@ function avLane(M){
   ids.forEach(function(id, r){
     const x=M.R[id], ttl=dispTitle(x.it), a1=x.ask[i], f=(x.p.d[i]||0)+(x.p.m[i]||0), pc=avPct(f, a1), lv=left[id];
     h+='<tr data-id="'+esc(id)+'"'+(AV.sel[id]? ' class="sel"' : '')+'>'
-      +(ro? '' : '<td class="cb"><input type="checkbox" aria-label="'+esc('Select '+ttl)+'"'+(AV.sel[id]? ' checked' : '')+' data-id="'+esc(id)+'" onchange="avSel(this)"></td>')
+      +(ro? '' : '<td class="cb"><input type="checkbox" data-k="'+esc('ui:sel|'+id)+'" aria-label="'+esc('Select '+ttl)+'"'+(AV.sel[id]? ' checked' : '')+' data-id="'+esc(id)+'" onchange="avSel(this)"></td>')
       +'<td class="n">'+M.rank[id]+'</td><td class="t"><b>'+esc(ttl)+'</b><small>'+esc(grpOf(x.it))+' · whole requirement '+fM(avSum(x.ask))+'</small></td>'
       +'<td class="r">'+fM(a1)+'</td><td class="r">'+avBox(M, id, 'd', i, r, 0, ttl)+'</td>'+(mOn? '<td class="r">'+avBox(M, id, 'm', i, r, 1, ttl)+'</td>' : '')
       +'<td class="met"><span class="avm2" aria-hidden="true"><i class="d" style="width:'+avPct(x.p.d[i]||0, a1).toFixed(2)+'%"></i>'+(mOn? '<i class="m" style="width:'+avPct(x.p.m[i]||0, a1).toFixed(2)+'%"></i>' : '')+'</span>'+Math.round(pc)+'%</td>'
       +'<td class="r'+(x.u[i]>0.5? ' uf' : '')+'">'+(x.u[i]>0.5? fM(x.u[i]) : '—')+'</td>'
       +'<td class="r'+(lv<-0.5? ' over' : '')+'">'+(lv<-0.5? '−'+fM(-lv) : fM(lv))+'</td>'
-      +(ro? '' : '<td class="qk"><button type="button" class="avq" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;full&quot;)" title="'+esc('Fund '+ttl+' to its '+sv+' requirement in this lane')+'">Full</button>'
-        +'<button type="button" class="avq" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;zero&quot;)" title="'+esc('Set '+ttl+'’s '+sv+' '+(L==='d'?'discretionary':'mandatory')+' to $0')+'">$0</button></td>')+'</tr>';
+      +(ro? '' : '<td class="qk"><button type="button" class="avq" data-k="'+esc('ui:full|'+id)+'" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;full&quot;)" title="'+esc('Fund '+ttl+' to its '+sv+' requirement in this lane')+'">Full</button>'
+        +'<button type="button" class="avq" data-k="'+esc('ui:zero|'+id)+'" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;zero&quot;)" title="'+esc('Set '+ttl+'’s '+sv+' '+(L==='d'?'discretionary':'mandatory')+' to $0')+'">$0</button></td>')+'</tr>';
     if(!cut && lv<=0.5 && r<ids.length-1){ cut=true;
       h+='<tr class="avcut" role="presentation"><td colspan="'+((ro? 7 : 9)+(mOn? 1 : 0))+'">▼ '+esc(sv)+' '+(L==='d'?'DISCRETIONARY':'MANDATORY')
         +' IS GONE HERE — below, only '+(L==='d' && mOn? 'mandatory or ' : '')+'money moved up from a row above can meet the requirement</td></tr>'; }
@@ -40709,7 +40749,7 @@ function avMoveHtml(M, i, ids){
     +(mOn? '<label>of <select id="avMvLane" onchange="AV.mv.lane=this.value"><option value="d"'+(mv.lane!=='m'?' selected':'')+'>discretionary</option><option value="m"'+(mv.lane==='m'?' selected':'')+'>mandatory</option></select></label>' : '<span>of discretionary</span>')
     +'<label>from <select id="avMvFrom" onchange="AV.mv.from=this.value">'+opt(mv.from)+'</select></label>'
     +'<label>to <select id="avMvTo" onchange="AV.mv.to=this.value">'+opt(mv.to)+'</select></label>'
-    +'<button type="button" class="btn" onclick="avMove()">Move into the draft</button>'
+    +'<button type="button" class="btn" data-k="ui:move" onclick="avMove()">Move into the draft</button>'
     +'<span class="avh">in '+esc(SVC[i]||'')+' only; nothing is saved until Save</span></div>';
 }
 function avHtml(){
@@ -40810,7 +40850,7 @@ function avPasteGrid(el, txt){
   if(avRO() || AV.present) return {n:0, bad:[]};
   const view=document.getElementById('allocView'), r0=+el.getAttribute('data-r'), c0=+el.getAttribute('data-c');
   const lines=String(txt).replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n');
-  const T0=tiers(); let n=0; const bad=[], off=[];
+  const T0=tiers(); let n=0; const bad=[], off=[], rnd=[];
   lines.forEach(function(line, dr){
     const row=[].slice.call(view.querySelectorAll('input.avin[data-r="'+(r0+dr)+'"]')).sort(function(a, b){ return a.getAttribute('data-c')-b.getAttribute('data-c'); });
     const start=row.findIndex(function(b){ return +b.getAttribute('data-c')>=c0; });
@@ -40820,13 +40860,17 @@ function avPasteGrid(el, txt){
       if(!box){ off.push('row '+(dr+1)+', column '+(dc+1)); return; }
       const key=box.getAttribute('data-k'), p=avSplit(key), r=avRead(t);
       if(r.why){ bad.push('row '+(dr+1)+', column '+(dc+1)+': '+r.why); AV.bad[key]={t:t, why:r.why}; return; }
+      // v2.23 review RV-C (C10): a figure rounded to the dollar is said, as a box typed into says it (avCell)
+      if(r.rounded) rnd.push(inShow(t)+' as '+fM(r.v));
       avPut(p.id, p.k, p.i, r.v, T0); n++;
     });
   });
   try{ setStat((bad.length? '⚠ ' : '')+'Pasted '+n+' figure'+(n===1?'':'s')+' into the draft.'
-    +(bad.length? ' Not read: '+esc(bad.join('; '))+'.' : '')+(off.length? ' Past the last box, left out: '+esc(off.slice(0, 4).join('; '))+(off.length>4? ' and '+(off.length-4)+' more' : '')+'.' : '')); }catch(e){}
+    +(bad.length? ' Not read: '+esc(bad.join('; '))+'.' : '')
+    +(rnd.length? ' ℹ Rounded to whole dollars, as the board keeps them: '+esc(rnd.slice(0, 6).join('; '))+(rnd.length>6? ' and '+(rnd.length-6)+' more' : '')+'.' : '')
+    +(off.length? ' Past the last box, left out: '+esc(off.slice(0, 4).join('; '))+(off.length>4? ' and '+(off.length-4)+' more' : '')+'.' : '')); }catch(e){}
   avDraw();
-  return {n:n, bad:bad, off:off};
+  return {n:n, bad:bad, off:off, rounded:rnd};
 }
 // One lane: Full and $0 per row, and the same for every selected row. "Full" makes the lane being edited carry what the other lane
 // does not, up to the service's requirement; Cut by % takes that share off what the lane is directed.
@@ -40909,6 +40953,7 @@ function avSave(){
   const nb=Object.keys(AV.bad).length;
   if(nb){ try{ setStat('⚠ '+nb+' box'+(nb===1?' holds':'es hold')+' a figure that could not be read: correct '+(nb===1?'it':'them')+', or Discard, before saving.'); }catch(e){} return false; }
   const ch=avChanges(); if(!ch.length){ try{ setStat('Nothing to save: the draft holds no changes.'); }catch(e){} return false; }
+  if(avMovedUnder(ch)) return false;     // v2.23 review RV-C (C1): the board changed under the draft
   const M=avModel(), ov=avOverOf(M);
   if(ov.length && !confirm('These lanes are given more than they hold:\n\n'+ov.map(function(o){ return '  '+o.sv+' '+(o.k==='d'?'discretionary':'mandatory')+': over by '+fM(o.over); }).join('\n')
     +'\n\nThe money past what a lane holds is not drawn: it shows as unfunded on the requirements below the point where the lane runs out.\n\nSave anyway?')) return false;
@@ -40971,6 +41016,11 @@ function mandSwitch(){
 // THE BOX: what is there, and the two ways off. Read again every time it is drawn; nothing is written until its button.
 function mandBoxDraw(){
   const bg=avBoxEnsure('avMandPanel', 'Turn off mandatory funding?', 'mandBoxClose()');
+  // v2.23 review RV-C (C8): WHAT HOLDS THE KEYBOARD IS FOUND AGAIN after the body is drawn anew -- a radio by its name and value (an
+  // arrow key moves the keyboard to the radio it checks), anything else by its id -- or the box controller put it back on the
+  // first control: ArrowDown checked Move and left the keyboard on Clear.
+  const fa=document.activeElement, fin=!!(fa && bg.contains(fa)) && fa!==bg;
+  const fkey=fin? (fa.type==='radio'? {r:fa.name, v:fa.value} : {id:fa.id||''}) : null;
   bg.querySelector('h3 span').textContent='Turn off mandatory funding for '+FYL()+'?';
   const P=mandOffPlan(tiers(), MANDBOX.how), lim=MANDBOX.more? P.rows.length : 4;
   const yrs=mandYears(true), later=yrs.filter(function(y){ return y!==+MS.cur; });
@@ -40982,7 +41032,7 @@ function mandBoxDraw(){
     +'<table class="avrev mandlist"><thead><tr><th>#</th><th>Requirement</th><th class="r">Mandatory</th>'+(MANDBOX.how==='move'? '<th class="r">Moved to discretionary</th>' : '')+'<th class="r">Unfunded after</th></tr></thead><tbody>'
     +P.rows.slice(0, lim).map(function(r){ return '<tr data-id="'+esc(r.id)+'"><td>'+((S.order||[]).indexOf(r.id)+1)+'</td><td>'+esc(dispTitle(r.it))+'</td><td class="r">'+fM(avSum(r.m))+'</td>'
       +(MANDBOX.how==='move'? '<td class="r">'+fM(avSum(r.take))+'</td>' : '')+'<td class="r uf">'+fM(r.unfAfter)+'</td></tr>'; }).join('')+'</tbody></table>'
-    +(P.rows.length>lim? '<p class="avh">and '+(P.rows.length-lim)+' more · <button type="button" class="nb lnk" onclick="MANDBOX.more=true;mandBoxDraw()">list them all</button></p>' : '')
+    +(P.rows.length>lim? '<p class="avh">and '+(P.rows.length-lim)+' more · <button type="button" class="nb lnk" id="mandMore" onclick="MANDBOX.more=true;mandBoxDraw()">list them all</button></p>' : '')
     +'<fieldset class="mandhow"><legend class="vh">What happens to the mandatory money</legend>'
     +'<label><input type="radio" name="mandHow" value="clear"'+(MANDBOX.how==='clear'?' checked':'')+' onchange="MANDBOX.how=\'clear\';mandBoxDraw()"> <b>Clear them.</b> Those requirements lose their mandatory dollars and the shortfall shows as unfunded. Each line goes in the change journal, where it can be put back.</label>'
     +'<label><input type="radio" name="mandHow" value="move"'+(MANDBOX.how==='move'?' checked':'')+' onchange="MANDBOX.how=\'move\';mandBoxDraw()"> <b>Move what discretionary can cover.</b> Each requirement keeps its money where its service’s discretionary lane has room left after every requirement has drawn ('
@@ -40992,8 +41042,12 @@ function mandBoxDraw(){
     +(other.length? '<p class="avh">'+other.map(function(o){ return 'FY'+(o.y%100)+': '+o.P.rows.length+' requirement'+(o.P.rows.length===1?'':'s')+', '+fM(o.P.mTot)+' mandatory'
       +(MANDBOX.how==='move'? ', '+fM(o.P.take)+' moved' : ''); }).join(' · ')+'</p>' : '')
     +'<p class="avh">The mandatory budget authority stays in Budget Management and the PPBE position; it just isn’t allocated while mandatory is off. Turning it back on brings the columns back, empty.</p>'
-    +'<div class="avbtns"><button type="button" class="btn" onclick="mandBoxClose()">Keep mandatory on</button>'
-    +'<button type="button" class="btn pri danger" onclick="mandOffApply()">'+(MANDBOX.how==='move'? 'Move '+fM(sumT)+', clear '+fM(sumM-sumT)+' and turn off' : 'Clear '+fM(sumM)+' and turn off')+'</button></div>';
+    +'<div class="avbtns"><button type="button" class="btn" id="mandKeep" onclick="mandBoxClose()">Keep mandatory on</button>'
+    +'<button type="button" class="btn pri danger" id="mandGo" onclick="mandOffApply()">'+(MANDBOX.how==='move'? 'Move '+fM(sumT)+', clear '+fM(sumM-sumT)+' and turn off' : 'Clear '+fM(sumM)+' and turn off')+'</button></div>';
+  if(fkey){ let n=null;
+    try{ n=fkey.r? bg.querySelector('input[type="radio"][name="'+CSS.escape(fkey.r)+'"][value="'+CSS.escape(fkey.v)+'"]') : (fkey.id? bg.querySelector('#'+CSS.escape(fkey.id)) : null); }catch(e){ n=null; }
+    if(!n && fkey.id==='mandMore') n=bg.querySelector('.mandlist');      // the link is gone once every line is listed
+    if(n){ try{ if(n.classList && n.classList.contains('mandlist')){ n.setAttribute('tabindex', '-1'); } n.focus({preventScroll:true}); }catch(e){} } }
 }
 function mandBoxClose(){ const bg=document.getElementById('avMandPanel'); if(bg) bg.classList.remove('open'); try{ dlgSync(); }catch(e){} }
 // TURNING IT OFF: in each year it reaches, the oldest first -- each requirement not yet on a split is seeded from that year's lane
@@ -41076,6 +41130,66 @@ function rkScen(){
 // ==== v2.23 review RV-B ====
 // ==== end v2.23 review RV-B ====
 // ==== v2.23 review RV-C ====
+// The review of item 159 (Allocate and mandatory off), its C findings: work the draft could lose, and what mandatory off left behind.
+// Allocate's draft is unsaved work: the automatic loads (sharedArrived, driveStorePull) leave the board alone while it holds any.
+function avHeld(){
+  try{ return (typeof AV!=='undefined' && AV && AV.draft)? (avChangeN() + Object.keys(AV.bad||{}).length) : 0; }catch(e){ return 0; }
+}
+// C1: SAVE READS THE BOARD AGAIN (v2.08's erSave rule). Each change carries what was stored when it was typed (AV.was); a Put back
+// from the change journal, a load or another route can have moved that figure since. Then nothing is written: each moved figure is
+// named, the draft is kept and read against the board as it now is (a figure the draft now agrees with leaves it), and Save again is
+// the person's deliberate choice to write the draft over them.
+function avMovedUnder(ch){
+  let T; try{ T=tiers(); }catch(e){ return false; }
+  const moved=[];
+  (ch||[]).forEach(function(c){ if(!itemById(c.id)) return; const now=avBase(c.id, T)[c.k][c.i]; if(now!==c.was) moved.push({c:c, now:now}); });
+  if(!moved.length) return false;
+  moved.forEach(function(m){ const k=m.c.key; AV.was[k]=m.now; if(AV.draft[k]===m.now){ delete AV.draft[k]; delete AV.was[k]; } });
+  const said=moved.slice(0, 6).map(function(m){ const it=itemById(m.c.id);
+    return '<b>'+esc(it? dispTitle(it) : m.c.id)+'</b>, '+esc(SVC[m.c.i]||'')+' '+(m.c.k==='d'? 'discretionary' : 'mandatory')+' is now '+fM(m.now)
+      +' on the board (the draft was typed against '+fM(m.c.was)+' and holds '+fM(m.c.now)+')'; }).join('; ');
+  try{ statKeep('⚠ <b>Not saved</b>: the board changed under Allocate’s draft. '+said+(moved.length>6? '; and '+(moved.length-6)+' more' : '')
+    +'. The draft is kept, read now against the board as it is (Review changes shows each against the figure stored now): press Save again to write it over them, or Discard.'); }catch(e){}
+  try{ avDraw(); }catch(e){}
+  return true;
+}
+// C2: the mandatory switch's own journal line is never put back from the journal: put back, it turned mandatory off without the box
+// (the directed mandatory hidden, nothing cleared or moved, nothing asked) or on again under figures cleared by the box.
+function jrnlMandOffLine(e){ return !!(e && Array.isArray(e.p) && String(e.p[0])==='mandOff'); }
+function jrnlNotMandOff(){ return 'Mandatory funding is turned on or off with its switch in Allocate (Mandatory funding), which says what happens to the mandatory money first; it is not put back from the change journal.'; }
+// C3: would putting this line back give a requirement a mandatory figure above $0 -- more than it holds now -- in a year where
+// mandatory funding is off? The line's value is laid over a copy of the requirement's funding source, never the board's own.
+function jrnlMandBack(e){
+  if(!e || !Array.isArray(e.p) || String(e.p[0])!=='fsrc' || e.p.length<2) return false;
+  const fy=e.fy||MS.cur, Y=(MS.years||{})[fy]; if(!Y || mandOn(Y)) return false;
+  const id=e.p[1], cur=(Y.fsrc||{})[id], cp=function(v){ return (v===undefined || v===null)? v : JSON.parse(JSON.stringify(v)); };
+  let after=cp(cur);
+  const rest=e.p.slice(2);
+  if(!rest.length) after=cp(e.a);
+  else {
+    if(!after || typeof after!=='object') after={};
+    let node=after;
+    for(let k=0; k<rest.length-1; k++){ const x=rest[k]; if(node[x]===undefined || node[x]===null || typeof node[x]!=='object') node[x]=(typeof rest[k+1]==='number')? [] : {}; node=node[x]; }
+    const last=rest[rest.length-1]; if(e.a===null || e.a===undefined) delete node[last]; else node[last]=cp(e.a);
+  }
+  const mOf=function(f){ if(!f || typeof f!=='object' || f.m!=='split') return [];
+    if(Array.isArray(f.mv)) return f.mv.map(function(v){ return +v||0; });
+    return [+f.mnd||0]; };
+  const a=mOf(after), b=mOf(cur);
+  return a.some(function(v, i){ return v>0.5 && v>(b[i]||0)+0.5; });
+}
+// C3: what a copy into another year directs to mandatory, in a year with mandatory funding off, goes across as $0 (its discretionary
+// as it is), and the copy says so. Answers the mandatory dollars set to $0.
+function yrMandOffCarry(T, tid){
+  try{
+    if(mandOn(T)) return 0;
+    const f=(T.fsrc||{})[tid]; if(!f || f.m!=='split') return 0;
+    let z=0;
+    if(Array.isArray(f.mv)){ f.mv=f.mv.map(function(v){ z+=Math.max(0, +v||0); return 0; }); }
+    else if(+f.mnd>0){ z+=+f.mnd; f.mnd=0; }
+    return z;
+  }catch(e){ return 0; }
+}
 // ==== end v2.23 review RV-C ====
 // ==== v2.23 review RV-D ====
 // ==== end v2.23 review RV-D ====
