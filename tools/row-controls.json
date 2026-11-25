@@ -1,7 +1,7 @@
 {
  "note": "The controls a user reaches for ONE requirement (row + RECORD inspector) on the grid build, seeded with the row-controls.mjs fixture. Written by `node tools/row-controls.mjs --record`; checked by `npm run controls`. Re-record only for a deliberate change, and say why in the commit.",
  "board": "prioritization-board-grid.html",
- "build": "v2.21 (25 Nov 2026)",
+ "build": "v2.22 (25 Nov 2026)",
  "controls": [
   "record | button | S.mc['…']=!S.mc['…'];save();render() | ★ Mission Critical — this must be paid this ",
   "record | button | budClearAll('…') | every choice on this requirement, the lines ",
@@ -22,6 +22,7 @@
   "record | button | recNeedGo('…','…') | WBS",
   "record | button | recStep(-1) | The requirement above this one in the list (",
   "record | button | recStep(1) | The requirement below this one in the list (",
+  "record | button | reqPageOpen('…','…') | every year’s requirement and Disc / Mand by ",
   "record | button | resetAsk('…') | restore the originally requested amounts",
   "record | button | setFsrc('…','…') | these figures still come from the automatic ",
   "record | button | toggleCons('…') | say what happens if this is not funded",
