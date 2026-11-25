@@ -130,7 +130,9 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1024, 768]]) {
     chk(`E · ${w}: Fill writes FY28-FY30's requirement, grown 2% a year from FY27, and no Disc or Mand figure`,
       e2.y28 === Math.round(123456789 * 1.02) && e2.y29 === Math.round(123456789 * 1.02 * 1.02) && e2.y30 && e2.y30[0] === Math.round(123456789 * Math.pow(1.02, 3)) && dm1 === dm0 && e2.cur === 2027, JSON.stringify(e2));
     // ── F. the RECORD card's year strip
-    await p.evaluate(() => { const e = document.getElementById('reqPage'); if (window.__xfMount) { window.__xfMount = null; e.hidden = true; e.innerHTML = ''; [...document.querySelectorAll('style')].pop().remove(); } setCur('R001'); render(); });
+    // v2.23 review RV-A: with the page merged the tab is mounted through reqPageOpen ('page'), and the page hides the RECORD card; F
+    // reads the card, so the page is closed first (it was left open, and F read a card with no box and pressed a button off screen)
+    await p.evaluate(() => { const e = document.getElementById('reqPage'); if (window.__xfMount) { window.__xfMount = null; e.hidden = true; e.innerHTML = ''; [...document.querySelectorAll('style')].pop().remove(); } else if (typeof reqPgOn === 'function' && reqPgOn()) reqPageClose(false); setCur('R001'); render(); });
     await p.waitForTimeout(500);
     const f = await p.evaluate(() => { const i = document.getElementById('inspector'), s = i.querySelector('.recyrs'), m = s && s.querySelector('button.recyrman');
       const ir = i.getBoundingClientRect(), mr = m && m.getBoundingClientRect();
@@ -146,6 +148,36 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1024, 768]]) {
     chk(`· ${w}: nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
     await ctx.close();
   } catch (e) { chk(`${w}: the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
+}
+// ── G (v2.23 review RV-A, A1). A figure half typed in a box is never WRITTEN by a redraw nobody asked for. Chromium fires change on
+// the focused field as innerHTML removes it; the page drew itself without the board's hold, so a load landing while a box was half
+// typed -- a Live view adopting a colleague's newer copy, another tab changing the cycle -- wrote the half figure, and Esc after it left
+// it written. The load here is scheduled from a TIMER set before the typing (as the Live tick is), so nothing runs between the
+// keystrokes and the redraw: applyStore of a copy whose ANG figure differs, persist, render. Then Esc: the stored figure is unchanged
+// and nothing was journalled; and, on a second page, Tab: the figure typed is applied once, one journal line.
+for (const how of ['Escape', 'Tab']) {
+  try {
+    const { p, ctx, errs } = await open(1440, 900);
+    await p.evaluate(() => reqPageOpen('R001', 'fydp')); await p.waitForTimeout(300);
+    const g0 = await p.evaluate(() => ({ n: (MS.jrnl || []).length, ask: itemById('R001').ask.slice(), page: !!document.querySelector('#reqPage #xfTab') }));
+    await p.evaluate(() => { const st = JSON.parse(JSON.stringify(MS)), Y = st.years[st.cur], a = itemById('R001').ask.slice();
+      a[1] = a[1] + 777; Y.asks = Y.asks || {}; Y.asks.R001 = a; st.ts = Date.now() + 5000;
+      setTimeout(function () { window.__adopt = applyStore(st); persist(); render(); }, 2500); });
+    const bb = await p.locator(box(2027, 'q', 0)).boundingBox(); await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    await p.keyboard.press('Control+A'); await p.keyboard.type('12', { delay: 40 });
+    await p.waitForTimeout(3200);
+    const g1 = await p.evaluate(() => { const a = document.activeElement;
+      return { adopt: window.__adopt, ang: itemById('R001').ask[1], usaf: itemById('R001').ask[0], box: a && a.value, isBox: !!(a && a.matches && a.matches('#xfTab input.xfin[data-y="2027"][data-xf="q"][data-si="0"]')) }; });
+    chk(`G · ${how}: the load landed while the box was half typed (ANG moved), and it wrote nothing: USAF still ${g0.ask[0].toLocaleString()}, the box still says 12 and has the keyboard`,
+      g1.adopt !== false && g1.ang === g0.ask[1] + 777 && g1.usaf === g0.ask[0] && g1.box === '12' && g1.isBox, JSON.stringify(g1));
+    await p.keyboard.press(how); await p.waitForTimeout(500);
+    const g2 = await p.evaluate((n0) => { const L = (MS.jrnl || []).slice(n0).filter(e => JSON.stringify(e.p || '').indexOf('R001') >= 0 && (e.a === 12 || e.b === 12));
+      return { usaf: itemById('R001').ask[0], lines: L.length, page: !!REQPG }; }, g0.n);
+    if (how === 'Escape') chk('G · Esc after it: the stored figure is put back and kept, nothing journalled, the page closed', g2.usaf === g0.ask[0] && g2.lines === 0 && !g2.page, JSON.stringify(g2));
+    else chk('G · Tab after it: the figure typed is applied once, one journal line', g2.usaf === 12 && g2.lines === 1, JSON.stringify(g2));
+    chk(`G · ${how}: nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`G · ${how}: the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
 }
 await b.close();
 console.log(bad ? `\n${bad} Across the FYDP check(s) failed\n` : '\nAcross the FYDP fits at 1920, 1440 and 1024, takes a figure for another year by keyboard and keeps the keyboard\'s place, says what a lane drew, adds to a year, fills across, and the record card opens it\n');

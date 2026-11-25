@@ -12,6 +12,7 @@
 //   D. Rank by band at 1440 and 1024: the switch by a real click; no sideways scroll; every card inside its column and no column past
 //      the page; a real click on a card opens its record; Tab to a card and Enter does the same.
 //   E. The five-year chart at 1440 and 1024: inside its box, no sideways scroll in the box, every bar's words inside its column.
+//   F. (v2.23 review RV-A, A3) Edit awards on an incremental requirement puts the keyboard in an enabled date box of its award block.
 //
 //   node tools/req-page.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -50,6 +51,9 @@ const pageFaults = p => p.evaluate(() => {
   if (document.documentElement.scrollWidth > W + 1) out.push('the page scrolls sideways: ' + document.documentElement.scrollWidth + ' > ' + W);
   const pr = pg.getBoundingClientRect();
   pg.querySelectorAll('*').forEach(e => { const r = e.getBoundingClientRect(); if (!r.width || !r.height) return;
+    // v2.23 review RV-A: Across the FYDP's grid scrolls inside its own frame (.xfwrap; npm run across holds that frame inside the page);
+    // the frame is measured here, what it scrolls is not
+    const fr = e.closest('.xfwrap'); if (fr && fr !== e) return;
     if (r.right > Math.min(W, pr.right) + 1) out.push('past the right edge: ' + (e.className || e.tagName) + ' ' + Math.round(r.right) + ' > ' + Math.round(Math.min(W, pr.right))); });
   pg.querySelectorAll('.rpk .v, .rpchip, .rppill, .rptab, .rptop button, .rphact button, .rpsvc td, .rpsvc th, .rpmv').forEach(e => {
     if (e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflow !== 'visible') out.push('cut: ' + e.className + ' "' + e.textContent.slice(0, 30) + '"');
@@ -89,7 +93,7 @@ for (const [w, h] of [[1440, 900], [1024, 768]]) {
     const seq = [];
     for (let i = 0; i < 9; i++) { await p.keyboard.press('Tab'); seq.push(await p.evaluate(() => { const a = document.activeElement;
       return a.closest('#reqPage') ? (a.id || a.className.split(' ').filter(c => /^rp/.test(c))[0] || a.textContent.trim()) : 'OUT:' + (a.id || a.tagName); })); }
-    chk(`B · ${w}: from Back, Tab reaches Previous, Next, ★, Edit record and every tab, in that order`, seq.join(',').startsWith('rpnav,rpnav,rpmc,rpedit,rptab_over,rptab_svc,rptab_awd,rptab_hist'), seq.join(','));
+    chk(`B · ${w}: from Back, Tab reaches Previous, Next, ★, Edit record and every tab, in that order`, /^rpnav,rpnav,rpmc,rpedit,rptab_over,rptab_svc,rptab_awd,(rptab_fydp,)?rptab_hist/.test(seq.join(',')), seq.join(','));   // v2.23 review RV-A: W2's Across the FYDP sits between Awards and History (order 40)
     await p.evaluate(() => document.querySelector('#reqPage .rpnav').focus());
     await p.keyboard.press('Shift+Tab');
     chk(`B · ${w}: Back is reached by the keyboard`, await p.evaluate(() => document.activeElement.classList.contains('rpback')));
@@ -170,6 +174,23 @@ for (const [w, h] of [[1440, 900], [1024, 768]]) {
     chk(`E · ${w}: the chart is inside its box, no sideways scroll, every year’s words in its column`, e1.length === 0, e1.join(' | '));
     await ctx.close();
   } catch (e) { chk(`E · ${w}: ran`, false, e.message); }
+}
+
+// ── F (v2.23 review RV-A, A3). Edit awards on an incremental requirement puts the keyboard in an award's date box. A selector list
+// answers in document order, so 'input' took the single-date box an incremental award block draws disabled, and focus went nowhere.
+for (const [w, h] of [[1440, 900], [1024, 768]]) {
+  try {
+    const { p, ctx, errs } = await open(w, h);
+    await p.evaluate(() => reqPageOpen('R002', 'awd')); await p.waitForTimeout(250);
+    await press(p, '#reqPage button:has-text("Edit awards")', 400);
+    const f1 = await p.evaluate(() => { const a = document.activeElement, blk = document.querySelector('#inspector .awdblk');
+      return { page: !!REQPG, inc: !!(blk && blk.querySelector('input[type="date"][disabled]')), tag: a && a.tagName, type: a && a.type, dis: !!(a && a.disabled),
+        inBlk: !!(blk && a && blk.contains(a)) }; });
+    chk(`F · ${w}: Edit awards on R002 (incremental, its single date box drawn disabled) puts the keyboard in an enabled date box of its award block`,
+      !f1.page && f1.inc && f1.tag === 'INPUT' && f1.type === 'date' && !f1.dis && f1.inBlk, JSON.stringify(f1));
+    chk(`F · ${w}: no script error`, errs.length === 0, errs.join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`F · ${w}: ran`, false, e.message); }
 }
 
 await b.close();
