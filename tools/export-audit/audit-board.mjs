@@ -10630,8 +10630,9 @@ await (async () => {
     ev(`document.getElementById('erSaveNext').click(); 'ok'`);
     chk(name, 'save and next', 'Save and next: C’s note is saved and the box is on D', J([ev(`(S.notes||{}).C||''`), ev(`String(erOn() && erOpen)`)]), J(['first', 'D']));
     ev(`document.getElementById('erNote').value='second'; document.getElementById('erToPanel').click(); dlgSync(); 'ok'`);
-    chk(name, 'save and go', 'Save and go to the value and budgets: D’s note saved, the box closed, the keyboard on D’s value',
-      J([ev(`(S.notes||{}).D||''`), ev(`String(erOn())`), ev(`String((document.activeElement && document.activeElement.getAttribute('onchange')||'').indexOf('setAsk("D",')===0)`)]), J(['second', 'false', 'true']));
+    chk(name, 'save and go', 'Save and go to the value and budgets: D’s note saved, the box closed, the record OPEN on D (a shut sliding record is inert), the keyboard on D’s value',
+      J([ev(`(S.notes||{}).D||''`), ev(`String(erOn())`), ev(`curRow`), ev(`String(document.getElementById('inspector').classList.contains('open'))`),
+        ev(`String((document.activeElement && document.activeElement.getAttribute('onchange')||'').indexOf('setAsk("D",')===0)`)]), J(['second', 'false', 'D', 'true', 'true']));
     ev(`openEdit('D','rec'); document.getElementById('erPid').value='P'.repeat(80); 'ok'`);
     ev(`document.getElementById('erSaveNext').click(); 'ok'`);
     chk(name, 'save and next', 'a save refused (a PID over its limit) leaves the box on D with the typing', J([ev(`String(erOn() && erOpen)`), ev(`String(document.getElementById('erPid').value.length)`)]), J(['D', '80']));

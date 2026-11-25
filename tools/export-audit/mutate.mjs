@@ -7122,7 +7122,7 @@ const MUTATIONS = [
     find: "  const kOf=function(sv){ return D? (own[sv] || D.rcnAsg || '') : rcnAsgOf(id, sv); };", repl: "  const kOf=function(sv){ return D? (D.rcnAsg || '') : rcnAsgOf(id, sv); };" },
   { id: 'v208-rv2-panel-wrong-requirement', area: "erGo", what: "after ↑ prev / next ↓ the way to the RECORD panel opens the requirement the box first opened on",
     // v2.22 W3: retargeted -- the way to the record is erToRecord, shared with Save and go to the value and budgets (149.21)
-    find: "function erToRecord(id){\n  try{ if(curRow!==id) setCur(id); try{ dlgSync(); }catch(e){}", repl: "function erToRecord(id){\n  try{ try{ dlgSync(); }catch(e){}" },
+    find: "function erToRecord(id){\n  try{ setCur(id); try{ dlgSync(); }catch(e){}", repl: "function erToRecord(id){\n  try{ try{ dlgSync(); }catch(e){}" },
   { id: 'v208-rv2-kept-option-long', area: "erKeep", what: "a kept value's option carries its explanation, which a closed select cannot wrap, and the value is cut",
     find: "    +esc(show||cur)+' (kept)</option>' : '';", repl: "    +esc(show||cur)+' — not on the list, kept as saved</option>' : '';" },
   { id: 'v208-rv2-f2-change-commits-in-redraw', area: "inspectorBody", what: "the change Chromium fires as a redraw removes the typed field commits the half-typed figure",

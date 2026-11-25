@@ -62,9 +62,10 @@ keyboard, `awardBlockHtml` and `awdFixHtml`, `budRecordHtml` and `BUD_HOW`, `uiD
 - **149.50** The requirement's value in each year of the window (`recYearsOf`/`recYearsHtml`), each another year a button to it
   (`recYearGo`: `switchYear`, then `reqShow`). The requirement in another year is the same WORK by v2.16's rule: `fydpSameIn` over
   `fydpLineKeys` -- `fydpSameIn` was removed with the AI review in v2.19 and is put back in the W3 slot exactly as v2.16 wrote it
-  (249abe0). The values are each year's projection (`fydpData('working')` → `cycProjOf`), read once per change of the board (the key
-  holds `_saveGen`, `MS.cur`, the held years, `CYCVIEW`, `_fyMoves` and the identity of `MS`) and BEFORE the record's requirement is
-  looked up, since `aceWithYear` rebuilds the requirement list.
+  (249abe0). The values are each year's projection (`fydpData('working')` → `cycProjOf`), worked out once per change of the board (the
+  key holds `_saveGen`, `MS.cur`, the held years, `CYCVIEW`, `_fyMoves` and the identity of `MS`) and never inside a draw: the draw
+  uses what is worked out for the board as it is, or leaves the line empty and fills it once the page is idle (`recYearsFill`) --
+  `aceWithYear` rebuilds the requirement list, and the first cut made every draw on a board of five years cost five lane walks.
 
 ## Decided in the build (Brad can reverse each)
 
@@ -114,6 +115,26 @@ same defects), each by its original catcher. None retired. Proofs: `proofs-W3.js
   containers (`S.clinMeta[id]`, `S.clinRm[id]`, `S.clinAlloc[id]`) for a prime the first time its record is drawn -- the 📋 button's
   count has called it on every record draw since v2.08. v2.12's rule says a draw writes nothing; wrapping `recFields`' CLIN read in
   `clinReadOnly` would close it.
+
+- **audit-board needs more than the 6 GB heap `heavy.sh` gives**, on the slot commit as on this branch: run whole at HEAP=6144 it
+  died out of heap at ~610 s on both (`41ea5d7`'s board with this branch's suite; this branch). It passes at HEAP=8192 (CLAUDE.md's
+  v2.14 figure). The contract §0 says 6 GB; the integration's whole-suite run should give audit-board, audit-import and audit-recon
+  8 GB (`HEAP=8192 recovery/v222/bin/heavy.sh …`), and run them while little else is.
+- **`tools/row-controls.json` re-recorded** (`npm run controls -- --record`): the record's new controls -- the ★ switch (the row's own
+  call, on the record surface), ‹ Previous / Next › (`recStep`), what is still needed (`recNeedGo`, one per field the fixture lacks),
+  Open the CLIN breakdown (`clinGo`) -- and one recorded title that had gone stale in v2.19 (the not-funded budget picker's title
+  named the IDS export). Nothing lost, nothing moved between the row and the record.
+
+## Found in the build, fixed
+
+- **The record threw on every opening of a populated board** in the first cut: `recChipsHtml` read a `var` of the W3 slot
+  (`REC_LANE_WORD`), which is not set while the script is still being read -- the board draws the record then (`applyStore` at top
+  level). The panel's own guard emptied it and said so ("⚠ The RECORD panel could not be drawn") as a warning kept unread; every jsdom
+  check passed, because they seed and draw after the script has run. `npm run dialogs` found it (closing the Messages box left the
+  keyboard on the page, because there was an unread message to open it). Now a function (`recLaneWord`), and the board block opens a
+  saved board and requires its record drawn at opening; `v222-w3-lane-word-boot-var` puts the var back.
+- **The years line worked five lane walks out inside every draw** in the first cut (`fydpData` → `aceWithYear` per year): now the
+  draw uses what is worked out for the board as it is, or leaves the line empty and fills it once the page is idle (`recYearsFill`).
 
 ## npm script to add
 

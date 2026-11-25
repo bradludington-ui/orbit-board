@@ -33879,8 +33879,10 @@ function erGo(what){
   // the drill is opened, never toggled shut when it was already open -- and opened where it can be used (clinGo)
   if(what==='clin') clinGo(id); else toggleWbs('req', id, '');
 }
+// v2.22 W3 (149.21): the record is OPENED on the box's requirement, not only selected: the box selects it quietly when it opens
+// (openEdit, v2.18), so "already selected" left a sliding record shut -- inert, and the keyboard sent into it went nowhere
 function erToRecord(id){
-  try{ if(curRow!==id) setCur(id); try{ dlgSync(); }catch(e){}
+  try{ setCur(id); try{ dlgSync(); }catch(e){}
     const h='setAsk('+JSON.stringify(id)+',', i=[].filter.call(document.querySelectorAll('#inspector input[onchange]'), function(x){
       return (x.getAttribute('onchange')||'').indexOf(h)===0; })[0];
     if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){}
@@ -37769,8 +37771,7 @@ function fydpSameIn(K, y0, id, y){
   return '';
 }
 // NOT IN THE DRAW: working the years out opens each one (aceWithYear: applyState and the lane walk, per year), and the record is
-// drawn on every render -- on a board of several years that made every edit cost five lane walks, and took audit-board past its
-// heap. So the draw uses what is already worked out for the board as it is, or leaves the line empty and fills it once the page is
+// drawn on every render -- on a board of several years the first cut made every edit cost five lane walks in the draw. So the draw uses what is already worked out for the board as it is, or leaves the line empty and fills it once the page is
 // idle (recYearsFill), for the requirement then on the record.
 var _recYrT=null;
 function recYearsKey(){
