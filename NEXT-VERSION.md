@@ -649,7 +649,10 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 - **Checks:** audit-board "v2.23 W1", "W2", "W3", "integration" and "review RV-A" to "RV-D"; audit-recon "v2.23 review RV-D"; `npm run
   reqpage`, `across`, `alloc`; recon's sixth board shape (a year with mandatory off) and a second, off-year pass of the trace matrix.
   Every suite whole on the merged board; every browser check (layout's carried D ×8, identical number for number on main's v2.22);
-  standards 0 new findings. **Mutations:** 188 new `v223-*` (W1, W2, W3, integration and the review's 72) and 12 retargets, proved
+  standards 0 new findings. **The gate** (`npm run validate:nightly`, 25 Nov, on the final tree): every stage holds but the
+  browser stage, which fails on layout's carried D ×8 alone, as on main (defect register 15 known, 41 mutations; coverage 19/19;
+  money map 252 cells, 97 proven, 155 n/a, 0 open; trace matrix 74 cells; suites 44.7 min, 8 banners + the legacy line; fuzz
+  seed 780073921; verify-file self-test held). **Mutations:** 188 new `v223-*` (W1, W2, W3, integration and the review's 72) and 12 retargets, proved
   together on the final tree: **200 of 200 CAUGHT, each by a failed check** (`recovery/v223/proved-FINAL.jsonl`); four also
   stop their block with a throw after a check has failed. The first run had four W3 mutations caught only by a throw (a check reading
   `.textContent` off an element the mutant never draws); W3's blocks now read elements null-safely, so a missing one fails its check. No sweep (Brad's rule of 20 Oct).
