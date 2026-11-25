@@ -48,6 +48,12 @@ for (const id of SC.order) {
     document.querySelectorAll('#inspector .insp-f').forEach(f => {
       fields[f.querySelector('.fl').textContent.trim().toLowerCase()] = f.querySelector('.fv').textContent.trim();
     });
+    // v2.22 W3 (149.31): the six boxes became one line -- Requirement, Funded, Unfunded, and ★ MC shortage only when starred and
+    // short. Discretionary and Mandatory are read where the record states them, the By service table's TOTAL line (the first
+    // figure in each cell: what was drawn), and the line's Funded is held to their sum.
+    const tot = document.querySelectorAll('#inspector .insp-split tr.tot td');
+    const fig = td => { const f = td && td.querySelector('.fig'); return f ? f.textContent.trim() : '(missing)'; };
+    fields['discretionary'] = fig(tot[2]); fields['mandatory'] = fig(tot[3]);
     // ★ MC shortage is one of the two STATED Mission Critical rules and the inspector is where it
     // is read per requirement. It went unchecked here, and the panel spent that whole time saying
     // "covered" for every starred row because it was reading an identifier that is not in scope.
@@ -68,7 +74,10 @@ for (const id of SC.order) {
   const fmc = await p.evaluate(n => fM(n), r.truth.mcShort);
   const mcKey = Object.keys(r.fields).find(k => k.includes('mc shortage'));
   const mcGot = mcKey ? r.fields[mcKey] : '(field missing)';
-  const mcWant = !r.mc ? '—' : (r.truth.mcShort > 0.005 ? fmc : 'covered');
+  // v2.22 W3 (149.31): the field is there only where the requirement is starred and short
+  const mcWant = (r.mc && r.truth.mcShort > 0.005) ? fmc : '(field missing)';
+  const ffd = await p.evaluate(n => fM(n), r.truth.d + r.truth.m);
+  if (r.fields['funded'] !== ffd) { bad++; console.log(`  FAIL  ${id}  the record's Funded reads ${r.fields['funded']}, the engine's discretionary + mandatory ${ffd}`); }
   const ok = got.requirement===want.requirement && got.discretionary===want.discretionary
           && got.mandatory===want.mandatory && unfGot===unfWant && mcGot===mcWant;
   if (!ok) { bad++;

@@ -1,0 +1,194 @@
+# v2.22 W3 — the RECORD card and the edit box (contract §1.3, §1.4)
+
+Branch `v222-w3`, from the slot commit `41ea5d7`. Everything new in the board is in the `// ==== v2.22 W3 ====` slot and
+`<style id="v222w3">`, except edits made in place to the functions W3 owns (`inspectorDraw`/`inspectorBody`, `setCur`, the record's
+keyboard, `awardBlockHtml` and `awdFixHtml`, `budRecordHtml` and `BUD_HOW`, `uiDrawerTabs`/`uiDTab` (the record's strip), `er*`).
+
+## What was built
+
+- **The record as a card** (item 155, the concept's record): a card with a pinned head -- the bar, the name, the Overview /
+  Funding / History strip -- in one sticky block (`.rechead`); the lane in APEX's status colours with its word, the office, and the
+  ★ switch on one line (`recChipsHtml`); the one line of figures; the lines that say what it is; the three buttons and what is still
+  needed. Presentation is `<style id="v222w3">`; every control keeps its call.
+- **149.18** A click on another row moves the record to it: the scrim of the sliding record still dims the page but passes clicks
+  through (`pointer-events:none`), so a row clicked is selected by the ordinary delegate, and anything else (Filter, Save, the left
+  menu) gets its click. A click on the page itself, on nothing that does anything, closes the record, as the scrim did. **J and K are
+  buttons**: ‹ Previous and Next › in the bar, and the keys take the same step (`recStep`), the keyboard left on the button pressed.
+- **149.19** One pinned bar: the position ("#3 of 36 · Record"), ‹ Previous, Next ›, ✕ Close (where the record slides); the name under
+  it. RECORD and the position are said once each. A record opened -- another requirement, or the same one reopened by a click --
+  starts at its top (`setCur`).
+- **149.20** The ★ switch in the record, by the row's own call (`S.mc[id]=!S.mc[id];save();render()`; there is no `toggleMC`
+  function in the board -- the contract names one; the switch uses the row's exact handler so the two cannot differ). The edit box's
+  sentence now says ★ is set by the switch at the top of the record. `tools/row-controls.json` re-recorded (below).
+- **149.21** "Save and next" in the edit box's foot (`erSaveGo('next')`: saves, then the next requirement in the list as shown, at the
+  top of the box); "Save and go to the value and budgets" (`#erToPanel`, `erSaveGo('record')`: saves, then the record's value -- it
+  asked to throw away what was typed); what is still needed listed by name under the three buttons (`recNeedHtml`, from `reqNeeds`),
+  each a button to its field (`recNeedGo`: a record field opens the box at it; the value and the budgets are the record's own and
+  take the keyboard there). A refused save or an office move answered Cancel leaves the box open with the typing.
+- **149.23** Down and Up in the By service table go to the same column on the next / previous service (a document keydown on
+  `#inspector .insp-split input`, the inputs carrying `data-col` and `data-si`); the field is left first (`blur`), so Chromium applies
+  its figure and redraws, then the keyboard goes to the box standing in the next service's place.
+- **149.24 (c)** "by rule — not picked" where nobody picked (`BUD_HOW.rule`); the Help guide's sentence follows.
+- **149.27** A figure the board refuses is said inside the record (`#recMsg`): a capture/bubble pair of `change` listeners on the
+  record's fields reads what `setStat` said while the field was changed (`_statN`), keeps a refusal (`diagIsWarn`) for that
+  requirement (`REC_MSG`), and clears it when a figure is taken on it. The words are the board's own; nothing in `amtNo` changed.
+- **149.28** The first click on another row is kept after typing (docked, and sliding): the press is noted (`REC_ROWP`); if no click
+  reached a row and the row pressed was redrawn, the row in its place under the pointer is selected. Tab inside the open sliding
+  record was already kept (v2.17). **PMO › Reassign names the requirement**: the label is `pmoReassignLbl()` -- the menu line itself
+  is in `syncBtns` (W1's): see For the integration. A damaged award date on the row ("needs repair") is the row's: W1.
+- **149.31** One line in place of the six boxes: Requirement, Funded (d+m paid), Unfunded (the requirement's own, `unfSvcOf`), and
+  ★ MC shortage only when starred and short (`mcShortSvcOf`). The cycle delta field stays in the line. Discretionary and Mandatory
+  are the By service table's TOTAL line.
+- **149.32** The fixed "Lifecycle pending" line is gone; the last recorded edit stays (`.uiDOv`, empty when there is none).
+- **149.33** The strip's jumps land just under the pinned head (`uiDTab`: Overview to the top, Funding to the By service heading,
+  History to its section), and the highlight follows the scroll (`recTabSync`, a scroll listener on the record).
+- **149.34** Each budget line prints the budget the Spend Plan Source prints (`budResolve`'s `effective`) once, whole, wrapping
+  (`.budname`), above its picker; a line the rule settles no longer repeats the rule's name in the picker ("— keep the rule —"). A
+  chosen line's picker still offers "— back to the rule: NAME —", since that name is not said anywhere else on the line.
+- **149.40** Plain words in the edit box: the office option no longer says "(from the file)" (it says "(where it was first filed)"
+  only for a requirement moved this year); "typed before v2.08, kept" → "typed by hand earlier, kept"; "from the file" →
+  "the requirement’s own title"; "— follows the PMO and prime rules —" → "— the code its office and contract give —"; the year is
+  said once, in the heading ("recorded against FY27 only" and "FY27 only" under the office are gone; the office note says "this year
+  only").
+- **149.41** Requirement and Unfunded in the By service table's headings (they read Req and UFR) and in the line under it.
+- **149.42** The record never scrolls sideways (`#inspector{overflow-x:hidden}` with the new bar sized inside; checked in Chromium).
+- **149.43** One block per award, stacked (`.awdone`: its Date, a box per service, its total, how it splits, what remains), the
+  services' totals and the balance as a table a row per service (`tr.awdsvc`, then `tr.awdbal`), the tools under it; a repaired
+  award's saved record as a sentence (`awdOrigSay`). The figures are the table's: the same `incTot`, `awdSplitOf`, balance.
+- **149.47** One line of obligation category, WBS and Goes to (`recFieldsHtml`), each through its own reader.
+- **149.48** A prime's record: "Prime contract, 3 CLINs, requested $X. Open the CLIN breakdown" (`recClinHtml`, read through
+  `clinReadOnly`, so drawing it writes nothing; the button is `clinGo`).
+- **149.49** In a locked view the record says it is read only, with Leave the view (`recRoHtml`, `cycLeave()`).
+- **149.50** The requirement's value in each year of the window (`recYearsOf`/`recYearsHtml`), each another year a button to it
+  (`recYearGo`: `switchYear`, then `reqShow`). The requirement in another year is the same WORK by v2.16's rule: `fydpSameIn` over
+  `fydpLineKeys` -- `fydpSameIn` was removed with the AI review in v2.19 and is put back in the W3 slot exactly as v2.16 wrote it
+  (249abe0). The values are each year's projection (`fydpData('working')` → `cycProjOf`), worked out once per change of the board (the
+  key holds `_saveGen`, `MS.cur`, the held years, `CYCVIEW`, `_fyMoves` and the identity of `MS`) and never inside a draw: the draw
+  uses what is worked out for the board as it is, or leaves the line empty and fills it once the page is idle (`recYearsFill`) --
+  `aceWithYear` rebuilds the requirement list, and the first cut made every draw on a board of five years cost five lane walks.
+
+## Decided in the build (Brad can reverse each)
+
+1. **The card is beside the table where the record docks today, and slides where it slides today.** The contract says "where the
+   window is wide enough to dock (today's docked widths) the RECORD is a card beside the table"; Brad's answer to 149.18 says "keep the
+   record sliding by default". Docking is still the per-browser choice View › Record panel › Docked beside the table (above 1400px);
+   the default stays sliding, and the card look is the same in both. Making the card docked by default above 1400px is one line
+   (`uiPrefRead`: `UI2.dock` when nothing is stored) -- but it changes what every person sees, every browser check's default layout,
+   and W1's row widths at 1440 -- so it is left for Brad's word.
+2. The name under the bar wraps rather than being cut to one line: layout-fits K fails on any text the record cuts.
+3. A click on the dimmed page closes the sliding record only when it lands on nothing that does anything; a click on Filter, Save or
+   the left menu does what it does and leaves the record open.
+4. The budget picker of a chosen or refused line still names the rule's budget ("— back to the rule: NAME —"): that is the only place
+   the line says what the rule would give.
+5. "Open the CLIN breakdown" uses `clinGo`, which closes the sliding record to open the drill in the row (as the edit box's way in).
+
+## Checks
+
+- **audit-board "v2.22 W3 — the RECORD card …"** (new; fails on the slot commit `41ea5d7`: the record there has no figures line,
+  bar, switch or any of the rest). Fixture: two services; A starred and covered by discretionary, B starred, trimmed and short, C
+  short and unstarred, D with two awards and its record fields, E with a repaired award, P a prime with two CLINs; then FY28 started
+  EMPTY holding its own NEW-1 (a different requirement from FY27's NEW-1 -- read by id, the line would print it) and later a
+  requirement brought in from FY27, linked, with a number of its own.
+- **tools/record-card.mjs** (new, `npm run record` to add): A–J in Chromium at 1600 docked, 1440 and 1024 sliding (see its header).
+  Fails on the slot commit (no `.recbar`).
+- **Changed on purpose, each with its `// v2.22 W3` comment:** audit-other v1.91 BAE "rule" (the picker no longer repeats the rule's
+  name; the line prints it: `name` read from `.budname`), v2.08 review "SI code" and "words", v2.08 second review "record name
+  source", v2.15 W4 `FOL` (149.40's words); audit-board v1.93 "award block" balance cells (the balance is a row per service now);
+  tools/inspector-agrees.mjs (Discretionary and Mandatory read from the By service TOTAL line; the MC shortage field only where
+  starred and short; Funded held to d+m).
+- Also changed on purpose: audit-board v1.95 W3 "award block" (the repaired award's record as a sentence; its mark followed by its
+  services' boxes and then its Total) and tools/layout-fits.mjs F (Discretionary and Mandatory from the By service TOTAL line).
+
+### Results on the finished board (`38a856d`'s board; the suites at `d47e5f8`)
+
+| | result |
+|---|---|
+| `npm run check` | all checks passed |
+| boot-same | identical either way |
+| audit (export), audit-other, audit-recon, audit-hostile, audit-inject, audit-ui | ALL CHECKS PASSED |
+| legacy-fsrc | "every legacy Force setting computes exactly as before" |
+| audit-board (HEAP=8192) | ALL CHECKS PASSED (run again whole at `d47e5f8`, after the last change to its W3 block) |
+| audit-import (HEAP=8192) | 2 FAILING -- "v1.86 — the File menu …", v2.21's left menu (For the integration); nothing else |
+| record (new) | 69 ok, 0 FAIL |
+| keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, pointer, controls, colours, pmosave, inspector | pass |
+| standards | 0 known findings, nothing new |
+| layout | only the carried D ×8 (K and N pass, F passes) |
+| mcount | 3,303 entries, every one matching once |
+
+## Mutations
+
+37 new (`v222-w3-*`), each caught by audit-board "v2.22 W3 — the RECORD card"; 4 retargeted (`v208-122-proposal-office-open`,
+`v208-rv-si-follows-gone`, `v208-rv-rectag-fixed`: the edit box's plain words, the same defects, each by its original catcher;
+`v208-rv2-panel-wrong-requirement`: `erToRecord`, now proved against the W3 block -- its old check could no longer reach it, see Found
+in the build). None retired. Proofs: `proofs-W3.json`; results `proved-W3.jsonl`: **41 of 41 CAUGHT** by a failed check, run together
+on the finished board (JOBS=1, HEAP=8192); two of them (`v222-w3-locked-unsaid`, `v222-w3-years-link-lost`) also made the block throw
+after their failed checks. Plus five browser-only mutants proved by hand (below).
+
+## For the integration
+
+- **The PMO menu's Reassign line** (`syncBtns`, W1's): `mi('⇄ Reassign a requirement…', …)` → `mi(esc(pmoReassignLbl()), …)`.
+  `pmoReassignLbl()` returns TEXT (a title), so it must be escaped where the menu writes it.
+- **`toggleMC`**: the contract names it; the board has none. The record's switch uses the row's inline handler verbatim. If W1 makes a
+  `toggleMC(id)`, point both at it together (and re-record `row-controls.json`).
+- **The row** (W1): 149.28's "needs repair" on the row, 149.51's hand pointer -- not W3's. W1's rows keep `.tt` and `.mcb`?
+  `tools/record-card.mjs` clicks `[id="row-X"] .tt` and reads `#row-X .mcb`; if W1 renames them, follow in that tool.
+- **A pre-existing write on a draw** (found here, not fixed: not W3's): `reqDraftOf(id)` → `recFields` → `clinList` makes CLIN
+  containers (`S.clinMeta[id]`, `S.clinRm[id]`, `S.clinAlloc[id]`) for a prime the first time its record is drawn -- the 📋 button's
+  count has called it on every record draw since v2.08. v2.12's rule says a draw writes nothing; wrapping `recFields`' CLIN read in
+  `clinReadOnly` would close it.
+
+- **audit-import fails two checks of "v1.86 — the File menu, grouped, and the PMO copy under it"**, and they cannot pass on the slot
+  commit either: they read the left menu entries' `data-tip` and look for Save inside `#uiSide .uiSave`, and v2.21 took both away (the
+  slot has no `data-tip` anywhere and `#uiSave` is in the header). This branch touches neither (`git diff 41ea5d7` has no `data-tip` or
+  `uiSave` line); the left menu and the header are W1's. The check needs following to v2.21's menu. (Run alone, the block throws on
+  both boards -- it reads V14, which an earlier block sets -- so the comparison was made by reading the slot, not by running it.)
+- **audit-board needs more than the 6 GB heap `heavy.sh` gives**, on the slot commit as on this branch: run whole at HEAP=6144 it
+  died out of heap at ~610 s on both (`41ea5d7`'s board with this branch's suite; this branch). It passes at HEAP=8192 (CLAUDE.md's
+  v2.14 figure). The contract §0 says 6 GB; the integration's whole-suite run should give audit-board, audit-import and audit-recon
+  8 GB (`HEAP=8192 recovery/v222/bin/heavy.sh …`), and run them while little else is.
+- **`tools/row-controls.json` re-recorded** (`npm run controls -- --record`): the record's new controls -- the ★ switch (the row's own
+  call, on the record surface), ‹ Previous / Next › (`recStep`), what is still needed (`recNeedGo`, one per field the fixture lacks),
+  Open the CLIN breakdown (`clinGo`) -- and one recorded title that had gone stale in v2.19 (the not-funded budget picker's title
+  named the IDS export). Nothing lost, nothing moved between the row and the record.
+
+## Found in the build, fixed
+
+- **The record threw on every opening of a populated board** in the first cut: `recChipsHtml` read a `var` of the W3 slot
+  (`REC_LANE_WORD`), which is not set while the script is still being read -- the board draws the record then (`applyStore` at top
+  level). The panel's own guard emptied it and said so ("⚠ The RECORD panel could not be drawn") as a warning kept unread; every jsdom
+  check passed, because they seed and draw after the script has run. `npm run dialogs` found it (closing the Messages box left the
+  keyboard on the page, because there was an unread message to open it). Now a function (`recLaneWord`), and the board block opens a
+  saved board and requires its record drawn at opening; `v222-w3-lane-word-boot-var` puts the var back.
+- **The way from the edit box to the value left a sliding record shut** (v2.08's `erGo('record')`, and so the new "Save and go to
+  the value and budgets"): it opened the record only when another requirement was selected, but the box selects its own quietly as it
+  opens (`openEdit`, v2.18, 149.14), so the record stayed shut -- inert -- and the keyboard was sent into it. `erToRecord` now always
+  opens the record. Found because the retarget of `v208-rv2-panel-wrong-requirement` SURVIVED its old check (since v2.18 the line it
+  removes had nothing to do): it is now proved against the W3 block, which requires the record open.
+- **The years line worked five lane walks out inside every draw** in the first cut (`fydpData` → `aceWithYear` per year): now the
+  draw uses what is worked out for the board as it is, or leaves the line empty and fills it once the page is idle (`recYearsFill`).
+
+## npm script to add
+
+`"record": "node tools/record-card.mjs"` (and into `verify:grid`).
+
+### Proved by hand in Chromium (prove.py runs jsdom suites only)
+
+`tools/record-card.mjs --board <mutant>` on five mutants of the finished board, each made by
+`scratchpad .../mkmut-browser.py` (the find and replacement below), and on the slot commit's board:
+
+| mutant | find → replacement | verdict |
+|---|---|---|
+| scroll-top-kept | `  if(fresh && ins0) ins0.scrollTop = 0;` → removed | CAUGHT (A ×3: 1024, 1025, 1157 px down) |
+| scrim-takes-click | the sliding scrim's `pointer-events:none` removed | CAUGHT (B ×6: the click closed the record, R003 stayed) |
+| jump-under-strip | `uiDTab`'s landing → `to.scrollIntoView({block:'start'})` | CAUGHT (F ×3: Funding's heading 122px under the head) |
+| arrow-no-blur | the Down arrow's `t.blur()` removed | CAUGHT (C ×3) |
+| bar-not-pinned | `.rechead{position:sticky` → `position:static` | CAUGHT (A, F ×9) |
+| (the slot commit's board) | -- | 13 FAIL (no bar, no line, no switch) |
+
+## Known gaps
+
+- What only a browser sees (the scroll to the top, the jumps' landing and the highlight, Chromium's change on the arrow keys, the
+  pinned bar's place, the scrim passing the click) is held by `npm run record`, which prove.py cannot run; those five lines'
+  mutants were proved by hand (above) and are not in `mutate.mjs`.
+- The name under the bar wraps (Decided, 2); a very long name takes two lines of the pinned head.
+- The record's budget block is as long as before (149.34's answer: do not fold); only the double saying and the cut name went.

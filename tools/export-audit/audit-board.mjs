@@ -589,9 +589,13 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'award block', 'B: and it is mandatory', /\$50 mand is not on a date yet/.test(hB), true);
   chk(name, 'award block', 'B: with the button that covers it', /fillLastAwd\(/.test(hB), true);
   // per service, both lanes: USAF funded $300 against $250 of awards; ANG funded nothing and typed nothing
-  const balCells = h => ((h.match(/<tr class="awdbal">([\s\S]*?)<\/tr>/) || ['', ''])[1].match(/<td[^>]*>([^<]*)</g) || []).map(x => x.replace(/.*>/, '').replace(/<$/, ''));
-  chk(name, 'award block', 'B: the balance by service, then the total', JSON.stringify(balCells(hB).slice(1, 4)), JSON.stringify(['$50', '\u2014', '$50']));
-  chk(name, 'award block', 'G: ANG’s mandatory is a balance of its own, with no award of its own', JSON.stringify(balCells(blk('G')).slice(1, 4)), JSON.stringify(['\u2014', '$60', '$60']));
+  // v2.22 W3 (149.43): the awards are one block each, and the balance a row per service (tr.awdsvc: service, scheduled, balance)
+  // then the total (tr.awdbal) -- read where they are now, the same figures in the same order
+  const cellTx = x => x.replace(/.*>/, '').replace(/<$/, '');
+  const balCells = h => [...(h.match(/<tr class="awdsvc">[\s\S]*?<\/tr>/g) || []).map(r => cellTx((r.match(/<td[^>]*>([^<]*)</g) || [])[2] || '')),
+    cellTx((((h.match(/<tr class="awdbal">([\s\S]*?)<\/tr>/) || ['', ''])[1].match(/<td[^>]*>([^<]*)</g) || []).slice(-1)[0]) || '')];
+  chk(name, 'award block', 'B: the balance by service, then the total', JSON.stringify(balCells(hB)), JSON.stringify(['$50', '\u2014', '$50']));
+  chk(name, 'award block', 'G: ANG’s mandatory is a balance of its own, with no award of its own', JSON.stringify(balCells(blk('G'))), JSON.stringify(['\u2014', '$60', '$60']));
 
   // PUT ON LAST covers both lanes, on the latest award: B's March becomes $100, $50 + $50
   ev(`fillLastAwd('B'); 'ok'`);
@@ -3465,7 +3469,9 @@ await (async () => {
   w3try(B.ev, `attClose(); 'ok'`);
   const block = id => w3try(B.ev, `(function(){ var d=document.createElement('div'); d.innerHTML=awardBlockHtml(itemById(${JSON.stringify(id)})); return d.textContent.replace(/\\s+/g,' '); })()`);
   chk(name, 'award block', 'an inferred split is marked on its row and said, with the award as it was saved',
-    [/SPLIT INFERRED \$3,000,000/, /◇ SPLIT INFERRED — repaired when this board was opened/, /The award as it was saved, kept with it/, /\{"mode":"inc","inc":\[\{"d":"2026-10","day":5,"sv":\[3000000\]\}\]\}/].every(r => r.test(block('W'))), true);
+    // v2.22 W3 (149.43): the award as it was saved is said as a sentence, no longer printed as the code it was kept in; and each award
+    // is a block of its own, so its mark is followed by its services' boxes and then its Total, where the table put the total beside it
+    [/SPLIT INFERRED[^$]*Total \$3,000,000/, /◇ SPLIT INFERRED — repaired when this board was opened/, /The award as it was saved, kept with it/, /Saved as incremental funding with 1 award: 2026-10, day 5 for \$3,000,000 over 1 service\./].every(r => r.test(block('W'))), true);
   chk(name, 'award block', 'an award that needs repair is marked, its good award still shown as it was',
     [/NEEDS REPAIR/, /⚠ NEEDS REPAIR — when this board was opened/, /\$3,000,000/].every(r => r.test(block('P'))), true);
   // SAVED AND REOPENED: the repairs and the originals travel, the cash with them
@@ -10690,6 +10696,212 @@ await (async () => {
 // ==== v2.22 W2 ====
 // ==== end v2.22 W2 ====
 // ==== v2.22 W3 ====
+// v2.22 W3 (item 155, the RECORD card; 149.18-149.50). Brad, 25 Nov 2026, on the concept canvas: "I like it all ... Let's go", with
+// 149.18-149.53 folded in and each answer under them his. What jsdom can hold -- it has no layout and no real pointer, so the pinned
+// bar, the click that moves the record, the arrow keys, the jumps, a click kept after typing and the award blocks' fit are held in
+// Chromium by tools/record-card.mjs (npm run record) -- is held here, each from a fixture where the alternatives disagree:
+//   the one line of figures (149.31): Requirement, Funded, Unfunded, ★ MC shortage only where starred AND short -- three starred
+//     requirements, one short of discretionary, one covered, and one short requirement unstarred, so "only when starred and short"
+//     cannot be met by "always" or "when starred";
+//   the lane in its word and the ★ switch, by the row's own call (149.20), and the edit box's sentence about it;
+//   no Lifecycle line (149.32); the bar's position, ‹ Previous and Next › as buttons that step (149.18, 149.19);
+//   a refused figure said inside the record, and cleared by a figure taken (149.27);
+//   what is still needed, by name, each to its field, and Save and next / Save and go to the value and budgets (149.21);
+//   the budget's name once per line, whole, and "by rule -- not picked" (149.24 c, 149.34);
+//   the edit box's plain words and the year said once (149.40);
+//   one block per award, its column headed Date, a repaired award as a sentence (149.43);
+//   one line of obligation category, WBS and Goes to (149.47); a prime's CLINs, read without writing anything (149.48);
+//   a locked view said read only with Leave the view (149.49);
+//   the other years by the WORK, never the id (149.50): FY28 started blank holds its own NEW-1, a different requirement from FY27's
+//     NEW-1, so a line read by id prints the wrong one's value; and a requirement brought into FY28 from FY27's, linked, prints its own;
+//   the menu line naming the requirement to reassign (149.28; the menu itself is the integration's).
+// FAILS ON THE SLOT COMMIT (41ea5d7): none of these is there.
+await (async () => {
+  const name = 'v2.22 W3 — the RECORD card: the figures line, the ★ switch, the bar, a refusal said, what is still needed, budgets, the edit box’s words, the awards, the fields, the CLINs, a locked view, the other years';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    // USAF and ANG; discretionary $400 and $200, mandatory $100 and $0. Order A B C D E P:
+    // A $300+$100 ask, starred: drawn whole from discretionary -> covered.  B $300+$100 starred: discretionary dry part-way -> short.
+    // C $100 unstarred and short. D, E small. P a prime with two CLINs.
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('B', 'PSM', [300, 100]), it('C', 'AV', [100, 0]),
+      it('D', 'AV', [10, 10]), it('E', 'PP', [10, 0]), it('P', 'PP', [20, 0])], disc: [400, 200], mand: [100, 0], order: ['A', 'B', 'C', 'D', 'E', 'P'],
+      mc: { A: true, B: true } });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.ptype.P='PRIME'; if(!S.clinNew) S.clinNew={}; S.clinNew.P=[{key:'n1', clin:'0001', desc:'one', ccar:'', ask:[12,0]}, {key:'n2', clin:'0002', desc:'two', ccar:'', ask:[5,3]}];
+      S.obCat=S.obCat||{}; S.obCat.D=OB_CATS[1]; S.wbs=S.wbs||{}; S.wbs.D=[{w:'4.5.6 - Engines', v:[]}];
+      S.awards.D={mode:'inc', inc:[{d:FYMON[2][0], day:3, sv:[5,5]}, {d:FYMON[6][0], day:20, sv:[5,0]}]};
+      S.awards.E={mode:'single', d:FYMON[4][0], day:9, fix:{how:'repair', orig:'{"mode":"single","d":"2027-13","day":9}', n:['the month was not a month'], at:1700000000000}};
+      S.alloc.B={m:'t', v:300};   // a trim, so B's own shortfall (unfSvcOf) and what no lane could pay (beyond, t.u) differ
+      save(); render(); window.confirm=function(){ return true; }; 'ok'`);
+    const T = JSON.parse(ev(`JSON.stringify((function(){ var T=tiers(), o={}; S.order.forEach(function(id){ var it=itemById(id), p=T[id];
+      o[id]={d:p.d, m:p.m, u:p.u, ask:it.ask, mcs:mcShortSvcOf(it,p), unf:unfSvcOf(it,p)}; }); return o; })())`));
+    const tot = a => a.reduce((x, y) => x + y, 0);
+    chk(name, 'fixture', 'CONTROL: A is starred and covered by discretionary, B starred and short of it, C unstarred and short',
+      J([tot(T.A.mcs), tot(T.B.mcs) > 0, tot(T.C.unf) > 0, ev(`String(!!S.mc.C)`)]), J([0, true, true, 'false']));
+    chk(name, 'fixture', 'CONTROL: B is trimmed, so its own shortfall is more than what no lane could pay (beyond)', tot(T.B.unf) > tot(T.B.u) + 0.5, true);
+    const rec = id => JSON.parse(ev(`(function(){ setCur(${J(id)}); uiDrawerTabs(); var ins=document.getElementById('inspector'), f={};
+      [].forEach.call(ins.querySelectorAll('.insp-sum .insp-f'), function(e){ f[e.querySelector('.fl').textContent.trim()]=e.querySelector('.fv').textContent.trim(); });
+      return JSON.stringify({f:f, text:ins.textContent, pill:(ins.querySelector('.recpill')||{}).textContent, lk:(ins.querySelector('.recpill')||{getAttribute:function(){}}).getAttribute('data-lk')}); })()`));
+    const fm = v => ev(`fM(${v})`);
+    // 1. the one line of figures (149.31)
+    const rA = rec('A'), rB = rec('B'), rC = rec('C');
+    chk(name, 'figures', 'A, starred and covered: Requirement, Funded and Unfunded, no MC shortage, and no Discretionary or Mandatory box',
+      J(rA.f), J({ Requirement: fm(400), Funded: fm(tot(T.A.d) + tot(T.A.m)), Unfunded: tot(T.A.unf) > 0.005 ? fm(tot(T.A.unf)) : '—' }));
+    chk(name, 'figures', 'B, starred and short: the MC shortage is the requirement less discretionary (mcShortSvcOf)',
+      rB.f['★ MC shortage'], fm(tot(T.B.mcs)));
+    chk(name, 'figures', 'C, short and not starred: no MC shortage', J(Object.keys(rC.f)), J(['Requirement', 'Funded', 'Unfunded']));
+    chk(name, 'figures', 'B’s Funded is discretionary plus mandatory paid, and its Unfunded the requirement’s own (unfSvcOf)',
+      J([rB.f.Funded, rB.f.Unfunded]), J([fm(tot(T.B.d) + tot(T.B.m)), fm(tot(T.B.unf))]));
+    // 2. the lane's word and the ★ switch (149.20); no Lifecycle line (149.32)
+    chk(name, 'lane', 'the lane in its word: A discretionary, C as its lanes say', J([rA.lk, rA.pill]), J(['disc', 'Discretionary']));
+    chk(name, 'lifecycle', 'no "Lifecycle" line in the record', /Lifecycle/.test(rA.text), false);
+    const sw = id => JSON.parse(ev(`(function(){ setCur(${J(id)}); var b=document.querySelector('#inspector .recmc'); return JSON.stringify(b? [b.getAttribute('aria-pressed'), b.getAttribute('onclick')] : null); })()`));
+    const rowH = ev(`(function(){ setCur('C'); return document.querySelector('#row-C .mcb').getAttribute('onclick'); })()`);
+    chk(name, 'star', 'C’s record has a ★ switch, off, calling exactly what the row’s ★ calls', J(sw('C')), J(['false', rowH]));
+    ev(`document.querySelector('#inspector .recmc').click(); 'ok'`);
+    chk(name, 'star', 'pressed: C is Mission Critical, the switch and the row say so', J([ev(`String(!!S.mc.C)`), sw('C')[0], ev(`document.querySelector('#row-C .mcb').getAttribute('aria-pressed')`)]), J(['true', 'true', 'true']));
+    ev(`document.querySelector('#inspector .recmc').click(); 'ok'`);
+    chk(name, 'star', 'pressed again: off', ev(`String(!!S.mc.C)`), 'false');
+    // 3. the bar: the position, ‹ Previous and Next › as buttons that step (149.18, 149.19)
+    const bar = () => JSON.parse(ev(`(function(){ var b=document.querySelector('#inspector .recbar'); return JSON.stringify(b? [b.querySelector('.recpos').textContent,
+      [].map.call(b.querySelectorAll('button'), function(x){ return x.textContent+(x.disabled? ':off' : ''); })] : null); })()`));
+    ev(`setCur('A'); 'ok'`);
+    chk(name, 'bar', 'A first: "#1 of 6", ‹ Previous off, Next ›, ✕ Close', J(bar()), J(['#1 of 6 · Record', ['‹ Previous:off', 'Next ›', '✕ Close']]));
+    ev(`document.querySelector('#inspector .recbar [data-step="1"]').click(); 'ok'`);
+    chk(name, 'bar', 'Next › steps to B', ev(`curRow`), 'B');
+    ev(`document.querySelector('#inspector .recbar [data-step="-1"]').click(); 'ok'`);
+    chk(name, 'bar', '‹ Previous back to A', ev(`curRow`), 'A');
+    chk(name, 'bar', '"RECORD" and the position said once each', J([(rA.text.match(/record/gi) || []).length >= 1, (rA.text.match(/ of 6/g) || []).length]), J([true, 1]));
+    // 4. a refused figure said inside the record, and cleared by one taken (149.27)
+    const type = (id, col, si, v) => ev(`(function(){ setCur(${J(id)}); var i=document.querySelector('#inspector .insp-split input[data-col="${col}"][data-si="${si}"]');
+      i.value=${J(v)}; i.dispatchEvent(new Event('input', {bubbles:true})); i.dispatchEvent(new Event('change', {bubbles:true})); var m=document.getElementById('recMsg'); return m? m.textContent : 'no line'; })()`);
+    chk(name, 'refused', '"12x" in D’s USAF requirement: the board’s own sentence, in the record', /was not changed/.test(type('D', 'q', 0, '12x')), true);
+    chk(name, 'refused', 'the figure stayed', ev(`itemById('D').ask[0]`), 10);
+    chk(name, 'refused', 'another requirement’s record does not carry it', ev(`(function(){ setCur('C'); return document.getElementById('recMsg').textContent; })()`), '');
+    chk(name, 'refused', 'back on D it is still said', /was not changed/.test(ev(`(function(){ setCur('D'); return document.getElementById('recMsg').textContent; })()`)), true);
+    chk(name, 'refused', 'a figure taken clears it', type('D', 'q', 0, '12'), '');
+    chk(name, 'refused', 'and the figure is taken', ev(`itemById('D').ask[0]`), 12);
+    // the Down and Up arrows go down and up a column (149.23): in jsdom the field is left without a change (Chromium's is in npm run record)
+    const down = (col, si, key) => ev(`(function(){ setCur('C'); var i=document.querySelector('#inspector .insp-split input[data-col="${col}"][data-si="${si}"]'); i.focus();
+      i.dispatchEvent(new KeyboardEvent('keydown', {key:${J(key)}, bubbles:true, cancelable:true})); var a=document.activeElement; return a.getAttribute('data-col')+a.getAttribute('data-si'); })()`);
+    chk(name, 'arrows', 'Down from USAF’s Disc goes to ANG’s Disc; Up from ANG’s Requirement to USAF’s', J([down('d', 0, 'ArrowDown'), down('q', 1, 'ArrowUp')]), J(['d1', 'q0']));
+    chk(name, 'arrows', 'past the last service it stays', down('m', 1, 'ArrowDown'), 'm1');
+    // a press on a row that a redraw replaced before its click (149.28): the row standing in its place is selected
+    ev(`setCur('A'); 'ok'`);
+    ev(`(function(){ var t=document.querySelector('#row-C .tt'); t.dispatchEvent(new Event('pointerdown', {bubbles:true})); render();
+      document.querySelector('#row-C .tt').dispatchEvent(new Event('pointerup', {bubbles:true})); document.getElementById('list').dispatchEvent(new MouseEvent('click', {bubbles:true})); })(); 'ok'`);
+    await new Promise(r => setTimeout(r, 30));
+    chk(name, 'press kept', 'a row pressed and redrawn before its click is selected as the click would have', ev(`curRow`), 'C');
+    // sliding over the table, a click on the page itself closes the record; a click on a row moves it (149.18)
+    ev(`setCur('A'); 'ok'`);
+    const opened = () => ev(`String(document.getElementById('inspector').classList.contains('open'))`);
+    chk(name, 'outside', 'CONTROL: the record slides over the table here, and is open', J([ev(`String(drawerNarrow())`), opened()]), J(['true', 'true']));
+    ev(`document.querySelector('#row-B .tt').click(); 'ok'`);
+    chk(name, 'outside', 'a click on another row moves the open record to it', J([ev(`curRow`), opened()]), J(['B', 'true']));
+    ev(`document.getElementById('uiPage').click(); 'ok'`);
+    chk(name, 'outside', 'a click on the page itself, on nothing that does anything, closes it', opened(), 'false');
+    // 5. what is still needed, by name (149.21)
+    const need = id => JSON.parse(ev(`(function(){ setCur(${J(id)}); var want=reqNeeds(reqDraftOf(${J(id)})).filter(function(x){ return !x.ok && !x.w; }).map(function(x){ return arShort(x.l); });
+      var got=[].map.call(document.querySelectorAll('#inspector .recneed button'), function(b){ return b.textContent; }); return JSON.stringify([got, want]); })()`));
+    const nC = need('C');
+    chk(name, 'needed', 'C: every field the required list finds missing is named under the three buttons', J(nC[0]), J(nC[1]));
+    chk(name, 'needed', 'and there is something missing to name (a CONTROL)', nC[1].length > 2, true);
+    ev(`(function(){ setCur('C'); [].filter.call(document.querySelectorAll('#inspector .recneed button'), function(b){ return b.textContent===${J(ev(`FL('obCat')`))}; })[0].click(); })(); 'ok'`);
+    chk(name, 'needed', 'its obligation category opens the edit box on C, at that field', J([ev(`String(erOn() && erOpen)`), ev(`document.activeElement.id`)]), J(['C', 'erOb']));
+    ev(`erClose(); 'ok'`);
+    // Save and next; Save and go to the value and budgets
+    ev(`setCur('C'); openEdit('C','rec'); document.getElementById('erNote').value='first'; 'ok'`);
+    chk(name, 'save and next', 'the box offers Save and next, and the way to the value says it saves', J([ev(`!!document.getElementById('erSaveNext')`), ev(`document.getElementById('erToPanel').textContent`)]), J([true, 'Save and go to the value and budgets']));
+    ev(`document.getElementById('erSaveNext').click(); 'ok'`);
+    chk(name, 'save and next', 'Save and next: C’s note is saved and the box is on D', J([ev(`(S.notes||{}).C||''`), ev(`String(erOn() && erOpen)`)]), J(['first', 'D']));
+    // the record shut behind the box, as when the box is opened from Needs attention (Go to) -- it selects its requirement quietly
+    ev(`drawerClose(); document.getElementById('erNote').value='second'; document.getElementById('erToPanel').click(); dlgSync(); 'ok'`);
+    chk(name, 'save and go', 'Save and go to the value and budgets: D’s note saved, the box closed, the record OPEN on D (a shut sliding record is inert), the keyboard on D’s value',
+      J([ev(`(S.notes||{}).D||''`), ev(`String(erOn())`), ev(`curRow`), ev(`String(document.getElementById('inspector').classList.contains('open'))`),
+        ev(`String((document.activeElement && document.activeElement.getAttribute('onchange')||'').indexOf('setAsk("D",')===0)`)]), J(['second', 'false', 'D', 'true', 'true']));
+    ev(`openEdit('D','rec'); document.getElementById('erPid').value='P'.repeat(80); 'ok'`);
+    ev(`document.getElementById('erSaveNext').click(); 'ok'`);
+    chk(name, 'save and next', 'a save refused (a PID over its limit) leaves the box on D with the typing', J([ev(`String(erOn() && erOpen)`), ev(`String(document.getElementById('erPid').value.length)`)]), J(['D', '80']));
+    ev(`erClose(); 'ok'`);
+    // 6. the edit box's words (149.20, 149.40)
+    ev(`openEdit('A','rec'); 'ok'`);
+    const box = ev(`document.getElementById('editPanel').textContent`);
+    chk(name, 'box words', 'no builder’s words: "from the file", "typed before v2.08", "follows the PMO and prime rules"',
+      J([/from the file/.test(box), /typed before v2\.08/.test(box), /follows the PMO and prime rules/.test(box)]), J([false, false, false]));
+    chk(name, 'box words', 'the year said once, in its heading', (box.match(new RegExp(ev(`FYL()`), 'g')) || []).length, 1);
+    chk(name, 'box words', 'the note says ★ is set by the switch at the top of the record', /★ Mission Critical \(the switch at the top of the record\)/.test(box), true);
+    ev(`erClose(); 'ok'`);
+    // 7. the budget: the name once per line, whole, by rule -- not picked (149.24 c, 149.34)
+    ev(`BUDDB={ts:1700000000051, files:[], rows:['USAF O&M- CAM Discretionary PSM', 'USAF O&M - CAM OBBBA Mandatory PSM', 'USAF O&M - ANG CAM Discretionary PSM'].map(budParseName).filter(Boolean)}; _budRegCache=null; render(); 'ok'`);
+    const bl = JSON.parse(ev(`(function(){ setCur('A'); return JSON.stringify([].map.call(document.querySelectorAll('#inspector table.budtab tr'), function(tr){
+      var s=tr.querySelector('select'), r=budResolve('A', tr.querySelector('th').firstChild.textContent, ({discretionary:'disc', mandatory:'mand'})[tr.querySelector('.budlane').textContent]||'disc');
+      return [(tr.querySelector('.budname')||{}).textContent, tr.querySelector('.budhow').textContent, s.options[0].textContent, r.effective, r.status]; })); })()`));
+    const ruled = bl.filter(r => r[4] === 'rule');
+    chk(name, 'budget', 'a line the rule settles prints its budget once, whole, and says "by rule — not picked"; its picker does not repeat the name',
+      J(ruled.map(r => [r[0] === r[3], r[1], r[2].indexOf(r[3]) < 0])), J(ruled.map(() => [true, 'by rule — not picked', true])));
+    chk(name, 'budget', 'there are such lines (a CONTROL), and nothing in the record says "automatic"', J([ruled.length > 0, /automatic/.test(ev(`document.getElementById('inspector').textContent`))]), J([true, false]));
+    ev(`BUDDB={ts:0, files:[], rows:[]}; _budRegCache=null; render(); 'ok'`);
+    // 8. the awards (149.43), the fields line (149.47), the CLINs (149.48)
+    const aw = JSON.parse(ev(`(function(){ setCur('D'); var b=document.querySelector('#inspector .awdblk'); return JSON.stringify({blocks:b.querySelectorAll('.awdone').length,
+      dates:[].map.call(b.querySelectorAll('.awdone label'), function(l){ return l.firstChild.textContent.trim(); }).filter(function(t){ return t==='Date'; }).length,
+      month:/>Month</.test(b.innerHTML), inputs:b.querySelectorAll('.awdone input[onchange^="setAwdIncSvc("]').length}); })()`));
+    chk(name, 'awards', 'D’s two awards: two blocks, each with its Date, two services’ boxes each, no column headed Month', J(aw), J({ blocks: 2, dates: 2, month: false, inputs: 4 }));
+    const eo = ev(`(function(){ setCur('E'); var o=document.querySelector('#inspector .awdorig'); return o? o.textContent : 'none'; })()`);
+    chk(name, 'awards', 'E’s repaired award says how it was saved, as a sentence', eo, 'Saved as one award dated 2027-13, day 9.');
+    const fl = ev(`(function(){ setCur('D'); return document.querySelector('#inspector .recflds').textContent; })()`);
+    chk(name, 'fields', 'D’s obligation category, WBS and Goes to in one line', fl,
+      ev(`FL('obCat')`) + ' ' + ev(`OB_CATS[1]`) + ev(`FL('wbs')`) + ' 4.5.6 - Engines' + ev(`FL('dest')`) + ' not logged');
+    // the CLIN line reads through clinReadOnly: drawn by itself it writes nothing (clinList makes the containers it reads)
+    const st0 = ev(`JSON.stringify([S.clinMeta, S.clinNew, S.clinRm, S.clinAlloc])`);
+    ev(`recClinHtml('P'); 'ok'`);
+    const st1 = ev(`JSON.stringify([S.clinMeta, S.clinNew, S.clinRm, S.clinAlloc])`);
+    const pc = ev(`(function(){ setCur('P'); var c=document.querySelector('#inspector .recclin'); return c? c.textContent+' | '+c.querySelector('button').getAttribute('onclick') : 'none'; })()`);
+    chk(name, 'CLINs', 'P, a prime: its CLINs, what they request, and the way to its breakdown', pc, 'Prime contract, 2 CLINs, requested $20. Open the CLIN breakdown | clinGo("P")');
+    chk(name, 'CLINs', 'and drawing it writes nothing', st1, st0);
+    chk(name, 'CLINs', 'a requirement that is not a prime says nothing of CLINs', ev(`(function(){ setCur('D'); return String(!!document.querySelector('#inspector .recclin')); })()`), 'false');
+    // 9. the menu line names the requirement (149.28)
+    chk(name, 'reassign', 'the Reassign line names the requirement on the record', ev(`(function(){ setCur('B'); return pmoReassignLbl(); })()`), '⇄ Reassign ' + ev(`dispTitle(itemById('B'))`) + '…');
+    // 10. a locked view says so (149.49)
+    ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView(blKey('PB', MS.cur)); setCur('A'); 'ok'`);
+    const ro = JSON.parse(ev(`(function(){ var r=document.querySelector('#inspector .recro'); return JSON.stringify(r? [/read only/.test(r.textContent), (r.querySelector('button')||{}).textContent, r.querySelector('button').getAttribute('onclick')] : null); })()`));
+    chk(name, 'locked', 'on a locked view the record says it is read only, with Leave the view', J(ro), J([true, 'Leave the view', 'cycLeave()']));
+    ev(`document.querySelector('#inspector .recro button').click(); 'ok'`);
+    chk(name, 'locked', 'Leave the view leaves it, and the line goes', J([ev(`String(!!CYCVIEW)`), ev(`String(!!document.querySelector('#inspector .recro'))`)]), J(['false', 'false']));
+    // 11. the other years, by the work (149.50)
+    ev(`var _r=reqCreate('PSM', {title:'Spares buy', event:'Spares buy', ask:[40,0]}); window.__n27=_r; save(); render(); 'ok'`);
+    const n27 = ev(`window.__n27`);
+    ev(`var _q=0; window.confirm=function(){ return (_q++)>0; }; switchYear(2028); window.confirm=function(){ return true; }; 'ok'`);   // Cancel (not rolled forward), then OK: FY28 started empty
+    chk(name, 'years', 'CONTROL: FY28 started empty', J([ev(`String(MS.cur)`), ev(`String(S.order.length)`)]), J(['2028', '0']));
+    ev(`window.__n28=reqCreate('AV', {title:'Field team', event:'Field team', ask:[999,0]}); save(); render(); 'ok'`);
+    chk(name, 'years', 'CONTROL: FY28’s own added requirement carries the same number as FY27’s, and is other work', J([ev(`window.__n28`), ev(`dispTitle(itemById(window.__n28))`)]), J([n27, 'Field team']));
+    ev(`switchYear(2027); setCur(${J(n27)}); 'ok'`);
+    // the line is filled once the page is idle (recYearsFill: working the years out is not done in the draw)
+    const yrs = async () => { await new Promise(r => setTimeout(r, 40)); return JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.textContent; }))`)); };
+    chk(name, 'years', 'FY27’s added requirement: FY27 its own value; FY28 holds no such work, so a dash -- never FY28’s other requirement with its number',
+      J(await yrs()), J(['SPAN:FY27 ' + fm(40), 'SPAN:FY28 —']));
+    ev(`setAsk(${J(n27)}, 0, '45'); setCur(${J(n27)}); 'ok'`);
+    chk(name, 'years', 'a value changed in FY27 is the line’s at once', J((await yrs())[0]), J('SPAN:FY27 ' + fm(45)));
+    chk(name, 'years', 'a board requirement: FY27 its value, FY28 none (FY28 was started empty)', J((ev(`setCur('A'); 'ok'`), await yrs())), J(['SPAN:FY27 ' + fm(400), 'SPAN:FY28 —']));
+    // brought into FY28 from FY27, linked: the line follows the link to it
+    ev(`switchYear(2028); window.__lk=reqCreate('PSM', {title:'Spares buy', event:'Spares buy', ask:[55,0]}, {y:2027, id:${J(n27)}}); save(); switchYear(2027); setCur(${J(n27)}); 'ok'`);
+    chk(name, 'years', 'CONTROL: the linked one has a number of its own in FY28', ev(`window.__lk`) !== n27, true);
+    chk(name, 'years', 'once FY28 holds it, linked: FY28 is a button with its value, opening that requirement', J(await yrs()), J(['SPAN:FY27 ' + fm(45), 'BUTTON:FY28 ' + fm(55)]));
+    ev(`document.querySelector('#inspector .recyrs button.recyr').click(); 'ok'`);
+    chk(name, 'years', 'pressed: FY28, on the linked requirement', J([ev(`String(MS.cur)`), ev(`curRow`)]), J(['2028', ev(`window.__lk`)]));
+    ev(`switchYear(2027); 'ok'`);
+    // THE RECORD IS DRAWN AS THE BOARD OPENS, while the script is still being read: a var of the W3 slot is not set yet then. A record
+    // that read one threw on every opening ("The RECORD panel could not be drawn"), found by npm run dialogs as a warning nobody read.
+    ev(`setCur('A'); 'ok'`);
+    const B2 = boot({ html: ev('buildSavedHtml()') });
+    chk(name, 'opening', 'a saved board reopened draws its record as it opens: no "could not be drawn", and the lane said in its word',
+      J([B2.ev(`String((STAT_LOG||[]).some(function(e){ return /could not be drawn/.test(e.html); }))`), B2.ev(`(document.querySelector('#inspector .recpill')||{}).textContent||'none'`)]),
+      J(['false', 'Discretionary']));
+    chk(name, 'errors', 'no page error', errors.length + B2.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====
