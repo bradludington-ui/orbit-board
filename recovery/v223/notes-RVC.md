@@ -111,7 +111,7 @@ on its own): it guards where the discard moved to.
   mutant with `mandBoxDraw`'s restore turned off, G's two box checks fail (2 FAILING). On `56aa6c6`, G fails 6 of its 7.
 - The three new audit-board blocks on `56aa6c6`: 20 failing checks, every CONTROL passing.
 - `npm run check` passes; `npm run alloc` (45 checks), `keys`, `dialogs` pass; `standards`: 0 findings, nothing new.
-- audit-other whole: ALL CHECKS PASSED.
+- audit-other, audit-import and audit-inject whole: ALL CHECKS PASSED.
 - audit-board whole: 4 failing checks, **all four also failing on `56aa6c6`** (run there on those two blocks alone: the same 4) --
   v2.22 W3's RECORD card bar (the integration's *Open full page*) and v2.23 W1's tab list (W2's *Across the FYDP* tab). Not RV-C's;
   left for the lead. Every other block passes, the RV-C and W3 blocks included.
