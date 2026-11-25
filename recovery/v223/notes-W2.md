@@ -123,14 +123,55 @@ Existing checks changed on purpose, each with a `// v2.23 W2:` comment:
 - `tools/panels-render.mjs`: `xfAddPanel` and `xfFillPanel` added to `SPECIAL`. The board's own fixture year before the base holds
   every board requirement (applyState re-seats the removed ones), so Add opens on the next year, started blank.
 - `tools/dialogs-keyboard.mjs`: `xfAddClose` and `xfFillClose` added to `KNOWN`, opened by their switches; `PRE` starts the year to add to.
-- `tools/standards-check.mjs`: Across the FYDP measured (the tab with boxes and an Add button, then each box open). A coverage finding
-  if any is not on screen.
+- `tools/standards-check.mjs`: Across the FYDP measured -- the tab with boxes, an Add button and a drew line (a directed figure no lane
+  can pay, put back after), then each box open. A coverage finding if any is not on screen, so it fails on the slot commit.
 - `tools/export-audit/mutate.mjs` `v222-w3-years-by-id`: retargeted (its line now also asks `xfRolledIn`).
+
+### Runs on the finished board
+
+Every suite whole, through `heavy.sh` with an 8 GB heap:
+
+| Suite | Result |
+|---|---|
+| boot-same | passed |
+| audit (excel) | ALL CHECKS PASSED |
+| audit-other | ALL CHECKS PASSED |
+| audit-board | ALL CHECKS PASSED |
+| audit-import | ALL CHECKS PASSED |
+| audit-recon | ALL CHECKS PASSED |
+| legacy-fsrc | "every legacy Force setting computes exactly as before" |
+| audit-hostile | ALL CHECKS PASSED |
+| audit-inject | ALL CHECKS PASSED |
+| audit-ui | ALL CHECKS PASSED |
+
+Browser checks: across, look, palette, record, keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, pointer,
+controls, colours, pmosave, pmoyears and hostile all pass. `layout` fails only its carried D ×8.
+
+`standards`: the first run found 10 new findings, all on my surfaces. I fixed them, and it now reports nothing new.
+
+- The Unfunded figures used APEX red as text (`#c00000`), which falls below 4.5:1 on Midnight and Navy and on Harbor's lifted rows.
+  They now use `--unf`, the token the RECORD card's Unfunded column uses.
+- Manage across the FYDP had a navy edge with no contrast on the dark themes; it now uses `--edge`.
+- The radio buttons and the checkbox in the boxes were 20px; they are now 24px.
+- The drew line now takes the board's own `.drew` colour (`--red`).
+
+`npm run check`: all checks passed.
 
 ## Mutations
 
 31 new (`v223-w2-*`) and 1 retarget (`v222-w3-years-by-id`). Each was proved against its own check with `prove.py`, `JOBS=1`, under
-`heavy.sh` (`recovery/v223/proofs-W2.json` → `recovery/v223/proved-W2.jsonl`). Results are under Proofs below.
+`heavy.sh` (`recovery/v223/proofs-W2.json` → `recovery/v223/proved-W2.jsonl`).
+
+**32 of 32 CAUGHT, none by a block that threw.** Each check also ran clean on the unmutated board first.
+
+- **Into `audit-import` "v2.23 W2…":** `copy-disc-box`, `copy-other-year`, `add-other-office`.
+- **Into `audit-board` "v2.23 W2…":** `join-by-id`, `rolled-ignored`, `write-on-screen`, `no-save`, `refusal-saves`, `setter-saves`,
+  `save-left-held`, `bypass-setter`, `drew-hidden`, `box-shows-drawn`, `unf-beyond`, `total-before-base`, `window-at-base`,
+  `locked-boxes`, `mand-ignored`, `mand-line-kept`, `start-unasked`, `add-awards`, `add-unlinked`, `add-grow-lost`, `add-farthest`,
+  `add-title-raw`, `fill-writes-split`, `fill-flat`, `fill-saves-each`, `strip-no-tab`, `strip-no-lane`, `strip-two-years`.
+- **The retarget:** `v222-w3-years-by-id` → `audit-board` "v2.22 W3".
+
+None was retired.
 
 `mcount`: every target matches once (3,437 entries). Two of my lines first duplicated older targets (`fydp-window-drops-screen-year`,
 `v216-148-proj-no-link`), so I reworded mine rather than the old ones.
@@ -147,7 +188,8 @@ Existing checks changed on purpose, each with a `// v2.23 W2:` comment:
   is redrawn with the same handlers (`focusMark`/`focusRestore` find a box by its `onchange`, which names the year, the id, the line
   and the service).
 - **`after(id)`** restores the grid's sideways scroll. Call it after the markup is in.
-- **`npm run controls`**: the RECORD card gains Manage across the FYDP (`reqPageOpen`, record surface); see `npm run controls` below.
+- **`npm run controls`**: the RECORD card gains Manage across the FYDP (`reqPageOpen`, record surface). Re-recorded with `--record`
+  (commit a172fb5); the only change to `tools/row-controls.json` is that control (and the build stamp).
 - **W3's `mandOn`**: the tab asks `mandOn(state)` inside each year (`xfYearNow` → `P.mand`). Nothing else is needed from W3.
 - **Help**: the guide is at its size limit. Nothing was added; the integration may want a line for Across the FYDP.
 

@@ -484,11 +484,14 @@ for (const build of BUILDS) {
       openMenu = null; rowMenuId = null; syncBtns(); render();
       const id = S.order[0], y = MS.cur + 1; window.__xfKeep = { y, had: !!MS.years[y] };
       if (!MS.years[y]) MS.years[y] = pmoYearStart(y, false);
+      // a directed figure no lane can pay, so the line saying what it drew is measured too (put back after)
+      window.__xfKeep.fsrc = S.fsrc[id] ? JSON.stringify(S.fsrc[id]) : null;
+      S.fsrc[id] = { m: 'split', dv: SVC.map((_, i) => i ? 0 : 9e11), mv: SVC.map(() => 0) };
       _recYrC = null;
       try { reqPageOpen(id, 'fydp'); } catch (e) {}
       const rp = document.getElementById('reqPage');
       if (!(rp && !rp.hidden && rp.querySelector('#xfTab'))) { const t = REQPG_TABS.filter(x => x.k === 'fydp')[0]; rp.hidden = false; rp.innerHTML = t.html(id); t.after(id); window.__xfKeep.mine = true; }
-      const tab = !!rp.querySelector('#xfTab input.xfin') && !!rp.querySelector('#xfTab .xfaddb');
+      const tab = !!rp.querySelector('#xfTab input.xfin') && !!rp.querySelector('#xfTab .xfaddb') && !!rp.querySelector('#xfTab .drew');
       window.__xfKeep.id = id; return { n: tab };
     } catch (e) { return { n: false, err: String(e.message) }; } });
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
@@ -497,10 +500,11 @@ for (const build of BUILDS) {
     const xfFill = await page.evaluate(() => { try { xfAddClose(); xfFillOpen(window.__xfKeep.id); return !!document.querySelector('#xfFillPanel.open #xfFillGo'); } catch (e) { return false; } });
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
     await page.evaluate(() => { try { xfFillClose(); const k = window.__xfKeep || {}; if (k.y && !k.had) delete MS.years[k.y];
+      if (k.id) { if (k.fsrc) S.fsrc[k.id] = JSON.parse(k.fsrc); else delete S.fsrc[k.id]; }
       const rp = document.getElementById('reqPage'); if (k.mine && rp) { rp.innerHTML = ''; rp.hidden = true; }
       _recYrC = null; render(); } catch (e) {} });
     if (!xfShown.n || !xfAdd || !xfFill) record(build, theme, { sc: 'coverage', key: 'Across the FYDP was not on screen whole to measure',
-      detail: `the tab with its boxes and an Add button ${xfShown.n ? 'was' : 'was NOT'} shown; Add to a year ${xfAdd ? 'was' : 'was NOT'}; Fill across ${xfFill ? 'was' : 'was NOT'}` + (xfShown.err ? ' (' + xfShown.err + ')' : ''), n: 1 });
+      detail: `the tab with its boxes, an Add button and a drew line ${xfShown.n ? 'was' : 'was NOT'} shown; Add to a year ${xfAdd ? 'was' : 'was NOT'}; Fill across ${xfFill ? 'was' : 'was NOT'}` + (xfShown.err ? ' (' + xfShown.err + ')' : ''), n: 1 });
 
     // v2.19 (item 150): the cost estimate import's report and mapping box measures removed with their feature
     // v2.12 (item 134): THE OVERS, measured with one on screen (v2.19, item 150: Needs attention's list, attShow('over'), where the
