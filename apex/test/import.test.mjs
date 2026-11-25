@@ -64,9 +64,6 @@ try {
     [1e-13, '0.00%'], [-1e-12, '0.00%'], [-1.01e-12, '-0.00%'], [null, '—']];
   for (const [x, s] of FD) C.eq('fmtDelta(' + x + ')', SP.fmtDelta(x), s);
   C.eq('fmtUsd', [SP.fmtUsd(123456789), SP.fmtUsd(-5), SP.fmtUsd(0)], ['$1,234,567.89', '-$0.05', '$0.00']);
-  C.eq('ymOf', [SP.ymOf('2026-03-31'), SP.ymOf(''), SP.ymOf(null)], ['2026-03', '', '']);
-  C.eq('fyOf: October to December belong to the next FY', [SP.fyOf('2025-09-30'), SP.fyOf('2025-10-01'), SP.fyOf('2025-12-31'), SP.fyOf('2026-01-01'), SP.fyOf('')],
-    [2025, 2026, 2026, 2026, null]);
   for (const [n, want] of Object.entries(E.serials)) {
     C.eq('excelSerialToIso(' + n + ') against openpyxl, 1900 system', SP.excelSerialToIso(Number(n), false), want['1900']);
     C.eq('excelSerialToIso(' + n + ') against openpyxl, 1904 system', SP.excelSerialToIso(Number(n), true), want['1904']);

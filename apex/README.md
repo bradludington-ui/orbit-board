@@ -618,6 +618,6 @@ where CUI may be kept.
 
 ## For maintainers
 
-The page is built from `src/` by `node apex/build.mjs`; `--check` fails when the file is not what the sources build.
+The page is built from `src/` by `node apex/build.mjs`; `--check` fails when the file is not what the sources build. The built page leaves out the sources' comments (§64): they explain why the code is as it is and stay in `src/`, where the code is read and changed; the code itself is the sources' token for token (`test/build-strip.test.mjs`).
 `docs/CONTRACT.md` is the one statement of what the tool does. The tests are `node apex/test/run-all.mjs`. They use
 synthetic data only: never put real data in the repository.

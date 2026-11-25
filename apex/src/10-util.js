@@ -290,15 +290,6 @@ SP.isoDate = function isoDate(y, m, d) {
   if (d > dim) return '';
   return String(y).padStart(4, '0') + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
 };
-SP.ymOf = function ymOf(date) {
-  return typeof date === 'string' && /^\d{4}-\d{2}/.test(date) ? date.slice(0, 7) : '';
-};
-// October to December belong to the next fiscal year
-SP.fyOf = function fyOf(date) {
-  const m = typeof date === 'string' && /^(\d{4})-(\d{2})/.exec(date);
-  if (!m) return null;
-  return Number(m[1]) + (Number(m[2]) >= 10 ? 1 : 0);
-};
 // An Excel serial day -> ISO. The 1900 system counts the 29 February 1900 that never was (serial 60), so days before it
 // sit one later than a plain count from 1899-12-30 would put them; serial 60 itself is no date and reads as ''.
 // The 1904 system counts plainly from 1904-01-01. The fraction of a day is the time, which the tool does not use.
