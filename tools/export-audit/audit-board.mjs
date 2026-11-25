@@ -11071,6 +11071,7 @@ await (async () => {
 //   Bands: P, A and F in PDM, B in Safety, C in KTLO, D in none -- so the discretionary line sits in PDM between P and A, the
 //     full-budget line in Safety above B, and a line read "at the top" or "at the foot" of its column is told apart.
 // FAILS ON THE SLOT COMMIT (9f82139): there is no page and no board.
+const { bootMark: _v223w1Mark, bootRelease: _v223w1Release, settleBoards: _v223w1Settle } = await import('./boot.mjs');
 const W1F = {
   services: ['USAF', 'ANG'],
   items: [it('P', 'PSM', [50, 20]), it('A', 'AV', [550, 100]), it('B', 'PSM', [100, 50]), it('C', 'PP', [0, 50]), it('D', 'AV', [10, 0]), it('F', 'PSM', [50, 0])],
@@ -11088,6 +11089,7 @@ const w1Boot = () => {
   return B;
 };
 await (async () => {
+  const __bm = _v223w1Mark();
   const name = 'v2.23 W1 — the requirement page: the header, the four figures, when the money obligates, the record, recent changes, the tabs, Back and Esc';
   try {
     const J = JSON.stringify;
@@ -11215,8 +11217,11 @@ await (async () => {
     chk(name, 'nothing saved', 'CONTROL: the saved state is read', ps.length > 1000, true);
     chk(name, 'nothing saved', 'the saved state carries no page state', /REQPG|reqPage|"over"|"hist"/.test(ps), false);
   } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _v223w1Release(__bm, []);
+  await _v223w1Settle();
 })();
 await (async () => {
+  const __bm = _v223w1Mark();
   const name = 'v2.23 W1 — Rank by band: a column per band and No band yet, the list’s order and filters, the cutlines in their bands, a card opens the record, nothing written';
   try {
     const J = JSON.stringify;
@@ -11261,6 +11266,8 @@ await (async () => {
     ev(`uiSetMode('rank'); document.getElementById('rkv_list').click(); 'ok'`);
     chk(name, 'switch', 'List again: kept as list, the board hidden', J([ev(`localStorage.getItem('spmtRankView')`), ev(`document.getElementById('rkBoard').hidden`)]), J(['list', true]));
   } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _v223w1Release(__bm, []);
+  await _v223w1Settle();
 })();
 // ==== end v2.23 W1 ====
 // ==== v2.23 W2 ====
