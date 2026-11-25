@@ -2746,3 +2746,23 @@ unchanged (its body counts Mandatory as Approved and its list is the tracker's a
 
 `test/ufr-mandatory.test.mjs` (Required, a listed record, a Mandatory-only record, the list against the deltas in every
 document, Initial Spares, the other download unchanged).
+
+## 64. A smaller page, and one copy of each builder (Brad, 25 Nov 2026)
+
+Brad: *"Let's optimize code"*, then, of the measured options, *"Go with A and B"*.
+
+- **A. The built page leaves out the comments.** `build.mjs` takes every comment out of the scripts (`stripJs`) and the
+  style sheet (`stripCss`) as it assembles `apex.html`; each source file keeps its banner, and `assemble({keepComments: true})`
+  still builds the page with them. The comments stay in `apex/src`, where the code is read and changed. The page went from
+  1,095,571 to about 789,000 characters (28% smaller). `stripJs` reads the code token by token (strings, template literals
+  and their `${…}`, regular expressions, a division after `i++`), so it never takes a `//` in an address or a pattern for a
+  note; proved on the whole page by tokenizing it with and without its comments: 190,514 tokens, the same. Nothing on
+  screen, in an export or in a PDF changes.
+- **B. One copy of each builder.** My PMO, the Unfunded page and the SRRB drew their tiles with three copies of one
+  builder and their bar lists with two: now `ui_tile` and `ui_bars` (the money format and the empty wording are arguments).
+  `SP.ymOf` and `SP.fyOf`, which only a test called, are gone. `SP.savedHtml` and `SP.uiRender` stay: the tests' way to save
+  and redraw the page.
+
+`test/build-strip.test.mjs`: eleven pieces of code a simpler reading would get wrong, each the same value before and after
+with its comments gone; the style sheet; the page smaller by at least a fifth, every file under its banner, and the page with
+and without its comments opening with no script error.

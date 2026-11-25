@@ -794,6 +794,18 @@ function ui_myPmoSel(M) {
   if (S.fy !== null && !fys.some(p => p[0] === S.fy)) S.fy = null;
   return { all, P, S, fys, label: ui.pmoLabel, mine: mine0.filter(r => S.fy === null || String(r.fy) === S.fy) };
 }
+// A TILE AND A LIST OF BARS, as My PMO, the Unfunded page and the SRRB draw them: one builder each, so the three views
+// cannot drift apart (they were three and two copies). A tile: its label, its big figure, the line under it and, for the
+// tests, the cents it shows. A bar list: each item's label, a bar as long as its share of the largest, and its figure.
+function ui_tile(id, label, big, sub, c) {
+  return '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
+}
+function ui_bars(id, head, items, fmt, none) {
+  const max = Math.max(1, ...items.map(x => Math.abs(x.sum)));
+  return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (items.length ? '<ul class="plist ubars">' + items.map(x => '<li><span class="fp">' + ui_e(x.label) + '</span>'
+    + '<span class="ubar" aria-hidden="true"><span style="width:' + (100 * Math.abs(x.sum) / max).toFixed(1) + '%;background:' + (x.color || '#8EAADB') + '"></span></span>'
+    + '<span class="fa" data-c="' + x.sum + '">' + ui_e(fmt(x.sum)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">' + none + '</p>') + '</section>';
+}
 function ui_vMyPmo(M) {
   const { all, P, S, fys, mine } = ui_myPmoSel(M);
   if (!all.length) return '<div class="ovhead"><h2 class="ovtitle">My PMO</h2></div><p class="ovshown' + (M.shown.all ? '' : ' filtered') + '">' + ui_e(M.shown.text) + '</p><p class="none">No requirement is counted.</p>';
@@ -825,7 +837,7 @@ function ui_vMyPmo(M) {
     for (const g of out) if (g.sp) g.title = [...g.titles].reduce((a, b) => (b[1] > a[1] ? b : a))[0];
     return out.sort((a, b) => (a.e.ym < b.e.ym ? -1 : a.e.ym > b.e.ym ? 1 : b.e.cents - a.e.cents));
   };
-  const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
+  const tile = ui_tile;
   const lst = (id, head, items0, none, tot) => { const items = roll(items0);
     return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (tot && items.length ? tot : '') + (items.length ? '<ul class="plist">' + items.map(x => (x.sp
     ? '<li data-sp="' + ui_e(x.key) + '"><span class="fd">' + ui_e(SP.ymWords(x.e.ym)) + '</span><span class="fp"><button type="button" class="tg" data-act="reqfind" data-q="' + ui_e(x.r.ccar) + '" data-fkey="pmo' + id + 'sp:' + ui_e(x.key) + ':' + ui_e(x.e.ym) + '">'
@@ -1327,13 +1339,10 @@ function ui_ufrData(M) {
 function ui_k(c) { return '<td class="n" data-c="' + c + '">' + ui_e(SP.fmtK(c)) + '</td>'; }
 function ui_ufrBody(M, V) {
   const U = ui.ufr, K = c => '$' + (SP.fmtK(c) === '-' ? '0' : SP.fmtK(c)) + 'K';
-  const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
+  const tile = ui_tile;
   const req = n => SP.fmtInt(n) + (n === 1 ? ' requirement' : ' requirements');
   const lns = n => SP.fmtInt(n) + (n === 1 ? ' line' : ' lines'), mn = V.tiles.mand ? V.tiles.mand.n : 0;
-  const bars = (id, head, items) => { const max = Math.max(1, ...items.map(x => Math.abs(x.sum)));
-    return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (items.length ? '<ul class="plist ubars">' + items.map(x => '<li><span class="fp">' + ui_e(x.label) + '</span>'
-      + '<span class="ubar" aria-hidden="true"><span style="width:' + (100 * Math.abs(x.sum) / max).toFixed(1) + '%;background:' + (x.color || '#8EAADB') + '"></span></span>'
-      + '<span class="fa" data-c="' + x.sum + '">' + ui_e(SP.fmtK(x.sum)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">Nothing unfunded.</p>') + '</section>'; };
+  const bars = (id, head, items) => ui_bars(id, head, items, SP.fmtK, 'Nothing unfunded.');
   if (!V.n) return '<p class="none" id="uiUfrNone">No unfunded requirement matches. Clear filters shows the whole list.'
     + (V.tiles.mand.hidden ? ' The Filter’s Mandatory lane switch hides ' + SP.fmtInt(V.tiles.mand.hidden) + (V.tiles.mand.hidden === 1 ? ' Mandatory line.' : ' Mandatory lines.') : '') + '</p>';
   const cols = 10 + V.svc.length;
@@ -1505,12 +1514,9 @@ function ui_srrbData(M) {
 function ui_srrbMonths(l) { return SP.srrbMonthsText(l); }
 function ui_srrbBody(M, V) {
   const m = c => '<td class="n" data-c="' + c + '">' + ui_e(SP.fmtM(c)) + '</td>';
-  const tile = (id, label, big, sub, c) => '<div class="tile" data-tile="' + id + '"><span class="tl">' + label + '</span><span class="tv"' + (c === undefined ? '' : ' data-c="' + c + '"') + '>' + big + '</span><span class="ts">' + sub + '</span></div>';
+  const tile = ui_tile;
   const req = n => SP.fmtInt(n) + (n === 1 ? ' requirement' : ' requirements');
-  const bars = (id, head, items) => { const max = Math.max(1, ...items.map(x => Math.abs(x.sum)));
-    return '<section class="card" data-list="' + id + '"><h3>' + head + '</h3>' + (items.length ? '<ul class="plist ubars">' + items.map(x => '<li><span class="fp">' + ui_e(x.label) + '</span>'
-      + '<span class="ubar" aria-hidden="true"><span style="width:' + (100 * Math.abs(x.sum) / max).toFixed(1) + '%;background:' + (x.color || '#8EAADB') + '"></span></span>'
-      + '<span class="fa" data-c="' + x.sum + '">' + ui_e(SP.fmtM(x.sum)) + '</span></li>').join('') + '</ul>' : '<p class="cardnote">Nothing to show.</p>') + '</section>'; };
+  const bars = (id, head, items) => ui_bars(id, head, items, SP.fmtM, 'Nothing to show.');
   if (!V.n) return '<p class="none" id="uiSrrbNone">No SRRB requirement matches. Clear filters shows the whole list.</p>';
   const cols = 5 + V.svc.length;
   let zebra = 0;

@@ -789,7 +789,10 @@ try {
       if (parts.length !== 2) throw new Error('the current source is not in the page exactly once');
       return parts.join(b);
     };
-    const nowUi = readFileSync(join(HERE, '..', 'src', '90-ui.js'), 'utf8'), nowCss = readFileSync(join(HERE, '..', 'src', 'style.css'), 'utf8');
+    // §64 the built page leaves out the comments: each source is found, and swapped, as the build writes it
+    const { stripJs, stripCss } = await import('../build.mjs');
+    const nowUi = stripJs(readFileSync(join(HERE, '..', 'src', '90-ui.js'), 'utf8')), nowCss = stripCss(readFileSync(join(HERE, '..', 'src', 'style.css'), 'utf8'));
+    oldUi.stdout = stripJs(oldUi.stdout); oldCss.stdout = stripCss(oldCss.stdout);
     C.chk('no report: the page compared with is not this one (the screens did change for §14)', nowUi !== oldUi.stdout);
     // two plans with no report, made by the tool's own import and store: one pull, and a pull then a second (What changed)
     const mk = async files => {
