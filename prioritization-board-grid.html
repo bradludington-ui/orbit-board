@@ -30648,7 +30648,7 @@ function syncBtns(){
       '<div class="msep"></div><div class="mlbl">The list itself</div>'+
       mi('⚙ Manage programme offices…',"mRun(togglePmo)",pmoOpen,
          GROUPS.length+' office'+(GROUPS.length===1?'':'s')+' — add, rename, reorder')+
-      mi('⇄ Reassign a requirement…',"mRun(pmoReassignHint)",false,
+      mi(esc(pmoReassignLbl()),"mRun(pmoReassignHint)",false,   // v2.22 integration (149.28): names the requirement in the record
          'open any requirement’s '+FLI('rec')+' and set its PMO there')+
       ((filter!=='ALL'||ptypeFilter)? '<div class="msep"></div>'
         +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render();naFromDraw()",false,'clear this selection') : '');
