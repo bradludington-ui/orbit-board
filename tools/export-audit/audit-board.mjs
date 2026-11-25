@@ -11288,7 +11288,9 @@ await (async () => {
 //     the very requirement, so Add must not make a second one).
 // Expectations come from the fixture's own figures (FY27's lanes are spent on A and B before NEW-1; FY29's are empty), never from the
 // tab's own reading. FAILS ON THE SLOT COMMIT (9f82139): REQPG_TABS holds no Across the FYDP tab there, and the strip has no Manage.
+const { bootMark: _v223Mark, bootRelease: _v223Release, settleBoards: _v223Settle } = await import('./boot.mjs');   // v2.23 integration: W2's and W3's blocks
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W2 — Across the FYDP: the years by the work, a figure for another year written there through its setter and journalled with its year, what a lane drew, Add to a year, Fill across, the year strip';
   try {
     const J = JSON.stringify;
@@ -11424,6 +11426,8 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 // ==== end v2.23 W2 ====
 // ==== v2.23 W3 ====
@@ -11457,6 +11461,7 @@ const W3SC = {
   fsrc: { B: { m: 'split', dv: [10, 0], mv: [40, 0] } },
 };
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W3 — mandatory funding off: the RULE in tiers(), the ◨ view still a view, the exports keep their layout';
   try {
     const J = JSON.stringify;
@@ -11521,11 +11526,14 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 // NO FIGURE IN A YEAR WITH MANDATORY ON MAY MOVE. (1) Every sheet of exportExcel on a board with nothing turned off, against the
 // slot commit's own board on the same fixture (read from git: unshallow first); (2) FY28, on, exported before and after FY27 is
 // turned off. Both are CONTROLs on 9f82139 (it has no switch to turn), and both fail on a mutation that leaks the setting.
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W3 — mandatory funding on: no figure moves, on any sheet of the workbook';
   try {
     const J = JSON.stringify;
@@ -11553,6 +11561,8 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 // THE BOX: Clear, or Move what discretionary can cover, for this year or this year and every later year; Cancel changes nothing.
 // Move walks the PRIORITY order against the room the discretionary lane has left at the end of the walk. The fixture makes size order
@@ -11567,6 +11577,7 @@ const W3BOX = {
   fsrc: { A: { m: 'split', dv: [10, 0], mv: [40, 0] }, B: { m: 'split', dv: [0, 0], mv: [90, 0] } },
 };
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W3 — the mandatory-off box: Clear, Move by priority, this year or every later year, Cancel, a PMO copy, a locked view';
   try {
     const J = JSON.stringify;
@@ -11640,12 +11651,15 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 function S_(ev, id) { return ev(`JSON.stringify({dv:S.fsrc['${id}'].dv, mv:S.fsrc['${id}'].mv})`); }
 // MANDATORY OFF TRAVELS as a year's field does: save → reopen, a year rolled forward (decided: the copy carries its source's setting),
 // a PMO copy, and the import door accepts it and refuses one that is not true or false, by name.
 // FAILS ON 9f82139: the reopened board draws mandatory, and the door takes "yes".
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W3 — mandatory off travels: save and reopen, a year rolled forward, a PMO copy, the import door';
   try {
     const J = JSON.stringify;
@@ -11669,6 +11683,8 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 // ALLOCATE (item 159): a workspace mode under Views; the Sheet and One lane over one HELD DRAFT. The figures beside the boxes are the
 // lane engine's on the board with the draft laid over -- the fixture makes that visible: A's USAF discretionary cut from $100 to $60
@@ -11682,6 +11698,7 @@ const W3AV = {
   disc: [150, 60], mand: [50, 20], order: ['A', 'B', 'C'],
 };
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W3 — Allocate: the held draft, the figures it moves, Save through setFsrcSvc in one save, leaving asks, paste, One lane, read only';
   try {
     const J = JSON.stringify;
@@ -11763,8 +11780,11 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 await (async () => {
+  const __bm = _v223Mark();
   const name = 'v2.23 W3 — One lane: Left after down the priority order, the cutline, Full and $0, the selected rows, the move aside; mandatory off; read only';
   try {
     const J = JSON.stringify;
@@ -11807,6 +11827,8 @@ await (async () => {
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
 })();
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
