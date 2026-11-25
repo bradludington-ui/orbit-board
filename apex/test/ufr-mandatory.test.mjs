@@ -163,11 +163,23 @@ try {
     const ap = (R, id) => K$(at(R, id).sections.find(x => x.fy === 2027).total.approved);
     C.eq('§55 Discretionary: the body is the Discretionary money alone; Discretionary and Mandatory, both', J([ap(Rd, 'ap:om'), K$(at(Rd, 'ap:om').stoplight.total.approved), ap(Rdm, 'ap:om')]),
       J([5900000, 5900000, 5900000 + 2400000 + 300000 + 1800000 + 1500000]));
-    // Required = Approved + the tracker's lines only: Tessa A's 500 and Depot tooling's 900 (a record of its own, Approved $0)
-    C.eq('§55 Discretionary: a Mandatory line on the list adds nothing to Required', K$(at(Rd, 'ap:om').sections.find(x => x.fy === 2027).total.required), 5900000 + 500000 + 900000);
-    C.eq('§55 Initial Spares, all Mandatory money: its Discretionary PDF has no spend plan section and still lists Kit', J([at(Rd, 'ap:sp').sections.length, list(at(Rd, 'ap:sp'))]), J([0, [['1', 'Kit', 'Mandatory']]]));
+    // §63 (Brad, 25 Nov 2026) Required = Approved + the tracker's lines (Tessa A's 500, Depot tooling's 900) + every Mandatory
+    // line, each in its own CCaR record: Tessa A's Lot One 2,700 and Lot Two 1,800, Tessa B's Repair 1,500
+    const sec = (R, id) => at(R, id).sections.find(x => x.fy === 2027), rec = (R, id, t) => sec(R, id).groups.flatMap(g => g.records).find(r => r.title === t);
+    C.eq('§63 Discretionary: Required is Approved plus the tracker’s lines plus every Mandatory line', K$(sec(Rd, 'ap:om').total.required), 5900000 + 500000 + 900000 + 2700000 + 1800000 + 1500000);
+    C.eq('§63 … a record already listed takes its Mandatory amounts on its own line: Tessa A, Approved 5,000, Required 5,000 + 500 + 2,700 + 1,800, by service (ANG 300)',
+      J([K$(rec(Rd, 'ap:om', 'Tessa A').total.approved), K$(rec(Rd, 'ap:om', 'Tessa A').total.required), K$(rec(Rd, 'ap:om', 'Tessa A').svc[1].required), K$(rec(Rd, 'ap:om', 'Tessa A').total.delta)]),
+      J([5000000, 10000000, 300000, -5000000]));
+    C.eq('§63 … a record with Mandatory money alone is a line of its own: Tessa B, Approved $0, Required 1,500 on STOVL, its plan event its description',
+      J([K$(rec(Rd, 'ap:om', 'Tessa B').total.approved), K$(rec(Rd, 'ap:om', 'Tessa B').svc[3].required), rec(Rd, 'ap:om', 'Tessa B').events, rec(Rd, 'ap:om', 'Tessa B').ccar]), J([0, 1500000, ['Repair'], 'C2']));
+    // the unfunded list's total equals the sum of the deltas above it, in every Discretionary PDF
+    const listSum = d => d.ufr.reduce((n, l) => n + l.total, 0), deltaSum = d => d.sections.reduce((n, x) => n + x.total.delta, 0);
+    C.eq('§63 in every Discretionary PDF the unfunded list adds to the deltas of its spend plan pages', Rd.D.docs.filter(d => listSum(d) !== -deltaSum(d)).map(d => [d.id, listSum(d), deltaSum(d)]), []);
+    C.eq('§63 Initial Spares, all Mandatory money: its Discretionary PDF has a section with Kit’s record (Approved $0, Required 700) and lists Kit',
+      J([at(Rd, 'ap:sp').sections.length, K$(sec(Rd, 'ap:sp').total.approved), K$(sec(Rd, 'ap:sp').total.required), list(at(Rd, 'ap:sp'))]), J([1, 0, 700000, [['1', 'Kit', 'Mandatory']]]));
+    C.eq('§63 Discretionary and Mandatory is unchanged: Required is its Approved plus the tracker’s lines alone', K$(sec(Rdm, 'ap:om').total.required), 5900000 + 2400000 + 300000 + 1800000 + 1500000 + 500000 + 900000);
     { const b = S.publishPdf(Wd.ui_pubDocAs(at(Rd, 'ap:sp'), 'd'), Wd.ui_pubCtx(Rd.Mp, Rd.P)), tx = Buffer.from(b).toString('latin1');
-      C.chk('§55 … that PDF is written whole: its status page shows $0 Discretionary, then the list with Kit', /^%PDF-/.test(tx) && /\(Kit\) Tj/.test(tx) && /\(Initial Spares by fiscal year\) Tj/.test(tx) && /\(Page 2 of 2\) Tj/.test(tx), (tx.match(/\((?:[^()\\]|\\.)*\) Tj/g) || []).slice(0, 40).join(' ')); }
+      C.chk('§55 … that PDF is written whole: its status page, Tessa D on the spend plan page, then the list with Kit', /^%PDF-/.test(tx) && /\(Kit\) Tj/.test(tx) && /\(Tessa D\) Tj/.test(tx) && /\(Initial Spares by fiscal year\) Tj/.test(tx), (tx.match(/\((?:[^()\\]|\\.)*\) Tj/g) || []).slice(0, 40).join(' ')); }
     C.chk('§55 … and Discretionary flags no Mandatory line’s PMO as unknown', !Rd.D.flags.some(f => /Lot One|Lot Two|Repair|Kit/.test(f)), J(Rd.D.flags));
     C.eq('§55 Discretionary and Mandatory: the list is the tracker’s alone, in the keeper’s ranking', J([list(at(Rdm, 'ap:om')), list(at(Rdm, 'ap:sp'))]),
       J([[['1', 'Depot tooling', 'Unfunded'], ['2', 'Tessa A', 'Unfunded']], []]));
@@ -177,9 +189,9 @@ try {
     const pg = S.publishPages(Wd.ui_pubDocAs(at(Rd, 'ap:om'), 'd'), Wd.ui_pubCtx(Rd.Mp, Rd.P)), txt = pg.pages.flatMap(p => p.ops.filter(o => o.t === 'text').map(o => o.s)).join(' | '), utx = txt.slice(txt.indexOf('Unfunded requirements'));
     C.chk('§55 the Discretionary O&M PDF prints them, Repair first, says what they are, and names itself Discretionary', /Repair \| [^|]*\| C2 /.test(utx) && utx.indexOf('Repair') < utx.indexOf('Depot tooling') && utx.indexOf('Depot tooling') < utx.indexOf('Lot One')
       && /Funding Status is Mandatory are Mandatory plan events from the CCaR pull/.test(utx) && /The spend plan pages above are the Discretionary money alone/.test(utx)
-      && /Discretionary: every figure in this PDF is the Discretionary money alone/.test(txt) && txt.includes('APEX Spend Plan - O&M - Discretionary'), utx.slice(0, 1500));
+      && /Discretionary: Approved, Obligated and Remaining in this PDF are the Discretionary money alone/.test(txt) && txt.includes('APEX Spend Plan - O&M - Discretionary'), utx.slice(0, 1500));
     const tdm = S.publishPages(Wd.ui_pubDocAs(at(Rdm, 'ap:om'), 'dm'), Wd.ui_pubCtx(Rdm.Mp, Rdm.P)).pages.flatMap(p => p.ops.filter(o => o.t === 'text').map(o => o.s)).join(' | ');
-    C.chk('§55 the Discretionary and Mandatory one says none of that', !/Discretionary: every figure/.test(tdm) && !/Funding Status is Mandatory/.test(tdm) && tdm.includes('APEX Spend Plan - O&M - Discretionary and Mandatory'));
+    C.chk('§55 the Discretionary and Mandatory one says none of that', !/Discretionary: Approved, Obligated/.test(tdm) && !/Funding Status is Mandatory/.test(tdm) && tdm.includes('APEX Spend Plan - O&M - Discretionary and Mandatory'));
   }
   // a view-only copy made with the switch on
   const vo = loadTool({ html: S.viewOnlyHtml('2026-11-12T13:00:00.000Z') });
