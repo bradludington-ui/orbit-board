@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 149.18–149.53, and item 154, the Funding tiles). Item 133 is withdrawn.
+Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 
 ## Open
 
@@ -28,6 +28,48 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   allocation; the RCN-EEIC tab prorates a split prime's ask by the CLIN allocation; FYDP Disconnects' workbook prints — without
   saying why.
 - **Items 100 and 107 (Azure):** left until hosting is chosen.
+
+#### Brad's go of 25 Nov 2026: ORBIT, modernized, in three versions (items 155-157)
+Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eSaH3rFcjEygq, eight screens, invented figures):
+*"I like it all from your previous screenshots and I like the new items. Let's go"*, and his answers:
+- **Three versions, each gated and merged on his word:** v2.22 = item 155 (and items 154 and 149.18-149.53 folded in);
+  v2.23 = item 156; v2.24 = item 157.
+- **Item 149.18-149.53 is folded into v2.22**: its findings touch the same rows, record and menus the new look redraws.
+- **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
+- **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
+
+#### 155. The new look: one search box, pill pickers, the money bar, tiles with meters, lighter rows, the record as a card (v2.22)
+- **From the canvas's Requirements, Funding and Ctrl K screens:** the header holds ORBIT, one search box ("Search
+  requirements, CCaR, PID, or type a command", Ctrl K), the appropriation, year, cycle and office as pill pickers, the save
+  state and Save; the navy word menu grouped PLAN and BOARD; the page heading with the mode as a segmented control and one
+  Add requirement; four tiles with a meter of budget authority used; **where the money runs out, in priority order** (one bar,
+  each block a requirement sized by its ask: green where discretionary pays, yellow where both lanes, red where any of it is
+  unfunded, the cutline figures beneath); a table with a status pill, a funded meter, the office chip and filter chips (All
+  lanes, ★ Mission Critical, Needs attention); the RECORD as a card beside the table where the window allows.
+- **Ctrl K:** one palette that finds requirements (title, CCaR, PID, event, the row's second line), CCaR records, and every
+  left-menu action by its words, arrow keys and Enter, Esc to close, `>` for actions only. It runs the action's own call.
+- **The Funding page (item 154):** the four tiles, Unfunded by service as a bar chart, Needs attention as buttons with counts,
+  and one bar of discretionary, mandatory and unfunded against the requirement.
+- **Rules:** every figure is one the board already works out (tiers(), unfSvcOf, mcCalc, the posture); no control loses its
+  call; CUI lines, APEX status colours with their words, Section 508 as today; the money bar is drawn from the same lane walk
+  the rows use, and its blocks add to the requirement total.
+
+#### 156. Three new views: the requirement page, Rank by band, the five-year chart (v2.23)
+- **The requirement as its own page** (*Open full page* from the RECORD card): tabs Overview, Funding by service, Awards,
+  Five years, History; the four figures; the month-by-month obligation chart (the award block's own landing rule, landSvc);
+  the impact statement; the record fields with what is missing flagged; recent changes from the change journal; next and
+  previous rank.
+- **Rank by band (view only):** a column per decision band, cards with rank, ask, office and lane status, the cutlines in the
+  band they fall in; a List / Board by band switch in Rank mode.
+- **The five-year spend plan as a chart:** requirement against funded by year with the gap, and the by-appropriation table with
+  a funded meter per cell, read from the model the panel and workbook already share (fydpBookModel).
+
+#### 157. The leadership brief and the change bridge (v2.24)
+- **One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against
+  requirement by office, the Mission Critical shortfalls; Print / save as PDF and Present full screen.
+- **What changed since a locked cycle:** before-and-after tiles, a bridge of why unfunded moved (added, values changed, rank
+  moves, removed) whose steps add exactly to the change, and the change list with who and when, from cycCmpData and the
+  journal.
 
 #### 154. The Funding page's posture strip in APEX's tiles (Brad, 25 Nov 2026: "Log the Funding tiles for the next version")
 - **What he sees:** v2.21 dressed the Requirements page's four tiles as APEX's, but the Funding page (Fund mode) still opens on
