@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) built 25 Nov 2026; merge waits on Brad's word. Then v2.22 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 149.18–149.53). Item 133 is withdrawn.
 
 ## Open
 
@@ -582,7 +582,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.21 — 25 Nov 2026: ORBIT in APEX's look; cleaner code (items 152, 153) -- built on Brad's "Let's do it. Let's also optimize" of 24 Nov and his four answers
+### v2.21 — 25 Nov 2026: ORBIT in APEX's look; cleaner code (items 152, 153) -- built on Brad's "Let's do it. Let's also optimize" of 24 Nov and his four answers; merged on his "Merge" of 25 Nov (PR #80)
 #### 152. ORBIT in APEX's look (Brad, 24 Nov 2026: "No I want ORBIT to look like APEX", then "Let's do it")
 - **Asked:** Brad reviewed APEX (the active-year spend plan tool) and asked for ORBIT to look like it. Mock-ups (canvas
   https://claude.ai/artifact/FGzYeSqLTnTywFWB2Dmts3) of Requirements, Funding and the five-year spend plan were shown and approved
@@ -627,7 +627,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   reads "under the sidebar" as a box meeting the menu's box; standards no longer folds a rail. Help and five messages that said Save
   sits at the menu's foot now say the top right (the mutations quoting them follow). Mutations: 9 new (`v221-152-*`), 1 retargeted
   (`v215-w1-fit-not-reset`, the list gained `tight4`); all proved (`recovery/v221/proved-v221.jsonl`). 3,266 targets, each once.
-- **Gate:** GATE_PENDING
+- **Gate (merged on Brad's "Merge" of 25 Nov 2026, before the nightly gate ran):** the whole board suite, `npm run check`, all 10 v2.21 mutations proved, and every browser check on the final tree -- leftmenu, keys, dropdowns, dialogs, panels, toolbar, editors, pointer, colours, menus, csp, pmosave, savetarget, fileimport, storagefull, pmoyears, standards (0 new findings) -- and layout, which fails on its carried D x8 alone, as on main. **Not run before the merge:** `validate:nightly` (the other suites whole, the fuzz, the trace matrix, the money map); the 07:00 UTC Routine runs it on main.
 
 
 ### v2.20 — 24 Nov 2026: copy one PPBE cycle's controls into another, in PPBE Budget Positions (item 151) -- built on Brad's "Go" of 24 Nov (all six recommended answers); merged on his word of 24 Nov (PR #79)
