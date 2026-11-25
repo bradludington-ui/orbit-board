@@ -36611,7 +36611,8 @@ function drawerBar(){
 // to another requirement.
 // v2.09 (item 125): and the rows -- a CLIN's boxes, the rank box, Fund's allocation box (see render()). On Fund's box a
 // redraw while it was half typed moved $1,807,894 to $12 while the box still showed the old figure (measured).
-document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list')) t.__pend=true; }, true);
+// v2.23 review RV-A (A1): and the requirement page (its Across the FYDP boxes), drawn by the same hold
+document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list, #reqPage')) t.__pend=true; }, true);
 // v2.14 (ledger U35): and the RCN / EEIC list, whose rows are held by data-rk (rcnBody)
 document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#rcnBody')) t.__pend=true; }, true);
 document.addEventListener('change', function(e){ const t=e.target; if(t) t.__pend=false; }, true);
@@ -39549,7 +39550,10 @@ function reqPgEdit(id, at){
   try{ const ins=document.getElementById('inspector');
     const box=ins && ins.querySelector(at==='awd'? '.awdblk' : '.insp-split');
     if(box){ if(box.scrollIntoView) box.scrollIntoView({block:'center'});
-      const f=box.querySelector(at==='awd'? 'input[type="date"]:not([disabled]), input, button' : 'input[data-col="q"]');
+      // v2.23 review RV-A (A3): a selector list answers in document order, so 'input' took an incremental award's disabled date box
+      // first and the keyboard went nowhere; an enabled date box first, then the first enabled control
+      const f=(at==='awd')? (box.querySelector('input[type="date"]:not([disabled])') || box.querySelector('input:not([disabled]), button:not([disabled])'))
+        : box.querySelector('input[data-col="q"]');
       if(f) try{ f.focus(); }catch(x){} } }catch(e){}
 }
 // the page drawn after every render (V223_AFTER), and on a tab or a step
@@ -39570,27 +39574,15 @@ function reqPgDraw(){
   catch(e){ html='<div class="rptop">'+reqPgBack()+'</div><div class="rpfail" role="alert">The requirement page could not be drawn — '
     +esc((e && e.message) || String(e))+'. Back to Requirements shows the list; the RECORD card has the same figures.</div>'; }
   if(html!==REQPG_LAST){
-    const held=reqPgHeld(pg);
-    pg.innerHTML=html; REQPG_LAST=html;
-    reqPgHeldBack(pg, held);
+    // v2.23 review RV-A (A1): THE BOARD'S OWN HOLD (heldRedraw, v2.08 F2 / v2.09 item 125). Chromium fires change on the focused field
+    // as innerHTML removes it, so a figure half typed in an Across the FYDP box was WRITTEN by any redraw it did not cause -- a Live
+    // view adopting a colleague's copy, another tab changing the cycle -- and Esc after it left it written ($12 stored where
+    // $3,600,000 was). The held field's handler is off for the redraw; the typing, the keyboard and the caret are put back; leaving the
+    // box applies it once (heldCommit); Esc puts back the stored figure.
+    heldRedraw(pg, function(el){ el.innerHTML=html; }); REQPG_LAST=html;
     const tab=reqPgTabs().filter(function(x){ return x.k===REQPG.k; })[0];
     if(tab && typeof tab.after==='function') try{ tab.after(REQPG.id); }catch(e){}
   }
-}
-// a field typed into and not yet committed keeps what was typed across a redraw (the RECORD panel's rule, v2.08 F2): another
-// builder's tab can hold boxes, and the page redraws on every render
-function reqPgHeld(pg){
-  const a=document.activeElement;
-  if(!a || !pg.contains(a) || !/^(INPUT|TEXTAREA)$/.test(a.tagName) || a.value===a.defaultValue) return null;
-  return {id:a.id, h:a.getAttribute('onchange')||a.getAttribute('oninput')||'', v:a.value, s:a.selectionStart, e:a.selectionEnd};
-}
-function reqPgHeldBack(pg, H){
-  if(!H) return;
-  let f=H.id? document.getElementById(H.id) : null;
-  if(!f && H.h) f=[].slice.call(pg.querySelectorAll('input, textarea')).filter(function(x){ return (x.getAttribute('onchange')||x.getAttribute('oninput')||'')===H.h; })[0];
-  if(!f || !pg.contains(f)) return;
-  f.value=H.v;
-  try{ f.focus({preventScroll:true}); f.setSelectionRange(H.s, H.e); }catch(e){}
 }
 function reqPgBack(){ return '<button type="button" class="rpback" onclick="reqPageClose()">‹ Back to Requirements</button>'; }
 // $1.42M for a bar's label; the figure in whole dollars is beside it in words
@@ -39601,12 +39593,16 @@ function reqPgHtml(){
   if(!it){
     let nm=id;
     try{ const Ty=(MS.years||{})[P.fy], src=Ty? yrItemOf(Ty, id) : null; if(src) nm=dispTitle(src, Ty); }catch(e){}
+    const lk=(+MS.cur===+P.fy)? reqPgLockGone(P.fy, id, nm) : '';
     const why=(+MS.cur!==+P.fy)
       ? 'This page was opened on FY'+(P.fy%100)+'’s '+esc(nm)+', and '+FYL()+' is on screen. A requirement is its own year’s: go back to FY'+(P.fy%100)+' to read it here, or open '+FYL()+'’s from its row.'
-      : FYL()+' no longer holds '+esc(nm)+': it was removed or deleted.';
-    return '<div class="rptop">'+reqPgBack()+'</div><div class="rpgone" role="note"><h2 id="rpTitle" tabindex="-1">Not on '+FYL()+'</h2><p>'+why+'</p></div>';
+      : (lk || FYL()+' no longer holds '+esc(nm)+': it was removed or deleted.');
+    return '<div class="rptop">'+reqPgBack()+'</div><div class="rpgone" role="note"><h2 id="rpTitle" tabindex="-1">'+(lk? 'Not in '+esc(cycApTxt(CYCVIEW)) : 'Not on '+FYL())+'</h2><p>'+why+'</p></div>';
   }
-  const T=tiers(null, scenOpt());
+  // v2.23 review RV-A (A2): THE FUNDED PLAN, NEVER THE ◨ VIEW. The page is not a spend-plan surface (◨ moves the spend-plan family
+  // only), it hides the list's ◨ banner, and its Across the FYDP and Allocate read the plan: under ◨ one page printed two Unfunded
+  // figures for one year. Its header, Overview and Funding by service read bare tiers() as those do, and the page says so (reqPgScen).
+  const T=tiers();
   const z=SVC.map(function(){ return 0; });
   const t=T[id] || {d:z, m:z, u:z, dT:0, mT:0, uT:0};
   const RK=reqPgRanks(), ids=gridIds(), pos=ids.indexOf(id);
@@ -39633,6 +39629,7 @@ function reqPgHtml(){
       +'<button type="button" class="btn rpnav" data-step="1" onclick="reqPageStep(1)"'+(next? '' : ' disabled')
         +' title="The requirement below this one in the list as shown" aria-label="Next requirement'+(next? ', '+rk(next) : '')+'">'+(next? rk(next) : 'Next')+' ↓</button></div>'
     +(typeof recRoHtml==='function'? recRoHtml() : '')
+    +reqPgScen()
     +'<div class="rphead"><div class="rphl">'
       +'<div class="rpeye">'+(RK.R[id]? '#'+RK.R[id]+' of '+RK.n : 'not in the 1–N order')+' · '+esc(grpOf(it)||'no office')+' · FY'+esc(String(MS.cur))+(ap? ' '+esc(ap) : '')+'</div>'
       +'<h2 id="rpTitle" class="rptitle" tabindex="-1">'+esc(title)+'</h2>'
@@ -39825,7 +39822,11 @@ document.addEventListener('keydown', function(e){
   try{ if(UI2.fly || openMenu || document.querySelector('.uiPop.open')) return; }catch(x){}
   const a=document.activeElement;
   if(a && a.closest && a.closest('#statWrap, #statBtn, #statX, #cmdPanel')) return;
-  if(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.closest && a.closest('#reqPage') && a.value!==a.defaultValue) a.value=a.defaultValue;
+  if(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.closest && a.closest('#reqPage')){
+    // v2.23 review RV-A (A1): the stored figure back, and nothing held left to apply as the page closes (heldCommit, the hold's mark)
+    if(a.value!==a.defaultValue) a.value=a.defaultValue;
+    a.__pend=false; a.__held=undefined; a.__awdKey=false;
+  }
   e.preventDefault();
   reqPageClose();
 });
@@ -39943,7 +39944,7 @@ function rkHtml(){
       +'<div class="rkh">'+(c.b? '<i class="rpsw" style="background:'+readableOn(c.b.c,'#ffffff',1)+'"></i>' : '<i class="rpsw none"></i>')
         +'<b>'+esc(name)+'</b><span class="rkn">'+c.ids.length+' · '+fM(tot)+'</span></div>'
       +(body || '<p class="rkempty">No requirement shown in this band.</p>')+'</section>'; }).join('');
-  return '<div class="rktop"><div><h3 class="rktitle">Rank by decision band</h3>'
+  return rkScen()+'<div class="rktop"><div><h3 class="rktitle">Rank by decision band</h3>'
       +'<p class="rpnote">The list as shown, a column per band, each card at its place in today’s 1–N order. A view: it changes nothing. '
       +'A band is set on the RECORD panel’s Decision band; the order in List.</p></div></div>'
     +'<div class="rktoday"><b>Today:</b> '+(today.length? esc(today.join(' · ')) : 'no lane runs out: discretionary pays every requirement as it is allocated')+'</div>'
@@ -41044,6 +41045,33 @@ try{ uiCols=(function(own){ return function(){ own.apply(this, arguments); try{ 
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
 // ==== v2.23 review RV-A ====
+// v2.23 review RV-A (A2): the page reads the funded plan whatever the ◨ switch says; with ◨ on, it says so, since the list it was
+// opened from does not
+function reqPgScen(){
+  return (typeof scenOn==='function' && scenOn())
+    ? '<p class="rpnote rpscen" role="note">◨ Discretionary only is on for the list. This page shows the funded plan: discretionary '
+      +'and mandatory as allocated.</p>' : '';
+}
+// v2.23 review RV-A (A4): A REQUIREMENT THE LOCK ON SCREEN DOES NOT HOLD. In a locked cycle's view one added after the lock (or removed
+// before it) read "no longer holds NEW-1: it was removed or deleted", naming the id: the view's year does not have it, the working
+// plan set aside does. Said as the lock's, named from the working plan when the view's year lacks it; leaving the view shows it.
+function reqPgLockGone(fy, id, nm){
+  if(typeof CYCVIEW==='undefined' || !CYCVIEW) return '';
+  let n=nm;
+  try{ if(n===id && _cycStash && _cycStash.MS){ const Ty=(_cycStash.MS.years||{})[fy], src=Ty? yrItemOf(Ty, id) : null;
+    if(src) n=dispTitle(src, Ty); } }catch(e){}
+  return esc(cycApTxt(CYCVIEW))+', the locked cycle on screen, does not hold '+esc(n)+' in '+FYL()
+    +': it was added after the lock, or removed before it. Leave the view to see the working plan’s.';
+}
+// v2.23 review RV-A (A2): THE RANK BOARD SAYS ◨ AS THE LIST DOES. The board is the list as shown, a column per band, and keeps the
+// list's reading (scenOpt) so its lanes and cutlines agree with the rows it stands in for -- switching List / Board must not move a
+// cutline. But it hides the list, and with it the list's ◨ banner, so it carries the banner itself.
+function rkScen(){
+  return (typeof scenOn==='function' && scenOn())
+    ? '<div class="cutline cut-mand rkscen" role="note" style="margin:0 0 8px"><span class="l"></span>'
+      +'\u25b2 VIEWING: DISCRETIONARY ONLY \u2014 mandatory withheld \u2014 these are not this board\u2019s allocations, and exports still '
+      +'carry the real plan<span class="l"></span></div>' : '';
+}
 // ==== end v2.23 review RV-A ====
 // ==== v2.23 review RV-B ====
 // ==== end v2.23 review RV-B ====

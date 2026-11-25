@@ -7026,8 +7026,8 @@ const MUTATIONS = [
   { id: 'v208-f2-held-not-put-back', area: "inspectorBody", what: "a RECORD panel redraw puts back the stored figure over what is being typed (F2)",
     find: "    if(held.length) inspHeldBack(el, held); }", repl: "    }" },   // v2.08 second review: retargeted
   { id: 'v208-f2-typing-not-marked', area: "inspectorBody", what: "typing in the RECORD panel is never marked as held, so a redraw replaces it (F2)",
-    find: "document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list')) t.__pend=true; }, true);",
-    repl: "" },   // v2.09 W1: retargeted — the same listener marks the rows too (item 125)
+    find: "document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list, #reqPage')) t.__pend=true; }, true);",
+    repl: "" },   // v2.09 W1: retargeted — the same listener marks the rows too (item 125); v2.23 review RV-A: and the requirement page
   { id: 'v208-f2-keyboard-lost', area: "inspHeldBack", what: "a redraw keeps the typing but takes the keyboard out of the field",
     find: "    if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}", repl: "" },
   // ==== end v2.08 item 122 ====
@@ -7177,7 +7177,7 @@ const MUTATIONS = [
   { id: 'v209-w1-row-hold-commits', area: "render", what: "a redraw while Fund's allocation is half typed commits the half figure ($1,807,894 became $12)",
     find: "  lh.forEach(function(x){ try{ x.el.removeAttribute('onchange'); }catch(e){} });\n  try{ renderBoard", repl: "  try{ renderBoard" },
   { id: 'v209-w1-row-typing-not-marked', area: "input listener", what: "typing in a row's box is never marked as held, so a redraw replaces it",
-    find: "t.closest('#inspector, #list')) t.__pend=true;", repl: "t.closest('#inspector')) t.__pend=true;" },
+    find: "t.closest('#inspector, #list, #reqPage')) t.__pend=true;", repl: "t.closest('#inspector, #reqPage')) t.__pend=true;" },   // v2.23 review RV-A: retargeted (the listener marks the page too); the mutation is the same
   { id: 'v209-w1-held-left-silent', area: "heldCommit", what: "a figure a redraw put back is not applied when it is left or Entered, though the box shows it",
     find: "  if(t.isConnected && t.value===v && t.getAttribute('onchange')) t.dispatchEvent(new Event('change'));\n", repl: "" },
   { id: 'v209-w1-held-not-noted', area: "inspHeldBack", what: "a figure put back by a redraw is not noted, so leaving it applies nothing",
@@ -11089,6 +11089,28 @@ const MUTATIONS = [
   // ==== end v2.23 W3 ====
   // ==== v2.23 integration (the lead) ====
   // ==== v2.23 review RV-A ====
+  // v2.23 review RV-A (A1): audit-board "v2.23 review RV-A — A1 …"; in Chromium, npm run across G
+  { id: 'v223-rva-a1-redraw-unheld', area: 'reqPgDraw', what: "the requirement page redraws without the board's hold: a figure half typed is written by a redraw nobody asked for",
+    find: "    heldRedraw(pg, function(el){ el.innerHTML=html; }); REQPG_LAST=html;", repl: "    pg.innerHTML=html; REQPG_LAST=html;" },
+  { id: 'v223-rva-a1-page-unmarked', area: 'input listener', what: "typing on the requirement page is never marked as held, so a redraw commits it",
+    find: "t.closest('#inspector, #list, #reqPage'))", repl: "t.closest('#inspector, #list'))" },
+  { id: 'v223-rva-a1-esc-no-revert', area: 'reqPage Esc', what: "Esc leaves the half-typed figure in the box, and the page closing writes it",
+    find: "    if(a.value!==a.defaultValue) a.value=a.defaultValue;\n    a.__pend=false; a.__held=undefined; a.__awdKey=false;", repl: "    a.__pend=false; a.__held=undefined; a.__awdKey=false;" },
+  // v2.23 review RV-A (A2): audit-board "v2.23 review RV-A — A2 …"
+  { id: 'v223-rva-a2-page-reads-view', area: 'reqPgHtml', what: "the requirement page reads the ◨ what-if: one page, two Unfunded figures for one year",
+    find: "  const T=tiers();\n  const z=SVC.map(function(){ return 0; });\n  const t=T[id] || {d:z, m:z, u:z, dT:0, mT:0, uT:0};", repl: "  const T=tiers(null, scenOpt());\n  const z=SVC.map(function(){ return 0; });\n  const t=T[id] || {d:z, m:z, u:z, dT:0, mT:0, uT:0};" },
+  { id: 'v223-rva-a2-page-note-gone', area: 'reqPgScen', what: "under ◨ the page does not say it shows the funded plan",
+    find: "  return (typeof scenOn==='function' && scenOn())\n    ? '<p class=\"rpnote rpscen\"", repl: "  return (false)\n    ? '<p class=\"rpnote rpscen\"" },
+  { id: 'v223-rva-a2-rank-banner-gone', area: 'rkHtml', what: "the Rank board hides the list and its ◨ banner and carries none of its own",
+    find: "  return rkScen()+'<div class=\"rktop\">", repl: "  return '<div class=\"rktop\">" },
+  // v2.23 review RV-A (A3): audit-board "v2.23 review RV-A — A3 …"; in Chromium, npm run reqpage F
+  { id: 'v223-rva-a3-disabled-first', area: 'reqPgEdit', what: "Edit awards focuses the disabled single-date box of an incremental award block, so the keyboard goes nowhere",
+    find: "      const f=(at==='awd')? (box.querySelector('input[type=\"date\"]:not([disabled])') || box.querySelector('input:not([disabled]), button:not([disabled])'))", repl: "      const f=(at==='awd')? box.querySelector('input[type=\"date\"]:not([disabled]), input, button')" },
+  // v2.23 review RV-A (A4): audit-board "v2.23 review RV-A — A4 …"
+  { id: 'v223-rva-a4-lock-unsaid', area: 'reqPgHtml', what: "in a locked view a requirement added after the lock reads as removed or deleted, by its id",
+    find: "    const lk=(+MS.cur===+P.fy)? reqPgLockGone(P.fy, id, nm) : '';", repl: "    const lk='';" },
+  { id: 'v223-rva-a4-lock-names-id', area: 'reqPgLockGone', what: "the lock's line names the requirement by its id, not the working plan's name for it",
+    find: "  try{ if(n===id && _cycStash && _cycStash.MS){", repl: "  try{ if(false && _cycStash && _cycStash.MS){" },
   // ==== end v2.23 review RV-A ====
   // ==== v2.23 review RV-B ====
   // ==== end v2.23 review RV-B ====

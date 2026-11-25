@@ -11802,6 +11802,148 @@ await (async () => {
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
 // ==== v2.23 review RV-A ====
+// v2.23 review RV-A (item 156, the review of W1's requirement page). Four findings, each reproduced by a reviewer and a skeptic; each
+// block FAILS ON 56aa6c6 (the slot commit of the review's fixers) unless a check is labelled a CONTROL. All on w1Boot's board (W1's
+// fixture above: A draws USAF discretionary 400 and mandatory 150, ANG discretionary 100; A's awards are incremental).
+const { bootMark: _rvaMark, bootRelease: _rvaRelease } = await import('./boot.mjs');
+// A1. A FIGURE HALF TYPED IS NEVER WRITTEN BY A REDRAW NOBODY ASKED FOR. Chromium fires change on the focused field as innerHTML removes
+// it (jsdom fires nothing), so the stand-in fires it WHERE the browser does: in #reqPage's innerHTML setter, when the focused box holds
+// a value other than the one it took the keyboard with or last committed (the browser's own baseline). The load is any render the
+// person did not cause (here ★ toggled behind the page, as a Live view adoption or another tab's cycle would). The real-path proof,
+// with a timer and the real keyboard, is tools/fydp-across.mjs G.
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A1: a figure half typed on the page is not written by a redraw; Esc puts the stored figure back, Enter applies it once';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    ev(`(function(){
+      document.addEventListener('focus', function(e){ var t=e.target; if(t && t.tagName==='INPUT') t.__base=t.value; }, true);
+      document.addEventListener('change', function(e){ var t=e.target; if(t && t.tagName==='INPUT') t.__base=t.value; }, true);
+      var pg=document.getElementById('reqPage'), D=Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+      Object.defineProperty(pg, 'innerHTML', {configurable:true, get:function(){ return D.get.call(this); }, set:function(v){
+        var a=document.activeElement;
+        if(a && a.tagName==='INPUT' && this.contains(a) && a.value!==a.__base){ a.__base=a.value; a.dispatchEvent(new Event('change', {bubbles:true})); }
+        D.set.call(this, v); }});
+      window.__box=function(){ return document.querySelector('#reqPage input.xfin[data-y="2027"][data-xf="q"][data-si="0"]'); };
+      window.__type=function(v){ var i=window.__box(); if(!i) return 'no box'; i.focus(); i.value=v; i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; };
+      window.__key=function(k){ (document.activeElement||document.body).dispatchEvent(new KeyboardEvent('keydown', {key:k, bubbles:true, cancelable:true})); return 'ok'; };
+      // a journal line on A carrying the typed 12 (the line files the vector: ['asks','A'], [12,100])
+      window.__j12=function(n0){ return (MS.jrnl||[]).slice(n0).filter(function(e){ return JSON.stringify(e.p||'').indexOf('"A"')>=0
+        && (e.a===12 || e.b===12 || JSON.stringify(e.b||null).indexOf('[12,')===0); }).length; };
+      return 'ok'; })()`);
+    for (const how of ['Escape', 'Enter']) {
+      ev(`setCur('A'); reqPageOpen('A', 'fydp'); 'ok'`);
+      const n0 = +ev(`String((MS.jrnl||[]).length)`);
+      chk(name, how, 'CONTROL: the page is on Across the FYDP, A’s FY27 USAF box holds its stored 550', J([ev(`String(REQPG && REQPG.k)`), ev(`String((window.__box()||{}).value)`)]), J(['fydp', '550']));
+      chk(name, how, 'CONTROL: typed into', ev(`window.__type('12')`), 'ok');
+      ev(`S.mc.A=!S.mc.A; render(); 'ok'`);   // a redraw the person did not cause: the page's ★ changes under the box
+      const g1 = JSON.parse(ev(`JSON.stringify({ask:itemById('A').ask[0], box:(window.__box()||{}).value, focus:document.activeElement===window.__box(), lines:window.__j12(${n0})})`));
+      chk(name, how, 'the redraw wrote nothing: A’s USAF requirement still 550, nothing journalled', J([g1.ask, g1.lines]), J([550, 0]));
+      chk(name, how, 'and the box still holds 12, with the keyboard', J([g1.box, g1.focus]), J(['12', true]));
+      ev(`window.__key(${J(how)}); 'ok'`);
+      const g2 = JSON.parse(ev(`JSON.stringify({ask:itemById('A').ask[0], lines:window.__j12(${n0}), page:!!REQPG})`));
+      if (how === 'Escape') chk(name, how, 'Esc: the stored 550 is put back and kept, nothing journalled, the page closed', J(g2), J({ ask: 550, lines: 0, page: false }));
+      else chk(name, how, 'Enter: the 12 typed is applied once, one journal line, the page still open', J(g2), J({ ask: 12, lines: 1, page: true }));
+      if (how === 'Enter') ev(`reqPageClose(false); applyAskVec('A', [550, 100]); save(); render(); 'ok'`);
+    }
+    // Esc with no redraw before it: the box took the keyboard holding 550, so the page closing would fire change for the 12 unless Esc
+    // puts the stored figure back first (W1's own Esc rule, which the hold leaves in place). After a held redraw the box's baseline is
+    // the figure put back, so only this path proves that part of Esc.
+    {
+      ev(`setCur('A'); reqPageOpen('A', 'fydp'); 'ok'`);
+      const n0 = +ev(`String((MS.jrnl||[]).length)`);
+      chk(name, 'Esc, no redraw', 'CONTROL: typed into', ev(`window.__type('12')`), 'ok');
+      ev(`window.__key('Escape'); 'ok'`);
+      chk(name, 'Esc, no redraw', 'CONTROL (W1’s Esc, kept): the stored 550 stays, nothing journalled, the page closed',
+        ev(`JSON.stringify({ask:itemById('A').ask[0], lines:window.__j12(${n0}), page:!!REQPG})`), J({ ask: 550, lines: 0, page: false }));
+    }
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// A2. THE PAGE READS THE FUNDED PLAN, NEVER THE ◨ VIEW (the lead's decision; Brad may reverse). Under ◨ the header, Overview and Funding
+// by service read the what-if while Across the FYDP read the plan: one page, two Unfunded figures for one year, and the list's ◨ banner
+// hidden behind the page. The fixture makes the readings disagree: A's USAF mandatory is 150, so under ◨ its Unfunded would read 150.
+// The Rank board keeps the list's reading (its cutlines must match the rows it stands in for) and carries the list's banner itself.
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A2: the requirement page reads the funded plan under ◨ and says so; the Rank board carries the ◨ banner';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    const figs = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpk'), function(k){ return [k.querySelector('.l').textContent, +k.querySelector('.v').getAttribute('data-v')]; }))`));
+    const svc = () => ev(`(function(){ var t=document.querySelector('#reqPage .rpsvc'); return t? t.textContent.replace(/\\s+/g,' ') : 'no table'; })()`);
+    ev(`setCur('A'); reqPageOpen('A'); 'ok'`);
+    const f0 = figs();
+    ev(`reqPageTab('svc'); 'ok'`); const s0 = svc();
+    chk(name, 'control', 'CONTROL: ◨ off, A reads Requirement 650, Discretionary 500, Mandatory 150, Unfunded 0', J(f0), J([['Requirement', 650], ['Discretionary', 500], ['Mandatory', 150], ['Unfunded', 0]]));
+    chk(name, 'control', 'CONTROL: ◨ off, no ◨ note on the page', ev(`String(document.querySelectorAll('#reqPage .rpscen').length)`), '0');
+    chk(name, 'control', 'CONTROL: under ◨ the what-if itself reads A’s Unfunded as 150 (the readings disagree)', ev(`String(unfTotOf(itemById('A'), tiers(null, {noMand:true}).A))`), '150');
+    ev(`setScen('disc'); reqPageTab('over'); 'ok'`);
+    chk(name, 'under ◨', 'Overview prints the funded plan: Mandatory 150, Unfunded 0, as Across the FYDP does', J(figs()), J(f0));
+    chk(name, 'under ◨', 'the page says ◨ is on for the list and that it shows the funded plan', /Discretionary only is on for the list\. This page shows the funded plan/.test(ev(`(document.querySelector('#reqPage .rpscen')||{}).textContent||''`)), true);
+    ev(`reqPageTab('svc'); 'ok'`);
+    chk(name, 'under ◨', 'Funding by service prints the funded plan, as with ◨ off', svc(), s0);
+    ev(`reqPageTab('fydp'); 'ok'`);
+    chk(name, 'under ◨', 'Across the FYDP’s FY27 Unfunded is the Overview’s (no Unfunded on any service)', ev(`[].map.call(document.querySelectorAll('#reqPage tr.xf-u td'), function(t){ return t.textContent; }).slice(0, 1).join()`), '—');
+    // the Rank board, which hides the list and its banner
+    ev(`reqPageClose(false); uiMode='rank'; rkSetView('board'); render(); 'ok'`);
+    chk(name, 'rank', 'CONTROL: the board by band is on screen, the list hidden', ev(`String(document.documentElement.classList.contains('ui-rkboard') && !document.getElementById('rkBoard').hidden)`), 'true');
+    chk(name, 'rank', 'under ◨ the board carries the list’s banner', /VIEWING: DISCRETIONARY ONLY/.test(ev(`(document.querySelector('#rkBoard .rkscen')||{}).textContent||''`)), true);
+    ev(`setScen('disc'); 'ok'`);   // setScen toggles: ◨ off
+    chk(name, 'rank', 'with ◨ off, no banner on the board', ev(`String(document.querySelectorAll('#rkBoard .rkscen').length)`), '0');
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// A3. EDIT AWARDS PUTS THE KEYBOARD IN A DATE BOX IT CAN TYPE IN. A's awards are incremental, so its award block draws the single date
+// box disabled, first; a selector list answers in document order, so focus went to the disabled box, which takes none.
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A3: Edit awards on an incremental requirement focuses an enabled date box of its award block';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    ev(`setCur('A'); reqPageOpen('A', 'awd'); reqPgEdit('A', 'awd'); 'ok'`);
+    const a = JSON.parse(ev(`(function(){ var a=document.activeElement, b=document.querySelector('#inspector .awdblk'), d=b && b.querySelectorAll('input[type="date"]');
+      return JSON.stringify({first:!!(d && d[0] && d[0].disabled), page:!!REQPG, tag:a && a.tagName, type:a && a.type, dis:!!(a && a.disabled), inBlk:!!(b && a && b.contains(a))}); })()`));
+    chk(name, 'control', 'CONTROL: the page closed and the award block’s first date box is drawn disabled', J([a.page, a.first]), J([false, true]));
+    chk(name, 'focus', 'the keyboard is in an enabled date box of the award block', J([a.tag, a.type, a.dis, a.inBlk]), J(['INPUT', 'date', false, true]));
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// A4. A REQUIREMENT THE LOCK ON SCREEN DOES NOT HOLD is said as the lock's, named. A cycle locked before Field kit was added: its view
+// does not hold the requirement the page is open on, which read "FY27 no longer holds NEW-1: it was removed or deleted".
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A4: in a locked view, a requirement added after the lock is said as the lock’s, by its name';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    ev(`blCyc='PB'; blYr=MS.cur; cycLock(); window.__n=reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[40,0]}); save(); render();
+      setCur(window.__n); reqPageOpen(window.__n); cycView(blKey('PB', MS.cur)); render(); 'ok'`);
+    const t = JSON.parse(ev(`JSON.stringify({n:window.__n, view:!!CYCVIEW, page:!!REQPG, h:(document.querySelector('#reqPage #rpTitle')||{}).textContent, p:(document.querySelector('#reqPage .rpgone p')||{}).textContent, lock:cycApTxt(CYCVIEW)})`));
+    chk(name, 'control', 'CONTROL: the view of the lock is on screen, the page still on the added requirement', J([t.n, t.view, t.page]), J(['NEW-1', true, true]));
+    chk(name, 'said', 'the heading names the lock', t.h, 'Not in ' + t.lock);
+    chk(name, 'said', 'the line says the lock does not hold Field kit, added after the lock or removed before it, and how to see it',
+      t.p, t.lock + ', the locked cycle on screen, does not hold Field kit in ' + ev(`FYL()`) + ': it was added after the lock, or removed before it. Leave the view to see the working plan’s.');
+    chk(name, 'said', 'it does not say removed or deleted, nor name the id', J([/removed or deleted/.test(t.p || ''), /NEW-1/.test(t.p || '')]), J([false, false]));
+    ev(`cycLeave(); render(); 'ok'`);
+    chk(name, 'leave', 'leaving the view shows it', ev(`(document.querySelector('#reqPage #rpTitle')||{}).textContent`), 'Field kit');
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
 // ==== end v2.23 review RV-A ====
 // ==== v2.23 review RV-B ====
 // ==== end v2.23 review RV-B ====

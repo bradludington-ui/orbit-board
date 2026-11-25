@@ -1,0 +1,13 @@
+[
+ {"id": "v223-rva-a1-redraw-unheld", "caughtBy": "board / v2.23 review RV-A — A1"},
+ {"id": "v223-rva-a1-page-unmarked", "caughtBy": "board / v2.23 review RV-A — A1"},
+ {"id": "v223-rva-a1-esc-no-revert", "caughtBy": "board / v2.23 review RV-A — A1"},
+ {"id": "v223-rva-a2-page-reads-view", "caughtBy": "board / v2.23 review RV-A — A2"},
+ {"id": "v223-rva-a2-page-note-gone", "caughtBy": "board / v2.23 review RV-A — A2"},
+ {"id": "v223-rva-a2-rank-banner-gone", "caughtBy": "board / v2.23 review RV-A — A2"},
+ {"id": "v223-rva-a3-disabled-first", "caughtBy": "board / v2.23 review RV-A — A3"},
+ {"id": "v223-rva-a4-lock-unsaid", "caughtBy": "board / v2.23 review RV-A — A4"},
+ {"id": "v223-rva-a4-lock-names-id", "caughtBy": "board / v2.23 review RV-A — A4"},
+ {"id": "v208-f2-typing-not-marked", "caughtBy": "board / v2.08 — the defects found mapping item 122"},
+ {"id": "v209-w1-row-typing-not-marked", "caughtBy": "board / v2.09 — CLIN amounts"}
+]
