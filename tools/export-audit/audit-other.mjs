@@ -1540,13 +1540,15 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   ev(`__set('arV0', '1.2M'); 'ok'`);
   chk(name, 'budgets', 'USAF given a value: its picker shows PSM’s one USAF name -- not AV’s, not the Mandatory one, not the legacy, retired or Full Fund names',
     J([ev(`__g('arB0').hidden`), JSON.parse(ev(`JSON.stringify(__opts('arB0'))`)), ev(`__g('arB1').hidden`)]), J([false, ['', BAE.psmDisc], true]));
-  chk(name, 'budgets', 'and the rail now asks for one budget', J(rail()[3]), J('no:Budget · 0 of 1 chosen'));
+  // v2.22 W2 (item 149.24 b): PSM has one USAF name, so it is picked for the person, still changeable -- it read "0 of 1 chosen"
+  chk(name, 'budgets', 'and the rail asks for one budget, already answered: PSM’s only USAF name is picked', J([rail()[3], val('arB0')]), J(['ok:Budget · 1 of 1 chosen', BAE.psmDisc]));
   ev(`__set('arV1', '350,000'); __set('arV2', '100'); 'ok'`);
   chk(name, 'budgets', 'ANG: PSM’s lane-less ANG name; STOVL: PSM has none, so no picker, and it says so',
     J([JSON.parse(ev(`JSON.stringify(__opts('arB1'))`)), ev(`__g('arB2').hidden`), ev(`__g('arBn2').textContent`)]),
     J([['', BAE.psmAng], true, 'no STOVL budget is listed for PSM']));
+  // v2.22 W2 (item 149.24 b): ANG has one PSM name too, picked
   chk(name, 'budgets', 'the rail asks for two -- STOVL is waived -- and the total is the three values', J([rail()[3], ev(`__g('arTot').textContent`)]),
-    J(['no:Budget · 0 of 2 chosen', '$1,550,100']));
+    J(['ok:Budget · 2 of 2 chosen', '$1,550,100']));
   chk(name, 'budgets', 'AV’s USAF name cannot be chosen for a PSM requirement', ev(`__pick('arB0', ${J(BAE.avDisc)})`), 'not offered');
   chk(name, 'budgets', 'nor PSM’s Mandatory one', ev(`__pick('arB0', ${J(BAE.psmMand)})`), 'not offered');
   ev(`__pick('arB0', ${J(BAE.psmDisc)}); __pick('arB1', ${J(BAE.psmAng)}); 'ok'`);
@@ -1659,9 +1661,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   ev(`__click('#toolAdd'); __set('arEvent', 'qz'); __set('arV0', '5'); __asked=[]; __cancel(); 'ok'`);
   chk(name, 'Cancel', 'typed, then Cancel: it closes without asking, and nothing is written', J([ev(`__asked.length`), box().open, store() === ms0]), J([0, false, true]));
   ev(`__click('#toolAdd'); 'ok'`);
-  chk(name, 'Cancel', 'reopened: every field is empty and the rail starts again',
-    J([ev(`[].slice.call(document.querySelectorAll('#arNew input, #arNew select, #arNew textarea')).filter(function(e){ return e.value!==''; }).map(function(e){ return e.id; }).join(',')`), btn()]),
-    J(['', 'Add requirement — 8 still needed']));
+  // v2.22 W2 (item 149.24 b): every field empty but the two budget pickers, each holding PSM's only name for its service (hidden
+  // until a value is typed); nothing was typed
+  chk(name, 'Cancel', 'reopened: every field is empty but the pickers of PSM’s only budgets, and the rail starts again',
+    J([ev(`[].slice.call(document.querySelectorAll('#arNew input, #arNew select, #arNew textarea')).filter(function(e){ return e.value!==''; }).map(function(e){ return e.id+'='+e.value; }).join(',')`), btn()]),
+    J(['arB0=' + BAE.psmDisc + ',arB1=' + BAE.psmAng, 'Add requirement — 8 still needed']));
   ev(`__asked=[]; __key('Escape'); 'ok'`);
   chk(name, 'Esc', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), box().open]), J([0, false]));
 
@@ -1716,11 +1720,15 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   {
     const E = boot();
     seed(E.ev, { services: ['USAF'], items: [], disc: [0], mand: [0], order: [] });
-    E.ev(`render(); 'ok'`);
-    chk(name, 'empty year', 'a year with no requirements says so, and its button opens the box',
-      E.ev(`(function(){ var l=document.getElementById('list'), b=l.querySelector('button'); var t=l.textContent.replace(/\\s+/g,' ').trim();
-        if(!b) return t+' · no button'; b.click(); return t+' · '+arOpen+' · '+/\\bopen\\b/.test(document.getElementById('addPanel').className); })()`),
-      'FY27 holds no requirements yet. ＋ Add requirement · true · true');
+    // v2.22 W2 (items 149.29, 149.30): a board with nothing in any year is the program with no board in it, which has its Start here
+    // block; so FY26 holds a requirement here, and the empty FY27 leads with From another year beside its way to add a new one
+    E.ev(`(function(){ var T=freshYearState(); T.order=['P26']; T.custom=[{id:'P26', grp:'PSM', team:'PSM', sect:'new', custom:true, title:'P26 title', event:'last year', ccar:'', fy26:[0], ask:[5], alloc:null}];
+      MS.years['2026']=T; render(); return 'ok'; })()`);
+    chk(name, 'empty year', 'a year with no requirements says so, and its button to add a new one opens the box',
+      E.ev(`(function(){ var l=document.getElementById('list'), b=[].slice.call(l.querySelectorAll('button')).filter(function(x){ return /Add a new requirement/.test(x.textContent); })[0];
+        var t=l.querySelector('b')? l.querySelector('b').textContent : l.textContent;
+        if(!b) return t+' · no button'; b.click(); return t+' · '+b.textContent+' · '+arOpen+' · '+/\\bopen\\b/.test(document.getElementById('addPanel').className); })()`),
+      'FY27 holds no requirements yet. · ＋ Add a new requirement · true · true');
   }
 
   // ── (10) THE BUDGET LIST FOLLOWS THE OFFICES; AN OFFICE NAMED LIKE A PATTERN ─────────────────────────────────────────
@@ -1844,7 +1852,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, '(AV)', 'the box for (AV): USAF offers (AV)’s own name and never AV’s; STOVL, which only AV has a name for, shows no picker and says so',
     J([box().off, JSON.parse(ev(`JSON.stringify(__opts('arB0'))`)), ev(`__g('arB0').hidden`), ev(`__g('arB2').hidden`), ev(`__g('arBn2').textContent`)]),
     J(['(AV)', ['', BAE.parAv], false, true, 'no STOVL budget is listed for (AV)']));
-  chk(name, '(AV)', 'and the rail asks for that one budget -- 0 of 1 chosen, never waived', J(rail()[3]), J('no:Budget · 0 of 1 chosen'));
+  // v2.22 W2 (item 149.24 b): (AV)'s one name is picked for the person -- it read "0 of 1 chosen"; never waived either way
+  chk(name, '(AV)', 'and the rail asks for that one budget -- answered by (AV)’s only name, picked; never waived', J(rail()[3]), J('ok:Budget · 1 of 1 chosen'));
   ev(`__pick('arB0', ${J(BAE.parAv)}); 'ok'`);
   chk(name, '(AV)', 'chosen: 1 of 1', J(rail()[3]), J('ok:Budget · 1 of 1 chosen'));
   ev(`__cancel(); setPmoFilter('AV'); __click('#toolAdd'); __set('arV0', '10'); __set('arV2', '10'); 'ok'`);
@@ -1877,7 +1886,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     mL = mL.filter(x => x !== m); iL = iL.filter(x => x !== i);
     chk(name, 'marks', what + ': its outline and its control’s mark come off, every other mark stays', marks(), left(mL, iL));
   });
-  ev(`__click('#arAddBtn'); 'ok'`);
+  // v2.22 W2 (item 149.24 b): PSM's only USAF name is picked for the person; set back to none, as a person may, to leave it unchosen
+  ev(`__pick('arB0', ''); __click('#arAddBtn'); 'ok'`);
   chk(name, 'marks', 'Add again with only USAF’s budget unchosen: its picker alone is marked', marks(), 'arB0 | arB0');
   ev(`__pick('arB0', ${J(BAE.psmDisc)}); 'ok'`);
   chk(name, 'marks', 'the budget chosen: no mark left on its picker', marks(), ' | ');
@@ -3599,6 +3609,323 @@ function w1LockAsBefore() {
 // ==== v2.22 W1 ====
 // ==== end v2.22 W1 ====
 // ==== v2.22 W2 ====
+// v2.22 W2 (contract §1.2; Brad, 25 Nov 2026): Ctrl K, the list's search and Filter, the empty program, new years, the Add box.
+// Every check here FAILS ON THE SLOT COMMIT (41ea5d7) unless it says CONTROL: the predicate, the palette, Start here, the tick-all,
+// Add and start another and the pre-picked budget are not there, and each block throws or fails where it first reaches one.
+// THE FIXTURE (W2F) works out by hand, so no expectation is read back from the code under test: one service (USAF), discretionary
+// $300 and mandatory $120, six requirements of $100 but F's $50, walked in order A..F -- A, B and C draw discretionary, D draws $100
+// of mandatory, E the last $20 and is short $80, F draws nothing and is short $50. E is starred: its MC shortage is its requirement
+// less discretionary, $100, never its unfunded $80 (the Mission Critical rule).
+const W2F = {
+  services: ['USAF'],
+  items: [['A', 'PSM', 100, 'alpha event'], ['B', 'PSM', 100, 'bravo event'], ['C', 'AV', 100, 'charlie event'],
+    ['D', 'AV', 100, 'delta event'], ['E', 'PSM', 100, 'echo event'], ['F', 'AV', 50, 'foxtrot event']]
+    .map(([id, grp, a, ev]) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: ev, ccar: '', fy26: [0], ask: [a], alloc: null })),
+  disc: [300], mand: [120], order: ['A', 'B', 'C', 'D', 'E', 'F'], mc: { E: true },
+};
+const W2H = `(function(){
+  window.__g=function(id){ return document.getElementById(id); };
+  window.__set=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.focus(); e.value=v;
+    e.dispatchEvent(new Event('input', {bubbles:true})); e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
+  window.__pick=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.value=v; if(e.value!==String(v)) return 'not offered';
+    e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
+  window.__key=function(k, t, o){ t=t||document.activeElement||document.body; var e=new KeyboardEvent('keydown', Object.assign({key:k, bubbles:true, cancelable:true}, o||{}));
+    t.dispatchEvent(e); dlgSync(); return e.defaultPrevented; };
+  window.__click=function(sel){ var b=document.querySelector(sel); if(!b) return 'no '+sel; b.click(); dlgSync(); return 'ok'; };
+  window.__rows=function(){ return [].slice.call(document.querySelectorAll('#list .row')).map(function(r){ return r.id.replace(/^row-/,''); }).join(','); };
+  window.__btns=function(sel){ return [].slice.call(document.querySelectorAll(sel)).map(function(b){ return b.textContent.replace(/\\s+/g,' ').trim(); }); };
+  window.__asked=[]; window.__ans=true; window.confirm=function(m){ window.__asked.push(String(m)); return window.__ans; };
+  // on the WINDOW, on the way down: the left menu's own handler (uiPanelRun, on the document) closes a flyout before the item runs
+  window.__clicked=[]; window.addEventListener('click', function(e){ var t=e.target;
+    if(t && t.getAttribute) window.__clicked.push({h:t.getAttribute('onclick')||'', id:t.id||'',
+      where:(t.closest && t.closest('#uiFly'))? 'fly' : ((t.closest && t.closest('#uiRepPanel, #uiImpPanel, #uiDataPanel')) || {id:''}).id||'' }); }, true);
+  return 'ok'; })()`;
+const w2Tick = () => new Promise(r => setTimeout(r, 40));   // a left-menu item runs its call a turn later (mRun)
+const w2Boot = (sc = W2F, o = {}) => {
+  const B = boot(o); seed(B.ev, sc);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+  B.ev(W2H);
+  return B;
+};
+
+// ── (1) THE LIST'S SEARCH (item 149.25) and FILTER (item 149.26) ──────────────────────────────────────────────────────────────
+{
+  const name = 'v2.22 W2 — the list’s search reads the row, clears with ✕ and Esc, says when nothing matches; Filter opens on Funding (items 149.25, 149.26)';
+  try {
+    const J = JSON.stringify;
+    const { ev, errors } = w2Boot();
+    ev(`S.recNames={C:'Gateway record name'}; S.notes={D:'needs the zebra crossing'}; S.ccar={E:'JSF2'}; S.costElem={F:'Depot Standup'}; save(); render(); 'ok'`);
+    chk(name, 'fixture', 'CONTROL: six rows in the order A..F, nothing searched', ev(`__rows()`), 'A,B,C,D,E,F');
+    // the row's second line: the record name, the note, the cost element; the number it is listed at
+    const S1 = q => ev(`(function(){ __set('q', ${J(q)}); return __rows(); })()`);
+    chk(name, 'search', 'the record name (on the row’s second line) finds C, and only C', S1('gateway'), 'C');
+    chk(name, 'search', 'a word of the note finds D', S1('ZEBRA'), 'D');
+    chk(name, 'search', 'the cost element finds F', S1('depot stand'), 'F');
+    chk(name, 'search', 'the office finds its requirements (PSM: A, B, E)', S1('psm'), 'A,B,E');
+    chk(name, 'search', '#2 finds the requirement listed at 2, and nothing else', S1('#2'), 'B');
+    chk(name, 'search', '2 finds number 2 and E, whose CCaR record JSF2 holds the digit', S1('2'), 'B,E');
+    chk(name, 'search', 'CONTROL: the title still finds as before (charlie)', S1('charlie'), 'C');
+    // the clear button: hidden with nothing searched, shown with a search on, and it clears
+    chk(name, 'clear', 'a search on: the ✕ inside the box is shown, named, and a native button', J([ev(`__g('qClr').hidden`), ev(`__g('qClr').tagName`), ev(`__g('qClr').getAttribute('aria-label')`)]),
+      J([false, 'BUTTON', 'Clear the search']));
+    ev(`__click('#qClr'); 'ok'`);
+    chk(name, 'clear', '✕ clears the search: every row back, the box empty, the ✕ hidden, the keyboard in the box', J([ev(`__rows()`), ev(`__g('q').value`), ev(`__g('qClr').hidden`), ev(`document.activeElement && document.activeElement.id`)]),
+      J(['A,B,C,D,E,F', '', true, 'q']));
+    S1('echo');
+    const prevented = ev(`__key('Escape', __g('q'))`);
+    chk(name, 'Esc', 'Esc in the box clears a search that is on, and goes no further', J([ev(`__rows()`), ev(`__g('q').value`), prevented]), J(['A,B,C,D,E,F', '', true]));
+    chk(name, 'Esc', 'CONTROL: Esc with nothing to clear is left alone', ev(`String(__key('Escape', __g('q')))`), 'false');
+    // the search said under the header while the box is out of sight (jsdom draws nothing, so its box is never in sight; the browser
+    // check holds the geometry)
+    S1('charlie');
+    chk(name, 'title band', 'a search on, its box not in sight: the note says what is searched and how many are shown, with a way to clear',
+      J([ev(`__g('qAway').hidden`), ev(`__g('qAway').textContent.replace(/\\s+/g,' ').trim()`)]), J([false, 'Searching for “charlie” — 1 requirement shown Clear the search']));
+    ev(`__click('#qAway button'); 'ok'`);
+    chk(name, 'title band', 'its Clear the search clears, and the note goes', J([ev(`__rows()`), ev(`__g('qAway').hidden`)]), J(['A,B,C,D,E,F', true]));
+    // nothing matches
+    S1('zzzz');
+    chk(name, 'no match', 'a search that finds nothing says so, names the search, and offers Clear the search',
+      J([ev(`(__g('list').querySelector('.listempty')||{textContent:''}).textContent.replace(/\\s+/g,' ').trim()`)]), J(['No requirements match the search “zzzz”.Clear the search']));
+    ev(`__click('#list .listempty button'); 'ok'`);
+    chk(name, 'no match', 'Clear the search gives the list back', ev(`__rows()`), 'A,B,C,D,E,F');
+    ev(`mcOnly=true; laneFilter='disc'; render(); __set('q', 'zzzz'); 'ok'`);
+    chk(name, 'no match', 'a search and two filters: all three named, and the way back clears them all',
+      J([ev(`__g('list').querySelector('.listempty b').nextSibling.textContent`), JSON.parse(ev(`JSON.stringify(__btns('#list .listempty button'))`))]),
+      J([' the search “zzzz” · ★ Mission Critical only · fully discretionary only.', ['Clear the search and filters']]));
+    ev(`__click('#list .listempty button'); 'ok'`);
+    chk(name, 'no match', 'Clear the search and filters: every row back, nothing on', J([ev(`__rows()`), ev(`String(mcOnly)`), ev(`laneFilter`), ev(`__g('q').value`)]), J(['A,B,C,D,E,F', 'false', '', '']));
+    // the palette's Requirements group and the list are ONE predicate: the same query finds the same requirements
+    const agree = q => J([ev(`(function(){ __set('q', ${J(q)}); return __rows(); })()`),
+      ev(`(function(){ var R=cmdResults(${J(q)}), g=R.groups.filter(function(x){ return x.k==='req'; })[0]; return g? g.rows.map(function(r){ return r.id; }).join(',') : ''; })()`)]);
+    ['gateway', 'zebra', '#2', '2', 'psm', 'title'].forEach(q => {
+      const [l, p] = JSON.parse(agree(q));
+      chk(name, 'one predicate', 'the list and Ctrl K find the same requirements for “' + q + '”', p, l);
+    });
+    ev(`__set('q', ''); 'ok'`);
+    // FILTER (149.26): on a browser that has never opened or closed one of its groups, Funding is open; no divider above it
+    chk(name, 'Filter', 'CONTROL: nothing kept in this browser about the Filter menu’s groups', ev(`String(Object.prototype.hasOwnProperty.call(menuGrpOpen, 'view') && menuGrpOpen.view!=='fund')`), 'false');
+    ev(`toggleMenu('view'); 'ok'`);
+    chk(name, 'Filter', 'its first use: the Funding group is open, Service folded, and nothing above Funding but its heading',
+      J([ev(`__g('dd_view').querySelector('.gh[data-g="fund"]').getAttribute('aria-expanded')`), ev(`__g('dd_view').querySelector('.gh[data-g="svc"]').getAttribute('aria-expanded')`),
+        ev(`__g('dd_view').firstElementChild.className`)]), J(['true', 'false', 'gh']));
+    ev(`menuGrp('view', 'fund'); toggleMenu('view'); toggleMenu('view'); 'ok'`);
+    chk(name, 'Filter', 'closed by hand, it stays closed the next time Filter opens', ev(`__g('dd_view').querySelector('.gh[data-g="fund"]').getAttribute('aria-expanded')`), 'false');
+    ev(`toggleMenu('view'); 'ok'`);
+    if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// ── (2) CTRL K (item 155): find a requirement, a CCaR record or a left-menu action, and run the action from its one home ─────────
+{
+  const name = 'v2.22 W2 — Ctrl K finds requirements, CCaR records and every left-menu action, and runs each action from its own menu item (item 155)';
+  try {
+    const J = JSON.stringify;
+    const { ev, errors } = w2Boot();
+    ev(`MS.ccarIdx={rows:{JSF2:{t:'Avionics record', o:'OPR', p:'PSM', d:1}, JSF9:{t:'Nothing on it', o:'OPR', p:'PSM', d:1}}}; S.ccar={E:'JSF2'}; save(); render(); 'ok'`);
+    const state = () => JSON.parse(ev(`JSON.stringify({open:cmdIsOpen(), focus:document.activeElement && document.activeElement.id,
+      role:document.querySelector('#cmdPanel .modal').getAttribute('role'), lbl:document.querySelector('#cmdPanel .modal').getAttribute('aria-label')})`));
+    chk(name, 'opening', 'CONTROL: the palette starts closed', state().open, false);
+    const pre1 = ev(`__key('k', document.body, {ctrlKey:true})`);
+    chk(name, 'opening', 'Ctrl K opens it, the browser’s own Ctrl K held back: a dialog named “Find or run anything”, the keyboard in its search',
+      J([pre1, state()]), J([true, { open: true, focus: 'cmdQ', role: 'dialog', lbl: 'Find or run anything' }]));
+    ev(`cmdClose(); 'ok'`);
+    ev(`__key('k', document.body, {metaKey:true})`);
+    chk(name, 'opening', '⌘K opens it too', state().open, true);
+    // requirements: number, office, CCaR, value, funded or short, the MC shortage, a status pill with its word -- the fixture's own figures
+    const grp = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#cmdList .cmd-g')).map(function(g){
+      return [g.querySelector('.cmd-gh').textContent, [].slice.call(g.querySelectorAll('.cmd-o')).map(function(o){
+        var p=o.querySelector('.cmd-pill, .cmd-tag'); return [o.querySelector('.cmd-t1').textContent, o.querySelector('.cmd-t2').textContent, p? p.textContent : '', p? (p.getAttribute('data-lk')||'') : '']; })]; }))`));
+    ev(`__set('cmdQ', 'event'); 'ok'`);
+    chk(name, 'requirements', 'every requirement, by its number, its words and figures as the board works them out, with its lane in words',
+      J(grp()[0]), J(['Requirements', [
+        ['#1 alpha event', 'PSM · $100 · funded in full', 'Discretionary', 'disc'],
+        ['#2 bravo event', 'PSM · $100 · funded in full', 'Discretionary', 'disc'],
+        ['#3 charlie event', 'AV · $100 · funded in full', 'Discretionary', 'disc'],
+        ['#4 delta event', 'AV · $100 · funded in full', 'Mandatory', 'mand'],
+        ['#5 echo event', 'PSM · JSF2 · $100 · unfunded $80 · ★ MC short $100', 'Mandatory', 'mand'],
+        ['#6 foxtrot event', 'AV · $50 · unfunded $50', 'Unfunded', 'unf']]]));
+    // the keyboard: arrows move, the active row named to the search box
+    const act = () => ev(`__g('cmdQ').getAttribute('aria-activedescendant')+'|'+(document.querySelector('#cmdList .cmd-o.on')||{id:''}).id`);
+    chk(name, 'keys', 'CONTROL: the first row is the active one', act(), 'cmdO_0|cmdO_0');
+    ev(`__key('ArrowDown', __g('cmdQ')); __key('ArrowDown', __g('cmdQ')); 'ok'`);
+    chk(name, 'keys', 'Down twice: the third row, named to the search box as its active option', act(), 'cmdO_2|cmdO_2');
+    ev(`__key('ArrowUp', __g('cmdQ')); __key('ArrowUp', __g('cmdQ')); __key('ArrowUp', __g('cmdQ')); 'ok'`);
+    chk(name, 'keys', 'Up three times from there wraps round to the last', act(), 'cmdO_5|cmdO_5');
+    // Enter on a requirement the list hides: what hid it is taken off and said, it is selected and scrolled to, the box closes
+    ev(`cmdClose(); mcOnly=false; laneFilter='disc'; render(); 'ok'`);
+    chk(name, 'Enter', 'CONTROL: fully discretionary only is on, so D is not in the list', ev(`__rows()`), 'A,B,C');
+    ev(`window.__sv=[]; Element.prototype.scrollIntoView=function(){ window.__sv.push(this.id); }; cmdOpen(); __set('cmdQ', 'delta'); __key('Enter', __g('cmdQ')); 'ok'`);
+    chk(name, 'Enter', 'Enter on D: the filter is taken off and said, D is the record on screen and scrolled to, and the box is closed',
+      J([ev(`__rows()`), ev(`curRow`), ev(`String(__sv.indexOf('row-D')>=0)`), state().open, /the lane filter was taken off/.test(ev(`__g('shareStat').textContent`))]),
+      J(['A,B,C,D,E,F', 'D', 'true', false, true]));
+    // CCaR records: shown when a records list is loaded; Enter shows the requirements on that record in the list
+    ev(`cmdOpen(); __set('cmdQ', 'avionics'); 'ok'`);
+    // E's record name is that record's title (the list names it), so E is found too
+    chk(name, 'records', 'a CCaR record found by its title: its number and title, and how many requirements it holds this year',
+      J(grp().map(g => [g[0], g[1].map(r => r.slice(0, 3))])), J([['Requirements', [['#5 echo event', 'PSM · JSF2 · $100 · unfunded $80 · ★ MC short $100', 'Mandatory']]],
+        ['CCaR records', [['JSF2 · Avionics record', '1 requirement on this record, FY27', 'Record']]]]));
+    ev(`__key('ArrowDown', __g('cmdQ')); __key('Enter', __g('cmdQ')); 'ok'`);
+    chk(name, 'records', 'Enter on it: the list shows the requirements on that record, by the list’s own search', J([ev(`__g('q').value`), ev(`__rows()`), state().open]), J(['JSF2', 'E', false]));
+    ev(`__set('q', ''); 'ok'`);
+    // ACTIONS: every left-menu item, harvested here the way a person reaches it -- each entry opened, every item in its flyout or box
+    // read, every folded group included -- and compared with what the palette offers
+    const harvest = JSON.parse(ev(`(function(){
+      var got={}, BOX={rep:'uiRepPanel', imp:'uiImpPanel', data:'uiDataPanel'};
+      UI_NAV.forEach(function(k){ var nb=__g('uiNav_'+k); if(!nb || nb.hidden) return;
+        if(!BOX[k] && UI_FLY.indexOf(k)<0) return;
+        nb.click(); dlgSync();
+        var root=BOX[k]? __g(BOX[k]) : __g('uiFly');
+        [].slice.call(root.querySelectorAll(BOX[k]? 'button.mi' : 'button:not(.gh)')).forEach(function(b){ if(!b.disabled) got[b.getAttribute('onclick')]=1; });
+        uiFlyClose(); if(BOX[k]) uiBoxClose(BOX[k]); dlgSync(); });
+      return JSON.stringify(Object.keys(got).sort()); })()`));
+    const offered = JSON.parse(ev(`(function(){ cmdClose(); CMD.acts=null; return JSON.stringify(cmdActions().filter(function(a){ return !a.view && !a.button; }).map(function(a){ return a.h; })
+      .filter(function(h,i,arr){ return arr.indexOf(h)===i; }).sort()); })()`));
+    chk(name, 'actions', 'CONTROL: the left menu holds many items here', J(harvest.length > 40), 'true');
+    chk(name, 'actions', 'every item on the left menu is offered, and nothing that is not on it', J(offered), J(harvest));
+    chk(name, 'actions', 'the views are offered as views: Requirements, Funding, Cycles & compare, Brief',
+      ev(`cmdActions().filter(function(a){ return a.view; }).map(function(a){ return a.t+'·'+a.path; }).join(' | ')`), 'Requirements·Views | Funding·Views | Cycles & compare·Views | Brief·Views');
+    // > lists actions only
+    ev(`cmdOpen(); __set('cmdQ', '>e'); 'ok'`);
+    chk(name, 'actions', '> first: actions only, even where requirements and records hold the words', J(grp().map(g => g[0])), J(['Actions']));
+    ev(`__set('cmdQ', '>'); 'ok'`);
+    chk(name, 'actions', '> alone lists every action', J(ev(`CMD.rows.length`) === ev(`cmdActions().length`)), 'true');
+    // Enter on an action presses that left-menu item itself: its entry opened, the item clicked where it sits
+    ev(`__set('cmdQ', 'change journal'); 'ok'`);
+    chk(name, 'run', 'Change journal…, found by its words, under Audit', J(grp().map(g => [g[0], g[1].map(r => r.slice(0, 3))])), J([['Actions', [['Change journal…', 'Audit', 'Action']]]]));
+    ev(`__clicked=[]; __key('Enter', __g('cmdQ')); 'ok'`); await w2Tick();
+    chk(name, 'run', 'Enter: Audit’s own item is pressed in its flyout (mRun(toggleJrnl)), and the journal opens',
+      J([ev(`JSON.stringify(__clicked.filter(function(c){ return c.h==='mRun(toggleJrnl)'; }))`), ev(`String(jrnlOpen)`), state().open]), J([J([{ h: 'mRun(toggleJrnl)', id: '', where: 'fly' }]), 'true', false]));
+    ev(`toggleJrnl(); 'ok'`);
+    ev(`window.__xl=0; exportExcel=function(){ window.__xl++; }; cmdOpen(); __set('cmdQ', 'excel workbook'); __clicked=[]; __key('Enter', __g('cmdQ')); 'ok'`); await w2Tick();
+    chk(name, 'run', 'Excel Workbook: Reports & exports’ own item is pressed in its box, the export runs once, and the box closes',
+      J([ev(`JSON.stringify(__clicked.filter(function(c){ return /exportExcel/.test(c.h); }).map(function(c){ return c.where; }))`), ev(`__xl`), ev(`__g('uiRepPanel').classList.contains('open')`)]),
+      J([J(['uiRepPanel']), 1, false]));
+    ev(`cmdOpen(); __set('cmdQ', 'funding'); 'ok'`);
+    chk(name, 'run', 'CONTROL: the Funding view is offered under Views', ev(`String(CMD.rows.some(function(r){ return r.kind==='act' && r.a.view && r.t==='Funding'; }))`), 'true');
+    ev(`(function(){ var i=CMD.rows.map(function(r){ return r.kind==='act' && r.a.view && r.t==='Funding'; }).indexOf(true); cmdRun(i); })(); 'ok'`);
+    chk(name, 'run', 'a view runs as its entry: the Funding page', ev(`uiMode`), 'fund');
+    ev(`uiSetMode('review'); 'ok'`);
+    if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
+    // A PMO COPY: Program offices is not on its left menu, so Ctrl K offers none of it; its Save is Submit input
+    {
+      const B = w2Boot();
+      const html = B.ev(`(function(){ var cap=null, _B=window.Blob;
+        window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+        window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+      chk(name, 'PMO copy', 'CONTROL: a copy was published', J(html.length > 100000), 'true');
+      const C = boot({ html });
+      const acts = JSON.parse(C.ev(`(function(){ CMD.acts=null; return JSON.stringify({sb:!!SANDBOX, hs:cmdActions().map(function(a){ return a.h; })}); })()`));
+      chk(name, 'PMO copy', 'nothing of Program offices is offered (Publish PMO copy, Review submittals, the submittal loads), and Save is ✉ Submit input',
+        J([acts.sb, acts.hs.filter(h => /publishPmoCopy|subOpenReview|uiPmoLoad/.test(h)), acts.hs.includes('pmoSubmit()'), acts.hs.includes('saveInPlace()')]), J([true, [], true, false]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// ── (3) THE EMPTY PROGRAM (149.29), NEW YEARS (149.30), THE ADD BOX (149.22, 149.24 b) ────────────────────────────────────────────
+{
+  const name = 'v2.22 W2 — Start here in the empty program, an empty year leads with From another year, Add and start another, the only budget picked (items 149.22, 149.24, 149.29, 149.30)';
+  try {
+    const J = JSON.stringify;
+    // THE PROGRAM WITH NO BOARD IN IT: nothing seeded, no services, no requirement in any year
+    {
+      const { ev, errors } = boot();
+      ev(W2H);
+      const sh = J([ev(`String(!!document.querySelector('#driveBar .starthere'))`), ev(`(document.querySelector('#driveBar .starthere h2')||{textContent:''}).textContent`),
+        ev(`JSON.stringify(__btns('#driveBar .starthere button'))`)]);
+      chk(name, 'Start here', 'one Start here block, its three ways in: open your saved board, connect the shared folder, start a new board',
+        sh, J(['true', 'Start here', J(['Open your saved board…', 'Connect the shared folder…', 'Start a new board…'])]));
+      chk(name, 'Start here', 'the shared-folder banner is folded into it: nothing else in the bar', ev(`String(__g('driveBar').children.length)`), '1');
+      chk(name, 'Start here', 'the opening line waits behind the Message button, and points at Start here',
+        J([ev(`__g('statWrap').classList.contains('fresh')`), /Start here/.test(ev(`__g('shareStat').textContent`))]), J([false, true]));
+      chk(name, 'Start here', 'the list points at it, and offers no Add requirement it could never finish',
+        J([/Start here/.test(ev(`__g('list').textContent`)), ev(`String(__g('list').querySelectorAll('button').length)`)]), J([true, '0']));
+      // each way in presses its own left-menu item
+      ev(`window.__ff=0; __g('fullFile').addEventListener('click', function(e){ window.__ff++; e.preventDefault(); }); __clicked=[]; startHere('open'); 'ok'`); await w2Tick();
+      chk(name, 'Start here', 'Open your saved board…: Imports & exports’ own Import a full board is pressed, and its file picker asked for',
+        J([ev(`JSON.stringify(__clicked.filter(function(c){ return /fullFile/.test(c.h); }).map(function(c){ return c.where; }))`), ev(`__ff`)]), J([J(['uiImpPanel']), 1]));
+      ev(`__clicked=[]; startHere('folder'); 'ok'`); await w2Tick();
+      chk(name, 'Start here', 'Connect the shared folder…: Setup’s own Live view… is pressed, and Live view opens',
+        J([ev(`JSON.stringify(__clicked.filter(function(c){ return c.h==='mRun(toggleLive)'; }).map(function(c){ return c.where; }))`), ev(`String(liveOpen)`)]), J([J(['fly']), 'true']));
+      ev(`toggleLive(); dlgSync(); __clicked=[]; startHere('board'); 'ok'`); await w2Tick();
+      chk(name, 'Start here', 'Start a new board…: Setup’s own Services… is pressed, and the services open',
+        J([ev(`JSON.stringify(__clicked.filter(function(c){ return c.h==='mRun(toggleSvcPanel)'; }).map(function(c){ return c.where; }))`), ev(`String(svcPanelOpen)`)]), J([J(['fly']), 'true']));
+      ev(`toggleSvcPanel(); dlgSync(); 'ok'`);
+      chk(name, 'Add', 'with no services, Add requirement opens no box it could never finish, and says why',
+        J([ev(`String(arShow())`), ev(`String(arOpen)`), /no services yet/.test(ev(`__g('shareStat').textContent`))]), J(['false', 'false', true]));
+      if (errors.length) chk(name, 'jsdom (program)', 'no script errors', errors.slice(0, 2).join(' | '), '');
+    }
+    // CONTROL: a board with requirements has no Start here
+    {
+      const { ev } = w2Boot();
+      chk(name, 'Start here', 'CONTROL: a board with requirements has no Start here block', ev(`String(!!document.querySelector('.starthere'))`), 'false');
+    }
+    // A NEW YEAR: FY28 started empty on a board whose FY27 holds A..F
+    const SV2 = ['USAF', 'ANG'];
+    const sc2 = { services: SV2, items: W2F.items.map(x => ({ ...x, fy26: [0, 0], ask: [x.ask[0], 10] })), disc: [300, 30], mand: [120, 30], order: W2F.order, mc: {} };
+    const { ev, errors } = w2Boot(sc2);
+    const BAE = ['USAF O&M- CAM Discretionary PSM', 'USAF O&M - ANG CAM PSM', 'USAF O&M - ANG CONG PSM',
+      'USAF O&M- CAM Discretionary AV', 'USAF O&M- CAM PES Discretionary AV', 'USAF O&M - ANG CONG AV'];
+    ev(`BUDDB={ts:1790000000222, files:[], rows:${J(BAE)}.map(function(n){ return {n:n}; })}; _budRegCache=null; setPmoFilter('PSM'); 'ok'`);
+    ev(`__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return __asked.length>1; }; switchYear(2028); window.confirm=function(m){ __asked.push(String(m)); return window.__ans; }; 'ok'`);
+    chk(name, 'new year', 'CONTROL: FY28 was started empty (not rolled forward) and is on screen', J([ev(`MS.cur`), ev(`S.order.length`)]), J([2028, 0]));
+    chk(name, 'new year', 'the empty year says so and leads with From another year, beside the way to add a new one',
+      J([ev(`__g('list').querySelector('.listempty b').textContent`), JSON.parse(ev(`JSON.stringify(__btns('#list .listempty button'))`))]),
+      J(['FY28 holds no requirements yet.', ['Bring requirements in from another year…', '＋ Add a new requirement']]));
+    ev(`__click('#list .listempty button'); 'ok'`);
+    chk(name, 'new year', 'its first button opens Add requirement on From another year, for PSM', J([ev(`String(arOpen)`), ev(`arTabOn`), ev(`String(__g('arYr').hidden)`), ev(`arOff`)]), J(['true', 'yr', 'false', 'PSM']));
+    ev(`naFromPick('2027'); 'ok'`);
+    const tick = () => J([ev(`JSON.stringify(Object.keys(naFromSel).sort())`), ev(`__g('naFromBtn').textContent`), ev(`String(__g('naFromBtn').disabled)`)]);
+    chk(name, 'tick-all', 'a tick-all over FY27’s PSM rows, named with how many it ticks', ev(`(__g('naFromAll')||{getAttribute:function(){ return 'none'; }}).getAttribute('aria-label')`), 'Tick all 3 that can be brought in');
+    ev(`__g('naFromAll').checked=true; __g('naFromAll').dispatchEvent(new Event('change', {bubbles:true})); 'ok'`);
+    chk(name, 'tick-all', 'ticked: A, B and E, PSM’s three, and the button says what it will do; the keyboard stays on the tick-all',
+      J([tick(), ev(`document.activeElement && document.activeElement.id`), ev(`String(__g('naFromAll').checked)`)]),
+      J([J([J(['A', 'B', 'E']), 'Finish 3 in New requirement', 'false']), 'naFromAll', 'true']));
+    ev(`__g('naFromAll').checked=false; __g('naFromAll').dispatchEvent(new Event('change', {bubbles:true})); 'ok'`);
+    chk(name, 'tick-all', 'unticked: none, and the button is off', tick(), J([J([]), 'Tick the ones to bring in', 'true']));
+    // finishing one brought in: the form holds only the picked budget, which is no typing, so nothing is asked before it is filled
+    ev(`__asked=[]; naFromTick('A', true); naFromAdd(); 'ok'`);
+    chk(name, 'finish', 'one brought in to finish fills New requirement without asking: the only budget picked is not typing',
+      J([ev(`__asked.length`), ev(`arTabOn`), ev(`__g('arEvent').value`)]), J([0, 'new', 'alpha event']));
+    ev(`arSkip(); __g('addPanel').querySelector('h3 button.x').click(); dlgSync(); 'ok'`);
+    // the Removed list says what Restore does not bring back
+    ev(`rmOpen=true; render(); 'ok'`);
+    chk(name, 'Removed', 'the Removed list says what Restore brings back and what it does not, and how to bring one in whole',
+      ev(`(__g('rmPanel').querySelector('.rmsay')||{textContent:''}).textContent.replace(/\\s+/g,' ').trim()`),
+      '↩ Restore brings a requirement back as FY28 holds it. In a year started empty that is the board’s own line, bare: not the PID, award dates, notes or description another year holds. To bring one in with all of that, linked to the year it came from: Bring one in from another year…');
+    ev(`rmOpen=false; render(); 'ok'`);
+    // THE ADD BOX: the only budget picked, never one offered by hand only, never one of several
+    ev(`toggleAdd(); __set('arV0', '100'); __set('arV1', '10'); 'ok'`);
+    chk(name, 'budget', 'PSM: USAF’s only name picked for you, and said on hover; ANG has two (one by hand only), so none is picked',
+      J([ev(`__g('arB0').value`), /picked for you/.test(ev(`__g('arB0').title`)), ev(`__g('arB1').value`)]), J([BAE[0], true, '']));
+    ev(`__g('addPanel').querySelector('h3 button.x').click(); dlgSync(); setPmoFilter('AV'); toggleAdd(); __set('arV0', '100'); __set('arV1', '10'); 'ok'`);
+    chk(name, 'budget', 'AV: USAF has three names, so none is picked; ANG’s only name is by hand only, so it is not picked', J([ev(`__g('arB0').value`), ev(`__g('arB1').value`)]), J(['', '']));
+    ev(`__g('addPanel').querySelector('h3 button.x').click(); dlgSync(); setPmoFilter('PSM'); 'ok'`);
+    // ADD AND START ANOTHER: the office kept, the form emptied (the only budget picked again), the keyboard on the plan event
+    const fill = ev1 => `__set('arEvent', ${J(ev1)}); __g('arPtP').click(); __set('arV0', '200'); __pick('arOb', 'PMO LM Contract'); __pick('arTo', 'lm');
+      __set('arDesc', 'd'); __set('arCons', 'c'); 'ok'`;
+    ev(`toggleAdd(); ${fill('first added')}`);
+    chk(name, 'start another', 'CONTROL: the form is complete, its budget the one picked for it', J([ev(`__g('arAddBtn').textContent`), ev(`__g('arB0').value`)]), J(['Add requirement', BAE[0]]));
+    chk(name, 'start another', 'Add and start another is beside Add requirement, a native button', JSON.parse(ev(`JSON.stringify(__btns('#arFt button'))`)), JSON.parse(J(['Cancel', 'Add and open its record', 'Add and start another', 'Add requirement'])));
+    ev(`window.__sv=[]; Element.prototype.scrollIntoView=function(){ window.__sv.push(this.id); }; __click('#arAddMore'); 'ok'`);
+    chk(name, 'start another', 'added; the box stays open for PSM with the form empty, the only budget picked again, the keyboard on the plan event, and says what it added',
+      J([ev(`S.order.join(',')`), ev(`String(arOpen)`), ev(`arOff`), ev(`__g('arEvent').value+'|'+__g('arV0').value+'|'+__g('arDesc').value`), ev(`__g('arB0').value`),
+        ev(`document.activeElement && document.activeElement.id`), ev(`__g('arMsg').textContent`)]),
+      J(['NEW-1', 'true', 'PSM', '||', BAE[0], 'arEvent', 'Added NEW-1 — first added. The form is empty for the next one, for PSM.']));
+    chk(name, 'start another', 'and the list went to the new row', ev(`String(__sv.indexOf('row-NEW-1')>=0)`), 'true');
+    ev(`${fill('second added')}; __sv=[]; __click('#arAddBtn'); 'ok'`);
+    chk(name, 'Add', 'Add requirement: added, the box closed, the list at the new row, and the confirmation opened whole so it shows at any width',
+      J([ev(`S.order.join(',')`), ev(`String(arOpen)`), ev(`String(__sv.indexOf('row-NEW-2')>=0)`), ev(`__g('statWrap').classList.contains('big')`), /Added NEW-2/.test(ev(`__g('shareStat').textContent`))]),
+      J(['NEW-1,NEW-2', 'false', 'true', true, true]));
+    if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.22 W2 ====
 // ==== v2.22 W3 ====
 // ==== end v2.22 W3 ====

@@ -10464,7 +10464,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   { const B = boot({ html: bad }); await pause(200);
     const st = status(B.ev);
     chk(name, '1 a fresh browser', 'the status line opens with the warning', st.startsWith(WARN), true);
-    chk(name, '1 a fresh browser', 'and the opening’s own line follows it rather than replacing it', /SHELL TEMPLATE/.test(st), true);
+    // v2.22 W2 (item 149.29): the program's own opening line names itself and points at Start here (it said SHELL TEMPLATE)
+    chk(name, '1 a fresh browser', 'and the opening’s own line follows it rather than replacing it', /The ORBIT program/.test(st), true);
     chk(name, '1 a fresh browser', 'the line is showing, not waiting in a tooltip', B.ev(`document.getElementById('statWrap').classList.contains('fresh')`), true);
     // once opened, the next message is the board's own (the hold is let go)
     B.ev(`setStat('After opening.'); 'ok'`);

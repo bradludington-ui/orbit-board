@@ -1770,6 +1770,57 @@ html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav)
 </style>
 <style id="v222w2">
 /* v2.22 W2: its own rules go here (contract §2) */
+/* ── Ctrl K (item 155): the concept's "Ctrl K search and commands" -- one input, groups, a pill or a tag at the right ── */
+#cmdPanel.modal-bg.open{padding-top:max(16px,7vh)}
+#cmdPanel .modal.cmd-m{width:min(760px,calc(100vw - 32px));max-width:none;max-height:calc(100vh - 2*max(16px,7vh));padding:0;
+  border:1px solid var(--line2);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;background:var(--panel)}
+#cmdPanel .cmd-h{margin:0;padding:10px 14px;gap:10px;border-bottom:1px solid var(--line2);color:var(--mut);font-size:15px;letter-spacing:0;flex:0 0 auto}
+#cmdPanel .cmd-h .ic{width:20px;height:20px;flex:0 0 auto}
+#cmdPanel .cmd-q{flex:1 1 auto;min-width:0;min-height:36px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:17px;outline:none;padding:4px 2px}
+#cmdPanel .cmd-q:focus-visible{box-shadow:inset 0 -2px 0 var(--blue)}
+#cmdPanel .cmd-x{margin-left:0;font-weight:600;color:var(--mut);font-size:12px}
+#cmdPanel .cmd-list{flex:1 1 auto;overflow:auto;padding:6px 0 8px;min-height:60px}
+#cmdPanel .cmd-gh{padding:10px 18px 4px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#cmdPanel .cmd-o{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;
+  padding:7px 18px 7px 15px;min-height:44px;cursor:pointer;color:var(--ink);font:inherit}
+#cmdPanel .cmd-o.on{background:color-mix(in srgb,var(--blue) 12%,var(--panel));border-left-color:var(--blue)}
+#cmdPanel .cmd-t{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+#cmdPanel .cmd-t1{font-size:14px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cmdPanel .cmd-t2{font-size:12px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cmdPanel .cmd-pill,#cmdPanel .cmd-tag{flex:0 0 auto;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap}
+#cmdPanel .cmd-pill[data-lk="disc"]{background:var(--apxOk);color:#000}
+#cmdPanel .cmd-pill[data-lk="split"],#cmdPanel .cmd-pill[data-lk="mand"]{background:var(--apxMid);color:#000}
+#cmdPanel .cmd-pill[data-lk="unf"]{background:var(--apxBad);color:#fff}
+#cmdPanel .cmd-tag{background:var(--panel2);color:var(--ink);border:1px solid var(--line2)}
+#cmdPanel .cmd-more,#cmdPanel .cmd-none{padding:6px 18px;font-size:12px;color:var(--mut)}
+#cmdPanel .cmd-none{padding:16px 18px;font-size:13px;line-height:1.5}
+#cmdPanel .cmd-ft{display:flex;gap:22px;flex-wrap:wrap;padding:9px 18px;border-top:1px solid var(--line2);font-size:12px;color:var(--mut);flex:0 0 auto}
+@media (max-width:640px){ #cmdPanel .cmd-ft{display:none} #cmdPanel .cmd-pill,#cmdPanel .cmd-tag{padding:2px 8px} }
+/* ── the list's search (item 149.25): a clear button inside the box; the search said under the header once the box has scrolled away ── */
+.srch .qclr{position:absolute;right:4px;top:50%;transform:translateY(-50%);min-width:24px;min-height:24px;border:1px solid var(--edge);border-radius:5px;
+  background:var(--panel);color:var(--mut);font-size:11px;line-height:1;cursor:pointer;padding:0 5px}
+.srch .qclr:hover{color:var(--ink);border-color:var(--edge2)}
+.srch .search:has(+ .qclr:not([hidden])){padding-right:32px}
+.qaway{position:sticky;top:var(--hdrH,56px);z-index:31;min-height:30px;box-sizing:border-box;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:3px 10px;background:var(--apxNav,#25394d);color:#fff;font-size:12.5px;border-top:1px solid rgba(255,255,255,.35)}
+.qaway[hidden]{display:none}
+.qaway .qb{background:#fff;color:#25394d;border-color:#fff}
+html.q-away .gridhead{top:calc(var(--hdrH,56px) + 30px)}
+/* ── what the list says with no row (items 149.25, 149.30) ── */
+.listempty{color:var(--mut);padding:26px 20px;text-align:center;font-size:13px;line-height:1.55}
+.listempty b{color:var(--ink)}
+.listempty .le-acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+/* ── the empty program (item 149.29): Start here ── */
+.starthere{margin:0 18px 10px;padding:16px 18px;border:1px solid var(--line2);border-left:4px solid var(--apxNav,#25394d);border-radius:8px;background:var(--panel)}
+.starthere h2{margin:0 0 4px;font-size:18px;color:var(--ink)}
+.starthere .sh-lead{margin:0 0 10px;color:var(--mut);font-size:13px}
+.starthere .sh-steps{margin:0;padding-left:22px;display:grid;gap:10px}
+.starthere .sh-steps li{display:grid;grid-template-columns:minmax(190px,auto) 1fr;gap:6px 14px;align-items:start;font-size:12.5px;color:var(--mut)}
+.starthere .sh-steps li .btn{justify-self:start}
+@media (max-width:760px){ .starthere .sh-steps li{grid-template-columns:1fr} }
+html.ui-on #driveBar .starthere{margin:0 0 10px}
+/* ── the Removed list (item 149.30) ── */
+.rmsay{font-size:11.5px;color:var(--mut);margin:2px 0 8px;line-height:1.5}
 </style>
 <style id="v222w3">
 /* v2.22 W3: its own rules go here (contract §2) */
@@ -1835,7 +1886,7 @@ html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav)
   <!-- v2.13 (item 136): what the PPBE cycle's controls leave in the year on screen (cycFitOf); outside .ctx, so it wraps with the bar -->
   <button type="button" class="btn quiet cycfit" id="cycFit" onclick="fitShow()" hidden></button>
   <span class="csep" aria-hidden="true"></span>
-  <label class="srch"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><input class="search" id="q" placeholder="Search title, event, CCaR, PID…" aria-label="Search requirements" oninput="render()"></label>
+  <label class="srch"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><input class="search" id="q" placeholder="Search title, event, CCaR, PID…" aria-label="Search requirements" oninput="qTyped()" onkeydown="qKey(event)"><button type="button" class="qclr" id="qClr" onclick="qClear()" aria-label="Clear the search" title="Clear the search (Esc)" hidden>✕</button></label>
   <div class="menu" id="m_view"><button class="btn" id="b_view" onclick="toggleMenu('view')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 3h12l-4.6 5.4V13l-2.8-1.4V8.4z"/></svg><span id="b_view_t">Filter ▾</span></button><div class="mdd" id="dd_view"></div></div>
   <span class="fchips" id="fchips" aria-label="Active filters"></span>
   <div class="hsp">
@@ -2358,6 +2409,16 @@ html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav)
   </div>
 </div>
 
+<!-- v2.22 W2 (item 155): CTRL K -- one box that finds a requirement, a CCaR record or any left-menu action, and runs the action by
+     pressing that left-menu item itself, so each action keeps its one home (cmdOpen, cmdRun) -->
+<div class="modal-bg" id="cmdPanel" onclick="if(event.target===this)cmdClose()">
+  <div class="modal cmd-m">
+    <h3 class="cmd-h"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><label class="vh" for="cmdQ">Find or run anything</label><input id="cmdQ" class="cmd-q" type="text" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cmdList" aria-autocomplete="list" placeholder="Search requirements, CCaR, PID, or type &gt; for a command" oninput="cmdTyped()" onkeydown="cmdKeyIn(event)"><button type="button" class="x cmd-x" onclick="cmdClose()" aria-label="Close" title="Close (Esc)">Esc</button></h3>
+    <div class="cmd-list" id="cmdList" role="listbox" aria-label="Results"></div>
+    <div class="cmd-ft" aria-hidden="true"><span>↑ ↓ to move</span><span>Enter to open</span><span>Type &gt; for commands only</span></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="editPanel" onclick="if(event.target===this)erClose()">
   <div class="modal ar-m">
     <h3><span class="ar-ttl" id="erTtl">✎</span><span class="ar-sp"></span>
@@ -2468,6 +2529,8 @@ html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav)
  <div class="gridsplit">
   <div class="gridwrap">
     <div class="apxBand" id="gridBand"></div>
+    <!-- v2.22 W2 (item 149.25): a search that is on, said under the header while its box has scrolled away (qAwaySync) -->
+    <div class="qaway" id="qAway" role="status" hidden></div>
     <div class="gridhead" id="gridHead"></div>
     <div id="list"></div>
   </div>
@@ -17400,6 +17463,9 @@ async function driveConnectNow(){
 }
 // ONE LINE ACROSS THE TOP, and only when something is actually wanted from the person.
 function driveBarHtml(){
+  // v2.22 W2 (item 149.29): the program with no board in it shows ONE block, Start here -- its three ways in, this banner's
+  // among them; the banner below is for a program somebody has started a board in
+  if(startHereOn()) return startHereHtml();
   if(!_driveNeed || _driveLive) return '';
   if(_driveNeed!=='first' && !driveStoreOn()) return '';
   const wrap='display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 18px 6px;padding:8px 12px;'
@@ -29529,7 +29595,7 @@ function render(){
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
   arSync(); scoreboard(); chips(); attBody(); pmoBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); ppBody(); exBody(); pkgBody(); syncBtns();
-  const q=(document.getElementById('q').value||'').toLowerCase();
+  const q=listQ();   // v2.22 W2 (item 149.25): the search's text, read by the one predicate below (listSearchHit)
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
   const MR=masterRanks();
@@ -29601,7 +29667,7 @@ function render(){
       }
     }
     if(filter!=='ALL'&&grpOf(it)!==filter) return;
-    if(q && !((dispTitle(it)+' '+it.title+' '+it.event+' '+ccarOf(it)+' '+pidOf(it)).toLowerCase().includes(q))) return;
+    if(q && !listSearchHit(it, q, hardOpen? liveRank[id] : rank)) return;   // v2.22 W2 (item 149.25): the one search predicate
     if(mcOnly && !S.mc[id]) return;
     if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t, it))) return;
     if(ptypeFilter && ptypeOf(id)!==ptypeFilter) return;
@@ -29694,10 +29760,9 @@ function render(){
         +'</div>';
     }catch(e){}
   }
-  if(!h) h=(!(S.order||[]).length && !CYCVIEW)
-    ? '<div style="color:var(--dim);padding:30px;text-align:center">'+FYL()+' holds no requirements yet. '
-      +'<button type="button" class="btn" onclick="toggleAdd()">＋ Add requirement</button></div>'
-    : '<div style="color:var(--dim);padding:30px;text-align:center">No requirements match.</div>';
+  // v2.22 W2 (items 149.25, 149.29, 149.30): no ROW -- an empty year, the empty program, or a search that finds nothing. The cutlines
+  // are drawn as the order is walked, before a row is filtered out, so a search matching nothing left only them on screen.
+  if(h.indexOf('class="row ')<0) h=listEmptyHtml(h);
   document.getElementById('list').innerHTML=h;
   document.getElementById('pmoActs').innerHTML = pmoMode()?
     `<button class="btn warn" style="font-size:11px;padding:5px 10px" onclick="zeroPMO()" title="set every ${esc(filter)} allocation to $0 — start the PMO's allocations from a clean slate">⓪ Zero ${esc(filter)} allocations</button>
@@ -29711,6 +29776,7 @@ function render(){
     // ceiling, forty removed requirements pushed the whole board a screen and a half down the page.
     // Scroll it in place, the way every other long list here does.
     rp.innerHTML='<div class="fr"><b style="color:var(--red);font-size:11px">REMOVED REQUIREMENTS</b> <button class="btn" onclick="restoreAll()">↩ Restore all</button></div>'+
+      rmRestoreSay()+   // v2.22 W2 (item 149.30): what Restore brings back, and what it does not
       '<div style="max-height:38vh;overflow:auto">'+
       S.removed.map(id=>{const it=BASE_ITEMS.find(x=>x.id===id)||{title:id,grp:''};
         return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${esc(grpOf(it))}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq(${jsa(id)})">↩ restore</button></div>`;}).join('')+'</div>';
@@ -30237,9 +30303,12 @@ function syncBtns(){
       ((filter!=='ALL'||ptypeFilter)? '<div class="msep"></div>'
         +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render();naFromDraw()",false,'clear this selection') : '');
   })();
+  // v2.22 W2 (item 149.26): FILTER'S FIRST USE IS ONE CLICK -- the Funding group opens by itself until somebody has opened or
+  // closed a group of this menu (menuGrpOpen.view is then '' or a group, kept as it was); the rule that a menu opens one group at
+  // a time is unchanged. And no divider above the first group: it sat alone at the top of the menu.
+  filterFirstOpen();
   document.getElementById('dd_view').innerHTML=
     // v1.96 (item 65): the filters fold into Funding and Service; the heading says what is on
-    '<div class="msep"></div>'+
     grp('view','fund','Funding',
     mi('◧ Fully discretionary only',"laneFilter=laneFilter==='disc'?'':'disc';render()",laneFilter==='disc','every service paid from discretionary')+
     mi('◨ Spilling into mandatory',"laneFilter=laneFilter==='mand'?'':'mand';render()",laneFilter==='mand','any mandatory draw')+
@@ -32582,6 +32651,7 @@ function toggleAdd(){ if(arOn()) arHide(); else arShow(); }
 function arShow(){
   if(cycBlock('Adding requirements')) return false;
   if(arCopyOtherYear()) return false;
+  if(arCannot()) return false;   // v2.22 W2 (item 149.29): a board with no services or no offices says so, and opens no box it cannot finish
   const o=arOfficeStart();
   arOpen=true; arTabOn='new'; arOff=o.g; arOffHow=o.how; arQueue=[]; arFin=null; arDescAuto=''; arOffNav=false;
   naFromFy=0; naFromSel={};
@@ -32693,6 +32763,8 @@ function arDraw(){
   h+='<div class="ar-ft" id="arFt"><div id="arMsg" class="ar-msg" role="alert" aria-live="assertive"></div><span class="sp"></span>'
     +'<button type="button" class="btn" onclick="toggleAdd()">Cancel</button>'
     +'<button type="button" class="btn" id="arAddOpen" onclick="arAdd(true)">Add and open its record</button>'
+    // v2.22 W2 (item 149.22): several in a row -- the office stays, the form empties, the keyboard goes back to the plan event
+    +'<button type="button" class="btn" id="arAddMore" onclick="arAdd(false, true)">Add and start another</button>'
     +'<button type="button" class="btn pri" id="arAddBtn" onclick="arAdd(false)">Add requirement</button></div>';
   el.innerHTML=h;
   arTab(arTabOn, true);
@@ -32745,6 +32817,11 @@ function arBudFill(i){
   sel.innerHTML='<option value="">— choose —</option>'+L.map(function(b){
     return '<option value="'+esc(b.n)+'">'+esc(b.n)+(b.hand? ' (by hand only)' : '')+'</option>'; }).join('');
   if(keep && L.some(function(b){ return b.n===keep; })) sel.value=keep;
+  // v2.22 W2 (item 149.24 b): THE ONLY NAME IS PICKED FOR YOU, and stays changeable. One name the office has for the service, not
+  // one offered by hand only (CONG, BOS, OCO, Withhold, Spares TrngDev: never automatic, BUD_HAND). The required list is unchanged:
+  // a picked name answers it as a name chosen by hand does, because it is one -- written by budPutUnf on Add like any other.
+  else if(!keep && L.length===1 && !L[0].hand) sel.value=L[0].n;
+  sel.title=(!keep && L.length===1 && !L[0].hand && sel.value===L[0].n)? 'The only '+SVC[i]+' budget listed for '+arOff+' — picked for you; choose another or none if it is not right.' : '';
 }
 function arTab(t, quiet){
   arTabOn=(t==='yr')? 'yr' : 'new';
@@ -32754,7 +32831,7 @@ function arTab(t, quiet){
   const a=arEl('arTabNew'), b=arEl('arTabYr');
   if(a) a.setAttribute('aria-pressed', String(arTabOn==='new'));
   if(b) b.setAttribute('aria-pressed', String(arTabOn==='yr'));
-  ['arAddOpen','arAddBtn'].forEach(function(id){ const e=arEl(id); if(e) e.hidden=(arTabOn!=='new'); });
+  ['arAddOpen','arAddMore','arAddBtn'].forEach(function(id){ const e=arEl(id); if(e) e.hidden=(arTabOn!=='new'); });
   // the box stays open over the record until the last one brought in is finished, so only the last can be opened
   const ao=arEl('arAddOpen'); if(ao && arQueue.length) ao.hidden=true;
   if(arTabOn==='yr' && !quiet) naFromDraw();
@@ -32923,7 +33000,7 @@ function arNeedIds(need, d){
   return ids;
 }
 // ---- Add -------------------------------------------------------------------------------------------------------------------
-function arAdd(open){
+function arAdd(open, another){
   if(cycBlock('Adding requirements')) return;
   if(arCopyOtherYear()) return;
   if(!arOff){ arSay('Choose the office first: pick it, or move to it with the arrow keys and press Enter.'); arMark(['arOffice']); return; }
@@ -32963,9 +33040,14 @@ function arAdd(open){
   save();
   const more=arQueue.length;
   if(more){ arFinNext(); render(); }
+  // v2.22 W2 (item 149.22): Add and start another -- the box stays open for the same office, the form is emptied (the only budget
+  // picked again), and the keyboard goes back to the plan event; nothing waits to be finished, so there is no queue to keep
+  else if(another){ arFin=null; arReset(); arFinBarDraw(); const fb=arEl('arFinBar'); if(fb){ fb.hidden=true; fb.innerHTML=''; }
+    arTab('new', true); arUpdate(); render(); try{ const e=arEl('arEvent'); if(e) e.focus(); }catch(x){} }
   else { arHide(); render(); }
   flash(nid);
   if(open && !more) arOpenRecord(nid);
+  else arShowRow(nid);   // v2.22 W2 (item 149.22): the list goes to the new row, at the bottom and usually off screen
   // the next one to finish is the one now open -- read from it, never from the one just added, which may have been typed by
   // hand with requirements brought in waiting behind it (arFin null): its year threw (v2.07 review)
   const nx=arFin;
@@ -32976,21 +33058,16 @@ function arAdd(open){
       .filter(function(v,i,a){ return a.indexOf(v)===i; }).map(function(v){ return v%100; }).join(' and FY')+'.' : '')
     +(R.rnd.length? ' ℹ '+esc(R.rnd.join('; '))+' — the board keeps whole dollars.' : ''));
   if(more) arSay('Added '+esc(nid)+'.'+(nx? ' The next one from FY'+(nx.y%100)+' is filled in below.' : ''), true);
+  else if(another) arSay('Added <b>'+esc(nid)+'</b> — '+esc(d.event)+'. The form is empty for the next one, for '+esc(arOff)+'.'+arRowSay(nid), true);
+  // v2.22 W2 (item 149.22): the confirmation is opened whole, so it shows at a laptop's width where the line has no room for it
+  else arStatShow();
 }
 // "Add and open its record": the RECORD panel opens on the requirement just added. A filter that would hide it is taken off
 // first, and said -- the panel would otherwise fall back to the first row on screen and show somebody else's record.
 function arOpenRecord(nid){
-  const off=[];
-  try{
-    if((document.getElementById('q').value||'').trim()){ document.getElementById('q').value=''; off.push('the search'); }
-    if(mcOnly){ mcOnly=false; off.push('★ Mission Critical only'); }
-    if(laneFilter){ laneFilter=''; off.push('the lane filter'); }
-    if(ptypeFilter){ ptypeFilter=''; off.push('the prime / OGC filter'); }
-    if(svcFilter>=0){ svcFilter=-1; off.push('the service filter'); }
-    // a copy adds for its own office whatever office is showing (v2.07 review)
-    { const it=itemById(nid); if(typeof filter!=='undefined' && filter!=='ALL' && it && grpOf(it)!==filter){ filter='ALL'; off.push('the PMO filter'); } }
-  }catch(e){}
-  if(off.length) render();
+  // v2.22 W2: what hides it is taken off by listReveal(), which Ctrl K's Enter on a requirement shares (a copy adds for its own
+  // office whatever office is showing, v2.07 review: the PMO filter is taken off too)
+  const off=listReveal(nid);
   setCur(nid);
   try{ const r=document.getElementById('row-'+nid); if(r && r.scrollIntoView) r.scrollIntoView({block:'nearest'}); }catch(e){}
   try{ const b=document.querySelector('#inspector button'); if(b) b.focus(); }catch(e){}
@@ -33051,8 +33128,10 @@ function arFinBarDraw(){
 }
 // anything typed in New requirement (a field the box holds with something in it)
 function arFormHeld(){
+  // v2.22 W2 (item 149.24 b): a budget picker is not typing -- it holds the office's only name before anything is typed, and a
+  // budget chosen for a service counts through that service's value, which is typed
   return [].some.call(document.querySelectorAll('#arNew input[data-held], #arNew select[data-held], #arNew textarea[data-held]'),
-    function(e){ return String(e.value||'').trim()!==''; });
+    function(e){ return !/^arB\d+$/.test(e.id||'') && String(e.value||'').trim()!==''; });
 }
 function arSkip(){
   const was=arFin;
@@ -33066,6 +33145,8 @@ function arReset(){
     .forEach(function(id){ const e=arEl(id); if(e) e.value=''; });
   [].forEach.call(document.querySelectorAll('#arNew .miss'), function(e){ e.classList.remove('miss'); });
   [].forEach.call(document.querySelectorAll('#arNew [aria-invalid]'), function(e){ e.removeAttribute('aria-invalid'); });
+  arDescAuto='';
+  SVC.forEach(function(s,i){ arBudFill(i); });   // v2.22 W2 (item 149.24 b): an emptied form picks the only budget again
 }
 // The next number for an added requirement is newReqSeq(), beside yearCopy(): never one used before.
 //
@@ -33204,7 +33285,12 @@ function naFromDraw(){
     const nReady=pickd.filter(function(r){ return !r.need.length; }).length, nFin=pickd.length-nReady;
     if(!rows.length) h+='<div class="ar-note">'+esc(g)+' has no requirements in FY'+(naFromFy%100)+'.</div>';
     else {
-      h+='<table class="ar-list nafromtab"><tr><th scope="col" style="width:34px"><span class="sr">Add</span></th><th scope="col">FY'+(naFromFy%100)+' requirement</th>'
+      // v2.22 W2 (item 149.30): a tick-all over every row that can be brought in (not one already here or waiting to be finished)
+      const canT=rows.filter(function(r){ return !r.here && !r.wait; });
+      const allT=canT.length>0 && canT.every(function(r){ return naFromSel[r.id]; });
+      h+='<table class="ar-list nafromtab"><tr><th scope="col" style="width:34px">'+(canT.length
+          ? '<input type="checkbox" id="naFromAll" aria-label="Tick all '+canT.length+' that can be brought in"'+(allT? ' checked' : '')+' onchange="naFromTickAll(this.checked)">'
+          : '<span class="sr">Add</span>')+'</th><th scope="col">FY'+(naFromFy%100)+' requirement</th>'
         +'<th scope="col">CCaR</th><th scope="col">PID</th><th scope="col" class="r">FY'+(naFromFy%100)+' requirement value</th><th scope="col">Ready</th></tr>';
       rows.forEach(function(r){
         const tot=(r.it.ask||[]).reduce(function(a,b){ return a+(+b||0); }, 0), nm=dispTitle(r.it, r.T);
@@ -36574,7 +36660,11 @@ if(_bootRestoreErr){
     +(Object.keys(O).length>1?'them':'it')+'. The original value is kept, not overwritten: re-band '
     +(Object.keys(O).length>1?'them':'it')+' on the row, or add the band back under Setup \u203a Codes and structure \u203a \u2696 Bands.');
 } else if(typeof IS_SHELL!=='undefined' && IS_SHELL){
-  setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: Imports & exports → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
+  // v2.22 W2 (item 149.29): the opening line waits behind the Message button (it was cut off beside Save, its one instruction
+  // behind More); what it said is the Start here block's first step, in the page
+  _statQuiet=true;
+  setStat('🧩 <b>The ORBIT program '+BUILD+'</b>, with no board in it — safe to keep on any machine. <b>Start here</b>, above the list, says how to open your board.');
+  _statQuiet=false;
 } else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)
     ? '\u25e8 <b>PMO copy</b>'+(PMODE&&PMODE.by? ' published by <b>'+esc(PMODE.by)+'</b>':'')
       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
@@ -37522,6 +37612,448 @@ async function uiSubMany(inp){
 // ==== v2.22 W1 ====
 // ==== end v2.22 W1 ====
 // ==== v2.22 W2 ====
+// v2.22 W2 (contract §1.2; Brad, 25 Nov 2026: "I like it all ... Let's go"): CTRL K, the list's search and Filter, the empty program,
+// new years, and the Add box. Everything here READS the board -- tiers(), unfTotOf, mcShortSvcOf, the lists syncBtns() writes for the
+// left menu -- and nothing here works a figure out again. State that code reaching this slot during the opening might read is a
+// `var` (a `let` down here is in its dead zone while the board opens: the BANDS_STD rule).
+//
+// ── THE LIST'S SEARCH (item 149.25) ──────────────────────────────────────────────────────────────────────────────────────────
+// ONE PREDICATE, read by render() for the list and by Ctrl K for its Requirements group, so the two cannot disagree about what a
+// search finds. It reads what the row shows: the title and the plan event, the office, the CCaR record and the PID, the record
+// name, the prime contract or OGC tag, the cost element, the note -- and the number the row is listed at (12 or #12). It read the
+// title, the event, the CCaR record and the PID only: EDI found 0 of the 18 rows whose second line said it (the 21 Nov review).
+function listQ(){ try{ const e=document.getElementById('q'); return String((e && e.value)||'').trim().toLowerCase(); }catch(x){ return ''; } }
+function reqSearchText(it, st){
+  const T=st||S, id=it.id, pt=((T.ptype||{})[id])||'';
+  return [dispTitle(it, T), it.title, it.event, grpOf(it, T), ccarOf(it, T), pidOf(it, T), recName(it, T),
+    pt==='PRIME'? 'prime contract' : (pt==='OGC'? 'ogc' : ''), ((T.costElem||{})[id])||'', ((T.notes||{})[id])||'', id]
+    .filter(function(x){ return x!==undefined && x!==null && x!==''; }).join(' · ').toLowerCase();
+}
+// q: the search, any case; num: the number this requirement is listed at, where it has one. A search of digits alone (with or without
+// #) finds the requirement at that number AND any whose words hold those digits (a CCaR record, a PID, a note).
+// "#12" finds number 12, and any requirement whose note says "#12".
+function listSearchHit(it, q, num){
+  q=String(q||'').trim().toLowerCase(); if(!q) return true;
+  const n=/^#?\s*(\d{1,7})$/.exec(q);
+  if(n && num!==undefined && num!==null && +num===parseInt(n[1], 10)) return true;
+  return reqSearchText(it).indexOf(q)>=0;
+}
+function qSync(){
+  const v=listQ(), c=document.getElementById('qClr');
+  if(c) c.hidden=!v;
+  qAwaySync();
+}
+function qTyped(){ render(); qSync(); }
+// Esc clears a search that is on, and goes no further (a drawer or menu behind it is not closed by the same key); with nothing to
+// clear, Esc does what it did
+function qKey(e){
+  if(!e || e.key!=='Escape') return;
+  const q=document.getElementById('q'); if(!q || !String(q.value||'')) return;
+  e.preventDefault(); if(e.stopPropagation) e.stopPropagation();
+  q.value=''; qTyped();
+}
+function qClear(){ const q=document.getElementById('q'); if(!q) return; q.value=''; qTyped(); try{ q.focus({preventScroll:true}); }catch(e){} }
+// WHILE A SEARCH IS ON AND ITS BOX HAS SCROLLED AWAY, THE TITLE BAND SAYS SO (#qAway, pinned under the header): the rows were
+// a filtered list with nothing on screen to say why. The box is "away" when it is not drawn, or sits under the header or below
+// the window.
+function qAwaySay(){
+  const q=listQ(); if(!q) return '';
+  const n=document.querySelectorAll('#list .row').length;
+  return 'Searching for “'+esc(q)+'” — '+(n? n+' requirement'+(n===1?'':'s')+' shown' : 'no requirements match')
+    +' <button type="button" class="qb" onclick="qClear()">Clear the search</button>';
+}
+function qBoxAway(){
+  const b=document.getElementById('q'); if(!b) return true;
+  try{ if(!b.getClientRects().length) return true;
+    const r=b.getBoundingClientRect(), H=window.innerHeight||0;
+    const top=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdrH'))||0;
+    return r.bottom<=top+2 || (H>0 && r.top>=H); }catch(e){ return true; }
+}
+function qAwaySync(){
+  const el=document.getElementById('qAway'); if(!el) return;
+  const say=qAwaySay(), away=!!say && qBoxAway();
+  el.hidden=!away;
+  const h=away? say : '';
+  if(el.innerHTML!==h) el.innerHTML=h;
+  try{ document.documentElement.classList.toggle('q-away', away); }catch(e){}
+}
+try{ window.addEventListener('scroll', qAwaySync, {passive:true}); window.addEventListener('resize', qAwaySync); }catch(e){}
+try{ const L=document.getElementById('list'); if(L && typeof MutationObserver!=='undefined') new MutationObserver(function(){ qSync(); }).observe(L, {childList:true}); }catch(e){}
+
+// WHAT THE LIST SAYS WHEN IT HOLDS NO ROW (items 149.25, 149.29, 149.30): render()'s one call. A search or a filter that finds
+// nothing says "No requirements match", names what is on, and offers the way back; an empty year leads with Add requirement ›
+// From another year (Brad, 21 Nov 2026: "Linked one by one"); the empty program has its Start here block above (driveBarHtml).
+function listOnSay(){
+  const on=[], q=listQ();
+  if(q) on.push('the search “'+esc(q)+'”');
+  if(mcOnly) on.push('★ Mission Critical only');
+  if(laneFilter) on.push(({disc:'fully discretionary only', mand:'spilling into mandatory', unf:'any unfunded portion', nd:'set higher than it draws'})[laneFilter]||'a lane filter');
+  if(svcFilter>=0 && SVC[svcFilter]!==undefined) on.push('service '+esc(SVC[svcFilter]));
+  if(ptypeFilter) on.push(ptypeFilter==='PRIME'? 'Prime Contracts' : 'OGC');
+  if(filter!=='ALL') on.push('office '+esc(filter));
+  return on;
+}
+function listEmptyHtml(drawn){
+  // what render() drew before the rows that still says something with none under it: the locked view's banner and the
+  // discretionary-only one (each drawn with its own margin); the cutlines between rows go, with no row either side of them
+  const keep=String(drawn||'').match(/<div class="cutline[^"]*" style="margin:0 0 8px[^"]*">[\s\S]*?<\/div>/g)||[];
+  const box=function(h){ return keep.join('')+'<div class="listempty" role="status">'+h+'</div>'; };
+  if(!(S.order||[]).length && !CYCVIEW){
+    if(startHereOn()) return box('Nothing on this board yet — <b>Start here</b>, above, says how to begin.');
+    let ys=[]; try{ ys=naFromYears(); }catch(e){}
+    return box('<b>'+FYL()+' holds no requirements yet.</b>'
+      +(ys.length? ' Bring each one in from another year: it comes in linked to the one it came from, with its record, PID, dates, notes and description.' : '')
+      +'<span class="le-acts">'
+      +(ys.length? '<button type="button" class="btn pri" onclick="arShowYr()">Bring requirements in from another year…</button>' : '')
+      +'<button type="button" class="btn'+(ys.length? '' : ' pri')+'" onclick="toggleAdd()">＋ Add a new requirement</button></span>');
+  }
+  const on=listOnSay();
+  if(!on.length) return box('No requirements match.');
+  const only=on.length===1 && listQ();
+  return box('<b>No requirements match</b> '+on.join(' · ')+'.<span class="le-acts">'
+    +(only? '<button type="button" class="btn" onclick="qClear()">Clear the search</button>'
+          : '<button type="button" class="btn" onclick="listClearAll()">Clear the search and filters</button>')+'</span>');
+}
+// back to the whole list: the search, every filter Filter sets, the prime / OGC choice and the office
+function listClearAll(){
+  const q=document.getElementById('q'); if(q) q.value='';
+  mcOnly=false; svcFilter=-1; laneFilter=''; ptypeFilter='';
+  if(filter!=='ALL'){ try{ setPmoFilter('ALL'); }catch(e){ filter='ALL'; } }
+  render(); qSync();
+}
+// TAKE OFF WHAT HIDES ONE REQUIREMENT, and say what was taken off: the search, the filters, the office (one place for the Add box's
+// "Add and open its record" and Ctrl K's Enter on a requirement)
+function listReveal(id){
+  const off=[];
+  try{
+    const q=document.getElementById('q');
+    if(q && String(q.value||'').trim()){ q.value=''; off.push('the search'); }
+    if(mcOnly){ mcOnly=false; off.push('★ Mission Critical only'); }
+    if(laneFilter){ laneFilter=''; off.push('the lane filter'); }
+    if(ptypeFilter){ ptypeFilter=''; off.push('the prime / OGC filter'); }
+    if(svcFilter>=0){ svcFilter=-1; off.push('the service filter'); }
+    const it=itemById(id); if(typeof filter!=='undefined' && filter!=='ALL' && it && grpOf(it)!==filter){ filter='ALL'; off.push('the PMO filter'); }
+  }catch(e){}
+  if(off.length){ render(); qSync(); }
+  return off;
+}
+
+// ── FILTER (item 149.26) ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// The Funding group opens by itself until this menu's groups have been opened or closed by hand: the first use was three clicks,
+// both groups folded. Kept in memory only -- menuGrp() stores a choice somebody made, never this one.
+function filterFirstOpen(){
+  try{ if(!Object.prototype.hasOwnProperty.call(menuGrpOpen, 'view')) menuGrpOpen.view='fund'; }catch(e){}
+}
+
+// ── THE EMPTY PROGRAM: START HERE (item 149.29) ───────────────────────────────────────────────────────────────────────────────
+// The program with no board in it opened with three first steps that disagreed: a cut-off message, a shared-folder banner and an
+// Add requirement that could never be finished (the program has no services). One block now, three ways in, each running its own
+// left-menu item (uiMenuRun), so no action gains a second home.
+function boardHasReqs(){
+  try{ return Object.keys(MS.years||{}).some(function(y){ const T=MS.years[y]; return T && Array.isArray(T.order) && T.order.length>0; }); }catch(e){ return true; }
+}
+function startHereOn(){
+  try{ return typeof IS_SHELL!=='undefined' && !!IS_SHELL && !(typeof SANDBOX!=='undefined' && SANDBOX) && !CYCVIEW
+    && !(typeof _driveLive!=='undefined' && _driveLive) && !boardHasReqs(); }catch(e){ return false; }
+}
+var START_HERE={
+  open:   {re:/document\.getElementById\('fullFile'\)\.click\(\)/, nav:'imp', what:'Imports & exports › Import a full board (new version)…'},
+  folder: {re:/^mRun\(toggleLive\)$/, nav:'setup', what:'Setup › Live view…'},
+  board:  {re:/^mRun\(toggleSvcPanel\)$/, nav:'setup', what:'Setup › Who and where › Services…'}
+};
+function startHereHtml(){
+  return '<section class="starthere" aria-labelledby="shH"><h2 id="shH">Start here</h2>'
+    +'<p class="sh-lead">This is the ORBIT program, '+esc(BUILD)+', with no board in it — safe to keep on any machine. Your board is a file of its own. Choose one:</p>'
+    +'<ol class="sh-steps">'
+    +'<li><button type="button" class="btn pri" onclick="startHere(\'open\')">Open your saved board…</button>'
+      +'<span>Pick the board file you last saved: everything in it — requirements, budgets, every year, PPBE positions, logs — loads from it. '
+      +'The same as <b>Imports &amp; exports › Import a full board (new version)…</b></span></li>'
+    +'<li><button type="button" class="btn" onclick="startHere(\'folder\')">Connect the shared folder…</button>'
+      +'<span>Your team keeps the board in a shared <b>Data</b> folder: point ORBIT at it once and it loads the current position, and keeps it there as you work. '
+      +'The same as <b>Setup › Live view…</b></span></li>'
+    +(SVC.length
+      ? '<li><button type="button" class="btn" onclick="toggleAdd()">＋ Add the first requirement…</button>'
+        +'<span>A new board: its services are named ('+esc(SVC.join(', '))+'). Add its first requirement, for one of its programme offices.</span></li>'
+      : '<li><button type="button" class="btn" onclick="startHere(\'board\')">Start a new board…</button>'
+        +'<span>An empty board of your own: name its services first (every figure is kept by service), then its programme offices, then add requirements. '
+        +'Starts at <b>Setup › Who and where › Services…</b></span></li>')
+    +'</ol></section>';
+}
+function startHere(k){
+  const w=START_HERE[k]; if(!w) return false;
+  CMD.acts=null;   // the left menu as it is now
+  const a=cmdActions().filter(function(x){ return x.nav==='uiNav_'+w.nav && w.re.test(x.h); })[0];
+  if(!a){ setStat('⚠ '+esc(w.what)+' is not on the left menu here — nothing was opened.'); return false; }
+  return cmdRunAct(a);
+}
+
+// ── NEW YEARS (item 149.30; Brad, 21 Nov 2026: "Linked one by one") ──────────────────────────────────────────────────────────
+// The Add box opened on From another year: the empty year's first offer, and the Removed list's
+function arShowYr(){ if(!arShow()) return false; arTab('yr'); try{ const f=arEl(arOff? 'naFromFy' : 'arOffice'); if(f) f.focus(); }catch(e){} return true; }
+// The Removed list says what Restore brings back and what it does not. A removed requirement keeps what THIS year held for it, so
+// in a year started empty Restore brings the board's own line bare: none of the PID, dates, notes or description an earlier
+// year holds (FY28 on Brad's board: 155 removed, three added by hand, all reading "No PID").
+function rmRestoreSay(){
+  return '<div class="rmsay">↩ Restore brings a requirement back as '+FYL()+' holds it. In a year started empty that is the board’s own line, bare: '
+    +'<b>not</b> the PID, award dates, notes or description another year holds. To bring one in with all of that, linked to the year it came from: '
+    +'<button type="button" class="qb" onclick="arShowYr()">Bring one in from another year…</button></div>';
+}
+// From another year's tick-all: every row that can be brought in, never one already here or waiting to be finished
+function naFromTickAll(on){
+  try{ if(!naFromFy) return; const g=naFromOffice().g; if(!g) return;
+    naFromRows(naFromFy, g).forEach(function(r){ if(r.here || r.wait) return; if(on) naFromSel[r.id]=1; else delete naFromSel[r.id]; }); }catch(e){}
+  naFromDraw();
+  try{ const c=document.getElementById('naFromAll'); if(c) c.focus({preventScroll:true}); }catch(e){}
+}
+
+// ── THE ADD BOX (items 149.22, 149.24 b, 149.29) ─────────────────────────────────────────────────────────────────────────────
+// A board with no services, or no office to add for, cannot finish an Add: the box is not opened, and the reason is kept unread
+function arCannot(){
+  let why='';
+  if(!SVC.length) why='this board has no services yet, and every requirement value is kept by service. Name them first: <b>Setup › Who and where › Services…</b>';
+  else if(!arOfficeChoices().length) why='there is no programme office to add for. Add one first: <b>Setup › Who and where › PMOs…</b>';
+  if(!why) return false;
+  try{ statKeep('⚠ A requirement cannot be added yet: '+why+'.'); }catch(e){}
+  return true;
+}
+// after Add, the list goes to the new row: it lands at the bottom of the order, usually off screen
+function arShowRow(nid){
+  try{ const r=document.getElementById('row-'+nid); if(r && r.scrollIntoView) r.scrollIntoView({block:'nearest'}); }catch(e){}
+}
+function arRowSay(nid){
+  return document.getElementById('row-'+nid)? '' : ' It is not in the list as shown: '+esc(listOnSay().join(', ')||'the list')+' hides it.';
+}
+// the confirmation, opened whole: at a laptop's width the line beside Save has no room for it (the 21 Nov review)
+function arStatShow(){
+  try{ const w=document.getElementById('statWrap'); if(w && !w.classList.contains('big')){ w.classList.add('big','fresh'); statMarkCur(); statSync(); } }catch(e){}
+}
+
+// ── CTRL K (item 155): FIND OR RUN ANYTHING ──────────────────────────────────────────────────────────────────────────────────
+// One box (#cmdPanel, a body > .modal-bg, so the box controller names it, keeps the keyboard in it, closes it on Esc and hands the
+// keyboard back where it was). One input; results in three groups:
+//   Requirements -- by the list's own predicate (listSearchHit), each with its number, office, value and status pill read from
+//     tiers(); Enter selects it, scrolls to it and opens its RECORD, taking off whatever search or filter hid it (listReveal).
+//   CCaR records -- when a CCaR records list is loaded; Enter shows the requirements on that record (the list's search).
+//   Actions -- EVERY LEFT-MENU ITEM, by its own words and where it sits, read from the lists syncBtns() writes (cmdActions); Enter
+//     opens that entry and PRESSES THAT ITEM (cmdRunAct), so each action keeps its one home (Brad, 19 Oct 2026: "each action has
+//     exactly one home"), and nothing run here can do what its menu item could not -- in a PMO copy, in a locked view, anywhere.
+// ">" first lists actions only. Arrow keys move, Enter opens.
+var CMD={rows:[], at:0, acts:null};
+var CMD_MAX={req:8, rec:5, act:8};
+function cmdEl(id){ return document.getElementById(id); }
+function cmdIsOpen(){ const bg=cmdEl('cmdPanel'); return !!(bg && bg.classList.contains('open')); }
+function cmdOpen(){
+  const bg=cmdEl('cmdPanel'), inp=cmdEl('cmdQ'); if(!bg || !inp) return false;
+  if(cmdIsOpen()){ try{ inp.focus(); inp.select(); }catch(e){} return true; }
+  try{ if(typeof dlgLive==='function' && dlgLive()) return false; }catch(e){}   // another box is open: it keeps the keyboard
+  try{ uiFlyClose(); uiPopsClose(); }catch(e){}
+  try{ if(openMenu){ openMenu=null; syncBtns(); } }catch(e){}
+  CMD.acts=null; CMD.at=0; inp.value='';
+  cmdDraw();
+  bg.classList.add('open');
+  try{ dlgSync(); }catch(e){}
+  try{ inp.focus(); }catch(e){}
+  return true;
+}
+function cmdClose(){
+  const bg=cmdEl('cmdPanel'); if(!bg) return;
+  bg.classList.remove('open');
+  CMD.rows=[]; CMD.acts=null;
+  const l=cmdEl('cmdList'); if(l) l.innerHTML='';
+  try{ dlgSync(); }catch(e){}
+}
+function cmdTyped(){ CMD.at=0; cmdDraw(); }
+function cmdKeyIn(e){
+  const k=e && e.key, n=CMD.rows.length;
+  if(k==='ArrowDown' || k==='ArrowUp'){
+    e.preventDefault(); if(!n) return;
+    CMD.at=(CMD.at+(k==='ArrowDown'? 1 : -1)+n)%n; cmdMark(); return; }
+  if(k==='Enter'){ e.preventDefault(); if(n) cmdRun(CMD.at); }
+}
+function cmdHover(i){ if(i!==CMD.at && i>=0 && i<CMD.rows.length){ CMD.at=i; cmdMark(); } }
+function cmdMark(){
+  const inp=cmdEl('cmdQ');
+  CMD.rows.forEach(function(r, i){ const o=cmdEl('cmdO_'+i); if(o){ o.setAttribute('aria-selected', i===CMD.at? 'true' : 'false'); o.classList.toggle('on', i===CMD.at); } });
+  const cur=cmdEl('cmdO_'+CMD.at);
+  if(inp){ if(cur) inp.setAttribute('aria-activedescendant', 'cmdO_'+CMD.at); else inp.removeAttribute('aria-activedescendant'); }
+  try{ if(cur && cur.scrollIntoView) cur.scrollIntoView({block:'nearest'}); }catch(e){}
+}
+// the words of a left-menu item, without its tick, its hint, its format tag or its count
+function cmdOwn(b){
+  const c=b.cloneNode(true);
+  const bb=c.querySelector('b'); if(bb && c.classList.contains('uiCard')) return bb.textContent.replace(/\s+/g,' ').trim().replace(/^[^\p{L}\p{N}$]+/u, '');
+  [].slice.call(c.querySelectorAll('.chk,.sub,.fmt,small,.now,.gn,.n,.ico,.d,.w')).forEach(function(x){ x.remove(); });
+  return c.textContent.replace(/\s+/g,' ').trim().replace(/^[^\p{L}\p{N}$]+/u, '');
+}
+// the heading an item sits under in its list: a folded group's, a section's, or the nearest label above it
+function cmdGroupOf(b, root){
+  const gb=b.closest('.gbody');
+  if(gb && root.contains(gb)){ const gh=gb.previousElementSibling; if(gh && gh.classList.contains('gh')){ const s=gh.querySelectorAll('span')[1]; if(s) return s.textContent.trim(); } }
+  const sc=b.closest('section'); if(sc && root.contains(sc)){ const h=sc.querySelector('h4'); if(h){ const c=h.cloneNode(true); [].slice.call(c.querySelectorAll('i')).forEach(function(x){ x.remove(); }); return c.textContent.trim(); } }
+  let e=b;
+  while(e && e!==root){
+    let p=e.previousElementSibling;
+    while(p){ if(p.matches && p.matches('.mlbl,.uiFh,.uiIh,h4')) return p.textContent.trim(); p=p.previousElementSibling; }
+    e=e.parentElement;
+  }
+  return '';
+}
+function cmdNavLbl(k){
+  if(k==='save') return 'Save ▾';
+  const n=cmdEl('uiNav_'+k); if(!n) return k; const t=n.querySelector('.t'); return (t||n).textContent.replace(/\s+/g,' ').trim();
+}
+// EVERY LEFT-MENU ITEM, as the left menu offers it now: a section's flyout as uiFlyItems() draws it, with the list syncBtns() keeps
+// for it (UI_FLYHOST), a box's list, and the views. An entry not shown (Program offices in a PMO copy) offers nothing; a hidden or
+// disabled item is not offered. Each is remembered by the call it makes and its words, and found again by both when it is run.
+function cmdActions(){
+  if(CMD.acts) return CMD.acts;
+  const out=[], seen={};
+  const BOX={rep:'uiRepPanel', imp:'uiImpPanel', data:'uiDataPanel'};
+  const VIEWS={req:1, fund:1, cyc:1, brief:1};
+  const shown=function(e, root){ for(let x=e; x && x!==root; x=x.parentElement){ if(x.hidden && !x.classList.contains('gbody')) return false; } return !e.disabled; };
+  const take=function(k, root, rootSel){
+    const nl=cmdNavLbl(k);
+    [].slice.call(root.querySelectorAll('button')).forEach(function(b){
+      if(b.classList.contains('gh') || !shown(b, root)) return;
+      if(rootSel!=='#uiFly' && !b.classList.contains('mi')) return;
+      const h=b.getAttribute('onclick')||''; if(!h) return;
+      const t=cmdOwn(b); if(!t) return;
+      const g=cmdGroupOf(b, root), path=[nl].concat(g && g!==nl && g.replace(/&amp;/g,'&')!==nl? [g] : []).join(' › ');
+      const key=k+'|'+h+'|'+t; if(seen[key]) return; seen[key]=1;
+      out.push({nav:'uiNav_'+k, root:rootSel, h:h, t:t, path:path, kw:(b.getAttribute('data-k')||'')});
+    });
+  };
+  (typeof UI_NAV!=='undefined'? UI_NAV : []).forEach(function(k){
+    const nb=cmdEl('uiNav_'+k); if(!nb) return;
+    for(let x=nb; x; x=x.parentElement){ if(x.hidden) return; }
+    if(VIEWS[k]){ out.push({nav:'uiNav_'+k, view:true, h:'', t:cmdNavLbl(k), path:'Views'}); return; }
+    if(BOX[k]){ const bx=cmdEl(BOX[k]); if(bx) take(k, bx, '#'+BOX[k]); return; }
+    if(UI_FLY.indexOf(k)>=0){
+      const tmp=document.createElement('div'); tmp.innerHTML=uiFlyItems(k);
+      [].slice.call(tmp.querySelectorAll('[data-host]')).forEach(function(p){ const d=cmdEl(p.getAttribute('data-host'));
+        if(d){ const c=d.cloneNode(true); c.removeAttribute('id'); p.parentNode.replaceChild(c, p); } });
+      take(k, tmp, '#uiFly');
+    }
+  });
+  // Save itself, in the header: its one home is that button (and Ctrl+S)
+  const sb=cmdEl('saveBtn'); if(sb && sb.getClientRects && !sb.closest('[hidden]'))
+    out.unshift({nav:'saveBtn', button:true, h:sb.getAttribute('onclick')||'', t:(sb.textContent||'').replace(/\s+/g,' ').trim()||'Save', path:'Header'});
+  CMD.acts=out;
+  return out;
+}
+function cmdPill(t){
+  const lk=laneOf(t), w=laneLbl(t);
+  return '<span class="cmd-pill" data-lk="'+lk+'">'+esc(w.charAt(0)+w.slice(1).toLowerCase())+'</span>';
+}
+function cmdResults(q){
+  const raw=String(q||''), act=/^\s*>/.test(raw), s=raw.replace(/^\s*>/, '').trim().toLowerCase();
+  const G=[];
+  if(!act && s){
+    const T=tiers(null, scenOpt()), MR=masterRanks();
+    const hits=(S.order||[]).filter(function(id){ const it=itemById(id); return it && T[id] && listSearchHit(it, s, MR[id]); });
+    G.push({k:'req', t:'Requirements', n:hits.length, rows:hits.slice(0, CMD_MAX.req).map(function(id){
+      const it=itemById(id), t=T[id], u=unfTotOf(it, t), mcs=S.mc[id]? _vsum(mcShortSvcOf(it, t)) : 0;
+      const sub=[grpOf(it), ccarOf(it), pidOf(it), fM(askTot(it)), u>0.005? 'unfunded '+fM(u) : 'funded in full', mcs>0.005? '★ MC short '+fM(mcs) : '']
+        .filter(Boolean).map(esc).join(' · ');
+      return {kind:'req', id:id, t:'#'+MR[id]+' '+dispTitle(it), sub:sub, tag:cmdPill(t)}; })});
+    const ix=ccarIdx();
+    if(ix){
+      const sn=ccarNorm(s).toLowerCase(), keys=Object.keys(ix).filter(function(k){ const r=ix[k]||{};
+        return (sn && k.toLowerCase().indexOf(sn)>=0) || String(r.t||'').toLowerCase().indexOf(s)>=0; });
+      G.push({k:'rec', t:'CCaR records', n:keys.length, rows:keys.slice(0, CMD_MAX.rec).map(function(k){
+        const r=ix[k]||{}, n=(S.order||[]).filter(function(id){ const it=itemById(id); return it && ccarNorm(ccarOf(it))===k; }).length;
+        return {kind:'rec', key:k, t:k+(r.t && !(r.d>1)? ' · '+r.t : (r.d>1? ' · held by '+r.d+' records' : '')),
+          sub:esc(n+' requirement'+(n===1?'':'s')+' on this record, '+FYL()), tag:'<span class="cmd-tag">Record</span>'}; })});
+    }
+  }
+  if(act || s){
+    // what its words start with first, then what its words hold, then what only its place holds; the menu's order within each
+    const at=function(a){ const t=a.t.toLowerCase(); return !s? 0 : t.indexOf(s)===0? 0 : t.indexOf(s)>0? 1 : 2; };
+    const A=cmdActions().filter(function(a){ return !s || (a.t+' · '+a.path+' · '+(a.kw||'')).toLowerCase().indexOf(s)>=0; })
+      .map(function(a, i){ return [at(a), i, a]; }).sort(function(x, y){ return (x[0]-y[0]) || (x[1]-y[1]); }).map(function(x){ return x[2]; });
+    G.push({k:'act', t:'Actions', n:A.length, rows:(act? A : A.slice(0, CMD_MAX.act)).map(function(a){
+      return {kind:'act', a:a, t:a.t, sub:esc(a.path), tag:'<span class="cmd-tag">'+(a.view? 'View' : 'Action')+'</span>'}; })});
+  }
+  return {groups:G.filter(function(g){ return g.rows.length; }), s:s, act:act};
+}
+function cmdDraw(){
+  const l=cmdEl('cmdList'), inp=cmdEl('cmdQ'); if(!l || !inp) return;
+  const R=cmdResults(inp.value);
+  CMD.rows=[];
+  let h='';
+  R.groups.forEach(function(g){
+    h+='<div class="cmd-g" role="group" aria-labelledby="cmdG_'+g.k+'"><div class="cmd-gh" id="cmdG_'+g.k+'">'+esc(g.t)+'</div>';
+    g.rows.forEach(function(r){ const i=CMD.rows.length; CMD.rows.push(r);
+      h+='<button type="button" class="cmd-o" role="option" id="cmdO_'+i+'" tabindex="-1" aria-selected="false" onclick="cmdRun('+i+')" onmousemove="cmdHover('+i+')">'
+        +'<span class="cmd-t"><span class="cmd-t1">'+esc(r.t)+'</span><span class="cmd-t2">'+r.sub+'</span></span>'+r.tag+'</button>'; });
+    if(g.n>g.rows.length) h+='<div class="cmd-more">and '+(g.n-g.rows.length)+' more — type more of the name to narrow it</div>';
+    h+='</div>';
+  });
+  if(!R.groups.length) h='<div class="cmd-none">'+(R.s || R.act? 'Nothing found for “'+esc(inp.value.trim())+'”.'
+    : 'Type to find a requirement (its title, event, CCaR record, PID, record name, note or number), a CCaR record, or anything on the left menu. Type <b>&gt;</b> for actions only.')+'</div>';
+  l.innerHTML=h;
+  if(CMD.at>=CMD.rows.length) CMD.at=0;
+  cmdMark();
+}
+function cmdRun(i){
+  const r=CMD.rows[i]; if(!r) return false;
+  if(r.kind==='req') return cmdGoReq(r.id);
+  if(r.kind==='rec') return cmdGoRec(r.key);
+  if(r.kind==='act') return cmdRunAct(r.a);
+  return false;
+}
+// a requirement: selected, scrolled to and its RECORD opened, with whatever hid it taken off and said
+function cmdGoReq(id){
+  cmdClose();
+  if(!itemById(id)){ setStat('⚠ That requirement is no longer in '+FYL()+'.'); return false; }
+  const off=listReveal(id);
+  setCur(id);
+  const r=document.getElementById('row-'+id);
+  try{ if(r && r.scrollIntoView) r.scrollIntoView({block:'center'}); }catch(e){}
+  try{ flash(id); }catch(e){}
+  try{ const p=document.getElementById('inspector'); if(!(p && p.classList.contains('open') && p.contains(document.activeElement)) && r) r.focus({preventScroll:true}); }catch(e){}
+  if(off.length) setStat('Showing '+esc(dispTitle(itemById(id)))+' — '+esc(off.join(', '))+' '+(off.length===1?'was':'were')+' taken off so it can be seen.');
+  return true;
+}
+// a CCaR record: the list shows its requirements, by the list's own search
+function cmdGoRec(k){
+  cmdClose();
+  const q=document.getElementById('q'); if(!q) return false;
+  q.value=k; qTyped();
+  try{ q.focus({preventScroll:true}); }catch(e){}
+  const n=document.querySelectorAll('#list .row').length;
+  setStat('Showing the requirements on CCaR record <b>'+esc(k)+'</b> ('+n+') — clear the search to see every requirement.');
+  return true;
+}
+// AN ACTION RUNS FROM ITS ONE HOME: its left-menu entry is opened as a person opens it, and that item is pressed. An item that
+// is no longer there is not guessed at.
+function cmdRunAct(a){
+  if(!a) return false;
+  if(cmdIsOpen()) cmdClose();
+  const nb=cmdEl(a.nav);
+  if(!nb){ setStat('⚠ “'+esc(a.t)+'” is not on the left menu now — nothing was run.'); return false; }
+  try{ nb.focus({preventScroll:true}); }catch(e){}
+  nb.click();
+  if(a.view || a.button) return true;
+  const root=document.querySelector(a.root);
+  const b=root? [].slice.call(root.querySelectorAll('button')).filter(function(x){
+    return !x.disabled && !x.classList.contains('gh') && (x.getAttribute('onclick')||'')===a.h && cmdOwn(x)===a.t; })[0] : null;
+  if(!b){
+    try{ uiFlyClose(); ['uiImpPanel','uiRepPanel','uiDataPanel'].forEach(function(id){ uiBoxClose(id); }); }catch(e){}
+    setStat('⚠ “'+esc(a.t)+'” is not on the left menu now — nothing was run.');
+    return false;
+  }
+  b.click();
+  return true;
+}
+// CTRL K and ⌘K open it, from anywhere on the page but another box (which keeps the keyboard until it closes); pressed again
+// while it is open, the search is selected to type over
+try{ document.addEventListener('keydown', function(e){
+  if(!e || !(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || String(e.key||'').toLowerCase()!=='k') return;
+  const bg=cmdEl('cmdPanel'); if(!bg) return;
+  e.preventDefault();
+  cmdOpen();
+}, true); }catch(e){}
 // ==== end v2.22 W2 ====
 // ==== v2.22 W3 ====
 // ==== end v2.22 W3 ====
