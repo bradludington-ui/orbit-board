@@ -1886,7 +1886,7 @@ html.ui-on #list .row .fundc .fmeter b{display:block;height:100%;background:var(
 html.ui-on #list .row > .lanec{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;background:var(--panel)}
 html.ui-on #list .row.cur > .lanec{background:var(--sel)}
 html.ui-on .lanec .pill[data-lk]{display:inline-flex;align-items:center;min-height:22px;border-radius:999px;padding:0 10px;font-size:12px;font-weight:700;white-space:nowrap}
-html.ui-on .lanec .unfx{font-size:11px;color:var(--red);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+html.ui-on .lanec .unfx{font-size:11px;line-height:1.25;color:var(--red);font-weight:700;white-space:normal;font-variant-numeric:tabular-nums}
 html.ui-on .lanec .meter{width:100%;max-width:110px}
 html.ui-on #uiEdChip[hidden]{display:none}
 /* the rows' columns, for the room the row has (uiLayoutApply's classes): Review and Compare draw Funded and Status where the cumulative
@@ -1897,6 +1897,11 @@ html.ui-on.ui-e1100[data-mode="review"],html.ui-on.ui-e1100[data-mode="compare"]
 html.ui-on.ui-e940[data-mode="review"],html.ui-on.ui-e940[data-mode="compare"]{--rowcols:44px 40px minmax(100px,1fr) 92px 92px 96px 132px 26px 26px}
 html.ui-on.ui-e760[data-mode="review"],html.ui-on.ui-e760[data-mode="compare"]{--rowcols:40px minmax(0,1fr) 96px 26px 26px}
 html.ui-on.ui-e640[data-mode="review"],html.ui-on.ui-e640[data-mode="compare"]{--rowcols:40px minmax(0,1fr) 26px 26px}
+/* Rank keeps its columns; its lane cell is the status pill now, with what is unfunded under it, so it is wider than the lane word was */
+html.ui-on[data-mode="rank"]{--rowcols:110px 76px minmax(150px,1fr) 150px 102px 104px 146px 26px 26px}
+html.ui-on.ui-e1400[data-mode="rank"]{--rowcols:110px 72px minmax(130px,1fr) 136px 102px 104px 146px 26px 26px}
+html.ui-on.ui-e1100[data-mode="rank"]{--rowcols:110px 64px minmax(120px,1fr) 120px 100px 142px 26px 26px}
+html.ui-on.ui-e940[data-mode="rank"]{--rowcols:104px 50px minmax(90px,1fr) 96px 92px 136px 26px 26px}
 html.ui-on.ui-e760 .row .fundc{display:none!important}
 /* the header's columns keep the rows' 1px gridlines in a narrow room too (the board's own 6px gap there set every heading off its column) */
 html.ui-on.ui-e940 .gridhead{gap:1px}
@@ -29889,7 +29894,7 @@ function render(){
       pidOf(it)? `<span class="id" title="PID">${esc(pidOf(it))}</span>` : '<span class="exc">No PID</span>',
       _aw? (_aw.mode==='inc'? `<span title="incremental funding — ${(_aw.inc||[]).length} increment(s); edit on the RECORD panel">📅 INC ×${(_aw.inc||[]).length}</span>`
                             // v2.22 W1 (item 149.28): a damaged award date says so on the row; it read the bare word "Award"
-                            : !awdDateOk(_aw.d)? '<span class="exc" title="The award date could not be read when the board opened. Open the record to set it again.">Award needs repair</span>'
+                            : !awdMonthOk(_aw.d)? '<span class="exc" title="The award date could not be read when the board opened. Open the record to set it again.">Award needs repair</span>'
                             : `<span title="award/obligation date — full funded amount forecasts in this month${_aw.day?'; day '+_aw.day+' sets the CR half-month window':''}">Award ${_aw.day? _aw.day+' ':''}${esc(String(ymLbl(_aw.d)).replace(/\b([A-Z])([A-Z]{2})\b/,function(m,a,b){ return a+b.toLowerCase(); }))}</span>`) : '',
       ptypeOf(id)? `<span class="x">${ptypeOf(id)==='PRIME'? PRIME_ICON+' Prime' : 'OGC'}</span>` : '',
       ((S.costElem||{})[id])? `<span class="x">${esc((S.costElem||{})[id])}</span>` : '',
@@ -37813,9 +37818,10 @@ function cutlinesOf(T, TT){
 }
 // WHAT A RECORD STILL NEEDS (item 149.44): the labels reqNeeds() finds missing -- the one checklist the Add box, a PMO copy's proposal gate,
 // Pre-flight and the record's buttons read -- for every requirement of the year on screen, once per render.
-// (the proposal gate's own reading of it: the labels reqNeeds() finds missing on the requirement as it stands)
+// (the proposal gate's own reading of it: the labels reqNeeds() finds missing on the requirement as it stands). Read inside
+// clinReadOnly: a prime's record fields read its CLIN list, which a plain read makes -- a draw must write nothing (v2.12 rule).
 function reqTodoOf(id){
-  try{ return itemById(id)? pmoProposalGate(id) : []; }catch(e){ return []; }
+  try{ return itemById(id)? clinReadOnly([id], function(){ return pmoProposalGate(id); }) : []; }catch(e){ return []; }
 }
 function reqTodoMap(){
   const M=Object.create(null);
@@ -37823,8 +37829,8 @@ function reqTodoMap(){
   return M;
 }
 var incOnly=false;   // Incomplete (149.44): this page's filter, like the others; never written into the file
-// a single award's date as the board reads one: a real month
-function awdDateOk(d){ return typeof d==='string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(d); }
+// a single award's month as the board reads one: a real month (awdDateOk, above, is the date box's own test of a whole date)
+function awdMonthOk(d){ return typeof d==='string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(d); }
 // item 149.37: the CCaR record name is printed on the row only when it ADDS words to the row's name. One character apart (a dash, a
 // space, a case) printed it whole on every row whose names differed by that.
 function recNameAdds(rn, title){

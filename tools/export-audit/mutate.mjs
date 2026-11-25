@@ -10576,7 +10576,7 @@ const MUTATIONS = [
   { id: 'v222-w1-added-not-new', area: 'render', what: "a requirement added on the board says ADDED again, not new or continues",
     find: ": '<span class=\"x nw\">new</span>') : '',", repl: ": '<span class=\"x nw\">ADDED</span>') : '',"},
   { id: 'v222-w1-award-repair-bare', area: 'render', what: "a damaged award date reads the bare word Award again",
-    find: "                            : !awdDateOk(_aw.d)? '<span class=\"exc\"", repl: "                            : false? '<span class=\"exc\"" },
+    find: "                            : !awdMonthOk(_aw.d)? '<span class=\"exc\"", repl: "                            : false? '<span class=\"exc\"" },
   { id: 'v222-w1-bar-enter-dead', area: 'moneyBarKey', what: "Enter on the money bar selects nothing",
     find: "  else if(e.key==='Enter' || e.key===' '){ if(i>=0){ e.preventDefault(); moneyBarPick(all[i].getAttribute('data-id')); } return; }",
     repl: "  else if(e.key==='Enter' || e.key===' '){ return; }" },

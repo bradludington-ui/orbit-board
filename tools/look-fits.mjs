@@ -24,7 +24,7 @@ const args = process.argv.slice(2);
 const bi = args.indexOf('--board');
 const FILE = resolve(bi >= 0 ? args[bi + 1] : join(ROOT, 'prioritization-board-grid.html'));
 // a nine-digit requirement, short, so the widest Funded figure and the widest "unfunded $X" are on the board
-const BOARD = buildPopulated(FILE, `applyAskVec(S.order[4], [123456789,0,0,0,0,0]);`);
+const BOARD = buildPopulated(FILE, `applyAskVec(S.order[4], [923456789,0,0,0,0,0]);`);
 let bad = 0;
 const chk = (what, ok, detail) => { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${ok ? '' : '  -- ' + String(detail || '').slice(0, 400)}`); };
 
@@ -103,8 +103,8 @@ console.log('D. the pointer');
 
 // ── E. the rows' Funded and status, and the chips ────────────────────────────────────────────────────────────────────────
 console.log('E. the rows and the chips');
-for (const w of [1920, 1440, 1366, 1024]) {
-  const { ctx, p, errs } = await open(w, 'review');
+for (const [w, mode] of [[1920, 'review'], [1440, 'review'], [1366, 'review'], [1024, 'review'], [1920, 'rank'], [1440, 'rank'], [1024, 'rank'], [900, 'rank']]) {
+  const { ctx, p, errs } = await open(w, mode);
   const r = await p.evaluate(() => {
     const cut = [];
     document.querySelectorAll('#list .row').forEach(row => {
@@ -117,9 +117,9 @@ for (const w of [1920, 1440, 1366, 1024]) {
       return { id: b.id, h: Math.round(c.height), in: c.left >= 0 && c.right <= innerWidth, hit: !!t && (t === b || b.contains(t)) }; });
     return { cut, big, chips, scroll: document.documentElement.scrollWidth - innerWidth };
   });
-  chk(`E · ${w}px: every Funded figure, status pill and "unfunded $X" whole (a nine-digit figure among them)`, r.big && !r.cut.length && r.scroll <= 0, JSON.stringify(r.cut.slice(0, 5)) + ' big:' + r.big + ' scroll:' + r.scroll);
-  chk(`E · ${w}px: the band’s chips on screen, whole, clickable, 24px or more`, r.chips.length >= 5 && r.chips.every(c => c.h >= 24 && c.in && c.hit), JSON.stringify(r.chips));
-  chk(`E · ${w}px: nothing threw`, !errs.length, errs.join(' | '));
+  chk(`E · ${w}px ${mode}: every ${mode === 'rank' ? '' : 'Funded figure, '}status pill and "unfunded $X" whole (a nine-digit figure among them)`, r.big && !r.cut.length && r.scroll <= 0, JSON.stringify(r.cut.slice(0, 5)) + ' big:' + r.big + ' scroll:' + r.scroll);
+  chk(`E · ${w}px ${mode}: the band’s chips on screen, whole, clickable, 24px or more`, r.chips.length >= 5 && r.chips.every(c => c.h >= 24 && c.in && c.hit), JSON.stringify(r.chips));
+  chk(`E · ${w}px ${mode}: nothing threw`, !errs.length, errs.join(' | '));
   await ctx.close();
 }
 
