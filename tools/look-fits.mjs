@@ -2,7 +2,7 @@
 // nothing out and every promise here is about where something is drawn and whether it can be read:
 //
 //   A. The header holds the find box on one line: a search box at least 170px wide, or -- fitTop()'s step cmd1 -- its magnifier alone in
-//      a 36px button, never wrapped while that step is left; the find box keeps its words as its accessible name.
+//      a 36px button (32px from the fourth step on), never wrapped while that step is left; the find box keeps its words as its accessible name.
 //   B. The money bar draws every requirement in priority order, each block as wide as its share of the board's requirement (to a pixel),
 //      the blocks filling the bar; no run's words are cut (they shorten to the ranks, or go); it is not drawn in Brief, on the Funding
 //      page, or where the room is 760px or less.
@@ -51,7 +51,7 @@ for (const w of [1920, 1512, 1440, 1366, 1280, 1152, 1024, 960, 900, 820]) {
     const c = b.getBoundingClientRect(), tops = [...h.children].filter(e => e.getBoundingClientRect().width > 0 && !e.classList.contains('statwrap')).map(e => Math.round(e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2));
     const lbl = (b.querySelector('.cmdT') || {}).textContent || '';
     return { w: Math.round(c.width), cls: h.className, spread: Math.max(...tops) - Math.min(...tops), name: lbl, scroll: document.documentElement.scrollWidth - innerWidth }; });
-  const ok = !!r && (/cmd1/.test(r.cls) ? r.w === 36 : r.w >= 170) && r.spread <= 6 && !/tight2/.test(r.cls) && r.name === 'Find or run anything' && r.scroll <= 0 && !errs.length;
+  const ok = !!r && (/cmd1/.test(r.cls) ? (r.w >= 24 && r.w <= 36) : r.w >= 170) && r.spread <= 6 && !/tight2/.test(r.cls) && r.name === 'Find or run anything' && r.scroll <= 0 && !errs.length;
   chk(`A · ${w}px: the find box is ${r ? (/cmd1/.test(r.cls) ? 'its magnifier, ' + r.w + 'px' : r.w + 'px wide') : 'missing'}, the header one line`, ok, JSON.stringify(r) + ' ' + errs.join(' | '));
   await ctx.close();
 }

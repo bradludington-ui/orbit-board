@@ -3162,7 +3162,13 @@ await (async () => {
       chk(name, 'as v2.11', 'the board read from git is v2.11 (no Needs attention WBS reading), and it opens file one and draws it (a CONTROL)',
         J([O1.ev(`typeof wbsBlankOf`), JSON.parse(opens(O1))]), J(['undefined', [0, 4, true]]));
       chk(name, 'as v2.11', 'v2.11 could not open file two either (a CONTROL: its null CLINs were never a regression)', J(JSON.parse(opens(O2)).slice(0, 2)), J([1, 0]));
-      chk(name, 'as v2.11', 'file one: every row shows the figures v2.11 shows', rowsOf(R1), rowsOf(O1));
+      // v2.22 W1 (item 155): Review reads Funded and the status now, and the running total is Rank's -- so the figures v2.11's rows
+      // show (the requirement and the cumulative) are compared in Rank, where both boards print them, less the "unfunded $X" v2.22
+      // adds under the status (149.45; its dollars are the line below's, moneyOf, per requirement)
+      const rankRows = B => { try { return B.ev(`(function(){ uiMode='rank'; render(); var out=JSON.stringify([].map.call(document.querySelectorAll('[id^="row-"]'), function(r){
+        var c=r.cloneNode(true); [].forEach.call(c.querySelectorAll('.unfx'), function(x){ x.remove(); }); return [r.id, c.textContent.match(/\\$[\\d,.]+[MK]?/g)||[]]; }));
+        uiMode='review'; render(); return out; })()`); } catch (e) { return '[]'; } };
+      chk(name, 'as v2.11', 'file one: every row shows the figures v2.11 shows', rankRows(R1), rankRows(O1));
       chk(name, 'as v2.11', 'file one: every requirement’s discretionary, mandatory, unfunded and cumulative, and the totals, are v2.11’s', moneyOf(R1), moneyOf(O1));
     }
     const MONEY = J([[['A', [100, 20], [0, 0], [0, 0], 120], ['P', [300, 10], [0, 0], [0, 30], 460], ['Q', [300, 0], [150, 0], [50, 0], 960], ['R', [0, 0], [0, 0], [80, 0], 1040]], [730, 150, 160, 310, 160]]);

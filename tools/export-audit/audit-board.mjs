@@ -9674,23 +9674,23 @@ await (async () => {
       Object.defineProperty(h, 'clientWidth', {configurable:true, get:function(){ return window.__cw; }});
       Object.defineProperty(h, 'scrollWidth', {configurable:true, get:function(){ var w=1000, c=h.classList;
         if(c.contains('tight1')) w-=100; if(c.contains('cyc1') && f.textContent===f.getAttribute('data-s')) w-=100; if(c.contains('cyc2')) w-=50; if(c.contains('tight3')) w-=50; if(c.contains('tight4')) w-=50;
-        if(c.contains('cmd1')) w-=50;   // v2.22 W1: the find box's step (its magnifier alone), taken after the figure leaves the bar
+        if(c.contains('cmd1')) w-=50;   // v2.22 W1: the find box's step (its magnifier alone), taken right after the labels go
         return w; }}); })(); 'ok'`);
     const at = cw => JSON.parse(ev(`window.__cw=${cw}; fitTop(); JSON.stringify([document.querySelector('.hdr').className, document.getElementById('cycFit').textContent])`));
     chk(name, 'the steps', 'room for it all: nothing changes', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
     chk(name, 'the steps', 'first the labels go, and nothing else', J(at(900)), J(['hdr tight1', 'FY27 · $541K unallocated · ⚠ $50 over']));
-    chk(name, 'the steps', 'then the figure shortens', J(at(800)), J(['hdr tight1 cyc1', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'then it leaves the bar for the list', J(at(750)), J(['hdr tight1 cyc1 cyc2', '$541K · ⚠ $50']));
-    // v2.22 W1 (item 155): the find box's own step (cmd1, its magnifier alone) comes next, before the fourth and fifth -- every step
-    // after it moved down 50px of stand-in room, and the wrap is still last
-    chk(name, 'the steps', 'then the find box shows its magnifier alone (v2.22), and nothing else', J(at(700)), J(['hdr tight1 cyc1 cyc2 cmd1', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'then the fourth step, and the bar fits on one line -- never wrapped while a step is left', J(at(650)), J(['hdr tight1 cyc1 cyc2 cmd1 tight3', '$541K · ⚠ $50']));
+    // v2.22 W1 (item 155): the find box's own step (cmd1, its magnifier alone) comes next, before the figure gives up a word -- every
+    // step after it moved down 50px of stand-in room, and the wrap is still last
+    chk(name, 'the steps', 'then the find box shows its magnifier alone (v2.22), and the figure stays whole', J(at(850)), J(['hdr tight1 cmd1', 'FY27 · $541K unallocated · ⚠ $50 over']));
+    chk(name, 'the steps', 'then the figure shortens', J(at(800)), J(['hdr tight1 cmd1 cyc1', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then it leaves the bar for the list', J(at(700)), J(['hdr tight1 cmd1 cyc1 cyc2', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then the fourth step, and the bar fits on one line -- never wrapped while a step is left', J(at(650)), J(['hdr tight1 cmd1 cyc1 cyc2 tight3', '$541K · ⚠ $50']));
     // v2.21 (item 152): a fifth step, the wordmark's O and the save state's dot alone (Save moved into this bar), before any wrap
-    chk(name, 'the steps', 'then the fifth step (v2.21), and the bar fits on one line', J(at(600)), J(['hdr tight1 cyc1 cyc2 cmd1 tight3 tight4', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(550)), J(['hdr tight1 cyc1 cyc2 cmd1 tight3 tight4 tight2', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'then the fifth step (v2.21), and the bar fits on one line', J(at(600)), J(['hdr tight1 cmd1 cyc1 cyc2 tight3 tight4', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(550)), J(['hdr tight1 cmd1 cyc1 cyc2 tight3 tight4 tight2', '$541K · ⚠ $50']));
     chk(name, 'the steps', 'and given room again, it comes back whole', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
     // moved into the list: the list leads with the whole sentence, opening Fit to the PPBE position; the button carries the over
-    at(750);
+    at(700);   // v2.22 W1: the figure leaves the bar at 700 now (cmd1 took 50 first)
     ev(`toggleMenu('cyc'); 'ok'`);
     const L = JSON.parse(ev(`(function(){ var b=document.querySelector('#dd_cyc .cycfit-in button.mi'), first=document.querySelector('#dd_cyc button');
       return JSON.stringify({txt:b? b.textContent.replace(/\\s+/g,' ').trim() : 'none', on:b? b.getAttribute('onclick') : '', first:first===b, fover:document.getElementById('b_cyc').classList.contains('fover'),

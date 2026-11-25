@@ -1783,6 +1783,11 @@ html.ui-on .hdr .cmdopen .cmdK{flex:none;font-family:inherit;font-size:11px;colo
 html.ui-on .hdr.cmd1 .cmdopen{flex:none;width:36px;min-width:36px;padding:0;justify-content:center}
 html.ui-on .hdr.cmd1 .cmdopen .cmdT{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 html.ui-on .hdr.cmd1 .cmdopen .cmdK{display:none}
+/* and at the fourth step (tight3) the pills and the find box close up, as the rest of the bar does */
+html.ui-on .hdr.tight3 .ctx{gap:4px}
+html.ui-on .hdr.tight3 .ctx .btn,html.ui-on .hdr.tight3 .ctx select{padding-left:9px;padding-right:9px}
+html.ui-on .hdr.tight3 .ctx select{padding-right:22px}
+html.ui-on .hdr.tight3 .cmdopen{margin:0;width:32px;min-width:32px}
 /* the pickers' words are on their faces; their labels stay their accessible names, out of sight */
 html.ui-on .hdr .ctx .tlbl{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
 html.ui-on .hdr .ctx{gap:8px}
@@ -1794,8 +1799,8 @@ html.ui-on .hdr .apxSub{display:none}
 #uiSide .uiGrp{font-size:11px;letter-spacing:.1em;color:var(--uiNavMut)}
 /* THE HEADING LINE: the page's name and what is showing, then the task bar -- the modes as a segmented control, the mode's tools and
    the one Add requirement, last, in the main-button look (149.35) */
-html.ui-on #uiPage{padding-top:14px}
-html.ui-on #uiPage .uiHd{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;margin:0 0 12px}
+html.ui-on #uiPage{padding-top:10px}
+html.ui-on #uiPage .uiHd{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;margin:0 0 10px}
 html.ui-on #uiPage .uiHdT{display:flex;flex-direction:column;gap:2px;min-width:0;flex:0 1 auto}
 html.ui-on #uiPage .uiHd h2{font-size:26px;line-height:1.1;font-weight:700}
 html.ui-on #uiPage .uiHd .uiSub{font-size:13px;color:var(--mut)}
@@ -1807,37 +1812,37 @@ html.ui-on #uiPage .tbar .tabs{background:var(--panel2);border:1px solid var(--l
 html.ui-on #uiPage .tbar .tab{height:30px;font-size:13px;font-weight:600;padding:0 14px;border-radius:7px;color:var(--mut)}
 html.ui-on #uiPage .tbar .tab .ic{display:none}
 html.ui-on #uiPage .tbar .tab[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.18),0 0 0 1px var(--edge)}
-/* the four modes the list is worked in show on the Requirements, Funding and Cycles pages; Brief is the left menu's, as it is today */
-html.ui-on:is([data-mode="review"],[data-mode="rank"],[data-mode="fund"],[data-mode="compare"]) #uiPage .tbar .tabs{display:flex}
-html.ui-on:is([data-mode="review"],[data-mode="rank"],[data-mode="fund"],[data-mode="compare"]) #uiPage .tbar :is(#tab_review,#tab_rank,#tab_fund,#tab_compare){display:inline-flex}
+/* the four modes the list is worked in, as the Requirements page's segmented control (the concept's); the Funding and Cycles pages are
+   the left menu's, and keep their own tools on the line, as the concept draws them; Brief is the left menu's, as it is today */
+html.ui-on:is([data-mode="review"],[data-mode="rank"]) #uiPage .tbar :is(#tab_review,#tab_rank,#tab_fund,#tab_compare){display:inline-flex}
 html.ui-on #uiPage .tbar .modetools .btn{height:32px;font-size:13px;padding:0 12px;border-radius:7px;font-weight:600}
-html.ui-on #uiPage .tbar #toolAdd{order:9;background:#1f5fa8;border-color:#1f5fa8;color:#fff;font-weight:700}
-html.ui-on #uiPage .tbar #toolAdd:hover{background:#174a85;border-color:#174a85}
+html.ui-on #uiPage .tbar #toolAdd{order:9;background:#1f5fa8;border-color:var(--edge);color:#fff;font-weight:700}
+html.ui-on #uiPage .tbar #toolAdd:hover{background:#174a85;border-color:var(--edge2)}
 html.ui-on #uiPage .tbar #toolAdd .ic{width:14px;height:14px}
 html.ui-on #uiPage .tbar .dragnote{max-width:260px}
 /* THE TILES: a meter under each figure, and "whole board" when the list is narrowed */
-html.ui-on #uiKpis{gap:14px;margin-bottom:14px}
-html.ui-on #uiKpis .k{background:var(--w1card);border:1px solid var(--w1line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+html.ui-on #uiKpis{gap:12px;margin-bottom:10px}
+html.ui-on #uiKpis .k{background:var(--w1card);border:1px solid var(--w1line);border-radius:12px;padding:10px 14px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
 html.ui-on #uiKpis .k .l{font-size:13px;color:var(--mut);display:flex;gap:8px;align-items:baseline}
 html.ui-on #uiKpis .k .l .wb{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);border:1px solid var(--edge);border-radius:4px;padding:0 5px}
-html.ui-on #uiKpis .k .v{font-size:26px;margin:4px 0 8px}
+html.ui-on #uiKpis .k .v{font-size:23px;margin:2px 0 6px}
 html.ui-on #uiKpis .k .km{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
 html.ui-on #uiKpis .k .km i{display:block;height:100%;background:var(--apxNav)}
 html.ui-on #uiKpis .k.disc .km i{background:var(--apxOk)}
 html.ui-on #uiKpis .k.mand .km i{background:#c9930c}
 html.ui-on #uiKpis .k.ufr .km i{background:var(--apxBad)}
-html.ui-on #uiKpis .k .x{font-size:12.5px;color:var(--mut);margin-top:8px;white-space:normal}
+html.ui-on #uiKpis .k .x{font-size:12.5px;color:var(--mut);margin-top:5px;white-space:normal}
 html.ui-on #uiKpis .k.ufr.short .v{color:var(--red)}
 /* the Funding page states these figures in its own tiles (the posture), and Brief keeps both as it always has */
 html.ui-on[data-mode="fund"] #uiKpis{display:none}
 /* WHERE THE MONEY RUNS OUT: the whole board in priority order, one block per requirement */
 .moneybar{display:none}
-html.ui-on .moneybar:not(:empty){display:block;background:var(--w1card);border:1px solid var(--w1line);border-radius:12px;padding:12px 16px 10px;margin:0 0 14px}
+html.ui-on .moneybar:not(:empty){display:block;background:var(--w1card);border:1px solid var(--w1line);border-radius:12px;padding:8px 14px 7px;margin:0 0 10px}
 html.ui-on[data-mode="fund"] .moneybar,html.ui-on[data-mode="brief"] .moneybar,html.ui-on.ui-e760 .moneybar{display:none}
-.moneybar .mbh{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.moneybar .mbh{display:flex;flex-wrap:wrap;gap:2px 14px;align-items:baseline;justify-content:space-between;margin-bottom:5px}
 .moneybar .mbh .k{font-size:15px;font-weight:700;color:var(--ink)}
 .moneybar .pn{font-size:12px;color:var(--mut)}
-.moneybar .mbbar{display:flex;height:30px;border-radius:6px;overflow:hidden;border:1px solid var(--edge);background:var(--panel2);cursor:pointer}
+.moneybar .mbbar{display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--edge);background:var(--panel2);cursor:pointer}
 .moneybar .mbbar:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .moneybar .mbrun{position:relative;display:flex;min-width:0;flex-basis:0;flex-shrink:1}
 .moneybar .mbrun.c-disc{background:var(--apxOk);color:#000}
@@ -1849,7 +1854,7 @@ html.ui-on[data-mode="fund"] .moneybar,html.ui-on[data-mode="brief"] .moneybar,h
 .moneybar .mbb:hover{background:rgba(255,255,255,.28)}
 .moneybar .mbb[aria-selected="true"]{box-shadow:inset 0 0 0 2px #000,inset 0 0 0 4px #fff}
 .moneybar .mbbar:focus-visible .mbb.kb{box-shadow:inset 0 0 0 3px var(--blue),inset 0 0 0 5px #fff}
-.moneybar .mbsay{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:8px;font-size:12.5px;color:var(--ink)}
+.moneybar .mbsay{display:flex;flex-wrap:wrap;gap:2px 22px;margin-top:5px;font-size:12.5px;color:var(--ink)}
 /* THE TABLE: a lighter title band with its filter chips; rows with room to breathe */
 html.ui-on .apxBand:not(:empty){display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;background:var(--w1card);color:var(--ink);border-bottom:1px solid var(--line2);padding:8px 12px}
 html.ui-on .apxBand .gbT{font-size:15px;font-weight:700;margin-right:auto}
@@ -1857,7 +1862,7 @@ html.ui-on .apxBand .gbChips{display:flex;gap:6px;flex-wrap:wrap;align-items:cen
 .fchipb{display:inline-flex;align-items:center;gap:6px;min-height:28px;border:1px solid var(--edge);border-radius:999px;background:var(--panel);color:var(--ink);
   font-family:inherit;font-size:12.5px;font-weight:600;padding:0 12px;cursor:pointer;white-space:nowrap}
 .fchipb b{font-weight:700}
-.fchipb[aria-pressed="true"]{background:var(--apxNav);border-color:var(--apxNav);color:#fff}
+.fchipb[aria-pressed="true"]{background:var(--apxNav);border-color:var(--edge);color:#fff}
 .fchipb:hover:not(:disabled){border-color:var(--edge2)}
 .fchipb:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .fchipb:disabled{opacity:.6;cursor:default}
@@ -1907,7 +1912,7 @@ html.ui-on.ui-e760 .row .fundc{display:none!important}
 html.ui-on.ui-e940 .gridhead{gap:1px}
 html.ui-on.ui-e940[data-mode="review"] #list .row .num,html.ui-on.ui-e940[data-mode="compare"] #list .row .num{font-size:11.5px}
 /* THE FUNDING PAGE (item 154): the posture as APEX's tiles in the page, then Unfunded by service and Needs attention, then one bar */
-html.ui-on .posture{display:block;padding:0;background:transparent;min-height:0;overflow:visible;margin:0 0 14px}
+html.ui-on .posture{display:block;padding:0 18px;background:transparent;min-height:0;overflow:visible;margin:0 0 12px}
 html.ui-on .posture .pptiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
 html.ui-on .posture .pplanes{display:contents}
 html.ui-on .posture .pp{display:block;flex:none;margin:0;padding:14px 16px;border:1px solid var(--w1line);border-radius:12px;background:var(--w1card);min-width:0;box-shadow:0 1px 2px rgba(16,24,40,.06)}
@@ -1931,7 +1936,7 @@ html.ui-on .posture .ppsvc .bar i{display:block;height:100%;background:var(--apx
 html.ui-on .posture .ppsvc b{font-size:13px;font-weight:700;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 html.ui-on .posture .ppatt{display:block}
 html.ui-on .posture .ppatt .pplist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-html.ui-on .posture .ppatt button.e{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;border:1px solid var(--w1line);border-radius:8px;background:var(--panel);
+html.ui-on .posture .ppatt button.e{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);
   padding:6px 12px;font-size:13px;font-weight:600;white-space:normal;color:var(--ink);text-decoration:none}
 html.ui-on .posture .ppatt button.e:hover{border-color:var(--edge2);text-decoration:none}
 html.ui-on .posture .ppatt button.e:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
@@ -2122,8 +2127,6 @@ html.ui-on[data-mode="brief"] .posture .ppt .v,html.ui-on[data-mode="brief"] .po
   <div id="uiKpis" aria-label="Headline figures"></div>
   <!-- v2.22 W1 (item 155): where the money runs out, in priority order -- the whole board, one block per requirement (moneyBarHtml) -->
   <div class="moneybar" id="moneyBar" role="region" aria-label="Where the money runs out, in priority order"></div>
-  <!-- v2.22 W1 (item 154): the funding posture is the Funding page's tiles now, in the page (it was a strip in the sticky top) -->
-  <div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
   <div class="uiTools" id="uiTools" role="group" aria-label="Table tools">
     <span id="uiToolsMoved" style="display:contents"></span>
     <div class="uiMenu"><button type="button" class="btn" id="uiColsBtn" aria-expanded="false" onclick="uiPop('uiColsPop',this)" title="Show or hide table columns"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M6 2.5v11M10 2.5v11"/></svg>Columns</button><div class="uiPop" id="uiColsPop"></div></div>
@@ -2131,6 +2134,9 @@ html.ui-on[data-mode="brief"] .posture .ppt .v,html.ui-on[data-mode="brief"] .po
     <span class="sp"></span>
   </div>
 </div>
+<!-- v2.22 W1 (item 154): the funding posture is the Funding page's tiles now, in the page under its heading and the table's tools (it was a
+     strip in the sticky top) -->
+<div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
 <div id="driveBar"></div>
 <!-- The scorecards, the fit strip and the funding panels, unchanged, under "Funding detail". -->
 <div class="funddetail" id="fundDetail">
@@ -30050,10 +30056,11 @@ function fitTop(){
     const over=function(el){ return el.scrollWidth>el.clientWidth; }, fig=function(){ return !!(f && !f.hidden); };
     if(hdr && hdr.clientWidth){
       if(over(hdr)) hdr.classList.add('tight1');
+      // v2.22 W1 (item 155): the find box shows its magnifier alone (a 36px button; its words stay its accessible name and tooltip) --
+      // before the PPBE cycle's figure gives up a word: the box only opens the palette, which Ctrl K and the magnifier still do
+      if(over(hdr)) hdr.classList.add('cmd1');
       if(over(hdr) && fig()){ hdr.classList.add('cyc1'); say(true); }
       if(over(hdr) && fig()) hdr.classList.add('cyc2');
-      // v2.22 W1 (item 155): the find box shows its magnifier alone (a 36px button; its words stay its accessible name and tooltip)
-      if(over(hdr)) hdr.classList.add('cmd1');
       // (4) still too long -- a narrow window with a message and its unread warning beside it: Help shows its icon alone, as on a phone,
       // "⚠ 1 unread" reads "⚠ 1" (its accessible name and tooltip still say what it is), and the plain "✎ Editable" chip reads ✎
       if(over(hdr)) hdr.classList.add('tight3');
@@ -30149,7 +30156,9 @@ function fitMenus(){
   dds.forEach(function(dd){ try{
     const m=dd.parentElement, b=m.getBoundingClientRect();
     dd.style.maxHeight=''; dd.style.overflowY=''; dd.style.maxWidth=''; dd.style.overflowX=''; dd.style.transform='';
-    if(m.closest('.gridwrap, #list, #inspector, .modal-bg, .posture')){
+    // v2.22 W1 (item 155): and a menu in the page's heading or its tools (#uiPage) -- the Filter, the mode's tools, the spend plan
+    // basis: under the tiles and the money bar they sit far down a short window, and a menu hung down from them ran off its foot
+    if(m.closest('.gridwrap, #list, #inspector, .modal-bg, .posture, #uiPage')){
       // out of the clipping box: where the window's origin is for a fixed box here (a sliding drawer is
       // transformed, and is then the reference), measured rather than assumed
       dd.style.position='fixed'; dd.style.right='auto'; dd.style.bottom='auto'; dd.style.top='0px'; dd.style.left='0px';
@@ -37888,6 +37897,12 @@ function uiAttPopFill(p){
   src.forEach(function(b){ const c=b.cloneNode(true); c.classList.remove('fitatt'); c.classList.add('o');
     c.setAttribute('onclick', 'uiPopsClose();'+b.getAttribute('onclick')); p.appendChild(c); });
   p.insertAdjacentHTML('beforeend', '<div class="note">The same lists as Needs attention on the Funding page.</div>');
+  // fixed beside its chip: the table it sits in clips what runs past it, and a short list would cut the popup
+  try{ const b=document.getElementById('fc_att'), r=b? b.getBoundingClientRect() : null, H=window.innerHeight||0, W=window.innerWidth||0;
+    if(r && H){ p.style.position='fixed'; p.style.right='auto'; p.style.left='0px'; p.style.top='0px'; p.style.visibility='hidden'; p.classList.add('open');
+      const h=p.offsetHeight, w=p.offsetWidth, up=(H-r.bottom-12)<h && r.top>(H-r.bottom);
+      p.style.top=Math.max(8, up? r.top-4-h : r.bottom+4)+'px'; p.style.left=Math.max(8, Math.min(W-8-w, r.right-w))+'px';
+      p.style.visibility=''; p.classList.remove('open'); } }catch(e){}
 }
 // item 149.28: Columns at a width where they cannot show -- greyed, saying why. uiCols() hides a column only where the row draws its
 // whole set of cells; narrower, the board's own list has already taken cells away, and the tick changed nothing.

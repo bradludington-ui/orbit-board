@@ -12,9 +12,12 @@ at 1440 and 1024).
   integration*). Its words stay its accessible name at every step.
 - The four pickers (`#appnSel`, `#b_fy`, `#b_cyc`, `#b_pmo`) are pills; their labels (`.ctx .tlbl`) are visually hidden at every
   width (they stay the select's label and the buttons' context), so `tight1` takes nothing more from them.
-- `fitTop()` gains the find box's own step, `cmd1` (its magnifier alone in a 36px button, the words clipped, never removed), taken
-  after the cycle figure has left the bar (`cyc2`) and before the fourth and fifth steps and any wrap. It is taken off with the others
-  (`hdr.classList.remove('cmd1')`, a line of its own so v2.15's `v215-w1-fit-not-reset` still matches).
+- `fitTop()` gains the find box's own step, `cmd1` (its magnifier alone in a 36px button, 32px from the fourth step on; the words
+  clipped, never removed), taken right after the labels and BEFORE the PPBE cycle's figure shortens (`cyc1`): the find box only opens
+  the palette, which Ctrl K and the magnifier still do, while the figure is information. (Taken after `cyc2` first, keyboard-reach V
+  failed: the figure left the bar at 1440 on a tagged board.) It is taken off with the others (`hdr.classList.remove('cmd1')`, a line
+  of its own so v2.15's `v215-w1-fit-not-reset` still matches). At the fourth step (`tight3`) the pills close up (9px padding, 4px
+  gaps), which gives back what their wider padding took (layout S wrapped at 761px until it did).
 - The plain "✎ Editable" chip is hidden (149.39); a chip that says more (read only, PMO copy, someone else holds the pen) shows.
 
 ### The left menu
@@ -27,8 +30,9 @@ at 1440 and 1024).
   appropriation, office and cycle that the pickers above already say.)
 - The task bar (`.tbar`, by its own ids) moved from the sticky top into the heading line: the modes as a segmented control (Review,
   Rank, Fund, Compare on those four pages; Brief stays the left menu's), the mode's tools, and ONE Add requirement — `#toolAdd`,
-  now `btn pri`, last in the line. `#uiAddBtn` (the second one, `uiAddReq`) is gone. The sticky top is the header alone, so the
-  rows' header pins under less.
+  now `btn pri`, last in the line. `#uiAddBtn` (the second one) and `uiAddReq` are gone. The sticky top is the header alone, so the
+  rows' header pins under less. The segmented control shows on the Requirements page (Review and Rank); the Funding and Cycles
+  pages keep their own tools on the line, as the concept draws the Funding page.
 - The tiles (`uiKpis`, `uiKpiCard(cls, lbl, v, x, m)`): Total requirement, Discretionary, Mandatory, Unfunded (149.41), each with a
   meter — funded of the requirement; drawn of the BA; drawn of the BA; unfunded of the requirement — and its line ("of $X BA · $Y
   left" or "· all drawn"; "N of M requirements short"; and "· N incomplete" on the first). "whole board" beside each name while the
@@ -75,7 +79,8 @@ at 1440 and 1024).
   and says "Not at this width: the row already shows fewer columns, so this choice does not apply. Widen the window to use it."
 
 ### The Funding page (item 154)
-- `#posture` moved from the sticky top into the page, after the tiles' place, and `scoreboard()` writes it as APEX's tiles:
+- `#posture` moved from the sticky top into the page, right after `#uiPage` (the heading and the table's tools) and before the table,
+  and `scoreboard()` writes it as APEX's tiles:
   Discretionary and Mandatory (BA; "BA, all drawn" or "BA · $X drawn"; a meter; "$Y left"), ★ Mission critical (what stays
   unfunded of the must-pay total "even with mandatory", and what discretionary alone leaves short), Whole budget (unfunded of the
   requirement, funded); Unfunded by service as a bar per service against the largest (never netted); Needs attention as buttons with
@@ -97,11 +102,19 @@ at 1440 and 1024).
    off); the other lane filters show as a chip only when set from the Filter menu.
 4. **The money bar is not on the Funding page** (its own bar of discretionary, mandatory and unfunded is there).
 5. **The Requirements page's tiles are not on the Funding page**; Brief shows both, as before.
-6. **The mode control shows Review, Rank, Fund and Compare on all four pages** (the concept drew it on Requirements only).
+6. **The mode control (Review, Rank, Fund, Compare) shows on the Requirements page only**, as the concept draws it; the Funding page's
+   line holds its tools (shown on all four pages, the Funding page's tools folded into a menu at 1024 and the spend plan basis menu
+   could not open there).
 7. **A task bar too wide for the heading line goes onto a line of its own** (right-aligned) before it folds its tools.
 8. **The incomplete count is the year's** (like the Filter menu's counts), on the chip and under Total requirement.
 9. **Cumulative stays in Rank and in Columns there**; Review's Columns offers PMO, Decision band and Status.
 10. **A single award with no readable date reads "Award needs repair"** whether or not the opening recorded a repair.
+11. **On the Funding page the table's tools (search, Filter, Columns, View) come before the tiles** (the posture follows `#uiPage`):
+    under the tiles, bars and lists they started below a laptop's fold.
+12. **Toolbar menus in the page flip up** (`fitMenus` treats `#uiPage` as it treats the rows and boxes: fixed, below its button or above
+    where there is more room). Under the tiles and the money bar, Filter ran off the foot of a 761×730 window (dropdowns).
+13. **The Needs attention popup is placed fixed beside its chip**, so the table's clipping box never cuts it.
+14. **The tiles, the money bar and the heading were tightened** (padding, the figure 23px) to give rows back; see Known gaps for D.
 
 ## Checks
 - **audit-board "v2.22 W1 — the money bar, the tiles, the rows, the chips and the Funding page (items 155, 154, 149.35-149.46)"**
@@ -119,7 +132,15 @@ at 1440 and 1024).
   - audit-board "v2.18 — the row, the tiles, …" 149.13: the cumulative is read in Rank.
   - audit-board "v2.21 — ORBIT in APEX’s look…": the band's title is `#gridBandT`; the lane reads its pill's `data-lk` and "Both
     lanes"; the colour rules are the pill's.
-  - `tools/keyboard-reach.mjs` M and `tools/dialogs-keyboard.mjs`: the one Add requirement is `#toolAdd`.
+  - `tools/keyboard-reach.mjs` M and `tools/dialogs-keyboard.mjs`: the one Add requirement is `#toolAdd` (dialogs finds its opener by
+    id: the folded Tools menu calls `toggleAdd` too, out of sight).
+  - audit-other "v2.12 RV5 — a board file whose CLIN request is not a list…": the figures v2.11's rows show (requirement and
+    cumulative) are compared in Rank, where both boards print them, less the new "unfunded $X"; the dollars stay held by `moneyOf`.
+  - `tools/export-audit/hostile.mjs` MUST_SHOW: `title0` (a renamed requirement's title as its file has it) left the list -- its one
+    screen was the row's "Renamed — the file says" hover, which 149.37 removed; nothing else draws it.
+  - audit-import "v1.86 — the File menu, grouped, and the PMO copy under it": **failing on the slot commit itself** (it read the
+    `data-tip` stand-ins v2.21 took off the menu, and Save at the menu's foot); it reads each entry's words and Save in the header, and
+    checks the BOARD heading stands before Reports & exports.
 
 ## Mutations
 New (`v222-w1-*`, 29) and retargeted (`v221-152-lane-key-fixed`, `v221-152-unf-not-red`) — proofs in `proofs-W1.json`,
@@ -137,9 +158,24 @@ results in `proved-W1.jsonl`.
   or beside it, not as `#gridBand`'s textContent (which would erase the chips).
 - **The RECORD card (W3):** the money bar and the chips call `setCur(id)`; the bar marks the selected block on its own redraw and on a
   pick (`moneyBarMark`).
+- **`fitMenus` (nobody's in §2):** W1 added `#uiPage` to the containers whose menus are placed fixed (decided 12). W2's Filter menu
+  sits in `#uiPage`'s tools; if W2 moves `#q` and Filter, keep them inside `#uiPage` or a listed container.
+- **A rule for `npm run check`:** refuse a function name declared twice in the board (see Known gaps); three builders add functions
+  in one file at once.
 
 ## npm script to add
 - `"look": "node tools/look-fits.mjs"`, and add it to `verify:grid` (after `layout`, or before it: `layout` stops the chain on its
   carried D ×8).
 
 ## Known gaps
+- **Layout D (the first requirement on screen as the board opens) fails, as it has since v2.00, and by more**: the first row is at
+  476px at 1440 (v2.21: 323), 8 rows in view (13); at 1366×768 4 (8). The concept puts the tiles and the money bar above the table;
+  tightened as far as reads well. 149.52 ("more requirements on screen") is therefore NOT met; View › Compact still shows more.
+- **Below 1100px the mode's tools fold into Tools ▾** (the board's own media rule), the one Add requirement with them: there it is a
+  menu item, not a main button.
+- **Help** (at its size limit) does not mention the money bar, the chips or the Funding page's tiles; its one paragraph on the page is
+  still true.
+- `incOnly` is not in the Filter menu (W2's group) or cleared by "Clear all filters" / `arOpenRecord` (W2): see For the integration.
+- **A name collision cost a run**: my first `awdDateOk` silently replaced the date box's own function of that name (a later
+  `function` declaration wins), and every typed award date was lost in the suite. Renamed `awdMonthOk`. `npm run check` has no rule
+  against a function declared twice; one would have caught it at once (For the integration).
