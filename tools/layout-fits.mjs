@@ -346,9 +346,12 @@ for (const [pass, docked] of PASSES) {
   await p.focus('#row-R003 .rank input');
   const r = await p.evaluate(() => {
     const cs = (id, pseudo) => getComputedStyle(document.getElementById(id), pseudo || null);
-    return { selBar: cs('row-R005', '::after').backgroundColor, selTint: cs('row-R005').backgroundColor,
+    // v2.21 (item 152): the rows are gridded -- the row's own background is the gridline and each cell carries the panel, so
+    // the tint is read off a cell (the title's), the same cell on both rows
+    const cell = id => getComputedStyle(document.querySelector('#' + id + ' > .tt') || document.getElementById(id).children[2]);
+    return { selBar: cs('row-R005', '::after').backgroundColor, selTint: cell('row-R005').backgroundColor,
              selRing: cs('row-R005').outlineStyle, focRing: cs('row-R003').outlineStyle, focW: cs('row-R003').outlineWidth,
-             plain: cs('row-R004').backgroundColor };
+             plain: cell('row-R004').backgroundColor };
   });
   chk('H · the selected row carries a bar and a tint, and no ring', r.selBar !== 'rgba(0, 0, 0, 0)' && r.selTint !== r.plain && r.selRing === 'none', JSON.stringify(r));
   chk('H · the row holding keyboard focus carries a ring', r.focRing === 'solid' && r.focW === '2px', `${r.focRing} ${r.focW}`);

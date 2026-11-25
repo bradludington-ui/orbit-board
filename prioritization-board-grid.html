@@ -1695,8 +1695,10 @@ html.ui-on .hdr.tight3 .brand .logo{height:20px}
 html.ui-on .hdr.tight3 #uiSave{gap:4px}
 /* (v2.21) tight4: the wordmark's O alone (the O is the left 23% of the mark) and the save state's dot alone */
 html.ui-on .hdr.tight4 .brand .logo{clip-path:inset(0 77% 0 0);margin-right:-66px}
+/* and Save its disk alone: its word stays its accessible name, clipped, never removed */
+html.ui-on .hdr.tight4 #saveBtn_t{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html.ui-on .hdr.tight4 #saveBtn,html.ui-on .hdr.tight4 #pmoSaveBtn{padding:3px 7px;gap:0}
 html.ui-on .hdr.tight4 #saveState{font-size:0;line-height:0;padding:0;width:14px;height:14px;min-width:14px;border-radius:50%;border:1px solid var(--edge);overflow:hidden;flex:none}
-html.ui-on .hdr.tight4 #saveState.dirty{border-color:#7a4a08}
 html.ui-on .hdr .bld{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--green);background:var(--greenD);color:var(--ink);font-size:12px;font-weight:700}
 html.ui-on .hdr .tlbl{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--ink)}
 html.ui-on .hdr .btn,html.ui-on .hdr select{font-family:inherit;font-weight:600;border:1px solid var(--edge);border-radius:6px;background:var(--panelA);color:var(--ink);min-height:28px;padding:3px 10px}
@@ -1707,7 +1709,6 @@ html.ui-on #uiSave{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
 html.ui-on .uiSvRow{display:flex;gap:4px;align-items:center}
 html.ui-on .uiSvRow[hidden]{display:none}
 html.ui-on #saveBtn,html.ui-on #pmoSaveBtn{display:inline-flex;align-items:center;gap:6px;min-height:28px;font-family:inherit;font-weight:600;font-size:13px;border:1px solid var(--edge);border-radius:6px;background:var(--panelA);color:var(--ink);padding:3px 10px;cursor:pointer}
-html.ui-on #saveBtn.dirty,html.ui-on #pmoSaveBtn.dirty{border-color:#7a4a08}
 html.ui-on .uiSvMore{min-width:28px;min-height:28px;border:1px solid var(--edge);border-radius:6px;background:var(--panelA);color:var(--ink);cursor:pointer;padding:0 6px;font-family:inherit}
 html.ui-on .uiSvMore[aria-expanded="true"]{background:var(--gold);color:var(--onGold)}
 html.ui-on #saveState{border-radius:6px;padding:3px 10px;background:var(--panelA);color:var(--ink);font-weight:400;white-space:nowrap}
@@ -1741,6 +1742,8 @@ html.ui-on #list .row > .clin-detail,html.ui-on #list .row > .note-detail{backgr
 /* a box that holds a figure keeps the width its own cell had before the gridlines: it pads 2px, not 6 (a nine-digit
    allocation is 67px of figures; at 1000 wide the 6px pad left it 62, pointer F3) */
 html.ui-on #list .row > .acts.alloc,html.ui-on #list .row > .rank{padding-left:2px;padding-right:2px}
+/* ★ and ⋯ sit in 26px columns: a 24px button there pads 1px, or the cell cuts it (layout C) */
+html.ui-on #list .row > .mcc,html.ui-on #list .row > .morec{padding-left:1px;padding-right:1px}
 html.ui-on #list .row.cur > *{background:var(--sel)}
 html.ui-on #list .row.flash > *{background:var(--flash)}
 html.ui-on #list .row.cur::after{inset:0 auto 0 0;width:3px}

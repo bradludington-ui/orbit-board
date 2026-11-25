@@ -3,18 +3,18 @@
 // in Chromium beside the board it came from -- two files in two folders, as an office and the portfolio team keep them, which
 // share one origin (file://) and so one handle store and one browser storage -- and checks what only a browser can show:
 //
-//   A. THE FOOT, at 1366×768 and 1366×657, in Harbor and Midnight: 💾 Save, its ▾ beside it, the save state, then ✉ Submit
-//      input, top to bottom, each at least 24×24 and inside the left menu; nothing scrolls sideways; at 657, where the menu
-//      already scrolls, the foot is reached by scrolling and shows whole.
-//   B. FOLDED TO ICONS: Save an icon of its own, 24×24 or more, above its ▾ and above Submit; unsaved work a dot on it.
-//   C. 1.4.11 / 1.4.3: Save's edge and its words against the left menu, measured as painted.
-//   D. THE KEYBOARD: Tab from the last left-menu entry reaches Save, then its ▾, then Submit, each with a visible focus ring;
+//   A. THE SAVE GROUP, at 1366×768 and 1366×657, in Harbor and Midnight: 💾 Save, its ▾ beside it, the save state, then ✉
+//      Submit input, left to right on one line in the header, each control at least 24×24 and inside the header; nothing
+//      scrolls sideways. (Until v2.21 this was the left menu's foot, top to bottom; item 152 moved Save into the header.)
+//   B. (v2.21: the fold to icons is gone with the icons.) Unsaved work shows as the header's brown badge, and nothing folds.
+//   C. 1.4.11 / 1.4.3: Save's edge and its words against the header, measured as painted.
+//   D. THE KEYBOARD: Tab goes Save, then its ▾, then Submit, each with a visible focus ring (v2.21: in the header);
 //      Enter on Save saves: the picker opens once, suggesting a new name with the office in it -- never the board's file
 //      name, never the copy's own -- and the file is written; Ctrl+S saves again into the same file, asking nothing.
 //   E. THE HANDLE STORE: the board's own entry (under the board page's own address since v2.14, item 140 a -- it was under the
 //      board's file name, the key every ORBIT file shared) is as the board left it; the copy's is under a key of its own, naming
 //      this copy and this office.
-//   F. THE BOARD (a CONTROL): its foot is as it was -- no copy Save, Tab goes from Setup to 💾 Save.
+//   F. THE BOARD (a CONTROL): no copy Save, and the header's Save is the board's 💾 Save.
 //   G. TWO TABS, ONE BROWSER (v2.09 review): PSM's file in one tab, AV's in another, one storage between them -- the second
 //      leaves the first on PSM and writes nothing into the browser's office setting; the person's own choice still does,
 //      and the copy as published opened next follows it (a CONTROL).
@@ -124,26 +124,27 @@ const geom = p => p.evaluate(() => {
   const side = document.getElementById('uiSide'), sr = side.getBoundingClientRect();
   const box = id => { const e = document.getElementById(id); if (!e || !e.getClientRects().length) return null; const r = e.getBoundingClientRect();
     return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }; };
+  const hd = document.querySelector('.hdr').getBoundingClientRect();
   return { side: { l: Math.round(sr.left), r: Math.round(sr.right), t: Math.round(sr.top), b: Math.round(sr.bottom), sw: side.scrollWidth, cw: side.clientWidth, sh: side.scrollHeight, ch: side.clientHeight },
+    hdr: { l: Math.round(hd.left), r: Math.round(hd.right), t: Math.round(hd.top), b: Math.round(hd.bottom) },
     save: box('pmoSaveBtn'), more: box('uiNav_save'), state: box('saveState'), submit: box('saveBtn'), doc: document.documentElement.scrollWidth <= document.documentElement.clientWidth };
 });
 
-// ── A, B, C: the foot, opened and folded, in two themes and two heights ──────────────────────────────────────────────────
+// ── A, B, C: the save group in the header (v2.21, item 152; until then the left menu's foot, opened and folded) ─────────────
 for (const theme of ['harbor', '']) for (const h of [768, 657]) {
   const tag = (theme || 'midnight') + ' 1366×' + h;
   const ctx = await ctxOf(1366, h, theme); const { p, errs } = await openIn(ctx, copyFile);
   try {
-    await p.evaluate(() => { const e = document.getElementById('saveBtn'); if (e) e.scrollIntoView({ block: 'end' }); });
-    await p.waitForTimeout(150);
     const g = await geom(p);
     const ok24 = x => !!x && x.w >= 24 && x.h >= 24;
-    const inside = x => !!x && x.l >= g.side.l - 0.5 && x.r <= g.side.r + 0.5 && x.t >= g.side.t - 0.5 && x.b <= g.side.b + 0.5;
-    chk(`A · ${tag}: Save, the save state and ✉ Submit input, top to bottom, the ▾ on Save’s line`,
-      !!(g.save && g.state && g.submit && g.more) && g.save.b <= g.state.t + 1 && g.state.b <= g.submit.t + 1 && g.more.t < g.save.b && g.more.b > g.save.t && g.more.l >= g.save.r - 1, J(g));
-    chk(`A · ${tag}: each is 24×24 or more, and shows whole inside the left menu once it is scrolled to`, [g.save, g.more, g.submit].every(x => ok24(x) && inside(x)), J(g));
-    chk(`A · ${tag}: nothing scrolls sideways, neither the menu nor the page (a CONTROL: it held before item 127, and the new row keeps it)`, g.side.sw <= g.side.cw && g.doc, J(g.side));
-    if (h === 657) chk(`A · ${tag}: the menu scrolls, and the foot is reached by scrolling (a CONTROL: it already scrolled before item 127)`, g.side.sh > g.side.ch, J(g.side));
-    // C: Save's edge and words against the menu, as painted
+    const inside = x => !!x && x.l >= g.hdr.l - 0.5 && x.r <= g.hdr.r + 0.5 && x.t >= g.hdr.t - 0.5 && x.b <= g.hdr.b + 0.5;
+    const line = (x, y) => !!x && !!y && x.t < y.b && x.b > y.t;
+    chk(`A · ${tag}: Save, its ▾, the save state and ✉ Submit input, left to right on one line in the header`,
+      !!(g.save && g.state && g.submit && g.more) && g.save.r <= g.more.l + 1 && g.more.r <= g.state.l + 1 && g.state.r <= g.submit.l + 1
+        && line(g.save, g.more) && line(g.save, g.state) && line(g.save, g.submit), J(g));
+    chk(`A · ${tag}: each control is 24×24 or more, and inside the header`, [g.save, g.more, g.submit].every(x => ok24(x) && inside(x)) && inside(g.state), J(g));
+    chk(`A · ${tag}: nothing scrolls sideways, neither the menu nor the page (a CONTROL: it held before item 127)`, g.side.sw <= g.side.cw && g.doc, J(g.side));
+    // C: Save's edge and words against the header, as painted
     const c = await p.evaluate(() => {
       const rgb = s => { const m = /rgba?\(([^)]+)\)/.exec(s); if (!m) return null; const a = m[1].split(',').map(x => parseFloat(x)); return a.length > 3 && a[3] === 0 ? null : a.slice(0, 3); };
       const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
@@ -152,19 +153,12 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
       const e = document.getElementById('pmoSaveBtn'), cs = getComputedStyle(e), bg = bgOf(e.parentElement);
       return { edge: +ratio(rgb(cs.borderTopColor) || bg, bg).toFixed(2), text: +ratio(rgb(cs.color), bgOf(e)).toFixed(2) };
     });
-    chk(`C · ${tag}: Save’s edge clears 3:1 against the menu (1.4.11) and its words 4.5:1 (1.4.3)`, c.edge >= 3 && c.text >= 4.5, J(c));
-    // B: folded to icons
-    await p.evaluate(() => { uiRailToggle(); }); await p.waitForTimeout(250);
-    await p.evaluate(() => { const e = document.getElementById('saveBtn'); if (e) e.scrollIntoView({ block: 'end' }); }); await p.waitForTimeout(100);
-    const r = await geom(p);
-    const dot = await p.evaluate(() => { const sb = document.getElementById('pmoSaveBtn');
-      const on = () => { const c = getComputedStyle(sb, '::after'); return c.content !== 'none' && c.content !== 'normal' && parseFloat(c.width) > 0; };
-      DIRTY = false; _baseDirty = false; syncBtns(); const clean = on(); DIRTY = true; syncBtns(); const dirty = on(); DIRTY = false; syncBtns();
-      return { clean, dirty, words: !!(sb.querySelector('.uiSvT') || {}).getClientRects().length }; });
-    chk(`B · ${tag}, folded: Save is an icon of its own, 24×24 or more, above its ▾ and ✉ Submit input, inside the menu`,
-      J([r.side.r - r.side.l, ok24(r.save) && r.save.w <= 48, ok24(r.more), ok24(r.submit), r.save && r.more && r.submit && r.save.b <= r.more.t + 1 && r.more.b <= r.submit.t + 1, [r.save, r.more, r.submit].every(x => !!x && x.l >= r.side.l && x.r <= r.side.r)])
-        === J([64, true, true, true, true, true]), J(r));
-    chk(`B · ${tag}, folded: its words are hidden, and unsaved work shows as a dot on it`, J(dot) === J({ clean: false, dirty: true, words: false }), J(dot));
+    chk(`C · ${tag}: Save’s edge clears 3:1 against the header (1.4.11) and its words 4.5:1 (1.4.3)`, c.edge >= 3 && c.text >= 4.5, J(c));
+    // B: nothing folds the menu, and unsaved work is the brown badge
+    const bd = await p.evaluate(() => { const ss = document.getElementById('saveState');
+      DIRTY = false; _baseDirty = false; syncBtns(); const clean = ss.classList.contains('dirty'); DIRTY = true; syncBtns(); const dirty = ss.classList.contains('dirty');
+      DIRTY = false; syncBtns(); return { fold: !!document.getElementById('uiCollapse'), clean, dirty }; });
+    chk(`B · ${tag}: nothing folds the menu, and unsaved work turns the save state to the brown badge`, J(bd) === J({ fold: false, clean: false, dirty: true }), J(bd));
     chk(`A–C · ${tag}: nothing threw`, errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk(`A–C · ${tag}: the section ran on the copy`, false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
@@ -184,11 +178,13 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     const { p, errs } = await openIn(ctx, copyFile);
     await p.evaluate(STANDIN);
     await p.evaluate(() => { const e = document.getElementById('saveBtn'); if (e) e.scrollIntoView({ block: 'end' }); });
-    await p.focus('#uiNav_setup');
-    const walk = [];
-    for (let i = 0; i < 3; i++) { await p.keyboard.press('Tab'); walk.push(await p.evaluate(() => { const a = document.activeElement;
+    // v2.21 (item 152): the save group is in the header, before the menu in Tab order -- the walk starts from the key before Save
+    await p.focus('#uiNav_save'); await p.keyboard.press('Shift+Tab');
+    const walk = [await p.evaluate(() => { const a = document.activeElement; const cs = a ? getComputedStyle(a) : null;
+      return a ? a.id + (cs && cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 ? '' : ' (no focus ring)') : null; })];
+    for (let i = 0; i < 2; i++) { await p.keyboard.press('Tab'); walk.push(await p.evaluate(() => { const a = document.activeElement;
       const cs = a ? getComputedStyle(a) : null; return a ? a.id + (cs && cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 ? '' : ' (no focus ring)') : null; })); }
-    chk('D · Tab from Setup reaches 💾 Save, then its ▾, then ✉ Submit input, each with a focus ring', J(walk) === J(['pmoSaveBtn', 'uiNav_save', 'saveBtn']), J(walk));
+    chk('D · from the keyboard, 💾 Save, then its ▾, then ✉ Submit input, in that order, each with a focus ring', J(walk) === J(['pmoSaveBtn', 'uiNav_save', 'saveBtn']), J(walk));
     await p.evaluate(() => { setDesc('R0', 'typed in the copy'); });
     await p.focus('#pmoSaveBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(600);
     const s1 = await p.evaluate(() => ({ picked: window.__picked.slice(), writes: window.__disk.writes, state: document.getElementById('saveState').textContent,
@@ -212,16 +208,16 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
   await ctx.close();
 }
 
-// ── F: the board's foot, as it was (a CONTROL) ──────────────────────────────────────────────────────────────────────────
+// ── F: the board's Save, as it was (a CONTROL) ──────────────────────────────────────────────────────────────────────────
 {
   const ctx = await ctxOf(1366, 768, 'harbor');
   try {
     const { p, errs } = await openIn(ctx, boardFile);
     const r = await p.evaluate(() => ({ row: !!(document.getElementById('pmoSaveRow') || {}).hidden || !document.getElementById('pmoSaveRow'),
       save: (document.getElementById('saveBtn') || {}).getAttribute && document.getElementById('saveBtn').getAttribute('onclick') }));
-    await p.focus('#uiNav_setup'); await p.keyboard.press('Tab');
+    await p.focus('#uiNav_save'); await p.keyboard.press('Shift+Tab');   // v2.21: Save is in the header, just before its ▾
     const next = await p.evaluate(() => document.activeElement && document.activeElement.id);
-    chk('F · on the board there is no copy Save, the foot’s Save is the board’s, and Tab goes from Setup to it (a CONTROL)', J([r.row, r.save, next]) === J([true, 'saveInPlace()', 'saveBtn']), J([r, next]));
+    chk('F · on the board there is no copy Save, the header’s Save is the board’s, and the key before its ▾ is it (a CONTROL)', J([r.row, r.save, next]) === J([true, 'saveInPlace()', 'saveBtn']), J([r, next]));
     chk('F · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('F · the section ran on the board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
@@ -439,5 +435,5 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
 }
 
 await b.close();
-console.log(bad ? `\n${bad} PMO-copy Save check(s) failed\n` : '\nA PMO copy saves its office’s own file: the foot, the keyboard, the picker and the handle store hold\n');
+console.log(bad ? `\n${bad} PMO-copy Save check(s) failed\n` : '\nA PMO copy saves its office’s own file: its Save in the header, the keyboard, the picker and the handle store hold\n');
 process.exit(bad ? 1 : 0);
