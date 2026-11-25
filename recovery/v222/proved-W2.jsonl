@@ -26,11 +26,11 @@
 {"id": "v222-w2-goreq-not-selected", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-records-count-all", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-record-enter-nothing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
-{"id": "v222-w2-actions-no-flyouts", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
-{"id": "v222-w2-actions-no-hosts", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
+{"id": "v222-w2-actions-no-flyouts", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
+{"id": "v222-w2-actions-no-hosts", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-actions-no-boxes", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-actions-no-views", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
-{"id": "v222-w2-actions-hidden-entry", "verdict": "SURVIVED", "fails": [], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
+{"id": "v222-w2-actions-hidden-entry", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-gt-not-actions-only", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-run-second-home", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
 {"id": "v222-w2-run-no-entry", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-1e02ee5b.mjs", "detail": ""}
@@ -48,7 +48,7 @@
 {"id": "v222-w2-prepick-never", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
 {"id": "v222-w2-prepick-of-several", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
 {"id": "v222-w2-prepick-by-hand", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
-{"id": "v222-w2-another-closes", "verdict": "CAUGHT", "fails": ["1"], "threw": 1, "suite": "_slim-prove-d2b1207c.mjs", "detail": "--- v2.22 W2 — Start here in the empty program, an empty year leads with From another year, Add and start another, the only budget picked (items 149.22, 149.24, 149.29, 149.30) | harness\n        got threw   want ran"}
+{"id": "v222-w2-another-closes", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
 {"id": "v222-w2-another-not-picked-again", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
 {"id": "v222-w2-add-no-scroll", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
 {"id": "v222-w2-add-message-cut", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-d2b1207c.mjs", "detail": ""}
