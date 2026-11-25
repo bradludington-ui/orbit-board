@@ -306,7 +306,11 @@ for (const [pass, docked] of PASSES) {
       const id = row.id.replace(/^row-/, '');
       const a = [...row.querySelectorAll('.amt')].map(x => x.textContent.trim());
       setCur(id);
-      const want = [fv('Discretionary'), fv('Mandatory'), fv('Unfunded')];
+      // v2.22 W3 (149.31): the record's six boxes became one line (Requirement, Funded, Unfunded); Discretionary and Mandatory are
+      // read where the record states them, the By service table's TOTAL line (the first figure in each cell: what was drawn)
+      const tot = document.querySelectorAll('#inspector .insp-split tr.tot td');
+      const tf = td => { const f = td && td.querySelector('.fig'); return f ? f.textContent.trim() : null; };
+      const want = [tf(tot[2]), tf(tot[3]), fv('Unfunded')];
       const same = (x, y) => (x === '—' ? '$0' : x) === (y === '—' ? '$0' : y);
       if (!(a.length === 3 && a.every((x, i) => same(x, want[i])))) out.push(id + ' row ' + a.join('/') + ' panel ' + want.join('/'));
     });

@@ -205,7 +205,10 @@ const CLOSE = tryIt(`document.querySelectorAll('.modal-bg').forEach(function(e){
 // must be seen somewhere in the sweep as the text it is. (The BAE list's first row is planted under 'name', which the
 // board never reads -- budReg() reads 'n' -- so it reaches no screen; it is kept as it was. The two planted under 'n'
 // since v2.07 are offered whole by the Add box and the RECORD panel, and are below.)
-export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'note1', 'desc1', 'cons1', 'recname1', 'ccar1',
+// v2.22 W1 (item 149.37): 'title0' -- a renamed requirement's title as its file has it -- is no longer drawn anywhere: its one screen was
+// the row's "Renamed — the file says: …" hover, and the row no longer prints the old name (Brad's 21 Nov answer). Nothing that is not
+// drawn can be drawn as code; the renamed title (rename1) and the record name (recname1) still are, and are read below.
+export const MUST_SHOW = ['id', 'svc', 'grp', 'event0', 'rename1', 'note1', 'desc1', 'cons1', 'recname1', 'ccar1',
   'pid1', 'ce1', 'wbs1', 'bandname', 'clindesc', 'clinnewdesc', 'customtitle', 'destname',
   'jrnlby', 'subtitle', 'subnewtitle', 'snapname', 'bmadd',
   // v2.07 (item 121): the Add box -- the budget names it offers each office (these two are offered whole, as the list holds

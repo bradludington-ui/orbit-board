@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.21**; **v2.22** (item 155, with 154 and 149.18–149.53) is built and reviewed, its merge waiting on Brad's word; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 
 ## Open
 
@@ -29,7 +29,97 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   saying why.
 - **Items 100 and 107 (Azure):** left until hosting is chosen.
 
+#### Brad's go of 25 Nov 2026: ORBIT, modernized, in three versions (items 155-157)
+Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eSaH3rFcjEygq, eight screens, invented figures):
+*"I like it all from your previous screenshots and I like the new items. Let's go"*, and his answers:
+- **Three versions, each gated and merged on his word:** v2.22 = item 155 (and items 154 and 149.18-149.53 folded in);
+  v2.23 = item 156; v2.24 = item 157. *(25 Nov: items 158 and 159 join v2.23, on Brad's "Log it for v2.23".)*
+- **Item 149.18-149.53 is folded into v2.22**: its findings touch the same rows, record and menus the new look redraws.
+- **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
+- **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
+
+#### 156. Three new views: the requirement page, Rank by band, the five-year chart (v2.23)
+- **The requirement as its own page** (*Open full page* from the RECORD card): tabs Overview, Funding by service, Awards,
+  Five years, History; the four figures; the month-by-month obligation chart (the award block's own landing rule, landSvc);
+  the impact statement; the record fields with what is missing flagged; recent changes from the change journal; next and
+  previous rank.
+- **Rank by band (view only):** a column per decision band, cards with rank, ask, office and lane status, the cutlines in the
+  band they fall in; a List / Board by band switch in Rank mode.
+- **The five-year spend plan as a chart:** requirement against funded by year with the gap, and the by-appropriation table with
+  a funded meter per cell, read from the model the panel and workbook already share (fydpBookModel).
+
+#### 158. One requirement across the FYDP, by service (v2.23)
+- **Asked:** Brad, 25 Nov 2026: *"pull up a requirement and manage the funding needs by service across all FYDP years. So if
+  my base year is 2028, I want to see the FY27-32 requirement values and funding allocations ... it's not user friendly to
+  only manage one year at a time for requirement and funding management."* On the mock-up: *"Not bad, I like it. This would
+  help me manage individual requirements across the FYDP."* Then: *"Log it for v2.23"*.
+- **Concept** (canvas https://claude.ai/artifact/SbaXf63b4EE8uvSRqHQXG6, page "One requirement, every year"; images
+  `recovery/v223/concept/158-*.png`, invented figures):
+  - **On the requirement page of item 156, a tab Across the FYDP:** one block per service with Requirement, Discretionary,
+    Mandatory and Unfunded, a column per year from the year before the base to base + 4 (base FY28: FY27-FY32), and an FYDP
+    total (base to base + 4). A figure typed in any year is written into THAT year's plan by the same setters as typing it
+    there; nothing switches year; one Save writes every year; the journal records each line with its year.
+  - **Each year's heading** carries that year's rank and lane status, read only (rank stays a per-year decision).
+  - **Where a lane cannot pay what was typed**, the box keeps the typed figure and says what it drew (the drewLine rule).
+  - **A five-year chart** above the grid: the requirement per year, funded green, unfunded red.
+  - **A year the requirement is not in:** *Add to FY32...*, a new requirement in that year linked to the nearest year's as the
+    same work (v2.06's `prior` link), starting from its requirement by service, office, CCaR, PID and record fields, with an
+    optional growth %; not carried: Disc/Mand, the star, award dates; last in that year's priority order.
+  - **A year nobody has started:** asked once, roll forward or start blank (as v2.09's five-year submittals ask).
+  - **Fill across...:** the requirement from one year into later years, copied or grown by N% a year, previewed as was ->
+    becomes; never Disc/Mand.
+  - **The RECORD card** keeps its one-year view and gains a year strip and *Manage across the FYDP*.
+- **Rules it must keep:** the years are joined by the WORK, never the id (`fydpLineKeys` / `fydpSameIn`, v2.16); each year's
+  figures from that year's own lane walk (`aceWithYear`); a locked cycle read only; in a PMO copy requirement values only, the
+  allocation locked (`allocLocked`).
+- **Open for Brad:** FY27 (the year before the base) editable, as drawn, or read only; four lines per service, or one line at a
+  time; whether Fill should ever offer Disc/Mand (left out: each year's lanes decide what can be paid).
+
+#### 159. Allocate every requirement in one year: the sheet, one service at a time, and mandatory on or off (v2.23)
+- **Asked:** Brad, 25 Nov 2026: *"a way to manage and adjust funding allocations to all listed requirements in a given FY ...
+  if I have 50 requirements, I need to be able to quickly give and take real funding allocations across the requirements in a
+  grid like format."* Of three mock-ups (A the sheet, B give and take, C one lane at a time): *"I like A and C. When working in a
+  group setting, the working group will need to see all the requirements and funding allocations. We also need to see the
+  requirement value as well so that we have a readily visible baseline funding need. This provides context and readily visible
+  funding goals."* Then: *"Give me the ability to turn on or off the need for mandatory funding. Will make the screen cleaner
+  and we may not need to allocate mandatory funding in future years."* Then: *"Log it for v2.23"*.
+- **Concept** (the same canvas, page "Every requirement, one year": A2, C2, A3 and the box; images
+  `recovery/v223/concept/159-*.png`, invented figures):
+  - **The sheet (A2), for the working group** (sized for a projector at 1920): every requirement in priority order; per
+    service the **requirement (the goal, shaded)**, Discretionary and Mandatory, the requirement cell underlined green where
+    that service's need is met and red where it is short; pinned lines Requirement, Budget authority, Allocated (with the
+    share of the requirement met), Left in the lane and Still unfunded; goal tiles (Requirement, Funded, Unfunded, Budget
+    authority, Left to give); each row's total requirement, funded, unfunded and funded %. Arrow keys, paste from Excel, a
+    changed cell outlined until Save, *Review changes* before Save. A lane given more than it holds is shown in red and not
+    refused, so money can be given first and taken second; Save says so first. **Present** makes it read only in larger type
+    for the room; **Edit** is for the one person typing.
+  - **One service at a time (C2):** service tabs with "asked, % met"; the service's requirement as the goal with a bar of
+    discretionary, mandatory and unfunded and a line at all that service's budget authority (what cannot be met however it is
+    moved); per requirement its requirement for that service, Disc and Mand boxes, a Met bar, Unfunded, and **Left after**
+    counting the lane down row by row; the cutline where the lane is gone; select rows to fund to the requirement, cut by %,
+    or set to $0; Full and $0 per row; a pinned total line.
+  - **Sheet / One lane** switches between the two on the same data.
+  - **Mandatory funding on or off, per year:** a switch in the header. Off hides mandatory for that year everywhere (both
+    views, the RECORD card's Mand box, the Funding tiles, the money bar's yellow, the FYDP grid's Mandatory line). Off in a
+    year that holds no mandatory money asks nothing; in one that does, a box lists what is there and offers **Clear them**
+    (journalled, each can be put back) or **Move what discretionary can cover** (the rest cleared), for that year only or that
+    year and every later year. Mandatory budget authority stays in Budget Management and the PPBE position; on again brings the
+    columns back empty. **Exports keep their Mandatory columns ($0)**, so every year's files keep one layout.
+- **Rules it must keep:** both views read and write the per-service directed split the RECORD card edits (`setFsrcSvc`); a
+  dollar is never funded past its service's requirement (the clamp, `basisSvcOf`); unfunded is `unfSvcOf`; nothing writes
+  while drawing; the switch is a setting on the year saved in the board, distinct from the ◨ discretionary-only what-if.
+- **Open for Brad:** Present as a separate read-only screen anyone can open on a second display while one person edits, or the
+  same screen switched; whether B's move panel (take from one requirement, give to another) joins C as an aside.
+
+#### 157. The leadership brief and the change bridge (v2.24)
+- **One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against
+  requirement by office, the Mission Critical shortfalls; Print / save as PDF and Present full screen.
+- **What changed since a locked cycle:** before-and-after tiles, a bridge of why unfunded moved (added, values changed, rank
+  moves, removed) whose steps add exactly to the change, and the change list with who and when, from cycCmpData and the
+  journal.
+
 #### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
+- **149.18–149.53 were built in v2.22** (folded into item 155 on Brad's go of 25 Nov); see Shipped › v2.22.
 - **Asked:** Brad, 21 Nov 2026: *"review the front landing page where my requirements are listed to include the pop up window after clicking a requirement ... for redundant clicks and information ... simplicity but usefulness."*
 - **How it was found:** six reviewers measured v2.16 in Chromium on a synthetic 36-requirement board (1920, ~1500, 1366 wide); twelve checkers re-measured every claim with a real pointer and keyboard (55 confirmed, 6 in part, 1 refuted: the folded menu already marks unsaved work); a completeness critic added seven. The report Brad read: https://claude.ai/artifact/6ZTkCPLox7EPAk5pCtXrnr . Scratch evidence (not in the repo): the session scratchpad `review/`.
 - **Answer:** *"Go with recommendations."* Order, as recommended: **v2.17 = 149.1–149.6** (they can put a wrong value in the board; data loss first, the 3 Nov rule), **v2.18 = 149.7–149.17** (labels that print the wrong thing), **v2.19 = 149.18–149.53** (clicks, repeats, additions). *(24 Nov: these move to v2.20; item 150, the scope-down, is v2.19, and may make some of them moot.)* **Item 133 moves to v2.20.** Each version merges on Brad's word.
@@ -581,6 +671,77 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.22 — 25 Nov 2026: the new look (item 155), the Funding page's tiles (item 154), and the clicks, repeats and additions of the 21 Nov review (149.18–149.53) -- built on Brad's go of 25 Nov; merge waits on his word
+- **How it was built:** three builders to one contract (`recovery/v222/contract.md`): W1 the page and the Funding page, W2 Ctrl K,
+  the list's search, Filter, the empty program, new years and the Add box, W3 the RECORD card and the edit box. Each builder's record
+  -- what was built, what it decided (each Brad's to reverse), its checks and mutations, what it left -- is
+  `recovery/v222/notes-W1.md`, `notes-W2.md`, `notes-W3.md`; its screenshots `shots-W*/`.
+- **The integration** joined the seams: the find box opens the palette by its own opener; Incomplete is said, cleared and revealed
+  like every other filter; the office picker's Reassign line names the requirement on the record; three browser checks join
+  `verify:grid` (`npm run look`, `palette`, `record`); `npm run check` refuses a top-level function name declared twice (two
+  builders both declared `awdDateOk`; the later one silently replaced the other).
+- **The review** (three reviewers, one per builder, each finding reproduced and argued against; no data loss and no wrong figure
+  found) and what was fixed:
+  - Ctrl K, or a Needs attention entry, from inside a popover, a flyout or a row's ⋯ menu left the keyboard on nothing at Esc:
+    the keyboard now goes home before what holds it closes (`uiFocusHome`).
+  - A CCaR record's number as the search took a requirement on JSF21 for JSF2 and missed one filed "JSF 2": it is matched exactly.
+  - The Add box's sentence printed `r&amp;d`; it is escaped once.
+  - "Award needs repair" on an award cleared on purpose after its repair was checked: only an unreadable date or an unchecked
+    repair is flagged.
+  - The tiles said "all drawn" with nothing drawn, and under the ◨ view for a mandatory pot the view withheld: they say
+    "withheld (◨ discretionary only)", and "all drawn" only where something was drawn.
+  - A refusal in the record showed on another year's requirement of the same id, and on the working plan after leaving a locked
+    view with a live Leave button: it belongs to that requirement, year, view and plan, and is kept as text.
+  - Docked, at the end of the page, the record's bar went under the header and its buttons did nothing: the docked record leaves
+    the room below the table (`--footH`).
+  - The first press on a year button after an edit went nowhere: the years line is drawn (stale) after an edit and brought up to
+    date in place.
+  - There since v2.08: drawing a prime's record wrote empty CLIN containers (`reqDraftOf` now reads under `clinReadOnly`).
+- **Known gaps, each for Brad:**
+  - **149.52 ("more requirements on screen"), by a fold (Brad, 25 Nov: "Do option 1 in v2.22").** The concept puts the tiles and
+    the money bar above the table, which cost the laptop two of its seven rows. *Summary ▴* beside the page's title hides both, and
+    the table moves up 205px: 8 rows on a 1366×768 laptop (v2.21: 7; v2.22 open: 5), 12 at 1440×1000 (v2.21: 12). Remembered in this
+    browser, never in the board; Brief and the Funding page keep their tiles. Layout D still fails with the summary open, as it has
+    since v2.00.
+  - Below 1100px the mode's tools, Add requirement with them, fold into Tools ▾.
+  - Help, at its size limit, does not describe the money bar, the chips or the Funding page's tiles.
+  - The RECORD card still slides over the table by default; docked is a per-browser choice (View ▾).
+- **Checks:** audit-board "v2.22 W1", "v2.22 W3", "v2.22 integration" and "v2.22 review"; audit-other "v2.22 W2"; `npm run look`,
+  `palette` (R: the keyboard home), `record` (K: the docked bar at the end of the page; L: the first year press), `look` (G: the summary fold); `npm run check`
+  "one declaration per name". **Mutations:** 140 `v222-*` (W1 29, W2 54, W3 37, integration 5, review 11, the fold 4) and their retargets,
+  each proved against its own check (`recovery/v222/proved-*.jsonl`); none retired. No sweep (Brad's rule of 20 Oct).
+
+##### 155. The new look: one search box, pill pickers, the money bar, tiles with meters, lighter rows, the record as a card (v2.22)
+- **From the canvas's Requirements, Funding and Ctrl K screens:** the header holds ORBIT, one search box ("Search
+  requirements, CCaR, PID, or type a command", Ctrl K), the appropriation, year, cycle and office as pill pickers, the save
+  state and Save; the navy word menu grouped PLAN and BOARD; the page heading with the mode as a segmented control and one
+  Add requirement; four tiles with a meter of budget authority used; **where the money runs out, in priority order** (one bar,
+  each block a requirement sized by its ask: green where discretionary pays, yellow where both lanes, red where any of it is
+  unfunded, the cutline figures beneath); a table with a status pill, a funded meter, the office chip and filter chips (All
+  lanes, ★ Mission Critical, Needs attention); the RECORD as a card beside the table where the window allows.
+- **Ctrl K:** one palette that finds requirements (title, CCaR, PID, event, the row's second line), CCaR records, and every
+  left-menu action by its words, arrow keys and Enter, Esc to close, `>` for actions only. It runs the action's own call.
+- **The Funding page (item 154):** the four tiles, Unfunded by service as a bar chart, Needs attention as buttons with counts,
+  and one bar of discretionary, mandatory and unfunded against the requirement.
+- **Rules:** every figure is one the board already works out (tiers(), unfSvcOf, mcCalc, the posture); no control loses its
+  call; CUI lines, APEX status colours with their words, Section 508 as today; the money bar is drawn from the same lane walk
+  the rows use, and its blocks add to the requirement total.
+
+##### 154. The Funding page's posture strip in APEX's tiles (Brad, 25 Nov 2026: "Log the Funding tiles for the next version")
+- **What he sees:** v2.21 dressed the Requirements page's four tiles as APEX's, but the Funding page (Fund mode) still opens on
+  the compact pre-v2.21 posture strip (`#posture`, written by `scoreboard()`): Discretionary and Mandatory BA with what is left,
+  Mission Critical, Whole budget and Unfunded by service in one dense band, then Needs attention. Seen in the v2.21 screenshots
+  of 25 Nov.
+- **Proposed:** the same figures as APEX tiles in a row -- Discretionary (BA, drawn, left), Mandatory (the same), ★ Mission
+  Critical (unfunded of the must-pay total), Whole budget (asked, funded, unfunded) -- with Unfunded by service and Needs
+  attention beneath as their own tile-styled blocks. Restyle only: every figure stays the one `scoreboard()` prints today,
+  every Needs attention entry keeps its button and its call, and Funding detail ▾ stays where it is.
+- **Checks to hold:** layout A (the posture prints the scorecards' figures and its unfunded-by-service figures add to the
+  Funding by service table), audit-board's "the funding posture prints the scorecards' figures", keyboard-reach on the Needs
+  attention buttons, standards (2.5.8 and 1.4.11 on the new tiles), and the row's first requirement still on screen (layout D).
+- **Next version:** v2.22, beside item 149.18–149.53. Built on go.
+
 
 ### v2.21 — 25 Nov 2026: ORBIT in APEX's look; cleaner code (items 152, 153) -- built on Brad's "Let's do it. Let's also optimize" of 24 Nov and his four answers; merged on his "Merge" of 25 Nov (PR #80)
 #### 152. ORBIT in APEX's look (Brad, 24 Nov 2026: "No I want ORBIT to look like APEX", then "Let's do it")

@@ -320,7 +320,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 {
   try {
     const { p, ctx, errs } = await open('review');
-    await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = {}; openMenu = null; syncBtns(); });
+    // v2.22 W2 (item 149.26): Filter opens its Funding group by itself until a group of it has been opened or closed by hand; here
+    // every group starts folded by hand ('' kept), so Enter on each heading opens it, as before
+    await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = { view: '' }; openMenu = null; syncBtns(); });
     const GROUPED = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].filter(m => m.querySelector('.gh') && m.getClientRects().length)
       .map(m => ({ k: m.id.slice(2), gs: [...m.querySelectorAll('.gh')].map(h => h.getAttribute('data-g')) })));
     // v2.00 (menu): of the toolbar's menus Filter still folds; Setup folds on the left menu (G3), and Reports & exports lays its
@@ -658,7 +660,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
       return { id: a ? (a.id || a.tagName.toLowerCase()) : null, inBox: !!(a && a.closest && a.closest('#addPanel')) }; });
     const isOpen = () => p.evaluate(() => document.getElementById('addPanel').classList.contains('open'));
     // with every office showing: the box opens on the office question, answered from the keyboard
-    await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    await p.focus('#toolAdd');   /* v2.22 W1 (149.35): the one Add requirement */ await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     let a = await act();
     chk('M · Enter on Add requirement opens the box with the keyboard in it -- on the office question while every office shows',
       (await isOpen()) && a.inBox && a.id === 'arOffice', JSON.stringify(a));
@@ -681,7 +683,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     answer = true; await p.keyboard.press('Escape'); await p.waitForTimeout(200); answer = false;
     if (await isOpen()) await p.evaluate(() => arHide());
     await p.evaluate(() => setPmoFilter('PSM'));
-    await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    await p.focus('#toolAdd');   /* v2.22 W1 (149.35): the one Add requirement */ await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     a = await act();
     chk('M · with one office chosen at the top, Enter opens the box on its form with the keyboard on the plan event',
       (await isOpen()) && a.id === 'arEvent' && (await p.evaluate(() => arOff)) === 'PSM', JSON.stringify(a));
@@ -746,7 +748,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     chk('M · Esc asks before what was typed is lost, and Cancel keeps the box with the text in it', k1.asked && k1.open && k1.text === 'Depot support', JSON.stringify(k1));
     answer = true; await p.keyboard.press('Escape'); await p.waitForTimeout(250); answer = false;
     a = await act();
-    chk('M · OK closes it and hands the keyboard back to Add requirement', !(await isOpen()) && a.id === 'uiAddBtn', JSON.stringify(a));
+    chk('M · OK closes it and hands the keyboard back to Add requirement', !(await isOpen()) && a.id === 'toolAdd', JSON.stringify(a));   // v2.22 W1 (149.35): the one Add requirement
     await p.evaluate(() => setPmoFilter('ALL'));
     chk('M · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
@@ -924,7 +926,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     p.on('dialog', d => { dlgSeen.push(d.type() + ': ' + d.message()); return dlgDismiss ? d.dismiss() : (d.type() === 'prompt' ? d.accept(promptVal) : d.accept()); });
     await p.evaluate(SEED);
     await p.evaluate(id => setPmoFilter(grpOf(itemById(id))), id);
-    await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    await p.focus('#toolAdd');   /* v2.22 W1 (149.35): the one Add requirement */ await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     s = await tabTo(p, '#arEvent', '#arWbs', 60);
     await p.keyboard.type('1.2'); await p.waitForTimeout(120);
     const a1 = await fld('arWbs');

@@ -1,0 +1,15 @@
+{"id": "v222-rv-ccar-substring", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-addsay-double-esc", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-repair-cleared-flagged", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-tiles-all-drawn-unused", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-tiles-mand-withheld-silent", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-fund-tile-withheld-silent", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-recmsg-by-id", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-recmsg-markup", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-draft-writes-clins", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-years-empty-on-edit", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-rv-years-fill-replaces", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8ec42a38.mjs", "detail": ""}
+{"id": "v222-w1-tile-disc-of-ask", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-193fe592.mjs", "detail": ""}
+{"id": "v222-w1-award-repair-bare", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-193fe592.mjs", "detail": ""}
+{"id": "v222-w3-msg-every-record", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-801a453a.mjs", "detail": ""}
+{"id": "v222-w3-msg-not-said", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-801a453a.mjs", "detail": ""}

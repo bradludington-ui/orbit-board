@@ -67,3 +67,6 @@ review/out/
 !apex/src/shell.html
 # Python writes a bytecode cache beside the oracle when a test imports it; it is never source.
 apex/**/__pycache__/
+
+# Agent worktrees (a builder's own copy of the repository while it works): never part of the program.
+.claude/worktrees/

@@ -760,6 +760,14 @@ const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding he
 // ==== end v2.15 review RV-C ====
 // ==== v2.15 review RV-D ====
 // ==== end v2.15 review RV-D ====
+// ==== v2.22 W1 ====
+// ==== end v2.22 W1 ====
+// ==== v2.22 W2 ====
+// ==== end v2.22 W2 ====
+// ==== v2.22 W3 ====
+// ==== end v2.22 W3 ====
+// ==== v2.22 integration (the lead) ====
+// ==== end v2.22 integration (the lead) ====
 
 for (const id of INJ_EXPECT) if (!SEEN.has(id) && !FID.has(id)) failures.push({ finding: id, what: 'this block never ran — is it after the report, or in a .then the exit beat?', got: 'never ran', want: 'ran' });
 

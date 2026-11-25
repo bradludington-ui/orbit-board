@@ -1,0 +1,62 @@
+[
+ {
+  "id": "v222-rv-ccar-substring",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-addsay-double-esc",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-repair-cleared-flagged",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-tiles-all-drawn-unused",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-tiles-mand-withheld-silent",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-fund-tile-withheld-silent",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-recmsg-by-id",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-recmsg-markup",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-draft-writes-clins",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-years-empty-on-edit",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-rv-years-fill-replaces",
+  "caughtBy": "audit-board / v2.22 review"
+ },
+ {
+  "id": "v222-w1-tile-disc-of-ask",
+  "caughtBy": "audit-board / v2.22 W1 \u2014 the money bar"
+ },
+ {
+  "id": "v222-w1-award-repair-bare",
+  "caughtBy": "audit-board / v2.22 W1 \u2014 the money bar"
+ },
+ {
+  "id": "v222-w3-msg-every-record",
+  "caughtBy": "board / v2.22 W3 \u2014 the RECORD card"
+ },
+ {
+  "id": "v222-w3-msg-not-said",
+  "caughtBy": "board / v2.22 W3 \u2014 the RECORD card"
+ }
+]

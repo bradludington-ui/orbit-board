@@ -1,0 +1,4 @@
+{"id": "v222-fold-never-hides", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-5efaa8c6.mjs", "detail": ""}
+{"id": "v222-fold-forgotten", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-5efaa8c6.mjs", "detail": ""}
+{"id": "v222-fold-not-kept", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-5efaa8c6.mjs", "detail": ""}
+{"id": "v222-fold-says-open", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-5efaa8c6.mjs", "detail": ""}

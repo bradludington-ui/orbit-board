@@ -52,6 +52,8 @@ const SPECIAL = {
   ndPanel:   `S.fsrc[S.order[S.order.length-1]]={m:'split', dv:SVC.map(function(){ return 9e11; }), mv:SVC.map(function(){ return 0; })};
               ndOpen=true; render();`,
   helpPanel: `openHelp('');`,
+  // v2.22 W2 (item 155): Ctrl K's palette, with results in each of its groups (a requirement, an action)
+  cmdPanel:  `cmdOpen(); var q=document.getElementById('cmdQ'); q.value='OGC'; cmdTyped();`,
   // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has. v2.19: a second pass below
   // (the overs) is added to this entry with the list form.
   // v2.03 (item 19): the session's message list, with an unread warning in it (as ⚠ N unread opens it)

@@ -377,6 +377,47 @@ console.log('\naward order');
   else pass(`every sort of awards uses awdCmp (${awards} of ${sorts} sorts are of awards)`);
 }
 
+// ONE DECLARATION PER NAME (v2.22). A second `function NAME(` at the top of a script quietly replaces the first: the
+// board still opens, and every caller of the first now runs the second. v2.22's builders, working apart, both declared
+// awdDateOk; the second won, and only one of them noticed. Nested functions may share a name (each is its own scope).
+function topFnDups(scripts) {
+  const seen = new Map();
+  scripts.forEach((js, si) => {
+    const B = jsBlank(js); let depth = 0;
+    for (let i = 0; i < B.length; i++) {
+      const c = B[i];
+      if (c === '{') depth++;
+      else if (c === '}') depth--;
+      else if (depth === 0 && c === 'f' && B.startsWith('function', i) && !/[\w$.]/.test(B[i - 1] || '')) {
+        const r = /^function\s*\*?\s*([\w$]+)\s*\(/.exec(B.slice(i, i + 160));
+        if (r) { if (!seen.has(r[1])) seen.set(r[1], []); seen.get(r[1]).push([si, i]); }
+      }
+    }
+  });
+  return { n: seen.size, dups: [...seen].filter(([, v]) => v.length > 1) };
+}
+console.log('\none declaration per name');
+{
+  const st = [
+    [['function a(){}\nfunction b(){}\nfunction a(){ return 2; }'], 1, 'a function declared twice'],
+    [['function a(){}', 'async function a(){}'], 1, 'one name in two scripts'],
+    [['function a(){ function go(){} }\nfunction b(){ function go(){} }'], 0, 'nested functions sharing a name'],
+    [["function a(){ var s='function a(){}'; } /* function a(){} */"], 0, 'a name in a string or a comment'],
+    [['var o={ f: function a(){} };\nfunction a(){}'], 0, 'a named function expression inside an object'],
+  ];
+  const bad = st.filter(([js, want]) => topFnDups(js).dups.length !== want).map(([, , why]) => why);
+  if (bad.length) fail(`the rule fails its own test: ${bad.join('; ')}`);
+  else pass(`the rule's own test: ${st.length} cases`);
+  const scripts = [];
+  for (const m of src.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    if (/type\s*=\s*["']?application\/json/i.test(m[1])) continue;
+    scripts.push(m[2]);
+  }
+  const r = topFnDups(scripts);
+  if (r.dups.length) fail(`${r.dups.length} function name(s) declared twice at the top of a script -- the later one silently replaces the earlier: ${r.dups.map(([k, v]) => k + ' x' + v.length).join(', ')}`);
+  else pass(`every top-level function name is declared once (${r.n} names)`);
+}
+
 // The award-order rule, on one script's text. Returns {sorts, awards, findings:[{at, text, why}], unreadable}.
 function awardSortFindings(js) {
   const B = jsBlank(js);
