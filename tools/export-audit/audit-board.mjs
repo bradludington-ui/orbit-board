@@ -11499,14 +11499,14 @@ await (async () => {
     chk(name, 'setter', 'with mandatory off, a mandatory figure typed in the RECORD card is refused, and $0 is taken', J([ev(`String(setFsrcSvc('B','m',0,'25',{quiet:true}))`), ev(`String(setFsrcSvc('B','m',0,'0',{quiet:true}))`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['false', 'true', J([0, 0])]));
     // hidden where off: the RECORD card's Mand box, the Funding tiles, the Requirements tiles, Fund mode's column
     ev(`setCur('A'); 'ok'`);
-    chk(name, 'hidden', 'the RECORD card has no Mand box and no Mand column', J([ev(`String(document.querySelectorAll('#inspector .insp-split input.m').length)`), ev(`String(/Mand/.test(document.querySelector('#inspector .insp-split tr').textContent))`)]), J(['0', 'false']));
+    chk(name, 'hidden', 'the RECORD card has no Mand box and no Mand column', J([ev(`String(document.querySelectorAll('#inspector .insp-split input.m').length)`), ev(`String(/Mand/.test((document.querySelector('#inspector .insp-split tr')||{}).textContent))`)]), J(['0', 'false']));
     chk(name, 'hidden', 'the Requirements tiles carry no Mandatory tile', J([ev(`String(!!document.querySelector('#uiKpis .k.mand'))`), ev(`String(document.getElementById('uiKpis').classList.contains('n3'))`)]), J(['false', 'true']));
     ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
     chk(name, 'hidden', 'the Funding page has no Mandatory tile, says why in its place, and its bar has no mandatory part',
-      J([ev(`String(!!document.querySelector('#posture .ppt.mand'))`), ev(`String(/Mandatory funding is off for FY27/.test(document.querySelector('#posture .ppt.mandoff').textContent))`), ev(`String(!!document.querySelector('#posture .segs .seg.m'))`)]),
+      J([ev(`String(!!document.querySelector('#posture .ppt.mand'))`), ev(`String(/Mandatory funding is off for FY27/.test((document.querySelector('#posture .ppt.mandoff')||{}).textContent))`), ev(`String(!!document.querySelector('#posture .segs .seg.m'))`)]),
       J(['false', 'true', 'false']));
     chk(name, 'hidden', 'Fund mode: the Mandatory column is marked to be hidden (header and every row), and the page says mandatory is off',
-      J([ev(`String(document.querySelector('#gridHead .mandc').textContent)`), ev(`String(document.querySelectorAll('#list .row > .mandc').length)`), ev(`String(document.documentElement.classList.contains('ui-mandoff'))`)]), J(['Mandatory', '3', 'true']));
+      J([ev(`String((document.querySelector('#gridHead .mandc')||{}).textContent)`), ev(`String(document.querySelectorAll('#list .row > .mandc').length)`), ev(`String(document.documentElement.classList.contains('ui-mandoff'))`)]), J(['Mandatory', '3', 'true']));
     ev(`uiMode='review'; uiApply(); delete S.mandOff; render(); 'ok'`);
     chk(name, 'hidden', 'CONTROL: on again, every one of them is back', J([ev(`String(document.querySelectorAll('#inspector .insp-split input.m').length)`), ev(`String(!!document.querySelector('#uiKpis .k.mand'))`), ev(`String(document.documentElement.classList.contains('ui-mandoff'))`)]), J(['2', 'true', 'false']));
     // THE EXPORTS KEEP THEIR MANDATORY COLUMNS ($0), so every year's files keep one layout
@@ -11616,7 +11616,7 @@ await (async () => {
       chk(name, 'years', 'CONTROL: FY26, FY27 and FY28 are held, each with B’s $90 of mandatory', ev(`JSON.stringify([2026,2027,2028].map(function(y){ return ((MS.years[y].fsrc||{}).B||{}).mv; }))`), J([[90, 0], [90, 0], [90, 0]]));
       const f26 = ev(`JSON.stringify(MS.years[2026])`);
       ev(`mandSwitch(); MANDBOX.how='clear'; MANDBOX.all=true; mandBoxDraw(); 'ok'`);
-      chk(name, 'years', 'the box offers FY27 and every later year held, and names FY28', ev(`document.querySelector('#mandAll option[value="all"]').textContent`), 'FY27 and every later year held (FY28)');
+      chk(name, 'years', 'the box offers FY27 and every later year held, and names FY28', ev(`(document.querySelector('#mandAll option[value="all"]')||{}).textContent`), 'FY27 and every later year held (FY28)');
       ev(`mandOffApply(); 'ok'`);
       chk(name, 'clear', 'Clear: FY27 and FY28 are off, FY26 (earlier) is not touched', J([ev(`String(mandOn(MS.years[2027]))`), ev(`String(mandOn(MS.years[2028]))`), ev(`JSON.stringify(MS.years[2026])`) === f26]), J(['false', 'false', true]));
       chk(name, 'clear', 'Clear: every mandatory figure is $0 in both years, discretionary as it was', ev(`JSON.stringify([2027,2028].map(function(y){ var f=MS.years[y].fsrc; return [f.A.dv, f.A.mv, f.B.dv, f.B.mv, f.C.mv]; }))`),
@@ -11628,7 +11628,7 @@ await (async () => {
       // v2.23 review RV-C (C3): while mandatory is off, the journal does not put a mandatory figure above $0 back (setFsrcSvc's own
       // rule: it would be directed and never drawn, with no box to see it), and says why; turned on again, it does
       ev(`jrnlUndo(${ix}); 'ok'`);
-      chk(name, 'journal', 'put back from the journal while mandatory is off: refused, saying why; B’s mandatory stays $0', J([ev(`JSON.stringify(S.fsrc.B.mv)`), /mandatory funding is off in FY27/.test(ev(`document.getElementById('shareStat').textContent`))]), J([J([0, 0]), true]));
+      chk(name, 'journal', 'put back from the journal while mandatory is off: refused, saying why; B’s mandatory stays $0', J([ev(`JSON.stringify(S.fsrc.B.mv)`), /mandatory funding is off in FY27/.test(ev(`(document.getElementById('shareStat')||{}).textContent`))]), J([J([0, 0]), true]));
       ev(`mandSwitch(); jrnlUndo(${ix}); 'ok'`);
       chk(name, 'journal', 'mandatory on again, put back from the journal: B’s $90 of mandatory is directed again', J([ev(`String(mandOn())`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['true', J([90, 0])]));
       chk(name, 'errors', 'no page error (clear)', B.errors.length, 0);
@@ -11706,7 +11706,7 @@ await (async () => {
     seed(ev, W3AV); W3base(ev);
     // FY28 is held (rolled forward), so switching to it asks nothing of its own: only Allocate's question can keep the year on screen
     ev(`window.confirm=function(){ return true; }; switchYear(2028); switchYear(2027); uiGo('alloc'); 'ok'`);
-    chk(name, 'mode', 'Allocate is a mode, reached from the left menu, and its view is shown', J([ev(`uiMode`), ev(`String(document.getElementById('allocView').hidden)`), ev(`String(document.getElementById('uiNav_alloc').classList.contains('on'))`), ev(`document.getElementById('uiTitle').textContent`)]),
+    chk(name, 'mode', 'Allocate is a mode, reached from the left menu, and its view is shown', J([ev(`uiMode`), ev(`String(document.getElementById('allocView').hidden)`), ev(`String(document.getElementById('uiNav_alloc').classList.contains('on'))`), ev(`(document.getElementById('uiTitle')||{}).textContent`)]),
       J(['alloc', 'false', 'true', 'Allocate']));
     const tot = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#allocView .avs tbody tr[data-id]'), function(r){ return r.getAttribute('data-id')+':'+[].map.call(r.querySelectorAll('td.tot'), function(c){ return c.textContent; }).join('/'); }))`));
     chk(name, 'sheet', 'every requirement in priority order, its requirement, funded, unfunded and funded % (by hand: B spills $30 to mandatory, C is short $50)',
@@ -11733,16 +11733,16 @@ await (async () => {
     type('A|d|0', '60');
     // refusals keep the typing; rounding is said
     type('C|d|1', 'abc');
-    chk(name, 'refuse', 'a figure that is not one is refused by name, the typing kept and marked', J([ev(`document.querySelector('#allocView input.avin[data-k="C|d|1"]').value`), ev(`String(document.querySelector('#allocView input.avin[data-k="C|d|1"]').classList.contains('bad'))`), /not an amount/.test(ev(`document.getElementById('shareStat').textContent`))]),
+    chk(name, 'refuse', 'a figure that is not one is refused by name, the typing kept and marked', J([ev(`(document.querySelector('#allocView input.avin[data-k="C|d|1"]')||{}).value`), ev(`String(document.querySelector('#allocView input.avin[data-k="C|d|1"]').classList.contains('bad'))`), /not an amount/.test(ev(`(document.getElementById('shareStat')||{}).textContent`))]),
       J(['abc', 'true', true]));
     chk(name, 'refuse', 'and Save is refused while a box holds one', J([ev(`String(avSave())`), ev(`JSON.stringify(S.fsrc)`)]), J(['false', '{}']));
     type('C|d|1', '10.6');
-    chk(name, 'refuse', 'a figure with cents is taken in whole dollars, and said', J([ev(`String(AV.draft['C|d|1'])`), /whole dollars/.test(ev(`document.getElementById('shareStat').textContent`))]), J(['11', true]));
+    chk(name, 'refuse', 'a figure with cents is taken in whole dollars, and said', J([ev(`String(AV.draft['C|d|1'])`), /whole dollars/.test(ev(`(document.getElementById('shareStat')||{}).textContent`))]), J(['11', true]));
     type('C|d|1', '10');
     chk(name, 'refuse', 'a figure typed back to what is stored leaves the draft', +ev(`avChangeN()`), 1);
     // Review changes
     ev(`avReview(); 'ok'`);
-    chk(name, 'review', 'Review changes lists requirement, service, lane, was and now', ev(`document.querySelector('#avRevPanel tbody').textContent`), '1A eventUSAFDiscretionary$100$60');
+    chk(name, 'review', 'Review changes lists requirement, service, lane, was and now', ev(`(document.querySelector('#avRevPanel tbody')||{}).textContent`), '1A eventUSAFDiscretionary$100$60');
     ev(`avReviewClose(); 'ok'`);
     // leaving asks
     ev(`window.confirm=function(){ return false; }; uiSetMode('review'); switchYear(2028); 'ok'`);
@@ -11794,7 +11794,7 @@ await (async () => {
     const rows = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#allocView .avl tbody tr'), function(r){ return r.classList.contains('avcut')? 'CUT' : r.getAttribute('data-id')+':'+r.cells[r.cells.length-2].textContent; }))`));
     chk(name, 'lane', 'USAF: Left after counts the discretionary lane down in priority order, and the cutline falls where it is gone (by hand: 150-100, then -50)',
       J(rows()), J(['A:$50', 'B:$0', 'CUT', 'C:$0']));
-    chk(name, 'lane', 'the tabs say each service’s asked and % met (by hand: USAF $240, 200 of it met)', ev(`document.querySelector('#allocView .avtab[aria-pressed="true"]').textContent`), 'USAF$240 asked · 83% met');
+    chk(name, 'lane', 'the tabs say each service’s asked and % met (by hand: USAF $240, 200 of it met)', ev(`(document.querySelector('#allocView .avtab[aria-pressed="true"]')||{}).textContent`), 'USAF$240 asked · 83% met');
     ev(`document.querySelector('#allocView tr[data-id="C"] .avq').click(); 'ok'`);
     chk(name, 'lane', 'Full on C: the lane being edited carries what the other lane does not, up to the requirement (60 - 20 mandatory)', ev(`String(AV.draft['C|d|0'])`), '40');
     ev(`[].filter.call(document.querySelectorAll('#allocView tr[data-id="A"] .avq'), function(b){ return b.textContent==='$0'; })[0].click(); 'ok'`);
@@ -11804,24 +11804,24 @@ await (async () => {
     ev(`window.prompt=function(){ return '50'; }; avBulk('cut'); 'ok'`);
     chk(name, 'lane', 'Cut by 50% on the two selected rows (B 50 to 25, C 40 to 20)', J([ev(`String(AV.draft['B|d|0'])`), ev(`String(AV.draft['C|d|0'])`)]), J(['25', '20']));
     ev(`AV.mv={from:'C', to:'B', lane:'d', amt:'999'}; avDraw(); avMove(); 'ok'`);
-    chk(name, 'move', 'the move aside refuses more than the source is directed', J([/cannot be taken from it/.test(ev(`document.getElementById('shareStat').textContent`)), ev(`String(AV.draft['C|d|0'])`)]), J([true, '20']));
+    chk(name, 'move', 'the move aside refuses more than the source is directed', J([/cannot be taken from it/.test(ev(`(document.getElementById('shareStat')||{}).textContent`)), ev(`String(AV.draft['C|d|0'])`)]), J([true, '20']));
     ev(`AV.mv={from:'C', to:'B', lane:'d', amt:'10'}; avDraw(); avMove(); 'ok'`);
     chk(name, 'move', 'and moves an amount from one requirement’s lane to another’s, in the draft', J([ev(`String(AV.draft['C|d|0'])`), ev(`String(AV.draft['B|d|0'])`), ev(`JSON.stringify(S.fsrc)`)]), J(['10', '35', '{}']));
     ev(`avDiscardAll(); avDraw(); 'ok'`);
     // mandatory off: no Mand columns in either view; the switch says off for the year
     ev(`S.mandOff=true; render(); 'ok'`);
-    chk(name, 'mand off', 'One lane: no Mandatory box or column', J([ev(`String(document.querySelectorAll('#allocView input.avin[data-k$="|m|0"]').length)`), ev(`String(/Mandatory/.test(document.querySelector('#allocView .avl thead').textContent))`)]), J(['0', 'false']));
+    chk(name, 'mand off', 'One lane: no Mandatory box or column', J([ev(`String(document.querySelectorAll('#allocView input.avin[data-k$="|m|0"]').length)`), ev(`String(/Mandatory/.test((document.querySelector('#allocView .avl thead')||{}).textContent))`)]), J(['0', 'false']));
     ev(`avView('sheet'); 'ok'`);
-    chk(name, 'mand off', 'the Sheet: no Mand column, no mandatory box, and the switch says off for FY27', J([ev(`String(/Mand/.test(document.querySelector('#allocView .avs thead tr.h2').textContent))`), ev(`String(document.querySelectorAll('#allocView input.avin[data-k*="|m|"]').length)`), ev(`document.querySelector('#allocView .avmand').textContent`), ev(`document.querySelector('#allocView .avmand').getAttribute('aria-checked')`)]),
+    chk(name, 'mand off', 'the Sheet: no Mand column, no mandatory box, and the switch says off for FY27', J([ev(`String(/Mand/.test((document.querySelector('#allocView .avs thead tr.h2')||{}).textContent))`), ev(`String(document.querySelectorAll('#allocView input.avin[data-k*="|m|"]').length)`), ev(`(document.querySelector('#allocView .avmand')||{}).textContent`), ev(`(document.querySelector('#allocView .avmand')||{getAttribute:function(){ return null; }}).getAttribute('aria-checked')`)]),
       J(['false', '0', 'Mandatory funding: Off for FY27', 'false']));
     ev(`delete S.mandOff; render(); 'ok'`);
     // a PMO copy, a locked view: read only
     const copy = ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()})`);
     const C = boot({ html: copy });
     C.ev(`uiGo('alloc'); 'ok'`);
-    chk(name, 'copy', 'in a PMO copy Allocate is read only, and says the portfolio team sets it', J([C.ev(`String(document.querySelectorAll('#allocView input.avin').length)`), /portfolio team/.test(C.ev(`document.querySelector('#allocView .avro-line').textContent`))]), J(['0', true]));
+    chk(name, 'copy', 'in a PMO copy Allocate is read only, and says the portfolio team sets it', J([C.ev(`String(document.querySelectorAll('#allocView input.avin').length)`), /portfolio team/.test(C.ev(`(document.querySelector('#allocView .avro-line')||{}).textContent`))]), J(['0', true]));
     ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView(blKey('PB', MS.cur)); 'ok'`);
-    chk(name, 'locked', 'on a locked view Allocate is read only', J([ev(`String(document.querySelectorAll('#allocView input.avin').length)`), /locked cycle/.test(ev(`document.querySelector('#allocView .avro-line').textContent`))]), J(['0', true]));
+    chk(name, 'locked', 'on a locked view Allocate is read only', J([ev(`String(document.querySelectorAll('#allocView input.avin').length)`), /locked cycle/.test(ev(`(document.querySelector('#allocView .avro-line')||{}).textContent`))]), J(['0', true]));
     ev(`cycLeave(); 'ok'`);
     chk(name, 'errors', 'no page error', B.errors.length + C.errors.length, 0);
   } catch (e) {
