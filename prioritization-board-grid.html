@@ -39304,7 +39304,7 @@ function reqPgEdit(id, at){
     const box=ins && ins.querySelector(at==='awd'? '.awdblk' : '.insp-split');
     if(box){ if(box.scrollIntoView) box.scrollIntoView({block:'center'});
       const f=box.querySelector(at==='awd'? 'input[type="date"]:not([disabled]), input, button' : 'input[data-col="q"]');
-      if(f && f.focus) f.focus(); } }catch(e){}
+      if(f) try{ f.focus(); }catch(x){} } }catch(e){}
 }
 // the page drawn after every render (V223_AFTER), and on a tab or a step
 function reqPgDraw(){
@@ -39366,7 +39366,7 @@ function reqPgHtml(){
   const RK=reqPgRanks(), ids=gridIds(), pos=ids.indexOf(id);
   const prev=pos>0? ids[pos-1] : null, next=pos<0? (ids[0]||null) : (pos<ids.length-1? ids[pos+1] : null);
   const rk=function(x){ return x && RK.R[x]? '#'+RK.R[x] : ''; };
-  const lk=laneOf(t), on=!!S.mc[id];
+  const lk=laneOf(t), on=!!S.mc[id], mcH='S.mc['+jsa(id)+']=!S.mc['+jsa(id)+'];save();render()';   // the row's own ★ call
   const ccar=ccarOf(it), pid=pidOf(it), pt=ptypeOf(id), mi=miprOf(id);
   const bid=BAND_OF(id), bd=(bid!==null)? BAND_DEF(id) : null;
   let bi=-1; if(bd) BANDS_LIST().forEach(function(b, i){ if(b.id===bd.id) bi=i; });
@@ -39399,7 +39399,7 @@ function reqPgHtml(){
         +'<span class="rpchip">'+(bd? '<i class="rpsw" style="background:'+readableOn(bd.c,'#ffffff',1)+'"></i>'+(bi>=0? bi+' · ' : '')+esc(bd.n) : 'No decision band')+'</span>'
       +'</div></div>'
       +'<div class="rphact">'
-        +'<button type="button" class="btn rpmc'+(on? ' on' : '')+'" aria-pressed="'+(on? 'true' : 'false')+'" onclick="S.mc['+jsa(id)+']=!S.mc['+jsa(id)+'];save();render()"'
+        +'<button type="button" class="btn rpmc'+(on? ' on' : '')+'" aria-pressed="'+(on? 'true' : 'false')+'" onclick="'+mcH+'"'
           +' title="★ Mission Critical — this must be paid this year'+(on? ' (on — click to clear)' : '')+'">'+(on? '★ Mission Critical' : '☆ Mark Mission Critical')+'</button>'
         +'<button type="button" class="btn pri rpedit" onclick="openEdit('+jsa(id)+')" title="The whole record, in one box">Edit record</button>'
       +'</div></div>'
@@ -39453,7 +39453,7 @@ function reqPgFields(id, it, T){
   const S0=erStored(id)||{}, need=Object.create(null);
   try{ (reqNeeds(reqDraftOf(id)||{})||[]).forEach(function(x){ if(!x.ok && !x.w) need[x.k]=1; }); }catch(e){}
   const w=wbsReq(id), pr=ptypeOf(id)==='PRIME';
-  const wv=pr? 'logged per CLIN' : (!w.length? '' : (w.length===1? String(w[0].w||'') : 'split over '+w.length+' lines'));
+  const wv=pr? 'logged per CLIN' : (!w.length? '' : (w.length>1? 'split over '+w.length+' lines' : String(w[0].w||'')));
   const de=S0.to? flowEnt(S0.to) : null, en=S0.end? flowEnt(S0.end) : null;
   const go=S0.to? ((de? de.n : S0.to)+(en? ' · '+en.n : '')+(S0.mipr && MIPR_LBL[S0.mipr]? ' · '+MIPR_LBL[S0.mipr] : '')) : '';
   const rs=((S.rcnSvc||{})[id])||{}, rsn=Object.keys(rs).length;
@@ -39575,7 +39575,7 @@ REQPG_TABS.push({k:'over', label:'Overview', order:10, html:reqPgOverview},
 // Esc does (v2.17).
 document.addEventListener('keydown', function(e){
   if(!reqPgOn() || e.key!=='Escape' || e.defaultPrevented) return;
-  try{ if(DLG.stack.length) return; }catch(x){}
+  try{ if(DLG.stack.length>0) return; }catch(x){}
   try{ if(UI2.fly || openMenu || document.querySelector('.uiPop.open')) return; }catch(x){}
   const a=document.activeElement;
   if(a && a.closest && a.closest('#statWrap, #statBtn, #statX, #cmdPanel')) return;
@@ -39693,6 +39693,9 @@ function rkHtml(){
     +'<div class="rkcols">'+cols+'</div>';
 }
 V223_AFTER.push(reqPgDraw, rkDraw);
+// the board's first render ran while this script was still being read, before the hook held these: a board that opens in Rank with
+// the board by band chosen draws it now, and the switch is there from the start
+try{ rkDraw(); }catch(e){}
 
 // ── THE FIVE-YEAR CHART (item 156; in the five-year spend plan box, above its table) ──
 // Read from fydpBookModel -- the one model the box and the workbook share -- so a bar is the TOTAL line the workbook prints, and a

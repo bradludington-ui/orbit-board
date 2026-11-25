@@ -11063,7 +11063,8 @@ await (async () => {
 //   A asks [550, 100]: it draws USAF discretionary dry (400) and mandatory 150, ANG discretionary 100 -- so discretionary runs out AT A
 //     (the cutline, rank 2). Its four awards, the last dated after FY27: discretionary fills them forward from the first, mandatory
 //     backward from the last, so "forward" and "backward" put mandatory in different months, and the FY28 award's mandatory is
-//     Unscheduled. By hand: NOV 350 disc; MAR 100 disc; JUN 50 disc + 50 mand; Unscheduled 100 mand.
+//     Unscheduled; ANG's awards cover 80 of its 100, so 20 is Unscheduled by the award block's own rule. By hand: NOV 350 disc;
+//     MAR 100 disc; JUN 30 disc + 50 mand; Unscheduled 20 disc + 100 mand.
 //   B is trimmed to 120 of 150 and starred: its own shortfall (requirement less both lanes, 60) differs from what no lane could pay
 //     (beyond, 30), and it is the full-budget cutline (rank 3).
 //   F is on a split directing $50 of USAF discretionary after the lane is dry: it draws $0, and the page says "drew".
@@ -11081,7 +11082,7 @@ const w1Boot = () => {
   B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
     S.band={P:'pdm', A:'pdm', B:'safety', C:'ktlo', F:'pdm'};
     S.ccar.A='JSF5002'; S.pid.A='PID9002'; S.ptype.A='OGC';
-    S.awards.A={mode:'inc', inc:[{d:'2026-11', day:5, sv:[300,50]}, {d:'2027-03', day:10, sv:[200,0]}, {d:'2027-06', day:1, sv:[150,100]}, {d:'2028-02', day:2, sv:[100,0]}]};
+    S.awards.A={mode:'inc', inc:[{d:'2026-11', day:5, sv:[300,50]}, {d:'2027-03', day:10, sv:[200,0]}, {d:'2027-06', day:1, sv:[150,30]}, {d:'2028-02', day:2, sv:[100,0]}]};
     S.cons.B='Line stops in March.';
     save(); render(); window.confirm=function(){ return true; }; 'ok'`);
   return B;
@@ -11120,17 +11121,21 @@ await (async () => {
     chk(name, 'figures', 'A: Requirement 650, Discretionary 500, Mandatory 150, Unfunded 0', J(figs()), J([['Requirement', 650], ['Discretionary', 500], ['Mandatory', 150], ['Unfunded', 0]]));
     // 3. when the money obligates: the award block's own landing, by hand
     const mos = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpmo'), function(m){ return [+m.getAttribute('data-d'), +m.getAttribute('data-m')]; }))`));
-    const want = Array.from({ length: 13 }, () => [0, 0]); want[1] = [350, 0]; want[5] = [100, 0]; want[8] = [50, 50]; want[12] = [0, 100];
-    chk(name, 'obligates', 'twelve months and Unscheduled: NOV 350 disc, MAR 100, JUN 50 + 50 mand, Unscheduled 100 mand (the FY28 award)', J(mos()), J(want));
-    chk(name, 'obligates', 'its line: 4 awards, 550 scheduled, 100 unscheduled', ev(`document.querySelector('#reqPage .rpchart .rpsub').textContent`), '4 awards · ' + fm(550) + ' scheduled · ' + fm(100) + ' unscheduled');
+    const want = Array.from({ length: 13 }, () => [0, 0]); want[1] = [350, 0]; want[5] = [100, 0]; want[8] = [30, 50]; want[12] = [20, 100];
+    chk(name, 'obligates', 'twelve months and Unscheduled: NOV 350 disc, MAR 100, JUN 30 + 50 mand, Unscheduled 20 disc (no award covers it) + 100 mand (the FY28 award)', J(mos()), J(want));
+    chk(name, 'obligates', 'its line: 4 awards, 530 scheduled, 120 unscheduled', ev(`document.querySelector('#reqPage .rpchart .rpsub').textContent`), '4 awards · ' + fm(530) + ' scheduled · ' + fm(120) + ' unscheduled');
     chk(name, 'obligates', 'the figures as text beside it, each month with its lanes', ev(`[].map.call(document.querySelectorAll('#reqPage .rpfigs li'), function(l){ return l.textContent; }).join(' | ')`),
       ['NOV 26: ' + fm(350) + ' (discretionary ' + fm(350) + ', mandatory ' + fm(0) + ')', 'MAR 27: ' + fm(100) + ' (discretionary ' + fm(100) + ', mandatory ' + fm(0) + ')',
-        'JUN 27: ' + fm(100) + ' (discretionary ' + fm(50) + ', mandatory ' + fm(50) + ')', 'Unscheduled: ' + fm(100) + ' (discretionary ' + fm(0) + ', mandatory ' + fm(100) + ')'].join(' | '));
+        'JUN 27: ' + fm(80) + ' (discretionary ' + fm(30) + ', mandatory ' + fm(50) + ')', 'Unscheduled: ' + fm(120) + ' (discretionary ' + fm(20) + ', mandatory ' + fm(100) + ')'].join(' | '));
     // 4. the record's fields and what is still needed (reqNeeds): A has no obligation category, WBS or Goes to
     const miss = ev(`[].map.call(document.querySelectorAll('#reqPage .rpflds dd.miss'), function(d){ return d.getAttribute('data-k'); }).join(',')`);
     chk(name, 'record', 'the fields reqNeeds finds missing are flagged, each by its key', miss,
       ev(`reqNeeds(reqDraftOf('A')).filter(function(x){ return !x.ok && !x.w && ['titles','obCat','wbs','dest','destEnd','mipr','budgetAsg'].indexOf(x.k)>=0; }).map(function(x){ return x.k; }).join(',')`));
     chk(name, 'record', 'CONTROL: and that is obligation category, WBS and Goes to', miss, 'obCat,wbs,dest');
+    chk(name, 'record', 'the page leaves the change journal’s own narrowing as it was (none)', ev('String(jrnlReq)'), 'null');
+    ev(`reqPgOpen('B'); 'ok'`);
+    chk(name, 'figures', 'B (trimmed): Requirement 150, Discretionary 40, Mandatory 50, Unfunded 60 -- its own shortfall, never beyond (30)', J(figs()), J([['Requirement', 150], ['Discretionary', 40], ['Mandatory', 50], ['Unfunded', 60]]));
+    ev(`reqPgOpen('A'); 'ok'`);
     // 5. the impact statement: A's is not written -> the box and the button to the edit box at it
     chk(name, 'impact', 'A: "Not written yet" and Write impact statement, to the edit box at the impact statement',
       J([ev(`!!document.querySelector('#reqPage .rpimp .rpnone')`), ev(`document.querySelector('#reqPage .rpimp button').getAttribute('onclick')`)]), J([true, 'openEdit("A","cons")']));
@@ -11161,8 +11166,8 @@ await (async () => {
     chk(name, 'awards', 'four awards and Unscheduled: totals, splits, the FY28 one outside the year',
       J(aw.map(a => [a[0].replace(/\s+/g, ' ').trim(), a[1]])),
       J([['Award 1 · 5 NOV 26' + fm(350), 'discretionary ' + fm(350) + ' · mandatory ' + fm(0)], ['Award 2 · 10 MAR 27' + fm(200), 'discretionary ' + fm(100) + ' · mandatory ' + fm(0)],
-        ['Award 3 · 1 JUN 27' + fm(250), 'discretionary ' + fm(50) + ' · mandatory ' + fm(50)], ['Award 4 · 2 FEB 28 outside FY27 — Unscheduled in the chart' + fm(100), 'discretionary ' + fm(0) + ' · mandatory ' + fm(100)],
-        ['Unscheduled' + fm(0), 'discretionary ' + fm(0) + ' · mandatory ' + fm(0)]]));
+        ['Award 3 · 1 JUN 27' + fm(180), 'discretionary ' + fm(30) + ' · mandatory ' + fm(50)], ['Award 4 · 2 FEB 28 outside FY27 — Unscheduled in the chart' + fm(100), 'discretionary ' + fm(0) + ' · mandatory ' + fm(100)],
+        ['Unscheduled' + fm(20), 'discretionary ' + fm(20) + ' · mandatory ' + fm(0)]]));
     // 10. mandatory off for the year (W3's switch, mandOn): the page hides every mandatory figure
     ev(`window.__mo=mandOn; mandOn=function(){ return false; }; reqPgOpen('A'); 'ok'`);
     chk(name, 'mandatory off', 'the four figures lose Mandatory, the chart its legend and lanes say nothing of it', J([figs().map(f => f[0]).join(','), ev(`/Mandatory|mandatory/.test(document.querySelector('#reqPage .rpchart').textContent)`)]), J(['Requirement,Discretionary,Unfunded', false]));
@@ -11178,6 +11183,8 @@ await (async () => {
     ev(`REQPG_TABS.push({k:'boom', label:'Boom', order:45, html:function(){ throw new Error('kaput'); }}); reqPgOpen('A','boom'); 'ok'`);
     chk(name, 'a tab fails', 'its own failure, under the header and the tabs', J([/The Boom tab could not be drawn — kaput/.test(ev(`document.querySelector('#reqPage .rpbody').textContent`)), ev(`document.querySelectorAll('#reqPage .rptab').length`), ev(`document.getElementById('rpTitle').textContent`)]),
       J([true, 5, ev(`dispTitle(itemById('A'))`)]));
+    chk(name, 'a tab fails', 'the tabs by their order, a tab registered later in its place', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent; }).join(',')`),
+      'Overview,Funding by service,Awards,Boom,History · 7');
     ev(`REQPG_TABS.splice(REQPG_TABS.length-1, 1); reqPgOpen('A'); 'ok'`);
     // 13. Back: the list again, A selected, the keyboard on A's row
     ev(`document.querySelector('#reqPage .rpback').click(); 'ok'`);
