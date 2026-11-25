@@ -22,6 +22,7 @@
   "record | button | recNeedGo('…','…') | WBS",
   "record | button | recStep(-1) | The requirement above this one in the list (",
   "record | button | recStep(1) | The requirement below this one in the list (",
+  "record | button | reqPageOpen('…') | Open this requirement as a page of its own: ",
   "record | button | reqPageOpen('…','…') | every year’s requirement and Disc / Mand by ",
   "record | button | resetAsk('…') | restore the originally requested amounts",
   "record | button | setFsrc('…','…') | these figures still come from the automatic ",

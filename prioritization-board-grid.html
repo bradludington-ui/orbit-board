@@ -39166,6 +39166,9 @@ function recBarHtml(id, pos, ids){
       +' title="The requirement above this one in the list (K)" aria-label="Previous requirement">‹ Previous</button>'
     +'<button type="button" class="recnav" data-step="1" onclick="recStep(1)"'+(pos>=0 && last? ' disabled' : '')
       +' title="The requirement below this one in the list (J)" aria-label="Next requirement">Next ›</button>'
+    // v2.23 integration (item 156): the record as a page of its own (reqPageOpen), with the tabs the card has no room for.
+    +'<button type="button" class="recnav recfull" onclick="reqPageOpen('+jsa(id)+')"'
+      +' title="Open this requirement as a page of its own: Overview, Funding by service, Awards, Across the FYDP, History">Open full page</button>'
     +'<button type="button" class="recx" onclick="drawerClose()" title="Close (Esc)">✕ Close</button></div>';
 }
 // ONE STEP THROUGH THE LIST AS SHOWN: J and K, and the bar's two buttons. A requirement opened from outside the list (Needs
