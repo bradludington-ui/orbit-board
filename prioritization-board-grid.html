@@ -37472,8 +37472,12 @@ function uiColSet(k, hide){
 // keyboard inside it left it on <body>, and a box opened from it (Needs attention's list, the Ctrl K palette) had a hidden opener
 // to give it back to (v1.93: closing hands the keyboard to the control that opened). The keyboard goes to the control that opened
 // the container first -- the popover's button, the flyout's left-menu entry, the row's ⋯ -- as uiPanelRun already did for a flyout.
-function uiFocusHome(){
+// Each closer moves the keyboard only out of what IT closes (`only`: 'pop' or 'fly'): uiPopsClose runs on every click, and moving
+// the keyboard from an open flyout there took it off the item a flyout had just given it.
+function uiFocusHome(only){
   const a=document.activeElement; if(!a || !a.closest) return;
+  if(only==='pop' && !a.closest('.uiPop')) return;
+  if(only==='fly' && !a.closest('#uiFly')) return;
   let t=null;
   try{
     if(UI2.fly && a.closest('#uiFly')) t=document.getElementById('uiNav_'+UI2.fly);
@@ -37483,7 +37487,7 @@ function uiFocusHome(){
   }catch(e){}
 }
 function uiPopsClose(){
-  uiFocusHome();
+  uiFocusHome('pop');
   ['uiColsPop','uiDensPop','uiAttPop'].forEach(function(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); });
   ['uiColsBtn','uiDensBtn','fc_att'].forEach(function(id){ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded','false'); });
 }
@@ -37649,7 +37653,7 @@ function uiFlyOpen(k, btn){
   try{ const b=f.querySelector('button:not([disabled])'); if(b) b.focus({preventScroll:true}); }catch(e){}
 }
 function uiFlyClose(){
-  uiFocusHome();   // v2.22 review
+  uiFocusHome('fly');   // v2.22 review
   const f=document.getElementById('uiFly'); if(f){ f.classList.remove('open'); }
   uiFlyPark();
   if(UI2.fly){ const b=document.getElementById('uiNav_'+UI2.fly); if(b) b.setAttribute('aria-expanded','false'); }
