@@ -11026,6 +11026,33 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 })();
+// v2.22 (149.52, Brad 25 Nov 2026: "Do option 1 in v2.22"): THE SUMMARY FOLDS. One button beside the page's title hides the tiles and the
+// money bar (html.ui-sumfold), says so in its own words and aria-expanded, is remembered in this browser (spmtSummary) and read on
+// opening, and is never part of the board. Where things land on screen is tools/look-fits.mjs F's (jsdom has no layout).
+// FAILS ON ce7ca12: there is no fold.
+await (async () => {
+  const name = 'v2.22 — the summary folds (149.52): the tiles and the money bar hidden by one button, remembered in this browser, never in the board';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, { services: ['USAF'], items: [it('A', 'PSM', [100]), it('B', 'AV', [50])], disc: [100], mand: [0], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); uiMode='review'; uiApply(); render(); 'ok'`);
+    const st = () => JSON.parse(ev(`(function(){ var b=document.getElementById('sumFold'); return JSON.stringify([document.documentElement.classList.contains('ui-sumfold'), b.textContent, b.getAttribute('aria-expanded'), (function(){ try{ return localStorage.getItem('spmtSummary'); }catch(e){ return 'x'; } })()]); })()`));
+    chk(name, 'open', 'it opens with the summary shown, and the button says it can be folded (a CONTROL)', J(st().slice(0, 3)), J([false, 'Summary ▴', 'true']));
+    ev(`document.getElementById('sumFold').click(); 'ok'`);
+    chk(name, 'fold', 'one click folds it: the class that hides the tiles and the money bar, the button’s words and aria-expanded, and this browser remembers it', J(st()), J([true, 'Show summary ▾', 'false', 'fold']));
+    chk(name, 'fold', 'it points at what it hides', ev(`document.getElementById('sumFold').getAttribute('aria-controls')`), 'uiKpis moneyBar');
+    const html = ev(`buildSavedHtml()`);
+    chk(name, 'file', 'the saved board carries neither the setting nor the folded class', J([/spmtSummary/.test(html.replace(/<script[\s\S]*?<\/script>/g, '')), /class="[^"]*ui-sumfold/.test(html)]), J([false, false]));
+    ev(`uiSumFold=false; uiLoad(); uiApply(); 'ok'`);
+    chk(name, 'reopen', 'opening the board again reads it back folded', J(st().slice(0, 3)), J([true, 'Show summary ▾', 'false']));
+    ev(`document.getElementById('sumFold').click(); 'ok'`);
+    chk(name, 'unfold', 'a second click shows it again, and that is remembered', J(st()), J([false, 'Summary ▴', 'true', 'open']));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.22 integration (the lead) ====
 
 {

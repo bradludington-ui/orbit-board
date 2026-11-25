@@ -10819,6 +10819,16 @@ const MUTATIONS = [
     find: "      if(!(_recYrC && _recYrC.ms===MS && _recYrC.cur===MS.cur && _recYrC.v===v0)) return {pending:true};", repl: "      return {pending:true};" },
   { id: 'v222-rv-years-fill-replaces', area: "recYearsFill", what: "the years line's fill replaces the buttons a press is on",
     find: "  if(!same){ e2.replaceWith(nu); return; }", repl: "  { e2.replaceWith(nu); return; }" },
+  // v2.22 (149.52): the summary fold. Where it lands on screen (the CSS that hides the tiles and the bar, Brief and the Funding page
+  // left alone) is tools/look-fits.mjs G's, proved by hand on its mutant: jsdom has no layout.
+  { id: 'v222-fold-never-hides', area: "uiApply", what: "the summary button changes its words but the tiles and the money bar stay",
+    find: "  h.classList.toggle('ui-sumfold', !!uiSumFold);", repl: "  h.classList.toggle('ui-sumfold', false);" },
+  { id: 'v222-fold-forgotten', area: "uiLoad", what: "a folded summary opens unfolded again",
+    find: "  try{ uiSumFold = localStorage.getItem('spmtSummary')==='fold'; }catch(e){}\n", repl: "" },
+  { id: 'v222-fold-not-kept', area: "sumFoldToggle", what: "folding the summary is not remembered in this browser",
+    find: "  uiSumFold=!uiSumFold; lsSet('spmtSummary', uiSumFold? 'fold' : 'open', 'The summary folded or open');", repl: "  uiSumFold=!uiSumFold;" },
+  { id: 'v222-fold-says-open', area: "uiApply", what: "folded, the button still says Summary and aria-expanded true",
+    find: "    const t=uiSumFold? 'Show summary ▾' : 'Summary ▴';", repl: "    const t='Summary ▴';" },
   // ==== end v2.22 integration (the lead) ====
 
 ];

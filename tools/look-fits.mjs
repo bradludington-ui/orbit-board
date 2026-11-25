@@ -12,6 +12,10 @@
 //      nine-digit figure included -- and the title band's chips are on screen, whole, each at least 24px high.
 //   F. The Funding page (item 154): the four tiles, Unfunded by service, Needs attention and the bar are on screen without a sideways
 //      scroll at 1920, 1440 and 1024; no figure in a tile is cut; every Needs attention entry is a 24px target.
+//   G. (149.52, v2.22) The summary folds: at 1366x768 and 1440x1000 one click on the button beside the title hides the tiles and the money
+//      bar, the first requirement moves up by their height and more requirements are whole on screen; open, the button adds nothing to
+//      the heading's height; a reload keeps it folded; Brief still shows the tiles; the button is a 24px target and is not on the
+//      Funding page or in Brief.
 //
 //   node tools/look-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -139,6 +143,39 @@ for (const w of [1920, 1440, 1024]) {
     !!r && r.tiles === 4 && r.parts && !r.cut.length && r.scroll <= 0 && r.kpis === 'none', JSON.stringify(r));
   chk(`F · ${w}px: every Needs attention entry is a 24px target`, !!r && r.ents.length > 0 && r.ents.every(h => h >= 24), JSON.stringify(r && r.ents));
   chk(`F · ${w}px: nothing threw`, !errs.length, errs.join(' | '));
+  await ctx.close();
+}
+// ── G. the summary fold ──────────────────────────────────────────────────────────────────────────────────────────────────
+console.log('G. the summary fold');
+for (const [w, h] of [[1366, 768], [1440, 1000]]) {
+  const { ctx, p, errs } = await open(w, 'review', h);
+  const m = () => p.evaluate(() => { const rows = [...document.querySelectorAll('#list .row')], H = innerHeight, b = document.getElementById('sumFold');
+    const vis = id => { const e = document.getElementById(id); return !!(e && e.getClientRects().length && getComputedStyle(e).display !== 'none'); };
+    const bb = b && b.getClientRects().length ? b.getBoundingClientRect() : null, hd = document.querySelector('#uiPage .uiHd').getBoundingClientRect();
+    return { top: Math.round(rows[0].getBoundingClientRect().top), whole: rows.filter(r => { const q = r.getBoundingClientRect(); return q.top >= 0 && q.bottom <= H; }).length,
+      kpis: vis('uiKpis'), bar: vis('moneyBar'), btn: bb ? Math.round(bb.height) : 0, hd: Math.round(hd.height), exp: b && b.getAttribute('aria-expanded') }; });
+  const a = await m();
+  const bb = await p.locator('#sumFold').boundingBox(); await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.waitForTimeout(300);
+  const f = await m();
+  chk(`G · ${w}x${h}: open, the tiles and the bar show and the button is a 24px target`, a.kpis && a.bar && a.btn >= 24 && a.exp === 'true', JSON.stringify(a));
+  chk(`G · ${w}x${h}: folded, both are gone, the first row moves up ${a.top - f.top}px and ${f.whole} rows are whole on screen (open: ${a.whole})`,
+    !f.kpis && !f.bar && f.exp === 'false' && f.top < a.top - 150 && f.whole > a.whole, JSON.stringify(f));
+  await p.reload(); await p.waitForFunction(() => document.querySelectorAll('#list .row').length > 0); await p.waitForTimeout(300);
+  const r = await m();
+  chk(`G · ${w}x${h}: a reload keeps it folded`, !r.kpis && !r.bar && r.exp === 'false', JSON.stringify(r));
+  await p.evaluate(() => { uiSetMode('brief'); }); await p.waitForTimeout(300);
+  const br = await m();
+  await p.evaluate(() => { uiSetMode('fund'); }); await p.waitForTimeout(300);
+  const fu = await m();
+  chk(`G · ${w}x${h}: Brief still shows the tiles, and neither Brief nor the Funding page offers the fold`, br.kpis && !br.btn && !fu.btn, JSON.stringify([br, fu]));
+  chk(`G · ${w}x${h}: nothing threw`, !errs.length, errs.join(' | '));
+  await ctx.close();
+}
+{ // open, the button adds nothing to the heading's height: the same heading with the button taken out
+  const { ctx, p } = await open(1366, 'review', 768);
+  const hs = await p.evaluate(() => { const h = () => Math.round(document.querySelector('#uiPage .uiHd').getBoundingClientRect().height);
+    const a = h(), b = document.getElementById('sumFold'); b.style.display = 'none'; const c = h(); b.style.display = ''; return [a, c]; });
+  chk(`G · 1366: the button adds nothing to the heading's height (${hs[0]}px with it, ${hs[1]}px without)`, hs[0] === hs[1], JSON.stringify(hs));
   await ctx.close();
 }
 await browser.close();

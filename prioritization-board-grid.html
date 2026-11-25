@@ -2090,6 +2090,17 @@ html.ui-on:not(.ui-dock) .drawerscrim.on{pointer-events:none;background:rgba(0,0
 </style>
 <style id="v222int">
 /* v2.22 INT: its own rules go here (contract §2) */
+/* v2.22 (149.52): the summary fold -- the tiles and the money bar hidden on the Requirements page; Brief and the Funding page keep
+   theirs and do not offer the fold */
+#sumFold{display:none}
+html.ui-on #uiPage .uiHdT .uiSubRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+html.ui-on #sumFold{display:inline-flex;align-items:center;min-height:24px;padding:0 10px;font:inherit;font-size:13px;font-weight:700;
+  border:1px solid var(--edge);border-radius:999px;background:var(--panel);color:var(--ink);cursor:pointer;vertical-align:middle}
+html.ui-on #sumFold:hover{border-color:var(--ink)}
+html.ui-on #sumFold:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+html.ui-on[data-mode="fund"] #sumFold,html.ui-on[data-mode="brief"] #sumFold{display:none}
+html.ui-on.ui-sumfold:not([data-mode="brief"]):not([data-mode="fund"]) #uiKpis,
+html.ui-on.ui-sumfold:not([data-mode="brief"]):not([data-mode="fund"]) .moneybar{display:none!important}
 /* v2.22 review: the docked record leaves the room below the table (--footH, syncSticky), so at the end of the page its pinned bar
    stays under the header rather than behind it */
 html.ui-on.ui-dock .inspector{max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,0px) - var(--scsH,0px) - 16px - var(--footH,0px))}
@@ -2205,7 +2216,7 @@ html.ui-on.ui-dock .inspector{max-height:calc(100vh - var(--hdrH,56px) - var(--t
   <!-- v2.22 W1 (item 155; 149.35, 149.36): the heading line -- the page's name, ONE line saying what the page shows that the pickers
        cannot ("Showing 8 of 36 requirements"), and the task bar (the modes as a segmented control, the mode's tools and the one Add
        requirement), moved here from the sticky top by the same ids -->
-  <div class="uiHd"><div class="uiHdT"><h2 id="uiTitle">Requirements</h2><span class="uiSub" id="uiSubT"></span></div>
+  <div class="uiHd"><div class="uiHdT"><span class="uiSubRow"><h2 id="uiTitle">Requirements</h2><button type="button" class="sumfold" id="sumFold" aria-expanded="true" aria-controls="uiKpis moneyBar" onclick="sumFoldToggle()" title="Hide the headline tiles and the money bar, so more requirements fit on screen">Summary ▴</button></span><span class="uiSub" id="uiSubT"></span></div>
 <div class="tbar">
   <div class="tabs" role="group" aria-label="Workspace"><button type="button" class="tab" id="tab_review" aria-pressed="false" onclick="uiSetMode('review')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h8"/></svg>Review</button><button type="button" class="tab" id="tab_rank" aria-pressed="false" onclick="uiSetMode('rank')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 13V3M1.8 5.2 4 3l2.2 2.2M9 4h5M9 8h4M9 12h3"/></svg>Rank</button><button type="button" class="tab" id="tab_fund" aria-pressed="false" onclick="uiSetMode('fund')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg>Fund</button><button type="button" class="tab" id="tab_compare" aria-pressed="false" onclick="uiSetMode('compare')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg>Compare</button><button type="button" class="tab" id="tab_brief" aria-pressed="false" onclick="uiSetMode('brief')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg>Brief</button></div>
   <span class="csep" aria-hidden="true"></span>
@@ -4908,10 +4919,16 @@ function themeSet(k){
 const UI_MODES=['review','rank','fund','compare','brief'];
 const UI_DENS=['compact','comfortable','presentation'];
 let uiMode='review', uiDensity='comfortable', fundDetailOpen=false;
+// v2.22 (149.52, Brad 25 Nov 2026: "Do option 1 in v2.22"): THE SUMMARY FOLDS. The tiles and the money bar sit above the table and
+// cost a laptop two of its seven rows; one click on "Summary ▴" in the heading line hides both and the table moves up under the
+// heading. This browser's, like the density (spmtSummary); never in the board. Brief always shows them, for the room, and the
+// Funding page has its own tiles, so neither offers the fold.
+let uiSumFold=false;
 function uiLoad(){
   try{ const m=localStorage.getItem('spmtMode'); if(UI_MODES.indexOf(m)>=0) uiMode=m; }catch(e){}
   try{ const d=localStorage.getItem('spmtDensity'); if(UI_DENS.indexOf(d)>=0) uiDensity=d; }catch(e){}
   try{ fundDetailOpen = localStorage.getItem('spmtDetail')==='1'; }catch(e){}
+  try{ uiSumFold = localStorage.getItem('spmtSummary')==='fold'; }catch(e){}
 }
 // Brief is for the room: it always reads at the presentation size, whatever this browser's density is.
 function uiDensityNow(){ return uiMode==='brief'? 'presentation' : uiDensity; }
@@ -4920,6 +4937,16 @@ function uiApply(){
   h.setAttribute('data-mode', uiMode);
   h.setAttribute('data-density', uiDensityNow());
   const fd=document.getElementById('fundDetail'); if(fd) fd.classList.toggle('open', !!fundDetailOpen);
+  h.classList.toggle('ui-sumfold', !!uiSumFold);
+  const sb=document.getElementById('sumFold');
+  if(sb){ sb.setAttribute('aria-expanded', uiSumFold? 'false' : 'true');
+    const t=uiSumFold? 'Show summary ▾' : 'Summary ▴'; if(sb.textContent!==t) sb.textContent=t;
+    sb.title=uiSumFold? 'Show the headline tiles and the money bar again' : 'Hide the headline tiles and the money bar, so more requirements fit on screen'; }
+}
+function sumFoldToggle(){
+  uiSumFold=!uiSumFold; lsSet('spmtSummary', uiSumFold? 'fold' : 'open', 'The summary folded or open');
+  uiApply();
+  try{ syncSticky(); }catch(e){}
 }
 function uiSetMode(m){
   if(UI_MODES.indexOf(m)<0) return;

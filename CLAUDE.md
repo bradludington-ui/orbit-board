@@ -2175,7 +2175,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
 `prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb` (removed on opening since v2.19: ORBIT keeps no cost estimates), `prio27reprog` (the reprogramming log: carried, not shown, since
 v2.02), `prio27appn`, `prio27who`,
-`spmtTheme`, `spmtSidecar`, `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
+`spmtTheme`, `spmtSidecar`, `spmtSummary` (v2.22: the summary folded or open), `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
 aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.95:
 `prio27writerKey` (this browser's writer key; the file holds only its fingerprint) and `prio27impMixed`
@@ -5403,10 +5403,13 @@ builder's record.
   under the header.
 - **`npm run check` refuses a top-level function declared twice** ("one declaration per name"): with three builders, the later
   `awdDateOk` silently replaced the earlier.
-- **149.52 is not met, on purpose** (the approved look puts tiles and the money bar above the table): layout D fails by more than it
-  has since v2.00 (first row 476px at 1440, 8 rows). It is Brad's to decide.
+- **The summary folds (149.52; Brad, 25 Nov: "Do option 1 in v2.22").** The tiles and the money bar put the first row at 477px (v2.21:
+  383), five rows on a 1366×768 laptop where v2.21 had seven. *Summary ▴*, beside the page's title (`#sumFold`, `sumFoldToggle`),
+  hides both (`html.ui-sumfold`): the first row moves up 205px, 8 rows on the laptop, 12 at 1440. This browser's (`spmtSummary`,
+  like `spmtDensity`), never in the board; Brief keeps its tiles and the Funding page has its own, so neither offers it. Layout D
+  still fails open (it measures the default), as it has since v2.00; look-fits G holds the fold.
 - **Checks:** audit-board "v2.22 W1", "W3", "integration", "review"; audit-other "v2.22 W2"; `npm run look`, `palette`, `record` in
-  `verify:grid` (before layout, whose carried D stops the chain: run what follows it by hand). 136 `v222-*` mutations, each proved
+  `verify:grid` (before layout, whose carried D stops the chain: run what follows it by hand). 140 `v222-*` mutations, each proved
   against its own check; two browser-only fixes proved by hand on their mutants.
 
 ## Colour: one token, one job

@@ -699,15 +699,17 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
     date in place.
   - There since v2.08: drawing a prime's record wrote empty CLIN containers (`reqDraftOf` now reads under `clinReadOnly`).
 - **Known gaps, each for Brad:**
-  - **149.52 ("more requirements on screen") is not met.** The concept puts the tiles and the money bar above the table: at
-    1440×1000 the first row is 476px down and 8 rows show (v2.21: 323px, 13); at 1366×768, 4 (8). View › Compact still shows more.
-    Layout D fails by more than it has since v2.00.
+  - **149.52 ("more requirements on screen"), by a fold (Brad, 25 Nov: "Do option 1 in v2.22").** The concept puts the tiles and
+    the money bar above the table, which cost the laptop two of its seven rows. *Summary ▴* beside the page's title hides both, and
+    the table moves up 205px: 8 rows on a 1366×768 laptop (v2.21: 7; v2.22 open: 5), 12 at 1440×1000 (v2.21: 12). Remembered in this
+    browser, never in the board; Brief and the Funding page keep their tiles. Layout D still fails with the summary open, as it has
+    since v2.00.
   - Below 1100px the mode's tools, Add requirement with them, fold into Tools ▾.
   - Help, at its size limit, does not describe the money bar, the chips or the Funding page's tiles.
   - The RECORD card still slides over the table by default; docked is a per-browser choice (View ▾).
 - **Checks:** audit-board "v2.22 W1", "v2.22 W3", "v2.22 integration" and "v2.22 review"; audit-other "v2.22 W2"; `npm run look`,
-  `palette` (R: the keyboard home), `record` (K: the docked bar at the end of the page; L: the first year press); `npm run check`
-  "one declaration per name". **Mutations:** 136 `v222-*` (W1 29, W2 54, W3 37, integration 5, review 11) and their retargets,
+  `palette` (R: the keyboard home), `record` (K: the docked bar at the end of the page; L: the first year press), `look` (G: the summary fold); `npm run check`
+  "one declaration per name". **Mutations:** 140 `v222-*` (W1 29, W2 54, W3 37, integration 5, review 11, the fold 4) and their retargets,
   each proved against its own check (`recovery/v222/proved-*.jsonl`); none retired. No sweep (Brad's rule of 20 Oct).
 
 ##### 155. The new look: one search box, pill pickers, the money bar, tiles with meters, lighter rows, the record as a card (v2.22)
