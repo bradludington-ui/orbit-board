@@ -95,7 +95,10 @@ for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
     // judged again with that group open: every item in it in the window and on top, the menu scrolling if it must.
     const gs = await p.evaluate(k => [...document.querySelectorAll('#dd_' + k + ' .gh')].map(h => h.getAttribute('data-g')), k);
     for (const g of gs) {
-      await p.click(`#dd_${k} .gh[data-g="${g}"]`); await p.waitForTimeout(100);
+      // v2.22 W2 (item 149.26): Filter opens with its Funding group already open the first time -- a click would close it; it is
+      // judged open as it is
+      const was = await p.evaluate(([k, g]) => { const b = document.getElementById('mg_' + k + '_' + g); return !!b && !b.hidden; }, [k, g]);
+      if (!was) { await p.click(`#dd_${k} .gh[data-g="${g}"]`); await p.waitForTimeout(100); }
       const rg = await judge(p); looked++;
       const opened = await p.evaluate(([k, g]) => { const b = document.getElementById('mg_' + k + '_' + g); return !!b && !b.hidden; }, [k, g]);
       if (rg.none) bad.push(`${w}×${h} ${k} › ${g}: the menu closed when the group was opened`);

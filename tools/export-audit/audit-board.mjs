@@ -3577,7 +3577,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const shown = k => J(JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns(); const dd=document.getElementById('dd_'+${J(k)});
       return JSON.stringify([].slice.call(dd.querySelectorAll('.mi, .gh, input')).filter(function(e){
         const g=e.closest('.gbody'), x=e.closest('.uiRs'); return !e.hidden && !(g && g.hidden) && !(x && x.hidden); }).length); })()`)));
-  ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
+  // v2.22 W2 (item 149.26): Filter opens its Funding group by itself until a group of it has been opened or closed by hand
+  // (menuGrpOpen.view absent); "nothing unfolded" is Filter's groups closed by hand ('' kept), as v1.96 had every menu start
+  ev(`menuGrpOpen={view:''}; menuFindQ=''; openMenu=null; 'ok'`);
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
   // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
   chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 8, Program offices 4, Audit 4, Save’s ▾ 3, Imports & exports 5',

@@ -320,7 +320,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 {
   try {
     const { p, ctx, errs } = await open('review');
-    await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = {}; openMenu = null; syncBtns(); });
+    // v2.22 W2 (item 149.26): Filter opens its Funding group by itself until a group of it has been opened or closed by hand; here
+    // every group starts folded by hand ('' kept), so Enter on each heading opens it, as before
+    await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = { view: '' }; openMenu = null; syncBtns(); });
     const GROUPED = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].filter(m => m.querySelector('.gh') && m.getClientRects().length)
       .map(m => ({ k: m.id.slice(2), gs: [...m.querySelectorAll('.gh')].map(h => h.getAttribute('data-g')) })));
     // v2.00 (menu): of the toolbar's menus Filter still folds; Setup folds on the left menu (G3), and Reports & exports lays its

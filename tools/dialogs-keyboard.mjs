@@ -56,6 +56,7 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
   // open from their entries, uiGo('imp'|'rep'|'data', this)
   const KNOWN = { helpClose: 'openHelp(', erClose: 'toggleRec(', subClose: 'subOpenReview(', attClose: 'attShow(',
                   uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'",
+                  cmdClose: 'cmdOpen(',   // v2.22 W2 (item 155): Ctrl K's palette, opened by the header's find box (#cmdOpen) or Ctrl K
                   msgClose: 'msgOpen(',   // v2.03 (item 19): the session's messages, opened by ⚠ N unread; v2.19 (item 150): the AI review list removed with its feature
                   // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
                   // page -- v2.22 W1 (149.35): the one Add requirement is the Review tools' own (#toolAdd, toggleAdd); the second went

@@ -335,6 +335,18 @@ for (const build of BUILDS) {
         uiSync(); DIRTY = false; _keptMeta = null; syncBtns(); } catch (e) {} });
     }
     await page.evaluate(() => { try { openMenu = null; rowMenuId = null; uiMode = 'review'; uiApply(); syncBtns(); render(); } catch (e) {} });
+    // v2.22 W2 (item 155): CTRL K'S PALETTE, measured open with a requirement and an action in it, and the list's search on (its ✕
+    // shown). Both must have been on screen, or the run fails: a control measured by nothing would pass by being absent.
+    const cmdShown = await page.evaluate(() => { try {
+      const q = document.getElementById('q'); q.value = 'OGC'; qTyped();
+      cmdOpen(); const c = document.getElementById('cmdQ'); c.value = 'e'; cmdTyped();
+      return !!document.querySelector('#cmdPanel.open .cmd-o .cmd-pill') && !!document.querySelector('#cmdPanel.open .cmd-o .cmd-tag')
+        && !document.getElementById('qClr').hidden; } catch (e) { return false; } });
+    await page.waitForTimeout(150);
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    if (!cmdShown) record(build, theme, { sc: 'coverage', key: 'Ctrl K’s palette was not on screen to measure',
+      detail: 'the palette with a requirement and an action in it, and the list’s search with its ✕, were NOT drawn', n: 1 });
+    await page.evaluate(() => { try { cmdClose(); qClear(); } catch (e) {} });
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it
     // opened; the 🔧 list under Needs attention is measured open, then the award block of one, with ✓ Checked. Both must
     // be on screen, or the run fails: a control measured by nothing would pass by being absent.

@@ -10468,7 +10468,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   { const B = boot({ html: bad }); await pause(200);
     const st = status(B.ev);
     chk(name, '1 a fresh browser', 'the status line opens with the warning', st.startsWith(WARN), true);
-    chk(name, '1 a fresh browser', 'and the opening’s own line follows it rather than replacing it', /SHELL TEMPLATE/.test(st), true);
+    // v2.22 W2 (item 149.29): the program's own opening line names itself and points at Start here (it said SHELL TEMPLATE)
+    chk(name, '1 a fresh browser', 'and the opening’s own line follows it rather than replacing it', /The ORBIT program/.test(st), true);
     chk(name, '1 a fresh browser', 'the line is showing, not waiting in a tooltip', B.ev(`document.getElementById('statWrap').classList.contains('fresh')`), true);
     // once opened, the next message is the board's own (the hold is let go)
     B.ev(`setStat('After opening.'); 'ok'`);
@@ -11506,9 +11507,11 @@ await (async () => {
   const f1 = fin();
   chk(name, 'finish', 'A opens in New requirement, the bar naming it and saying one more follows',
     J([f1.tab, /^Finishing FY27 A — Depot support · 1 more after this\. It is added as a new FY28 requirement, linked to that one\./.test(f1.bar)]), J(['true', true]));
-  chk(name, 'finish', 'filled in from FY27: its plan event, CCaR, PID, value, USAF budget and description',
-    J(f1.f), J(['Depot support', 'JSF1001', 'PID-A', '900', '200', '100', BUD.USAF, '', '', 'Annual depot support.', '', '', '']));
-  chk(name, 'finish', 'and Add says how many are still needed', f1.btn, 'Add requirement — 6 still needed');
+  // v2.22 W2 (item 149.24 b): ANG and AFRC have one PSM name each and FY27 stored none, so the box picks it (still changeable); it
+  // read '' for both, and "6 still needed" with the budgets among them
+  chk(name, 'finish', 'filled in from FY27: its plan event, CCaR, PID, value, USAF budget and description; ANG’s and AFRC’s only names picked',
+    J(f1.f), J(['Depot support', 'JSF1001', 'PID-A', '900', '200', '100', BUD.USAF, BUD.ANG, BUD.AFRC, 'Annual depot support.', '', '', '']));
+  chk(name, 'finish', 'and Add says how many are still needed', f1.btn, 'Add requirement — 5 still needed');
   const f2 = JSON.parse(ev(`__arFill({pt:'PRIME', bud:${J({ ANG: BUD.ANG, AFRC: BUD.AFRC })}, ob:OB_CATS[0], to:'lm', cons:'The depot line stops.'})`));
   chk(name, 'finish', 'finished, nothing is still needed', f2.btn, 'Add requirement');
   ev(`document.getElementById('arAddBtn').click(); 'ok'`);
