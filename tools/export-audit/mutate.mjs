@@ -11091,6 +11091,34 @@ const MUTATIONS = [
   // ==== v2.23 review RV-A ====
   // ==== end v2.23 review RV-A ====
   // ==== v2.23 review RV-B ====
+  { id: 'v223-rvb-link-not-repointed', area: 'xfLinkLine', what: "Add to a year keeps the link to the year it started from, which can point forward: FY27's Kit reads as a line of its own and can be added twice",
+    find: `  if(it && it.prior) it.prior={fy:+L.fy, id:String(L.id)};`, repl: `  if(false) it.prior={fy:+L.fy, id:String(L.id)};` },
+  { id: 'v223-rvb-link-source-line-only', area: 'xfLineLink', what: "Add to a year links to the source's own line, not the line the tab reads the work by: a year found only as a rolled copy stays 'not in'",
+    find: `[[MS.cur, id], [sy, sid]].forEach(`, repl: `[[sy, sid]].forEach(` },
+  { id: 'v223-rvb-link-unsimulated', area: 'xfLineLink', what: "the link is the line key's anchor taken on trust: where it reads as other work, the new requirement joins the other work's line",
+    find: `if(xfLineSim(C, ty, cands[i], row)===k) return`, repl: `if(true) return` },
+  { id: 'v223-rvb-held-unchecked', area: 'xfAddDo', what: "Add to a year adds the work to a year that already holds it on the source's line: twice",
+    find: `  if(had){ say('Nothing was added: FY'`, repl: `  if(false){ say('Nothing was added: FY'` },
+  { id: 'v223-rvb-held-cur-only', area: 'xfLineHeld', what: "the held test reads only the on-screen line, so a year holding the work on the source's line takes it twice",
+    find: `for(const x in kk){ if(ks.indexOf(kk[x])>=0) return x; }`, repl: `for(const x in kk){ if(kk[x]===ks[0]) return x; }` },
+  { id: 'v223-rvb-box-names-source', area: 'xfAddDraw', what: "the Add box names the year it starts from as the year it links to",
+    find: `const lfy='FY'+((A.lfy||A.sy)%100);`, repl: `const lfy='FY'+(A.sy%100);` },
+  { id: 'v223-rvb-open-no-link', area: 'xfAddOpen', what: "the Add box is opened without working out the link, so it names the source's year",
+    find: `  XFA.lfy=L? L.fy : S0.y;`, repl: `  XFA.lfy=S0.y;` },
+  { id: 'v223-rvb-stat-names-source', area: 'xfAddDo', what: "the status line names the year the requirement started from as the year it is linked to",
+    find: `linked to FY'+(A.lfy%100)+'’s as the same work, last in`, repl: `linked to FY'+(A.sy%100)+'’s as the same work, last in` },
+  { id: 'v223-rvb-total-no-directed', area: 'xfTabHtml', what: "the Disc and Mand FYDP totals print what was drawn under boxes holding what was directed, and say nothing (Directed is not drawn)",
+    find: `+((any && (kind==='d' || kind==='m'))? directedLine(dir, t, cap) : '')`, repl: `+''` },
+  { id: 'v223-rvb-total-dir-drawn', area: 'xfTabHtml', what: "the Disc total's directed figure is summed from what was drawn",
+    find: `if(kind==='d'){ dir+=Y.r.dv? (+Y.r.dv[i]||0) : Y.r.d[i];`, repl: `if(kind==='d'){ dir+=Y.r.d[i];` },
+  { id: 'v223-rvb-total-cap-zero', area: 'xfTabHtml', what: "the Disc total's cap is not the basis, so a dry lane is blamed on the allocation",
+    find: `cap+=Y.r.bs[i]; }`, repl: `cap+=0; }` },
+  { id: 'v223-rvb-total-mand-dir-drawn', area: 'xfTabHtml', what: "the Mand total's directed figure is summed from what was drawn",
+    find: `dir+=Y.r.mv? (+Y.r.mv[i]||0) : Y.r.m[i];`, repl: `dir+=Y.r.m[i];` },
+  { id: 'v223-rvb-total-mand-cap', area: 'xfTabHtml', what: "the Mand total's cap ignores what discretionary already drew of the basis",
+    find: `cap+=Y.r.bs[i]-Y.r.d[i]; }`, repl: `cap+=Y.r.bs[i]; }` },
+  { id: 'v223-rvb-total-mand-off-counted', area: 'xfTabHtml', what: "the Mand total counts a directed figure in a year where mandatory funding is off",
+    find: `else if(kind==='m' && Y.mand){ dir+=`, repl: `else if(kind==='m'){ dir+=` },
   // ==== end v2.23 review RV-B ====
   // ==== v2.23 review RV-C ====
   // ==== end v2.23 review RV-C ====
