@@ -15,6 +15,10 @@
 //   H. (149.50) The requirement's other years: FY28's button opens the same requirement in FY28.
 //   I. (149.21) What is still needed opens the edit box at that field; Save and next saves and opens the next requirement.
 //   J. (149.43) Every award block and its buttons sit inside the record, at 1024 sliding and 1600 docked.
+//   K. (v2.22 review) Docked, scrolled to the END of the page: the pinned bar is below the header, and a real click on Next › moves
+//      the record (the record was pushed up under the header there, and the click landed on the header).
+//   L. (v2.22 review) A figure typed in the record, then a real press on FY28 in its years line: FY28 opens with the figure kept
+//      (the redraw took the button away on the press, and the first click went nowhere).
 //
 //   node tools/record-card.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -189,6 +193,35 @@ for (const [w, h, docked] of [[1600, 1000, true], [1440, 900, false], [1024, 768
     chk(`· ${lay}: nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
     await ctx.close();
   } catch (e) { chk(`${lay}: the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 160)); }
+}
+// ── K, L (v2.22 review)
+for (const [w, docked] of [[1600, true], [1440, false]]) {
+  const lay = (docked ? 'docked ' : 'sliding ') + w;
+  try {
+    const { p, ctx, errs } = await open(w, 900, docked);
+    await press(p, rowTitle('R002'), 400);
+    if (docked) {
+      await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(300);
+      const k = await p.evaluate(() => { const n = [...document.querySelectorAll('#inspector .recbar button')].find(x => x.textContent.includes('Next'));
+        const r = n.getBoundingClientRect(), ts = document.getElementById('topStack').getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return { below: r.top >= ts.bottom - 1, hitsBar: !!(hit && hit.closest && hit.closest('.recbar')), atEnd: scrollY > 0 }; });
+      const c0 = await cur(p);
+      const n = await p.evaluate(() => { const b = [...document.querySelectorAll('#inspector .recbar button')].find(x => x.textContent.includes('Next')).getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+      await p.mouse.click(n.x, n.y); await p.waitForTimeout(300);
+      const c1 = await cur(p);
+      chk(`K · ${lay}: at the end of the page the bar is below the header and Next › is pressed, not the header`, k.atEnd && k.below && k.hitsBar && c0 === 'R002' && c1 === 'R003', JSON.stringify([k, c0, c1]));
+      await p.evaluate(() => window.scrollTo(0, 0)); await press(p, rowTitle('R002'), 400);
+    }
+    const inp = p.locator('#inspector input[data-col="d"][data-si="0"]').first(); await inp.scrollIntoViewIfNeeded(); const bi = await inp.boundingBox();
+    await p.mouse.click(bi.x + bi.width / 2, bi.y + bi.height / 2); await p.keyboard.press('Control+A'); await p.keyboard.type('123456'); await p.waitForTimeout(200);
+    const yb = p.locator('#inspector .recyrs button').first(); await yb.scrollIntoViewIfNeeded(); const bb = await yb.boundingBox();
+    await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.waitForTimeout(400);
+    const l = await p.evaluate(() => ({ fy: +MS.cur, kept: ((MS.years[2027].fsrc || {}).R002 || {}).dv ? MS.years[2027].fsrc.R002.dv[0] : null }));
+    chk(`L · ${lay}: a figure typed, then one press on FY28: FY28 opens and the figure is kept`, l.fy === 2028 && l.kept === 123456, JSON.stringify(l));
+    chk(`K/L · ${lay}: nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`K/L · ${lay}: the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 160)); }
 }
 await b.close();
 console.log(bad ? `\n${bad} record check(s) failed\n` : '\nThe record card holds its bar and name, moves to a row clicked, steps by button and key, goes down a column, says a refusal, keeps a click after typing, lands its jumps, sets ★, opens another year, and fits its awards\n');

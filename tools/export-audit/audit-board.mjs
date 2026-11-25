@@ -10937,6 +10937,95 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 })();
+// v2.22 REVIEW (three reviewers, one per builder, each finding reproduced and then argued against): what jsdom can hold of the
+// fixes -- the browser halves (the keyboard handed home before a popover, a flyout or a row's menu closes; the docked record's bar
+// at the end of the page; the first press on a year button after typing) are in tools/cmd-palette.mjs and tools/record-card.mjs.
+//   a CCaR record's number as the search finds that record's requirements only (JSF2 is not JSF21; "JSF 2" is JSF2);
+//   the Add box's "not in the list as shown" sentence escaped once;
+//   "Award needs repair" only for a date that is there and unreadable, or a repair nobody checked -- not an award cleared on purpose;
+//   the tiles say "all drawn" only where something was drawn, and the mandatory pot "withheld" under ◨;
+//   a refusal in the record belongs to that requirement of that year, view and plan, and is kept as text;
+//   drawing a prime's record writes no CLIN container (reqDraftOf reads under clinReadOnly);
+//   after an edit the years line is drawn (stale) rather than empty, and the fill brings it up to date in place.
+// FAILS ON 3689a16 (the review's tree): each part is a defect a reviewer reproduced there.
+await (async () => {
+  const name = 'v2.22 review — the CCaR record search, the Add sentence, the repair flag, the tiles under ◨, the record’s refusal, the CLIN read, the years line';
+  try {
+    const J = JSON.stringify;
+    // 1. the CCaR search and the Add sentence
+    { const B = boot(), ev = B.ev;
+      seed(ev, { services: ['USAF'], items: [it('A', 'PSM', [100]), it('B', 'R&D', [100]), it('C', 'AV', [100]), it('D', 'AV', [100])], disc: [300], mand: [120], order: ['A', 'B', 'C', 'D'] });
+      ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+      const rows = () => ev(`[].slice.call(document.querySelectorAll('#list .row')).map(function(r){return r.id.replace(/^row-/,'')}).join(',')`);
+      ev(`MS.ccarIdx={rows:{JSF2:{t:'Avionics record',o:'',p:'PSM',d:1}, JSF21:{t:'Other',o:'',p:'PSM',d:1}}}; S.ccar={A:'JSF2', B:'JSF21', C:'JSF 2'}; save(); render(); 'ok'`);
+      ev(`cmdOpen(); var i=document.getElementById('cmdQ'); i.value='avionics'; cmdTyped(); var r=CMD.rows.findIndex(function(x){return x.kind==='rec'}); cmdRun(r); 'ok'`);
+      chk(name, 'ccar', 'Enter on CCaR record JSF2 lists A and C (filed as "JSF 2"), never B on JSF21', J([ev(`document.getElementById('q').value`), rows()]), J(['JSF2', 'A,C']));
+      ev(`document.getElementById('q').value='jsf'; render(); 'ok'`);
+      chk(name, 'ccar', 'a search that is no record’s number is still a text search, every record holding it (a CONTROL)', rows(), 'A,B,C');
+      ev(`document.getElementById('q').value='r&d'; render(); var d=document.createElement('div'); d.innerHTML=arRowSay('NOPE'); window.__t=d.textContent; 'ok'`);
+      chk(name, 'add', 'the Add box’s sentence reads the search as typed, escaped once', ev(`__t`), ' It is not in the list as shown: the search “r&d” hides it.');
+      ev(`document.getElementById('q').value=''; filter='R&D'; render(); var d=document.createElement('div'); d.innerHTML=arRowSay('NOPE'); window.__t=d.textContent; filter='ALL'; render(); 'ok'`);
+      chk(name, 'add', 'and an office named R&D the same', ev(`__t`), ' It is not in the list as shown: office R&D hides it.');
+      chk(name, 'errors', 'no page error (1)', B.errors.length, 0); }
+    // 2. the repair flag and the tiles
+    { const B = boot(), ev = B.ev;
+      seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [100, 50]), it('B', 'AV', [40, 0])], disc: [80, 40], mand: [60, 0], order: ['A', 'B'] });
+      ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        S.awards={A:{mode:'single', d:'2027-03', fix:{how:'split', n:['two figures'], orig:'{}'}}, B:{mode:'single', d:'2027-13'}}; save(); uiMode='review'; uiApply(); render(); 'ok'`);
+      const flag = id => ev(`String(/Award needs repair/.test(document.querySelector('#row-${id} .t2').textContent))`);
+      chk(name, 'repair', 'an unreadable date is flagged (a CONTROL)', flag('B'), 'true');
+      ev(`awdFixOk('A'); setAwdDate('A',''); render(); 'ok'`);
+      chk(name, 'repair', 'a checked repair whose date was then cleared on purpose is not flagged', flag('A'), 'false');
+      ev(`S.awards.A={mode:'single', fix:{how:'repair', n:['a date'], orig:'{}'}}; render(); 'ok'`);
+      chk(name, 'repair', 'a repair nobody has checked is flagged', flag('A'), 'true');
+      const k = () => ev(`[].map.call(document.querySelectorAll('#uiKpis .k'), function(k){ return k.querySelector('.x').textContent; }).join(' | ')`);
+      ev(`scenView='disc'; render(); 'ok'`);
+      const kd = k();
+      chk(name, 'tiles', 'under ◨ the Mandatory tile says the pot is withheld, never "all drawn"', J([/withheld/.test(kd.split(' | ')[2]), /all drawn/.test(kd.split(' | ')[2])]), J([true, false]));
+      ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+      chk(name, 'tiles', 'and the Funding page’s mandatory tile', ev(`String(/withheld/.test(document.querySelector('#posture .ppt.mand').parentNode.textContent))`), 'true');
+      ev(`scenView=''; uiMode='review'; uiApply(); S.bm.mand=[0,0]; applyBudget(); render(); 'ok'`);
+      chk(name, 'tiles', 'with no mandatory budget nothing is "all drawn"', String(/all drawn/.test(k().split(' | ')[2])), 'false');
+      chk(name, 'errors', 'no page error (2)', B.errors.length, 0); }
+    // 3. the record's refusal, the CLIN read, the years line
+    { const B = boot(), ev = B.ev;
+      seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('P', 'PP', [20, 0]), it('Q', 'PP', [30, 0])], disc: [400, 200], mand: [100, 0], order: ['A', 'P', 'Q'] });
+      ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); S.ptype.Q='PRIME'; save(); render(); 'ok'`);
+      // FY28 rolled forward, so A is in both years and its record carries a button to the other one
+      ev(`window.confirm=function(){return true;}; switchYear(2028); switchYear(2027); render(); 'ok'`);
+      const sn = () => ev(`JSON.stringify([S.clinMeta||null, S.clinRm||null, S.clinAlloc||null, S.clinNew||null])`);
+      const c0 = sn(); ev(`setCur('Q'); reqDraftOf('Q'); pmoProposalGate('Q'); 'ok'`);
+      chk(name, 'clin', 'drawing a prime’s record, its draft and its gate write no CLIN container', sn(), c0);
+      ev(`window.__n27=reqCreate('PSM', {title:'Spares buy', event:'Spares buy', ask:[40,0]}); save(); switchYear(2028);
+        window.__n28=reqCreate('AV', {title:'Field team', event:'Field team', ask:[7,0]}); save(); switchYear(2027); setCur(window.__n27); 'ok'`);
+      chk(name, 'refusal', 'the two years’ added requirements share an id (the fixture can tell the rules apart)', String(ev('window.__n27') === ev('window.__n28')), 'true');
+      const type = v => ev(`(function(){ var i=document.querySelector('#inspector .insp-split input[data-col="q"][data-si="0"]'); i.value=${JSON.stringify(v)}; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); return document.getElementById('recMsg').innerHTML; })()`);
+      chk(name, 'refusal', 'a refused figure is said in its record (a CONTROL)', String(/not an amount/.test(type('12x'))), 'true');
+      ev(`switchYear(2028); setCur(window.__n28); 'ok'`);
+      chk(name, 'refusal', 'another year’s requirement of the same id does not show it', ev(`document.getElementById('recMsg').textContent`), '');
+      ev(`switchYear(2027); setCur(window.__n27); 'ok'`);
+      chk(name, 'refusal', 'it is kept as text: no control inside it', ev(`String(document.querySelectorAll('#recMsg button, #recMsg [onclick]').length)`), '0');
+      // the years line: after an edit it is drawn (stale) with its buttons, and the fill keeps the very elements
+      ev(`setCur('A'); recYearsFill(); 'ok'`);
+      const yb0 = ev(`String(document.querySelectorAll('#recYrs button').length)`);
+      chk(name, 'years', 'the line has a button to the other year (a CONTROL)', yb0, '1');
+      ev(`(function(){ var i=document.querySelector('#inspector .insp-split input[data-col="q"][data-si="0"]'); i.value='310'; i.dispatchEvent(new Event('change',{bubbles:true})); })(); window.__yb=document.querySelector('#recYrs button'); 'ok'`);
+      chk(name, 'years', 'after an edit the line is drawn with its button, marked stale -- not empty', J([ev(`String(document.querySelectorAll('#recYrs button').length)`), ev(`document.getElementById('recYrs').className`)]), J(['1', 'recyrs stale']));
+      ev(`recYearsFill(); 'ok'`);
+      chk(name, 'years', 'the fill brings it up to date in place: the same button, no longer stale', J([ev(`String(document.querySelector('#recYrs button')===window.__yb)`), ev(`document.getElementById('recYrs').className`)]), J(['true', 'recyrs']));
+      // a refusal typed on a locked view: said there as text (the view's own sentence carries a Leave button), and gone once the
+      // working plan is back
+      ev(`switchYear(2027); cycLock('PB|2027'); cycView('PB|2027'); setCur('A'); 'ok'`);
+      const inView = type('999');
+      chk(name, 'refusal', 'on a locked view the refusal is said, as text: no button in it', J([/locked cycle/.test(inView), ev(`String(document.querySelectorAll('#recMsg button, #recMsg [onclick]').length)`)]), J([true, '0']));
+      await new Promise(r => setTimeout(r, 1700));
+      ev(`cycLeave(); setCur('P'); setCur('A'); 'ok'`);
+      chk(name, 'refusal', 'and the working plan’s record does not carry it once the view is left', ev(`document.getElementById('recMsg').textContent`), '');
+      chk(name, 'errors', 'no page error (3)', B.errors.length, 0); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.22 integration (the lead) ====
 
 {

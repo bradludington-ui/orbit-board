@@ -2090,6 +2090,9 @@ html.ui-on:not(.ui-dock) .drawerscrim.on{pointer-events:none;background:rgba(0,0
 </style>
 <style id="v222int">
 /* v2.22 INT: its own rules go here (contract §2) */
+/* v2.22 review: the docked record leaves the room below the table (--footH, syncSticky), so at the end of the page its pinned bar
+   stays under the header rather than behind it */
+html.ui-on.ui-dock .inspector{max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,0px) - var(--scsH,0px) - 16px - var(--footH,0px))}
 </style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
@@ -9631,7 +9634,11 @@ function reqNeeds(d){
   return out;
 }
 // A requirement on the board, as the draft reqNeeds() judges.
-function reqDraftOf(id){
+// v2.22 review: A DRAFT IS A READ. recFields reads a prime's CLINs through clinList, which makes the CLIN containers it reads
+// (S.clinMeta, clinRm, clinAlloc) -- so the first draw of a prime's record wrote them into the board, and a reopened file held CLIN
+// entries it never had (found by the RECORD card's review, there since v2.08's 📋 count). clinReadOnly puts them back as they were.
+function reqDraftOf(id){ return clinReadOnly([id], function(){ return reqDraftRead(id); }); }
+function reqDraftRead(id){
   const it=itemById(id); if(!it) return null;
   const F=recFields(id,it).filter(function(f){ return !f.sec; });
   // v2.03 (item 20): matched on the field's KEY, never its label, so a renamed label cannot empty the gate
@@ -26364,7 +26371,7 @@ function scoreboard(){
       pe.innerHTML = !SVC.length? '' :
         '<div class="pptiles"><div class="pplanes">'
           +lt('disc','Discretionary',dBA,dUsed,dLeft,'var(--apxOk)')+'<div class="pft"><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'+'</div></div>'
-          +lt('mand','Mandatory',mBA,mUsed,mLeft,'#c9930c')+'<div class="pft"><span class="l" data-v="'+Math.round(mLeft)+'">'+fM(mLeft)+' left</span>'+'</div></div>'
+          +lt('mand','Mandatory',mBA,mUsed,mLeft,'#c9930c')+'<div class="pft"><span class="l" data-v="'+Math.round(mLeft)+'">'+((typeof scenOn==='function' && scenOn())? 'withheld (\u25e8 discretionary only)' : fM(mLeft)+' left')+'</span>'+'</div></div>'   // v2.22 review
         +'</div>'
         +'<div class="pp ppt mc'+(mcUnf>0.5?' warn':'')+'"><div class="k">★ Mission critical · '+pl(mcN,'must-pay','must-pay')+'</div>'
           +'<div class="v" data-v="'+Math.round(mcUnf)+'">'+(mcUnf>0.5? fM(mcUnf)+'</div><div class="x">unfunded of '+fM(mcTot)+', even with mandatory'
@@ -30048,7 +30055,10 @@ function render(){
       pidOf(it)? `<span class="id" title="PID">${esc(pidOf(it))}</span>` : '<span class="exc">No PID</span>',
       _aw? (_aw.mode==='inc'? `<span title="incremental funding — ${(_aw.inc||[]).length} increment(s); edit on the RECORD panel">📅 INC ×${(_aw.inc||[]).length}</span>`
                             // v2.22 W1 (item 149.28): a damaged award date says so on the row; it read the bare word "Award"
-                            : !awdMonthOk(_aw.d)? '<span class="exc" title="The award date could not be read when the board opened. Open the record to set it again.">Award needs repair</span>'
+                            // v2.22 review: only a date that is there and cannot be read, or a repair nobody has checked -- an award cleared on
+                            // purpose keeps its repair record (awdKeepFix) and has no date, and said nothing before v2.22
+                            : ((_aw.d && !awdMonthOk(_aw.d)) || (_aw.fix && _aw.fix.how==='repair' && !_aw.fix.ok))? '<span class="exc" title="The award date could not be read when the board opened. Open the record to set it again.">Award needs repair</span>'
+                            : !_aw.d? ''
                             : `<span title="award/obligation date — full funded amount forecasts in this month${_aw.day?'; day '+_aw.day+' sets the CR half-month window':''}">Award ${_aw.day? _aw.day+' ':''}${esc(String(ymLbl(_aw.d)).replace(/\b([A-Z])([A-Z]{2})\b/,function(m,a,b){ return a+b.toLowerCase(); }))}</span>`) : '',
       ptypeOf(id)? `<span class="x">${ptypeOf(id)==='PRIME'? PRIME_ICON+' Prime' : 'OGC'}</span>` : '',
       ((S.costElem||{})[id])? `<span class="x">${esc((S.costElem||{})[id])}</span>` : '',
@@ -30237,6 +30247,12 @@ function syncSticky(){
     if(hd && hd.offsetHeight) r.setProperty('--apxHdrH', (hd.offsetHeight+ch)+'px');
     r.setProperty('--tbarH','0px');
     set('--schH', document.querySelector('.sc-h'));
+    // v2.22 review: what sits BELOW the table and the docked record (the closing CUI line, the page's foot). A sticky record taller
+    // than the room above that is pushed up at the end of the page, and its pinned bar went under the header, where a click on
+    // ‹ Previous or Next › landed on the header; the docked record's height leaves that room (v222int).
+    const gs=document.querySelector('.gridsplit');
+    if(gs){ const b=gs.getBoundingClientRect().bottom+(window.scrollY||0), dh=document.documentElement.scrollHeight;
+      r.setProperty('--footH', Math.max(0, Math.ceil(dh-b))+'px'); }
   }catch(e){}
 }
 try{ window.addEventListener('resize', syncSticky); }catch(e){ /* layout nicety; a board that cannot listen for resize still works */ }
@@ -37402,11 +37418,14 @@ function uiKpis(){
       else {
         // v2.22 W1 (items 155, 149.41): Requirement, Funded, Unfunded; each with a meter -- Total requirement: funded of it;
         // Discretionary and Mandatory: drawn of the BA; Unfunded: of the requirement. The incomplete count is written in by uiShowSet.
-        const left=function(l){ return (typeof l==='number' && l<=0.5)? ' \u00b7 all drawn' : (typeof l==='number'? ' \u00b7 '+fM(l)+' left' : ''); };
+        // v2.22 review: "all drawn" only where something was drawn (the Funding page's tile says the same); under ◨ the mandatory
+        // pot is withheld, so its line says that rather than reading a remainder the view set to nothing
+        const left=function(l, used){ return (typeof l==='number' && l<=0.5)? ((used||0)>0.5? ' \u00b7 all drawn' : '') : (typeof l==='number'? ' \u00b7 '+fM(l)+' left' : ''); };
+        const mWh=(typeof scenOn==='function' && scenOn());
         const html=
             uiKpiCard('ask', 'Total requirement', K.ask, K.n+' requirement'+(K.n===1?'':'s')+'<span id="kpiTodo"></span>', [K.wUsed||0, K.ask])
-          + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA'+left(K.dLeft), [K.dUsed, K.dBA])
-          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA'+left(K.mLeft), [K.mUsed, K.mBA])
+          + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA'+left(K.dLeft, K.dUsed), [K.dUsed, K.dBA])
+          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA'+(mWh? ' \u00b7 withheld (\u25e8 discretionary only)' : left(K.mLeft, K.mUsed)), [K.mUsed, K.mBA])
           + uiKpiCard('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Unfunded', K.u2Amt,
                  K.u2Amt>0.5? (K.uN+' of '+K.n+' requirement'+(K.n===1?'':'s')+' short') : 'nothing unfunded', [K.u2Amt, K.ask]);
         el.innerHTML=html;
@@ -37449,7 +37468,22 @@ function uiColSet(k, hide){
   uiCols();
 }
 // ── the toolbar's small menus, and the Cycle menu in the context bar ───────────────────────────────────────────
+// v2.22 review: CLOSING WHAT HOLDS THE KEYBOARD HANDS IT HOME FIRST. A popover, a flyout or a row's ⋯ menu that closes with the
+// keyboard inside it left it on <body>, and a box opened from it (Needs attention's list, the Ctrl K palette) had a hidden opener
+// to give it back to (v1.93: closing hands the keyboard to the control that opened). The keyboard goes to the control that opened
+// the container first -- the popover's button, the flyout's left-menu entry, the row's ⋯ -- as uiPanelRun already did for a flyout.
+function uiFocusHome(){
+  const a=document.activeElement; if(!a || !a.closest) return;
+  let t=null;
+  try{
+    if(UI2.fly && a.closest('#uiFly')) t=document.getElementById('uiNav_'+UI2.fly);
+    else if(a.closest('.uiPop')){ const m=a.closest('.uiMenu'); t=m? m.querySelector('button') : null; }
+    else { const sel=dlgMenuOf(a); if(sel) t=document.querySelector(sel); }
+    if(t && t!==a) t.focus({preventScroll:true});
+  }catch(e){}
+}
 function uiPopsClose(){
+  uiFocusHome();
   ['uiColsPop','uiDensPop','uiAttPop'].forEach(function(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); });
   ['uiColsBtn','uiDensBtn','fc_att'].forEach(function(id){ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded','false'); });
 }
@@ -37615,6 +37649,7 @@ function uiFlyOpen(k, btn){
   try{ const b=f.querySelector('button:not([disabled])'); if(b) b.focus({preventScroll:true}); }catch(e){}
 }
 function uiFlyClose(){
+  uiFocusHome();   // v2.22 review
   const f=document.getElementById('uiFly'); if(f){ f.classList.remove('open'); }
   uiFlyPark();
   if(UI2.fly){ const b=document.getElementById('uiNav_'+UI2.fly); if(b) b.setAttribute('aria-expanded','false'); }
@@ -38254,6 +38289,10 @@ function listSearchHit(it, q, num){
   q=String(q||'').trim().toLowerCase(); if(!q) return true;
   const n=/^#?\s*(\d{1,7})$/.exec(q);
   if(n && num!==undefined && num!==null && +num===parseInt(n[1], 10)) return true;
+  // v2.22 review: A SEARCH THAT IS A CCaR RECORD'S NUMBER FINDS THAT RECORD'S REQUIREMENTS, and only them. As text, "JSF2" took
+  // JSF21's requirement and missed one filed as "JSF 2", while the palette's own count (by ccarNorm) said otherwise.
+  const ix=ccarIdx(), rk=ccarNorm(q);
+  if(rk && ix && Object.prototype.hasOwnProperty.call(ix, rk)) return ccarNorm(ccarOf(it))===rk;
   return reqSearchText(it).indexOf(q)>=0;
 }
 function qSync(){
@@ -38448,7 +38487,7 @@ function arShowRow(nid){
   try{ const r=document.getElementById('row-'+nid); if(r && r.scrollIntoView) r.scrollIntoView({block:'nearest'}); }catch(e){}
 }
 function arRowSay(nid){
-  return document.getElementById('row-'+nid)? '' : ' It is not in the list as shown: '+esc(listOnSay().join(', ')||'the list')+' hides it.';
+  return document.getElementById('row-'+nid)? '' : ' It is not in the list as shown: '+(listOnSay().join(', ')||'the list')+' hides it.';   // v2.22 review: listOnSay escapes its own parts
 }
 // the confirmation, opened whole: at a laptop's width the line beside Save has no room for it (the 21 Nov review)
 function arStatShow(){
@@ -38473,8 +38512,10 @@ function cmdOpen(){
   const bg=cmdEl('cmdPanel'), inp=cmdEl('cmdQ'); if(!bg || !inp) return false;
   if(cmdIsOpen()){ try{ inp.focus(); inp.select(); }catch(e){} return true; }
   try{ if(typeof dlgLive==='function' && dlgLive()) return false; }catch(e){}   // another box is open: it keeps the keyboard
-  try{ uiFlyClose(); uiPopsClose(); }catch(e){}
+  // v2.22 review: the keyboard goes home before what holds it closes (uiFocusHome), so Esc gives it back to a control on screen
+  try{ uiFocusHome(); uiFlyClose(); uiPopsClose(); }catch(e){}
   try{ if(openMenu){ openMenu=null; syncBtns(); } }catch(e){}
+  try{ if(rowMenuId){ rowMenuId=null; render(); } }catch(e){}
   CMD.acts=null; CMD.at=0; inp.value='';
   cmdDraw();
   bg.classList.add('open');
@@ -38729,13 +38770,21 @@ function recRoHtml(){
 // on the top line, dimmed and part under the record; a good entry after it left the refusal standing. The record's own fields are
 // watched: what the board said while one of them was being changed is read off the message line (setStat counts, _statN), and
 // a refusal is kept for that requirement until a figure is taken on it. The words are the board's own, never a second sentence.
-var REC_MSG=null;   // {id, h}: the refusal to say in that requirement's record
+// v2.22 review: the refusal belongs to ONE requirement of one plan -- the id, the year, the locked view (or none) and the plan
+// object it was typed into -- so another year's NEW-1, or the working plan after leaving a view, never shows it; and it is kept as
+// TEXT (v2.03's rule for the Messages list), so a button it carried cannot act on the board as it is now.
+var REC_MSG=null;   // {id, fy, v, ms, h}: the refusal to say in that requirement's record
+function recMsgFor(id){
+  if(typeof REC_MSG==='undefined' || !REC_MSG || REC_MSG.id!==id) return '';
+  if(REC_MSG.fy!==MS.cur || REC_MSG.ms!==MS || REC_MSG.v!==((typeof CYCVIEW!=='undefined' && CYCVIEW) || '')) return '';
+  return REC_MSG.h;
+}
 function recMsgHtml(id){
-  const m=(typeof REC_MSG!=='undefined' && REC_MSG && REC_MSG.id===id)? REC_MSG.h : '';
+  const m=recMsgFor(id);
   return '<div class="recmsg'+(m? ' on' : '')+'" id="recMsg" role="status">'+m+'</div>';
 }
 function recMsgPaint(){ const el=document.getElementById('recMsg'); if(!el) return;
-  const m=(REC_MSG && REC_MSG.id===curRow)? REC_MSG.h : '';
+  const m=recMsgFor(curRow);
   el.innerHTML=m; el.className='recmsg'+(m? ' on' : ''); }
 document.addEventListener('change', function(e){ const t=e.target;
   if(t && t.closest && t.closest('#inspector') && /^(INPUT|SELECT)$/.test(t.tagName)){ t.__recN=_statN; t.__recId=curRow; } }, true);
@@ -38743,7 +38792,7 @@ document.addEventListener('change', function(e){ const t=e.target;
   if(!t || t.__recN===undefined) return;
   const n0=t.__recN, id=t.__recId; t.__recN=undefined;
   const st=document.getElementById('shareStat'), said=(_statN>n0 && st)? st.innerHTML : '';
-  if(said && diagIsWarn(said)) REC_MSG={id:id, h:said};
+  if(said && diagIsWarn(said)) REC_MSG={id:id, fy:MS.cur, ms:MS, v:(typeof CYCVIEW!=='undefined' && CYCVIEW) || '', h:esc(st.textContent||'')};
   else if(REC_MSG && REC_MSG.id===id) REC_MSG=null;
   recMsgPaint();
 });
@@ -38821,18 +38870,25 @@ function recYearsOf(id, now){
   if(typeof _recYrC==='undefined' || !_recYrC || _recYrC.k!==k || _recYrC.ms!==MS){
     if(!now){
       if(typeof _recYrT==='undefined' || !_recYrT) _recYrT=setTimeout(recYearsFill, 0);
-      return {pending:true};
+      // v2.22 review: an edit moves _saveGen, and the line drew empty until the idle fill -- so the first press on a year button
+      // after typing hit a button the redraw had taken away, and went nowhere. While the plan, the year on screen and the view are
+      // the ones the last line was worked out for, that line is drawn (marked stale) and the fill replaces it.
+      const v0=(typeof CYCVIEW!=='undefined'? CYCVIEW : '');
+      if(!(_recYrC && _recYrC.ms===MS && _recYrC.cur===MS.cur && _recYrC.v===v0)) return {pending:true};
+    } else {
+      let D=null, LK=null;
+      try{ D=fydpData('working'); LK=fydpLineKeys(D, D.held); }catch(e){ return null; }
+      _recYrC={k:k, ms:MS, cur:MS.cur, v:(typeof CYCVIEW!=='undefined'? CYCVIEW : ''), D:D, LK:LK};
     }
-    let D=null, LK=null;
-    try{ D=fydpData('working'); LK=fydpLineKeys(D, D.held); }catch(e){ return null; }
-    _recYrC={k:k, ms:MS, D:D, LK:LK};
   }
-  const C=_recYrC;
-  return C.D.held.map(function(y){
+  const C=_recYrC, stale=(C.k!==k);
+  const out=C.D.held.map(function(y){
     const yid=fydpSameIn(C.LK, MS.cur, id, y);
     const r=yid? ((C.D.proj[y]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null;
     return {y:+y, id:yid, ask:r? fydpSum(r.ask) : null};
   });
+  if(stale) out.stale=true;
+  return out;
 }
 function recYearsFill(){
   _recYrT=null;
@@ -38842,12 +38898,21 @@ function recYearsFill(){
   const e2=document.getElementById('recYrs'); if(!e2 || curRow!==id) return;
   const h=recYearsHtml(id, Y);
   if(!h){ e2.remove(); return; }
-  const w=document.createElement('div'); w.innerHTML=h; e2.replaceWith(w.firstChild);
+  const w=document.createElement('div'); w.innerHTML=h; const nu=w.firstChild;
+  // v2.22 review: where the line holds the same controls (the stale line drawn on an edit), it is brought up to date IN PLACE --
+  // replacing it took away a button the mouse was pressing (the redraw's copy, which the press record had just found), and the
+  // click never came
+  const a=[].slice.call(e2.children), c=[].slice.call(nu.children);
+  const same=a.length===c.length && a.every(function(x, i){ return x.tagName===c[i].tagName && x.getAttribute('onclick')===c[i].getAttribute('onclick'); });
+  if(!same){ e2.replaceWith(nu); return; }
+  a.forEach(function(x, i){ x.className=c[i].className; x.textContent=c[i].textContent;
+    if(c[i].hasAttribute('title')) x.setAttribute('title', c[i].getAttribute('title')); else x.removeAttribute('title'); });
+  e2.className=nu.className; e2.removeAttribute('aria-busy');
 }
 function recYearsHtml(id, Y){
   if(Y && Y.pending) return '<div class="recyrs" id="recYrs"></div>';
   if(!Y || Y.length<2) return '';
-  return '<div class="recyrs" id="recYrs"><span class="rl">Requirement by year</span> '+Y.map(function(r){
+  return '<div class="recyrs'+(Y.stale? ' stale' : '')+'" id="recYrs"'+(Y.stale? ' aria-busy="true"' : '')+'><span class="rl">Requirement by year</span> '+Y.map(function(r){
     const lbl='FY'+(r.y%100)+' '+(r.ask===null? '—' : fM(r.ask));
     if(r.y===+MS.cur) return '<span class="recyr cur" title="the year on screen">'+lbl+'</span>';
     if(r.ask===null) return '<span class="recyr none" title="FY'+(r.y%100)+' holds no requirement that is this one">'+lbl+'</span>';

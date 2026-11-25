@@ -159,6 +159,37 @@ for (const w of [1440, 1024]) {
   await ctx.close();
 }
 
+// ── R (v2.22 review): closing what holds the keyboard hands it home first. Ctrl K pressed from inside a popover, a left-menu flyout or a
+// row's ⋯ menu closes that container; Esc then gave the keyboard to <body> (the opener the box controller had was hidden). And an entry
+// of Needs attention's popover that opens a box gives the keyboard back to the chip on Esc.
+{
+  const { p, ctx, errs } = await open(LIVE, 1440);
+  try {
+    const fo = () => p.evaluate(() => { const a = document.activeElement, r = a && a.getBoundingClientRect();
+      return { at: a ? (a.id || (a.classList.contains('rmbtn') ? 'rmbtn' : a.tagName)) : '', vis: !!(r && r.width > 0 && r.height > 0) }; });
+    const viaK = async (setup) => { await setup(); await p.waitForTimeout(250);
+      await p.keyboard.press('Control+k'); await p.waitForTimeout(200); await p.keyboard.press('Escape'); await p.waitForTimeout(250); return fo(); };
+    const r1 = await viaK(async () => { await p.locator('#fc_att').focus(); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+      await p.evaluate(() => { const i = document.querySelector('#uiAttPop button'); if (i) i.focus(); }); });
+    chk('R · Ctrl K from inside Needs attention’s popover, then Esc: the keyboard is back on the chip', J(r1) === J({ at: 'fc_att', vis: true }), J(r1));
+    const r2 = await viaK(async () => { await p.locator('#uiNav_aud').focus(); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+      await p.evaluate(() => { const i = document.querySelector('#uiFly button.mi'); if (i) i.focus(); }); });
+    chk('R · from inside a left-menu flyout (Audit), then Esc: the keyboard is back on its entry', J(r2) === J({ at: 'uiNav_aud', vis: true }), J(r2));
+    const r3 = await viaK(async () => { await p.evaluate(() => { const b = document.querySelector('#list .rmbtn'); if (b) { b.focus(); b.click(); } }); await p.waitForTimeout(250);
+      await p.evaluate(() => { const i = document.querySelector('#list .rowmenu.open button.mi'); if (i) i.focus(); }); });
+    chk('R · from inside a row’s ⋯ menu, then Esc: the keyboard is back on the row’s ⋯', J(r3) === J({ at: 'rmbtn', vis: true }), J(r3));
+    await p.locator('#fc_att').focus(); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+    await p.evaluate(() => { const i = document.querySelector('#uiAttPop button'); if (i) i.focus(); });
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const boxOpen = await p.evaluate(() => (DLG.stack || []).length > 0);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+    const r4 = await fo();
+    chk('R · a Needs attention entry opens its list box, and Esc gives the keyboard back to the chip', boxOpen && J(r4) === J({ at: 'fc_att', vis: true }), J({ boxOpen, r4 }));
+    chk('R · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+  } catch (x) { chk('R · the section ran', false, String(x.message || x).split('\n')[0].slice(0, 200)); }
+  await ctx.close();
+}
+
 // the Add box for the notes' screenshots (not a check): PSM chosen, the form part filled
 if (SHOTS) for (const w of [1440, 1024]) {
   const { p, ctx } = await open(LIVE, w);

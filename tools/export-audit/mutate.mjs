@@ -10552,7 +10552,7 @@ const MUTATIONS = [
   { id: 'v222-w1-unfx-lane-reading', area: 'render', what: "the unfunded figure under the pill is what fell beyond both lanes, not the record's Unfunded",
     find: "+(_u>0.005? `<span class=\"unfx\">unfunded ${fM(_u)}</span>` : '')", repl: "+(t.uT>0.005? `<span class=\"unfx\">unfunded ${fM(t.uT)}</span>` : '')" },
   { id: 'v222-w1-tile-disc-of-ask', area: 'uiKpis', what: "the Discretionary tile's meter is drawn against the requirement, not the BA",
-    find: "'of '+fM(K.dBA)+' BA'+left(K.dLeft), [K.dUsed, K.dBA])", repl: "'of '+fM(K.dBA)+' BA'+left(K.dLeft), [K.dUsed, K.ask])" },
+    find: "'of '+fM(K.dBA)+' BA'+left(K.dLeft, K.dUsed), [K.dUsed, K.dBA])", repl: "'of '+fM(K.dBA)+' BA'+left(K.dLeft, K.dUsed), [K.dUsed, K.ask])" },   // v2.22 review: retargeted (left takes the amount used)
   { id: 'v222-w1-whole-board-never', area: 'uiNarrowed', what: "the tiles never say they are the whole board when the list is narrowed",
     find: "  try{ return filter!=='ALL' || !!ptypeFilter", repl: "  try{ return false && filter!=='ALL' || !!ptypeFilter" },
   { id: 'v222-w1-showing-of-shown', area: 'uiShowSet', what: "the heading's line counts the year by what is showing, so it never says Showing N of M",
@@ -10581,7 +10581,7 @@ const MUTATIONS = [
   { id: 'v222-w1-added-not-new', area: 'render', what: "a requirement added on the board says ADDED again, not new or continues",
     find: ": '<span class=\"x nw\">new</span>') : '',", repl: ": '<span class=\"x nw\">ADDED</span>') : '',"},
   { id: 'v222-w1-award-repair-bare', area: 'render', what: "a damaged award date reads the bare word Award again",
-    find: "                            : !awdMonthOk(_aw.d)? '<span class=\"exc\"", repl: "                            : false? '<span class=\"exc\"" },
+    find: "                            : ((_aw.d && !awdMonthOk(_aw.d)) || (_aw.fix && _aw.fix.how==='repair' && !_aw.fix.ok))? '<span class=\"exc\"", repl: "                            : false? '<span class=\"exc\"" },   // v2.22 review: retargeted
   { id: 'v222-w1-bar-enter-dead', area: 'moneyBarKey', what: "Enter on the money bar selects nothing",
     find: "  else if(e.key==='Enter' || e.key===' '){ if(i>=0){ e.preventDefault(); moneyBarPick(all[i].getAttribute('data-id')); } return; }",
     repl: "  else if(e.key==='Enter' || e.key===' '){ return; }" },
@@ -10730,11 +10730,11 @@ const MUTATIONS = [
   { id: 'v222-w3-prev-live-at-top', area: 'recBarHtml', what: "‹ Previous is offered on the first requirement, where it does nothing",
     find: "onclick=\"recStep(-1)\"'+(pos>=0 && first? ' disabled' : '')", repl: "onclick=\"recStep(-1)\"'+''" },
   { id: 'v222-w3-msg-every-record', area: 'recMsgHtml', what: "a refused figure is said in every requirement's record, not the one it was typed in",
-    find: "const m=(typeof REC_MSG!=='undefined' && REC_MSG && REC_MSG.id===id)? REC_MSG.h : '';", repl: "const m=(typeof REC_MSG!=='undefined' && REC_MSG)? REC_MSG.h : '';" },
+    find: "  if(typeof REC_MSG==='undefined' || !REC_MSG || REC_MSG.id!==id) return '';", repl: "  if(typeof REC_MSG==='undefined' || !REC_MSG) return '';" },   // v2.22 review: retargeted (recMsgFor)
   { id: 'v222-w3-msg-never-cleared', area: 'record refusals', what: "a refusal said in the record stays after a figure is taken",
     find: "  else if(REC_MSG && REC_MSG.id===id) REC_MSG=null;\n", repl: "\n" },
   { id: 'v222-w3-msg-not-said', area: 'record refusals', what: "a refused figure is not said in the record, only on the top line",
-    find: "  if(said && diagIsWarn(said)) REC_MSG={id:id, h:said};", repl: "  if(false) REC_MSG={id:id, h:said};" },
+    find: "  if(said && diagIsWarn(said)) REC_MSG={id:id, fy:MS.cur", repl: "  if(false) REC_MSG={id:id, fy:MS.cur" },   // v2.22 review: retargeted
   { id: 'v222-w3-need-first-dropped', area: 'recNeedHtml', what: "the list of what is still needed leaves out its first field",
     find: "'<div class=\"recneed\"><span class=\"rl\">Still needed:</span> '+miss.map(", repl: "'<div class=\"recneed\"><span class=\"rl\">Still needed:</span> '+miss.slice(1).map(" },
   { id: 'v222-w3-need-wrong-field', area: 'recNeedGo', what: "the obligation category under the three buttons opens the edit box at its top, not at the field",
@@ -10795,6 +10795,30 @@ const MUTATIONS = [
     find: '"mcOnly=false;incOnly=false;svcFilter=-1;', repl: '"mcOnly=false;svcFilter=-1;' },
   { id: 'v222-int-reassign-unnamed', area: "syncBtns", what: "the office picker's Reassign line says 'a requirement' with one on the record",
     find: "      mi(esc(pmoReassignLbl()),\"mRun(pmoReassignHint)\",false,", repl: "      mi('⇄ Reassign a requirement…',\"mRun(pmoReassignHint)\",false," },
+  // v2.22 review: each puts back a defect one of the three reviewers reproduced (the browser halves -- uiFocusHome, --footH -- are
+  // proved by hand against tools/cmd-palette.mjs R and tools/record-card.mjs K: jsdom has no focus on a hidden control and no layout)
+  { id: 'v222-rv-ccar-substring', area: "listSearchHit", what: "a CCaR record's number searches as text: JSF2 takes JSF21's requirement and misses 'JSF 2'",
+    find: "  if(rk && ix && Object.prototype.hasOwnProperty.call(ix, rk)) return ccarNorm(ccarOf(it))===rk;\n", repl: "" },
+  { id: 'v222-rv-addsay-double-esc', area: "arRowSay", what: "the Add box's 'not in the list as shown' sentence is escaped twice (r&amp;d)",
+    find: "' It is not in the list as shown: '+(listOnSay().join(', ')||'the list')+' hides it.';", repl: "' It is not in the list as shown: '+esc(listOnSay().join(', ')||'the list')+' hides it.';" },
+  { id: 'v222-rv-repair-cleared-flagged', area: "render", what: "an award cleared on purpose after its repair was checked reads 'Award needs repair'",
+    find: ": ((_aw.d && !awdMonthOk(_aw.d)) || (_aw.fix && _aw.fix.how==='repair' && !_aw.fix.ok))?", repl: ": !awdMonthOk(_aw.d)?" },
+  { id: 'v222-rv-tiles-all-drawn-unused', area: "uiKpis", what: "a tile says 'all drawn' with nothing drawn (no mandatory budget)",
+    find: "((used||0)>0.5? ' \\u00b7 all drawn' : '')", repl: "' \\u00b7 all drawn'" },
+  { id: 'v222-rv-tiles-mand-withheld-silent', area: "uiKpis", what: "under ◨ the Mandatory tile reads 'all drawn' for a pot the view withheld",
+    find: "const mWh=(typeof scenOn==='function' && scenOn());", repl: "const mWh=false;" },
+  { id: 'v222-rv-fund-tile-withheld-silent', area: "scoreboard", what: "under ◨ the Funding page's mandatory tile says '$0 left' for a pot the view withheld",
+    find: "((typeof scenOn==='function' && scenOn())? 'withheld (\\u25e8 discretionary only)' : fM(mLeft)+' left')", repl: "(fM(mLeft)+' left')" },
+  { id: 'v222-rv-recmsg-by-id', area: "recMsgFor", what: "a refusal shows in any record of the same id: another year's NEW-1, the working plan after a view",
+    find: "  if(REC_MSG.fy!==MS.cur || REC_MSG.ms!==MS || REC_MSG.v!==((typeof CYCVIEW!=='undefined' && CYCVIEW) || '')) return '';\n", repl: "" },
+  { id: 'v222-rv-recmsg-markup', area: "recMsgPaint", what: "a refusal is kept as markup: its Leave the view button is a live control in the record",
+    find: "v:(typeof CYCVIEW!=='undefined' && CYCVIEW) || '', h:esc(st.textContent||'')};", repl: "v:(typeof CYCVIEW!=='undefined' && CYCVIEW) || '', h:said};" },
+  { id: 'v222-rv-draft-writes-clins', area: "reqDraftOf", what: "drawing a prime's record writes empty CLIN containers into the board",
+    find: "function reqDraftOf(id){ return clinReadOnly([id], function(){ return reqDraftRead(id); }); }", repl: "function reqDraftOf(id){ return reqDraftRead(id); }" },
+  { id: 'v222-rv-years-empty-on-edit', area: "recYearsOf", what: "after an edit the years line draws empty, and the first press on a year goes nowhere",
+    find: "      if(!(_recYrC && _recYrC.ms===MS && _recYrC.cur===MS.cur && _recYrC.v===v0)) return {pending:true};", repl: "      return {pending:true};" },
+  { id: 'v222-rv-years-fill-replaces', area: "recYearsFill", what: "the years line's fill replaces the buttons a press is on",
+    find: "  if(!same){ e2.replaceWith(nu); return; }", repl: "  { e2.replaceWith(nu); return; }" },
   // ==== end v2.22 integration (the lead) ====
 
 ];
