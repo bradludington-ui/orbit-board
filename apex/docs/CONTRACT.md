@@ -2766,3 +2766,19 @@ Brad: *"Let's optimize code"*, then, of the measured options, *"Go with A and B"
 `test/build-strip.test.mjs`: eleven pieces of code a simpler reading would get wrong, each the same value before and after
 with its comments gone; the style sheet; the page smaller by at least a fifth, every file under its banner, and the page with
 and without its comments opening with no script error.
+
+## 65. One type system (Brad, 25 Nov 2026)
+
+*"Take a look at font, font size, location and overall appearance and update to make it as professional as possible"*; of a
+mock-up on My PMO and Requirements: *"Build it as shown, keep Calibri."* The screen only; the workbook, the PDFs and the
+pictures are not changed. The last section of `src/style.css` lays it over the rules above it:
+
+- **Sizes:** 11 fine print, 12 tables and labels, 13 body text, controls and the menu, 15 section and card headings, 20 page
+  titles, 26 tile figures (there were thirteen sizes from 9 to 24). **Weights:** 400 text, 600 headings and names, 700 totals
+  and tile figures; no 800.
+- **Every figure in tabular digits**, so a column of money lines up digit for digit.
+- **A page's header:** the title, then its description on the line beneath. The line naming what is shown ("All services,
+  both lanes") shows only when something is filtered, in ochre as before; the Filter button already says it otherwise.
+- **Tiles:** a small spaced label, the figure large, the line under it muted. **Lists of requirements** (My PMO): the name
+  semibold in the link colour, underlined on hover. **The menu:** 13px items, group headings 11px and quieter.
+- Kept: Calibri; the navy bands, the appropriation tables laid out as the slides are, every status's colour and word.

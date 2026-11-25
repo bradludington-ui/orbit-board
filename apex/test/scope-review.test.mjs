@@ -92,10 +92,11 @@ try {
   for (const w of [900, 600]) {
     const p = await open(w, 800);
     const g = sel => p.evaluate(s => { const cw = document.documentElement.clientWidth;
-      return s.map(x => { const e = document.querySelector(x); if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(cw - r.right)]; }); }, sel);
+      return s.map(x => { const e = document.querySelector(x); if (!e) return null; if (getComputedStyle(e).display === 'none') return 'hidden'; const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(cw - r.right)]; }); }, sel);
     const ov = await g(['#uiMain .ovtitle', '#uiMain .ovshown', '#uiMain .tiles', '.filters']);
-    C.chk('RF-2: at ' + w + ' px the Overview’s heading, its “shown” line, its tiles and the switches keep 8 px off the left edge, as off the right',
-      ov.every(x => x && x[0] >= 8 && x[1] >= 8), J(ov));
+    // §65 the "shown" line shows only when something is filtered (the Filter button says it otherwise): hidden here, as nothing is
+    C.chk('RF-2: at ' + w + ' px the Overview’s heading, its tiles and the switches keep 8 px off the left edge, as off the right; its “shown” line is hidden, nothing being filtered',
+      ov[1] === 'hidden' && [ov[0], ov[2], ov[3]].every(x => x && x[0] >= 8 && x[1] >= 8), J(ov));
     await view(p, 'summary');
     const su = await g(['main.sheet', '.filters']);
     C.chk('UX-4: at ' + w + ' px the sheet and the switches keep 8 px off both edges', su.every(x => x && x[0] >= 8 && x[1] >= 8), J(su));
