@@ -2175,7 +2175,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
 `prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb` (removed on opening since v2.19: ORBIT keeps no cost estimates), `prio27reprog` (the reprogramming log: carried, not shown, since
 v2.02), `prio27appn`, `prio27who`,
-`spmtTheme`, `spmtSidecar`, `spmtSummary` (v2.22: the summary folded or open), `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
+`spmtTheme`, `spmtSidecar`, `spmtSummary` (v2.22: the summary folded or open), `spmtRankView` (v2.23: Rank's List or Board by band), `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
 aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.95:
 `prio27writerKey` (this browser's writer key; the file holds only its fingerprint) and `prio27impMixed`
@@ -5411,6 +5411,49 @@ builder's record.
 - **Checks:** audit-board "v2.22 W1", "W3", "integration", "review"; audit-other "v2.22 W2"; `npm run look`, `palette`, `record` in
   `verify:grid` (before layout, whose carried D stops the chain: run what follows it by hand). 140 `v222-*` mutations, each proved
   against its own check; two browser-only fixes proved by hand on their mutants.
+
+### v2.23 (items 156, 158, 159): the requirement as a page, one requirement across the FYDP, Allocate, mandatory on or off
+
+Brad, 25 Nov 2026: *"Go on v2.23"*, with his answers (FY27 editable; four lines per service; Present is the same screen, switched;
+the move panel in One lane only; Fill across never offers Disc/Mand). Three builders to one contract (`recovery/v223/contract.md`),
+a review by area with a skeptic per finding, four fixers. `NEXT-VERSION.md` › Shipped › v2.23 has every decision and question.
+
+- **The requirement page** (`#reqPage`; `reqPageOpen(id, k)`, *Open full page* on the RECORD card's bar). Its tabs are
+  `REQPG_TABS` (`{k, label, order, html}`, drawn by order; a tab that throws shows its own failure and the page stands), so a
+  later feature adds a tab, never a second page. **It reads the funded plan** (bare `tiers()`) and says so under ◨, as Across
+  the FYDP does. **It redraws through `heldRedraw`**, and the typing listener marks boxes under `#reqPage` too: drawn with a bare
+  `innerHTML`, Chromium's change-on-removal wrote a half-typed figure whenever the page redrew under it (A1). **A new surface that
+  holds money boxes and can be redrawn by something the person did not do goes through the same hold.**
+- **Rank by band** (`rkSetView`, `spmtRankView`: this browser's, never the board's) is view only, and **keeps ◨** (`rkHtml`
+  reads `scenOpt`): it stands in for the list's rows and draws the list's cutlines, so it must read the list's plan; it shows the
+  list's ◨ banner because `#list`, which holds it, is hidden there.
+- **Across the FYDP** (the page's tab, `xf*`): a figure typed for another year is written into that year's plan by the same
+  setter as typing it there, inside `aceWithYear`, journalled with its year; nothing switches year. The years are joined by the
+  work (`fydpSameIn`), plus `xfRolledIn` for a rolled copy the v2.16 join cannot reach. **Add to a year links to the line the work
+  is on** (`xfLineLink`, the link that reproduces the line when the years are read again), never to the year it started from, and
+  refuses a year that already holds the work (`xfLineHeld`). `fydpLineKeys` and the workbook's join are unchanged (Brad's call).
+- **Allocate** (mode `alloc`; the sheet, One lane, Edit / Present) holds a **draft** (`av*`) until Save, written through
+  `setFsrcSvc(id, kind, i, val, {quiet:true})`, which now answers true or false. **Save re-reads every stored figure and writes
+  nothing where one moved** (`avMovedUnder`, the edit box's rule); `avSync` drops the draft when the plan object is replaced
+  (`AV.ms===MS`); `sharedArrived` and `driveStorePull` count the draft as unsaved work (`DIRTY || avHeld()`). `avLeave` only asks:
+  **a new way out of Allocate calls `avDraftDrop()` at the point its switch is certain.**
+- **Mandatory on or off, per year** (`S.mandOff===true`, read only through `mandOn(St)`; Allocate's header is its one home).
+  THE RULE is in `tiers()`: `noMand = scen.noMand || !mandOn(S)`. **A surface that would describe mandatory money asks
+  `mandLive()`** (on and not ◨): cutlines (no full-budget line), Plan B (= Plan A, asking only discretionary), "Full budget buys",
+  the MC tile. **Remaining in an off year is the whole mandatory BA** (`mandLeftOf`, `mandLeftTot`): Mand BA keeps one meaning
+  everywhere and BA − drawn = remaining closes; `tiers()`'s `mRem` is unchanged. Exports keep their Mandatory columns ($0). The
+  switch's journal line is never put back (`jrnlMandOffLine`); `yearCopy` lands mandatory at $0 in an off year; Put back refuses a
+  mandatory figure above $0 there (`jrnlMandBack`); `drewWhy` names the switch as the reason.
+- **A block that opens boards frees them** (`bootMark` / `bootRelease` / `settleBoards`, as every async block since v1.86 should):
+  seven W2 and W3 blocks did not, and audit-board whole ran out of an 8 GB heap on the merged board. A new block copies the
+  pattern of the one above it, release included.
+- **Two lessons from the merge.** A builder whose new control or tab changes what an older check expects leaves that check failing
+  for everyone after: the four fixers each reported the same four audit-board failures (the RECORD bar, the page's tabs), which
+  were integration's. **Update every check that counts a bar's buttons or a page's tabs in the same commit as the change.** And
+  `pkill -f` on a suite's path stops every run of that suite on the machine, other agents' included: stop your own by its pid.
+- **Checks:** audit-board "v2.23 W1/W2/W3/integration" and "v2.23 review RV-A…RV-D"; audit-recon "v2.23 review RV-D" (every
+  workbook in an off year, read from the bytes); recon's sixth board shape and the trace matrix's off-year pass; `npm run reqpage`,
+  `across`, `alloc` in `verify:grid`. 188 `v223-*` mutations and 12 retargets.
 
 ## Colour: one token, one job
 
