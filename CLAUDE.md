@@ -5453,7 +5453,9 @@ a review by area with a skeptic per finding, four fixers. `NEXT-VERSION.md` › 
   `pkill -f` on a suite's path stops every run of that suite on the machine, other agents' included: stop your own by its pid.
 - **Checks:** audit-board "v2.23 W1/W2/W3/integration" and "v2.23 review RV-A…RV-D"; audit-recon "v2.23 review RV-D" (every
   workbook in an off year, read from the bytes); recon's sixth board shape and the trace matrix's off-year pass; `npm run reqpage`,
-  `across`, `alloc` in `verify:grid`. 188 `v223-*` mutations and 12 retargets.
+  `across`, `alloc` in `verify:grid`. 188 `v223-*` mutations and 12 retargets, 200 of 200 caught together on the final tree, each
+  by a failed check. **A check reads an element null-safely** (`(document.querySelector(q)||{}).textContent`): four W3 mutations
+  were first caught only because a read off a control the mutant never drew threw the whole block.
 
 ## Colour: one token, one job
 

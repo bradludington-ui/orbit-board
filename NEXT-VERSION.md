@@ -650,7 +650,9 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   reqpage`, `across`, `alloc`; recon's sixth board shape (a year with mandatory off) and a second, off-year pass of the trace matrix.
   Every suite whole on the merged board; every browser check (layout's carried D ×8, identical number for number on main's v2.22);
   standards 0 new findings. **Mutations:** 188 new `v223-*` (W1, W2, W3, integration and the review's 72) and 12 retargets, proved
-  together on the final tree: PROOFS (`recovery/v223/proved-FINAL.jsonl`). No sweep (Brad's rule of 20 Oct).
+  together on the final tree: **200 of 200 CAUGHT, each by a failed check** (`recovery/v223/proved-FINAL.jsonl`); four also
+  stop their block with a throw after a check has failed. The first run had four W3 mutations caught only by a throw (a check reading
+  `.textContent` off an element the mutant never draws); W3's blocks now read elements null-safely, so a missing one fails its check. No sweep (Brad's rule of 20 Oct).
 
 ##### Brad's go of 25 Nov 2026: v2.23 (items 156, 158, 159)
 Brad, 25 Nov 2026: *"Go on v2.23"*, after v2.22 merged (PR #81), with his answers to the four questions left open under items
