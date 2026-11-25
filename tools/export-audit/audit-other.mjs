@@ -3795,7 +3795,7 @@ const w2Boot = (sc = W2F, o = {}) => {
     chk(name, 'actions', 'CONTROL: the left menu holds many items here', J(harvest.length > 40), 'true');
     chk(name, 'actions', 'every item on the left menu is offered, and nothing that is not on it', J(offered), J(harvest));
     chk(name, 'actions', 'the views are offered as views: Requirements, Funding, Cycles & compare, Brief',
-      ev(`cmdActions().filter(function(a){ return a.view; }).map(function(a){ return a.t+'·'+a.path; }).join(' | ')`), 'Requirements·Views | Funding·Views | Cycles & compare·Views | Brief·Views');
+      ev(`cmdActions().filter(function(a){ return a.view; }).map(function(a){ return a.t+'·'+a.path; }).join(' | ')`), 'Requirements·Views | Funding·Views | Allocate·Views | Cycles & compare·Views | Brief·Views');   // v2.23 W3: Allocate is a view (item 159)
     // > lists actions only
     ev(`cmdOpen(); __set('cmdQ', '>e'); 'ok'`);
     chk(name, 'actions', '> first: actions only, even where requirements and records hold the words', J(grp().map(g => g[0])), J(['Actions']));

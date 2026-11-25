@@ -122,16 +122,32 @@ Each fails on the slot commit `9f82139` unless labelled CONTROL (shown run on `9
   to its head, three tiles; F leaving with a draft asks. All pass on the finished board.
 - `npm run standards` measures Allocate (the Sheet with a changed and a refused box, One lane with a row selected and the move aside,
   Present, Review changes, the box) and records a coverage finding if any was not on screen.
-- Changed on purpose, each with its `// v2.23 W3` comment: audit-board v2.22 W1's left-menu sequence (Allocate between Funding and
-  FYDP); tools/left-menu.mjs E (the entries in order, Tab walks 14) and F (Allocate's task bar repeats nothing); tools/roundtrip-fuzz.mjs
-  fills `S.mandOff` (the fuzz reads `S.mandOff=` from the board and demands it).
+- Changed on purpose, each with its `// v2.23 W3` comment: audit-board v2.22 W1's left-menu sequence and v2.21's menu words (Allocate
+  between Funding and FYDP); audit-other v2.22 W2's palette views (Allocate is a view, offered as one); tools/left-menu.mjs E (the
+  entries in order, Tab walks 14) and F (Allocate's task bar repeats nothing); tools/roundtrip-fuzz.mjs fills `S.mandOff` (the fuzz
+  reads `S.mandOff=` from the board and demands it); tools/standards-check.mjs measures Allocate.
+- The first standards run found 29 new findings in Allocate (red text and edges on the dark themes, the 20px row checkboxes and
+  18px radios, a light selected-row fill under dark-theme text); fixed (`var(--red)` for red text, a fixed dark red on the pinned
+  lines' fixed fills, `--edge` borders, 24px targets, `--sel` for a selected row). Rerun: no new finding.
+
+## Run on the finished board
+Every suite whole (8 GB heap, through heavy.sh): boot-same, audit, audit-other, audit-board, audit-import, audit-recon, legacy-fsrc,
+audit-hostile, audit-inject, audit-ui -- all pass (audit-other and audit-board were rerun after the two expectation updates above);
+the round-trip fuzz (seed 422049717, nothing lost), money coverage, the money map (`--check`), the defect register, the trace matrix and
+`verify:file --selftest` hold. Browser: controls, leftmenu, menus, panels, dialogs, keys, dropdowns, look, palette, record, toolbar,
+editors, pointer, colours, pmosave, pmoyears pass; standards passes (after the fixes above); layout fails only on its carried D x8;
+alloc-view passes (and fails on the slot commit, which has no Allocate).
 
 ## Mutations
 35 new (`v223-w3-*`), 2 retargeted to `setFsrcSvc`'s new shape (`alloc-lock-no-fsrcsvc`, `v197w1-guard-setFsrcSvc`), none retired.
-`mcount`: 3,441 entries, each matching once. Proofs: `recovery/v223/proofs-W3.json` → `recovery/v223/proved-W3.jsonl` (see the
-report for the verdicts).
-Browser-only, proved by hand (not in mutate.mjs: the sweep runs jsdom suites, where they could only survive): the row template's
-Mandatory track left in (`avMandCols` returning before it drops the track) fails alloc-view E ("every cell still lines up").
+`mcount`: 3,441 entries, each matching once. Proofs: `recovery/v223/proofs-W3.json` → `recovery/v223/proved-W3.jsonl`: **37 of 37
+CAUGHT**, none by a block that threw. `v223-w3-year-no-ask` first SURVIVED: the check switched to a year not held, whose own question
+(Cancel: start nothing) kept the year on screen without Allocate's; the fixture now holds FY28, and the Allocate block's ten were
+proved again on it.
+Browser-only, proved by hand (not in mutate.mjs: the sweep runs jsdom suites, where it could only survive): the row template's
+Mandatory track left in (`avMandCols` returning before it drops the track). It first PASSED alloc-view E -- the cells still line up
+with their heads, which both shift -- so E now also requires one track per cell shown; on that mutant E fails at 1440 and 1024
+("tracks":10, "cells":9) and the board passes.
 
 ## For the integration
 - `mandOn(St)` is built: W1 and W2 pass that year's state (`mandOn(MS.years[y])`) for a year not on screen.

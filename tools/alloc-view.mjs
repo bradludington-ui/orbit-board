@@ -9,8 +9,8 @@
 //      fired per keystroke would not be), and the keyboard lands on the next box after the redraw.
 //   D. Paste from Excel: a tab- and line-separated block pasted into a box fills from it; a cell that is not a figure is named.
 //   E. The mandatory switch, with a real pointer: the box opens with the keyboard inside it, Esc closes it changing nothing; Move and
-//      turn off: no Mandatory column in either view, Fund mode's Mandatory column is gone and its cells line up with their heads, the
-//      Requirements tiles are three.
+//      turn off: no Mandatory column in either view, Fund mode's Mandatory column is gone -- its cells line up with their heads and the
+//      row template has a track for each cell shown and no more -- the Requirements tiles are three.
 //   F. Leaving Allocate with a figure not saved asks; Cancel stays.
 //   --shots DIR writes the screens (1440 and 1024: Sheet, One lane, the box; 1920: Present) in Harbor.
 //
@@ -196,11 +196,13 @@ for (const [w, h] of [[1440, 900], [1024, 768]]) {
       const rc = [...row.children].filter(e => getComputedStyle(e).display !== 'none');
       const al = cs.slice(0, 7).map((c, i) => rc[i] ? Math.abs(Math.round(c.getBoundingClientRect().left - rc[i].getBoundingClientRect().left)) : 99);
       const t = [...document.querySelectorAll('#uiKpis .k')].length;
-      return { headHidden: !hd || getComputedStyle(hd).display === 'none', cellHidden: !cell || getComputedStyle(cell).display === 'none', align: al,
+      // the row template has exactly as many tracks as cells shown: a Mandatory track left in would leave an empty track at the end
+      const tracks = getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).length;
+      return { headHidden: !hd || getComputedStyle(hd).display === 'none', cellHidden: !cell || getComputedStyle(cell).display === 'none', align: al, tracks, cells: rc.length,
         side: document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth, tiles: t, mandTile: !!document.querySelector('#posture .ppt.mand') };
     });
     chk(`E · ${w}: Fund mode: the Mandatory column is gone and every cell still lines up with its head; the Funding page has no Mandatory tile`,
-      fd.headHidden && fd.cellHidden && fd.align.every(x => x <= 12) && fd.side <= 0 && !fd.mandTile, JSON.stringify(fd));
+      fd.headHidden && fd.cellHidden && fd.align.every(x => x <= 12) && fd.tracks === fd.cells && fd.side <= 0 && !fd.mandTile, JSON.stringify(fd));
     await press(p, '#uiNav_req', 600);
     const kp = await p.evaluate(() => ({ n: document.querySelectorAll('#uiKpis .k').length, cut: [...document.querySelectorAll('#uiKpis .k .v')].some(e => e.scrollWidth > e.clientWidth + 1) }));
     chk(`E · ${w}: the Requirements tiles are three, nothing cut`, kp.n === 3 && !kp.cut, JSON.stringify(kp));

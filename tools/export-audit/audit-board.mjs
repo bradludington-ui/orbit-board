@@ -10482,8 +10482,9 @@ await (async () => {
         words: [].map.call(m.querySelectorAll('button[id^="uiNav_"]'), function(b){ return b.textContent.replace(/[▸]/g,'').trim(); }) }); })()`));
     chk(name, 'menu', 'no fold control, no icon, no tooltip stand-in for a word, no brand block; the menu follows the sticky top and comes before the page',
       J([mn.fold, mn.icons, mn.tips, mn.brand, mn.after, mn.before]), J([false, 0, 0, false, true, true]));
+    // v2.23 W3: Allocate (item 159), between Funding and FYDP
     chk(name, 'menu', 'its entries are words, in order', J(mn.words),
-      J(['Requirements', 'Funding', 'FYDP', 'Execution', 'Cycles & compare', 'Brief', 'Reports & exports', 'Imports & exports', 'Data', 'Program offices', 'Audit', 'History & recovery', 'Setup']));
+      J(['Requirements', 'Funding', 'Allocate', 'FYDP', 'Execution', 'Cycles & compare', 'Brief', 'Reports & exports', 'Imports & exports', 'Data', 'Program offices', 'Audit', 'History & recovery', 'Setup']));
     // 4. the rows' title band
     // v2.22 W1: the band's title is its own span now, beside the table's filter chips
     const band = () => ev(`(document.getElementById('gridBandT')||{}).textContent||''`);

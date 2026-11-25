@@ -2134,13 +2134,15 @@ html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,h
 .allocview .avttl{margin:4px 0 2px;font-size:22px;font-weight:800;color:var(--ink)}
 .allocview .avsub{margin:0 0 10px;color:var(--mut);font-size:13px}
 .allocview .avh{color:var(--mut);font-size:12px;font-weight:400}
-.allocview .over,.allocview td.over{color:var(--apxBad);font-weight:700}
-.allocview .uf,.allocview td.uf{color:var(--apxBad)}
+.allocview .over,.allocview td.over{color:var(--red);font-weight:700}
+.allocview .uf,.allocview td.uf{color:var(--red)}
+/* the pinned lines sit on fixed light fills in every theme: their red is fixed to match */
+.allocview .avs thead tr.pin .over,.allocview .avs thead tr.pin .uf{color:#9b0000}
 .allocview .avtiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 12px}
 .allocview .avt{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
 .allocview .avt .l{color:var(--mut);font-size:12px;font-weight:700}
 .allocview .avt .v{font-size:21px;font-weight:800;margin-top:2px;white-space:nowrap}
-.allocview .avt.short .v{color:var(--apxBad)}
+.allocview .avt.short .v{color:var(--red)}
 .allocview .avt .km{height:6px;border-radius:3px;background:var(--panel2);margin:6px 0 4px;overflow:hidden}
 .allocview .avt .km i{display:block;height:100%}
 .allocview .avt .x{color:var(--dim);font-size:11.5px;overflow-wrap:anywhere}
@@ -2158,7 +2160,7 @@ html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,h
 .allocview .avs td.t{position:sticky;left:0;z-index:1;background:var(--panel);min-width:200px;max-width:280px;white-space:normal;overflow-wrap:anywhere;font-weight:700}
 .allocview .avs tbody td.q{background:var(--panel2);font-weight:700}
 .allocview .avs tbody td.q.met{box-shadow:inset 0 -3px 0 var(--apxOk)}
-.allocview .avs tbody td.q.short{box-shadow:inset 0 -3px 0 var(--apxBad);color:#7a0b0b}
+.allocview .avs tbody td.q.short{box-shadow:inset 0 -3px 0 var(--apxBad)}
 .allocview td.none{color:var(--dim);text-align:center}
 .allocview td.tot{font-weight:700}
 .allocview .avm,.allocview .avm2{display:inline-flex;width:50px;height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;vertical-align:middle;margin-right:6px}
@@ -2179,7 +2181,7 @@ html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,h
 .allocview .avtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 10px}
 .allocview .avtab{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--edge);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px;font:inherit;cursor:pointer;min-height:44px}
 .allocview .avtab span{font-size:12px;color:var(--mut)}
-.allocview .avtab[aria-pressed="true"]{background:var(--apxNav);color:#fff;border-color:var(--apxNav)}
+.allocview .avtab[aria-pressed="true"]{background:var(--apxNav);color:#fff}
 .allocview .avtab[aria-pressed="true"] span{color:#dfe7ef}
 .allocview .avtab .avm{width:100%;margin:2px 0 0}
 .allocview .avgoal{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 12px;margin:0 0 10px}
@@ -2199,8 +2201,8 @@ html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,h
 .allocview .aved .avsw[aria-pressed="true"]{background:#dfe7ef;color:var(--apxNav)}
 .allocview .avl td.t{text-align:left;white-space:normal;min-width:220px}
 .allocview .avl td.t small{display:block;color:var(--mut);font-size:11px;font-weight:400}
-.allocview .avl tr.sel td{background:#eef4fb;color:#10233a}
-.allocview .avl td.cb input{width:20px;height:20px}
+.allocview .avl tr.sel td{background:var(--sel)}
+.allocview .avl td.cb input{width:24px;height:24px;margin:0}
 .allocview .avl tr.avcut td{background:var(--apxBad);color:#fff;font-weight:800;text-align:left;white-space:normal}
 .allocview .avl tfoot td{font-weight:800;border-top:2px solid var(--apxNav);background:var(--panel2)}
 .allocview .avq{min-width:34px;min-height:26px;border:1px solid var(--edge);border-radius:5px;background:var(--panel);color:var(--ink);font:inherit;font-size:12px;font-weight:700;margin-left:4px;cursor:pointer}
@@ -2220,14 +2222,15 @@ html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,h
 .avmodal .avrev{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
 .avmodal .avrev th,.avmodal .avrev td{padding:5px 8px;border-bottom:1px solid var(--lineSoft);text-align:left}
 .avmodal .avrev .r{text-align:right}
-.avmodal .avrev .uf{color:var(--apxBad);font-weight:700}
+.avmodal .avrev .uf{color:var(--red);font-weight:700}
 .avmodal .mandhow{border:0;padding:0;margin:10px 0;display:flex;flex-direction:column;gap:8px}
 .avmodal .mandhow label{display:block;line-height:1.45}
-.avmodal .mandhow input{width:18px;height:18px;vertical-align:-3px}
+.avmodal .mandhow input{width:24px;height:24px;margin:0 6px 0 0;vertical-align:-6px}
 .avmodal select{min-height:28px;font:inherit}
 .avmodal .avh{color:var(--mut);font-size:12.5px}
 .avmodal .avbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
-.avmodal .btn.danger{background:var(--apxBad);border-color:var(--apxBad);color:#fff}
+.avmodal .btn.danger{background:var(--apxBad);border-color:var(--edge);color:#fff}
+.avmodal button.nb.lnk{border-color:var(--edge)}
 /* mandatory off: Fund mode's Mandatory column (its track is taken out in avMandCols), and three headline tiles */
 html.ui-mandoff[data-mode="fund"] .gridhead>.mandc,html.ui-mandoff[data-mode="fund"] #list .row>.mandc{display:none!important}
 html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
