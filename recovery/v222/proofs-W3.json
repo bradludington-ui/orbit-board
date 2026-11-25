@@ -39,5 +39,5 @@
  {"id": "v208-122-proposal-office-open", "caughtBy": "import / v2.08 — the edit box in a PMO copy"},
  {"id": "v208-rv-si-follows-gone", "caughtBy": "other / v2.08 — the review of the edit box"},
  {"id": "v208-rv-rectag-fixed", "caughtBy": "other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel; =v2.08 — the review of the edit box: kept values, the WBS after OGC, Goes to’s shape, prev/next, the SI code, the words"},
- {"id": "v208-rv2-panel-wrong-requirement", "caughtBy": "other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"}
+ {"id": "v208-rv2-panel-wrong-requirement", "caughtBy": "board / v2.22 W3 — the RECORD card"}
 ]

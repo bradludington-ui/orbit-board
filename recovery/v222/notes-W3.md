@@ -116,6 +116,11 @@ same defects), each by its original catcher. None retired. Proofs: `proofs-W3.js
   count has called it on every record draw since v2.08. v2.12's rule says a draw writes nothing; wrapping `recFields`' CLIN read in
   `clinReadOnly` would close it.
 
+- **audit-import fails two checks of "v1.86 — the File menu, grouped, and the PMO copy under it"**, and they cannot pass on the slot
+  commit either: they read the left menu entries' `data-tip` and look for Save inside `#uiSide .uiSave`, and v2.21 took both away (the
+  slot has no `data-tip` anywhere and `#uiSave` is in the header). This branch touches neither (`git diff 41ea5d7` has no `data-tip` or
+  `uiSave` line); the left menu and the header are W1's. The check needs following to v2.21's menu. (Run alone, the block throws on
+  both boards -- it reads V14, which an earlier block sets -- so the comparison was made by reading the slot, not by running it.)
 - **audit-board needs more than the 6 GB heap `heavy.sh` gives**, on the slot commit as on this branch: run whole at HEAP=6144 it
   died out of heap at ~610 s on both (`41ea5d7`'s board with this branch's suite; this branch). It passes at HEAP=8192 (CLAUDE.md's
   v2.14 figure). The contract §0 says 6 GB; the integration's whole-suite run should give audit-board, audit-import and audit-recon
@@ -133,6 +138,11 @@ same defects), each by its original catcher. None retired. Proofs: `proofs-W3.js
   check passed, because they seed and draw after the script has run. `npm run dialogs` found it (closing the Messages box left the
   keyboard on the page, because there was an unread message to open it). Now a function (`recLaneWord`), and the board block opens a
   saved board and requires its record drawn at opening; `v222-w3-lane-word-boot-var` puts the var back.
+- **The way from the edit box to the value left a sliding record shut** (v2.08's `erGo('record')`, and so the new "Save and go to
+  the value and budgets"): it opened the record only when another requirement was selected, but the box selects its own quietly as it
+  opens (`openEdit`, v2.18, 149.14), so the record stayed shut -- inert -- and the keyboard was sent into it. `erToRecord` now always
+  opens the record. Found because the retarget of `v208-rv2-panel-wrong-requirement` SURVIVED its old check (since v2.18 the line it
+  removes had nothing to do): it is now proved against the W3 block, which requires the record open.
 - **The years line worked five lane walks out inside every draw** in the first cut (`fydpData` → `aceWithYear` per year): now the
   draw uses what is worked out for the board as it is, or leaves the line empty and fills it once the page is idle (`recYearsFill`).
 
@@ -140,7 +150,24 @@ same defects), each by its original catcher. None retired. Proofs: `proofs-W3.js
 
 `"record": "node tools/record-card.mjs"` (and into `verify:grid`).
 
+### Proved by hand in Chromium (prove.py runs jsdom suites only)
+
+`tools/record-card.mjs --board <mutant>` on five mutants of the finished board, each made by
+`scratchpad .../mkmut-browser.py` (the find and replacement below), and on the slot commit's board:
+
+| mutant | find → replacement | verdict |
+|---|---|---|
+| scroll-top-kept | `  if(fresh && ins0) ins0.scrollTop = 0;` → removed | CAUGHT (A ×3: 1024, 1025, 1157 px down) |
+| scrim-takes-click | the sliding scrim's `pointer-events:none` removed | CAUGHT (B ×6: the click closed the record, R003 stayed) |
+| jump-under-strip | `uiDTab`'s landing → `to.scrollIntoView({block:'start'})` | CAUGHT (F ×3: Funding's heading 122px under the head) |
+| arrow-no-blur | the Down arrow's `t.blur()` removed | CAUGHT (C ×3) |
+| bar-not-pinned | `.rechead{position:sticky` → `position:static` | CAUGHT (A, F ×9) |
+| (the slot commit's board) | -- | 13 FAIL (no bar, no line, no switch) |
+
 ## Known gaps
 
 - What only a browser sees (the scroll to the top, the jumps' landing and the highlight, Chromium's change on the arrow keys, the
-  pinned bar's place) is held by `npm run record`, which prove.py cannot run; those lines' mutations were proved by hand (below).
+  pinned bar's place, the scrim passing the click) is held by `npm run record`, which prove.py cannot run; those five lines'
+  mutants were proved by hand (above) and are not in `mutate.mjs`.
+- The name under the bar wraps (Decided, 2); a very long name takes two lines of the pinned head.
+- The record's budget block is as long as before (149.34's answer: do not fold); only the double saying and the cut name went.

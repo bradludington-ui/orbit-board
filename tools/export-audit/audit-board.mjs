@@ -10629,7 +10629,8 @@ await (async () => {
     chk(name, 'save and next', 'the box offers Save and next, and the way to the value says it saves', J([ev(`!!document.getElementById('erSaveNext')`), ev(`document.getElementById('erToPanel').textContent`)]), J([true, 'Save and go to the value and budgets']));
     ev(`document.getElementById('erSaveNext').click(); 'ok'`);
     chk(name, 'save and next', 'Save and next: C’s note is saved and the box is on D', J([ev(`(S.notes||{}).C||''`), ev(`String(erOn() && erOpen)`)]), J(['first', 'D']));
-    ev(`document.getElementById('erNote').value='second'; document.getElementById('erToPanel').click(); dlgSync(); 'ok'`);
+    // the record shut behind the box, as when the box is opened from Needs attention (Go to) -- it selects its requirement quietly
+    ev(`drawerClose(); document.getElementById('erNote').value='second'; document.getElementById('erToPanel').click(); dlgSync(); 'ok'`);
     chk(name, 'save and go', 'Save and go to the value and budgets: D’s note saved, the box closed, the record OPEN on D (a shut sliding record is inert), the keyboard on D’s value',
       J([ev(`(S.notes||{}).D||''`), ev(`String(erOn())`), ev(`curRow`), ev(`String(document.getElementById('inspector').classList.contains('open'))`),
         ev(`String((document.activeElement && document.activeElement.getAttribute('onchange')||'').indexOf('setAsk("D",')===0)`)]), J(['second', 'false', 'D', 'true', 'true']));
