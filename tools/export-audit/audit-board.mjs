@@ -10670,12 +10670,13 @@ await (async () => {
     chk(name, 'Funding page', 'the Funding page states its figures in its own tiles: no second set on it', ev(`String(/\\[data-mode="fund"\\] #uiKpis\\{display:none\\}/.test(document.getElementById('v222w1').textContent))`), 'true');
     ev(`uiMode='review'; uiApply(); render(); 'ok'`);
     // 6. THE FRAME: the find box, the menu's headings, one Add requirement, the task bar in the heading
-    const fr = JSON.parse(ev(`(function(){ var got=[]; var h=function(e){ got.push((e.ctrlKey?'Ctrl+':'')+e.key); }; document.addEventListener('keydown', h);
-      document.getElementById('cmdOpen').click(); document.removeEventListener('keydown', h);
+    // v2.22 integration: the find box calls the palette's own opener (cmdOpen), so the check reads that the palette opened
+    const fr = JSON.parse(ev(`(function(){ var got=[]; document.getElementById('cmdOpen').click();
+      var cp=document.getElementById('cmdPanel'); if(cp && dlgIsOpen(cp)) got.push('palette open'); try{ cmdClose(); }catch(e){}
       var m=document.getElementById('uiSide'), seq=[].map.call(m.children, function(e){ return e.classList.contains('uiGrp')? '['+e.textContent+']' : e.id.replace('uiNav_',''); });
       return JSON.stringify({ key:got, inHdr:!!document.querySelector('.hdr #cmdOpen'), seq:seq, add:document.querySelectorAll('#uiAddBtn').length, toolAdd:document.getElementById('toolAdd').className,
         tbar:!!document.querySelector('#uiPage .uiHd .tbar'), top:!!document.querySelector('#topStack .tbar, #topStack #posture') }); })()`));
-    chk(name, 'frame', 'the find box is in the header and asks for the palette the way Ctrl K does', J([fr.inHdr, fr.key]), J([true, ['Ctrl+k']]));
+    chk(name, 'frame', 'the find box is in the header and opens the Ctrl K palette', J([fr.inHdr, fr.key]), J([true, ['palette open']]));
     chk(name, 'frame', 'the left menu reads PLAN, its pages, then BOARD from Reports & exports', J(fr.seq),
       J(['[Plan]', 'req', 'fund', 'fydp', 'exec', 'cyc', 'brief', '[Board]', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup']));
     chk(name, 'frame', 'one Add requirement, in the main-button look, the task bar in the page’s heading and nothing of it in the sticky top',
