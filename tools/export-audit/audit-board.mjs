@@ -11314,7 +11314,8 @@ await (async () => {
     const J = JSON.stringify;
     const B = boot(), ev = B.ev;
     seed(ev, W3AV); W3base(ev);
-    ev(`window.confirm=function(){ return true; }; uiGo('alloc'); 'ok'`);
+    // FY28 is held (rolled forward), so switching to it asks nothing of its own: only Allocate's question can keep the year on screen
+    ev(`window.confirm=function(){ return true; }; switchYear(2028); switchYear(2027); uiGo('alloc'); 'ok'`);
     chk(name, 'mode', 'Allocate is a mode, reached from the left menu, and its view is shown', J([ev(`uiMode`), ev(`String(document.getElementById('allocView').hidden)`), ev(`String(document.getElementById('uiNav_alloc').classList.contains('on'))`), ev(`document.getElementById('uiTitle').textContent`)]),
       J(['alloc', 'false', 'true', 'Allocate']));
     const tot = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#allocView .avs tbody tr[data-id]'), function(r){ return r.getAttribute('data-id')+':'+[].map.call(r.querySelectorAll('td.tot'), function(c){ return c.textContent; }).join('/'); }))`));
