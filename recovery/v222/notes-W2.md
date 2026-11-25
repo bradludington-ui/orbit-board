@@ -99,9 +99,13 @@ picked budget is not "typed by hand" when one brought in from another year is op
 
 ## Checks
 
-Each new check FAILS ON THE SLOT COMMIT (41ea5d7) unless labelled CONTROL — run there with `BOARD=<41ea5d7's board>`: see below.
+Each new check FAILS ON THE SLOT COMMIT (41ea5d7) unless labelled CONTROL. Run there (`BOARD=<41ea5d7's board>`, the three blocks
+slimmed): 14 failing checks — the search block fails on every row-line, number and office search and then throws at the missing ✕;
+the Ctrl K block throws at `cmdIsOpen`; the Start here block fails on the block, the banner, the opening line and the list, then
+throws at `startHere`. Its CONTROLs (six rows A..F; no Start here on a board with requirements; the title still searched) pass there.
+`tools/cmd-palette.mjs` cannot run on the slot board at all (no palette, no `#qClr`, no Start here).
 
-**jsdom, `audit-other.mjs` slot `v2.22 W2`** (three blocks, 79 checks):
+**jsdom, `audit-other.mjs` slot `v2.22 W2`** (three blocks, 74 checks):
 - *v2.22 W2 — the list's search reads the row, clears with ✕ and Esc, says when nothing matches; Filter opens on Funding (items
   149.25, 149.26)*: the record name, a note, the cost element, the office, `#2`, `2`; the ✕ (shown, named, a button, clears, keeps
   the keyboard); Esc clears and is held back (CONTROL: with nothing to clear it is not); the note while the box is out of sight and its
@@ -147,6 +151,12 @@ writes the screenshots below.
   such button, it is opened by its switch).
 - `tools/standards-check.mjs`: the palette measured open with a requirement and an action in it, and the list's search on with its
   ✕; a coverage finding if either was not drawn.
+- `audit-board.mjs` v1.96 (a long menu folds): "opened with nothing unfolded" starts Filter's groups as closed by hand
+  (`menuGrpOpen={view:''}`); with `{}` Filter now opens its Funding group (Filter 7 rows, not 2).
+- `audit-import.mjs` v2.06 (add from another year), *finish*: ANG's and AFRC's only PSM names are picked in the form being
+  finished (FY27 stored none), so the form holds them and Add says *5 still needed* (it was 6, the budgets among them).
+- `tools/keyboard-reach.mjs` G2 and `tools/dropdowns-visible.mjs`: Filter's groups start closed by hand (keys), or a group already
+  open is judged open as it is (dropdowns) — pressing Funding's heading on first use now closes it.
 
 ## Mutations
 
@@ -157,8 +167,13 @@ writes the screenshots below.
 - `v207-121-open-record-keeps-star` matched twice while arOpenRecord kept its own copy; arOpenRecord now calls `listReveal`, so it
   matches once again, in `listReveal`, unchanged.
 
-Proofs: `recovery/v222/proofs-W2.json` (56 ids) and `recovery/v222/proved-W2.jsonl` — see **Results** below.
-`mcount`: every target matches once.
+Proofs: `recovery/v222/proofs-W2.json` (56 ids) and `recovery/v222/proved-W2.jsonl`, run with `prove.py` (JOBS=1, under heavy.sh) on
+the finished board: **56 of 56 CAUGHT**, each by a failing check of its own block (three of them also throw after failing checks:
+`nomatch-banners-only`, `starthere-never`, `tickall-missing`). The first run found `v222-w2-actions-hidden-entry` SURVIVED: in a PMO
+copy Program offices' list is also empty, so the copy alone could not tell; the block now also hides Program offices on the board
+and requires that none of its items is offered, and the second run caught it. `v222-w2-another-closes` was caught only by a throw in
+the first run; its check now reads a missing field as such and fails as a check.
+`mcount`: 3,320 entries, every target matches once.
 
 ## For the integration
 
@@ -173,6 +188,26 @@ Proofs: `recovery/v222/proofs-W2.json` (56 ids) and `recovery/v222/proved-W2.jso
 - **The empty program's opening line** is in the opening code after `IS_SHELL` (now quiet); the U47 check reads its new words.
 - **npm script to add:** `"palette": "node tools/cmd-palette.mjs"`, and add it to `verify:grid`.
 - `syncBtns()`: only the Filter group's lines changed (`filterFirstOpen()`, the divider removed).
+
+## Results on the finished board
+
+- `npm run check`: all checks passed. `mcount`: 3,320 targets, each once.
+- Suites whole: audit (export) ALL CHECKS PASSED; audit-other ALL CHECKS PASSED; audit-board ALL CHECKS PASSED (8 GB heap: at 6 GB it
+  dies out of heap here, and so does W3's run of it on the slot commit's board); audit-recon (8 GB) ALL CHECKS PASSED; legacy-fsrc
+  "every legacy Force setting computes exactly as before"; audit-hostile, audit-inject, audit-ui ALL CHECKS PASSED; boot-same exit 0.
+  audit-import: see below.
+- audit-import (8 GB): two checks of *v1.86 — the File menu, grouped* fail, and they cannot pass on the slot commit either (its board, read: no
+  `data-tip` on any entry, no Save in `#uiSide`): they read each
+  left-menu entry's `data-tip` (gone with the rail in v2.21) and look for Save inside `#uiSide .uiSave` (in the header since v2.21).
+  Not W2's: v2.21 left them behind. The two v2.06 checks W2's pre-pick changed are updated and pass (run alone). The second whole
+  run (after those two were updated) failed those two v1.86 checks and, once, *v1.89 — 240 edits in one save › a package import
+  still sees the changes made here since*: it passed in the first whole run on the same board and twice more run alone; it is a
+  same-millisecond clock flake (`pkgMineSince` keeps only entries with `t` later than the last shared one) and touches nothing W2
+  changed.
+- Browser: cmd-palette (26 checks) all hold; dialogs, left-menu (unchanged), menu-paths, panels, toolbar, editors, pointer, controls
+  (row-controls --check), colours, pmo-save hold; standards: CONFORMANCE HOLDS, 0 findings, nothing new (the palette measured open);
+  layout: only the carried D ×8; keys (169 ok) and dropdowns (560 opened, every item in the window) hold, re-run after their
+  Filter change.
 
 ## Known gaps
 
