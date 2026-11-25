@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 149.18–149.53). Item 133 is withdrawn.
+Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 149.18–149.53, and item 154, the Funding tiles). Item 133 is withdrawn.
 
 ## Open
 
@@ -28,6 +28,20 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
   allocation; the RCN-EEIC tab prorates a split prime's ask by the CLIN allocation; FYDP Disconnects' workbook prints — without
   saying why.
 - **Items 100 and 107 (Azure):** left until hosting is chosen.
+
+#### 154. The Funding page's posture strip in APEX's tiles (Brad, 25 Nov 2026: "Log the Funding tiles for the next version")
+- **What he sees:** v2.21 dressed the Requirements page's four tiles as APEX's, but the Funding page (Fund mode) still opens on
+  the compact pre-v2.21 posture strip (`#posture`, written by `scoreboard()`): Discretionary and Mandatory BA with what is left,
+  Mission Critical, Whole budget and Unfunded by service in one dense band, then Needs attention. Seen in the v2.21 screenshots
+  of 25 Nov.
+- **Proposed:** the same figures as APEX tiles in a row -- Discretionary (BA, drawn, left), Mandatory (the same), ★ Mission
+  Critical (unfunded of the must-pay total), Whole budget (asked, funded, unfunded) -- with Unfunded by service and Needs
+  attention beneath as their own tile-styled blocks. Restyle only: every figure stays the one `scoreboard()` prints today,
+  every Needs attention entry keeps its button and its call, and Funding detail ▾ stays where it is.
+- **Checks to hold:** layout A (the posture prints the scorecards' figures and its unfunded-by-service figures add to the
+  Funding by service table), audit-board's "the funding posture prints the scorecards' figures", keyboard-reach on the Needs
+  attention buttons, standards (2.5.8 and 1.4.11 on the new tiles), and the row's first requirement still on screen (layout D).
+- **Next version:** v2.22, beside item 149.18–149.53. Built on go.
 
 #### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
 - **Asked:** Brad, 21 Nov 2026: *"review the front landing page where my requirements are listed to include the pop up window after clicking a requirement ... for redundant clicks and information ... simplicity but usefulness."*
