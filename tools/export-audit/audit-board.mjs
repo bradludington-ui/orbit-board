@@ -10769,7 +10769,7 @@ await (async () => {
     const bar = () => JSON.parse(ev(`(function(){ var b=document.querySelector('#inspector .recbar'); return JSON.stringify(b? [b.querySelector('.recpos').textContent,
       [].map.call(b.querySelectorAll('button'), function(x){ return x.textContent+(x.disabled? ':off' : ''); })] : null); })()`));
     ev(`setCur('A'); 'ok'`);
-    chk(name, 'bar', 'A first: "#1 of 6", ‹ Previous off, Next ›, ✕ Close', J(bar()), J(['#1 of 6 · Record', ['‹ Previous:off', 'Next ›', '✕ Close']]));
+    chk(name, 'bar', 'A first: "#1 of 6", ‹ Previous off, Next ›, ✕ Close', J(bar()), J(['#1 of 6 · Record', ['‹ Previous:off', 'Next ›', 'Open full page', '✕ Close']]));   // v2.23 integration: the bar opens the requirement page (item 156)
     ev(`document.querySelector('#inspector .recbar [data-step="1"]').click(); 'ok'`);
     chk(name, 'bar', 'Next › steps to B', ev(`curRow`), 'B');
     ev(`document.querySelector('#inspector .recbar [data-step="-1"]').click(); 'ok'`);
@@ -11152,7 +11152,7 @@ await (async () => {
     chk(name, 'recent', '"All 7 in History", and the History tab says 7', J([ev(`document.querySelector('#reqPage .rprecent button').textContent`), ev(`document.getElementById('rptab_hist').textContent`)]), J(['All 7 in History', 'History · 7']));
     // 7. the tabs
     chk(name, 'tabs', 'the tabs in order, buttons with aria-pressed, Overview pressed', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent+'='+b.getAttribute('aria-pressed'); }).join(',')`),
-      'Overview=true,Funding by service=false,Awards=false,History · 7=false');
+      'Overview=true,Funding by service=false,Awards=false,Across the FYDP=false,History · 7=false');   // v2.23 integration: W2's tab, order 40
     ev(`document.querySelector('#reqPage .rprecent button').click(); 'ok'`);
     chk(name, 'history', '"All 7" opens History: all seven, newest first, the keyboard on its tab', J([ev(`REQPG.k`), ev(`document.querySelectorAll('#reqPage .rpj.all li').length`), ev(`document.activeElement.id`)]), J(['hist', 7, 'rptab_hist']));
     chk(name, 'history', 'Put back stays in the change journal, narrowed to A', ev(`[].filter.call(document.querySelectorAll('#reqPage button'), function(b){ return /change journal/.test(b.textContent); })[0].getAttribute('onclick')`), 'jrnlFor("A")');
@@ -11190,9 +11190,9 @@ await (async () => {
     // 12. a tab that throws shows its own failure; the page and the other tabs stand
     ev(`REQPG_TABS.push({k:'boom', label:'Boom', order:45, html:function(){ throw new Error('kaput'); }}); reqPgOpen('A','boom'); 'ok'`);
     chk(name, 'a tab fails', 'its own failure, under the header and the tabs', J([/The Boom tab could not be drawn — kaput/.test(ev(`(document.querySelector('#reqPage .rpbody')||{}).textContent||''`)), ev(`document.querySelectorAll('#reqPage .rptab').length`), ev(`(document.getElementById('rpTitle')||{}).textContent||''`)]),
-      J([true, 5, ev(`dispTitle(itemById('A'))`)]));
+      J([true, 6, ev(`dispTitle(itemById('A'))`)]));   // v2.23 integration: five tabs and Boom
     chk(name, 'a tab fails', 'the tabs by their order, a tab registered later in its place', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent; }).join(',')`),
-      'Overview,Funding by service,Awards,Boom,History · 7');
+      'Overview,Funding by service,Awards,Across the FYDP,Boom,History · 7');   // v2.23 integration: Across the FYDP is order 40, Boom 45
     ev(`REQPG_TABS.splice(REQPG_TABS.length-1, 1); reqPgOpen('A'); 'ok'`);
     // 13. Back: the list again, A selected, the keyboard on A's row
     ev(`document.querySelector('#reqPage .rpback').click(); 'ok'`);
