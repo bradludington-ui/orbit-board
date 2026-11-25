@@ -12,6 +12,9 @@
 //      turn off: no Mandatory column in either view, Fund mode's Mandatory column is gone -- its cells line up with their heads and the
 //      row template has a track for each cell shown and no more -- the Requirements tiles are three.
 //   F. Leaving Allocate with a figure not saved asks; Cancel stays.
+//   G. (v2.23 review RV-C, C7 and C8) The keyboard stays where it was when a control redraws the view or the box: Enter on One lane,
+//      Space on a row's checkbox, Enter on a row's Full, Enter on the service's tab; and ArrowDown in the mandatory-off box's radios,
+//      which checks Move and redraws the box, leaves the keyboard on Move -- not on <body>, not back on Clear.
 //   --shots DIR writes the screens (1440 and 1024: Sheet, One lane, the box; 1920: Present) in Harbor.
 //
 //   node tools/alloc-view.mjs [--board FILE] [--shots DIR]
@@ -210,6 +213,46 @@ for (const [w, h] of [[1440, 900], [1024, 768]]) {
     await ctx.close();
   } catch (e) { chk(`E · ${w}: the section ran`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
 }
+
+// ── G. the keyboard stays where it was through a redraw (v2.23 review RV-C: C7, C8) ─────────────────────────────────────────
+try {
+  const { p, ctx, errs } = await open(1440, 900);
+  await press(p, '#uiNav_alloc', 600);
+  const act = () => p.evaluate(() => { const a = document.activeElement; if (!a || a === document.body) return 'BODY';
+    return (a.getAttribute('data-k') || a.id || a.tagName) + (a.type === 'radio' ? ':' + a.value : '') + (a.checked ? ':checked' : ''); });
+  await p.locator('#allocView .avsw', { hasText: 'One lane' }).focus();
+  await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+  const g1 = { view: await p.evaluate(() => AV.view), at: await act() };
+  chk('G · Enter on One lane switches the view and the keyboard stays on One lane', g1.view === 'lane' && g1.at === 'ui:lane', JSON.stringify(g1));
+  await p.locator('#allocView .avl input[type=checkbox]').first().focus();
+  const cbk = await act();
+  await p.keyboard.press('Space'); await p.waitForTimeout(300);
+  const g2 = { sel: await p.evaluate(() => Object.keys(AV.sel).length), at: await act() };
+  chk('G · Space on a row’s checkbox selects it and the keyboard stays on that checkbox', g2.sel === 1 && g2.at === cbk.replace(/:checked$/, '') + ':checked', JSON.stringify({ cbk, ...g2 }));
+  // a row still short in this lane, so Full changes the draft and the view is drawn anew
+  await p.locator('#allocView .avl tbody tr:has(td.r.uf) .avq').first().focus();
+  const fk = await act();
+  await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+  const g3 = { n: await p.evaluate(() => avChangeN()), at: await act() };
+  chk('G · Enter on a row’s Full puts it in the draft and the keyboard stays on that Full', /^ui:full\|/.test(fk) && g3.n >= 1 && g3.at === fk, JSON.stringify({ fk, ...g3 }));
+  await p.locator('#allocView .avtab').nth(1).focus();
+  await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+  const g4 = { svc: await p.evaluate(() => AV.svc), at: await act() };
+  chk('G · Enter on the second service’s tab switches to it and the keyboard stays on that tab', g4.svc === 1 && g4.at === 'ui:svc:1', JSON.stringify(g4));
+  await p.evaluate(() => { avDiscardAll(); AV.view = 'sheet'; avDraw(); });
+  // the box: ArrowDown on the first radio checks Move and redraws the box
+  await press(p, '#allocView .avmand', 500);
+  await p.locator('#avMandPanel input[name=mandHow][value=clear]').focus();
+  await p.keyboard.press('ArrowDown'); await p.waitForTimeout(400);
+  const g5 = { how: await p.evaluate(() => MANDBOX.how), at: await act() };
+  chk('G · in the mandatory-off box, ArrowDown checks Move and the keyboard is on Move after the box redraws', g5.how === 'move' && g5.at === 'INPUT:move:checked', JSON.stringify(g5));
+  await p.keyboard.press('ArrowUp'); await p.waitForTimeout(400);
+  const g6 = { how: await p.evaluate(() => MANDBOX.how), at: await act() };
+  chk('G · and ArrowUp back to Clear, the keyboard on Clear', g6.how === 'clear' && g6.at === 'INPUT:clear:checked', JSON.stringify(g6));
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+  chk('G · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await ctx.close();
+} catch (e) { chk('G · the section ran', false, String(e.message || e).split('\n')[0].slice(0, 200)); }
 
 await b.close();
 console.log(bad ? `\n${bad} FAILING CHECK(S)` : '\nALL CHECKS PASSED');

@@ -11609,8 +11609,12 @@ await (async () => {
       chk(name, 'journal', 'each mandatory figure cleared is a line in the change journal, with its year', J(jl.filter(x => x[1] === 'fsrc.B.mv.0').map(x => [x[0], x[2], x[3]]).sort()), J([[2027, 90, 0], [2028, 90, 0]]));
       chk(name, 'journal', 'one save for the whole change: the year setting is journalled once per year', ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p[0]==='mandOff'; }).map(function(e){ return [e.fy, e.b]; }))`), J([[2027, true], [2028, true]]));
       const ix = +ev(`(MS.jrnl||[]).findIndex(function(e){ return e.fy===2027 && e.p.join('.')==='fsrc.B.mv.0'; })`);
+      // v2.23 review RV-C (C3): while mandatory is off, the journal does not put a mandatory figure above $0 back (setFsrcSvc's own
+      // rule: it would be directed and never drawn, with no box to see it), and says why; turned on again, it does
       ev(`jrnlUndo(${ix}); 'ok'`);
-      chk(name, 'journal', 'put back from the journal, B’s $90 of mandatory is directed again (and, mandatory being off, not drawn)', J([ev(`JSON.stringify(S.fsrc.B.mv)`), ev(`JSON.stringify(tiers().B.m)`)]), J([J([90, 0]), J([0, 0])]));
+      chk(name, 'journal', 'put back from the journal while mandatory is off: refused, saying why; B’s mandatory stays $0', J([ev(`JSON.stringify(S.fsrc.B.mv)`), /mandatory funding is off in FY27/.test(ev(`document.getElementById('shareStat').textContent`))]), J([J([0, 0]), true]));
+      ev(`mandSwitch(); jrnlUndo(${ix}); 'ok'`);
+      chk(name, 'journal', 'mandatory on again, put back from the journal: B’s $90 of mandatory is directed again', J([ev(`String(mandOn())`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['true', J([90, 0])]));
       chk(name, 'errors', 'no page error (clear)', B.errors.length, 0);
     }
     { // a year with no mandatory asks nothing; a locked view and a PMO copy refuse
@@ -11806,6 +11810,156 @@ await (async () => {
 // ==== v2.23 review RV-B ====
 // ==== end v2.23 review RV-B ====
 // ==== v2.23 review RV-C ====
+// v2.23 review RV-C (item 159's C findings): Allocate's draft and a board replaced under it (C1), the mandatory switch's journal
+// line (C2), mandatory carried into a year where it is off (C3), a switch that does not happen (C9) and a pasted figure rounded (C10).
+// Each FAILS ON 56aa6c6 (the review's base); CONTROLs are named. Driven through the rendered controls where a person would use them.
+const { bootMark: _rvcMark, bootRelease: _rvcRelease, settleBoards: _rvcSettle } = await import('./boot.mjs');
+const RVCF = {
+  services: ['USAF', 'ANG'], items: [it('A', 'PSM', [80, 10]), it('B', 'AV', [60, 10])], disc: [200, 20], mand: [60, 15], order: ['A', 'B'],
+  fsrc: { A: { m: 'split', dv: [50, 5], mv: [0, 0] } },
+};
+const rvcBoot = (fsrc) => {
+  const B = boot(); seed(B.ev, fsrc ? Object.assign({}, RVCF, { fsrc }) : RVCF);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render();
+    window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; 'ok'`);
+  return B;
+};
+// what a person types into Allocate's box, and its Save button, pressed
+const rvcType = (ev, k, v) => ev(`(function(){ var i=document.querySelector('#allocView input.avin[data-k="${k}"]'); i.value=${JSON.stringify(v)}; i.dispatchEvent(new window.Event('change',{bubbles:true})); avDraw(); return 'ok'; })()`);
+const rvcSave = ev => ev(`(function(){ var b=[].slice.call(document.querySelectorAll('#allocView .avbar button')).find(function(x){ return /avSave\\(\\)/.test(x.getAttribute('onclick')||''); }); b.click(); return 'ok'; })()`);
+const rvcSaid = (ev, re) => ev(`String(STAT_LOG.some(function(e){ return ${re}.test(e.html); }))`) === 'true';
+await (async () => {
+  const __bm = _rvcMark();
+  const name = 'v2.23 review RV-C — Allocate’s draft and a board replaced under it: Save reads the board again, a load drops the draft, an automatic load leaves it';
+  try {
+    const J = JSON.stringify;
+    // (1) THE CHANGE JOURNAL'S PUT BACK, from the rendered journal, moves the figure the draft was typed against
+    { const { ev } = rvcBoot({ A: { m: 'split', dv: [70, 5], mv: [0, 0] } });
+      ev(`setFsrcSvc('A','d',0,'50'); 'ok'`);       // the journal holds A USAF Disc 70 → 50
+      ev(`document.getElementById('uiNav_alloc').click(); 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      chk(name, 'journal', 'CONTROL: the draft holds A’s USAF discretionary at $40, typed against $50', ev(`JSON.stringify(avChanges().map(function(c){ return [c.key, c.was, c.now]; }))`), J([['A|d|0', 50, 40]]));
+      ev(`toggleJrnl(); 'ok'`);
+      ev(`(function(){ var L=MS.jrnl, i=-1; for(var k=L.length-1;k>=0;k--){ if(L[k].p.join('.')==='fsrc.A.dv.0' && L[k].a===70){ i=k; break; } }
+        document.querySelector('#jrnlPanel button[onclick="jrnlUndo('+i+')"]').click(); })(); toggleJrnl(); 'ok'`);
+      chk(name, 'journal', 'CONTROL: the journal put $70 back on the board, Allocate still open with its draft', J([ev(`JSON.stringify(S.fsrc.A.dv)`), ev(`uiMode`), +ev(`avChangeN()`)]), J([J([70, 5]), 'alloc', 1]));
+      {
+        const g0 = +ev(`_saveGen`);
+        rvcSave(ev);
+        chk(name, 'journal', 'Save refuses: nothing written, A stays at the $70 put back, the save count unmoved', J([ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`_saveGen`) === g0]), J([J([70, 5]), true]));
+        chk(name, 'journal', 'and it names the figure that moved: now $70 on the board, typed against $50, the draft holding $40', rvcSaid(ev, '/Not saved.*is now \\$70 on the board \\(the draft was typed against \\$50 and holds \\$40\\)/'), true);
+        chk(name, 'journal', 'the draft is kept, read now against the board as it is ($70 → $40)', ev(`JSON.stringify(avChanges().map(function(c){ return [c.key, c.was, c.now]; }))`), J([['A|d|0', 70, 40]]));
+        rvcSave(ev);
+        chk(name, 'journal', 'Save again, a deliberate choice once named, writes the draft', J([ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`avChangeN()`)]), J([J([40, 5]), 0]));
+      }
+    }
+    // (2) PUT BACK WORK KEPT ASIDE, from the left menu: the plan on screen is replaced
+    { const { ev } = rvcBoot();
+      chk(name, 'kept', 'CONTROL: work is kept aside (A at $70)', ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.years[2027].fsrc.A.dv=[70,5]; st.ts=Date.now()-1000; return String(keepAside(st, {why:'newer', by:'Colleague', ts:st.ts})); })()`), 'true');
+      ev(`document.getElementById('uiNav_alloc').click(); 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      ev(`(function(){ var b=[].slice.call(document.querySelectorAll('[onclick]')).find(function(x){ return x.getAttribute('onclick')==='mRun(keptPutBack)'; }); b.click(); })(); 'ok'`);
+      await new Promise(r => setTimeout(r, 60));      // the menu item runs its call once the menu has closed (mRun)
+      chk(name, 'kept', 'CONTROL: the kept work is on screen (A at $70)', ev(`JSON.stringify(S.fsrc.A.dv)`), J([70, 5]));
+      chk(name, 'kept', 'the draft typed against the plan it replaced is dropped, and said (kept unread)', J([+ev(`avChangeN()`), rvcSaid(ev, '/unsaved change was dropped: the board on screen was replaced/')]), J([0, true]));
+      chk(name, 'kept', 'Save then writes nothing over the kept work', J([ev(`String(avSave())`), ev(`JSON.stringify(S.fsrc.A.dv)`)]), J(['false', J([70, 5])]));
+    }
+    // (3) THE SHARED STATE FILE arriving late, newer, while only Allocate holds unsaved work (DIRTY false)
+    { const { ev } = rvcBoot();
+      ev(`document.getElementById('uiNav_alloc').click(); DIRTY=false; 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      chk(name, 'shared', 'CONTROL: the board itself reads saved (DIRTY false), the draft holds one change', J([ev(`String(DIRTY)`), +ev(`avChangeN()`)]), J(['false', 1]));
+      ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.years[2027].fsrc.A.dv=[70,5]; st.ts=Date.now()+60000; sharedArrived(st); })(); 'ok'`);
+      chk(name, 'shared', 'the shared state file replaces nothing while Allocate holds a draft: A stays $50, the draft kept', J([ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`avChangeN()`)]), J([J([50, 5]), 1]));
+      chk(name, 'shared', 'and says why, with the way to load it', /Allocate holds changes not saved\), so nothing was replaced/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+    }
+    // (4) THE SHARED FOLDER'S LIVE POLL, a newer copy, while only Allocate holds unsaved work
+    { const { ev } = rvcBoot();
+      ev(`document.getElementById('uiNav_alloc').click(); DIRTY=false; 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.years[2027].fsrc.A.dv=[70,5]; st.ts=Date.now()+60000;
+        driveStoreOn=function(){ return true; }; driveDir=async function(){ return {}; }; driveStoreRead=async function(){ return {store:st, ts:st.ts, by:'Colleague'}; };
+        driveBaseOf=function(){ return +MS.ts||0; }; liveTooNew=function(){ return false; };
+        window.__pull='?'; driveStorePull(false).then(function(r){ window.__pull=String(r); }, function(e){ window.__pull='threw '+e; }); })(); 'ok'`);
+      for (let k = 0; k < 40 && ev(`window.__pull`) === '?'; k++) await new Promise(r => setTimeout(r, 25));
+      chk(name, 'folder', 'the folder’s newer copy is not loaded while Allocate holds a draft: A stays $50, the draft kept', J([ev(`window.__pull`), ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`avChangeN()`)]), J(['false', J([50, 5]), 1]));
+      chk(name, 'folder', 'and says so, naming Allocate', /unsaved changes \(in Allocate\)\. Nothing was replaced/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+    }
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _rvcRelease(__bm, []);
+  await _rvcSettle();
+})();
+await (async () => {
+  const __bm = _rvcMark();
+  const name = 'v2.23 review RV-C — mandatory off: its switch is not put back from the journal, and no mandatory dollar is carried or put back into a year where it is off';
+  try {
+    const J = JSON.stringify;
+    const { ev } = rvcBoot({ B: { m: 'split', dv: [20, 10], mv: [40, 0] } });
+    ev(`switchYear(2028); switchYear(2027); 'ok'`);   // FY28 rolled forward, B directing $40 of USAF mandatory in both
+    // the switch, by its control in Allocate's header: off (the box: Clear), then on
+    ev(`document.getElementById('uiNav_alloc').click(); document.querySelector('#allocView .avmand').click(); MANDBOX.how='clear'; MANDBOX.all=false; mandBoxDraw();
+      document.querySelector('#avMandPanel .avbtns .btn.pri').click(); 'ok'`);
+    chk(name, 'switch', 'CONTROL: FY27 is off and B’s mandatory is $0', J([ev(`String(mandOn())`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['false', J([0, 0])]));
+    // C2: the switch's own line in the rendered journal
+    ev(`toggleJrnl(); 'ok'`);
+    const ix = +ev(`(function(){ var L=MS.jrnl; for(var k=L.length-1;k>=0;k--) if(L[k].p[0]==='mandOff') return k; return -1; })()`);
+    const row = ev(`(function(){ var t=[].slice.call(document.querySelectorAll('#jrnlPanel tr')).find(function(tr){ return /mandatory funding \\(on or off\\)/.test(tr.textContent); }); return t? [].map.call(t.querySelectorAll('td'), function(c){ return c.textContent.trim(); }).slice(2).join('|') : 'NO ROW'; })()`);
+    chk(name, 'journal', 'the switch’s line names mandatory funding, was on and became off', /^mandatory funding \(on or off\)[^|]*\|on\|off\|/.test(row), true);
+    chk(name, 'journal', 'and offers no Put back: it says it is not put back here', J([ev(`String(!!document.querySelector('#jrnlPanel button[onclick="jrnlUndo(${ix})"]'))`), /not put back here/.test(row)]), J(['false', true]));
+    ev(`window.__q=[]; jrnlUndo(${ix}); 'ok'`);
+    chk(name, 'journal', 'called anyway, it asks nothing, changes nothing, and points to Allocate’s switch', J([ev(`JSON.stringify(window.__q)`), ev(`String(mandOn())`), /turned on or off with its switch in Allocate/.test(ev(`document.getElementById('shareStat').textContent`))]), J(['[]', 'false', true]));
+    ev(`toggleJrnl(); 'ok'`);
+    // C3: a mandatory figure put back into an off year from the journal -- here FY27's line, put back while FY28 is on screen is the same rule
+    const iy = +ev(`(function(){ var L=MS.jrnl; for(var k=L.length-1;k>=0;k--) if(L[k].fy===2027 && L[k].p.join('.')==='fsrc.B.mv.0' && L[k].a===40) return k; return -1; })()`);
+    ev(`uiSetMode('review'); switchYear(2028); window.__q=[]; jrnlUndo(${iy}); 'ok'`);
+    chk(name, 'put back', 'putting $40 of mandatory back into FY27 (off), from FY28: refused before asking, FY27’s B stays $0', J([ev(`JSON.stringify(window.__q)`), ev(`JSON.stringify(MS.years[2027].fsrc.B.mv)`), /mandatory funding is off in FY27/.test(ev(`document.getElementById('shareStat').textContent`))]),
+      J(['[]', J([0, 0]), true]));
+    // C3: Copy to year into a year where mandatory is off (FY27 off; FY28, still on, copies B back into it)
+    ev(`window.__q=[]; xferYear('B', 'c2027'); 'ok'`);
+    chk(name, 'copy', 'Copy to year carries no mandatory dollar into FY27 (off): B’s mandatory there is $0, its discretionary as it was', J([ev(`JSON.stringify(MS.years[2027].fsrc.B.mv)`), ev(`JSON.stringify(MS.years[2027].fsrc.B.dv)`)]), J([J([0, 0]), J([20, 10])]));
+    chk(name, 'copy', 'and says so', /Mandatory funding is off in FY27, so its \$40 of mandatory went across as \$0/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+    // C3: an older file's year holds mandatory directed while off: ▲ not drawn names the switch, not a dry lane
+    ev(`switchYear(2027); S.fsrc.B.mv=[40,0]; _ndCache=null; render(); 'ok'`);
+    chk(name, 'not drawn', 'the fix list’s reason is that mandatory funding is off in FY27, never that the lane ran out', ev(`JSON.stringify(ndData().list.filter(function(g){ return g.lane==='m'; }).map(function(g){ return [g.id, g.why]; }))`),
+      J([['B', 'USAF mandatory: mandatory funding is off in FY27']]));
+    chk(name, 'errors', 'no page error', 0, 0);
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _rvcRelease(__bm, []);
+  await _rvcSettle();
+})();
+await (async () => {
+  const __bm = _rvcMark();
+  const name = 'v2.23 review RV-C — Allocate: a switch that does not happen keeps the draft; a pasted figure rounded to the dollar is said';
+  try {
+    const J = JSON.stringify;
+    const { ev } = rvcBoot();
+    ev(`document.getElementById('uiNav_alloc').click(); 'ok'`);
+    rvcType(ev, 'A|d|0', '33');
+    // C9 (a): FY30 not started -- OK to leave Allocate, then Cancel at roll forward and Cancel at start empty: no switch, the draft kept
+    ev(`window.__a=[true,false,false]; window.__q=[]; window.confirm=function(m){ window.__q.push(String(m).slice(0,40)); return window.__a.shift(); }; switchYear(2030); 'ok'`);
+    chk(name, 'year', 'CONTROL: three questions were asked (leave, roll forward, start empty) and FY30 was not started', J([+ev(`window.__q.length`), ev(`String(!!MS.years[2030])`), ev(`String(MS.cur)`)]), J([3, 'false', '2027']));
+    chk(name, 'year', 'the switch that did not happen keeps the draft', +ev(`avChangeN()`), 1);
+    // C9 (b): a locked cycle holding no year to show
+    ev(`window.confirm=function(){ return true; }; CYCDB.cycles['PB|2031']={key:'PB|2031', ts:Date.now(), by:'x', years:{}, proj:{}, partial:true}; cycView('PB|2031'); 'ok'`);
+    chk(name, 'cycle', 'CONTROL: the cycle holding no plan is not put on screen', ev(`String(CYCVIEW||'')`), '');
+    chk(name, 'cycle', 'and the draft is kept', +ev(`avChangeN()`), 1);
+    // C9 (c): another appropriation, refused by browser storage
+    ev(`APPNS.ff=APPNS.ff||{}; window.__set=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27appn') throw new Error('QuotaExceededError'); return window.__set.call(this, k, v); };
+      try{ window.__sw=String(switchAppn('ff', true)); } finally { Storage.prototype.setItem=window.__set; } 'ok'`);
+    chk(name, 'appropriation', 'CONTROL: the switch was refused (storage would not keep the choice)', ev(`window.__sw`), 'false');
+    chk(name, 'appropriation', 'and the draft is kept', +ev(`avChangeN()`), 1);
+    // and a switch that happens drops it, asked once: back to the Requirements view
+    ev(`uiSetMode('review'); 'ok'`);
+    chk(name, 'leave', 'CONTROL: leaving Allocate, OK at its question, discards the draft', J([ev(`uiMode`), +ev(`avChangeN()`)]), J(['review', 0]));
+    // C10: a block pasted from Excel whose figures carry cents
+    ev(`uiSetMode('alloc'); 'ok'`);
+    const pr = JSON.parse(ev(`JSON.stringify(avPasteGrid(document.querySelector('#allocView input.avin[data-k="A|d|0"]'), '10.6\\t20\\n1,234.5'))`));
+    chk(name, 'paste', 'CONTROL: three figures pasted, whole dollars in the draft', J([pr.n, ev(`JSON.stringify([AV.draft['A|d|0'], AV.draft['B|d|0']])`)]), J([3, J([11, 1235])]));
+    chk(name, 'paste', 'each rounding is said, as a typed box says it', /Rounded to whole dollars, as the board keeps them: “10\.6” as \$11; “1,234\.5” as \$1,235/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _rvcRelease(__bm, []);
+  await _rvcSettle();
+})();
 // ==== end v2.23 review RV-C ====
 // ==== v2.23 review RV-D ====
 // ==== end v2.23 review RV-D ====
