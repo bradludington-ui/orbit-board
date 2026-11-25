@@ -38,3 +38,4 @@
 {"id": "v208-122-proposal-office-open", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-856aab2a.mjs", "detail": ""}
 {"id": "v208-rv-si-follows-gone", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f51f7721.mjs", "detail": ""}
 {"id": "v208-rv-rectag-fixed", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-1cd3ca15.mjs", "detail": ""}
+{"id": "v208-rv2-panel-wrong-requirement", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-801a453a.mjs", "detail": ""}

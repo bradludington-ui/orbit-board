@@ -96,12 +96,33 @@ keyboard, `awardBlockHtml` and `awdFixHtml`, `budRecordHtml` and `BUD_HOW`, `uiD
   source", v2.15 W4 `FOL` (149.40's words); audit-board v1.93 "award block" balance cells (the balance is a row per service now);
   tools/inspector-agrees.mjs (Discretionary and Mandatory read from the By service TOTAL line; the MC shortage field only where
   starred and short; Funded held to d+m).
+- Also changed on purpose: audit-board v1.95 W3 "award block" (the repaired award's record as a sentence; its mark followed by its
+  services' boxes and then its Total) and tools/layout-fits.mjs F (Discretionary and Mandatory from the By service TOTAL line).
+
+### Results on the finished board (`38a856d`'s board; the suites at `d47e5f8`)
+
+| | result |
+|---|---|
+| `npm run check` | all checks passed |
+| boot-same | identical either way |
+| audit (export), audit-other, audit-recon, audit-hostile, audit-inject, audit-ui | ALL CHECKS PASSED |
+| legacy-fsrc | "every legacy Force setting computes exactly as before" |
+| audit-board (HEAP=8192) | ALL CHECKS PASSED -- see FINAL below |
+| audit-import (HEAP=8192) | 2 FAILING -- "v1.86 — the File menu …", v2.21's left menu (For the integration); nothing else |
+| record (new) | 69 ok, 0 FAIL |
+| keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, pointer, controls, colours, pmosave, inspector | pass |
+| standards | 0 known findings, nothing new |
+| layout | only the carried D ×8 (K and N pass, F passes) |
+| mcount | 3,303 entries, every one matching once |
 
 ## Mutations
 
-36 new (`v222-w3-*`), each caught by audit-board "v2.22 W3 — the RECORD card"; 4 retargeted (`v208-122-proposal-office-open`,
-`v208-rv-si-follows-gone`, `v208-rv-rectag-fixed`, `v208-rv2-panel-wrong-requirement`: the edit box's words and `erToRecord`, the
-same defects), each by its original catcher. None retired. Proofs: `proofs-W3.json`, results `proved-W3.jsonl`.
+37 new (`v222-w3-*`), each caught by audit-board "v2.22 W3 — the RECORD card"; 4 retargeted (`v208-122-proposal-office-open`,
+`v208-rv-si-follows-gone`, `v208-rv-rectag-fixed`: the edit box's plain words, the same defects, each by its original catcher;
+`v208-rv2-panel-wrong-requirement`: `erToRecord`, now proved against the W3 block -- its old check could no longer reach it, see Found
+in the build). None retired. Proofs: `proofs-W3.json`; results `proved-W3.jsonl`: **41 of 41 CAUGHT** by a failed check, run together
+on the finished board (JOBS=1, HEAP=8192); two of them (`v222-w3-locked-unsaid`, `v222-w3-years-link-lost`) also made the block throw
+after their failed checks. Plus five browser-only mutants proved by hand (below).
 
 ## For the integration
 
