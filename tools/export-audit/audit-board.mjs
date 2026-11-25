@@ -3469,7 +3469,9 @@ await (async () => {
   w3try(B.ev, `attClose(); 'ok'`);
   const block = id => w3try(B.ev, `(function(){ var d=document.createElement('div'); d.innerHTML=awardBlockHtml(itemById(${JSON.stringify(id)})); return d.textContent.replace(/\\s+/g,' '); })()`);
   chk(name, 'award block', 'an inferred split is marked on its row and said, with the award as it was saved',
-    [/SPLIT INFERRED \$3,000,000/, /◇ SPLIT INFERRED — repaired when this board was opened/, /The award as it was saved, kept with it/, /\{"mode":"inc","inc":\[\{"d":"2026-10","day":5,"sv":\[3000000\]\}\]\}/].every(r => r.test(block('W'))), true);
+    // v2.22 W3 (149.43): the award as it was saved is said as a sentence, no longer printed as the code it was kept in; and each award
+    // is a block of its own, so its mark is followed by its services' boxes and then its Total, where the table put the total beside it
+    [/SPLIT INFERRED[^$]*Total \$3,000,000/, /◇ SPLIT INFERRED — repaired when this board was opened/, /The award as it was saved, kept with it/, /Saved as incremental funding with 1 award: 2026-10, day 5 for \$3,000,000 over 1 service\./].every(r => r.test(block('W'))), true);
   chk(name, 'award block', 'an award that needs repair is marked, its good award still shown as it was',
     [/NEEDS REPAIR/, /⚠ NEEDS REPAIR — when this board was opened/, /\$3,000,000/].every(r => r.test(block('P'))), true);
   // SAVED AND REOPENED: the repairs and the originals travel, the cash with them
@@ -10686,20 +10688,28 @@ await (async () => {
     ev(`window.__n28=reqCreate('AV', {title:'Field team', event:'Field team', ask:[999,0]}); save(); render(); 'ok'`);
     chk(name, 'years', 'CONTROL: FY28’s own added requirement carries the same number as FY27’s, and is other work', J([ev(`window.__n28`), ev(`dispTitle(itemById(window.__n28))`)]), J([n27, 'Field team']));
     ev(`switchYear(2027); setCur(${J(n27)}); 'ok'`);
-    const yrs = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.textContent; }))`));
+    // the line is filled once the page is idle (recYearsFill: working the years out is not done in the draw)
+    const yrs = async () => { await new Promise(r => setTimeout(r, 40)); return JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.textContent; }))`)); };
     chk(name, 'years', 'FY27’s added requirement: FY27 its own value; FY28 holds no such work, so a dash -- never FY28’s other requirement with its number',
-      J(yrs()), J(['SPAN:FY27 ' + fm(40), 'SPAN:FY28 —']));
+      J(await yrs()), J(['SPAN:FY27 ' + fm(40), 'SPAN:FY28 —']));
     ev(`setAsk(${J(n27)}, 0, '45'); setCur(${J(n27)}); 'ok'`);
-    chk(name, 'years', 'a value changed in FY27 is the line’s at once', J(yrs()[0]), J('SPAN:FY27 ' + fm(45)));
-    chk(name, 'years', 'a board requirement: FY27 its value, FY28 none (FY28 was started empty)', J((ev(`setCur('A'); 'ok'`), yrs())), J(['SPAN:FY27 ' + fm(400), 'SPAN:FY28 —']));
+    chk(name, 'years', 'a value changed in FY27 is the line’s at once', J((await yrs())[0]), J('SPAN:FY27 ' + fm(45)));
+    chk(name, 'years', 'a board requirement: FY27 its value, FY28 none (FY28 was started empty)', J((ev(`setCur('A'); 'ok'`), await yrs())), J(['SPAN:FY27 ' + fm(400), 'SPAN:FY28 —']));
     // brought into FY28 from FY27, linked: the line follows the link to it
     ev(`switchYear(2028); window.__lk=reqCreate('PSM', {title:'Spares buy', event:'Spares buy', ask:[55,0]}, {y:2027, id:${J(n27)}}); save(); switchYear(2027); setCur(${J(n27)}); 'ok'`);
     chk(name, 'years', 'CONTROL: the linked one has a number of its own in FY28', ev(`window.__lk`) !== n27, true);
-    chk(name, 'years', 'once FY28 holds it, linked: FY28 is a button with its value, opening that requirement', J(yrs()), J(['SPAN:FY27 ' + fm(45), 'BUTTON:FY28 ' + fm(55)]));
+    chk(name, 'years', 'once FY28 holds it, linked: FY28 is a button with its value, opening that requirement', J(await yrs()), J(['SPAN:FY27 ' + fm(45), 'BUTTON:FY28 ' + fm(55)]));
     ev(`document.querySelector('#inspector .recyrs button.recyr').click(); 'ok'`);
     chk(name, 'years', 'pressed: FY28, on the linked requirement', J([ev(`String(MS.cur)`), ev(`curRow`)]), J(['2028', ev(`window.__lk`)]));
     ev(`switchYear(2027); 'ok'`);
-    chk(name, 'errors', 'no page error', errors.length, 0);
+    // THE RECORD IS DRAWN AS THE BOARD OPENS, while the script is still being read: a var of the W3 slot is not set yet then. A record
+    // that read one threw on every opening ("The RECORD panel could not be drawn"), found by npm run dialogs as a warning nobody read.
+    ev(`setCur('A'); 'ok'`);
+    const B2 = boot({ html: ev('buildSavedHtml()') });
+    chk(name, 'opening', 'a saved board reopened draws its record as it opens: no "could not be drawn", and the lane said in its word',
+      J([B2.ev(`String((STAT_LOG||[]).some(function(e){ return /could not be drawn/.test(e.html); }))`), B2.ev(`(document.querySelector('#inspector .recpill')||{}).textContent||'none'`)]),
+      J(['false', 'Discretionary']));
+    chk(name, 'errors', 'no page error', errors.length + B2.errors.length, 0);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

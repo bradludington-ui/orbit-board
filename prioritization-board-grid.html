@@ -1812,12 +1812,13 @@ html.ui-on #inspector .insp-bd{padding:10px 14px 14px}
 #inspector .insp-sum .insp-f.empty{border-style:solid}
 /* the lines that say what it is (149.47, 149.48, 149.50), what is still needed (149.21), a refusal (149.27), a locked view (149.49) */
 #inspector .recflds,#inspector .recyrs,#inspector .recclin,#inspector .recneed{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:11.5px;margin:4px 0 8px;line-height:1.35}
+#inspector .recyrs:empty{display:none}
 #inspector .rl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;color:var(--mut)}
 #inspector .recf i{color:var(--dim);font-style:normal}
 #inspector .recf b{overflow-wrap:anywhere}
 #inspector .recyr{font:inherit;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:6px;min-height:24px;box-sizing:border-box;display:inline-flex;align-items:center}
 #inspector button.recyr{border:1px solid var(--edge);background:var(--panel);color:var(--ink);cursor:pointer}
-#inspector span.recyr.cur{background:var(--sel,var(--panel2));border:1px solid var(--line2);color:var(--ink)}
+#inspector span.recyr.cur{background:transparent;border:0;padding-left:0;color:var(--ink);font-weight:800}
 #inspector span.recyr.none{color:var(--dim)}
 #inspector .recneed .qb{min-height:24px}
 #inspector .recmsg{display:none}
@@ -35896,8 +35897,7 @@ function inspectorBody(){
     if(held.length) inspHeldBack(el, held); }
 }
 function inspectorDraw(el){
-  // v2.22 W3 (149.50): the requirement's other years first -- reading them opens each year (aceWithYear), which rebuilds the
-  // requirement list, so it is read before this record's requirement is looked up
+  // v2.22 W3 (149.50): the requirement's other years, as worked out for the board as it is (recYearsOf), else filled once idle
   const Yrs = recYearsOf(curRow);
   const it = curRow && DATA.items.filter(function(x){ return x.id === curRow; })[0];
   if(!it){
@@ -37655,7 +37655,8 @@ async function uiSubMany(inp){
 // unfSvcOf's, mcShortSvcOf's, a year's projection (cycProjOf, the figures a lock takes), or a field's own reader. Every var below is
 // read through a function that cannot throw: the board draws the record while this script is still being read, before these
 // lines run (the BANDS_STD rule).
-var REC_LANE_WORD={disc:'Discretionary', split:'Both lanes', mand:'Mandatory', unf:'Unfunded'};
+// a function, not a var: the record is drawn while the script is still being read, before a var here is set (it threw at boot)
+function recLaneWord(k){ return ({disc:'Discretionary', split:'Both lanes', mand:'Mandatory', unf:'Unfunded'})[k] || ''; }
 // THE PINNED BAR (149.19, 149.18): the position in the list as shown, ‹ Previous and Next › -- real buttons, the J and K keys'
 // own step (recStep) -- and ✕ Close where the record slides over the table (drawerClose, as before). Its name sits under it.
 function recBarHtml(id, pos, ids){
@@ -37714,7 +37715,7 @@ document.addEventListener('change', function(e){ const t=e.target;
 // the office, and the ★ switch. The switch is the row's own call (the row and the record both set ★, Brad's answer to 149.20).
 function recChipsHtml(id, it, t){
   const lk=laneOf(t), on=!!S.mc[id];
-  return '<div class="recchips"><span class="recpill" data-lk="'+lk+'">'+REC_LANE_WORD[lk]+'</span>'
+  return '<div class="recchips"><span class="recpill" data-lk="'+lk+'">'+recLaneWord(lk)+'</span>'
     +'<span class="recchip" title="the office the requirement is filed under in '+esc(FYL())+'">'+esc(grpOf(it))+'</span>'
     +'<button type="button" class="recmc'+(on? ' on' : '')+'" aria-pressed="'+(on? 'true' : 'false')+'" onclick="S.mc['+jsa(id)+']=!S.mc['+jsa(id)+'];save();render()"'
       +' title="★ Mission Critical — this must be paid this year'+(on? ' (on — click to clear)' : '')+'">'+(on? '★' : '☆')+' Mission Critical</button></div>';
@@ -37767,13 +37768,26 @@ function fydpSameIn(K, y0, id, y){
   const m=K[y]; for(const x in m){ if(m[x]===k) return x; }
   return '';
 }
-function recYearsOf(id){
-  if(!id || typeof MS==='undefined' || !MS || !MS.years || typeof fydpData!=='function') return null;
+// NOT IN THE DRAW: working the years out opens each one (aceWithYear: applyState and the lane walk, per year), and the record is
+// drawn on every render -- on a board of several years that made every edit cost five lane walks, and took audit-board past its
+// heap. So the draw uses what is already worked out for the board as it is, or leaves the line empty and fills it once the page is
+// idle (recYearsFill), for the requirement then on the record.
+var _recYrT=null;
+function recYearsKey(){
+  if(typeof MS==='undefined' || !MS || !MS.years || typeof fydpData!=='function') return null;
   let W=[]; try{ W=fydpWindow(); }catch(e){ return null; }
   const held=W.filter(function(y){ return !!MS.years[y]; });
   if(held.length<2) return null;
-  const k=[_saveGen, MS.cur, held.join(','), (typeof CYCVIEW!=='undefined'? CYCVIEW : ''), _fyMoves].join('|');
+  return [_saveGen, MS.cur, held.join(','), (typeof CYCVIEW!=='undefined'? CYCVIEW : ''), _fyMoves].join('|');
+}
+function recYearsOf(id, now){
+  if(!id) return null;
+  const k=recYearsKey(); if(!k) return null;
   if(typeof _recYrC==='undefined' || !_recYrC || _recYrC.k!==k || _recYrC.ms!==MS){
+    if(!now){
+      if(typeof _recYrT==='undefined' || !_recYrT) _recYrT=setTimeout(recYearsFill, 0);
+      return {pending:true};
+    }
     let D=null, LK=null;
     try{ D=fydpData('working'); LK=fydpLineKeys(D, D.held); }catch(e){ return null; }
     _recYrC={k:k, ms:MS, D:D, LK:LK};
@@ -37785,9 +37799,20 @@ function recYearsOf(id){
     return {y:+y, id:yid, ask:r? fydpSum(r.ask) : null};
   });
 }
+function recYearsFill(){
+  _recYrT=null;
+  const el=document.getElementById('recYrs'), id=(typeof curRow!=='undefined')? curRow : null;
+  if(!el || !id) return;
+  const Y=recYearsOf(id, true);
+  const e2=document.getElementById('recYrs'); if(!e2 || curRow!==id) return;
+  const h=recYearsHtml(id, Y);
+  if(!h){ e2.remove(); return; }
+  const w=document.createElement('div'); w.innerHTML=h; e2.replaceWith(w.firstChild);
+}
 function recYearsHtml(id, Y){
+  if(Y && Y.pending) return '<div class="recyrs" id="recYrs"></div>';
   if(!Y || Y.length<2) return '';
-  return '<div class="recyrs"><span class="rl">Requirement by year</span> '+Y.map(function(r){
+  return '<div class="recyrs" id="recYrs"><span class="rl">Requirement by year</span> '+Y.map(function(r){
     const lbl='FY'+(r.y%100)+' '+(r.ask===null? '—' : fM(r.ask));
     if(r.y===+MS.cur) return '<span class="recyr cur" title="the year on screen">'+lbl+'</span>';
     if(r.ask===null) return '<span class="recyr none" title="FY'+(r.y%100)+' holds no requirement that is this one">'+lbl+'</span>';

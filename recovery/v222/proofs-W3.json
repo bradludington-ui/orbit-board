@@ -5,6 +5,7 @@
  {"id": "v222-w3-sum-unf-beyond", "caughtBy": "board / v2.22 W3 — the RECORD card"},
  {"id": "v222-w3-star-sets-only", "caughtBy": "board / v2.22 W3 — the RECORD card"},
  {"id": "v222-w3-lane-word-missing", "caughtBy": "board / v2.22 W3 — the RECORD card"},
+ {"id": "v222-w3-lane-word-boot-var", "caughtBy": "board / v2.22 W3 — the RECORD card"},
  {"id": "v222-w3-lifecycle-back", "caughtBy": "board / v2.22 W3 — the RECORD card"},
  {"id": "v222-w3-step-backwards", "caughtBy": "board / v2.22 W3 — the RECORD card"},
  {"id": "v222-w3-prev-live-at-top", "caughtBy": "board / v2.22 W3 — the RECORD card"},
