@@ -6846,6 +6846,14 @@ function w1LockAsBefore() {
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====
+// ==== v2.23 W1 ====
+// ==== end v2.23 W1 ====
+// ==== v2.23 W2 ====
+// ==== end v2.23 W2 ====
+// ==== v2.23 W3 ====
+// ==== end v2.23 W3 ====
+// ==== v2.23 integration (the lead) ====
+// ==== end v2.23 integration (the lead) ====
 // ==== v2.16 (item 148) ====
 // Brad, 19 Nov 2026, from the real board: "GEX/GATES is somehow being confused with the Option Year requirement in the five year
 // spend plan export." An added requirement is numbered within its own year, and the five-year plan joined the years by that number:

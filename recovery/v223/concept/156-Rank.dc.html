@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ORBIT rank by decision band</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F5}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1000px; font-family: Inter, system-ui, sans-serif; color: #172331; background: #EEF1F5; display: flex; flex-direction: column">
+<div style="background: #FFFFFF; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-align: center; padding: 3px 0; border-bottom: 1px solid #D5DCE5">CUI//REL TO US DoW</div>
+<header style="background: #FFFFFF; border-bottom: 1px solid #D5DCE5; padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px; margin-right: 8px"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="9.5" fill="none" stroke="#1F3A57" stroke-width="4"></circle><circle cx="13" cy="13" r="2.4" fill="#1F3A57"></circle><circle cx="20.5" cy="6" r="3" fill="#C98A1B"></circle></svg><span style="font-weight: 700; font-size: 18px; letter-spacing: 0.04em">ORBIT</span></div>
+<a href="Main.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none">← Requirements</a>
+<div role="group" aria-label="Workspace" style="display: flex; background: #DDE3EA; border-radius: 10px; padding: 3px; margin-left: 12px">
+<button type="button" aria-pressed="false" style="font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 8px; padding: 7px 14px; background: transparent; color: #33414F">Review</button>
+<button type="button" aria-pressed="true" style="font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 8px; padding: 7px 14px; background: #FFFFFF; color: #172331">Rank</button>
+<button type="button" aria-pressed="false" style="font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 8px; padding: 7px 14px; background: transparent; color: #33414F">Fund</button>
+</div>
+<div role="group" aria-label="Layout" style="display: flex; background: #DDE3EA; border-radius: 10px; padding: 3px">
+<button type="button" aria-pressed="false" style="font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 8px; padding: 7px 14px; background: transparent; color: #33414F">List</button>
+<button type="button" aria-pressed="true" style="font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 8px; padding: 7px 14px; background: #FFFFFF; color: #172331">Board by band</button>
+</div>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #FFFFFF; background: #7A4A08; border-radius: 999px; padding: 4px 10px">Unsaved changes</span><button type="button" style="font: inherit; font-size: 14px; font-weight: 600; height: 36px; padding: 0 16px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Save</button></div>
+</header>
+<main style="padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+<div style="flex: 1 1 300px"><h1 style="margin: 0; font-size: 26px">Rank by decision band</h1><div style="font-size: 13px; color: #5A6878; margin-top: 2px">Each card shows its place in today’s 1–N order. Drag one into another band to reclassify it; Preview sorts the 1–N order by band.</div></div>
+<button type="button" style="font: inherit; font-size: 13px; font-weight: 600; height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9D2DD; background: #FFFFFF; color: #172331">Preview proposed 1–N order</button>
+</div>
+<div style="background: #1F3A57; color: #FFFFFF; border-radius: 10px; padding: 10px 14px; font-size: 13px; display: flex; flex-wrap: wrap; gap: 18px">
+<span style="font-weight: 700">Today:</span><span>discretionary runs out after #6</span><span>★ Mission Critical short $18.2M</span><span>full-budget limit after #10</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; align-items: start">
+<sc-for list="{{bands}}" as="b" hint-placeholder-count="4">
+<section aria-label="{{b.name}}" style="background: #E3E8EE; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 8px; padding: 2px 4px">
+<span style="width: 12px; height: 12px; border-radius: 3px; background: {{b.c}}"></span>
+<span style="font-size: 14px; font-weight: 700; flex: 1">{{b.name}}</span>
+<span style="font-size: 12px; color: #33414F">{{b.n}} · {{b.tot}}</span>
+</div>
+<sc-for list="{{b.cards}}" as="k" hint-placeholder-count="3">
+<sc-if value="{{k.cut}}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 11px; font-weight: 700; color: #FFFFFF; background: {{k.cutBg}}; border-radius: 6px; padding: 4px 8px">{{k.cutText}}</div>
+</sc-if>
+<div style="background: #FFFFFF; border: 1px solid #D5DCE5; border-radius: 10px; padding: 10px; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px">
+<button type="button" aria-label="Drag to rank" style="width: 24px; height: 40px; border: 0; background: transparent; color: #5A6878; font: inherit; font-size: 16px; cursor: grab">⠿</button>
+<div style="min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; gap: 6px; align-items: baseline"><span style="font-size: 12px; font-weight: 700; color: #5A6878">#{{k.n}}</span><span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{k.t}}</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+<span style="font-size: 12px; font-weight: 600">{{k.ask}}</span>
+<span style="font-size: 11px; font-weight: 700; border-radius: 5px; padding: 1px 6px; background: #EEF1F5">{{k.pmo}}</span>
+<span style="font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; background: {{k.stBg}}; color: {{k.stInk}}">{{k.st}}</span>
+<span style="font-size: 12px; color: #4A2A7A">{{k.star}}</span>
+</div>
+</div>
+</div>
+</sc-for>
+</section>
+</sc-for>
+</div>
+</main>
+<div style="margin-top: auto; background: #FFFFFF; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-align: center; padding: 3px 0; border-top: 1px solid #D5DCE5">CUI//REL TO US DoW</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const S = { d: ['Discretionary', '#00B050', '#000000'], b: ['Both lanes', '#FFD700', '#000000'], u: ['Unfunded', '#C00000', '#FFFFFF'] };
+    const card = (n, t, ask, pmo, s, mc, cut) => ({ n: n, t: t, ask: ask, pmo: pmo, st: S[s][0], stBg: S[s][1], stInk: S[s][2], star: mc ? '★ MC' : '',
+      cut: !!cut, cutText: cut ? cut[0] : '', cutBg: cut ? cut[1] : '' });
+    return {
+      bands: [
+        { name: '1 · PDM-Directed Funding', c: '#D9534F', n: 4, tot: '$12.4M', cards: [
+          card(1, 'OGC Sustainment Fuel (Ferry Flights)', '$3,090,156', 'PSM', 'd', true),
+          card(5, 'OGC Low Observable Restoration Kits', '$3,370,156', 'PSM', 'd', false),
+          card(9, 'OGC Sustainment Fuel (Ferry Flights)', '$2,845,156', 'PP', 'b', false, ['▼ Discretionary runs out above', '#1F3A57']),
+          card(13, 'OGC Low Observable Restoration Kits', '$3,090,156', 'AV', 'u', false, ['▼ Full-budget limit above', '#7A4A08']) ] },
+        { name: '2 · Keep the Lights On', c: '#E0A030', n: 3, tot: '$11.6M', cards: [
+          card(2, 'OGC Depot Field Team Travel', '$4,364,856', 'PSM', 'd', false),
+          card(8, 'OGC Supply Chain Data Analytics', '$4,364,856', 'PP', 'b', false),
+          card(14, 'OGC Flight Test Instrumentation', '$2,845,156', 'AV', 'u', false) ] },
+        { name: '3 · Readiness', c: '#3E7CC0', n: 3, tot: '$10.0M', cards: [
+          card(3, 'OGC ALIS/ODIN Infrastructure Refresh', '$2,845,156', 'PSM', 'd', false),
+          card(6, 'OGC Flight Test Instrumentation', '$3,013,156', 'PSM', 'd', true),
+          card(11, 'OGC ALIS/ODIN Infrastructure Refresh', '$3,370,156', 'PP', 'u', true) ] },
+        { name: 'No band yet', c: '#8A96A3', n: 26, tot: '$90.7M', cards: [
+          card(4, 'OGC Engine Module Repair Capacity', '$4,109,485', 'PSM', 'd', false),
+          card(7, 'OGC Training GDOS Eglin IT Support', '$3,090,156', 'PP', 'b', false),
+          card(10, 'OGC Depot Field Team Travel', '$4,109,485', 'PP', 'b', false),
+          card(12, 'OGC Engine Module Repair Capacity', '$3,013,156', 'AV', 'u', false) ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fill across the FYDP</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 680px; height: 660px; box-sizing: border-box; font-family: Carlito, Calibri, 'Segoe UI', sans-serif; color: #172331; background: rgba(23, 35, 49, 0.45); padding: 24px; display: flex; align-items: flex-start; justify-content: center">
+<div role="dialog" aria-label="Fill across the FYDP" style="width: 100%; background: #FFFFFF; border-radius: 12px; border: 1px solid #C9D2DD; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.25); display: flex; flex-direction: column">
+<div style="padding: 14px 18px; border-bottom: 1px solid #DDE3EA; display: flex; align-items: center; gap: 8px">
+<h2 style="margin: 0; font-size: 19px; flex: 1 1 auto">Fill across the FYDP</h2>
+<button type="button" aria-label="Close" style="font: inherit; font-size: 16px; width: 30px; height: 30px; border-radius: 6px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">✕</button>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 15px">
+<div style="display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center">
+<label style="display: flex; align-items: center; gap: 6px">From <select aria-label="From year" style="font: inherit; height: 32px; border: 1px solid #8F9BAA; border-radius: 6px; padding: 0 6px"><option>FY28 (base)</option></select></label>
+<label style="display: flex; align-items: center; gap: 6px">into <select aria-label="Into years" style="font: inherit; height: 32px; border: 1px solid #8F9BAA; border-radius: 6px; padding: 0 6px"><option>FY29 to FY31</option></select></label>
+<span style="font-size: 13px; color: #4A5664">FY32 is not in its plan yet: add it first</span>
+</div>
+<div role="radiogroup" aria-label="How" style="display: flex; flex-wrap: wrap; gap: 8px 18px">
+<label style="display: flex; align-items: center; gap: 6px"><input type="radio" name="how" style="width: 18px; height: 18px">Copy as is</label>
+<label style="display: flex; align-items: center; gap: 6px"><input type="radio" name="how" checked style="width: 18px; height: 18px">Grow by <input type="text" aria-label="Growth percent a year" defaultValue="3" style="font: inherit; width: 44px; height: 28px; text-align: right; border: 1px solid #8F9BAA; border-radius: 5px"> % a year</label>
+</div>
+<div style="font-size: 14px; color: #4A5664">Fills the <b>requirement</b> only. Discretionary and Mandatory are never filled for you: each year’s lanes decide what can be paid.</div>
+<div style="border: 1px solid #DDE3EA; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 90px repeat(3, minmax(0, 1fr)); background: #1F3A57; color: #FFFFFF; font-size: 13px; font-weight: 700"><div style="padding: 7px 10px">SERVICE</div><div style="padding: 7px 10px; text-align: right">FY29</div><div style="padding: 7px 10px; text-align: right">FY30</div><div style="padding: 7px 10px; text-align: right">FY31</div></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 90px repeat(3, minmax(0, 1fr)); border-top: 1px solid #EEF1F4; font-size: 14px">
+<div style="padding: 6px 10px; font-weight: 700">{{r.s}}</div>
+<sc-for list="{{r.c}}" as="c" hint-placeholder-count="3"><div style="padding: 6px 10px; text-align: right; font-variant-numeric: tabular-nums"><span style="color: #4A5664">{{c.was}}</span> → <b>{{c.now}}</b></div></sc-for>
+</div>
+</sc-for>
+</div>
+<div style="font-size: 13px; color: #4A5664">3 years × 6 services change. Each goes into that year’s plan and its change journal, and can be put back from there.</div>
+</div>
+<div style="padding: 12px 18px; border-top: 1px solid #DDE3EA; display: flex; justify-content: flex-end; gap: 8px">
+<button type="button" style="font: inherit; font-size: 15px; height: 38px; padding: 0 14px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Cancel</button>
+<button type="button" style="font: inherit; font-size: 15px; font-weight: 700; height: 38px; padding: 0 16px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Fill 3 years</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":680,"height":660}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const base = [['USAF', 1200000], ['ANG', 690000], ['AFRC', 375000], ['STOVL', 820000], ['USMC-C', 610000], ['USN', 415000]];
+    const k = (n) => Math.round(n / 1000) * 1000, f = (n) => '$' + n.toLocaleString('en-US');
+    const was = { 29: 1.0, 30: 1.0, 31: 0.95 }, now = { 29: 1.03, 30: 1.0609, 31: 1.0927 };
+    return { rows: base.map(([s, b]) => ({ s: s, c: [29, 30, 31].map((y) => ({ was: f(k(b * was[y])), now: f(k(b * now[y])) })) })) };
+  }
+}
+</script>
+</body>
+</html>

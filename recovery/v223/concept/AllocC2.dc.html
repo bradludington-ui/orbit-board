@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>One lane, the requirement as the goal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E8ECF1}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 2120px; font-family: Carlito, Calibri, 'Segoe UI', sans-serif; color: #172331; background: #E8ECF1; display: flex; flex-direction: column">
+<div style="background: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-align: center; padding: 3px 0; border-bottom: 1px solid #D5DCE5">CUI//REL TO US DoW</div>
+<header style="background: #FFFFFF; border-bottom: 1px solid #D5DCE5; padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px; margin-right: 6px"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="9.5" fill="none" stroke="#1F3A57" stroke-width="4"></circle><circle cx="13" cy="13" r="2.4" fill="#1F3A57"></circle><circle cx="20.5" cy="6" r="3" fill="#C98A1B"></circle></svg><span style="font-weight: 700; font-size: 22px; letter-spacing: 0.04em">ORBIT</span></div>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">O&amp;M ▾</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">FY28 ▾</button>
+<div role="group" aria-label="View" style="display: flex; gap: 2px; background: #F1F4F7; border: 1px solid #C9D2DD; border-radius: 9px; padding: 3px; margin-left: 12px">
+<button type="button" aria-pressed="false" style="font: inherit; font-size: 14px; font-weight: 700; height: 30px; padding: 0 14px; border: 0; border-radius: 7px; background: transparent; color: #4A5664">Sheet</button>
+<button type="button" aria-pressed="true" style="font: inherit; font-size: 14px; font-weight: 700; height: 30px; padding: 0 14px; border: 1px solid #C9D2DD; border-radius: 7px; background: #FFFFFF; color: #172331">One lane</button>
+</div>
+<button type="button" role="switch" aria-checked="true" style="font: inherit; font-size: 15px; font-weight: 700; height: 34px; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331; display: inline-flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 34px; height: 20px; border-radius: 10px; background: #1F3A57; position: relative; display: inline-block"><span style="position: absolute; top: 2px; left: 16px; width: 16px; height: 16px; border-radius: 8px; background: #FFFFFF"></span></span>Mandatory funding: On</button>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<span style="font-size: 13px; font-weight: 700; color: #FFFFFF; background: #6B4A1C; border-radius: 6px; padding: 5px 10px">2 changes not saved</span>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 14px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Save</button>
+</div>
+</header>
+<main style="padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+<div><h1 style="margin: 0; font-size: 26px">FY28 · one service at a time</h1><div style="font-size: 14px; color: #4A5664">Every requirement that asks for the service, in priority order: its requirement (the goal), what each lane gives it, and what is left after it.</div></div>
+
+<div role="group" aria-label="Service" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{t.on}}" style="font: inherit; text-align: left; padding: 8px 10px; border-radius: 10px; border: {{t.edge}}; background: {{t.bg}}; color: {{t.ink}}; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 16px; font-weight: 700">{{t.n}}</span>
+<span style="font-size: 12px">{{t.q}} asked · {{t.p}} met</span>
+<span style="display: block; height: 6px; border-radius: 3px; background: {{t.track}}; overflow: hidden"><span style="display: block; height: 100%; width: {{t.p}}; background: #00B050"></span></span>
+</button>
+</sc-for>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; align-items: flex-end">
+<div><div style="font-size: 13px; color: #4A5664">USAF requirement (the goal)</div><div style="font-size: 24px; font-weight: 700">{{g.q}}</div></div>
+<div><div style="font-size: 13px; color: #4A5664">Funded</div><div style="font-size: 24px; font-weight: 700">{{g.f}}</div></div>
+<div><div style="font-size: 13px; color: #4A5664">Unfunded</div><div style="font-size: 24px; font-weight: 700; color: #A3001B">{{g.u}}</div></div>
+<div><div style="font-size: 13px; color: #4A5664">Discretionary BA · left</div><div style="font-size: 24px; font-weight: 700">{{g.dba}} · <span style="color: {{g.dli}}">{{g.dl}}</span></div></div>
+<div><div style="font-size: 13px; color: #4A5664">Mandatory BA · left</div><div style="font-size: 24px; font-weight: 700">{{g.mba}} · <span style="color: {{g.mli}}">{{g.ml}}</span></div></div>
+</div>
+<div style="position: relative; height: 22px; border-radius: 5px; background: #F3DCDC; overflow: hidden; display: flex">
+<div style="width: {{g.dw}}; background: #00B050"></div><div style="width: {{g.mw}}; background: #FFD700"></div>
+<div style="position: absolute; top: 0; bottom: 0; left: {{g.baw}}; width: 3px; background: #172331"></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-size: 13px; color: #33414F"><span>Bar = the USAF requirement. Green discretionary, yellow mandatory, pink still unfunded.</span><span>│ the line: all USAF budget authority ({{g.ba}}), so {{g.gap}} of the requirement cannot be met however it is moved</span></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #1F3A57; color: #FFFFFF; border-radius: 8px; padding: 8px 12px; font-size: 14px">
+<b>Editing:</b>
+<div role="group" aria-label="Lane" style="display: flex; gap: 2px; background: #2E4A68; border-radius: 7px; padding: 2px">
+<button type="button" aria-pressed="true" style="font: inherit; font-size: 13px; font-weight: 700; height: 28px; padding: 0 12px; border: 0; border-radius: 5px; background: #FFFFFF; color: #1F3A57">Discretionary</button>
+<button type="button" aria-pressed="false" style="font: inherit; font-size: 13px; font-weight: 700; height: 28px; padding: 0 12px; border: 0; border-radius: 5px; background: transparent; color: #FFFFFF">Mandatory</button>
+</div>
+<span style="color: #D6DEE8">Left after counts down the lane being edited; the other lane is shown and can be typed in too.</span>
+<span style="margin-left: auto">3 selected:</span>
+<button type="button" style="font: inherit; font-size: 13px; font-weight: 700; height: 30px; padding: 0 10px; border-radius: 6px; border: 1px solid #FFFFFF; background: #FFFFFF; color: #1F3A57">Fund to the requirement</button>
+<button type="button" style="font: inherit; font-size: 13px; font-weight: 700; height: 30px; padding: 0 10px; border-radius: 6px; border: 1px solid #FFFFFF; background: transparent; color: #FFFFFF">Cut by %…</button>
+</div>
+
+<section aria-label="USAF by requirement" style="background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; overflow: auto">
+<div style="min-width: 1180px">
+<div style="display: grid; grid-template-columns: 34px 38px minmax(220px, 1fr) 120px 120px 120px 190px 100px 116px 104px; position: sticky; top: 0; z-index: 1; background: #1F3A57; color: #FFFFFF; font-size: 12px; font-weight: 700">
+<div></div><div style="padding: 8px 6px">#</div><div style="padding: 8px 6px">REQUIREMENT</div><div style="padding: 8px 6px; text-align: right; background: #2E4A68">USAF REQUIREMENT</div><div style="padding: 8px 6px; text-align: right; box-shadow: inset 0 -3px 0 #FFD700">DISCRETIONARY</div><div style="padding: 8px 6px; text-align: right">MANDATORY</div><div style="padding: 8px 6px">MET</div><div style="padding: 8px 6px; text-align: right">UNFUNDED</div><div style="padding: 8px 6px; text-align: right">DISC LEFT AFTER</div><div style="padding: 8px 6px; text-align: center">QUICK</div>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<div>
+<sc-if value="{{r.cut}}" hint-placeholder-val="{{ false }}"><div style="background: #A3001B; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 5px 10px">▼ USAF DISCRETIONARY IS GONE HERE — below, only mandatory or money moved up from a row above can meet the requirement</div></sc-if>
+<div style="display: grid; grid-template-columns: 34px 38px minmax(220px, 1fr) 120px 120px 120px 190px 100px 116px 104px; align-items: center; min-height: 40px; border-bottom: 1px solid #EEF1F4; font-size: 14px; background: {{r.bg}}">
+<div style="padding: 0 6px"><input type="checkbox" aria-label="Select #{{r.n}}" defaultChecked="{{r.sel}}" style="width: 18px; height: 18px"></div>
+<div style="padding: 0 6px; color: #4A5664">{{r.n}}</div>
+<div style="padding: 0 6px; min-width: 0"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700">{{r.t}}</div><div style="font-size: 12px; color: #4A5664">{{r.o}} · whole requirement {{r.all}}</div></div>
+<div style="align-self: stretch; display: flex; align-items: center; justify-content: flex-end; padding: 0 8px; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; background: #EEF2F6">{{r.q}}</div>
+<div style="padding: 2px 6px"><input type="text" aria-label="USAF discretionary for #{{r.n}}" defaultValue="{{r.d}}" style="font: inherit; font-size: 14px; width: 100%; box-sizing: border-box; height: 30px; padding: 0 6px; text-align: right; font-variant-numeric: tabular-nums; border: 2px solid {{r.de}}; border-radius: 5px; background: {{r.db}}"></div>
+<div style="padding: 2px 6px"><input type="text" aria-label="USAF mandatory for #{{r.n}}" defaultValue="{{r.m}}" style="font: inherit; font-size: 14px; width: 100%; box-sizing: border-box; height: 30px; padding: 0 6px; text-align: right; font-variant-numeric: tabular-nums; border: 1px solid #A9B4C1; border-radius: 5px; background: #FFFFFF"></div>
+<div style="padding: 0 8px; display: flex; align-items: center; gap: 6px"><div style="flex: 1 1 auto; height: 12px; border-radius: 4px; background: #F3DCDC; overflow: hidden; display: flex"><div style="width: {{r.dw}}; background: #00B050"></div><div style="width: {{r.mw}}; background: #FFD700"></div></div><span style="font-size: 13px; width: 38px; text-align: right; font-weight: 700">{{r.p}}</span></div>
+<div style="padding: 0 6px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: {{r.ui}}">{{r.u}}</div>
+<div style="padding: 0 6px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: {{r.li}}">{{r.l}}</div>
+<div style="display: flex; gap: 4px; justify-content: center">
+<button type="button" aria-label="Fund #{{r.n}} to its USAF requirement" style="font: inherit; font-size: 12px; font-weight: 700; height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Full</button>
+<button type="button" aria-label="Set #{{r.n}} USAF discretionary to zero" style="font: inherit; font-size: 12px; font-weight: 700; height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">$0</button>
+</div>
+</div>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: 34px 38px minmax(220px, 1fr) 120px 120px 120px 190px 100px 116px 104px; align-items: center; min-height: 40px; border-top: 3px solid #1F3A57; background: #F1F4F7; font-size: 14px; font-weight: 700; position: sticky; bottom: 0">
+<div></div><div></div><div style="padding: 0 6px">USAF total · 31 requirements</div><div style="padding: 0 8px; text-align: right">{{g.q}}</div><div style="padding: 0 6px; text-align: right">{{g.dt}}</div><div style="padding: 0 6px; text-align: right">{{g.mt}}</div><div style="padding: 0 8px">{{g.pct}} met</div><div style="padding: 0 6px; text-align: right; color: #A3001B">{{g.u}}</div><div style="padding: 0 6px; text-align: right; color: {{g.dli}}">{{g.dl}}</div><div></div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+    const TT = ['Engine Module Repair Capacity', 'Depot Field Team Travel', 'ALIS/ODIN Infrastructure Refresh', 'Sustainment Fuel (Ferry Flights)', 'Flight Test Instrumentation', 'Low Observable Restoration Kits', 'Training GDOS IT Support', 'Supply Chain Data Analytics', 'Tooling and GSE Calibration', 'Software Maintenance Release', 'Spares Pipeline Buffer', 'Cyber Hardening Phase 2', 'Data Center Migration', 'Mission Planning Updates', 'Simulator Concurrency', 'Support Equipment Refresh', 'Airframe Structural Repair', 'Avionics Spares Replenishment', 'Technical Data Updates', 'Field Service Representatives'];
+    const OF = ['PSM', 'PP', 'AV', 'MxS', 'CDS', 'TSS'];
+    let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+    const k = (n) => Math.round(n / 1000) * 1000, $ = (n) => (n < 0 ? '−$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US'), M = (n) => (n < 0 ? '−$' : '$') + (Math.abs(n) / 1e6).toFixed(2) + 'M';
+    const reqs = [];
+    for (let i = 0; i < 50; i++) { const ask = SV.map(() => (rnd() < 0.4 ? 0 : k(60000 + rnd() * 840000))); if (ask.every((a) => !a)) ask[0] = 300000;
+      reqs.push({ n: i + 1, t: 'OGC ' + TT[i % 20] + (i >= 20 ? ' ' + (Math.floor(i / 20) + 1) : ''), o: OF[i % 6], ask: ask }); }
+    const S = SV.map((_, j) => reqs.reduce((a, r) => a + r.ask[j], 0));
+    const dBA = S.map((x, j) => k(x * (j === 2 ? 1 : 0.45))), mBA = S.map((x) => k(x * 0.15));
+    const dL = dBA.slice(), mL = mBA.slice();
+    reqs.forEach((r, i) => { r.d = []; r.m = []; SV.forEach((_, j) => { let w = r.ask[j]; if (i % 7 === 3) w = k(w * 0.8);
+      const d = Math.min(w, dL[j]); dL[j] -= d; const m = Math.min(w - d, mL[j]); mL[j] -= m; r.d[j] = d; r.m[j] = m; }); });
+    const usaf = reqs.filter((r) => r.ask[0] > 0);
+    let run = dBA[0], gone = usaf.length; usaf.forEach((r, i) => { run -= r.d[0]; if (run <= 0 && gone === usaf.length) gone = i; });
+    // two changes not saved, below the cutline: one funded to its requirement, so the lane goes over
+    const chg = {}; const below = usaf.filter((r, i) => i > gone && r.d[0] + r.m[0] < r.ask[0]);
+    [below[0], below[2]].forEach((r) => { if (r) { chg[r.n] = 1; r.d[0] = r.ask[0] - r.m[0]; } });
+    const sel = {}; usaf.slice(-3).forEach((r) => { sel[r.n] = 1; });
+    let left = dBA[0];
+    const rows = usaf.map((r, i) => { left -= r.d[0]; const q = r.ask[0], u = Math.max(0, q - r.d[0] - r.m[0]);
+      return { n: r.n, t: r.t, o: r.o, all: $(r.ask.reduce((a, b) => a + b, 0)), q: $(q), d: r.d[0].toLocaleString('en-US'), m: r.m[0].toLocaleString('en-US'),
+        dw: Math.round(100 * r.d[0] / q) + '%', mw: Math.round(100 * r.m[0] / q) + '%', p: Math.round(100 * (q - u) / q) + '%', cut: i === gone + 1,
+        u: u ? $(u) : '—', ui: u ? '#A3001B' : '#4A5664', l: $(left), li: left < 0 ? '#A3001B' : (left === 0 ? '#4A5664' : '#0B6B2E'),
+        de: chg[r.n] ? '#1F5FA8' : '#8F9BAA', db: chg[r.n] ? '#E8F0FA' : '#FFFFFF', sel: !!sel[r.n], bg: sel[r.n] ? '#EEF3FA' : (i % 2 ? '#FBFCFD' : '#FFFFFF') }; });
+    const Q = usaf.reduce((a, r) => a + r.ask[0], 0), D = usaf.reduce((a, r) => a + r.d[0], 0), Mm = usaf.reduce((a, r) => a + r.m[0], 0);
+    const U = usaf.reduce((a, r) => a + Math.max(0, r.ask[0] - r.d[0] - r.m[0]), 0), dl = dBA[0] - D, ml = mBA[0] - Mm, BA = dBA[0] + mBA[0];
+    const g = { q: M(Q), f: M(Q - U), u: M(U), dba: M(dBA[0]), mba: M(mBA[0]), dl: dl < 0 ? 'over ' + M(-dl) : M(dl) + ' left', ml: ml > 0 ? M(ml) + ' left' : 'all given', ba: M(BA), gap: M(Math.max(0, Q - BA)),
+      dli: dl < 0 ? '#A3001B' : '#0B6B2E', mli: ml > 0 ? '#0B6B2E' : '#4A5664', dw: Math.round(100 * D / Q) + '%', mw: Math.round(100 * Mm / Q) + '%', baw: Math.round(100 * BA / Q) + '%',
+      dt: $(D), mt: $(Mm), pct: Math.round(100 * (Q - U) / Q) + '%' };
+    const tabs = SV.map((n, j) => { const uj = reqs.reduce((a, r) => a + Math.max(0, r.ask[j] - r.d[j] - r.m[j]), 0);
+      return { n: n, on: j === 0 ? 'true' : 'false', q: M(S[j]), p: Math.round(100 * (S[j] - uj) / S[j]) + '%', edge: j === 0 ? '2px solid #1F3A57' : '1px solid #C9D2DD',
+        bg: j === 0 ? '#1F3A57' : '#FFFFFF', ink: j === 0 ? '#FFFFFF' : '#172331', track: j === 0 ? '#3A5572' : '#F3DCDC' }; });
+    return { tabs: tabs, rows: rows, g: g };
+  }
+}
+</script>
+</body>
+</html>

@@ -2105,6 +2105,18 @@ html.ui-on.ui-sumfold:not([data-mode="brief"]):not([data-mode="fund"]) .moneybar
    stays under the header rather than behind it */
 html.ui-on.ui-dock .inspector{max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,0px) - var(--scsH,0px) - 16px - var(--footH,0px))}
 </style>
+<style id="v223w1">
+/* v2.23 W1: its own rules go here (contract §2) */
+</style>
+<style id="v223w2">
+/* v2.23 W2: its own rules go here (contract §2) */
+</style>
+<style id="v223w3">
+/* v2.23 W3: its own rules go here (contract §2) */
+</style>
+<style id="v223int">
+/* v2.23 INT: its own rules go here (contract §2) */
+</style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
    default palette and then swap, which is a visible flash on every open. The key carries no
@@ -2814,6 +2826,10 @@ html.ui-on.ui-dock .inspector{max-height:calc(100vh - var(--hdrH,56px) - var(--t
 <div class="addp" id="rmPanel"></div>
 
 <div class="list">
+ <!-- v2.23 (contract §1): the requirement page (W1, item 156; W2 adds its Across the FYDP tab, item 158) and the allocation
+      view (W3, item 159). Empty and hidden until their builders draw them. -->
+ <div id="reqPage" class="reqpage" hidden></div>
+ <div id="allocView" class="allocview" hidden></div>
  <div class="gridsplit">
   <div class="gridwrap">
     <!-- v2.22 W1 (item 155): the title band carries the table's filter chips. They set the filters the Filter menu sets (laneFilter,
@@ -36922,6 +36938,8 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
       +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
+  // v2.23 (contract §1): what each builder draws after the rows and the RECORD panel (the requirement page, the allocation view)
+  try{ v223After(); }catch(e){}
   // v2.09 second review: the keyboard's place once the rows AND the RECORD panel are drawn (it ran between them, so a box the
   // panel redrew kept nothing)
   try{ focusRestore(fm); }catch(e){}
@@ -39040,6 +39058,30 @@ function awdOrigSay(o){
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====
+// ==== v2.23 seams (contract §1; each part is owned by the builder named) ====
+// v2.23: drawn after every render, once the rows and the RECORD panel are drawn. A builder pushes a function here from its
+// own slot; one that throws is skipped and the rest still draw. A `var`, because render() runs while the script is still read.
+var V223_AFTER=[];
+function v223After(){ (V223_AFTER||[]).forEach(function(f){ try{ f(); }catch(e){} }); }
+// v2.23 (W3, item 159): is mandatory funding on for a year? St is a year's state (S when left out). Until W3 builds the
+// switch it is on everywhere. Every surface that prints a mandatory figure for a year asks this, never a field of its own.
+function mandOn(St){ return true; }
+// v2.23 (W1, item 156): the requirement page's tabs. Each is {k, label, order, html(id) -> markup, after(id) -> once drawn};
+// W1 registers Overview 10, Funding by service 20, Awards 30, History 50; W2 registers Across the FYDP 40 (item 158). The page
+// draws them by order. A `var`, so a builder's slot can push to it whatever order the slots are read in.
+var REQPG_TABS=[];
+// v2.23 (W1, item 156): open the requirement page on requirement id of the year on screen, at tab k (Overview when left out).
+// W1 replaces this body in place; until then it says the page is not built.
+function reqPageOpen(id, k){ try{ setStat('The requirement page is not built yet.'); }catch(e){} }
+// ==== end v2.23 seams ====
+// ==== v2.23 W1 ====
+// ==== end v2.23 W1 ====
+// ==== v2.23 W2 ====
+// ==== end v2.23 W2 ====
+// ==== v2.23 W3 ====
+// ==== end v2.23 W3 ====
+// ==== v2.23 integration (the lead) ====
+// ==== end v2.23 integration (the lead) ====
 uiBoot();
 </script>
 <div class="cui cui-bottom" role="note">CUI//REL TO US DoW</div>

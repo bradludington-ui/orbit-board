@@ -38,6 +38,10 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
 - **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
 
+#### Brad's go of 25 Nov 2026: v2.23 (items 156, 158, 159)
+Brad, 25 Nov 2026: *"Go on v2.23"*, after v2.22 merged (PR #81), with his answers to the four questions left open under items
+158 and 159 (below, under each). Built to `recovery/v223/contract.md`.
+
 #### 156. Three new views: the requirement page, Rank by band, the five-year chart (v2.23)
 - **The requirement as its own page** (*Open full page* from the RECORD card): tabs Overview, Funding by service, Awards,
   Five years, History; the four figures; the month-by-month obligation chart (the award block's own landing rule, landSvc);
@@ -72,8 +76,8 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **Rules it must keep:** the years are joined by the WORK, never the id (`fydpLineKeys` / `fydpSameIn`, v2.16); each year's
   figures from that year's own lane walk (`aceWithYear`); a locked cycle read only; in a PMO copy requirement values only, the
   allocation locked (`allocLocked`).
-- **Open for Brad:** FY27 (the year before the base) editable, as drawn, or read only; four lines per service, or one line at a
-  time; whether Fill should ever offer Disc/Mand (left out: each year's lanes decide what can be paid).
+- **Answered** (Brad, 25 Nov 2026, on his "Go on v2.23"): FY27, the year before the base, is **editable** like the others;
+  **four lines per service**, all shown; Fill across does **not** offer Disc/Mand.
 
 #### 159. Allocate every requirement in one year: the sheet, one service at a time, and mandatory on or off (v2.23)
 - **Asked:** Brad, 25 Nov 2026: *"a way to manage and adjust funding allocations to all listed requirements in a given FY ...
@@ -108,8 +112,8 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **Rules it must keep:** both views read and write the per-service directed split the RECORD card edits (`setFsrcSvc`); a
   dollar is never funded past its service's requirement (the clamp, `basisSvcOf`); unfunded is `unfSvcOf`; nothing writes
   while drawing; the switch is a setting on the year saved in the board, distinct from the ◨ discretionary-only what-if.
-- **Open for Brad:** Present as a separate read-only screen anyone can open on a second display while one person edits, or the
-  same screen switched; whether B's move panel (take from one requirement, give to another) joins C as an aside.
+- **Answered** (Brad, 25 Nov 2026, on his "Go on v2.23"): Present is **the same screen, switched** (Edit / Present); **B's move
+  panel joins One lane as an aside** (take from one requirement, give to another, an amount).
 
 #### 157. The leadership brief and the change bridge (v2.24)
 - **One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against

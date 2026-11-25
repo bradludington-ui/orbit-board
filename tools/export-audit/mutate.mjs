@@ -7237,6 +7237,8 @@ const MUTATIONS = [
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
       +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
+  // v2.23 (contract §1): what each builder draws after the rows and the RECORD panel (the requirement page, the allocation view)
+  try{ v223After(); }catch(e){}
   // v2.09 second review: the keyboard's place once the rows AND the RECORD panel are drawn (it ran between them, so a box the
   // panel redrew kept nothing)
   try{ focusRestore(fm); }catch(e){}
@@ -7252,6 +7254,8 @@ const MUTATIONS = [
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
       +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
+  // v2.23 (contract §1): what each builder draws after the rows and the RECORD panel (the requirement page, the allocation view)
+  try{ v223After(); }catch(e){}
 ` },
   { id: 'v209-rv2-clin-panel-other-requirement', area: "focusRestore", what: "the RECORD panel drawn for another requirement gets the keyboard back on its own copy of the control, through a handler that names no requirement (its ✕ Close, its tabs)",
     find: "(m.cur!==curRow || (drawerNarrow()", repl: "((drawerNarrow()" },
@@ -10830,6 +10834,14 @@ const MUTATIONS = [
   { id: 'v222-fold-says-open', area: "uiApply", what: "folded, the button still says Summary and aria-expanded true",
     find: "    const t=uiSumFold? 'Show summary ▾' : 'Summary ▴';", repl: "    const t='Summary ▴';" },
   // ==== end v2.22 integration (the lead) ====
+  // ==== v2.23 W1 ====
+  // ==== end v2.23 W1 ====
+  // ==== v2.23 W2 ====
+  // ==== end v2.23 W2 ====
+  // ==== v2.23 W3 ====
+  // ==== end v2.23 W3 ====
+  // ==== v2.23 integration (the lead) ====
+  // ==== end v2.23 integration (the lead) ====
 
 ];
 

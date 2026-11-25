@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Give and take</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E8ECF1}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1180px; font-family: Carlito, Calibri, 'Segoe UI', sans-serif; color: #172331; background: #E8ECF1; display: flex; flex-direction: column">
+<div style="background: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-align: center; padding: 3px 0; border-bottom: 1px solid #D5DCE5">CUI//REL TO US DoW</div>
+<header style="background: #FFFFFF; border-bottom: 1px solid #D5DCE5; padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px; margin-right: 6px"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="9.5" fill="none" stroke="#1F3A57" stroke-width="4"></circle><circle cx="13" cy="13" r="2.4" fill="#1F3A57"></circle><circle cx="20.5" cy="6" r="3" fill="#C98A1B"></circle></svg><span style="font-weight: 700; font-size: 22px; letter-spacing: 0.04em">ORBIT</span></div>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">O&amp;M ▾</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">FY28 ▾</button>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<span style="font-size: 13px; font-weight: 700; color: #FFFFFF; background: #6B4A1C; border-radius: 6px; padding: 5px 10px">3 moves not saved</span>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 14px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Save</button>
+</div>
+</header>
+<main style="padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+<div><h1 style="margin: 0; font-size: 26px">Give and take · FY28</h1><div style="font-size: 14px; color: #4A5664">Pick where money comes from and where it goes; the board moves it between the two and nothing else. 50 requirements in priority order.</div></div>
+
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{lanes}}" as="l" hint-placeholder-count="6">
+<div style="background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px">
+<div style="font-size: 15px; font-weight: 700">{{l.n}}</div>
+<div style="font-size: 12px; display: flex; justify-content: space-between"><span>Disc</span><span style="font-weight: 700; color: {{l.di}}">{{l.dt}}</span></div>
+<div style="height: 6px; border-radius: 3px; background: #E4E9EF; overflow: hidden"><div style="height: 100%; width: {{l.dw}}; background: #00B050"></div></div>
+<div style="font-size: 12px; display: flex; justify-content: space-between"><span>Mand</span><span style="font-weight: 700; color: {{l.mi}}">{{l.mt}}</span></div>
+<div style="height: 6px; border-radius: 3px; background: #E4E9EF; overflow: hidden"><div style="height: 100%; width: {{l.mw}}; background: #C9930C"></div></div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start">
+<section aria-label="Requirements" style="flex: 999 1 720px; min-width: 0; background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; overflow: auto; max-height: 860px">
+<div style="display: grid; grid-template-columns: 36px minmax(180px, 1fr) 260px 92px 92px 132px; position: sticky; top: 0; z-index: 1; background: #1F3A57; color: #FFFFFF; font-size: 12px; font-weight: 700">
+<div style="padding: 8px 6px">#</div><div style="padding: 8px 6px">REQUIREMENT</div><div style="padding: 8px 6px">DISC · MAND · UNFUNDED</div><div style="padding: 8px 6px; text-align: right">ALLOCATED</div><div style="padding: 8px 6px; text-align: right">UNFUNDED</div><div style="padding: 8px 6px; text-align: center">MOVE</div>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<div style="display: grid; grid-template-columns: 36px minmax(180px, 1fr) 260px 92px 92px 132px; align-items: center; min-height: 40px; border-bottom: 1px solid #EEF1F4; font-size: 13px; background: {{r.bg}}; box-shadow: {{r.ring}}">
+<div style="padding: 0 6px; color: #4A5664">{{r.n}}</div>
+<div style="padding: 0 6px; min-width: 0"><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700">{{r.t}}</div><div style="font-size: 12px; color: #4A5664">{{r.o}} · requirement {{r.req}}</div></div>
+<div style="padding: 0 6px"><div style="display: flex; height: 14px; border-radius: 3px; overflow: hidden; width: {{r.w}}; background: #E4E9EF"><div style="flex: {{r.fd}} 1 0; background: #00B050"></div><div style="flex: {{r.fm}} 1 0; background: #FFD700"></div><div style="flex: {{r.fu}} 1 0; background: #C00000"></div></div></div>
+<div style="padding: 0 6px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums">{{r.a}}</div>
+<div style="padding: 0 6px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: {{r.ui}}">{{r.u}}</div>
+<div style="display: flex; gap: 4px; justify-content: center">
+<button type="button" style="font: inherit; font-size: 12px; font-weight: 700; height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid {{r.fromE}}; background: {{r.fromB}}; color: #172331">Take</button>
+<button type="button" style="font: inherit; font-size: 12px; font-weight: 700; height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid {{r.toE}}; background: {{r.toB}}; color: #172331">Give</button>
+</div>
+</div>
+</sc-for>
+</section>
+
+<aside aria-label="Move funding" style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="background: #FFFFFF; border: 2px solid #1F3A57; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 17px; font-weight: 700">Move funding</div>
+<div style="display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 14px">
+<span style="font-weight: 700; color: #7A4300">Take</span><button type="button" style="font: inherit; font-size: 14px; text-align: left; min-height: 32px; padding: 0 8px; border-radius: 6px; border: 2px solid #B36B00; background: #FFF6E5; color: #172331">#{{mv.fromN}} {{mv.fromT}}</button>
+<span style="font-weight: 700; color: #163F70">Give</span><button type="button" style="font: inherit; font-size: 14px; text-align: left; min-height: 32px; padding: 0 8px; border-radius: 6px; border: 2px solid #1F5FA8; background: #E8F0FA; color: #172331">#{{mv.toN}} {{mv.toT}}</button>
+<label for="mvSvc" style="font-weight: 700">Service</label><select id="mvSvc" style="font: inherit; height: 32px; border: 1px solid #8F9BAA; border-radius: 6px"><option>AFRC</option></select>
+<label for="mvLane" style="font-weight: 700">Lane</label><select id="mvLane" style="font: inherit; height: 32px; border: 1px solid #8F9BAA; border-radius: 6px"><option>Discretionary</option></select>
+<label for="mvAmt" style="font-weight: 700">Amount</label><input id="mvAmt" type="text" defaultValue="{{mv.amt}}" style="font: inherit; height: 32px; padding: 0 8px; text-align: right; border: 1px solid #8F9BAA; border-radius: 6px">
+</div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<button type="button" style="font: inherit; font-size: 12px; height: 28px; padding: 0 8px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">All #{{mv.fromN}} has: {{mv.has}}</button>
+<button type="button" style="font: inherit; font-size: 12px; height: 28px; padding: 0 8px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">What #{{mv.toN}} is short: {{mv.short}}</button>
+</div>
+<div style="border-top: 1px solid #DDE3EA; padding-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 14px">
+<div style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: #4A5664">AFTER THE MOVE · AFRC DISCRETIONARY</div>
+<div>#{{mv.fromN}}: {{mv.fromWas}} → <b>{{mv.fromNow}}</b> <span style="color: #A3001B">(unfunded +{{mv.amt}})</span></div>
+<div>#{{mv.toN}}: {{mv.toWas}} → <b>{{mv.toNow}}</b> <span style="color: #0B6B2E">(unfunded −{{mv.amt}})</span></div>
+<div style="color: #4A5664">The lane’s total does not change. Nothing else moves.</div>
+</div>
+<button type="button" style="font: inherit; font-size: 15px; font-weight: 700; height: 40px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Move {{mv.amtD}}</button>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 16px; font-weight: 700">Money nobody has been given</div>
+<div style="font-size: 14px"><b>AFRC Discretionary · {{left}}</b> is not allocated. In priority order, the short requirements it could reach:</div>
+<sc-for list="{{offer}}" as="o" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; border-top: 1px solid #EEF1F4; padding-top: 6px"><span style="flex: 1 1 auto; min-width: 0">#{{o.n}} {{o.t}}</span><span style="font-weight: 700">{{o.v}}</span><button type="button" style="font: inherit; font-size: 12px; font-weight: 700; height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid #1F5FA8; background: #FFFFFF; color: #163F70">Give</button></div>
+</sc-for>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; border-radius: 8px; border: 1px solid #1F5FA8; background: #E8F0FA; color: #163F70">Give in priority order until it is gone</button>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 14px">
+<div style="font-size: 16px; font-weight: 700">Moves not saved</div>
+<sc-for list="{{log}}" as="g" hint-placeholder-count="3"><div style="display: flex; gap: 8px; align-items: center"><span style="flex: 1 1 auto">{{g}}</span><button type="button" style="font: inherit; font-size: 12px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Undo</button></div></sc-for>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+    const TT = ['Engine Module Repair Capacity', 'Depot Field Team Travel', 'ALIS/ODIN Infrastructure Refresh', 'Sustainment Fuel (Ferry Flights)', 'Flight Test Instrumentation', 'Low Observable Restoration Kits', 'Training GDOS IT Support', 'Supply Chain Data Analytics', 'Tooling and GSE Calibration', 'Software Maintenance Release', 'Spares Pipeline Buffer', 'Cyber Hardening Phase 2', 'Data Center Migration', 'Mission Planning Updates', 'Simulator Concurrency', 'Support Equipment Refresh', 'Airframe Structural Repair', 'Avionics Spares Replenishment', 'Technical Data Updates', 'Field Service Representatives'];
+    const OF = ['PSM', 'PP', 'AV', 'MxS', 'CDS', 'TSS'];
+    let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+    const k = (n) => Math.round(n / 1000) * 1000, $ = (n) => '$' + Math.round(n).toLocaleString('en-US'), M = (n) => '$' + (n / 1e6).toFixed(2) + 'M';
+    const reqs = [];
+    for (let i = 0; i < 50; i++) { const ask = SV.map(() => (rnd() < 0.4 ? 0 : k(60000 + rnd() * 840000))); if (ask.every((a) => !a)) ask[0] = 300000;
+      reqs.push({ n: i + 1, t: 'OGC ' + TT[i % 20] + (i >= 20 ? ' ' + (Math.floor(i / 20) + 1) : ''), o: OF[i % 6], ask: ask }); }
+    const S = SV.map((_, j) => reqs.reduce((a, r) => a + r.ask[j], 0));
+    const dBA = S.map((x, j) => k(x * (j === 2 ? 1 : 0.45))), mBA = S.map((x) => k(x * 0.15));
+    const dL = dBA.slice(), mL = mBA.slice();
+    reqs.forEach((r, i) => { r.d = []; r.m = []; SV.forEach((_, j) => { let w = r.ask[j]; if (i % 7 === 3) w = k(w * 0.8);
+      const d = Math.min(w, dL[j]); dL[j] -= d; const m = Math.min(w - d, mL[j]); mL[j] -= m; r.d[j] = d; r.m[j] = m; }); });
+    const tot = (r, f) => r[f].reduce((a, b) => a + b, 0), ask = (r) => r.ask.reduce((a, b) => a + b, 0);
+    const unf = (r) => SV.reduce((a, _, j) => a + Math.max(0, r.ask[j] - r.d[j] - r.m[j]), 0);
+    const maxA = Math.max.apply(null, reqs.map(ask));
+    // the move on screen: take from a requirement that holds AFRC discretionary, give to a later one short of AFRC
+    const from = reqs.find((r) => r.d[2] > 200000 && r.n > 20) || reqs[24];
+    const shortA = (r) => r.ask[2] - r.d[2] - r.m[2];
+    const to = reqs.find((r) => r.n > from.n && shortA(r) > 0) || reqs.find((r) => r !== from && shortA(r) > 0);
+    const amt = Math.min(100000, shortA(to));
+    const rows = reqs.map((r, i) => {
+      const A = ask(r), isF = r === from, isT = r === to;
+      return { n: r.n, t: r.t, o: r.o, req: $(A), a: $(tot(r, 'd') + tot(r, 'm')), u: unf(r) ? $(unf(r)) : '—', ui: unf(r) ? '#A3001B' : '#4A5664',
+        w: Math.max(8, Math.round(100 * A / maxA)) + '%', fd: tot(r, 'd'), fm: tot(r, 'm'), fu: unf(r),
+        bg: isF ? '#FFF6E5' : (isT ? '#E8F0FA' : (i % 2 ? '#FBFCFD' : '#FFFFFF')), ring: isF ? 'inset 4px 0 0 #B36B00' : (isT ? 'inset 4px 0 0 #1F5FA8' : 'none'),
+        fromE: isF ? '#B36B00' : '#8F9BAA', fromB: isF ? '#FFE3B3' : '#FFFFFF', toE: isT ? '#1F5FA8' : '#8F9BAA', toB: isT ? '#CFE0F5' : '#FFFFFF' };
+    });
+    const lanes = SV.map((n, j) => { const du = dBA[j] - dL[j], mu = mBA[j] - mL[j];
+      return { n: n, dt: dL[j] > 0 ? M(dL[j]) + ' left' : 'all given', mt: mL[j] > 0 ? M(mL[j]) + ' left' : 'all given', di: dL[j] > 0 ? '#0B6B2E' : '#172331', mi: mL[j] > 0 ? '#0B6B2E' : '#172331',
+        dw: Math.round(100 * du / Math.max(1, dBA[j])) + '%', mw: Math.round(100 * mu / Math.max(1, mBA[j])) + '%' }; });
+    const offer = reqs.filter((r) => r.ask[2] - r.d[2] - r.m[2] > 0).slice(0, 3).map((r) => ({ n: r.n, t: r.t, v: $(r.ask[2] - r.d[2] - r.m[2]) }));
+    return {
+      lanes: lanes, rows: rows, offer: offer, left: $(dL[2]),
+      mv: { fromN: from.n, fromT: from.t, toN: to.n, toT: to.t, amt: amt.toLocaleString('en-US'), amtD: $(amt), has: $(from.d[2]), short: $(to.ask[2] - to.d[2] - to.m[2]),
+        fromWas: $(from.d[2]), fromNow: $(from.d[2] - amt), toWas: $(to.d[2]), toNow: $(to.d[2] + amt) },
+      log: ['#7 → #19 · USAF Disc · $250,000', '#3 → #22 · ANG Mand · $40,000', '#14 → #31 · STOVL Disc · $120,000']
+    };
+  }
+}
+</script>
+</body>
+</html>

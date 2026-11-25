@@ -20844,6 +20844,14 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====
+// ==== v2.23 W1 ====
+// ==== end v2.23 W1 ====
+// ==== v2.23 W2 ====
+// ==== end v2.23 W2 ====
+// ==== v2.23 W3 ====
+// ==== end v2.23 W3 ====
+// ==== v2.23 integration (the lead) ====
+// ==== end v2.23 integration (the lead) ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

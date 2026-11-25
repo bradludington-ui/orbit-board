@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Turn off mandatory funding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 680px; height: 720px; box-sizing: border-box; font-family: Carlito, Calibri, 'Segoe UI', sans-serif; color: #172331; background: rgba(23, 35, 49, 0.45); padding: 24px; display: flex; align-items: flex-start; justify-content: center">
+<div role="dialog" aria-label="Turn off mandatory funding for FY28" style="width: 100%; background: #FFFFFF; border-radius: 12px; border: 1px solid #C9D2DD; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.25); display: flex; flex-direction: column">
+<div style="padding: 14px 18px; border-bottom: 1px solid #DDE3EA; display: flex; align-items: center; gap: 8px">
+<h2 style="margin: 0; font-size: 19px; flex: 1 1 auto">Turn off mandatory funding for FY28?</h2>
+<button type="button" aria-label="Close" style="font: inherit; font-size: 16px; width: 30px; height: 30px; border-radius: 6px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">✕</button>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.4">
+<div>FY28 already has mandatory money in it: <b>$14.1M</b> of mandatory budget authority, and <b>$13.6M</b> allocated as mandatory on <b>14 requirements</b>.</div>
+<div style="border: 1px solid #DDE3EA; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 44px minmax(0, 1fr) 110px 110px; background: #F1F4F7; font-size: 12px; font-weight: 700; color: #4A5664"><div style="padding: 6px 8px">#</div><div style="padding: 6px 8px">REQUIREMENT</div><div style="padding: 6px 8px; text-align: right">MANDATORY</div><div style="padding: 6px 8px; text-align: right">UNFUNDED AFTER</div></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 44px minmax(0, 1fr) 110px 110px; border-top: 1px solid #EEF1F4; font-size: 14px"><div style="padding: 6px 8px; color: #4A5664">{{r.n}}</div><div style="padding: 6px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.t}}</div><div style="padding: 6px 8px; text-align: right">{{r.m}}</div><div style="padding: 6px 8px; text-align: right; color: #A3001B; font-weight: 700">{{r.u}}</div></div>
+</sc-for>
+<div style="border-top: 1px solid #EEF1F4; padding: 6px 8px; font-size: 13px; color: #4A5664">and 10 more · <a href="#">list them all</a></div>
+</div>
+<div role="radiogroup" aria-label="What happens to the mandatory allocations" style="display: flex; flex-direction: column; gap: 8px">
+<label style="display: flex; gap: 8px; align-items: flex-start"><input type="radio" name="mo" checked style="width: 18px; height: 18px; margin-top: 2px"><span><b>Clear them.</b> Those 14 requirements lose their mandatory dollars and the shortfall shows as unfunded. Each line goes in the change journal, where it can be put back.</span></label>
+<label style="display: flex; gap: 8px; align-items: flex-start"><input type="radio" name="mo" style="width: 18px; height: 18px; margin-top: 2px"><span><b>Move what discretionary can cover.</b> Each requirement keeps its money where its service’s discretionary lane has room ($2.1M of it); the rest is cleared.</span></label>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 14px">Applies to <select style="font: inherit; height: 30px; border: 1px solid #8F9BAA; border-radius: 6px"><option>FY28 only</option><option>FY28 and every later year</option></select></label>
+<div style="font-size: 13px; color: #4A5664">The mandatory budget authority stays in Budget Management and the PPBE position; it just isn’t allocated while mandatory is off. Turning it back on brings the columns back, empty.</div>
+</div>
+<div style="padding: 12px 18px; border-top: 1px solid #DDE3EA; display: flex; justify-content: flex-end; gap: 8px">
+<button type="button" style="font: inherit; font-size: 15px; height: 38px; padding: 0 14px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Keep mandatory on</button>
+<button type="button" style="font: inherit; font-size: 15px; font-weight: 700; height: 38px; padding: 0 16px; border-radius: 8px; border: 0; background: #A3001B; color: #FFFFFF">Clear $13.6M and turn off</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":680,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { rows: [
+      { n: 21, t: 'OGC Engine Module Repair Capacity 2', m: '$539,000', u: '$539,000' },
+      { n: 23, t: 'OGC ALIS/ODIN Infrastructure Refresh 2', m: '$919,000', u: '$919,000' },
+      { n: 24, t: 'OGC Sustainment Fuel (Ferry Flights) 2', m: '$1,391,000', u: '$1,391,000' },
+      { n: 25, t: 'OGC Flight Test Instrumentation 2', m: '$390,000', u: '$487,000' }
+    ] };
+  }
+}
+</script>
+</body>
+</html>

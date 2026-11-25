@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Allocation sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E8ECF1}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1180px; font-family: Carlito, Calibri, 'Segoe UI', sans-serif; color: #172331; background: #E8ECF1; display: flex; flex-direction: column">
+<div style="background: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-align: center; padding: 3px 0; border-bottom: 1px solid #D5DCE5">CUI//REL TO US DoW</div>
+<header style="background: #FFFFFF; border-bottom: 1px solid #D5DCE5; padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px; margin-right: 6px"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="9.5" fill="none" stroke="#1F3A57" stroke-width="4"></circle><circle cx="13" cy="13" r="2.4" fill="#1F3A57"></circle><circle cx="20.5" cy="6" r="3" fill="#C98A1B"></circle></svg><span style="font-weight: 700; font-size: 22px; letter-spacing: 0.04em">ORBIT</span></div>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">O&amp;M ▾</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">FY28 ▾</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">All offices ▾</button>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<span style="font-size: 13px; font-weight: 700; color: #FFFFFF; background: #6B4A1C; border-radius: 6px; padding: 5px 10px">2 changes not saved</span>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Review changes</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 14px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Save</button>
+</div>
+</header>
+<main style="padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+<div style="flex: 1 1 520px"><h1 style="margin: 0; font-size: 26px">Allocate FY28</h1><div style="font-size: 14px; color: #4A5664">50 requirements in priority order · every service’s Discretionary and Mandatory as one sheet · figures in $K, typed in dollars or $K</div></div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Show: $K ▾</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Paste from Excel</button>
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Fill selected ▾</button>
+</div>
+</div>
+
+<section aria-label="Allocation sheet" style="background: #FFFFFF; border: 1px solid #C9D2DD; border-radius: 10px; overflow: auto; max-height: 920px">
+<div style="min-width: 1240px">
+<div style="position: sticky; top: 0; z-index: 2">
+<div style="display: grid; grid-template-columns: 36px minmax(200px, 1fr) 48px 70px repeat(6, 128px) 76px; background: #1F3A57; color: #FFFFFF; font-size: 12px; font-weight: 700">
+<div style="padding: 8px 6px">#</div><div style="padding: 8px 6px">REQUIREMENT</div><div style="padding: 8px 4px">PMO</div><div style="padding: 8px 6px; text-align: right">REQ</div>
+<sc-for list="{{svc}}" as="s" hint-placeholder-count="6"><div style="padding: 6px 6px; border-left: 1px solid #3A5572; text-align: center">{{s.n}}<div style="display: grid; grid-template-columns: 1fr 1fr; font-weight: 400; color: #D6DEE8"><span>Disc</span><span>Mand</span></div></div></sc-for>
+<div style="padding: 8px 6px; border-left: 1px solid #3A5572; text-align: right">UNFUNDED</div>
+</div>
+<sc-for list="{{bands}}" as="b" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 36px minmax(200px, 1fr) 48px 70px repeat(6, 128px) 76px; background: {{b.bg}}; font-size: 12px; border-bottom: 1px solid #C9D2DD">
+<div></div><div style="padding: 5px 6px; font-weight: 700">{{b.name}}</div><div></div><div style="padding: 5px 6px; text-align: right; font-weight: 700">{{b.req}}</div>
+<sc-for list="{{b.cells}}" as="c" hint-placeholder-count="6"><div style="display: grid; grid-template-columns: 1fr 1fr; border-left: 1px solid #DDE3EA"><span style="padding: 5px 6px; text-align: right; font-weight: 700; color: {{c.di}}">{{c.d}}</span><span style="padding: 5px 6px; text-align: right; font-weight: 700; color: {{c.mi}}">{{c.m}}</span></div></sc-for>
+<div style="padding: 5px 6px; text-align: right; font-weight: 700; border-left: 1px solid #DDE3EA; color: #A3001B">{{b.unf}}</div>
+</div>
+</sc-for>
+</div>
+
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<div>
+<sc-if value="{{r.cut}}" hint-placeholder-val="{{ false }}"><div style="background: #1F3A57; color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 4px 10px">▼ USAF DISCRETIONARY RUNS OUT HERE — rows below draw mandatory or go unfunded for USAF</div></sc-if>
+<div style="display: grid; grid-template-columns: 36px minmax(200px, 1fr) 48px 70px repeat(6, 128px) 76px; align-items: center; border-bottom: 1px solid #EEF1F4; font-size: 13px; background: {{r.bg}}">
+<div style="padding: 0 6px; color: #4A5664">{{r.n}}</div>
+<div style="padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700">{{r.t}}</div>
+<div style="padding: 0 4px; font-size: 12px">{{r.o}}</div>
+<div style="padding: 0 6px; text-align: right; font-variant-numeric: tabular-nums">{{r.req}}</div>
+<sc-for list="{{r.c}}" as="c" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px 3px; border-left: 1px solid #EEF1F4">
+<sc-if value="{{c.has}}" hint-placeholder-val="{{ true }}"><input type="text" aria-label="{{c.ad}}" defaultValue="{{c.d}}" style="font: inherit; font-size: 13px; width: 100%; min-width: 0; box-sizing: border-box; height: 26px; padding: 0 4px; text-align: right; font-variant-numeric: tabular-nums; border: 1px solid {{c.de}}; border-radius: 4px; background: {{c.db}}"></sc-if>
+<sc-if value="{{c.has}}" hint-placeholder-val="{{ true }}"><input type="text" aria-label="{{c.am}}" defaultValue="{{c.m}}" style="font: inherit; font-size: 13px; width: 100%; min-width: 0; box-sizing: border-box; height: 26px; padding: 0 4px; text-align: right; font-variant-numeric: tabular-nums; border: 1px solid #A9B4C1; border-radius: 4px; background: #FFFFFF"></sc-if>
+<sc-if value="{{c.none}}" hint-placeholder-val="{{ false }}"><span style="grid-column: 1 / 3; text-align: center; color: #8F9BAA">·</span></sc-if>
+</div>
+</sc-for>
+<div style="padding: 0 6px; text-align: right; font-weight: 700; color: {{r.ui}}; border-left: 1px solid #EEF1F4">{{r.u}}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+<div style="font-size: 13px; color: #4A5664; line-height: 1.45">Arrow keys move like a spreadsheet; a figure is taken when the cell is left. A changed cell is outlined until Save. The three rows under the header follow every keystroke: a lane allocated past its budget turns red and says by how much, and nothing is refused, so you can move money in two steps. Unfunded is the requirement less what the lanes actually draw.</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+    const TT = ['Engine Module Repair Capacity', 'Depot Field Team Travel', 'ALIS/ODIN Infrastructure Refresh', 'Sustainment Fuel (Ferry Flights)', 'Flight Test Instrumentation', 'Low Observable Restoration Kits', 'Training GDOS IT Support', 'Supply Chain Data Analytics', 'Tooling and GSE Calibration', 'Software Maintenance Release', 'Spares Pipeline Buffer', 'Cyber Hardening Phase 2', 'Data Center Migration', 'Mission Planning Updates', 'Simulator Concurrency', 'Support Equipment Refresh', 'Airframe Structural Repair', 'Avionics Spares Replenishment', 'Technical Data Updates', 'Field Service Representatives'];
+    const OF = ['PSM', 'PP', 'AV', 'MxS', 'CDS', 'TSS'];
+    let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+    const k = (n) => Math.round(n / 1000) * 1000, K = (n) => Math.round(n / 1000).toLocaleString('en-US');
+    const reqs = [];
+    for (let i = 0; i < 50; i++) { const ask = SV.map(() => (rnd() < 0.4 ? 0 : k(60000 + rnd() * 840000))); if (ask.every((a) => !a)) ask[0] = 300000;
+      reqs.push({ n: i + 1, t: 'OGC ' + TT[i % 20] + (i >= 20 ? ' ' + (Math.floor(i / 20) + 1) : ''), o: OF[i % 6], ask: ask }); }
+    const S = SV.map((_, j) => reqs.reduce((a, r) => a + r.ask[j], 0));
+    const dBA = S.map((x, j) => k(x * (j === 2 ? 1 : 0.45))), mBA = S.map((x) => k(x * 0.15));
+    const dL = dBA.slice(), mL = mBA.slice(); let cutAt = -1;
+    reqs.forEach((r, i) => { r.d = []; r.m = []; SV.forEach((_, j) => { let w = r.ask[j]; if (i % 7 === 3) w = k(w * 0.8);
+      const d = Math.min(w, dL[j]); dL[j] -= d; if (j === 0 && dL[0] <= 0 && cutAt < 0) cutAt = i + 1; const m = Math.min(w - d, mL[j]); mL[j] -= m; r.d[j] = d; r.m[j] = m; }); });
+    // two edits not yet saved: #12 USAF Disc raised by $150K (the lane is now over), #27 AFRC Disc cut by $100K
+    const ed = { '11|0': 150000, '26|2': -100000 };
+    Object.keys(ed).forEach((key) => { const [i, j] = key.split('|').map(Number); reqs[i].d[j] += ed[key]; dL[j] -= ed[key]; });
+    const unf = (r) => SV.reduce((a, _, j) => a + Math.max(0, r.ask[j] - r.d[j] - r.m[j]), 0);
+    const rows = reqs.map((r, i) => ({ n: r.n, t: r.t, o: r.o, req: K(r.ask.reduce((a, b) => a + b, 0)), cut: i === cutAt, bg: i % 2 ? '#FBFCFD' : '#FFFFFF',
+      u: unf(r) ? K(unf(r)) : '—', ui: unf(r) ? '#A3001B' : '#4A5664',
+      c: SV.map((sv, j) => { const chg = ed[i + '|' + j] !== undefined; return { has: r.ask[j] > 0, none: !r.ask[j], d: K(r.d[j]), m: K(r.m[j]), ad: sv + ' discretionary, #' + r.n, am: sv + ' mandatory, #' + r.n,
+        de: chg ? '#1F5FA8' : '#A9B4C1', db: chg ? '#E8F0FA' : '#FFFFFF' }; }) }));
+    const used = (f, j) => reqs.reduce((a, r) => a + r[f][j], 0);
+    const red = '#A3001B', ink = '#172331', ok = '#0B6B2E';
+    const bands = [
+      { name: 'Budget authority', bg: '#F1F4F7', req: '', unf: '', cells: SV.map((_, j) => ({ d: K(dBA[j]), m: K(mBA[j]), di: ink, mi: ink })) },
+      { name: 'Allocated', bg: '#F1F4F7', req: K(S.reduce((a, b) => a + b, 0)), unf: K(reqs.reduce((a, r) => a + unf(r), 0)), cells: SV.map((_, j) => ({ d: K(used('d', j)), m: K(used('m', j)), di: ink, mi: ink })) },
+      { name: 'Left in the lane', bg: '#FFF8E1', req: '', unf: '', cells: SV.map((_, j) => ({ d: dL[j] < 0 ? 'over ' + K(-dL[j]) : K(dL[j]), m: K(mL[j]), di: dL[j] < 0 ? red : (dL[j] > 0 ? ok : ink), mi: mL[j] > 0 ? ok : ink })) }
+    ];
+    return { svc: SV.map((n) => ({ n: n })), rows: rows, bands: bands };
+  }
+}
+</script>
+</body>
+</html>
