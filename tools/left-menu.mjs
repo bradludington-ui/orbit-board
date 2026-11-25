@@ -284,16 +284,17 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
         words: navs.every(e => (e.textContent || '').trim().length > 2 && /^[A-Z]/.test((e.textContent || '').trim())),
         icons: document.querySelectorAll('#uiSide .uiNi .ic, #uiSide .uiNi svg').length };
     });
+    // v2.23 W3: Allocate (item 159), a view, between Funding and FYDP
     chk('E · the menu is 168px of words, nothing folds it, and every entry is there in order, 24px or more, starting with its word',
-      J(r) === J({ fold: false, rail: false, width: 168, order: ['req', 'fund', 'fydp', 'exec', 'cyc', 'brief', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup'], inside: true, words: true, icons: 0 }), J(r));
+      J(r) === J({ fold: false, rail: false, width: 168, order: ['req', 'fund', 'alloc', 'fydp', 'exec', 'cyc', 'brief', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup'], inside: true, words: true, icons: 0 }), J(r));
     // Tab walks the entries in order; Save and its ▾ come before them, in the header
     await p.focus('#uiNav_req');
     const walk = ['uiNav_req'];
-    for (let i = 0; i < 13; i++) { await p.keyboard.press('Tab'); walk.push(await p.evaluate(() => document.activeElement && document.activeElement.id)); }
+    for (let i = 0; i < 14; i++) { await p.keyboard.press('Tab'); walk.push(await p.evaluate(() => document.activeElement && document.activeElement.id)); }
     const before = await p.evaluate(() => { const sb = document.getElementById('saveBtn'), m = document.getElementById('uiNav_req');
       return !!(sb && m && (sb.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING)); });
-    chk('E · Tab reaches every entry in order, and 💾 Save (in the header) comes before them', J(walk.slice(0, 13)) === J(['uiNav_req', 'uiNav_fund', 'uiNav_fydp', 'uiNav_exec', 'uiNav_cyc', 'uiNav_brief', 'uiNav_rep',
-      'uiNav_imp', 'uiNav_data', 'uiNav_pmo', 'uiNav_aud', 'uiNav_hist', 'uiNav_setup']) && !/^(uiNav_|saveBtn)/.test(walk[13] || '') && before, J([walk, before]));
+    chk('E · Tab reaches every entry in order, and 💾 Save (in the header) comes before them', J(walk.slice(0, 14)) === J(['uiNav_req', 'uiNav_fund', 'uiNav_alloc', 'uiNav_fydp', 'uiNav_exec', 'uiNav_cyc', 'uiNav_brief', 'uiNav_rep',
+      'uiNav_imp', 'uiNav_data', 'uiNav_pmo', 'uiNav_aud', 'uiNav_hist', 'uiNav_setup']) && !/^(uiNav_|saveBtn)/.test(walk[14] || '') && before, J([walk, before]));
     // a flyout: Enter opens it with the keyboard inside, Tab reaches its items, Esc closes it back onto its entry. An item is named
     // by its own words, without the line under them.
     await p.evaluate(() => { window.own = e => [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim(); });
@@ -339,13 +340,13 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
   const { p, ctx, errs } = await open(FILE);
   try {
     const got = await p.evaluate(() => { const out = {};
-      ['review', 'rank', 'fund', 'compare', 'brief'].forEach(m => { uiMode = m; uiApply(); syncBtns(); render();
+      ['review', 'rank', 'fund', 'compare', 'brief', 'alloc'].forEach(m => { uiMode = m; uiApply(); syncBtns(); render();   // v2.23 W3: and Allocate
         out[m] = [...document.querySelectorAll('.tbar [onclick]')].map(e => e.getAttribute('onclick')); });
       uiMode = 'review'; uiApply(); render(); return out; });
     const REPEATS = ['toggleBands'];
     const hits = []; Object.entries(got).forEach(([m, hs]) => hs.forEach(h => { const k = callOf(h); if (REPEATS.includes(k)) hits.push(m + ': ' + h); }));
     chk('F · Bands is on no task-bar control in any mode, nor in its folded Tools menu',
-      J(hits) === J([]) && Object.keys(got).length === 5 && got.brief.some(h => callOf(h) === 'briefFull'), J(hits));
+      J(hits) === J([]) && Object.keys(got).length === 6 && got.brief.some(h => callOf(h) === 'briefFull'), J(hits));
     chk('F · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('F · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();

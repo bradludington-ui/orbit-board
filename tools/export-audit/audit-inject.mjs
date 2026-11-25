@@ -773,6 +773,38 @@ const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding he
 // ==== v2.23 W2 ====
 // ==== end v2.23 W2 ====
 // ==== v2.23 W3 ====
+// v2.23 W3 (item 159): ALLOCATE AND THE MANDATORY-OFF BOX DRAW A REQUIREMENT'S NAME AS TEXT -- the Sheet (its cells and the boxes'
+// labels), One lane (the rows, the tabs, the move aside's choices), Review changes and the box listing what mandatory off clears.
+// A RUNTIME DRAW: the name is planted where an imported board carries it (S.titles), and each surface is scanned as drawn.
+// FAILS ON 9f82139: Allocate is not there to draw (each surface reads as not drawn).
+{
+  const W3V = 'v2.23 W3 — Allocate and the mandatory-off box draw a requirement’s name as text';
+  INJ_EXPECT.push(W3V);
+  const B = fresh();
+  let out = null;
+  try {
+    out = JSON.parse(B.ev(`(function(){
+      var r={};
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.titles.R0=${JSON.stringify(P('w3-title'))};
+      S.fsrc.R0={m:'split', dv:[500000,100000], mv:[200000,50000]};
+      save(); window.confirm=function(){ return true; };
+      uiSetMode('alloc'); r.sheet=__show('allocView');
+      var i=document.querySelector('#allocView input.avin'); i.value='1'; avCell(i); avDraw();
+      avReview(); r.review=__show('avRevPanel'); avReviewClose();
+      avDiscardAll(); AV.view='lane'; AV.mv={from:'R0', to:'R0', lane:'d', amt:''}; avDraw(); r.lane=__show('allocView');
+      mandSwitch(); r.box=__show('avMandPanel'); mandBoxClose();
+      r.pw=window.__PWNED||0;
+      return JSON.stringify(r); })()`));
+  } catch (e) { chk(W3V, 'Allocate’s surfaces ran', 'threw: ' + String((e && e.message) || e).slice(0, 120), 'ran'); }
+  if (out) {
+    for (const k of ['sheet', 'review', 'lane', 'box']) {
+      chk(W3V, k + ': the planted name is drawn', !!out[k].drawn, true);
+      chk(W3V, k + ': and drawn as text, never as an element or a handler', !!out[k].live, false);
+    }
+    chk(W3V, 'no planted handler ran', out.pw, 0);
+  }
+}
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
 // ==== end v2.23 integration (the lead) ====

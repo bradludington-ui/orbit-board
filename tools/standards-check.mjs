@@ -368,6 +368,27 @@ for (const build of BUILDS) {
       if (w1Shown.page < 4 || !w1Shown.board || !w1Shown.chart) record(build, theme, { sc: 'coverage', key: 'the requirement page, the board by band or the five-year chart was not on screen to measure',
         detail: `${w1Shown.page} of the page's tabs measured; the board ${w1Shown.board ? 'was' : 'was NOT'} drawn; the chart ${w1Shown.chart ? 'was' : 'was NOT'} drawn`, n: 1 });
     }
+    // v2.23 W3 (item 159): ALLOCATE -- the Sheet with a changed figure and a refused one, One lane with a row selected and the move
+    // aside, Present, Review changes and the box mandatory off opens -- each measured as drawn. All must have been on screen, or the
+    // run fails: a control measured by nothing would pass by being absent.
+    const avSeen = [];
+    for (const st of ['sheet', 'lane', 'present', 'review', 'mandbox']) {
+      const ok = await page.evaluate(st => { try { window.confirm = function(){ return true; };
+        if (st === 'sheet') { uiSetMode('alloc'); const i = document.querySelector('#allocView input.avin'); i.value = '1'; avCell(i);
+          const j = document.querySelectorAll('#allocView input.avin')[3]; j.value = 'abc'; avCell(j); avDraw(); return !!document.querySelector('#allocView input.avin.chg') && !!document.querySelector('#allocView input.avin.bad'); }
+        if (st === 'lane') { avView('lane'); const c = document.querySelector('#allocView .avl input[type=checkbox]'); c.checked = true; avSel(c); avDraw();
+          return !!document.querySelector('#allocView .avl tr.sel') && !!document.querySelector('#allocView .avmove select'); }
+        if (st === 'present') { avPresent(true); return !!document.querySelector('#allocView.avpres .avro'); }
+        if (st === 'review') { avPresent(false); avView('sheet'); avReview(); return dlgIsOpen(document.getElementById('avRevPanel')); }
+        if (st === 'mandbox') { avReviewClose(); avDiscardAll(); avDraw(); mandSwitch(); const bg = document.getElementById('avMandPanel'); return !!bg && dlgIsOpen(bg); }
+      } catch (e) { return false; } }, st);
+      await page.waitForTimeout(150);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      if (ok) avSeen.push(st);
+    }
+    await page.evaluate(() => { try { mandBoxClose(); avDiscardAll(); uiSetMode('review'); } catch (e) {} });
+    if (avSeen.length !== 5) record(build, theme, { sc: 'coverage', key: 'Allocate was not all on screen to measure',
+      detail: 'measured: ' + (avSeen.join(', ') || 'nothing') + ' -- of the Sheet, One lane, Present, Review changes and the mandatory-off box', n: 1 });
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it
     // opened; the 🔧 list under Needs attention is measured open, then the award block of one, with ✓ Checked. Both must
     // be on screen, or the run fails: a control measured by nothing would pass by being absent.

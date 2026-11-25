@@ -2313,7 +2313,132 @@ html.ui-rkboard #list,html.ui-rkboard #gridHead,html.ui-rkboard #qAway{display:n
 #inspector button.recyrman{flex:1 1 100%;min-height:28px;border-radius:6px;border:1px solid var(--edge);background:var(--apxNav,#25394d);color:#fff;font:inherit;font-weight:700;font-size:12px;cursor:pointer}
 </style>
 <style id="v223w3">
-/* v2.23 W3: its own rules go here (contract §2) */
+/* v2.23 W3 (item 159): Allocate (#allocView, in place of the table) and mandatory funding off (html.ui-mandoff) */
+html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,html.ui-on[data-mode="alloc"] .moneybar,html.ui-on[data-mode="alloc"] #sumFold{display:none!important}
+.allocview[hidden]{display:none}
+.allocview{--avIn:96px;font-variant-numeric:tabular-nums;color:var(--ink);padding:0 0 12px}
+.allocview .avbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.allocview .avgrp{display:inline-flex;border:1px solid var(--edge);border-radius:8px;overflow:hidden;background:var(--panel)}
+.allocview .avsw{border:0;background:transparent;color:var(--ink);padding:6px 12px;min-height:30px;font:inherit;font-weight:700;cursor:pointer}
+.allocview .avsw[aria-pressed="true"]{background:var(--apxNav);color:#fff}
+.allocview .avsw:focus-visible,.allocview .avmand:focus-visible,.allocview .avtab:focus-visible,.allocview .avq:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.allocview .avmand{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--edge);border-radius:999px;background:var(--panel);color:var(--ink);padding:5px 12px 5px 6px;min-height:30px;font:inherit;font-weight:700;cursor:pointer}
+.allocview .avmand .avk{width:34px;height:18px;border-radius:9px;background:var(--edge);position:relative;flex:0 0 auto}
+.allocview .avmand .avk::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .12s}
+.allocview .avmand[aria-checked="true"] .avk{background:var(--apxNav)}
+.allocview .avmand[aria-checked="true"] .avk::after{left:18px}
+.allocview .avmand[aria-disabled="true"]{opacity:.7;cursor:not-allowed}
+.allocview .avsp{flex:1 1 auto}
+.allocview .avn{background:#7a4e17;color:#fff;border-radius:6px;padding:5px 10px;font-weight:700;font-size:12.5px}
+.allocview .avn.bad{background:var(--apxBad)}
+.allocview .avro-line{margin:0 0 10px;padding:8px 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel2);font-weight:700}
+.allocview .avttl{margin:4px 0 2px;font-size:22px;font-weight:800;color:var(--ink)}
+.allocview .avsub{margin:0 0 10px;color:var(--mut);font-size:13px}
+.allocview .avh{color:var(--mut);font-size:12px;font-weight:400}
+.allocview .over,.allocview td.over{color:var(--red);font-weight:700}
+.allocview .uf,.allocview td.uf{color:var(--red)}
+/* the pinned lines sit on fixed light fills in every theme: their red is fixed to match */
+.allocview .avs thead tr.pin .over,.allocview .avs thead tr.pin .uf{color:#9b0000}
+.allocview .avtiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 12px}
+.allocview .avt{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.allocview .avt .l{color:var(--mut);font-size:12px;font-weight:700}
+.allocview .avt .v{font-size:21px;font-weight:800;margin-top:2px;white-space:nowrap}
+.allocview .avt.short .v{color:var(--red)}
+.allocview .avt .km{height:6px;border-radius:3px;background:var(--panel2);margin:6px 0 4px;overflow:hidden}
+.allocview .avt .km i{display:block;height:100%}
+.allocview .avt .x{color:var(--dim);font-size:11.5px;overflow-wrap:anywhere}
+.allocview .avscroll{overflow:auto;max-height:calc(100vh - 200px);border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.allocview table{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-content;min-width:100%}
+.allocview th,.allocview td{padding:3px 6px;border-bottom:1px solid var(--lineSoft);white-space:nowrap;text-align:right}
+.allocview th.t,.allocview td.t,.allocview th.o,.allocview td.o{text-align:left}
+.allocview thead th{background:var(--apxNav);color:#fff;font-weight:800;font-size:11.5px}
+.allocview .avs thead{position:sticky;top:0;z-index:3}
+.allocview .avs thead tr.pin th,.allocview .avs thead tr.pin td{background:var(--panel2);color:var(--ink);font-weight:700;font-size:12px}
+.allocview .avs thead tr.pin.left th,.allocview .avs thead tr.pin.left td{background:#fff8dc;color:#3d3200}
+.allocview .avs thead tr.pin.unf th,.allocview .avs thead tr.pin.unf td{background:#fbeaea;color:#5a1010}
+.allocview .avs th.sv{border-left:2px solid var(--line2);text-align:center}
+.allocview .avs td.q,.allocview .avs th.q{border-left:2px solid var(--line2)}
+.allocview .avs td.t{position:sticky;left:0;z-index:1;background:var(--panel);min-width:200px;max-width:280px;white-space:normal;overflow-wrap:anywhere;font-weight:700}
+.allocview .avs tbody td.q{background:var(--panel2);font-weight:700}
+.allocview .avs tbody td.q.met{box-shadow:inset 0 -3px 0 var(--apxOk)}
+.allocview .avs tbody td.q.short{box-shadow:inset 0 -3px 0 var(--apxBad)}
+.allocview td.none{color:var(--dim);text-align:center}
+.allocview td.tot{font-weight:700}
+.allocview .avm,.allocview .avm2{display:inline-flex;width:50px;height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;vertical-align:middle;margin-right:6px}
+.allocview .avm i{background:var(--apxOk)}
+.allocview .avm2{width:110px}
+.allocview .avm2 i.d{background:var(--apxOk)}
+.allocview .avm2 i.m{background:var(--apxMid)}
+.allocview input.avin{width:var(--avIn);min-height:26px;box-sizing:border-box;text-align:right;font:inherit;font-variant-numeric:tabular-nums;border:1px solid var(--edge);border-radius:5px;padding:2px 6px;background:var(--panel);color:var(--ink)}
+.allocview input.avin.chg,.allocview .avro.chg{outline:2px solid var(--blue);outline-offset:-1px;background:#eaf2fd;color:#10233a}
+.allocview input.avin.bad{outline:2px solid var(--apxBad);outline-offset:-1px;background:#fdecec;color:#3a0a0a}
+.allocview input.avin:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.allocview tr.avnote td{text-align:left;color:var(--mut);white-space:normal;font-style:italic}
+.allocview .avkey{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0 0;color:var(--mut);font-size:12px}
+.allocview .avkey .k::before{content:"";display:inline-block;width:22px;height:12px;margin-right:6px;vertical-align:-1px;border-radius:2px;background:var(--panel2)}
+.allocview .avkey .k.met::before{box-shadow:inset 0 -3px 0 var(--apxOk)}
+.allocview .avkey .k.short::before{box-shadow:inset 0 -3px 0 var(--apxBad)}
+.allocview .avkey .k.chg::before{outline:2px solid var(--blue);background:#eaf2fd}
+.allocview .avtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 10px}
+.allocview .avtab{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--edge);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px;font:inherit;cursor:pointer;min-height:44px}
+.allocview .avtab span{font-size:12px;color:var(--mut)}
+.allocview .avtab[aria-pressed="true"]{background:var(--apxNav);color:#fff}
+.allocview .avtab[aria-pressed="true"] span{color:#dfe7ef}
+.allocview .avtab .avm{width:100%;margin:2px 0 0}
+.allocview .avgoal{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 12px;margin:0 0 10px}
+.allocview .avgf{display:flex;flex-wrap:wrap;gap:8px 28px}
+.allocview .avgf span{display:block;color:var(--mut);font-size:12px}
+.allocview .avgf b{font-size:19px}
+.allocview .avbig{position:relative;display:flex;height:22px;border-radius:5px;background:#f5dada;margin:8px 0 4px;overflow:hidden}
+.allocview .avbig i.d{background:var(--apxOk)}
+.allocview .avbig i.m{background:var(--apxMid)}
+.allocview .avbig i.u{background:#f0c8c8}
+.allocview .avbig .line{position:absolute;top:0;bottom:0;width:3px;background:var(--ink);margin-left:-1px}
+.allocview .avgn{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--mut);font-size:12px}
+.allocview .aved{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--apxNav);color:#fff;border-radius:10px;padding:8px 12px;margin:0 0 8px}
+.allocview .aved .avh{color:#dfe7ef}
+.allocview .aved .avgrp{border-color:#9fb3c6}
+.allocview .aved .avsw{color:var(--ink);background:var(--panel)}
+.allocview .aved .avsw[aria-pressed="true"]{background:#dfe7ef;color:var(--apxNav)}
+.allocview .avl td.t{text-align:left;white-space:normal;min-width:220px}
+.allocview .avl td.t small{display:block;color:var(--mut);font-size:11px;font-weight:400}
+.allocview .avl tr.sel td{background:var(--sel)}
+.allocview .avl td.cb input{width:24px;height:24px;margin:0}
+.allocview .avl tr.avcut td{background:var(--apxBad);color:#fff;font-weight:800;text-align:left;white-space:normal}
+.allocview .avl tfoot td{font-weight:800;border-top:2px solid var(--apxNav);background:var(--panel2)}
+.allocview .avq{min-width:34px;min-height:26px;border:1px solid var(--edge);border-radius:5px;background:var(--panel);color:var(--ink);font:inherit;font-size:12px;font-weight:700;margin-left:4px;cursor:pointer}
+.allocview .avmove{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0 0;padding:8px 12px;border:1px dashed var(--edge);border-radius:10px;background:var(--panel)}
+.allocview .avmove input,.allocview .avmove select{min-height:28px;font:inherit;border:1px solid var(--edge);border-radius:5px;background:var(--panel);color:var(--ink);max-width:260px}
+.allocview .avmove input{width:110px;text-align:right}
+.allocview .vh,#avMandPanel .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.allocview.avpres{font-size:15px}
+.allocview.avpres table{font-size:15.5px}
+.allocview.avpres .avro{display:inline-block;min-width:80px;padding:3px 0}
+.allocview.avpres .avt .v{font-size:27px}
+.allocview.avpres .avttl{font-size:27px}
+.allocview.avpres .avscroll{max-height:none}
+.allocview.avpres .avs thead tr.pin th,.allocview.avpres .avs thead tr.pin td{font-size:14px}
+.allocview.avpres thead th{font-size:13.5px}
+.avmodal{max-width:760px}
+.avmodal .avrev{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.avmodal .avrev th,.avmodal .avrev td{padding:5px 8px;border-bottom:1px solid var(--lineSoft);text-align:left}
+.avmodal .avrev .r{text-align:right}
+.avmodal .avrev .uf{color:var(--red);font-weight:700}
+.avmodal .mandhow{border:0;padding:0;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.avmodal .mandhow label{display:block;line-height:1.45}
+.avmodal .mandhow input{width:24px;height:24px;margin:0 6px 0 0;vertical-align:-6px}
+.avmodal select{min-height:28px;font:inherit}
+.avmodal .avh{color:var(--mut);font-size:12.5px}
+.avmodal .avbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+.avmodal .btn.danger{background:var(--apxBad);border-color:var(--edge);color:#fff}
+.avmodal button.nb.lnk{border-color:var(--edge)}
+/* mandatory off: Fund mode's Mandatory column (its track is taken out in avMandCols), and three headline tiles */
+html.ui-mandoff[data-mode="fund"] .gridhead>.mandc,html.ui-mandoff[data-mode="fund"] #list .row>.mandc{display:none!important}
+html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1100px){ html.ui-on #uiKpis.n3{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.posture .ppt.mandoff .x{white-space:normal}
+@media (max-width:1300px){ .allocview .avtiles{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:760px){ .allocview .avtiles{grid-template-columns:minmax(0,1fr)} }
 </style>
 <style id="v223int">
 /* v2.23 INT: its own rules go here (contract §2) */
@@ -2409,6 +2534,7 @@ html.ui-rkboard #list,html.ui-rkboard #gridHead,html.ui-rkboard #qAway{display:n
   <div class="uiGrp uiGrp1">Plan</div>
   <button type="button" class="uiNi" id="uiNav_req" onclick="uiGo('req',this)"><span class="t">Requirements</span></button>
   <button type="button" class="uiNi" id="uiNav_fund" onclick="uiGo('fund',this)"><span class="t">Funding</span></button>
+  <button type="button" class="uiNi" id="uiNav_alloc" onclick="uiGo('alloc',this)"><span class="t">Allocate</span></button>
   <button type="button" class="uiNi" id="uiNav_fydp" aria-haspopup="true" onclick="uiGo('fydp',this)"><span class="t">FYDP</span><span class="car">&#9656;</span></button>
   <button type="button" class="uiNi" id="uiNav_exec" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="t">Execution</span><span class="car">&#9656;</span></button>
   <button type="button" class="uiNi" id="uiNav_cyc" onclick="uiGo('cyc',this)"><span class="t">Cycles &amp; compare</span></button>
@@ -3889,6 +4015,8 @@ function switchAppn(a, asked){
     try{ render(); }catch(e){}
     return false; }
   if(!(a&&a!==APPN&&APPNS[a])) return false;
+  // v2.23 W3 (item 159): Allocate's unsaved changes are asked about first; Cancel puts the box back
+  if(typeof avLeave==='function' && !avLeave('Switching appropriation')){ try{ const _as=document.getElementById('appnSel'); if(_as) _as.value=APPN; }catch(e){} return false; }
   const back=function(){ try{ const _as=document.getElementById('appnSel'); if(_as) _as.value=APPN; }catch(e){} try{ render(); }catch(e){} };
   if(!asked && memOnlyBlock('Not switched', 'switching appropriation reopens the page')){ back(); return false; }
   if(!lsSet('prio27appn', a, 'Which appropriation this browser opens', {quiet:true})){
@@ -5143,7 +5271,7 @@ function themeSet(k){
 // Both are this browser's, like the colours: kept in browser storage under their own keys, never saved
 // into the board file, never sent in a copy. A mode changes what the grid EMPHASISES -- which cells a row
 // draws and which tools the task bar offers -- never what the board holds or computes.
-const UI_MODES=['review','rank','fund','compare','brief'];
+const UI_MODES=['review','rank','fund','compare','brief','alloc'];   // v2.23 W3 (item 159): Allocate
 const UI_DENS=['compact','comfortable','presentation'];
 let uiMode='review', uiDensity='comfortable', fundDetailOpen=false;
 // v2.22 (149.52, Brad 25 Nov 2026: "Do option 1 in v2.22"): THE SUMMARY FOLDS. The tiles and the money bar sit above the table and
@@ -5177,6 +5305,8 @@ function sumFoldToggle(){
 }
 function uiSetMode(m){
   if(UI_MODES.indexOf(m)<0) return;
+  // v2.23 W3 (item 159): leaving Allocate with changes not saved asks first; Cancel stays
+  if(uiMode==='alloc' && m!=='alloc' && typeof avLeave==='function' && !avLeave('Leaving Allocate')) return;
   uiMode=m; lsSet('spmtMode', m, 'Your workspace mode');
   openMenu=null; uiApply(); render();
 }
@@ -7171,6 +7301,7 @@ function applyState(st){
   if(!S.crHalf) S.crHalf={};  // CR view: {id:{'2026-10':1}} — 1 = cash needed in the 16–EOM half
   if(!Array.isArray(S.reprog)) S.reprog=[];   // ATR/BTR log
   if(!S.ptype) S.ptype={};                    // requirement classification: 'PRIME' | 'OGC'
+  if(S.mandOff!==undefined && S.mandOff!==true) delete S.mandOff;   // v2.23 W3 (item 159): mandatory funding off is true or absent (on)
   Object.keys(S.awards).forEach(k=>{ if(Array.isArray(S.awards[k])) S.awards[k]={mode:'inc', inc:S.awards[k]}; });
   // NOTHING TO ALIGN TO IS NOT A REASON TO THROW THE VALUES AWAY. SVC is derived from the data,
   // so the empty template has SVC=[] until its data arrives — and this whole block aligns every
@@ -7602,6 +7733,7 @@ function shiftAwardYears(st, dy){
 }
 function switchYear(y){
   y=parseInt(y);
+  if(y!==MS.cur && typeof avLeave==='function' && !avLeave('Switching to FY'+(y%100))) return;   // v2.23 W3 (item 159)
   if(CYCVIEW && !MS.years[y]){
     setStat('🔒 <b>'+blLbl(CYCVIEW)+'</b> holds no FY'+(y%100)+' plan — it was locked with FY'
       +cycHeld(CYCVIEW).map(function(v){ return v%100; }).join(', FY')+'.');
@@ -13735,6 +13867,8 @@ function inShapeWhy(o, path, asPlan){
          && (w=inShapeWhy(y, path+'.years.'+fy, true))) return w; }
   if(asPlan || (Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o))){
     if(Array.isArray(o.order)) for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i], 'the requirement id at '+path+'.order['+i+']'))) return w;
+    // v2.23 W3 (item 159): mandatory funding on or off for a year is true or false, and nothing else
+    if('mandOff' in o && o.mandOff!==true && o.mandOff!==false) return 'mandatory funding on or off at '+path+'.mandOff is '+inShow(o.mandOff)+', not true or false';
     if(Array.isArray(o.removed)) for(let i=0;i<o.removed.length;i++) if((w=inIdWhy(o.removed[i], 'the requirement id at '+path+'.removed['+i+']'))) return w;
     // v2.14 RV1-D (oldfiles, also noticed): in the user's own board (a full import, 'board'), an entry an older ORBIT's Put back left
     // in the list of added requirements -- null, or one with no requirement id -- is no reason to refuse it: the import mends it as it
@@ -24596,6 +24730,7 @@ function cycChgBody(){
 function cycHeld(key){ const c=blGet(key); return c? Object.keys(c.years||{}).map(Number).sort(function(a,b){ return a-b; }) : []; }
 function cycView(key){
   const c=blGet(key); if(!c) return;
+  if(typeof avLeave==='function' && !avLeave('Viewing a locked cycle')) return;   // v2.23 W3 (item 159)
   const held=cycHeld(key);
   if(!held.length){
     setStat('⚠ <b>'+blLbl(key)+'</b> holds no plan to show — it was migrated from a one-year baseline, '
@@ -26271,7 +26406,13 @@ function tiers(ord, scen){
   // into that service's MANDATORY lane, then into UNFUNDED. A requirement — or even
   // a single service within it — can straddle both pots.
   const out={};
-  const noMand=!!(scen&&scen.noMand);
+  // v2.23 W3 (item 159) -- THE RULE: IN A YEAR WITH MANDATORY FUNDING OFF (S.mandOff, read through mandOn), THIS WALK DRAWS NO
+  // MANDATORY: every mandatory lane is empty for that year, exactly as {noMand:true} empties them, so a dollar that would have spilled
+  // into mandatory -- directed there or not -- is UNFUNDED. Unlike {noMand:true} (the ◨ discretionary-only what-if, scenView: a VIEW,
+  // never saved) this is a setting on the year, saved in the board, and every surface and export reads the same answer for that year.
+  // The mandatory budget authority is untouched (Budget Management, the PPBE position); it is simply not drawn. audit-board asserts it
+  // under RULE ("v2.23 W3 — mandatory funding off").
+  const noMand=!!(scen&&scen.noMand) || !mandOn(S);
   const dRem=S.discSvc.slice(), mRem=noMand? SVC.map(_=>0) : S.mandSvc.slice();
   let cum=0;
   (ord||S.order).forEach(id=>{
@@ -26509,11 +26650,12 @@ function scoreboard(){
     <div class="sub"><b style="color:var(--amber)">Program floor (Discretionary BA + MC need): ${fM(floor)}</b></div>
     ${mcUnf>0.5? `<div class="sub" style="color:var(--red)">⚠ ${fM(mcUnf)} of the must-pay total is UNFUNDED even with mandatory</div>` : ''}
     <div class="bar"><i style="width:${dBA>0?Math.min(100,mcTot/dBA*100):(mcTot>0?100:0)}%;background:${mcNeed>0.5?'var(--red)':'var(--amber)'}"></i></div></div>
+  ${!mandOn()? `<div class="sc mand"><div class="nm" style="color:var(--purp)">3 · Mandatory</div><div class="sub">Mandatory funding is off for ${esc(FYL())}; its BA ${fM(mBA)} stays in 💰 Budget Management.</div></div>` : ''}${mandOn()? `
   <div class="sc mand"><div class="nm" style="color:var(--purp)">3 · Mandatory (spillover)</div>
     <div class="rm" style="color:var(--purp)">${fM(mLeft)} <span style="font-size:9px;color:var(--dim)">left across service lanes</span></div>
     <div class="sub"><span class="balbl">BA:</span> <b>${fM(mBA)}</b> <span style="font-size:9px;color:var(--dim)">· set in 💰 Budget Management</span></div>
     <div class="sub">${fM(mUsed)} drawn (incl ★ MC ${fM(mcCov)}) · ${mN} reqs fully mand</div>
-    <div class="bar"><i style="width:${Math.min(100,mBA>0?mcCov/mBA*100:0)}%;background:var(--amber)"></i><i style="width:${Math.min(100,mBA>0?Math.max(0,mUsed-mcCov)/mBA*100:0)}%;background:var(--purp)"></i></div></div>
+    <div class="bar"><i style="width:${Math.min(100,mBA>0?mcCov/mBA*100:0)}%;background:var(--amber)"></i><i style="width:${Math.min(100,mBA>0?Math.max(0,mUsed-mcCov)/mBA*100:0)}%;background:var(--purp)"></i></div></div>` : ''}
   <div class="sc whole"><div class="nm" style="color:var(--gold)">4 · Whole budget</div>
     <div class="rm" style="color:var(--gold)">${fM(whole)} <span style="font-size:9px;color:var(--dim)">total BA</span></div>
     <div class="sub">${fM(wUsed)} funded when whole · ${uN} reqs / ${fM(uAmt)} beyond both lanes</div>
@@ -26558,7 +26700,7 @@ function scoreboard(){
     sco.innerHTML='';
     document.getElementById('scMini').innerHTML=
       `<span>DISC <b style="color:var(--green)">${fM(dLeft)}</b> left</span>`+
-      `<span>MAND <b style="color:var(--purp)">${fM(mLeft)}</b> left</span>`+
+      (mandOn()? `<span>MAND <b style="color:var(--purp)">${fM(mLeft)}</b> left</span>` : '<span>MAND off</span>')+
       `<span>WHOLE <b style="color:var(--gold)">${fM(whole)}</b></span>`+
       `<span>UNFUNDED <b style="color:var(--red)">${fM(uAmt)}</b></span>`+
       `<span>★ MC TOTAL <b style="color:var(--amber)">${fM(mcTot)}</b></span>`+
@@ -26627,7 +26769,9 @@ function scoreboard(){
       pe.innerHTML = !SVC.length? '' :
         '<div class="pptiles"><div class="pplanes">'
           +lt('disc','Discretionary',dBA,dUsed,dLeft,'var(--apxOk)')+'<div class="pft"><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'+'</div></div>'
-          +lt('mand','Mandatory',mBA,mUsed,mLeft,'#c9930c')+'<div class="pft"><span class="l" data-v="'+Math.round(mLeft)+'">'+((typeof scenOn==='function' && scenOn())? 'withheld (\u25e8 discretionary only)' : fM(mLeft)+' left')+'</span>'+'</div></div>'   // v2.22 review
+          // v2.23 W3 (item 159): no mandatory tile in a year with mandatory funding off -- one line saying so in its place
+          +(mandOn()? lt('mand','Mandatory',mBA,mUsed,mLeft,'#c9930c')+'<div class="pft"><span class="l" data-v="'+Math.round(mLeft)+'">'+((typeof scenOn==='function' && scenOn())? 'withheld (\u25e8 discretionary only)' : fM(mLeft)+' left')+'</span>'+'</div></div>'   // v2.22 review
+            : '<div class="pp ppt mandoff"><div class="k">Mandatory</div><div class="x">Mandatory funding is off for '+esc(FYL())+'. Its budget authority stays in Budget Management; Allocate turns it back on.</div></div>')
         +'</div>'
         +'<div class="pp ppt mc'+(mcUnf>0.5?' warn':'')+'"><div class="k">★ Mission critical · '+pl(mcN,'must-pay','must-pay')+'</div>'
           +'<div class="v" data-v="'+Math.round(mcUnf)+'">'+(mcUnf>0.5? fM(mcUnf)+'</div><div class="x">unfunded of '+fM(mcTot)+', even with mandatory'
@@ -26646,9 +26790,9 @@ function scoreboard(){
           +'<div class="pn">Unfunded is the requirement less discretionary and mandatory, floored per service.</div></div>'
         +'<div class="pp ppatt"><div class="k">Needs attention</div>'+(att? '<div class="pplist">'+att+'</div>' : '<div class="e" style="color:var(--dim)">nothing flagged</div>')+'</div></div>'
         +'<div class="ppbar"><div class="k">Discretionary, mandatory and unfunded against the requirement</div>'
-          +'<div class="segs" role="img" aria-label="'+esc('Discretionary '+fM(dUsed)+', mandatory '+fM(mUsed)+', unfunded '+fM(u2Amt)+', of the '+fM(ask)+' requirement')+'">'
-          +seg('d','Discretionary',dUsed)+seg('m','Mandatory',mUsed)+seg('u','Unfunded',u2Amt)+'</div>'
-          +'<div class="pn">Requirement '+fM(ask)+' \u00b7 Funded '+fM(wUsed)+(ask>0? ' ('+Math.round(wUsed/ask*100)+'%)' : '')+' \u00b7 Discretionary BA left '+fM(dLeft)+' \u00b7 Mandatory BA left '+fM(mLeft)+'</div></div>'
+          +'<div class="segs" role="img" aria-label="'+esc('Discretionary '+fM(dUsed)+(mandOn()? ', mandatory '+fM(mUsed) : '')+', unfunded '+fM(u2Amt)+', of the '+fM(ask)+' requirement')+'">'
+          +seg('d','Discretionary',dUsed)+(mandOn()? seg('m','Mandatory',mUsed) : '')+seg('u','Unfunded',u2Amt)+'</div>'
+          +'<div class="pn">Requirement '+fM(ask)+' \u00b7 Funded '+fM(wUsed)+(ask>0? ' ('+Math.round(wUsed/ask*100)+'%)' : '')+' \u00b7 Discretionary BA left '+fM(dLeft)+(mandOn()? ' \u00b7 Mandatory BA left '+fM(mLeft) : ' \u00b7 mandatory funding off for '+esc(FYL()))+'</div></div>'
         +'<div class="ppdet"><button type="button" class="btn" onclick="fundDetailToggle()" aria-controls="fundDetail" aria-expanded="'+(fundDetailOpen?'true':'false')+'"'
           +' title="The scorecards, the discretionary fit and the funding panels">Funding detail <span class="car" aria-hidden="true">'+(fundDetailOpen?'▴':'▾')+'</span></button></div>';
       // v2.00 UI (chunk 1): the KPI cards print these same figures -- handed over, never worked out again
@@ -30200,7 +30344,7 @@ function render(){
       // allocation leaves them and stays in Rank, where the order is being made
       const rev=[['#'],['PMO','hide760'],['Requirement'],['Decision band','hide760'],[Y,'r'],['Funded','r fundh hide760','Discretionary and mandatory paid, against the requirement'],['Status','hide760'],['\u2605','c'],['']];
       const H={ review:rev, compare:rev, rank:[['Rank']].concat(base.slice(1)),
-        fund:[['#'],['PMO','hide760'],['Requirement'],[Y,'r'],['Discretionary','r hide760'],['Mandatory','r hide760'],['Unfunded','r hide760']].concat(A,[['\u2605','c'],['']]),
+        fund:[['#'],['PMO','hide760'],['Requirement'],[Y,'r'],['Discretionary','r hide760'],['Mandatory','r hide760 mandc'],['Unfunded','r hide760']].concat(A,[['\u2605','c'],['']]),
         brief:[['#'],['PMO','hide760'],['Requirement'],['Decision band','hide760'],[Y,'r'],['Discretionary','r hide760'],['Mandatory','r hide760'],['Unfunded','r hide760'],CU] };
       gh.innerHTML=(H[uiMode]||base).map(function(c){ return '<div class="'+(c[1]||'')+'"'+(c[2]? ' title="'+esc(c[2])+'"' : '')+'>'+esc(c[0])+'</div>'; }).join(''); } }
   // Say it on the board, not only in the menu. Someone reads these rows, or photographs them, and
@@ -30342,7 +30486,7 @@ function render(){
         ${(rankM||pmoMode())? `<div class="pmor" title="${pmoMode()? 'where this requirement sits in the whole portfolio' : esc(grpOf(it))+' #'+PR[id]+' — this office’s own order'}">${pmoMode()? 'master #'+MR[id] : '#'+PR[id]}</div>` : ''}</div>
       <div class="reqc"><div class="tt"><span class="t1" title="${esc(dispTitle(it))}">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${esc(it.team)}</span>`:''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched — this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">⚑ ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' · +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}${(!brief && clinApplies(id))? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin(${jsa(id)})" title="CLIN drill — allocate this prime contract line by line, by service" aria-label="CLIN drill">🧾</button>`:''}<span class="xg">${_xg}</span></div>
         <div class="t2"><span class="ids">${_sec}</span><span class="excs">${_excH}${cycDeltaChip(id)}</span></div></div>
-      ${fundM? `<div class="num">${fM(_ask)}</div>${_amt(t.dT,'d')}${_amt(t.mT,'m')}${_amt(_u,'u')}
+      ${fundM? `<div class="num">${fM(_ask)}</div>${_amt(t.dT,'d')}${_amt(t.mT,'m').replace('<div class="amt ','<div class="amt mandc ')}${_amt(_u,'u')}
       <div class="acts alloc">${isSvc?'<span class="mode-tag">SVC</span>':''}
         ${rowSplit? `<input disabled value="${Math.round(svcAlloc(it).reduce((x,y)=>x+y,0)).toLocaleString()}" aria-label="Allocation" title="allocation = the Disc and Mand dollars you directed, per service, in the ⚙ Split editor. A Split states its own allocation; there is no second figure to set here.${CLINS[id]? ' The CLIN grid is a visual breakout only and feeds none of this.':''}">`
         : `<input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}" aria-label="Allocation"
@@ -33214,10 +33358,19 @@ function migrateSplit(id){
 // FROM THE LANE WALK IT WAS ALREADY PRODUCING -- so nothing moves except the figure that was typed,
 // which is the same property convertAllToSplit() has and 'a recorded funding source moves no
 // money' asserts.
-function setFsrcSvc(id, kind, i, val){
-  if(allocLocked()) return;
+// v2.23 W3 (item 159): o.quiet writes the figure and nothing else -- no save(), no render(), no message -- and answers true or false,
+// so Allocate's Save and mandatory off write many figures and then call save() once (one journal capture). A mandatory figure above
+// $0 in a year with mandatory funding off is refused: nothing would draw it.
+function setFsrcSvc(id, kind, i, val, o){
+  if(allocLocked()) return false;
+  const quiet=!!(o && o.quiet);
   // v1.97 W1 (items 74, 75): read first, so an entry that is refused converts nothing and changes no figure
-  if(amtNo(parseAmt(val), val, (kind==='d'? 'The discretionary dollars for ' : 'The mandatory dollars for ')+(SVC[i]||'this service'))) return;
+  if(quiet){ if(Number.isNaN(parseAmt(val))) return false; }
+  else if(amtNo(parseAmt(val), val, (kind==='d'? 'The discretionary dollars for ' : 'The mandatory dollars for ')+(SVC[i]||'this service'))) return;
+  if(kind!=='d' && !mandOn() && parseAmt(val)>0){
+    if(quiet) return false;
+    setStat('⚠ <b>Mandatory funding is off for '+esc(FYL())+'</b>, so no mandatory dollars can be directed: '+esc(inShow(String(val).trim()))+' was not taken. Allocate turns it back on.');
+    try{ render(); }catch(e){} return; }
   let fo=S.fsrc[id];
   if(!fo || fo.m!=='split'){ seedSplit(id); fo=S.fsrc[id]; }
   if(!fo||fo.m!=='split') return;
@@ -33228,6 +33381,7 @@ function setFsrcSvc(id, kind, i, val){
   }
   const v=parseAmt(val);
   fo[kind==='d'?'dv':'mv'][i] = (v===null||v<0)? 0 : v;
+  if(quiet) return true;
   save(); render(); flash(id);
 }
 // ═══ v2.07 (item 121): ADD REQUIREMENT IS ONE BOX THAT BUILDS THE WHOLE RECORD ════════════════════════════════════════════
@@ -36564,6 +36718,8 @@ function inspectorDraw(el){
   // THE CAP EACH CELL WAS MEASURED AGAINST, so a cell that drew less can say WHICH limit refused
   // the rest. Discretionary is capped by the basis; mandatory by what the basis has left after it.
   const bs = basisSvcOf(it), bsT = bs.reduce(function(a,b){ return a+b; }, 0);
+  // v2.23 W3 (item 159): in a year with mandatory funding off there is no Mand box: nothing would draw what was typed there
+  const mOn = mandOn();
   // v2.01: a figure is one unbreakable span, so the reset arrow or a note beside it wraps under it and the figure is never cut
   const fig = function(v){ return '<span class="fig">' + fM(v) + '</span>'; };
   const svcRow = function(sname, i){
@@ -36600,7 +36756,7 @@ function inspectorDraw(el){
       // Not yet converted: the box holds what the lane walk drew, which is exactly what the first
       // keystroke will seed the split from. Directed and drawn are the same figure until then.
       + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d, d, bs[i]) + '</td>'
-      + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m, bs[i] - d) + '</td>'
+      + (mOn ? '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m, bs[i] - d) + '</td>' : '')
       + '<td class="' + (unf > 0.005 ? 'uf' : 'ro') + '">' + (unf > 0.005 ? fig(unf) : '\u2014')
         + (u > 0.005 ? laneShortNote(u) : '')
         + '</td></tr>';
@@ -36630,8 +36786,8 @@ function inspectorDraw(el){
     // equally, so the three money inputs are the same size and none of them resizes when a UFR
     // cell turns from an em dash into a figure.
     // v2.01: the UFR column is as wide as its widest figure (78px at least, as before), so no UFR figure is cut
-    + '<colgroup><col style="width:58px"><col><col><col><col style="width:' + ufrColW + '"></colgroup>'
-    + '<tr><th class="l">Service</th><th>Requirement</th><th>Disc</th><th>Mand</th><th>Unfunded</th></tr>'
+    + '<colgroup><col style="width:58px"><col><col>' + (mOn ? '<col>' : '') + '<col style="width:' + ufrColW + '"></colgroup>'
+    + '<tr><th class="l">Service</th><th>Requirement</th><th>Disc</th>' + (mOn ? '<th>Mand</th>' : '') + '<th>Unfunded</th></tr>'
     + SVC.map(svcRow).join('')
     + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fig(askTot(it))
     + (it.custom ? '' : ' <button class="qb" onclick="resetAsk('+jsa(id)+')"'
@@ -36639,7 +36795,7 @@ function inspectorDraw(el){
     // The total is what was DRAWN -- that is the money. When the column above it was directed
     // higher, say so here too, or the column does not add up to its own total on screen.
     + '<td style="color:var(--green)">' + fig(dT) + directedLine(dirD, dT, bsT) + '</td>'
-    + '<td style="color:var(--purp)">' + fig(mT) + directedLine(dirM, mT, bsT - dT) + '</td>'
+    + (mOn ? '<td style="color:var(--purp)">' + fig(mT) + directedLine(dirM, mT, bsT - dT) + '</td>' : '')
     + '<td class="' + (unfT > 0.005 ? 'uf' : 'ro') + '">' + (unfT > 0.005 ? fig(unfT) : '\u2014')
       + (uT > 0.005 ? laneShortNote(uT) : '') + '</td></tr>'
     + '</table>';
@@ -37498,9 +37654,9 @@ var UI2={on:false, dock:false, cols:{}, fly:'', t:0, kpiErr:''};
 // v2.21 (item 152): the left menu is APEX's, text only and always its full width -- the rail it could fold to, and that rail's
 // peek over the page at 900px and narrower, are gone (Brad, 24 Nov 2026). Below 900px it is a row of its items under the header.
 const UI_SIDEW=168;
-var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief'};
-var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief'};
-var UI_NAV=['req','fund','fydp','exec','cyc','brief','rep','imp','data','pmo','aud','hist','setup','save'];
+var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief', alloc:'alloc'};
+var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief', alloc:'Allocate'};
+var UI_NAV=['req','fund','alloc','fydp','exec','cyc','brief','rep','imp','data','pmo','aud','hist','setup','save'];
 // v2.00 (menu, 19 Oct): the left menu's flyouts, and the list syncBtns() writes that each one shows (UI_FLYHOST)
 var UI_FLY=['fydp','exec','pmo','aud','hist','setup','save'];
 var UI_FLYHOST={pmo:'dd_offices', aud:'dd_audit', hist:'dd_kept', setup:'dd_setup', save:'dd_save'};
@@ -37683,10 +37839,12 @@ function uiKpis(){
         const html=
             uiKpiCard('ask', 'Total requirement', K.ask, K.n+' requirement'+(K.n===1?'':'s')+'<span id="kpiTodo"></span>', [K.wUsed||0, K.ask])
           + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA'+left(K.dLeft, K.dUsed), [K.dUsed, K.dBA])
-          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA'+(mWh? ' \u00b7 withheld (\u25e8 discretionary only)' : left(K.mLeft, K.mUsed)), [K.mUsed, K.mBA])
+          // v2.23 W3 (item 159): no Mandatory tile in a year with mandatory funding off
+          + (mandOn()? uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA'+(mWh? ' \u00b7 withheld (\u25e8 discretionary only)' : left(K.mLeft, K.mUsed)), [K.mUsed, K.mBA]) : '')
           + uiKpiCard('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Unfunded', K.u2Amt,
                  K.u2Amt>0.5? (K.uN+' of '+K.n+' requirement'+(K.n===1?'':'s')+' short') : 'nothing unfunded', [K.u2Amt, K.ask]);
         el.innerHTML=html;
+        el.classList.toggle('n3', !mandOn());
       }
       UI2.kpiErr='';
     }catch(e){ uiKpisNa(e); }
@@ -37823,6 +37981,7 @@ function uiGo(k, btn){
   uiFlyClose();
   if(k==='req'){ if(uiMode!=='review' && uiMode!=='rank') uiSetMode('review'); return; }
   if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
+  if(k==='alloc'){ if(uiMode!=='alloc') uiSetMode('alloc'); return; }   // v2.23 W3 (item 159): Allocate, its one home
   if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
   if(k==='brief'){ if(uiMode!=='brief') uiSetMode('brief'); return; }
   if(k==='imp'){ uiImpOpen(btn); return; }
@@ -38471,7 +38630,8 @@ function moneyBarHtml(T, CL){
   if(!say.length) say.push('No lane runs out: discretionary pays every requirement as it is allocated');
   if(MB_KB>=B.length) MB_KB=-1;
   return '<div class="mbh"><span class="k">Where the money runs out, in priority order</span>'
-    +'<span class="pn">the whole board, #1–'+rank+', whatever the list shows · each block is one requirement, sized by its requirement · '+fM(tot)+'</span></div>'
+    +'<span class="pn">the whole board, #1–'+rank+', whatever the list shows · each block is one requirement, sized by its requirement · '+fM(tot)
+      +(mandOn()? '' : ' · mandatory funding off for '+esc(FYL())+': no block is yellow')+'</span></div>'
     +'<div class="mbbar" role="listbox" tabindex="0" aria-label="Where the money runs out: every requirement in priority order. Arrow keys move, Enter selects."'
     +(MB_KB>=0? ' aria-activedescendant="mb_'+MB_KB+'"' : '')+'>'+bar+'</div>'
     +'<div class="mbsay">'+say.map(function(t){ return '<span>'+esc(t)+'</span>'; }).join('')+'</div>';
@@ -38839,7 +38999,7 @@ function cmdActions(){
   if(CMD.acts) return CMD.acts;
   const out=[], seen={};
   const BOX={rep:'uiRepPanel', imp:'uiImpPanel', data:'uiDataPanel'};
-  const VIEWS={req:1, fund:1, cyc:1, brief:1};
+  const VIEWS={req:1, fund:1, alloc:1, cyc:1, brief:1};   // v2.23 W3: Allocate is a view
   const shown=function(e, root){ for(let x=e; x && x!==root; x=x.parentElement){ if(x.hidden && !x.classList.contains('gbody')) return false; } return !e.disabled; };
   const take=function(k, root, rootSel){
     const nl=cmdNavLbl(k);
@@ -39278,7 +39438,9 @@ var V223_AFTER=[];
 function v223After(){ (V223_AFTER||[]).forEach(function(f){ try{ f(); }catch(e){} }); }
 // v2.23 (W3, item 159): is mandatory funding on for a year? St is a year's state (S when left out). Until W3 builds the
 // switch it is on everywhere. Every surface that prints a mandatory figure for a year asks this, never a field of its own.
-function mandOn(St){ return true; }
+// v2.23 W3 (item 159): BUILT. Off is S.mandOff===true on that year's own state, saved with it and travelling as every year's field
+// does; anything else is on. tiers() reads it at its RULE line. Safe to call while the board is opening (it reads only its argument).
+function mandOn(St){ try{ const T=St || S; return !(T && T.mandOff===true); }catch(e){ return true; } }
 // v2.23 (W1, item 156): the requirement page's tabs. Each is {k, label, order, html(id) -> markup, after(id) -> once drawn};
 // W1 registers Overview 10, Funding by service 20, Awards 30, History 50; W2 registers Across the FYDP 40 (item 158). The page
 // draws them by order. A `var`, so a builder's slot can push to it whatever order the slots are read in.
@@ -40249,6 +40411,621 @@ function xfFillDo(){
 }
 // ==== end v2.23 W2 ====
 // ==== v2.23 W3 ====
+// ═══ v2.23 W3 (item 159): ALLOCATE EVERY REQUIREMENT IN ONE YEAR, AND MANDATORY FUNDING ON OR OFF PER YEAR ═══════════════════
+// Brad, 25 Nov 2026: "a way to manage and adjust funding allocations to all listed requirements in a given FY ... quickly give and
+// take real funding allocations across the requirements in a grid like format", A (the sheet, for the working group) and C (one
+// lane at a time), Present as the same screen switched, B's move panel joining One lane as an aside; and "the ability to turn on or
+// off the need for mandatory funding". The contract: recovery/v223/contract.md §1.3.
+//  - A WORKSPACE MODE, 'alloc' (Allocate, under Views in the left menu): #allocView in place of the table. Like every mode it is
+//    this browser's (spmtMode) and changes no figure by being chosen.
+//  - A HELD DRAFT. Every box writes AV.draft, never the board. The figures beside the boxes are the lane engine's own, run on the
+//    board with the draft laid over its directed splits (avModel: tiers() on a copy of S whose fsrc carries the drafted splits) --
+//    never a second engine, and nothing written while drawing. Save writes each changed figure through setFsrcSvc (the RECORD
+//    card's own setter; each requirement seeded by seedSplit from one lane walk first, as typing there does) and calls save() once.
+//  - MANDATORY ON OR OFF is S.mandOff on the year's own state (mandOn, in the seams). tiers() states the rule at its line.
+var AV={view:'sheet', present:false, svc:0, lane:'d', draft:{}, was:{}, bad:{}, sel:{}, fy:0, ap:'', cyc:'', mv:{from:'', to:'', lane:'d', amt:''}, all:false, t:0};
+function avOn(){ try{ return uiMode==='alloc'; }catch(e){ return false; } }
+function avKeyOf(id, k, i){ return String(id)+'|'+k+'|'+i; }
+function avSplit(key){ const a=String(key).lastIndexOf('|'), b=String(key).lastIndexOf('|', a-1);
+  return {id:String(key).slice(0, b), k:String(key).slice(b+1, a), i:+String(key).slice(a+1)}; }
+// read only: a locked cycle on screen, or a PMO copy (the allocation is the portfolio team's, allocLocked)
+function avRO(){
+  try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) return 'locked'; }catch(e){}
+  try{ if(typeof SANDBOX!=='undefined' && SANDBOX) return 'copy'; }catch(e){}
+  return '';
+}
+function avChanges(){
+  return Object.keys(AV.draft).map(function(key){ const p=avSplit(key); return {key:key, id:p.id, k:p.k, i:p.i, was:AV.was[key], now:AV.draft[key]}; })
+    .filter(function(c){ return c.now!==c.was; })
+    .sort(function(a, b){ const o=S.order||[]; return (o.indexOf(a.id)-o.indexOf(b.id)) || (a.i-b.i) || (a.k<b.k? -1 : (a.k>b.k? 1 : 0)); });
+}
+function avChangeN(){ try{ return (AV && AV.draft)? avChanges().length : 0; }catch(e){ return 0; } }
+function avDiscardAll(){ AV.draft={}; AV.was={}; AV.bad={}; AV.sel={}; }
+// THE DRAFT BELONGS TO ONE PLAN: this appropriation, this year, the working plan. Leaving it asks first (avLeave); a draft found
+// against another plan -- a load that replaced the board under it -- is dropped and said, never written into the plan now showing.
+function avSync(){
+  const ap=(function(){ try{ return mySlug(); }catch(e){ return ''; } })(), fy=(typeof MS!=='undefined' && MS)? MS.cur : 0;
+  const cy=(typeof CYCVIEW!=='undefined' && CYCVIEW) || '';
+  if(AV.fy===fy && AV.ap===ap && AV.cyc===cy) return;
+  const n=avChangeN();
+  if(n && AV.fy) try{ setStat('⚠ The allocation view’s '+n+' unsaved change'+(n===1?'':'s')+' belonged to FY'+(AV.fy%100)+(AV.cyc? ' as locked' : '')
+    +' and were dropped: the board on screen is another plan now.'); }catch(e){}
+  avDiscardAll(); AV.fy=fy; AV.ap=ap; AV.cyc=cy;
+}
+// Leaving the view, the year, the appropriation or the working plan with a draft asks first. OK discards; Cancel keeps it.
+function avLeave(what){
+  let n=0; try{ n=avChangeN() + Object.keys(AV.bad||{}).length; }catch(e){ n=0; }
+  if(!n) return true;
+  if(!confirm(what+' leaves Allocate with '+n+' change'+(n===1?'':'s')+' not saved.\n\nOK discards '+(n===1?'it':'them')
+    +'. Cancel keeps '+(n===1?'it':'them')+' so you can Save first.')) return false;
+  avDiscardAll(); return true;
+}
+function avUnload(ev){
+  try{ if((typeof _leaving!=='undefined' && _leaving) || !(avChangeN() || Object.keys(AV.bad).length)) return; ev.preventDefault(); ev.returnValue=''; return ''; }catch(e){}
+}
+try{ window.addEventListener('beforeunload', avUnload); }catch(e){}
+
+// ---- the model: what each requirement is directed and what it draws, with the draft laid over -----------------------------
+// What a requirement is DIRECTED per service now: its split's own figures, or -- not yet on a split -- what the lane walk draws,
+// which is exactly what the first typed figure seeds the split from (setFsrcSvc / seedSplit). Whole dollars.
+function avBase(id, T){
+  const fo=(S.fsrc||{})[id], p=T[id];
+  if(fo && fo.m==='split' && Array.isArray(fo.dv))
+    return {d:SVC.map(function(_, i){ return D$(Math.max(0, +fo.dv[i]||0)); }), m:SVC.map(function(_, i){ return D$(Math.max(0, +(fo.mv||[])[i]||0)); })};
+  return {d:SVC.map(function(_, i){ return D$(p? (p.d[i]||0) : 0); }), m:SVC.map(function(_, i){ return D$(p? (p.m[i]||0) : 0); })};
+}
+function avDirOf(id, T){
+  const b=avBase(id, T);
+  SVC.forEach(function(_, i){ ['d','m'].forEach(function(k){ const key=avKeyOf(id, k, i); if(key in AV.draft) b[k][i]=AV.draft[key]; }); });
+  return b;
+}
+function avDraftIds(){ const o={}; Object.keys(AV.draft).forEach(function(key){ o[avSplit(key).id]=1; }); return Object.keys(o); }
+// THE LANE ENGINE ON THE DRAFT. tiers() reads the global S; it is pointed for one synchronous call at a shallow copy whose fsrc
+// carries each drafted requirement as the split Save would write, then put back. The board's own S is never touched.
+function avTiers(T0){
+  const ids=avDraftIds(); if(!ids.length) return T0;
+  const fs=Object.assign({}, S.fsrc||{});
+  ids.forEach(function(id){ if(!itemById(id)) return; const b=avDirOf(id, T0); fs[id]={m:'split', dv:b.d, mv:b.m}; });
+  const keep=S, S2=Object.assign({}, S, {fsrc:fs});
+  let T;
+  try{ S=S2; T=tiers(); } finally { S=keep; }
+  return T;
+}
+function avModel(){
+  const T0=tiers(), T=avTiers(T0), mOn=mandOn();
+  const order=(S.order||[]).filter(function(id){ return !!itemById(id); });
+  const rank={}; order.forEach(function(id, n){ rank[id]=n+1; });
+  let shown=[]; try{ shown=gridIds().filter(function(id){ return rank[id]; }); }catch(e){ shown=[]; }
+  const narrowed=(function(){ try{ return uiNarrowed(); }catch(e){ return false; } })();
+  if(!narrowed && !shown.length) shown=order.slice();
+  shown.sort(function(a, b){ return rank[a]-rank[b]; });
+  const z=function(){ return SVC.map(function(){ return 0; }); };
+  const R={}, tot={ask:z(), dD:z(), dM:z(), d:z(), m:z(), u:z()}, drafted={};
+  avDraftIds().forEach(function(id){ drafted[id]=1; });
+  order.forEach(function(id){
+    // what a requirement is directed: a split's own figures (with the draft over them), or -- on the lane walk and not in the draft
+    // -- what the walk draws WITH the draft laid over the others, since that is what it will draw once the draft is saved
+    const fo=(S.fsrc||{})[id], onSplit=!!(fo && fo.m==='split' && Array.isArray(fo.dv));
+    const it=itemById(id), p=T[id]||{d:z(), m:z()}, u=unfSvcOf(it, p);
+    const dir=(drafted[id] || onSplit)? avDirOf(id, T0) : {d:SVC.map(function(_, i){ return D$(p.d[i]||0); }), m:SVC.map(function(_, i){ return D$(p.m[i]||0); })};
+    R[id]={id:id, it:it, p:p, dir:dir, u:u, ask:SVC.map(function(_, i){ return D$(it.ask[i]||0); })};
+    SVC.forEach(function(_, i){ tot.ask[i]+=R[id].ask[i]; tot.dD[i]+=dir.d[i]; tot.dM[i]+=(mOn? dir.m[i] : 0); tot.d[i]+=p.d[i]||0; tot.m[i]+=p.m[i]||0; tot.u[i]+=u[i]; });
+  });
+  const ba={d:SVC.map(function(_, i){ return D$((S.discSvc||[])[i]||0); }), m:SVC.map(function(_, i){ return mOn? D$((S.mandSvc||[])[i]||0) : 0; })};
+  return {T0:T0, T:T, mOn:mOn, order:order, shown:shown, narrowed:narrowed, rank:rank, R:R, tot:tot, ba:ba};
+}
+const avSum=function(a){ return (a||[]).reduce(function(x, y){ return x+(+y||0); }, 0); };
+// the lanes directed past what they hold: [{i, k, over}], per service and lane, never netted
+function avOverOf(M){
+  const out=[];
+  SVC.forEach(function(sv, i){ const od=M.tot.dD[i]-M.ba.d[i], om=M.tot.dM[i]-M.ba.m[i];
+    if(od>0.5) out.push({i:i, k:'d', over:od, sv:sv}); if(M.mOn && om>0.5) out.push({i:i, k:'m', over:om, sv:sv}); });
+  return out;
+}
+
+// ---- drawing ---------------------------------------------------------------------------------------------------------------
+function avPct(a, b){ return b>0? Math.max(0, Math.min(100, a/b*100)) : 0; }
+function avFig(v){ return Math.round(v).toLocaleString(); }
+function avBox(M, id, k, i, r, c, title){
+  const key=avKeyOf(id, k, i), b=AV.bad[key];
+  const v=M.R[id].dir[k][i], chg=(key in AV.draft) && AV.draft[key]!==AV.was[key];
+  if(AV.present || avRO()) return '<span class="avro'+(chg? ' chg' : '')+'">'+avFig(v)+'</span>';
+  const drew=M.R[id].p[k][i]||0;
+  return '<input class="avin'+(chg? ' chg' : '')+(b? ' bad' : '')+'" data-k="'+esc(key)+'" data-r="'+r+'" data-c="'+c+'" inputmode="numeric" autocomplete="off"'
+    +' value="'+esc(b? b.t : avFig(v))+'"'+(b? ' aria-invalid="true"' : '')
+    +' aria-label="'+esc(title+' — '+SVC[i]+' '+(k==='d'? 'discretionary' : 'mandatory'))+'"'
+    +' title="'+esc(b? b.why : ((chg? 'Changed, not saved: was '+fM(AV.was[key])+'. ' : '')+(k==='d'? 'Discretionary' : 'Mandatory')+' dollars directed'+drewTip(v, drew)))+'"'
+    +' onfocus="this.select()" onchange="avCell(this)" onkeydown="avKey(event)" onpaste="avPaste(event)">';
+}
+function avHead(M){
+  const n=avChangeN(), ro=avRO(), nb=Object.keys(AV.bad).length;
+  const sw=function(lbl, on, h, t){ return '<button type="button" class="avsw" aria-pressed="'+(on?'true':'false')+'" onclick="'+h+'"'+(t? ' title="'+esc(t)+'"' : '')+'>'+lbl+'</button>'; };
+  let h='<div class="avbar">'
+    +'<span class="avgrp" role="group" aria-label="View">'+sw('Sheet', AV.view==='sheet', 'avView(&quot;sheet&quot;)', 'Every requirement and every service')
+      +sw('One lane', AV.view==='lane', 'avView(&quot;lane&quot;)', 'One service at a time, counting its lane down row by row')+'</span>'
+    +'<span class="avgrp" role="group" aria-label="Edit or present">'+sw('Edit', !AV.present, 'avPresent(false)', 'Type figures: one person edits')
+      +sw('Present (read only)', AV.present, 'avPresent(true)', 'The same screen, read only, in larger type for the room')+'</span>'
+    +'<button type="button" class="avmand" role="switch" aria-checked="'+(M.mOn?'true':'false')+'" onclick="mandSwitch()"'
+      +(ro? ' aria-disabled="true"' : '')+' title="'+esc(ro==='locked'? 'A locked cycle is read only' : (ro==='copy'? 'Set by the portfolio team: not in a PMO copy'
+        : 'Mandatory funding for '+FYL()+' only: off, no requirement draws mandatory money this year'))+'"><span class="avk" aria-hidden="true"></span>Mandatory funding: '
+      +(M.mOn? 'On' : 'Off for '+FYL())+'</button>'
+    +'<span class="avsp"></span>';
+  if(!ro && !AV.present){
+    h+=(n? '<span class="avn">'+n+' change'+(n===1?'':'s')+' not saved</span>' : '')
+      +(nb? '<span class="avn bad">'+nb+' box'+(nb===1?'':'es')+' not read</span>' : '')
+      +'<button type="button" class="btn" onclick="avReview()"'+(n? '' : ' disabled')+'>Review changes</button>'
+      +'<button type="button" class="btn" onclick="avDiscard()"'+((n||nb)? '' : ' disabled')+'>Discard</button>'
+      +'<button type="button" class="btn pri" onclick="avSave()"'+(n? '' : ' disabled')+'>Save</button>';
+  }
+  h+='</div>';
+  if(ro) h+='<div class="avro-line" role="note">'+(ro==='locked'? '🔒 A locked cycle is on screen: read only. Nothing here can change it.'
+    : 'In a PMO copy the discretionary and mandatory allocation is set by the portfolio team: read only here.')+'</div>';
+  return h;
+}
+function avTiles(M){
+  const ask=avSum(M.tot.ask), f=avSum(M.tot.d)+avSum(M.tot.m), u=avSum(M.tot.u), ba=avSum(M.ba.d)+avSum(M.ba.m);
+  const dir=avSum(M.tot.dD)+avSum(M.tot.dM), left=ba-dir, nShort=M.order.filter(function(id){ return avSum(M.R[id].u)>0.5; }).length;
+  const ov=avOverOf(M), under=[];
+  SVC.forEach(function(sv, i){ if(M.ba.d[i]-M.tot.dD[i]>0.5) under.push(sv+' Disc'); if(M.mOn && M.ba.m[i]-M.tot.dM[i]>0.5) under.push(sv+' Mand'); });
+  const tile=function(cls, l, v, x, m, col){ return '<div class="avt '+cls+'"><div class="l">'+l+'</div><div class="v" data-v="'+Math.round(v)+'">'+(v<0? '−'+fM(-v) : fM(v))+'</div>'
+    +'<div class="km" aria-hidden="true"><i style="width:'+m.toFixed(2)+'%;background:'+col+'"></i></div><div class="x">'+x+'</div></div>'; };
+  return '<div class="avtiles">'
+    +tile('ask', 'Requirement (the goal)', ask, M.order.length+' requirement'+(M.order.length===1?'':'s')+', '+SVC.length+' service'+(SVC.length===1?'':'s'), 100, 'var(--apxNav)')
+    +tile('fund', 'Funded', f, Math.round(avPct(f, ask))+'% of the requirement', avPct(f, ask), 'var(--apxOk)')
+    +tile('unf'+(u>0.5?' short':''), 'Unfunded', u, nShort+' of '+M.order.length+' requirement'+(M.order.length===1?'':'s')+' short', avPct(u, ask), 'var(--apxBad)')
+    +tile('ba', 'Budget authority', ba, Math.round(avPct(ba, ask))+'% of the requirement'+(M.mOn? '' : ' · discretionary only'), avPct(ba, ask), 'var(--apxNav)')
+    +tile('left'+(left<-0.5?' short':''), 'Left to give', left,
+      (ov.length? esc(ov.map(function(o){ return o.sv+' '+(o.k==='d'?'Disc':'Mand')+' over '+fM(o.over); }).join(', ')) : 'no lane is given more than it holds')
+      +(under.length? '; '+esc(under.slice(0, 3).join(', '))+(under.length>3? ' and '+(under.length-3)+' more' : '')+' ha'+(under.length===1?'s':'ve')+' money left' : ''),
+      avPct(Math.max(0, left), ba), 'var(--apxOk)')
+    +'</div>';
+}
+function avSheet(M){
+  const mOn=M.mOn, nc=mOn? 3 : 2;
+  let h='<div class="avscroll" id="avScroll"><table class="avs'+(mOn? '' : ' nomand')+'"><thead>'
+    +'<tr class="h1"><th class="n" rowspan="2">#</th><th class="t" rowspan="2">Requirement</th><th class="o" rowspan="2">PMO</th>'
+    +SVC.map(function(sv){ return '<th class="sv" colspan="'+nc+'">'+esc(sv)+'</th>'; }).join('')
+    +'<th class="tot" rowspan="2">Req</th><th class="tot" rowspan="2">Funded</th><th class="tot" rowspan="2">Unfunded</th><th class="tot" rowspan="2">Funded %</th></tr>'
+    +'<tr class="h2">'+SVC.map(function(){ return '<th class="q">Req</th><th>Disc</th>'+(mOn? '<th>Mand</th>' : ''); }).join('')+'</tr>';
+  const pin=function(cls, lbl, cells, tot){ return '<tr class="pin '+cls+'"><th class="n"></th><th class="t" colspan="2">'+lbl+'</th>'+cells+tot+'</tr>'; };
+  const cell=function(v, o){ o=o||{}; return '<td class="'+(o.cls||'')+'">'+(v===null? '' : v)+'</td>'; };
+  const leftTxt=function(v){ return v<-0.5? '<b class="over">over '+fM(-v)+'</b>' : fM(v); };
+  const askT=avSum(M.tot.ask), fT=avSum(M.tot.d)+avSum(M.tot.m);
+  h+=pin('goal', 'Requirement (the goal)', SVC.map(function(_, i){ return cell(fM(M.tot.ask[i]), {cls:'q'})+cell('')+(mOn? cell('') : ''); }).join(''),
+       cell(fM(askT), {cls:'tot'})+cell('')+cell('')+cell(''));
+  h+=pin('ba', 'Budget authority', SVC.map(function(_, i){ return cell('', {cls:'q'})+cell(fM(M.ba.d[i]))+(mOn? cell(fM(M.ba.m[i])) : ''); }).join(''),
+       cell('')+cell(fM(avSum(M.ba.d)+avSum(M.ba.m)), {cls:'tot'})+cell('')+cell(''));
+  h+=pin('alloc', 'Allocated <span class="avh">(Req: share met)</span>', SVC.map(function(_, i){
+       return cell(Math.round(avPct(M.tot.d[i]+M.tot.m[i], M.tot.ask[i]))+'%', {cls:'q'})+cell(fM(M.tot.dD[i]))+(mOn? cell(fM(M.tot.dM[i])) : ''); }).join(''),
+       cell('')+cell(fM(avSum(M.tot.dD)+avSum(M.tot.dM)), {cls:'tot'})+cell('')+cell(''));
+  h+=pin('left', 'Left in the lane', SVC.map(function(_, i){
+       return cell('', {cls:'q'})+cell(leftTxt(M.ba.d[i]-M.tot.dD[i]))+(mOn? cell(leftTxt(M.ba.m[i]-M.tot.dM[i])) : ''); }).join(''), cell('')+cell('')+cell('')+cell(''));
+  h+=pin('unf', 'Still unfunded', SVC.map(function(_, i){ return cell(fM(M.tot.u[i]), {cls:'q uf'})+cell('')+(mOn? cell('') : ''); }).join(''),
+       cell('')+cell('')+cell(fM(avSum(M.tot.u)), {cls:'tot uf'})+cell(''));
+  h+='</thead><tbody>';
+  if(M.narrowed) h+='<tr class="avnote"><td colspan="'+(3+SVC.length*nc+4)+'">The lines above are the whole board’s: '+M.shown.length+' of '+M.order.length
+    +' requirements are shown here (the list’s filters and search apply).</td></tr>';
+  M.shown.forEach(function(id, r){
+    const x=M.R[id], ttl=dispTitle(x.it);
+    h+='<tr data-id="'+esc(id)+'"><td class="n">'+M.rank[id]+'</td><td class="t" title="'+esc(ttl)+'">'+esc(ttl)+'</td><td class="o">'+esc(grpOf(x.it))+'</td>';
+    SVC.forEach(function(sv, i){
+      const ask=x.ask[i], has=ask>0 || x.dir.d[i]>0 || x.dir.m[i]>0;
+      if(!has){ h+='<td class="q none">·</td><td class="none"></td>'+(mOn? '<td class="none"></td>' : ''); return; }
+      const met=x.u[i]<=0.5;
+      h+='<td class="q '+(ask>0? (met? 'met' : 'short') : '')+'" title="'+esc(sv+' requirement '+fM(ask)+(met? ', met' : ', short '+fM(x.u[i])))+'">'+fM(ask)+'</td>'
+        +'<td>'+avBox(M, id, 'd', i, r, i*2, ttl)+'</td>'+(mOn? '<td>'+avBox(M, id, 'm', i, r, i*2+1, ttl)+'</td>' : '');
+    });
+    const ask=avSum(x.ask), f=avSum(x.p.d)+avSum(x.p.m), u=avSum(x.u), pc=avPct(f, ask);
+    h+='<td class="tot">'+fM(ask)+'</td><td class="tot">'+fM(f)+'</td><td class="tot'+(u>0.5? ' uf' : '')+'">'+(u>0.5? fM(u) : '—')+'</td>'
+      +'<td class="tot pc"><span class="avm" aria-hidden="true"><i style="width:'+pc.toFixed(2)+'%"></i></span>'+Math.round(pc)+'%</td></tr>';
+  });
+  if(!M.shown.length) h+='<tr class="avnote"><td colspan="'+(3+SVC.length*nc+4)+'">'+(M.order.length? 'No requirement is shown: the list’s filters hide them all.' : 'This year holds no requirements.')+'</td></tr>';
+  h+='</tbody></table></div>'
+    +'<div class="avkey"><span class="k met">requirement met for that service</span><span class="k short">requirement not met: the shortfall is in Unfunded</span>'
+    +'<span class="k chg">changed, not saved</span><span>Arrow keys move between boxes; a block pasted from Excel fills from the box pasted into.</span></div>';
+  return h;
+}
+function avLane(M){
+  const mOn=M.mOn, i=Math.min(AV.svc, SVC.length-1), sv=SVC[i]||'', L=(AV.lane==='m' && mOn)? 'm' : 'd';
+  let h='<div class="avtabs" role="group" aria-label="Service">'+SVC.map(function(s, j){
+    const a=M.tot.ask[j], f=M.tot.d[j]+M.tot.m[j], pc=avPct(f, a);
+    return '<button type="button" class="avtab" aria-pressed="'+(j===i?'true':'false')+'" onclick="avSvc('+j+')"><b>'+esc(s)+'</b><span>'+fMc(a)+' asked · '+Math.round(pc)+'% met</span>'
+      +'<span class="avm" aria-hidden="true"><i style="width:'+pc.toFixed(2)+'%"></i></span></button>'; }).join('')+'</div>';
+  const a=M.tot.ask[i], dD=M.tot.d[i], dM=M.tot.m[i], u=M.tot.u[i], bD=M.ba.d[i], bM=M.ba.m[i];
+  const lD=bD-M.tot.dD[i], lM=bM-M.tot.dM[i], all=bD+bM, cant=Math.max(0, a-all);
+  const lf=function(v){ return v<-0.5? ' · <b class="over">over '+fM(-v)+'</b>' : (v<=0.5? ' · all given' : ' · '+fM(v)+' left'); };
+  h+='<div class="avgoal"><div class="avgf"><div><span>'+esc(sv)+' requirement (the goal)</span><b>'+fM(a)+'</b></div><div><span>Funded</span><b>'+fM(dD+dM)+'</b></div>'
+    +'<div><span>Unfunded</span><b class="'+(u>0.5?'uf':'')+'">'+fM(u)+'</b></div><div><span>Discretionary BA · left</span><b>'+fM(bD)+lf(lD)+'</b></div>'
+    +(mOn? '<div><span>Mandatory BA · left</span><b>'+fM(bM)+lf(lM)+'</b></div>' : '')+'</div>'
+    +'<div class="avbig" role="img" aria-label="'+esc(sv+': discretionary '+fM(dD)+', mandatory '+fM(dM)+', unfunded '+fM(u)+' of the '+fM(a)+' requirement; all '+sv+' budget authority '+fM(all))+'">'
+    +'<i class="d" style="width:'+avPct(dD, a).toFixed(2)+'%"></i>'+(mOn? '<i class="m" style="width:'+avPct(dM, a).toFixed(2)+'%"></i>' : '')
+    +'<i class="u" style="width:'+avPct(u, a).toFixed(2)+'%"></i><span class="line" style="left:'+avPct(all, a).toFixed(2)+'%"></span></div>'
+    +'<div class="avgn"><span>Bar = the '+esc(sv)+' requirement. Green discretionary'+(mOn? ', yellow mandatory' : '')+', red still unfunded.</span>'
+    +'<span>| the line: all '+esc(sv)+' budget authority ('+fM(all)+')'+(cant>0.5? ', so '+fM(cant)+' of the requirement cannot be met however it is moved' : '')+'</span></div></div>';
+  const ro=avRO()||AV.present;
+  const ids=M.shown.filter(function(id){ const x=M.R[id]; return x.ask[i]>0 || x.dir.d[i]>0 || x.dir.m[i]>0; });
+  const nSel=ids.filter(function(id){ return AV.sel[id]; }).length;
+  if(!ro) h+='<div class="aved"><span class="avlbl">Editing:</span><span class="avgrp" role="group" aria-label="Lane">'
+      +'<button type="button" class="avsw" aria-pressed="'+(L==='d'?'true':'false')+'" onclick="avLaneK(&quot;d&quot;)">Discretionary</button>'
+      +(mOn? '<button type="button" class="avsw" aria-pressed="'+(L==='m'?'true':'false')+'" onclick="avLaneK(&quot;m&quot;)">Mandatory</button>' : '')+'</span>'
+    +'<span class="avh">Left after counts down the lane being edited, in priority order; the other lane is shown and can be typed in too.</span><span class="avsp"></span>'
+    +'<span>'+nSel+' selected:</span>'
+    +'<button type="button" class="btn" onclick="avBulk(&quot;full&quot;)"'+(nSel? '' : ' disabled')+'>Fund to the requirement</button>'
+    +'<button type="button" class="btn" onclick="avBulk(&quot;cut&quot;)"'+(nSel? '' : ' disabled')+'>Cut by %…</button>'
+    +'<button type="button" class="btn" onclick="avBulk(&quot;zero&quot;)"'+(nSel? '' : ' disabled')+'>Set to $0</button></div>';
+  // Left after: the edited lane's budget authority less what is directed to it, row by row down the WHOLE order (a narrowed list
+  // shows its rows' figures, never a count of only what is shown)
+  const left={}; let run=(L==='d'? bD : bM);
+  M.order.forEach(function(id){ run-=M.R[id].dir[L][i]; left[id]=run; });
+  h+='<div class="avscroll" id="avScroll"><table class="avl'+(mOn? '' : ' nomand')+'"><thead><tr>'+(ro? '' : '<th class="cb"><span class="vh">Select</span></th>')
+    +'<th class="n">#</th><th class="t">Requirement</th><th class="r">'+esc(sv)+' requirement</th><th class="r'+(L==='d'?' ed':'')+'">Discretionary</th>'
+    +(mOn? '<th class="r'+(L==='m'?' ed':'')+'">Mandatory</th>' : '')+'<th>Met</th><th class="r">Unfunded</th><th class="r">'+(L==='d'?'Disc':'Mand')+' left after</th>'
+    +(ro? '' : '<th>Quick</th>')+'</tr></thead><tbody>';
+  let cut=false;
+  ids.forEach(function(id, r){
+    const x=M.R[id], ttl=dispTitle(x.it), a1=x.ask[i], f=(x.p.d[i]||0)+(x.p.m[i]||0), pc=avPct(f, a1), lv=left[id];
+    h+='<tr data-id="'+esc(id)+'"'+(AV.sel[id]? ' class="sel"' : '')+'>'
+      +(ro? '' : '<td class="cb"><input type="checkbox" aria-label="'+esc('Select '+ttl)+'"'+(AV.sel[id]? ' checked' : '')+' data-id="'+esc(id)+'" onchange="avSel(this)"></td>')
+      +'<td class="n">'+M.rank[id]+'</td><td class="t"><b>'+esc(ttl)+'</b><small>'+esc(grpOf(x.it))+' · whole requirement '+fM(avSum(x.ask))+'</small></td>'
+      +'<td class="r">'+fM(a1)+'</td><td class="r">'+avBox(M, id, 'd', i, r, 0, ttl)+'</td>'+(mOn? '<td class="r">'+avBox(M, id, 'm', i, r, 1, ttl)+'</td>' : '')
+      +'<td class="met"><span class="avm2" aria-hidden="true"><i class="d" style="width:'+avPct(x.p.d[i]||0, a1).toFixed(2)+'%"></i>'+(mOn? '<i class="m" style="width:'+avPct(x.p.m[i]||0, a1).toFixed(2)+'%"></i>' : '')+'</span>'+Math.round(pc)+'%</td>'
+      +'<td class="r'+(x.u[i]>0.5? ' uf' : '')+'">'+(x.u[i]>0.5? fM(x.u[i]) : '—')+'</td>'
+      +'<td class="r'+(lv<-0.5? ' over' : '')+'">'+(lv<-0.5? '−'+fM(-lv) : fM(lv))+'</td>'
+      +(ro? '' : '<td class="qk"><button type="button" class="avq" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;full&quot;)" title="'+esc('Fund '+ttl+' to its '+sv+' requirement in this lane')+'">Full</button>'
+        +'<button type="button" class="avq" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;zero&quot;)" title="'+esc('Set '+ttl+'’s '+sv+' '+(L==='d'?'discretionary':'mandatory')+' to $0')+'">$0</button></td>')+'</tr>';
+    if(!cut && lv<=0.5 && r<ids.length-1){ cut=true;
+      h+='<tr class="avcut" role="presentation"><td colspan="'+((ro? 7 : 9)+(mOn? 1 : 0))+'">▼ '+esc(sv)+' '+(L==='d'?'DISCRETIONARY':'MANDATORY')
+        +' IS GONE HERE — below, only '+(L==='d' && mOn? 'mandatory or ' : '')+'money moved up from a row above can meet the requirement</td></tr>'; }
+  });
+  if(!ids.length) h+='<tr class="avnote"><td colspan="'+((ro? 7 : 9)+(mOn? 1 : 0))+'">No requirement shown asks for '+esc(sv)+'.</td></tr>';
+  h+='</tbody><tfoot><tr>'+(ro? '' : '<td></td>')+'<td></td><td class="t">'+esc(sv)+' total · '+M.order.filter(function(id){ return M.R[id].ask[i]>0; }).length+' requirements'+(M.narrowed? ' (the whole board)' : '')+'</td>'
+    +'<td class="r">'+fM(a)+'</td><td class="r">'+fM(M.tot.dD[i])+'</td>'+(mOn? '<td class="r">'+fM(M.tot.dM[i])+'</td>' : '')+'<td>'+Math.round(avPct(dD+dM, a))+'% met</td>'
+    +'<td class="r uf">'+fM(u)+'</td><td class="r'+((L==='d'? lD : lM)<-0.5? ' over' : '')+'">'+((L==='d'? lD : lM)<-0.5? 'over '+fM(-(L==='d'? lD : lM)) : fM(L==='d'? lD : lM)+' left')+'</td>'+(ro? '' : '<td></td>')+'</tr></tfoot></table></div>';
+  if(!ro) h+=avMoveHtml(M, i, ids);
+  return h;
+}
+// THE MOVE ASIDE (Brad, 25 Nov 2026: "B's move panel joins One lane as an aside"): take an amount from one requirement's lane and
+// give it to another's, in this service, into the draft. The source cannot give more than it is directed.
+function avMoveHtml(M, i, ids){
+  const mOn=M.mOn, mv=AV.mv, opt=function(sel){ return '<option value="">— choose —</option>'+ids.map(function(id){ return '<option value="'+esc(id)+'"'+(sel===id? ' selected' : '')+'>#'+M.rank[id]+' '+esc(dispTitle(M.R[id].it))+'</option>'; }).join(''); };
+  return '<div class="avmove" role="group" aria-label="Move money between two requirements"><b>Move</b>'
+    +'<label>amount <input id="avMvAmt" inputmode="numeric" autocomplete="off" value="'+esc(mv.amt)+'" oninput="AV.mv.amt=this.value"></label>'
+    +(mOn? '<label>of <select id="avMvLane" onchange="AV.mv.lane=this.value"><option value="d"'+(mv.lane!=='m'?' selected':'')+'>discretionary</option><option value="m"'+(mv.lane==='m'?' selected':'')+'>mandatory</option></select></label>' : '<span>of discretionary</span>')
+    +'<label>from <select id="avMvFrom" onchange="AV.mv.from=this.value">'+opt(mv.from)+'</select></label>'
+    +'<label>to <select id="avMvTo" onchange="AV.mv.to=this.value">'+opt(mv.to)+'</select></label>'
+    +'<button type="button" class="btn" onclick="avMove()">Move into the draft</button>'
+    +'<span class="avh">in '+esc(SVC[i]||'')+' only; nothing is saved until Save</span></div>';
+}
+function avHtml(){
+  const M=avModel();
+  let h=avHead(M)
+    +'<h3 class="avttl">'+esc(FYL())+' '+esc((function(){ try{ return apLabel(); }catch(e){ return ''; } })())+' · '+(AV.view==='lane'? 'one service at a time' : 'every requirement, every allocation')+'</h3>'
+    +'<p class="avsub">'+M.order.length+' requirement'+(M.order.length===1?'':'s')+' in priority order. '+(AV.view==='lane'
+      ? 'Every requirement that asks for the service: its requirement (the goal), what each lane gives it, and what is left after it.'
+      : 'For each service: the requirement (the goal, shaded), then Discretionary'+(M.mOn? ' and Mandatory' : '')+'.')
+      +(M.mOn? '' : ' Mandatory funding is off for '+esc(FYL())+', so its columns and lines are gone.')+' Figures in whole dollars.</p>';
+  if(!SVC.length) return h+'<p class="avsub">This board has no services yet.</p>';
+  h+=(AV.view==='lane'? '' : avTiles(M))+(AV.view==='lane'? avLane(M) : avSheet(M));
+  return h;
+}
+function avDraw(){
+  const el=document.getElementById('allocView'); if(!el) return;
+  if(!avOn()){ if(!el.hidden || el.innerHTML){ el.hidden=true; el.innerHTML=''; } return; }
+  avSync();
+  // what holds the keyboard is found again by its key after the redraw, with any typing not yet taken (the F2 rule)
+  const a=document.activeElement, mine=!!(a && el.contains(a));
+  const fk=mine? (a.getAttribute('data-k') || a.id || '') : '';
+  const held=(mine && a.classList && a.classList.contains('avin') && a.value!==a.defaultValue)? {v:a.value, s:a.selectionStart, e:a.selectionEnd} : null;
+  if(mine && a.tagName==='INPUT') try{ a.removeAttribute('onchange'); }catch(e){}   // Chromium fires change as innerHTML removes a focused field
+  const sc=document.getElementById('avScroll'), sx=sc? [sc.scrollLeft, sc.scrollTop] : null;
+  el.hidden=false;
+  el.className='allocview'+(AV.present? ' avpres' : '');
+  el.innerHTML=avHtml();
+  const sc2=document.getElementById('avScroll'); if(sc2 && sx){ sc2.scrollLeft=sx[0]; sc2.scrollTop=sx[1]; }
+  if(fk){ let n=null; try{ n=el.querySelector('[data-k="'+CSS.escape(fk)+'"]') || document.getElementById(fk); }catch(e){ n=null; }
+    if(n){ try{ if(held) n.value=held.v; n.focus({preventScroll:true}); if(held && n.setSelectionRange) n.setSelectionRange(held.s, held.e); }catch(e){} } }
+}
+function avLater(){ clearTimeout(AV.t); AV.t=setTimeout(function(){ try{ avDraw(); }catch(e){} }, 0); }
+try{ V223_AFTER.push(avDraw); }catch(e){}
+
+// ---- the switches --------------------------------------------------------------------------------------------------------
+function avView(v){ AV.view=(v==='lane')? 'lane' : 'sheet'; avDraw(); }
+function avPresent(on){ AV.present=!!on; avDraw(); }
+function avSvc(j){ AV.svc=Math.max(0, Math.min(SVC.length-1, +j||0)); AV.sel={}; AV.mv.from=''; AV.mv.to=''; avDraw(); }
+function avLaneK(k){ AV.lane=(k==='m' && mandOn())? 'm' : 'd'; avDraw(); }
+function avSel(cb){ const id=cb.getAttribute('data-id'); if(cb.checked) AV.sel[id]=1; else delete AV.sel[id]; avLater(); }
+
+// ---- writing the draft ---------------------------------------------------------------------------------------------------
+// One figure into the draft, never the board. A figure equal to what is stored leaves the draft.
+function avPut(id, k, i, v, T0){
+  if(k==='m' && !mandOn()) return false;
+  const key=avKeyOf(id, k, i);
+  if(!(key in AV.was)) AV.was[key]=avBase(id, T0||tiers())[k][i];
+  if(v===AV.was[key]){ delete AV.draft[key]; delete AV.was[key]; } else AV.draft[key]=v;
+  delete AV.bad[key];
+  return true;
+}
+// a typed figure: whole dollars, read as every typed amount is (amtRead); a refusal keeps the typing and says why
+function avRead(txt){
+  const r=amtRead(txt);
+  if(r.why) return {why:r.why};
+  return {v:(r.v===null? 0 : r.v), rounded:r.rounded};
+}
+function avCell(el){
+  if(avRO() || AV.present) return;
+  const key=el.getAttribute('data-k'), p=avSplit(key), it=itemById(p.id);
+  if(!it) return;
+  const r=avRead(el.value);
+  if(r.why){ AV.bad[key]={t:el.value, why:r.why};
+    try{ setStat('⚠ <b>'+esc(dispTitle(it))+'</b>, '+esc(SVC[p.i]||'')+' '+(p.k==='d'?'discretionary':'mandatory')+' was not changed: '+esc(r.why)+'.'); }catch(e){}
+    avLater(); return; }
+  avPut(p.id, p.k, p.i, r.v);
+  if(r.rounded) try{ setStat('ℹ '+esc(inShow(String(el.value).trim()))+' was entered as <b>'+fM(r.v)+'</b> — the board keeps whole dollars.'); }catch(e){}
+  avLater();
+}
+// arrow keys move between boxes: up and down always, left and right at the edge of the figure; Enter moves down
+function avKey(e){
+  const el=e.target; if(!el || !el.getAttribute) return;
+  const r=+el.getAttribute('data-r'), c=+el.getAttribute('data-c');
+  let dr=0, dc=0;
+  const all=el.selectionStart===0 && el.selectionEnd===el.value.length;
+  if(e.key==='ArrowUp') dr=-1; else if(e.key==='ArrowDown' || e.key==='Enter') dr=1;
+  else if(e.key==='ArrowLeft' && (all || el.selectionStart===0)) dc=-1;
+  else if(e.key==='ArrowRight' && (all || el.selectionEnd===el.value.length)) dc=1;
+  else return;
+  const view=document.getElementById('allocView'); if(!view) return;
+  let n=null;
+  if(dr) n=view.querySelector('input.avin[data-r="'+(r+dr)+'"][data-c="'+c+'"]');
+  else { const row=[].slice.call(view.querySelectorAll('input.avin[data-r="'+r+'"]')).sort(function(a, b){ return a.getAttribute('data-c')-b.getAttribute('data-c'); });
+    const ix=row.indexOf(el); n=row[ix+dc]||null; }
+  if(!n) return;
+  e.preventDefault();
+  try{ n.focus(); n.select(); }catch(x){}
+}
+// PASTE FROM EXCEL: tab- and line-separated, filling from the box pasted into, right and down along the boxes as drawn. A blank cell
+// leaves its box as it is; a cell that is not a figure is refused by name and the rest still go in.
+function avPaste(e){
+  const el=e.target, txt=(e.clipboardData || window.clipboardData || {getData:function(){ return ''; }}).getData('text') || '';
+  if(!/[\t\r\n]/.test(txt.replace(/[\r\n]+$/, ''))) return;     // one figure: the browser's own paste, then change takes it
+  e.preventDefault();
+  avPasteGrid(el, txt);
+}
+function avPasteGrid(el, txt){
+  if(avRO() || AV.present) return {n:0, bad:[]};
+  const view=document.getElementById('allocView'), r0=+el.getAttribute('data-r'), c0=+el.getAttribute('data-c');
+  const lines=String(txt).replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n');
+  const T0=tiers(); let n=0; const bad=[], off=[];
+  lines.forEach(function(line, dr){
+    const row=[].slice.call(view.querySelectorAll('input.avin[data-r="'+(r0+dr)+'"]')).sort(function(a, b){ return a.getAttribute('data-c')-b.getAttribute('data-c'); });
+    const start=row.findIndex(function(b){ return +b.getAttribute('data-c')>=c0; });
+    line.split('\t').forEach(function(cellTxt, dc){
+      const t=cellTxt.trim(); if(t==='') return;
+      const box=(start>=0)? row[start+dc] : null;
+      if(!box){ off.push('row '+(dr+1)+', column '+(dc+1)); return; }
+      const key=box.getAttribute('data-k'), p=avSplit(key), r=avRead(t);
+      if(r.why){ bad.push('row '+(dr+1)+', column '+(dc+1)+': '+r.why); AV.bad[key]={t:t, why:r.why}; return; }
+      avPut(p.id, p.k, p.i, r.v, T0); n++;
+    });
+  });
+  try{ setStat((bad.length? '⚠ ' : '')+'Pasted '+n+' figure'+(n===1?'':'s')+' into the draft.'
+    +(bad.length? ' Not read: '+esc(bad.join('; '))+'.' : '')+(off.length? ' Past the last box, left out: '+esc(off.slice(0, 4).join('; '))+(off.length>4? ' and '+(off.length-4)+' more' : '')+'.' : '')); }catch(e){}
+  avDraw();
+  return {n:n, bad:bad, off:off};
+}
+// One lane: Full and $0 per row, and the same for every selected row. "Full" makes the lane being edited carry what the other lane
+// does not, up to the service's requirement; Cut by % takes that share off what the lane is directed.
+function avLaneSet(id, how, pc, T0){
+  const i=Math.min(AV.svc, SVC.length-1), L=(AV.lane==='m' && mandOn())? 'm' : 'd', O=L==='d'? 'm' : 'd';
+  const it=itemById(id); if(!it) return false;
+  const dir=avDirOf(id, T0), ask=D$(it.ask[i]||0);
+  let v=dir[L][i];
+  if(how==='full') v=Math.max(0, ask-(O==='m' && !mandOn()? 0 : dir[O][i]));
+  else if(how==='zero') v=0;
+  else if(how==='cut') v=Math.max(0, Math.round(dir[L][i]*(1-pc/100)));
+  return avPut(id, L, i, v, T0);
+}
+function avQuick(btn, how){ if(avRO() || AV.present) return; avLaneSet(btn.getAttribute('data-id'), how, 0, tiers()); avDraw(); }
+function avBulk(how){
+  if(avRO() || AV.present) return;
+  const ids=Object.keys(AV.sel).filter(function(id){ return !!itemById(id); });
+  if(!ids.length) return;
+  const go=function(pc){ const T0=tiers(); ids.forEach(function(id){ avLaneSet(id, how, pc, T0); }); avDraw();
+    try{ setStat(ids.length+' selected requirement'+(ids.length===1?'':'s')+' changed in the draft. Nothing is saved until Save.'); }catch(e){} };
+  if(how!=='cut') return go(0);
+  uiPrompt('Cut the selected requirements’ '+(AV.lane==='m'? 'mandatory' : 'discretionary')+' by what percentage? (1 to 100)', '10', function(v){
+    if(v===null) return;
+    const t=String(v).trim().replace(/%$/, ''), pc=Number(t);
+    if(!/^\d+(\.\d+)?$/.test(t) || !(pc>0) || pc>100){ try{ setStat('⚠ '+esc(inShow(String(v)))+' is not a percentage from 1 to 100: nothing was cut.'); }catch(e){} return; }
+    go(pc);
+  });
+}
+function avMove(){
+  if(avRO() || AV.present) return;
+  const i=Math.min(AV.svc, SVC.length-1), L=(AV.mv.lane==='m' && mandOn())? 'm' : 'd';
+  const a=document.getElementById('avMvAmt'); if(a) AV.mv.amt=a.value;
+  const fr=AV.mv.from, to=AV.mv.to, say=function(m){ try{ setStat(m); }catch(e){} };
+  if(!fr || !to || !itemById(fr) || !itemById(to)) return say('⚠ Choose the requirement to take from and the one to give to.');
+  if(fr===to) return say('⚠ The two requirements are the same one: nothing was moved.');
+  const r=avRead(AV.mv.amt);
+  if(r.why) return say('⚠ The amount was not read: '+esc(r.why)+'.');
+  if(!(r.v>0)) return say('⚠ Type an amount above $0 to move.');
+  const T0=tiers(), A=avDirOf(fr, T0), B=avDirOf(to, T0);
+  if(r.v>A[L][i]) return say('⚠ <b>'+esc(dispTitle(itemById(fr)))+'</b> is directed '+fM(A[L][i])+' of '+esc(SVC[i])+' '+(L==='d'?'discretionary':'mandatory')
+    +', so '+fM(r.v)+' cannot be taken from it.');
+  avPut(fr, L, i, A[L][i]-r.v, T0); avPut(to, L, i, B[L][i]+r.v, T0);
+  AV.mv.amt='';
+  avDraw();
+  say('Moved '+fM(r.v)+' of '+esc(SVC[i])+' '+(L==='d'?'discretionary':'mandatory')+' from <b>'+esc(dispTitle(itemById(fr)))+'</b> to <b>'+esc(dispTitle(itemById(to)))
+    +'</b> in the draft. Nothing is saved until Save.');
+}
+
+// ---- review, discard, save -----------------------------------------------------------------------------------------------
+function avBoxEnsure(id, title, close){
+  let bg=document.getElementById(id); if(bg) return bg;
+  bg=document.createElement('div'); bg.className='modal-bg'; bg.id=id;
+  bg.innerHTML='<div class="modal avmodal"><h3><span>'+title+'</span> <button type="button" class="x" onclick="'+close+'">✕ Close</button></h3><div class="avbody"></div></div>';
+  document.body.appendChild(bg);
+  try{ new MutationObserver(function(){ dlgSync(); }).observe(bg, {attributes:true, attributeFilter:['class','style'], childList:true, subtree:true}); }catch(e){}
+  return bg;
+}
+function avReview(){
+  const ch=avChanges();
+  const bg=avBoxEnsure('avRevPanel', 'Changes not saved', 'avReviewClose()');
+  bg.querySelector('h3 span').textContent='Changes not saved · '+FYL();
+  bg.querySelector('.avbody').innerHTML=ch.length? '<table class="avrev"><thead><tr><th>#</th><th>Requirement</th><th>Service</th><th>Lane</th><th class="r">Was</th><th class="r">Now</th></tr></thead><tbody>'
+    +ch.map(function(c){ const it=itemById(c.id); return '<tr><td>'+((S.order||[]).indexOf(c.id)+1)+'</td><td>'+esc(it? dispTitle(it) : c.id)+'</td><td>'+esc(SVC[c.i]||'')+'</td><td>'
+      +(c.k==='d'? 'Discretionary' : 'Mandatory')+'</td><td class="r">'+fM(c.was)+'</td><td class="r">'+fM(c.now)+'</td></tr>'; }).join('')+'</tbody></table>'
+    : '<p>There are no changes in the draft.</p>';
+  bg.classList.add('open');
+  try{ dlgSync(); }catch(e){}
+}
+function avReviewClose(){ const bg=document.getElementById('avRevPanel'); if(bg) bg.classList.remove('open'); try{ dlgSync(); }catch(e){} }
+function avDiscard(){
+  const n=avChangeN()+Object.keys(AV.bad).length; if(!n) return;
+  if(!confirm('Discard the '+n+' change'+(n===1?'':'s')+' in Allocate? Nothing on the board changes.')) return;
+  avDiscardAll(); avDraw(); try{ setStat('The allocation draft was discarded: the board is as it was saved.'); }catch(e){}
+}
+// SAVE: every change through setFsrcSvc, the RECORD card's setter, after each requirement not yet on a split is seeded from ONE lane
+// walk (seedSplit, as the first figure typed there seeds it); then one save(), one journal capture with a line per figure.
+function avSave(){
+  if(cycBlock('Saving allocations')) return false;
+  if(avRO()==='copy'){ allocLocked(); return false; }
+  const nb=Object.keys(AV.bad).length;
+  if(nb){ try{ setStat('⚠ '+nb+' box'+(nb===1?' holds':'es hold')+' a figure that could not be read: correct '+(nb===1?'it':'them')+', or Discard, before saving.'); }catch(e){} return false; }
+  const ch=avChanges(); if(!ch.length){ try{ setStat('Nothing to save: the draft holds no changes.'); }catch(e){} return false; }
+  const M=avModel(), ov=avOverOf(M);
+  if(ov.length && !confirm('These lanes are given more than they hold:\n\n'+ov.map(function(o){ return '  '+o.sv+' '+(o.k==='d'?'discretionary':'mandatory')+': over by '+fM(o.over); }).join('\n')
+    +'\n\nThe money past what a lane holds is not drawn: it shows as unfunded on the requirements below the point where the lane runs out.\n\nSave anyway?')) return false;
+  const T=tiers(), ids={};
+  ch.forEach(function(c){ ids[c.id]=1; });
+  Object.keys(ids).forEach(function(id){ const fo=(S.fsrc||{})[id]; if(!fo || fo.m!=='split') seedSplit(id, T); });
+  let n=0; const no=[];
+  ch.forEach(function(c){ if(!itemById(c.id)){ no.push(c); return; } if(setFsrcSvc(c.id, c.k, c.i, String(c.now), {quiet:true})) n++; else no.push(c); });
+  avDiscardAll();
+  save(); render();
+  try{ setStat('💾 Allocate: '+n+' figure'+(n===1?'':'s')+' saved on '+Object.keys(ids).length+' requirement'+(Object.keys(ids).length===1?'':'s')
+    +'. Each is a line in the change journal, where it can be put back.'+(no.length? ' ⚠ '+no.length+' could not be written (the requirement is gone, or the figure was refused).' : '')); }catch(e){}
+  return true;
+}
+
+// ---- mandatory funding on or off, per year ---------------------------------------------------------------------------------
+// What turning mandatory off in the year on screen would take away: every requirement the lane walk pays mandatory to, or that
+// is directed mandatory dollars, with what it draws and its unfunded after. 'move' also gives each one the discretionary the
+// lane still holds AT THE END OF THE WALK (T.__rem.dRem), walking the priority order: money left after every requirement has
+// drawn is money no requirement below this one needs, so giving it here moves no other requirement's draw.
+function mandOffPlan(T, how){
+  T=T||tiers();
+  const room=SVC.map(function(_, i){ return Math.max(0, D$(((T.__rem||{}).dRem||[])[i]||0)); });
+  const rows=[]; let mTot=0, take=0;
+  (S.order||[]).forEach(function(id){
+    const it=itemById(id), p=T[id]; if(!it || !p) return;
+    const fo=(S.fsrc||{})[id], mv=(fo && fo.m==='split' && Array.isArray(fo.mv))? fo.mv.map(function(v){ return +v||0; }) : SVC.map(function(){ return 0; });
+    const m=SVC.map(function(_, i){ return D$(p.m[i]||0); });
+    if(!(avSum(m)>0.5 || avSum(mv)>0.5 || (fo && fo.m==='mand'))) return;
+    const tk=SVC.map(function(_, i){ if(how!=='move') return 0; const t=Math.min(m[i], room[i]); room[i]-=t; return t; });
+    const unf=unfTotOf(it, p);
+    rows.push({id:id, it:it, d:SVC.map(function(_, i){ return D$(p.d[i]||0); }), m:m, mv:mv, take:tk, unfNow:unf, unfAfter:unf+avSum(m)-avSum(tk)});
+    mTot+=avSum(m); take+=avSum(tk);
+  });
+  return {rows:rows, mTot:mTot, take:take, room:SVC.map(function(_, i){ return Math.max(0, D$(((T.__rem||{}).dRem||[])[i]||0)); }), mBA:avSum(S.mandSvc||[])};
+}
+// the years a choice reaches: this one, or this one and every later year the board holds
+function mandYears(all){ const y=+MS.cur; return Object.keys(MS.years||{}).map(Number).filter(function(v){ return v===y || (all && v>y); }).sort(function(a, b){ return a-b; }); }
+var MANDBOX={how:'clear', all:false, more:false};
+function mandSwitch(){
+  if(cycBlock('Turning mandatory funding on or off')) return false;
+  if(typeof SANDBOX!=='undefined' && SANDBOX){ try{ setStat('⚠ Mandatory funding on or off is set by the portfolio team, so it cannot be changed in a PMO copy.'); }catch(e){} return false; }
+  const n=avChangeN()+Object.keys(AV.bad).length;
+  if(n){ try{ setStat('⚠ Save or discard the '+n+' change'+(n===1?'':'s')+' in Allocate first: turning mandatory funding '+(mandOn()? 'off' : 'on')+' changes the figures they were typed against.'); }catch(e){} return false; }
+  if(!mandOn()){
+    delete S.mandOff; save(); render();
+    try{ setStat('Mandatory funding is on again for '+esc(FYL())+'. Its columns are back, empty: no requirement is directed mandatory money until it is typed.'); }catch(e){}
+    return true;
+  }
+  const P=mandOffPlan(tiers(), 'clear');
+  if(!P.rows.length){ S.mandOff=true; save(); render();
+    try{ setStat('Mandatory funding is off for '+esc(FYL())+'. No requirement held mandatory money, so nothing else changed; its budget authority stays in Budget Management.'); }catch(e){}
+    return true; }
+  MANDBOX={how:'clear', all:false, more:false};
+  mandBoxDraw();
+  const bg=document.getElementById('avMandPanel'); if(bg) bg.classList.add('open');
+  try{ dlgSync(); }catch(e){}
+  return true;
+}
+// THE BOX: what is there, and the two ways off. Read again every time it is drawn; nothing is written until its button.
+function mandBoxDraw(){
+  const bg=avBoxEnsure('avMandPanel', 'Turn off mandatory funding?', 'mandBoxClose()');
+  bg.querySelector('h3 span').textContent='Turn off mandatory funding for '+FYL()+'?';
+  const P=mandOffPlan(tiers(), MANDBOX.how), lim=MANDBOX.more? P.rows.length : 4;
+  const yrs=mandYears(true), later=yrs.filter(function(y){ return y!==+MS.cur; });
+  const other=MANDBOX.all? later.map(function(y){ let Q=null; aceWithYear(y, function(){ Q=mandOffPlan(tiers(), MANDBOX.how); }); return {y:y, P:Q}; }) : [];
+  const sumM=P.mTot+other.reduce(function(a, o){ return a+o.P.mTot; }, 0), sumT=P.take+other.reduce(function(a, o){ return a+o.P.take; }, 0);
+  bg.querySelector('.avbody').innerHTML=
+    '<p>'+esc(FYL())+' already has mandatory money in it: <b>'+fM(P.mBA)+'</b> of mandatory budget authority, and <b>'+fM(P.mTot)+'</b> drawn as mandatory on <b>'
+      +P.rows.length+' requirement'+(P.rows.length===1?'':'s')+'</b>.</p>'
+    +'<table class="avrev mandlist"><thead><tr><th>#</th><th>Requirement</th><th class="r">Mandatory</th>'+(MANDBOX.how==='move'? '<th class="r">Moved to discretionary</th>' : '')+'<th class="r">Unfunded after</th></tr></thead><tbody>'
+    +P.rows.slice(0, lim).map(function(r){ return '<tr data-id="'+esc(r.id)+'"><td>'+((S.order||[]).indexOf(r.id)+1)+'</td><td>'+esc(dispTitle(r.it))+'</td><td class="r">'+fM(avSum(r.m))+'</td>'
+      +(MANDBOX.how==='move'? '<td class="r">'+fM(avSum(r.take))+'</td>' : '')+'<td class="r uf">'+fM(r.unfAfter)+'</td></tr>'; }).join('')+'</tbody></table>'
+    +(P.rows.length>lim? '<p class="avh">and '+(P.rows.length-lim)+' more · <button type="button" class="nb lnk" onclick="MANDBOX.more=true;mandBoxDraw()">list them all</button></p>' : '')
+    +'<fieldset class="mandhow"><legend class="vh">What happens to the mandatory money</legend>'
+    +'<label><input type="radio" name="mandHow" value="clear"'+(MANDBOX.how==='clear'?' checked':'')+' onchange="MANDBOX.how=\'clear\';mandBoxDraw()"> <b>Clear them.</b> Those requirements lose their mandatory dollars and the shortfall shows as unfunded. Each line goes in the change journal, where it can be put back.</label>'
+    +'<label><input type="radio" name="mandHow" value="move"'+(MANDBOX.how==='move'?' checked':'')+' onchange="MANDBOX.how=\'move\';mandBoxDraw()"> <b>Move what discretionary can cover.</b> Each requirement keeps its money where its service’s discretionary lane has room left after every requirement has drawn ('
+      +fM(avSum(P.room))+' of it'+(MANDBOX.all && later.length? ' in '+esc(FYL()) : '')+'), in priority order; the rest is cleared.</label></fieldset>'
+    +'<p><label>Applies to <select id="mandAll" onchange="MANDBOX.all=this.value===\'all\';mandBoxDraw()"><option value="one"'+(MANDBOX.all?'':' selected')+'>'+esc(FYL())+' only</option>'
+      +(later.length? '<option value="all"'+(MANDBOX.all?' selected':'')+'>'+esc(FYL())+' and every later year held (FY'+later.map(function(y){ return y%100; }).join(', FY')+')</option>' : '')+'</select></label></p>'
+    +(other.length? '<p class="avh">'+other.map(function(o){ return 'FY'+(o.y%100)+': '+o.P.rows.length+' requirement'+(o.P.rows.length===1?'':'s')+', '+fM(o.P.mTot)+' mandatory'
+      +(MANDBOX.how==='move'? ', '+fM(o.P.take)+' moved' : ''); }).join(' · ')+'</p>' : '')
+    +'<p class="avh">The mandatory budget authority stays in Budget Management and the PPBE position; it just isn’t allocated while mandatory is off. Turning it back on brings the columns back, empty.</p>'
+    +'<div class="avbtns"><button type="button" class="btn" onclick="mandBoxClose()">Keep mandatory on</button>'
+    +'<button type="button" class="btn pri danger" onclick="mandOffApply()">'+(MANDBOX.how==='move'? 'Move '+fM(sumT)+', clear '+fM(sumM-sumT)+' and turn off' : 'Clear '+fM(sumM)+' and turn off')+'</button></div>';
+}
+function mandBoxClose(){ const bg=document.getElementById('avMandPanel'); if(bg) bg.classList.remove('open'); try{ dlgSync(); }catch(e){} }
+// TURNING IT OFF: in each year it reaches, the oldest first -- each requirement not yet on a split is seeded from that year's lane
+// walk as it stood (seedSplit), mandatory is turned off, and then every mandatory figure goes to $0 through setFsrcSvc (and, for
+// Move, the discretionary takes what the plan gave it). One save(): one journal capture, a line per figure, each with its year.
+function mandOffApply(){
+  if(cycBlock('Turning mandatory funding off')) return false;
+  if(typeof SANDBOX!=='undefined' && SANDBOX){ mandBoxClose(); return false; }
+  const how=MANDBOX.how==='move'? 'move' : 'clear', yrs=mandYears(MANDBOX.all);
+  let n=0, nReq=0, moved=0, cleared=0;
+  yrs.forEach(function(y){
+    aceWithYear(y, function(){
+      const T=tiers(), P=mandOffPlan(T, how);
+      P.rows.forEach(function(r){ const fo=(S.fsrc||{})[r.id]; if(!fo || fo.m!=='split') seedSplit(r.id, T); });
+      S.mandOff=true;
+      P.rows.forEach(function(r){
+        nReq++;
+        SVC.forEach(function(_, i){
+          if((r.m[i]||0)>0 || (r.mv[i]||0)>0 || ((S.fsrc[r.id]||{}).mv||[])[i]>0){ if(setFsrcSvc(r.id, 'm', i, '0', {quiet:true})) n++; }
+          if(r.take[i]>0){ if(setFsrcSvc(r.id, 'd', i, String(r.d[i]+r.take[i]), {quiet:true})) n++; moved+=r.take[i]; }
+          cleared+=Math.max(0, (r.m[i]||0)-r.take[i]);
+        });
+      });
+      applyState(MS.years[MS.cur]);
+    });
+  });
+  mandBoxClose();
+  save(); render();
+  try{ setStat('Mandatory funding is off for '+yrs.map(function(y){ return 'FY'+(y%100); }).join(', ')+'. '
+    +(how==='move'? fM(moved)+' moved to discretionary and ' : '')+fM(cleared)+' cleared on '+nReq+' requirement'+(nReq===1?'':'s')
+    +'; each figure is a line in the change journal, where it can be put back. The mandatory budget authority stays in Budget Management.'); }catch(e){}
+  return true;
+}
+
+// ---- hiding mandatory where it is off ---------------------------------------------------------------------------------------
+// Fund mode's Mandatory column: its cells carry .mandc (render()), hidden by the class html.ui-mandoff, and its track is taken out
+// of the row template after uiCols() has made it (wrapped here, as the board wraps fitMenus). A narrow row draws no such column.
+function avMandCols(){
+  const h=document.documentElement; if(!h) return;
+  const off=!mandOn();
+  h.classList.toggle('ui-mandoff', off);
+  if(!off || uiMode!=='fund' || !UI2 || !UI2.on) return;
+  let tr=[]; try{ tr=uiTracks(h.style.getPropertyValue('--rowcols').trim() || getComputedStyle(h).getPropertyValue('--rowcols').trim()); }catch(e){ tr=[]; }
+  const ix=(tr.length===10)? 5 : ((tr.length===9 && UI2.cols && UI2.cols.pmo)? 4 : -1);
+  if(ix<0) return;
+  h.style.setProperty('--rowcols', tr.filter(function(_, j){ return j!==ix; }).join(' '));
+}
+try{ uiCols=(function(own){ return function(){ own.apply(this, arguments); try{ avMandCols(); }catch(e){} }; })(uiCols); }catch(e){}
 // ==== end v2.23 W3 ====
 // ==== v2.23 integration (the lead) ====
 // ==== end v2.23 integration (the lead) ====

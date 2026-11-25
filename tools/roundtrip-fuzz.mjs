@@ -261,6 +261,8 @@ const populate = (ev, sc) => ev(`(function(){
   // v2.09 (item 126): the highest added-requirement number handed out, which a PMO copy now writes on the year it adds in
   // (reqSeqNext: one count across every year of the copy) -- a number a reopen must keep, or an id is handed out twice
   S.newSeq=${int(40, 900)};
+  // v2.23 W3 (item 159): mandatory funding on or off for the year -- true, or absent (on); off here, so every trip must bring it back
+  S.mandOff=true;
   // v2.14 RV2-D (fuzz-cannot-see-customAside): what the mend sets aside from a list an older ORBIT damaged, in the shape v2.13's Put
   // back leaves it ({ask, fy26} with no id, at its place in the list), kept in the file as found -- every trip must bring it back
   S.customAside=[{i:${int(0, 4)}, v:{ask:SVC.map(function(){return ${int(1, 99999)};}), fy26:SVC.map(function(){return 0;}), note:NASTY[${int(0, 13)}]}}];
