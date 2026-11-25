@@ -2106,7 +2106,149 @@ html.ui-on.ui-sumfold:not([data-mode="brief"]):not([data-mode="fund"]) .moneybar
 html.ui-on.ui-dock .inspector{max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,0px) - var(--scsH,0px) - 16px - var(--footH,0px))}
 </style>
 <style id="v223w1">
-/* v2.23 W1: its own rules go here (contract §2) */
+/* v2.23 W1 (item 156): THE REQUIREMENT PAGE, RANK BY BAND, THE FIVE-YEAR CHART. Presentation only; every figure is the board's own. */
+/* the page takes the place of the tiles, the money bar, the table and the RECORD card; the left menu, the header and the context bar stay */
+html.ui-on.ui-reqpage #uiPage,html.ui-reqpage #posture,html.ui-reqpage #fundDetail,html.ui-reqpage .list > .gridsplit,
+html.ui-reqpage #allocView,html.ui-reqpage #drawerScrim{display:none!important}
+#reqPage{padding:12px 0 24px;color:var(--ink);font-size:14px}
+#reqPage .rptop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+#reqPage .rptop .sp,#reqPage .rpah .sp{flex:1}
+#reqPage .rpback{background:none;border:0;color:var(--blue);font:inherit;font-size:14px;font-weight:700;padding:4px 2px;min-height:28px;cursor:pointer}
+#reqPage .rpback:hover{text-decoration:underline}
+#reqPage .rpnav{min-width:72px;min-height:30px;justify-content:center}
+#reqPage .rphead{display:flex;align-items:flex-start;gap:12px 20px;flex-wrap:wrap;margin:0 0 14px}
+#reqPage .rphl{flex:1 1 420px;min-width:0}
+#reqPage .rpeye{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+#reqPage .rptitle{margin:4px 0 2px;font-size:26px;line-height:1.15;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
+#reqPage .rptitle:focus,#reqPage .rptitle:focus-visible{outline:none}
+#reqPage .rprec{font-size:12.5px;color:var(--mut);margin:0 0 4px}
+#reqPage .rpchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#reqPage .rpchip,#reqPage .rppill,.rkboard .rppill{display:inline-flex;align-items:center;gap:6px;min-height:24px;box-sizing:border-box;padding:2px 10px;border-radius:12px;
+  font-size:12.5px;font-weight:600;border:1px solid var(--edge);background:var(--panel);color:var(--ink);white-space:nowrap}
+#reqPage .rppill,.rkboard .rppill{font-weight:800;border:0}
+#reqPage .rppill[data-lk="disc"],.rkboard .rppill[data-lk="disc"]{background:var(--apxOk,#00B050);color:#000}
+#reqPage .rppill[data-lk="split"],#reqPage .rppill[data-lk="mand"],.rkboard .rppill[data-lk="split"],.rkboard .rppill[data-lk="mand"]{background:var(--apxMid,#FFD700);color:#000}
+#reqPage .rppill[data-lk="unf"],.rkboard .rppill[data-lk="unf"]{background:var(--apxBad,#C00000);color:#fff}
+.rpsw{display:inline-block;width:11px;height:11px;border-radius:2px;flex:none;border:1px solid rgba(0,0,0,.35)}
+.rpsw.none{background:var(--panel2)}
+#reqPage .rphact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#reqPage .rphact .btn{min-height:34px}
+#reqPage .rpmc.on{border-color:var(--gold);color:var(--ink)}
+#reqPage .rptabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--edge);margin:0 0 14px}
+#reqPage .rptab{background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:8px 14px;min-height:36px;font:inherit;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer}
+#reqPage .rptab:hover{color:var(--ink)}
+#reqPage .rptab[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--apxNav,#25394d)}
+#reqPage .rptab:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+#reqPage .rpgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:14px;align-items:start}
+#reqPage .rpmain,#reqPage .rpside{display:flex;flex-direction:column;gap:14px;min-width:0}
+#reqPage .rpcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+#reqPage .rpcard h3{margin:0 0 8px;font-size:15px;font-weight:700;color:var(--ink)}
+#reqPage .rpch{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;justify-content:space-between;margin-bottom:8px}
+#reqPage .rpch h3{margin:0}
+#reqPage .rpsub{font-size:12.5px;color:var(--mut)}
+#reqPage .rpnote{font-size:12.5px;color:var(--mut);margin:8px 0 0}
+#reqPage .rpnone{margin:0 0 10px;padding:10px 12px;border:1px dashed var(--red);border-radius:6px;color:var(--ink)}
+#reqPage .rpcons{margin:0 0 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+#reqPage .rpgone{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+#reqPage .rpgone h2{margin:0 0 6px;font-size:20px}
+#reqPage .rpfail,.rkboard .rpfail{padding:10px 12px;border:1px solid var(--red);border-radius:6px;background:var(--panel);color:var(--ink)}
+#reqPage .rpkpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#reqPage .rpkpis.nomand{grid-template-columns:repeat(3,minmax(0,1fr))}
+#reqPage .rpk{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:0}
+#reqPage .rpk .l{display:block;font-size:12.5px;color:var(--mut)}
+#reqPage .rpk .v{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+#reqPage .rpk.unf.short .v{color:var(--red)}
+#reqPage .rpleg{display:flex;gap:14px;font-size:12.5px;color:var(--mut);margin:0 0 6px}
+#reqPage .rpleg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#reqPage i.d{background:var(--apxOk,#00B050)}
+#reqPage i.m{background:var(--apxMid,#FFD700);box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+#reqPage .rpmos{display:grid;grid-template-columns:repeat(12,minmax(0,1fr)) minmax(58px,1.3fr);gap:4px;align-items:end;height:170px}
+#reqPage .rpmo{display:flex;flex-direction:column;align-items:stretch;height:100%;min-width:0}
+#reqPage .rpmv{font-size:11px;font-weight:700;text-align:center;white-space:nowrap;min-height:15px;font-variant-numeric:tabular-nums}
+#reqPage .rpmb{flex:1;display:flex;flex-direction:column;justify-content:flex-end;border-bottom:2px solid var(--line);min-height:0}
+#reqPage .rpmb i{display:block;width:100%}
+#reqPage .rpml{font-size:11.5px;color:var(--mut);text-align:center;margin-top:3px;white-space:nowrap}
+#reqPage .rpmo.un .rpmb{border-bottom-style:dashed}
+#reqPage .rpfigs{margin:8px 0 0;padding:0 0 0 18px;font-size:12.5px;columns:2;column-gap:20px}
+#reqPage .rpflds dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px}
+#reqPage .rpf{display:contents}
+#reqPage .rpf dt{color:var(--mut);font-size:13px}
+#reqPage .rpf dd{margin:0;font-size:13px;overflow-wrap:anywhere}
+#reqPage .rpf dd.miss{color:var(--red);font-weight:700}
+#reqPage .rpj{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#reqPage .rpj li{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:3px solid var(--blue);font-size:13px;overflow-wrap:anywhere}
+#reqPage .rpjb{font-size:12px;color:var(--mut)}
+#reqPage .rpsvc{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+#reqPage .rpsvc th,#reqPage .rpsvc td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+#reqPage .rpsvc th:first-child{text-align:left}
+#reqPage .rpsvc thead th{font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+#reqPage .rpsvc tfoot th,#reqPage .rpsvc tfoot td{font-weight:800;border-top:2px solid var(--edge)}
+#reqPage .rpsvc td.u.short{color:var(--red);font-weight:700}
+#reqPage .rpsvc .drew{font-size:11.5px;font-weight:600}
+#reqPage .rpawd{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px}
+#reqPage .rpawd.un{border-style:dashed}
+#reqPage .rpah{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+#reqPage .rpasv{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;font-variant-numeric:tabular-nums}
+#reqPage .rpasp{font-size:12.5px;color:var(--mut);margin-top:4px}
+#reqPage .rpout{font-size:12px;color:var(--red);font-weight:700}
+@media (max-width:1180px){ #reqPage .rpgrid{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:760px){ #reqPage .rpkpis,#reqPage .rpkpis.nomand{grid-template-columns:repeat(2,minmax(0,1fr))} #reqPage .rpfigs{columns:1}
+  #reqPage .rpmos{grid-template-columns:repeat(12,minmax(0,1fr)) minmax(44px,1.3fr)} #reqPage .rpml{font-size:10px} #reqPage .rpmv{font-size:9px} }
+/* Rank by band: the switch, in Rank only; the board takes the list's place */
+#rkViewSw{display:none}
+html[data-mode="rank"] #rkViewSw{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+#rkViewSw button{background:none;border:0;border-radius:7px;min-height:28px;padding:0 12px;font:inherit;font-size:13px;font-weight:600;color:var(--mut);cursor:pointer}
+#rkViewSw button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.18),0 0 0 1px var(--edge)}
+#rkViewSw button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+html.ui-rkboard #list,html.ui-rkboard #gridHead,html.ui-rkboard #qAway{display:none!important}
+.rkboard{padding:12px;background:var(--panel2);color:var(--ink)}
+.rkboard .rktitle{margin:0;font-size:18px}
+.rkboard .rpnote{font-size:12.5px;color:var(--mut);margin:4px 0 0}
+.rkboard .rktoday{margin:10px 0 12px;padding:8px 14px;border-radius:8px;background:var(--apxNav,#25394d);color:#fff;font-size:13.5px}
+.rkboard .rkcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-items:start}
+.rkboard .rkcol{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.rkboard .rkh{display:flex;align-items:center;gap:7px;padding:2px 4px 4px;font-size:14px}
+.rkboard .rkh b{flex:1;min-width:0;overflow-wrap:anywhere}
+.rkboard .rkn{font-size:12.5px;color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rkboard .rkcard{display:flex;flex-direction:column;align-items:stretch;gap:5px;text-align:left;width:100%;box-sizing:border-box;min-height:44px;padding:8px 10px;
+  background:var(--panel);border:1px solid var(--edge);border-radius:8px;font:inherit;color:var(--ink);cursor:pointer}
+.rkboard .rkcard:hover{border-color:var(--blue)}
+.rkboard .rkcard.sel{box-shadow:inset 3px 0 0 var(--gold);background:var(--sel,var(--panel2))}
+.rkboard .rkcard:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.rkboard .rkt{font-size:13.5px;font-weight:700;overflow-wrap:anywhere}
+.rkboard .rkr{color:var(--mut);font-weight:700}
+.rkboard .rkm{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.rkboard .rko{padding:1px 6px;border-radius:4px;background:var(--panel2);font-weight:700}
+.rkboard .rkmc{font-weight:700}
+.rkboard .rkcut{padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;background:var(--apxNav,#25394d);color:#fff}
+.rkboard .rkcut.unf{background:#7a4a10}
+.rkboard .rkempty{margin:4px;font-size:12.5px;color:var(--mut)}
+/* the five-year chart, above the five-year spend plan's table */
+.fydpchart{display:flex;flex-direction:column;gap:12px;margin:0 0 12px}
+.fydpchart .fycard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel)}
+.fydpchart .fyhd{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.fydpchart h4{margin:0;font-size:14px;color:var(--ink)}
+.fydpchart .fyleg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut)}
+.fydpchart .fyleg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.fydpchart i.r{background:#c5ced9;box-shadow:inset 0 0 0 1px #8b97a8}
+.fydpchart i.f{background:var(--apxNav,#25394d)}
+.fydpchart .fybars{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px;align-items:end}
+.fydpchart .fyb{display:flex;flex-direction:column;align-items:center;min-width:0;text-align:center}
+.fydpchart .fygap{font-size:12px;font-weight:700;color:var(--mut);white-space:nowrap}
+.fydpchart .fygap.short{color:var(--red)}
+.fydpchart .fybs{display:flex;align-items:flex-end;justify-content:center;gap:6px;height:150px;width:100%;border-bottom:2px solid var(--line);margin:4px 0}
+.fydpchart .fybs i{display:block;width:min(40%,46px)}
+.fydpchart .fyb b{font-size:13px}
+.fydpchart .fyf{font-size:11.5px;color:var(--mut)}
+.fydpchart .fyapp{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.fydpchart .fyapp th,.fydpchart .fyapp td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.fydpchart .fyapp thead th{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.fydpchart .fyapp tfoot th,.fydpchart .fyapp tfoot td{font-weight:800}
+.fydpchart .fyv{display:block;white-space:nowrap}
+.fydpchart .fym{display:block;height:6px;border-radius:3px;background:#f2dede;margin-top:4px;overflow:hidden}
+.fydpchart .fym i{display:block;height:100%;background:var(--apxNav,#25394d)}
+.fydpchart .fyna td{color:var(--mut)}
+.fydpchart .fynote{font-size:12px;color:var(--mut);margin:8px 0 0}
 </style>
 <style id="v223w2">
 /* v2.23 W2: its own rules go here (contract §2) */
@@ -23886,6 +24028,8 @@ function fydpBody(){
     const T=fydpBookAdd(Y, items.map(function(x){ return x.b; }));
     return s+'<tr class="tot"><td><b>TOTAL</b></td><td></td>'+cells(T.fy, T.tot)+'</tr></tbody></table>';
   };
+  // v2.23 W1 (item 156): the five-year chart above the table -- the same model (B) the table and the workbook read
+  try{ h+=fydpChartHtml(B); }catch(e){ h+='<div class="hint">The chart could not be drawn — '+esc((e && e.message) || String(e))+'. The table below has its figures.</div>'; }
   h+='<div style="max-height:60vh;overflow:auto">';
   if(fydpView==='sum'){
     h+='<h4 class="fydpsec">By appropriation</h4>'+roll('Appropriation', [{name:own.name, b:own.all}])
@@ -39072,9 +39216,516 @@ function mandOn(St){ return true; }
 var REQPG_TABS=[];
 // v2.23 (W1, item 156): open the requirement page on requirement id of the year on screen, at tab k (Overview when left out).
 // W1 replaces this body in place; until then it says the page is not built.
-function reqPageOpen(id, k){ try{ setStat('The requirement page is not built yet.'); }catch(e){} }
+function reqPageOpen(id, k){ return reqPgOpen(id, k); }   // v2.23 W1: the page itself is in the W1 slot below
 // ==== end v2.23 seams ====
 // ==== v2.23 W1 ====
+// ── v2.23 W1 (item 156; Brad, 25 Nov 2026: "Go on v2.23"): THE REQUIREMENT PAGE, RANK BY BAND, THE FIVE-YEAR CHART ─────────────
+// Three views, and not one figure of their own. Every figure here is one the board already works out: the lane walk (tiers(), with
+// the record's own view, scenOpt), unfSvcOf / unfTotOf, basisSvcOf and the drewLine reading, the award block's landing (awdSplitOf,
+// landSvc's rule), the change journal (jrnlReqHas's rule, jrnlFieldName, jrnlShow), what a record still needs (reqNeeds), where the
+// lanes run out (cutlinesOf), the lane's word (laneOf, laneWord), and the five-year model the panel and the workbook share
+// (fydpBookModel). Nothing here writes: the page's state and the Rank view are this session's and this browser's, never the board's.
+// Every var below is read through a function that cannot throw: render() runs while the script is still being read.
+
+// ── THE REQUIREMENT PAGE ──
+// REQPG: the requirement of the year on screen the page shows, and its tab -- this session's, never saved (a reload opens the
+// list). fy is the year it was opened on: an added requirement's id is its own year's number, so another year's NEW-1 is another
+// requirement and is never shown under this one's page. mode is the list's mode it was opened from: a mode changed by anything else
+// (the left menu's Funding, Brief, Allocate) is leaving the page for another view.
+var REQPG=null;
+var REQPG_LAST='';     // the markup last drawn: a redraw that changes nothing leaves the page, and the keyboard, as they are
+var REQPG_SEQ=0;       // drawn once per open, so a tab's after(id) runs on what it drew
+function reqPgOn(){ return !!(typeof REQPG!=='undefined' && REQPG); }
+// the tabs, by order: W1's four and any another builder registered (W2's Across the FYDP, item 158)
+function reqPgTabs(){
+  return ((typeof REQPG_TABS!=='undefined' && REQPG_TABS) || []).filter(function(x){ return x && x.k && typeof x.html==='function'; })
+    .slice().sort(function(a, b){ return (+a.order||0)-(+b.order||0); });
+}
+// the requirement's place in the 1–N order (the master order, as the rows and the cutlines count it: ids that resolve), and N
+function reqPgRanks(){
+  const R=Object.create(null); let n=0;
+  (S.order||[]).forEach(function(id){ if(itemById(id)) R[id]=++n; });
+  return {R:R, n:n};
+}
+function reqPgOpen(id, k){
+  try{
+    id=String(id==null? '' : id); if(!id) return false;
+    const it=itemById(id);
+    if(!it){ setStat('ℹ '+FYL()+' holds no requirement '+esc(id)+'.'); return false; }
+    try{ uiPopsClose(); }catch(e){}
+    try{ if(typeof drawerNarrow==='function' && drawerNarrow()) drawerClose(); }catch(e){}
+    REQPG={id:id, k:String(k||'over'), fy:+MS.cur, mode:uiMode};
+    REQPG_LAST=''; REQPG_SEQ++;
+    try{ if(curRow!==id) setCur(id, true); }catch(e){}
+    render();
+    try{ window.scrollTo(0, 0); }catch(e){}
+    const h=document.getElementById('rpTitle'); if(h) try{ h.focus({preventScroll:true}); }catch(e){}
+    return true;
+  }catch(e){ try{ setStat('⚠ The requirement page could not be opened — '+esc((e && e.message) || String(e))+'.'); }catch(x){} return false; }
+}
+// ‹ Back to Requirements, and Esc: the list as it was, the selection and the keyboard on the requirement's row
+function reqPageClose(keep){
+  if(!reqPgOn()) return;
+  const id=REQPG.id, same=(+REQPG.fy===+MS.cur);
+  REQPG=null; REQPG_LAST='';
+  render();
+  if(keep===false) return;
+  if(same && itemById(id)){
+    try{ if(curRow!==id) setCur(id, true); }catch(e){}
+    try{ const r=document.getElementById('row-'+id);
+      if(r){ r.setAttribute('tabindex','-1'); r.focus({preventScroll:true}); if(r.scrollIntoView) r.scrollIntoView({block:'center'}); } }catch(e){}
+  }
+}
+function reqPageTab(k){
+  if(!reqPgOn()) return;
+  REQPG.k=String(k||'over'); REQPG_LAST=''; REQPG_SEQ++;
+  reqPgDraw();
+  const b=document.getElementById('rptab_'+REQPG.k); if(b) try{ b.focus({preventScroll:true}); }catch(e){}
+}
+// Previous / Next: the requirement above or below in the list as shown (the RECORD card's own step, recStep); one opened from
+// outside the list steps from its top
+function reqPageStep(d){
+  if(!reqPgOn()) return;
+  const ids=gridIds(); if(!ids.length) return;
+  const i=ids.indexOf(REQPG.id), n=i<0? (d>0? 0 : -1) : i+(d>0? 1 : -1);
+  if(n<0 || n>=ids.length) return;
+  REQPG.id=ids[n]; REQPG.fy=+MS.cur; REQPG_LAST=''; REQPG_SEQ++;
+  try{ setCur(ids[n], true); }catch(e){}
+  reqPgDraw();
+  try{ window.scrollTo(0, 0); }catch(e){}
+  const b=document.querySelector('#reqPage .rpnav[data-step="'+(d>0? 1 : -1)+'"]'), o=document.querySelector('#reqPage .rpnav[data-step="'+(d>0? -1 : 1)+'"]');
+  try{ if(b && !b.disabled) b.focus({preventScroll:true}); else if(o) o.focus({preventScroll:true}); }catch(e){}
+}
+// to the RECORD card, where the one-year editor is: the page closes, the record opens at its money or its awards
+function reqPgEdit(id, at){
+  reqPageClose(false);
+  try{ setCur(id); }catch(e){}
+  try{ const ins=document.getElementById('inspector');
+    const box=ins && ins.querySelector(at==='awd'? '.awdblk' : '.insp-split');
+    if(box){ if(box.scrollIntoView) box.scrollIntoView({block:'center'});
+      const f=box.querySelector(at==='awd'? 'input[type="date"]:not([disabled]), input, button' : 'input[data-col="q"]');
+      if(f && f.focus) f.focus(); } }catch(e){}
+}
+// the page drawn after every render (V223_AFTER), and on a tab or a step
+function reqPgDraw(){
+  const pg=document.getElementById('reqPage'), h=document.documentElement;
+  if(!pg) return;
+  if(reqPgOn() && REQPG.mode!==uiMode) REQPG=null;     // a mode chosen elsewhere: the page's list has gone
+  if(!reqPgOn()){
+    h.classList.remove('ui-reqpage');
+    if(!pg.hidden || pg.innerHTML){ pg.hidden=true; pg.innerHTML=''; }
+    REQPG_LAST='';
+    return;
+  }
+  h.classList.add('ui-reqpage');
+  if(pg.hidden) pg.hidden=false;
+  let html='';
+  try{ html=reqPgHtml(); }
+  catch(e){ html='<div class="rptop">'+reqPgBack()+'</div><div class="rpfail" role="alert">The requirement page could not be drawn — '
+    +esc((e && e.message) || String(e))+'. Back to Requirements shows the list; the RECORD card has the same figures.</div>'; }
+  if(html!==REQPG_LAST){
+    const held=reqPgHeld(pg);
+    pg.innerHTML=html; REQPG_LAST=html;
+    reqPgHeldBack(pg, held);
+    const tab=reqPgTabs().filter(function(x){ return x.k===REQPG.k; })[0];
+    if(tab && typeof tab.after==='function') try{ tab.after(REQPG.id); }catch(e){}
+  }
+}
+// a field typed into and not yet committed keeps what was typed across a redraw (the RECORD panel's rule, v2.08 F2): another
+// builder's tab can hold boxes, and the page redraws on every render
+function reqPgHeld(pg){
+  const a=document.activeElement;
+  if(!a || !pg.contains(a) || !/^(INPUT|TEXTAREA)$/.test(a.tagName) || a.value===a.defaultValue) return null;
+  return {id:a.id, h:a.getAttribute('onchange')||a.getAttribute('oninput')||'', v:a.value, s:a.selectionStart, e:a.selectionEnd};
+}
+function reqPgHeldBack(pg, H){
+  if(!H) return;
+  let f=H.id? document.getElementById(H.id) : null;
+  if(!f && H.h) f=[].slice.call(pg.querySelectorAll('input, textarea')).filter(function(x){ return (x.getAttribute('onchange')||x.getAttribute('oninput')||'')===H.h; })[0];
+  if(!f || !pg.contains(f)) return;
+  f.value=H.v;
+  try{ f.focus({preventScroll:true}); f.setSelectionRange(H.s, H.e); }catch(e){}
+}
+function reqPgBack(){ return '<button type="button" class="rpback" onclick="reqPageClose()">‹ Back to Requirements</button>'; }
+// $1.42M for a bar's label; the figure in whole dollars is beside it in words
+function reqPgM(v){ return Math.abs(v)>=1e6? '$'+(v/1e6).toFixed(2)+'M' : fM(v); }
+function reqPgHtml(){
+  const P=REQPG, id=P.id;
+  const it=(+MS.cur===+P.fy)? itemById(id) : null;
+  if(!it){
+    let nm=id;
+    try{ const Ty=(MS.years||{})[P.fy], src=Ty? yrItemOf(Ty, id) : null; if(src) nm=dispTitle(src, Ty); }catch(e){}
+    const why=(+MS.cur!==+P.fy)
+      ? 'This page was opened on FY'+(P.fy%100)+'’s '+esc(nm)+', and '+FYL()+' is on screen. A requirement is its own year’s: go back to FY'+(P.fy%100)+' to read it here, or open '+FYL()+'’s from its row.'
+      : FYL()+' no longer holds '+esc(nm)+': it was removed or deleted.';
+    return '<div class="rptop">'+reqPgBack()+'</div><div class="rpgone" role="note"><h2 id="rpTitle" tabindex="-1">Not on '+FYL()+'</h2><p>'+why+'</p></div>';
+  }
+  const T=tiers(null, scenOpt());
+  const z=SVC.map(function(){ return 0; });
+  const t=T[id] || {d:z, m:z, u:z, dT:0, mT:0, uT:0};
+  const RK=reqPgRanks(), ids=gridIds(), pos=ids.indexOf(id);
+  const prev=pos>0? ids[pos-1] : null, next=pos<0? (ids[0]||null) : (pos<ids.length-1? ids[pos+1] : null);
+  const rk=function(x){ return x && RK.R[x]? '#'+RK.R[x] : ''; };
+  const lk=laneOf(t), on=!!S.mc[id];
+  const ccar=ccarOf(it), pid=pidOf(it), pt=ptypeOf(id), mi=miprOf(id);
+  const bid=BAND_OF(id), bd=(bid!==null)? BAND_DEF(id) : null;
+  let bi=-1; if(bd) BANDS_LIST().forEach(function(b, i){ if(b.id===bd.id) bi=i; });
+  const tabs=reqPgTabs(); let cur=tabs.filter(function(x){ return x.k===P.k; })[0];
+  if(!cur){ cur=tabs[0]; if(cur) P.k=cur.k; }
+  const ctx={id:id, it:it, T:T, t:t};
+  const lbl=function(x){ try{ return typeof x.label==='function'? String(x.label(id, ctx)) : String(x.label||x.k); }catch(e){ return String(x.k); } };
+  let body='';
+  if(cur){ try{ body=cur.html(id, ctx); }
+    catch(e){ body='<div class="rpfail" role="alert">The '+esc(lbl(cur))+' tab could not be drawn — '+esc((e && e.message) || String(e))
+      +'. The other tabs, and the RECORD card, still show this requirement.</div>'; } }
+  let ap=''; try{ ap=apLabel(); }catch(e){}
+  const rn=recName(it), title=dispTitle(it);
+  return '<div class="rptop">'+reqPgBack()
+      +'<span class="sp"></span>'
+      +'<button type="button" class="btn rpnav" data-step="-1" onclick="reqPageStep(-1)"'+(prev? '' : ' disabled')
+        +' title="The requirement above this one in the list as shown" aria-label="Previous requirement'+(prev? ', '+rk(prev) : '')+'">↑ '+(prev? rk(prev) : 'Previous')+'</button>'
+      +'<button type="button" class="btn rpnav" data-step="1" onclick="reqPageStep(1)"'+(next? '' : ' disabled')
+        +' title="The requirement below this one in the list as shown" aria-label="Next requirement'+(next? ', '+rk(next) : '')+'">'+(next? rk(next) : 'Next')+' ↓</button></div>'
+    +(typeof recRoHtml==='function'? recRoHtml() : '')
+    +'<div class="rphead"><div class="rphl">'
+      +'<div class="rpeye">'+(RK.R[id]? '#'+RK.R[id]+' of '+RK.n : 'not in the 1–N order')+' · '+esc(grpOf(it)||'no office')+' · FY'+esc(String(MS.cur))+(ap? ' '+esc(ap) : '')+'</div>'
+      +'<h2 id="rpTitle" class="rptitle" tabindex="-1">'+esc(title)+'</h2>'
+      +((rn && recNameAdds(rn, title))? '<div class="rprec">CCaR record: '+esc(rn)+'</div>' : '')
+      +'<div class="rpchips">'
+        +'<span class="rppill" data-lk="'+lk+'">'+esc(laneWord(lk))+'</span>'
+        +'<span class="rpchip">'+(ccar? 'CCaR '+esc(ccar) : 'No CCaR record')+'</span>'
+        +'<span class="rpchip">'+(pid? 'PID '+esc(pid) : 'No PID')+'</span>'
+        +(pt? '<span class="rpchip">'+(pt==='PRIME'? 'Prime contract' : 'OGC')+(mi && MIPR_LBL[mi]? ' · '+esc(MIPR_LBL[mi]) : '')+'</span>' : '<span class="rpchip">Prime / OGC not set</span>')
+        +'<span class="rpchip">'+(bd? '<i class="rpsw" style="background:'+readableOn(bd.c,'#ffffff',1)+'"></i>'+(bi>=0? bi+' · ' : '')+esc(bd.n) : 'No decision band')+'</span>'
+      +'</div></div>'
+      +'<div class="rphact">'
+        +'<button type="button" class="btn rpmc'+(on? ' on' : '')+'" aria-pressed="'+(on? 'true' : 'false')+'" onclick="S.mc['+jsa(id)+']=!S.mc['+jsa(id)+'];save();render()"'
+          +' title="★ Mission Critical — this must be paid this year'+(on? ' (on — click to clear)' : '')+'">'+(on? '★ Mission Critical' : '☆ Mark Mission Critical')+'</button>'
+        +'<button type="button" class="btn pri rpedit" onclick="openEdit('+jsa(id)+')" title="The whole record, in one box">Edit record</button>'
+      +'</div></div>'
+    +'<div class="rptabs" role="group" aria-label="Requirement page">'+tabs.map(function(x){
+        return '<button type="button" class="rptab" id="rptab_'+esc(x.k)+'" aria-pressed="'+(x===cur? 'true' : 'false')+'" onclick="reqPageTab('+jsa(x.k)+')">'+esc(lbl(x))+'</button>'; }).join('')+'</div>'
+    +'<div class="rpbody" data-tab="'+esc(cur? cur.k : '')+'">'+body+'</div>';
+}
+
+// ── OVERVIEW ──
+// WHEN THE MONEY OBLIGATES, month by month: the award block's own landing (awdSplitOf: landSvc per service -- discretionary forward
+// from the first award, mandatory backward from the last), each award's dollars filed under its own month. An award dated outside
+// the fiscal year, and what no award covers, are Unscheduled, as every month-by-month sheet files them (monSpreadOf).
+function reqPgMonths(id, t){
+  const aw=(S.awards||{})[id], sp=awdSplitOf(id, t);
+  const mon=FYMON.map(function(x){ return {k:x[0], l:x[1], dv:0, mv:0}; }), at=Object.create(null);
+  mon.forEach(function(m, i){ at[m.k]=i; });
+  let ud=sp.ud, um=sp.um;
+  Object.keys(sp.by).forEach(function(j){
+    const q=sp.by[j], a=(+j<0)? aw : (((aw && aw.inc)||[])[+j]);
+    const i=(a && a.d)? at[a.d] : undefined;
+    if(i===undefined){ ud+=q.dv; um+=q.mv; } else { mon[i].dv+=q.dv; mon[i].mv+=q.mv; }
+  });
+  const n=aw? (aw.mode==='inc'? ((aw.inc||[]).length) : (aw.d? 1 : 0)) : 0;
+  return {mon:mon, ud:ud, um:um, n:n};
+}
+function reqPgChart(id, t){
+  const M=reqPgMonths(id, t), mo=mandOn(S);
+  const cols=M.mon.map(function(m){ return {l:m.l.split(' ')[0], full:m.l, dv:m.dv, mv:m.mv}; })
+    .concat([{l:'Unsched.', full:'Unscheduled', dv:M.ud, mv:M.um, un:true}]);
+  const max=Math.max.apply(null, cols.map(function(c){ return c.dv+c.mv; }).concat([1]));
+  const sch=M.mon.reduce(function(a, m){ return a+m.dv+m.mv; }, 0), uns=M.ud+M.um;
+  const say=function(c){ return c.full+': '+fM(c.dv+c.mv)+((c.dv+c.mv)>0.5? ' (discretionary '+fM(c.dv)+(mo? ', mandatory '+fM(c.mv) : '')+')' : ''); };
+  const bars=cols.map(function(c){
+    const v=c.dv+c.mv, hd=(c.dv/max*100), hm=(c.mv/max*100);
+    return '<div class="rpmo'+(c.un? ' un' : '')+'" role="img" data-d="'+Math.round(c.dv)+'" data-m="'+Math.round(c.mv)+'" aria-label="'+esc(say(c))+'" title="'+esc(say(c))+'">'
+      +'<span class="rpmv">'+(v>0.5? esc(reqPgM(v)) : '')+'</span>'
+      +'<span class="rpmb">'+(c.mv>0.5? '<i class="m" style="height:'+hm.toFixed(2)+'%"></i>' : '')+(c.dv>0.5? '<i class="d" style="height:'+hd.toFixed(2)+'%"></i>' : '')+'</span>'
+      +'<span class="rpml">'+esc(c.l)+'</span></div>'; }).join('');
+  const figs=cols.filter(function(c){ return (c.dv+c.mv)>0.5; }).map(function(c){ return '<li>'+esc(say(c))+'</li>'; }).join('');
+  return '<section class="rpcard rpchart"><div class="rpch"><h3>When the money obligates</h3><span class="rpsub">'
+      +M.n+' award'+(M.n===1? '' : 's')+' · '+fM(sch)+' scheduled · '+fM(uns)+' unscheduled</span></div>'
+    +'<div class="rpleg"><span><i class="d"></i>Discretionary</span>'+(mo? '<span><i class="m"></i>Mandatory</span>' : '')+'</div>'
+    +'<div class="rpmos">'+bars+'</div>'
+    +(figs? '<ul class="rpfigs">'+figs+'</ul>' : '<p class="rpnote">Nothing is funded yet, so nothing obligates.</p>')
+    +'<p class="rpnote">Discretionary fills the awards forward from the first'+(mo? '; mandatory fills them backward from the last' : '')
+      +'. What no award in '+FYL()+' covers is Unscheduled until an award does.</p></section>';
+}
+// the record's fields, as the edit box reads them (erStored and the fields' own readers), with what is still missing flagged by the
+// one checklist (reqNeeds) -- the same list the Add box, a copy's proposal gate, Pre-flight and the RECORD card read
+function reqPgFields(id, it, T){
+  const S0=erStored(id)||{}, need=Object.create(null);
+  try{ (reqNeeds(reqDraftOf(id)||{})||[]).forEach(function(x){ if(!x.ok && !x.w) need[x.k]=1; }); }catch(e){}
+  const w=wbsReq(id), pr=ptypeOf(id)==='PRIME';
+  const wv=pr? 'logged per CLIN' : (!w.length? '' : (w.length===1? String(w[0].w||'') : 'split over '+w.length+' lines'));
+  const de=S0.to? flowEnt(S0.to) : null, en=S0.end? flowEnt(S0.end) : null;
+  const go=S0.to? ((de? de.n : S0.to)+(en? ' · '+en.n : '')+(S0.mipr && MIPR_LBL[S0.mipr]? ' · '+MIPR_LBL[S0.mipr] : '')) : '';
+  const rs=((S.rcnSvc||{})[id])||{}, rsn=Object.keys(rs).length;
+  const rc=S0.rcnAsg? (rcnLabel(S0.rcnAsg) || S0.rcnAsg) : '';
+  const bud=[]; let nolist=false;
+  try{ if(!budReg().length) nolist=true;
+    else budLines(id, T).forEach(function(q){ const r=budResolve(id, q.svc, q.lane);
+      if(r.effective && bud.indexOf(r.effective)<0) bud.push(r.effective); }); }catch(e){}
+  const row=function(lab, v, k, none){
+    const miss=k && need[k];
+    return '<div class="rpf"><dt>'+esc(lab)+'</dt><dd'+(miss? ' class="miss"' : '')+(k? ' data-k="'+esc(k)+'"' : '')+'>'+(v? esc(v) : (miss? 'not set — still needed' : esc(none||'not set')))+'</dd></div>'; };
+  const ogc=destKeyIsOgc(S0.to);
+  return '<section class="rpcard rpflds"><h3>Record</h3><dl>'
+    +row(FL('titles'), S0.titles, 'titles')
+    +row(FL('obCat'), S0.obCat, 'obCat')
+    +row(FL('costElem'), S0.costElem, '')
+    +row(FL('wbs'), wv, 'wbs')
+    +row(FL('dest'), go, need.dest? 'dest' : (ogc && need.destEnd? 'destEnd' : (ogc && need.mipr? 'mipr' : '')), 'not logged')
+    +row('RCN / EEIC', rc+(rsn? (rc? ' · ' : '')+rsn+' service'+(rsn===1? '' : 's')+' set apart' : ''), '')
+    +row('BAE budget', bud.join(' · '), need.budgetAsg? 'budgetAsg' : '', nolist? 'no BAE list is loaded' : 'not set')
+    +'</dl>'+(Object.keys(need).length? '<p class="rpnote">'+Object.keys(need).length+' of the record’s required fields still to fill. <button type="button" class="qb" onclick="openEdit('+jsa(id)+')">Edit record</button></p>' : '')
+    +'</section>';
+}
+// the journal's lines for THIS requirement in THIS year -- jrnlReqHas's own rule, read with the requirement put in its place for the
+// reading and put back after, so the page and the change journal cannot disagree about which lines are its. Newest first.
+function reqPgJrnl(id, fy){
+  const J=(typeof MS!=='undefined' && MS && Array.isArray(MS.jrnl))? MS.jrnl : [];
+  const keep=jrnlReq; jrnlReq={id:String(id), fy:+fy};
+  try{ return J.filter(function(e){ return jrnlReqHas(e); }).reverse(); } finally { jrnlReq=keep; }
+}
+function reqPgLine(e){
+  return '<li><span class="rpjw"><b>'+esc(jrnlFieldName(e))+'</b> '+jrnlShow(e.a, e.p)+' → '+jrnlShow(e.b, e.p)+'</span>'
+    +'<span class="rpjb">'+esc(String(e.by||'unknown'))+' · '+esc(fmtTs(e.t))+'</span></li>';
+}
+function reqPgRecent(id){
+  const L=reqPgJrnl(id, MS.cur);
+  return '<section class="rpcard rprecent"><h3>Recent changes</h3>'
+    +(L.length? '<ul class="rpj">'+L.slice(0, 5).map(reqPgLine).join('')+'</ul>'
+      +(L.length>5? '<button type="button" class="qb" onclick="reqPageTab(&quot;hist&quot;)">All '+L.length+' in History</button>' : '')
+      : '<p class="rpnote">Nothing recorded for it in '+FYL()+' yet. Ranking moves are not journalled.</p>')
+    +'</section>';
+}
+function reqPgOverview(id, C){
+  const it=C.it, t=C.t, mo=mandOn(S);
+  const ask=askTot(it), u=unfTotOf(it, t);
+  const fig=function(l, v, cls){ return '<div class="rpk '+cls+'"><span class="l">'+l+'</span><span class="v" data-v="'+Math.round(v)+'">'+fM(v)+'</span></div>'; };
+  const cons=String(((S.cons||{})[id])||'').trim();
+  return '<div class="rpgrid"><div class="rpmain">'
+      +'<div class="rpkpis'+(mo? '' : ' nomand')+'">'+fig('Requirement', ask, 'ask')+fig('Discretionary', t.dT||0, 'disc')+(mo? fig('Mandatory', t.mT||0, 'mand') : '')+fig('Unfunded', u, 'unf'+(u>0.5? ' short' : ''))+'</div>'
+      +reqPgChart(id, t)
+      +'<section class="rpcard rpimp"><h3>If this is not funded</h3>'
+        +(cons? '<p class="rpcons">'+esc(cons)+'</p><button type="button" class="btn" onclick="openEdit('+jsa(id)+',&quot;cons&quot;)">Edit impact statement</button>'
+          : '<p class="rpnone">Not written yet. The office is best placed to say what happens if this is not funded; it travels with the next PMO copy.</p>'
+            +'<button type="button" class="btn" onclick="openEdit('+jsa(id)+',&quot;cons&quot;)">Write impact statement</button>')
+      +'</section></div>'
+    +'<div class="rpside">'+reqPgFields(id, it, C.T)+reqPgRecent(id)+'</div></div>';
+}
+// ── FUNDING BY SERVICE: read only. The cells are the RECORD card's: what was directed, and the drewLine reading where a directed figure
+// was not drawn, against the cap it was measured by (basisSvcOf; mandatory by what the basis has left) -- the one implementation.
+function reqPgSvc(id, C){
+  const it=C.it, t=C.t, mo=mandOn(S);
+  const fo=S.fsrc[id], inSplit=!!(fo && fo.m==='split' && Array.isArray(fo.dv) && Array.isArray(fo.mv));
+  const bs=basisSvcOf(it), bsT=bs.reduce(function(a, b){ return a+b; }, 0), U=unfSvcOf(it, t);
+  const fig=function(v){ return (v>0.5)? fM(v) : '—'; };
+  const rows=SVC.map(function(s, i){
+    const d=t.d[i]||0, m=t.m[i]||0, dd=inSplit? (+fo.dv[i]||0) : d, dm=inSplit? (+fo.mv[i]||0) : m;
+    return '<tr><th scope="row">'+esc(s)+'</th><td>'+fig(it.ask[i]||0)+'</td>'
+      +'<td class="d">'+fig(dd)+drewLine(dd, d, bs[i])+'</td>'
+      +(mo? '<td class="m">'+fig(dm)+drewLine(dm, m, bs[i]-d)+'</td>' : '')
+      +'<td class="u'+((U[i]||0)>0.5? ' short' : '')+'">'+fig(U[i]||0)+'</td></tr>'; }).join('');
+  const dT=t.dT||0, mT=t.mT||0, uT=U.reduce(function(a, b){ return a+b; }, 0);
+  const dirD=inSplit? fo.dv.reduce(function(a, b){ return a+(+b||0); }, 0) : dT, dirM=inSplit? fo.mv.reduce(function(a, b){ return a+(+b||0); }, 0) : mT;
+  return '<section class="rpcard"><div class="rpch"><h3>Funding by service</h3><span class="rpsub">'+FYL()+' · '+(inSplit? 'a split by service' : 'the lane walk’s draw')+'</span></div>'
+    +'<table class="rpsvc"><thead><tr><th scope="col">Service</th><th scope="col">Requirement</th><th scope="col">Discretionary</th>'+(mo? '<th scope="col">Mandatory</th>' : '')+'<th scope="col">Unfunded</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody><tfoot><tr><th scope="row">Total</th><td>'+fM(askTot(it))+'</td><td class="d">'+fM(dT)+directedLine(dirD, dT, bsT)+'</td>'
+      +(mo? '<td class="m">'+fM(mT)+directedLine(dirM, mT, bsT-dT)+'</td>' : '')+'<td class="u'+(uT>0.5? ' short' : '')+'">'+fM(uT)+'</td></tr></tfoot></table>'
+    +'<p class="rpnote">Read here; set in the RECORD card. Where a figure was set higher than a lane could pay, the line under it says what was drawn. '
+      +'<button type="button" class="btn" onclick="reqPgEdit('+jsa(id)+',&quot;svc&quot;)">Edit in the RECORD card</button></p></section>';
+}
+// ── AWARDS: each award as a block, its dollars by service and how it splits, from the award block's own figures (incTot, awdSplitOf)
+function reqPgAwards(id, C){
+  const t=C.t, aw=(S.awards||{})[id], sp=awdSplitOf(id, t), mo=mandOn(S);
+  const lanes=function(q){ return 'discretionary '+fM(q.dv||0)+(mo? ' · mandatory '+fM(q.mv||0) : ''); };
+  const when=function(a){ return (a && a.d)? ((a.day? a.day+' ' : '')+ymLbl(a.d)) : 'no date'; };
+  const out=function(a){ return (a && a.d && !awdInFy(a.d, a.day, MS.cur))? ' <span class="rpout">outside '+FYL()+' — Unscheduled in the chart</span>' : ''; };
+  let blocks='';
+  if(aw && aw.mode==='inc' && Array.isArray(aw.inc) && aw.inc.length){
+    blocks=aw.inc.map(function(a, j){ const q=sp.by[j]||{dv:0, mv:0};
+      const sv=SVC.map(function(s, i){ const v=+((a && a.sv)||[])[i]||0; return v>0.5? '<li>'+esc(s)+' '+fM(v)+'</li>' : ''; }).join('');
+      return '<div class="rpawd"><div class="rpah"><b>Award '+(j+1)+'</b> · '+esc(when(a))+out(a)+'<span class="sp"></span><b>'+fM(incTot(a))+'</b></div>'
+        +(sv? '<ul class="rpasv">'+sv+'</ul>' : '<p class="rpnote">No dollars on it yet.</p>')
+        +'<div class="rpasp">'+lanes(q)+'</div></div>'; }).join('');
+  } else if(aw && aw.d){
+    const q=sp.by[-1]||{dv:0, mv:0};
+    blocks='<div class="rpawd"><div class="rpah"><b>One award</b> · '+esc(when(aw))+out(aw)+'<span class="sp"></span><b>'+fM((q.dv||0)+(q.mv||0))+'</b></div>'
+      +'<p class="rpnote">The whole funded amount, every service.</p><div class="rpasp">'+lanes(q)+'</div></div>';
+  }
+  const un=(sp.ud||0)+(sp.um||0);
+  return '<section class="rpcard"><div class="rpch"><h3>Awards</h3><span class="rpsub">'+FYL()+'</span></div>'
+    +(blocks || '<p class="rpnone">No award date yet: the funded amount is Unscheduled until one is set.</p>')
+    +'<div class="rpawd un"><div class="rpah"><b>Unscheduled</b><span class="sp"></span><b>'+fM(un)+'</b></div><div class="rpasp">'+lanes({dv:sp.ud, mv:sp.um})+'</div></div>'
+    +'<p class="rpnote">Discretionary fills the awards forward from the first'+(mo? '; mandatory fills them backward from the last' : '')+'. '
+      +'<button type="button" class="btn" onclick="reqPgEdit('+jsa(id)+',&quot;awd&quot;)">Edit awards</button></p></section>';
+}
+// ── HISTORY: every journal line for it in this year; Put back stays in the change journal
+function reqPgHist(id){
+  const L=reqPgJrnl(id, MS.cur);
+  return '<section class="rpcard"><div class="rpch"><h3>History</h3><span class="rpsub">'+L.length+' change'+(L.length===1? '' : 's')+' recorded for it in '+FYL()+'</span></div>'
+    +(L.length? '<ul class="rpj all">'+L.map(reqPgLine).join('')+'</ul>' : '<p class="rpnote">Nothing recorded for it in '+FYL()+' yet.</p>')
+    +'<p class="rpnote">Ranking moves are not journalled. To put a change back, open it in the change journal. '
+      +'<button type="button" class="btn" onclick="jrnlFor('+jsa(id)+')">Open in the change journal</button></p></section>';
+}
+REQPG_TABS.push({k:'over', label:'Overview', order:10, html:reqPgOverview},
+  {k:'svc', label:'Funding by service', order:20, html:reqPgSvc},
+  {k:'awd', label:'Awards', order:30, html:reqPgAwards},
+  {k:'hist', label:function(id){ return 'History · '+reqPgJrnl(id, MS.cur).length; }, order:50, html:reqPgHist});
+// Esc leaves the page when nothing else has it: a box (its controller stops the key first), a menu, a popover or the left menu's
+// flyout (their own Esc), the message. A field holding typing that was not committed is put back as it was, as the RECORD panel's
+// Esc does (v2.17).
+document.addEventListener('keydown', function(e){
+  if(!reqPgOn() || e.key!=='Escape' || e.defaultPrevented) return;
+  try{ if(DLG.stack.length) return; }catch(x){}
+  try{ if(UI2.fly || openMenu || document.querySelector('.uiPop.open')) return; }catch(x){}
+  const a=document.activeElement;
+  if(a && a.closest && a.closest('#statWrap, #statBtn, #statX, #cmdPanel')) return;
+  if(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.closest && a.closest('#reqPage') && a.value!==a.defaultValue) a.value=a.defaultValue;
+  e.preventDefault();
+  reqPageClose();
+});
+// a left-menu entry for another view (Requirements, Funding, Cycles & compare, Brief, and any added since) leaves the page first
+document.addEventListener('click', function(e){
+  if(!reqPgOn()) return;
+  const b=e.target && e.target.closest && e.target.closest('#uiSide button.uiNi:not([aria-haspopup])');
+  if(b) reqPageClose(false);
+}, true);
+
+// ── RANK BY BAND (view only) ──
+// In Rank, a List / Board by band switch (this browser's, spmtRankView; never in the board). The board is the list as shown -- its
+// filters and its search apply -- in a column per decision band, in the ladder's order, and No band yet last: a band chosen on the
+// RECORD panel, the column is the one the row's band cell names (BAND_DEF, the row's own reading). Cards in the list's order. The
+// cutlines are the rows' (cutlinesOf, drawn where the rows draw them), each in the band of the requirement it falls at, above the
+// first card at or past it. A card selects the requirement and opens its record; nothing here changes a band or the order.
+var RKVIEW=null, RK_LAST='';
+function rkView(){
+  if(RKVIEW===null){ let v=''; try{ v=localStorage.getItem('spmtRankView')||''; }catch(e){} RKVIEW=(v==='board')? 'board' : 'list'; }
+  return RKVIEW;
+}
+function rkSetView(v){
+  RKVIEW=(v==='board')? 'board' : 'list';
+  lsSet('spmtRankView', RKVIEW, 'Your Rank view: the list or the board by band', {own:true});
+  RK_LAST=''; render();
+  const b=document.getElementById(RKVIEW==='board'? 'rkv_board' : 'rkv_list'); if(b) try{ b.focus({preventScroll:true}); }catch(e){}
+}
+function rkPick(id){
+  try{ setCur(id); }catch(e){}
+  rkDraw();      // the card now selected says so; the keyboard stays on it, unless the record took it
+  const a=document.activeElement;
+  if(!a || a===document.body || !a.isConnected){
+    const c=[].filter.call(document.querySelectorAll('#rkBoard .rkcard'), function(x){ return x.getAttribute('data-id')===String(id); })[0];
+    if(c) try{ c.focus({preventScroll:true}); }catch(e){} }
+}
+function rkEnsure(){
+  if(!document.getElementById('rkViewSw')){
+    const tools=document.getElementById('uiTools');
+    if(tools){ const sw=document.createElement('span'); sw.id='rkViewSw'; sw.className='rkviewsw'; sw.setAttribute('role','group'); sw.setAttribute('aria-label','Rank view');
+      sw.innerHTML='<button type="button" id="rkv_list" aria-pressed="true" onclick="rkSetView(&quot;list&quot;)" title="The requirements as a list, in the 1–N order">List</button>'
+        +'<button type="button" id="rkv_board" aria-pressed="false" onclick="rkSetView(&quot;board&quot;)" title="The same requirements in a column per decision band: a view, it changes nothing">Board by band</button>';
+      tools.insertBefore(sw, tools.querySelector('.sp')); }
+  }
+  if(!document.getElementById('rkBoard')){
+    const l=document.getElementById('list');
+    if(l && l.parentNode){ const bd=document.createElement('div'); bd.id='rkBoard'; bd.className='rkboard'; bd.hidden=true;
+      bd.setAttribute('role','region'); bd.setAttribute('aria-label','Rank by decision band'); l.parentNode.insertBefore(bd, l.nextSibling); }
+  }
+}
+function rkOn(){ return uiMode==='rank' && rkView()==='board' && !reqPgOn(); }
+function rkDraw(){
+  rkEnsure();
+  const on=rkOn(), bd=document.getElementById('rkBoard');
+  ['list', 'board'].forEach(function(v){ const b=document.getElementById('rkv_'+v);
+    if(b){ const p=(rkView()===v)? 'true' : 'false'; if(b.getAttribute('aria-pressed')!==p) b.setAttribute('aria-pressed', p); } });
+  document.documentElement.classList.toggle('ui-rkboard', on);
+  if(!bd) return;
+  if(!on){ if(!bd.hidden || bd.innerHTML){ bd.hidden=true; bd.innerHTML=''; } RK_LAST=''; return; }
+  bd.hidden=false;
+  let html='';
+  try{ html=rkHtml(); }catch(e){ html='<div class="rpfail" role="alert">The board by band could not be drawn — '+esc((e && e.message) || String(e))+'. List shows the same requirements.</div>'; }
+  if(html!==RK_LAST){ bd.innerHTML=html; RK_LAST=html; }
+}
+// the columns: the ladder's bands in order, then No band yet, each with the cards the list shows in it, in the list's order
+function rkCols(ids){
+  const L=BANDS_LIST(), cols=L.map(function(b, i){ return {b:b, i:i, ids:[]}; }), none={b:null, i:-1, ids:[]};
+  const colOf=function(id){ const bid=BAND_OF(id); if(bid===null) return none;
+    const d=BAND_DEF(id); return cols.filter(function(c){ return c.b.id===d.id; })[0] || none; };
+  ids.forEach(function(id){ if(itemById(id)) colOf(id).ids.push(id); });
+  return {cols:cols.concat([none]), colOf:colOf};
+}
+function rkHtml(){
+  const T=tiers(null, scenOpt()), TT=tierTotals(T), CL=cutlinesOf(T, TT), RK=reqPgRanks(), ids=gridIds();
+  const C=rkCols(ids);
+  // the lines, where the rows draw them: the master order with no office, service or rank-entry view
+  const lines=[];
+  if(!pmoMode() && svcFilter<0 && !hardOpen){
+    if(CL.disc) lines.push({id:CL.disc.id, rank:CL.disc.rank, cls:'disc', t:'▼ Discretionary lanes begin exhausting here — '+fM(CL.disc.ba)+' BA'
+      +(CL.mc? ' · ★ Mission Critical short '+fM(CL.mc.need)+' of '+fM(CL.mc.tot) : '')});
+    if(CL.unf) lines.push({id:CL.unf.id, rank:CL.unf.rank, cls:'unf', t:'▼ Full-budget limit here — '+fM(CL.unf.ba)+'; below it, portions no lane can cover'});
+  }
+  const today=[];
+  if(CL.disc) today.push('discretionary runs out at #'+CL.disc.rank);
+  if(CL.mc) today.push('★ Mission Critical short '+fM(CL.mc.need));
+  if(CL.unf) today.push('full-budget limit at #'+CL.unf.rank);
+  const card=function(id){
+    const it=itemById(id), t=T[id]||{dT:0, mT:0}, lk=laneOf(t), mc=!!S.mc[id], r=RK.R[id];
+    const nm=(r? '#'+r+' ' : '')+dispTitle(it)+', requirement '+fM(askTot(it))+', '+(grpOf(it)||'no office')+', '+laneWord(lk)+(mc? ', Mission Critical' : '');
+    return '<button type="button" class="rkcard'+(curRow===id? ' sel' : '')+'" data-id="'+esc(id)+'" onclick="rkPick('+jsa(id)+')" aria-label="'+esc(nm)+'"'+(curRow===id? ' aria-current="true"' : '')+'>'
+      +'<span class="rkt"><span class="rkr">'+(r? '#'+r : '')+'</span> '+esc(dispTitle(it))+'</span>'
+      +'<span class="rkm"><b>'+fM(askTot(it))+'</b><span class="rko">'+esc(grpOf(it)||'—')+'</span><span class="rppill" data-lk="'+lk+'">'+esc(laneWord(lk))+'</span>'
+        +(mc? '<span class="rkmc">★ MC</span>' : '')+'</span></button>'; };
+  const cut=function(x){ return '<div class="rkcut '+x.cls+'" role="note">'+esc(x.t)+'</div>'; };
+  const cols=C.cols.map(function(c){
+    const tot=c.ids.reduce(function(a, id){ return a+askTot(itemById(id)); }, 0);
+    const mine=lines.filter(function(x){ return C.colOf(x.id)===c; });
+    let body='', left=mine.slice();
+    c.ids.forEach(function(id){
+      left=left.filter(function(x){ if((RK.R[id]||0)>=x.rank){ body+=cut(x); return false; } return true; });
+      body+=card(id); });
+    left.forEach(function(x){ body+=cut(x); });
+    const name=c.b? (c.i+' · '+c.b.n) : 'No band yet';
+    return '<section class="rkcol" aria-label="'+esc(name+', '+c.ids.length+' requirement'+(c.ids.length===1? '' : 's')+', '+fM(tot))+'">'
+      +'<div class="rkh">'+(c.b? '<i class="rpsw" style="background:'+readableOn(c.b.c,'#ffffff',1)+'"></i>' : '<i class="rpsw none"></i>')
+        +'<b>'+esc(name)+'</b><span class="rkn">'+c.ids.length+' · '+fM(tot)+'</span></div>'
+      +(body || '<p class="rkempty">No requirement shown in this band.</p>')+'</section>'; }).join('');
+  return '<div class="rktop"><div><h3 class="rktitle">Rank by decision band</h3>'
+      +'<p class="rpnote">The list as shown, a column per band, each card at its place in today’s 1–N order. A view: it changes nothing. '
+      +'A band is set on the RECORD panel’s Decision band; the order in List.</p></div></div>'
+    +'<div class="rktoday"><b>Today:</b> '+(today.length? esc(today.join(' · ')) : 'no lane runs out: discretionary pays every requirement as it is allocated')+'</div>'
+    +'<div class="rkcols">'+cols+'</div>';
+}
+V223_AFTER.push(reqPgDraw, rkDraw);
+
+// ── THE FIVE-YEAR CHART (item 156; in the five-year spend plan box, above its table) ──
+// Read from fydpBookModel -- the one model the box and the workbook share -- so a bar is the TOTAL line the workbook prints, and a
+// cell the appropriation's line. Requirement is the requirement value; Funded the lane draw (what discretionary and mandatory pay),
+// the gap the one less the other. A year the plan does not hold prints —, never 0.
+function fydpM1(v){ return '$'+(v/1e6).toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1})+'M'; }
+function fydpChartHtml(B){
+  const Y=B.years, fyl=function(y){ return 'FY'+(y%100); };
+  const vals=Y.map(function(y){ return B.total.fy[y]; });
+  const max=Math.max.apply(null, vals.map(function(v){ return v? Math.max(v.a, v.l) : 0; }).concat([1]));
+  const bars=Y.map(function(y, i){ const v=vals[i];
+    if(!v) return '<div class="fyb none" role="img" aria-label="'+fyl(y)+': not held by this plan"><span class="fygap">—</span><span class="fybs"></span><b>'+fyl(y)+'</b><span class="fyf">not held</span></div>';
+    const g=v.a-v.l, s=fyl(y)+': requirement '+fM(v.a)+', funded '+fM(v.l)+(g>0.5? ', gap '+fM(g) : ', no gap');
+    return '<div class="fyb" role="img" aria-label="'+esc(s)+'" title="'+esc(s)+'">'
+      +'<span class="fygap'+(g>0.5? ' short' : '')+'">'+(g>0.5? 'gap '+fydpM1(g) : 'no gap')+'</span>'
+      +'<span class="fybs"><i class="r" style="height:'+(v.a/max*100).toFixed(2)+'%"></i><i class="f" style="height:'+(v.l/max*100).toFixed(2)+'%"></i></span>'
+      +'<b>'+fyl(y)+'</b><span class="fyf">'+fydpM1(v.a)+' req · '+fydpM1(v.l)+' funded</span></div>'; }).join('');
+  const cell=function(v){ if(!v) return '<td class="fyc"><span class="z">—</span></td>';
+    const p=v.a>0? Math.max(0, Math.min(100, v.l/v.a*100)) : 0;
+    return '<td class="fyc"><span class="fyv">'+fydpM1(v.l)+' / '+fydpM1(v.a)+'</span><span class="fym" aria-hidden="true"><i style="width:'+p.toFixed(2)+'%"></i></span></td>'; };
+  const rows=B.got.map(function(p){ return '<tr><th scope="row">'+esc(p.name)+'</th>'+Y.map(function(y){ return cell(p.all.fy[y]); }).join('')+cell(p.all.tot)+'</tr>'; }).join('');
+  const others=B.apps.filter(function(p){ return !p.M; }).map(function(p){ return '<tr class="fyna"><th scope="row">'+esc(p.name)+'</th><td colspan="'+(Y.length+1)+'">'+esc(p.why||'not read here')+'</td></tr>'; }).join('');
+  const rest=APPN_SLUGS.filter(function(k){ return !B.apps.some(function(p){ return p.k===k; }); }).map(appnName);
+  return '<div class="fydpchart"><section class="fycard"><div class="fyhd"><h4>Requirement against funded, by year</h4>'
+      +'<span class="fyleg"><span><i class="r"></i>Requirement</span><span><i class="f"></i>Funded</span><span class="g">gap = requirement less funded</span></span></div>'
+      +'<div class="fybars">'+bars+'</div></section>'
+    +'<section class="fycard"><div class="fyhd"><h4>By appropriation · funded of requirement</h4><span class="fyleg"><span>$ in millions, funded / requirement</span></span></div>'
+      +'<table class="fyapp"><thead><tr><th scope="col">Appropriation</th>'+Y.map(function(y){ return '<th scope="col">'+fyl(y)+'</th>'; }).join('')+'<th scope="col">FYDP</th></tr></thead>'
+      +'<tbody>'+rows+others+'</tbody>'
+      +(B.got.length>1? '<tfoot><tr><th scope="row">TOTAL</th>'+Y.map(function(y){ return cell(B.total.fy[y]); }).join('')+cell(B.total.tot)+'</tr></tfoot>' : '')+'</table>'
+      +(rest.length? '<p class="fynote">'+esc(rest.join(', '))+' '+(rest.length===1? 'is' : 'are')+' read by the workbook, each from its own board; this box shows '+esc(B.apps.map(function(p){ return p.name; }).join(', ')||'this appropriation')+'.</p>' : '')
+    +'</section></div>';
+}
 // ==== end v2.23 W1 ====
 // ==== v2.23 W2 ====
 // ==== end v2.23 W2 ====

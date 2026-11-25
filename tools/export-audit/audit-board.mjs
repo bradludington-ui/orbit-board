@@ -11055,6 +11055,204 @@ await (async () => {
 })();
 // ==== end v2.22 integration (the lead) ====
 // ==== v2.23 W1 ====
+// v2.23 W1 (item 156; Brad, 25 Nov 2026: "Go on v2.23"). THE REQUIREMENT PAGE and RANK BY BAND, held in jsdom; what is about
+// layout, the keyboard and a real pointer is held in Chromium by tools/req-page.mjs (npm run reqpage). Every figure the page prints is
+// one the board already works out, so each check reads the page off the DOM and holds it to the fixture's own numbers, worked by hand
+// below, never to a helper the page itself calls. The fixture makes the alternatives disagree:
+//   P, A, B, C, D, F in that order on USAF and ANG; discretionary [450, 220], mandatory [200, 100].
+//   A asks [550, 100]: it draws USAF discretionary dry (400) and mandatory 150, ANG discretionary 100 -- so discretionary runs out AT A
+//     (the cutline, rank 2). Its four awards, the last dated after FY27: discretionary fills them forward from the first, mandatory
+//     backward from the last, so "forward" and "backward" put mandatory in different months, and the FY28 award's mandatory is
+//     Unscheduled. By hand: NOV 350 disc; MAR 100 disc; JUN 50 disc + 50 mand; Unscheduled 100 mand.
+//   B is trimmed to 120 of 150 and starred: its own shortfall (requirement less both lanes, 60) differs from what no lane could pay
+//     (beyond, 30), and it is the full-budget cutline (rank 3).
+//   F is on a split directing $50 of USAF discretionary after the lane is dry: it draws $0, and the page says "drew".
+//   Bands: P, A and F in PDM, B in Safety, C in KTLO, D in none -- so the discretionary line sits in PDM between P and A, the
+//     full-budget line in Safety above B, and a line read "at the top" or "at the foot" of its column is told apart.
+// FAILS ON THE SLOT COMMIT (9f82139): there is no page and no board.
+const W1F = {
+  services: ['USAF', 'ANG'],
+  items: [it('P', 'PSM', [50, 20]), it('A', 'AV', [550, 100]), it('B', 'PSM', [100, 50]), it('C', 'PP', [0, 50]), it('D', 'AV', [10, 0]), it('F', 'PSM', [50, 0])],
+  disc: [450, 220], mand: [200, 100], order: ['P', 'A', 'B', 'C', 'D', 'F'], mc: { B: true },
+  alloc: { B: { m: 't', v: 120 } }, fsrc: { F: { m: 'split', dv: [50, 0], mv: [0, 0] } },
+};
+const w1Boot = () => {
+  const B = boot(); seed(B.ev, W1F);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+    S.band={P:'pdm', A:'pdm', B:'safety', C:'ktlo', F:'pdm'};
+    S.ccar.A='JSF5002'; S.pid.A='PID9002'; S.ptype.A='OGC';
+    S.awards.A={mode:'inc', inc:[{d:'2026-11', day:5, sv:[300,50]}, {d:'2027-03', day:10, sv:[200,0]}, {d:'2027-06', day:1, sv:[150,100]}, {d:'2028-02', day:2, sv:[100,0]}]};
+    S.cons.B='Line stops in March.';
+    save(); render(); window.confirm=function(){ return true; }; 'ok'`);
+  return B;
+};
+await (async () => {
+  const name = 'v2.23 W1 — the requirement page: the header, the four figures, when the money obligates, the record, recent changes, the tabs, Back and Esc';
+  try {
+    const J = JSON.stringify;
+    const { ev } = w1Boot();
+    const fm = v => ev(`fM(${v})`);
+    const T = JSON.parse(ev(`JSON.stringify((function(){ var T=tiers(), o={}; S.order.forEach(function(id){ var p=T[id]; o[id]={d:p.d, m:p.m, u:p.u}; }); return o; })())`));
+    chk(name, 'fixture', 'CONTROL: A draws USAF discretionary 400 and mandatory 150, ANG discretionary 100', J([T.A.d, T.A.m]), J([[400, 100], [150, 0]]));
+    chk(name, 'fixture', 'CONTROL: B’s shortfall (60) is more than what no lane could pay (beyond, 30)', J([60, T.B.u[0] + T.B.u[1]]), J([60, 30]));
+    chk(name, 'fixture', 'CONTROL: F’s directed $50 is not drawn', T.F.d[0], 0);
+    // the journal: seven lines on A this year, one on A in FY28 (another year's requirement), one on B
+    ev(`MS.jrnl=[]; for(var i=0;i<7;i++) MS.jrnl.push({t:1700000000000+i*60000, by:'Pat'+i, fy:2027, p:['notes','A'], a:'n'+i, b:'n'+(i+1)});
+      MS.jrnl.push({t:1700000900000, by:'Other', fy:2028, p:['notes','A'], a:'', b:'FY28 NOTE'}); MS.jrnl.push({t:1700000950000, by:'Bea', fy:2027, p:['notes','B'], a:'', b:'B NOTE'}); 'ok'`);
+    // 1. it opens, in place of the list
+    ev(`setCur('A'); reqPageOpen('A'); 'ok'`);
+    const st = () => JSON.parse(ev(`JSON.stringify({on:document.documentElement.classList.contains('ui-reqpage'), hid:document.getElementById('reqPage').hidden,
+      k:REQPG && REQPG.k, id:REQPG && REQPG.id, text:document.getElementById('reqPage').textContent})`));
+    const s1 = st();
+    chk(name, 'open', 'the page is shown in place of the list, on Overview, for A', J([s1.on, s1.hid, s1.k, s1.id]), J([true, false, 'over', 'A']));
+    const hd = JSON.parse(ev(`(function(){ var p=document.getElementById('reqPage'); return JSON.stringify({eye:p.querySelector('.rpeye').textContent, title:p.querySelector('#rpTitle').textContent,
+      chips:[].map.call(p.querySelectorAll('.rpchips > span'), function(x){ return x.textContent; }), pill:p.querySelector('.rppill').getAttribute('data-lk'),
+      nav:[].map.call(p.querySelectorAll('.rpnav'), function(b){ return b.textContent+(b.disabled? ':off' : ''); }),
+      mc:p.querySelector('.rpmc').getAttribute('onclick'), row:document.querySelector('#row-A .mcb').getAttribute('onclick'), edit:p.querySelector('.rpedit').getAttribute('onclick')}); })()`));
+    chk(name, 'header', 'rank of N, office, the year and appropriation', hd.eye, '#2 of 6 · AV · FY2027 ' + ev('apLabel()'));
+    chk(name, 'header', 'the title', hd.title, ev(`dispTitle(itemById('A'))`));
+    chk(name, 'header', 'the chips: the lane in its word, CCaR, PID, OGC, the band', J(hd.chips.map(x => x.trim())), J(['Both lanes', 'CCaR JSF5002', 'PID PID9002', 'OGC', ev(`(function(){ var i=-1; BANDS_LIST().forEach(function(b,j){ if(b.id==='pdm') i=j; }); return i+' · '+BAND_DEF('A').n; })()`)]));
+    chk(name, 'header', 'the lane pill is laneOf’s (A draws both lanes)', hd.pill, 'split');
+    chk(name, 'header', 'Previous and Next carry the ranks either side (#1 and #3)', J(hd.nav), J(['↑ #1', '#3 ↓']));
+    chk(name, 'header', '★ is the row’s own call, Edit record opens the edit box', J([hd.mc === hd.row, hd.edit]), J([true, 'openEdit("A")']));
+    // 2. the four figures
+    const figs = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpk'), function(k){ return [k.querySelector('.l').textContent, +k.querySelector('.v').getAttribute('data-v')]; }))`));
+    chk(name, 'figures', 'A: Requirement 650, Discretionary 500, Mandatory 150, Unfunded 0', J(figs()), J([['Requirement', 650], ['Discretionary', 500], ['Mandatory', 150], ['Unfunded', 0]]));
+    // 3. when the money obligates: the award block's own landing, by hand
+    const mos = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpmo'), function(m){ return [+m.getAttribute('data-d'), +m.getAttribute('data-m')]; }))`));
+    const want = Array.from({ length: 13 }, () => [0, 0]); want[1] = [350, 0]; want[5] = [100, 0]; want[8] = [50, 50]; want[12] = [0, 100];
+    chk(name, 'obligates', 'twelve months and Unscheduled: NOV 350 disc, MAR 100, JUN 50 + 50 mand, Unscheduled 100 mand (the FY28 award)', J(mos()), J(want));
+    chk(name, 'obligates', 'its line: 4 awards, 550 scheduled, 100 unscheduled', ev(`document.querySelector('#reqPage .rpchart .rpsub').textContent`), '4 awards · ' + fm(550) + ' scheduled · ' + fm(100) + ' unscheduled');
+    chk(name, 'obligates', 'the figures as text beside it, each month with its lanes', ev(`[].map.call(document.querySelectorAll('#reqPage .rpfigs li'), function(l){ return l.textContent; }).join(' | ')`),
+      ['NOV 26: ' + fm(350) + ' (discretionary ' + fm(350) + ', mandatory ' + fm(0) + ')', 'MAR 27: ' + fm(100) + ' (discretionary ' + fm(100) + ', mandatory ' + fm(0) + ')',
+        'JUN 27: ' + fm(100) + ' (discretionary ' + fm(50) + ', mandatory ' + fm(50) + ')', 'Unscheduled: ' + fm(100) + ' (discretionary ' + fm(0) + ', mandatory ' + fm(100) + ')'].join(' | '));
+    // 4. the record's fields and what is still needed (reqNeeds): A has no obligation category, WBS or Goes to
+    const miss = ev(`[].map.call(document.querySelectorAll('#reqPage .rpflds dd.miss'), function(d){ return d.getAttribute('data-k'); }).join(',')`);
+    chk(name, 'record', 'the fields reqNeeds finds missing are flagged, each by its key', miss,
+      ev(`reqNeeds(reqDraftOf('A')).filter(function(x){ return !x.ok && !x.w && ['titles','obCat','wbs','dest','destEnd','mipr','budgetAsg'].indexOf(x.k)>=0; }).map(function(x){ return x.k; }).join(',')`));
+    chk(name, 'record', 'CONTROL: and that is obligation category, WBS and Goes to', miss, 'obCat,wbs,dest');
+    // 5. the impact statement: A's is not written -> the box and the button to the edit box at it
+    chk(name, 'impact', 'A: "Not written yet" and Write impact statement, to the edit box at the impact statement',
+      J([ev(`!!document.querySelector('#reqPage .rpimp .rpnone')`), ev(`document.querySelector('#reqPage .rpimp button').getAttribute('onclick')`)]), J([true, 'openEdit("A","cons")']));
+    // 6. recent changes: A's this year, newest first, five, and All 7 to History
+    const rec = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rprecent .rpj li'), function(l){ return l.querySelector('.rpjb').textContent.split(' · ')[0]; }))`));
+    chk(name, 'recent', 'the newest five of A’s seven lines in FY27, newest first: never FY28’s, never B’s', J(rec()), J(['Pat6', 'Pat5', 'Pat4', 'Pat3', 'Pat2']));
+    chk(name, 'recent', 'a line names its field and says was → now', ev(`document.querySelector('#reqPage .rprecent .rpjw').textContent`), ev(`jrnlFieldName({p:['notes','A']})`) + ' n6 → n7');
+    chk(name, 'recent', '"All 7 in History", and the History tab says 7', J([ev(`document.querySelector('#reqPage .rprecent button').textContent`), ev(`document.getElementById('rptab_hist').textContent`)]), J(['All 7 in History', 'History · 7']));
+    // 7. the tabs
+    chk(name, 'tabs', 'the tabs in order, buttons with aria-pressed, Overview pressed', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent+'='+b.getAttribute('aria-pressed'); }).join(',')`),
+      'Overview=true,Funding by service=false,Awards=false,History · 7=false');
+    ev(`document.querySelector('#reqPage .rprecent button').click(); 'ok'`);
+    chk(name, 'history', '"All 7" opens History: all seven, newest first, the keyboard on its tab', J([ev(`REQPG.k`), ev(`document.querySelectorAll('#reqPage .rpj.all li').length`), ev(`document.activeElement.id`)]), J(['hist', 7, 'rptab_hist']));
+    chk(name, 'history', 'Put back stays in the change journal, narrowed to A', ev(`[].filter.call(document.querySelectorAll('#reqPage button'), function(b){ return /change journal/.test(b.textContent); })[0].getAttribute('onclick')`), 'jrnlFor("A")');
+    // 8. funding by service: A's figures per service, and F's directed $50 not drawn says what it drew
+    ev(`reqPageTab('svc'); 'ok'`);
+    const svc = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpsvc tbody tr, #reqPage .rpsvc tfoot tr'), function(r){ return [].map.call(r.children, function(c){ return c.textContent; }); }))`));
+    chk(name, 'by service', 'A: USAF 550 / 400 / 150 / —, ANG 100 / 100 / — / —, Total', J(svc()),
+      J([['USAF', fm(550), fm(400), fm(150), '—'], ['ANG', fm(100), fm(100), '—', '—'], ['Total', fm(650), fm(500), fm(150), fm(0)]]));
+    ev(`reqPgOpen('F', 'svc'); 'ok'`);
+    const sf = svc();
+    chk(name, 'by service', 'F: the $50 directed is shown with what it drew ($0), and the total says what was directed', J([sf[0][2], sf[2][2]]),
+      J([fm(50) + 'drew ' + fm(0), fm(0) + ev(`directedLine(50, 0, basisSvcOf(itemById('F')).reduce(function(a,b){ return a+b; },0)).replace(/<[^>]+>/g,'')`)]));
+    chk(name, 'by service', 'B: its unfunded is its own shortfall (60), not beyond (30)', ev(`(reqPgOpen('B','svc'), document.querySelector('#reqPage .rpsvc tfoot td.u').textContent)`), fm(60));
+    // 9. the awards: one block each, the split by the award block's rule, the FY28 one said, Unscheduled
+    ev(`reqPgOpen('A', 'awd'); 'ok'`);
+    const aw = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpawd'), function(b){ return [b.querySelector('.rpah').textContent, b.querySelector('.rpasp').textContent]; }))`));
+    chk(name, 'awards', 'four awards and Unscheduled: totals, splits, the FY28 one outside the year',
+      J(aw.map(a => [a[0].replace(/\s+/g, ' ').trim(), a[1]])),
+      J([['Award 1 · 5 NOV 26' + fm(350), 'discretionary ' + fm(350) + ' · mandatory ' + fm(0)], ['Award 2 · 10 MAR 27' + fm(200), 'discretionary ' + fm(100) + ' · mandatory ' + fm(0)],
+        ['Award 3 · 1 JUN 27' + fm(250), 'discretionary ' + fm(50) + ' · mandatory ' + fm(50)], ['Award 4 · 2 FEB 28 outside FY27 — Unscheduled in the chart' + fm(100), 'discretionary ' + fm(0) + ' · mandatory ' + fm(100)],
+        ['Unscheduled' + fm(0), 'discretionary ' + fm(0) + ' · mandatory ' + fm(0)]]));
+    // 10. mandatory off for the year (W3's switch, mandOn): the page hides every mandatory figure
+    ev(`window.__mo=mandOn; mandOn=function(){ return false; }; reqPgOpen('A'); 'ok'`);
+    chk(name, 'mandatory off', 'the four figures lose Mandatory, the chart its legend and lanes say nothing of it', J([figs().map(f => f[0]).join(','), ev(`/Mandatory|mandatory/.test(document.querySelector('#reqPage .rpchart').textContent)`)]), J(['Requirement,Discretionary,Unfunded', false]));
+    ev(`reqPageTab('svc'); 'ok'`);
+    chk(name, 'mandatory off', 'Funding by service has no Mandatory column', ev(`[].map.call(document.querySelectorAll('#reqPage .rpsvc thead th'), function(t){ return t.textContent; }).join(',')`), 'Service,Requirement,Discretionary,Unfunded');
+    ev(`mandOn=window.__mo; reqPgOpen('A'); 'ok'`);
+    // 11. Previous and Next by the list as shown
+    ev(`document.querySelector('#reqPage .rpnav[data-step="1"]').click(); 'ok'`);
+    chk(name, 'step', 'Next from A is B, selected behind the page, the keyboard on Next', J([ev('REQPG.id'), ev('curRow'), ev(`document.activeElement.getAttribute('data-step')`)]), J(['B', 'B', '1']));
+    ev(`document.querySelector('#reqPage .rpnav[data-step="-1"]').click(); document.querySelector('#reqPage .rpnav[data-step="-1"]').click(); 'ok'`);
+    chk(name, 'step', 'Previous twice: P, the first -- its Previous is off', J([ev('REQPG.id'), ev(`document.querySelector('#reqPage .rpnav[data-step="-1"]').disabled`)]), J(['P', true]));
+    // 12. a tab that throws shows its own failure; the page and the other tabs stand
+    ev(`REQPG_TABS.push({k:'boom', label:'Boom', order:45, html:function(){ throw new Error('kaput'); }}); reqPgOpen('A','boom'); 'ok'`);
+    chk(name, 'a tab fails', 'its own failure, under the header and the tabs', J([/The Boom tab could not be drawn — kaput/.test(ev(`document.querySelector('#reqPage .rpbody').textContent`)), ev(`document.querySelectorAll('#reqPage .rptab').length`), ev(`document.getElementById('rpTitle').textContent`)]),
+      J([true, 5, ev(`dispTitle(itemById('A'))`)]));
+    ev(`REQPG_TABS.splice(REQPG_TABS.length-1, 1); reqPgOpen('A'); 'ok'`);
+    // 13. Back: the list again, A selected, the keyboard on A's row
+    ev(`document.querySelector('#reqPage .rpback').click(); 'ok'`);
+    chk(name, 'back', 'Back: the page is gone, A is selected and its row has the keyboard', J([st().on, st().hid, ev('curRow'), ev('document.activeElement.id')]), J([false, true, 'A', 'row-A']));
+    // 14. Esc closes it when nothing else has it; a menu open keeps it
+    ev(`reqPageOpen('C'); 'ok'`);
+    ev(`openMenu='view'; document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true, cancelable:true})); 'ok'`);
+    chk(name, 'esc', 'with a menu open, Esc is the menu’s: the page stays', ev('String(!!REQPG)'), 'true');
+    ev(`openMenu=null; try{ dlgSync(); }catch(e){} document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true, cancelable:true})); 'ok'`);
+    chk(name, 'esc', 'with nothing else open, Esc goes back to the list, C selected', J([ev('String(!!REQPG)'), ev('curRow'), ev('document.activeElement.id')]), J(['false', 'C', 'row-C']));
+    // 15. another view leaves the page: a mode chosen elsewhere, or a left-menu entry for another view
+    ev(`reqPageOpen('A'); uiSetMode('fund'); 'ok'`);
+    chk(name, 'leave', 'Fund chosen: the page has gone', J([ev('String(!!REQPG)'), st().hid]), J(['false', true]));
+    ev(`uiSetMode('review'); reqPageOpen('A'); document.getElementById('uiNav_req').click(); 'ok'`);
+    chk(name, 'leave', 'Requirements in the left menu: the page has gone, the list is shown', J([ev('String(!!REQPG)'), st().on]), J(['false', false]));
+    // 16. the year switched under it: A is FY27's -- FY28 (started from FY27, so it holds an A too) never shows its A here
+    ev(`reqPageOpen('A'); switchYear(2028); 'ok'`);
+    chk(name, 'another year', 'on FY28 the page says it was opened on FY27’s requirement, and offers Back', J([ev('MS.cur'), /opened on FY27’s/.test(st().text), !!ev(`!!document.querySelector('#reqPage .rpback')`), ev(`!!document.querySelector('#reqPage .rpkpis')`)]),
+      J([2028, true, true, false]));
+    ev(`switchYear(2027); 'ok'`);
+    chk(name, 'another year', 'back on FY27 it is A’s page again', J([ev('MS.cur'), ev(`document.getElementById('rpTitle').textContent`)]), J([2027, ev(`dispTitle(itemById('A'))`)]));
+    // 17. nothing is written: the page is the session's
+    ev(`reqPageClose(); 'ok'`);
+    const sv = ev(`buildSavedHtml()`);
+    const ps = sv.slice(sv.indexOf('id="pubState">'), sv.indexOf('</script>', sv.indexOf('id="pubState">')));
+    chk(name, 'nothing saved', 'CONTROL: the saved state is read', ps.length > 1000, true);
+    chk(name, 'nothing saved', 'the saved state carries no page state', /REQPG|reqPage|"over"|"hist"/.test(ps), false);
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+})();
+await (async () => {
+  const name = 'v2.23 W1 — Rank by band: a column per band and No band yet, the list’s order and filters, the cutlines in their bands, a card opens the record, nothing written';
+  try {
+    const J = JSON.stringify;
+    const { ev } = w1Boot();
+    const fm = v => ev(`fM(${v})`);
+    ev(`uiSetMode('rank'); 'ok'`);
+    chk(name, 'switch', 'in Rank the switch is there, List pressed, and the list is shown', J([ev(`!!document.getElementById('rkViewSw')`), ev(`document.getElementById('rkv_list').getAttribute('aria-pressed')`), ev(`document.getElementById('rkBoard').hidden`)]), J([true, 'true', true]));
+    ev(`document.getElementById('rkv_board').click(); 'ok'`);
+    chk(name, 'switch', 'Board by band: pressed, the board shown, kept in this browser as spmtRankView', J([ev(`document.getElementById('rkv_board').getAttribute('aria-pressed')`), ev(`document.getElementById('rkBoard').hidden`), ev(`localStorage.getItem('spmtRankView')`), ev(`document.documentElement.classList.contains('ui-rkboard')`)]),
+      J(['true', false, 'board', true]));
+    const cols = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#rkBoard .rkcol'), function(c){ return {h:c.querySelector('.rkh b').textContent, n:c.querySelector('.rkn').textContent,
+      items:[].map.call(c.querySelectorAll('.rkcard, .rkcut'), function(x){ return x.classList.contains('rkcut')? 'LINE:'+x.className.replace('rkcut ','') : x.getAttribute('data-id'); })}; }))`));
+    const C = cols();
+    const ladder = JSON.parse(ev(`JSON.stringify(BANDS_LIST().map(function(b,i){ return i+' · '+b.n; }).concat(['No band yet']))`));
+    chk(name, 'columns', 'a column per band in the ladder’s order, then No band yet', J(C.map(c => c.h)), J(ladder));
+    const col = id => C.filter(c => c.h === ev(`(function(){ var i=-1; BANDS_LIST().forEach(function(b,j){ if(b.id===${J(id)}) i=j; }); return i+' · '+BANDS_LIST()[i].n; })()`))[0];
+    chk(name, 'cards', 'PDM: P, the discretionary line, A, F -- the line above the first card at or past where the lane runs out (A, #2)', J(col('pdm').items), J(['P', 'LINE:disc', 'A', 'F']));
+    chk(name, 'cards', 'Safety: the full-budget line above B (#3)', J(col('safety').items), J(['LINE:unf', 'B']));
+    chk(name, 'cards', 'KTLO: C; No band yet: D', J([col('ktlo').items, C[C.length - 1].items]), J([['C'], ['D']]));
+    chk(name, 'cards', 'each column’s count and requirement total', J([col('pdm').n, col('safety').n, C[C.length - 1].n]), J(['3 · ' + fm(70 + 650 + 50), '1 · ' + fm(150), '1 · ' + fm(10)]));
+    chk(name, 'cutlines', 'the discretionary line carries Mission Critical’s shortage (B is starred and short)', /★ Mission Critical short/.test(ev(`document.querySelector('#rkBoard .rkcut.disc').textContent`)), true);
+    chk(name, 'cutlines', 'the Today line: discretionary runs out at #2, the full-budget limit at #3', /discretionary runs out at #2.*full-budget limit at #3/.test(ev(`document.querySelector('#rkBoard .rktoday').textContent`)), true);
+    const card = JSON.parse(ev(`(function(){ var c=document.querySelector('#rkBoard .rkcard[data-id="B"]'); return JSON.stringify([c.tagName, c.querySelector('.rkr').textContent, c.querySelector('.rkm b').textContent, c.querySelector('.rko').textContent,
+      c.querySelector('.rppill').getAttribute('data-lk'), c.querySelector('.rppill').textContent, !!c.querySelector('.rkmc'), c.getAttribute('draggable')]); })()`));
+    chk(name, 'cards', 'B’s card: a button, #3, its requirement, PSM, its lane in its word, ★ MC; nothing draggable', J(card), J(['BUTTON', '#3', fm(150), 'PSM', ev(`laneOf(tiers()['B'])`), ev(`laneWord(laneOf(tiers()['B']))`), true, null]));
+    chk(name, 'view only', 'nothing on the board changes a band or the order: every control is a card that calls rkPick', ev(`[].every.call(document.querySelectorAll('#rkBoard button, #rkBoard input, #rkBoard select, #rkBoard [onclick], #rkBoard [draggable]'), function(b){ return /^rkPick\\(/.test(b.getAttribute('onclick')||''); })`), true);
+    ev(`document.querySelector('#rkBoard .rkcard[data-id="C"]').click(); 'ok'`);
+    chk(name, 'pick', 'a card selects its requirement and opens its record', J([ev('curRow'), ev(`document.getElementById('inspector').classList.contains('open')`), ev(`document.querySelector('#rkBoard .rkcard.sel').getAttribute('data-id')`)]), J(['C', true, 'C']));
+    // the list's filters apply: Mission Critical only leaves B
+    ev(`mcOnly=true; render(); 'ok'`);
+    chk(name, 'filters', 'Mission Critical only: B alone, still in Safety; the lines are drawn as the rows draw them', J(cols().map(c => c.items.filter(x => x.indexOf('LINE') < 0)).flat()), J(['B']));
+    ev(`mcOnly=false; filter='PSM'; render(); 'ok'`);
+    chk(name, 'filters', 'one office (PSM): its cards only, and no cutline (the rows draw none there)', J(cols().map(c => c.items).flat()), J(['P', 'F', 'B']));
+    ev(`filter='ALL'; render(); 'ok'`);
+    // never in the board, never off Rank
+    const sv = ev(`buildSavedHtml()`);
+    const ps = sv.slice(sv.indexOf('id="pubState">'), sv.indexOf('</script>', sv.indexOf('id="pubState">')));
+    chk(name, 'nothing saved', 'CONTROL: the saved state is read', ps.length > 1000, true);
+    chk(name, 'nothing saved', 'the saved state carries no Rank view', /spmtRankView|rkBoard|RKVIEW/.test(ps), false);
+    ev(`uiSetMode('review'); 'ok'`);
+    chk(name, 'other modes', 'in Review the board is hidden and the list is back', J([ev(`document.getElementById('rkBoard').hidden`), ev(`document.documentElement.classList.contains('ui-rkboard')`)]), J([true, false]));
+    ev(`uiSetMode('rank'); document.getElementById('rkv_list').click(); 'ok'`);
+    chk(name, 'switch', 'List again: kept as list, the board hidden', J([ev(`localStorage.getItem('spmtRankView')`), ev(`document.getElementById('rkBoard').hidden`)]), J(['list', true]));
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+})();
 // ==== end v2.23 W1 ====
 // ==== v2.23 W2 ====
 // ==== end v2.23 W2 ====
