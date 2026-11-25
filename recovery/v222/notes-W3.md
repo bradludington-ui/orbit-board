@@ -107,7 +107,7 @@ keyboard, `awardBlockHtml` and `awdFixHtml`, `budRecordHtml` and `BUD_HOW`, `uiD
 | boot-same | identical either way |
 | audit (export), audit-other, audit-recon, audit-hostile, audit-inject, audit-ui | ALL CHECKS PASSED |
 | legacy-fsrc | "every legacy Force setting computes exactly as before" |
-| audit-board (HEAP=8192) | ALL CHECKS PASSED -- see FINAL below |
+| audit-board (HEAP=8192) | ALL CHECKS PASSED (run again whole at `d47e5f8`, after the last change to its W3 block) |
 | audit-import (HEAP=8192) | 2 FAILING -- "v1.86 — the File menu …", v2.21's left menu (For the integration); nothing else |
 | record (new) | 69 ok, 0 FAIL |
 | keys, dropdowns, dialogs, leftmenu, menus, panels, toolbar, editors, pointer, controls, colours, pmosave, inspector | pass |
