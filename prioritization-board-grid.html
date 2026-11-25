@@ -2251,7 +2251,66 @@ html.ui-rkboard #list,html.ui-rkboard #gridHead,html.ui-rkboard #qAway{display:n
 .fydpchart .fynote{font-size:12px;color:var(--mut);margin:8px 0 0}
 </style>
 <style id="v223w2">
-/* v2.23 W2: its own rules go here (contract §2) */
+/* v2.23 W2 (item 158): Across the FYDP -- the tab, its chart and grid, the RECORD card's year strip, Add to a year and Fill across */
+.xf{font-size:12.5px;color:var(--ink)}
+.xf .xfnote,.xf-m .xfnote{color:var(--mut);font-size:11.5px;line-height:1.45;margin:6px 0}
+.xfchart{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 14px;margin:0 0 10px}
+.xfch{display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:space-between;align-items:baseline}
+.xfch span{color:var(--mut);font-size:11.5px}
+.xfbars{display:flex;gap:10px;align-items:flex-end;margin-top:8px;min-height:160px}
+.xfbar{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:stretch;text-align:center}
+.xfbv{font-weight:800;font-size:11.5px;margin-bottom:3px;font-variant-numeric:tabular-nums}
+.xfstack{display:flex;flex-direction:column;border-radius:3px 3px 0 0;overflow:hidden}
+.xfbar.none .xfstack{border:1px dashed var(--edge);border-bottom:0;background:transparent}
+.xfbf{background:var(--apxOk,#00B050);min-height:0}
+.xfbu{background:var(--apxBad,#C00000);min-height:0}
+.xfbl{font-size:11px;color:var(--mut);margin-top:4px;line-height:1.35;border-top:1px solid var(--edge);padding-top:3px}
+.xfbl b{color:var(--ink)}
+.xftools{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0 0 8px}
+.xftools .btn{min-height:28px}
+.xfwrap{overflow-x:auto;max-width:100%;border:1px solid var(--line);border-radius:10px}
+.xftab{border-collapse:collapse;width:100%;min-width:max-content;font-variant-numeric:tabular-nums}
+.xftab th,.xftab td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;white-space:nowrap}
+.xftab thead th{background:var(--apxNav,#25394d);color:#fff;text-align:left;vertical-align:bottom;font-weight:600;font-size:11.5px}
+.xftab thead th b{font-size:12.5px}
+.xftab thead th.cur{box-shadow:inset 0 -3px 0 var(--gold)}
+.xftab .xfsub{font-size:11px;opacity:.92;margin-top:2px;line-height:1.35}
+.xftab .xftag{font-weight:400;font-size:10.5px;opacity:.92}
+.xftab .xflh{text-align:left;color:var(--ink);background:var(--panel);font-weight:400;position:sticky;left:0;z-index:1;min-width:104px}
+.xftab thead .xflh{background:var(--apxNav,#25394d);color:#fff;z-index:2}
+.xftab .xflh span{color:var(--mut)}
+.xftab tr.xfs0 th,.xftab tr.xfs0 td{border-top:2px solid var(--edge)}
+.xftab .xfin{width:9.6em;min-width:0;box-sizing:border-box;text-align:right;font:inherit;font-variant-numeric:tabular-nums;min-height:26px;padding:2px 6px}
+.xftab .drew{font-size:10.5px;white-space:nowrap}
+.xftab .xfu,.xf-m .xfu{color:var(--unf);font-weight:800}
+.xftab .xfna{color:var(--dim);text-align:right}
+.xftab .xftot{font-weight:700;border-left:2px solid var(--edge)}
+.xftab thead .xftot{border-left:2px solid var(--edge)}
+.xftab tr.xfsum th,.xftab tr.xfsum td{font-weight:700;background:var(--panelA,var(--panel))}
+.xftab tr.xfsum:first-of-type th,.xftab tbody tr.xfsum:nth-last-child(3) th,.xftab tbody tr.xfsum:nth-last-child(3) td{border-top:3px solid var(--apxNav,#25394d)}
+.xfaddb{margin-top:4px;min-height:24px;font-size:11.5px;padding:2px 10px;border-radius:6px;border:1px solid var(--edge);background:var(--panel);color:var(--ink);cursor:pointer}
+.xf-m{width:640px;max-width:94vw}
+.xf-m.xf-fill{width:860px}
+.xf-m .xflead{margin:4px 0 10px;line-height:1.45}
+.xf-m .xfstart{border:1px solid var(--line);border-radius:8px;background:var(--panelA,var(--panel));padding:10px 12px}
+.xf-m .xfk{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.xf-m .xfgrow,.xf-m .xffrom,.xf-m .xfmode{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:8px 0}
+.xf-m .xfpct{width:5em;text-align:right;min-height:26px}
+.xf-m input[type=checkbox],.xf-m input[type=radio]{width:24px;height:24px;margin:0 4px 0 0;vertical-align:middle}
+.xf-m label{display:inline-flex;align-items:center;min-height:24px}
+.xf-m select{min-height:26px}
+.xf-m .xfmini{border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums;font-size:12px}
+.xf-m .xfmini th,.xf-m .xfmini td{padding:3px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.xf-m .xfmini th[scope=row],.xf-m .xfmini tr:first-child th:first-child{text-align:left}
+.xf-m .xfprev{width:100%}
+.xf-m .xfchg b{color:var(--ink)}
+.xf-m .xfnot{margin:8px 0;padding-left:18px;font-size:12px}
+.xf-m .xfnot li{margin:3px 0}
+.xf-m .xfmsg{color:var(--red,#b00020);font-weight:700;font-size:12px;min-height:0}
+.xf-m .xfmsg:empty{display:none}
+.xf-m .xfft{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+#inspector .recyrlk{font-weight:600;color:var(--mut)}
+#inspector button.recyrman{flex:1 1 100%;min-height:28px;border-radius:6px;border:1px solid var(--edge);background:var(--apxNav,#25394d);color:#fff;font:inherit;font-weight:700;font-size:12px;cursor:pointer}
 </style>
 <style id="v223w3">
 /* v2.23 W3: its own rules go here (contract §2) */
@@ -2876,6 +2935,16 @@ html.ui-rkboard #list,html.ui-rkboard #gridHead,html.ui-rkboard #qAway{display:n
     <datalist id="uipList"></datalist><div id="uipNote" class="hint" style="margin-top:6px;overflow-wrap:anywhere" hidden></div>
     <div style="margin-top:12px;text-align:right"><button class="btn" onclick="uipDone(true)">OK</button> <button class="btn" onclick="uipDone(false)">Cancel</button></div>
   </div>
+</div>
+
+<!-- v2.23 W2 (item 158): Add to a year and Fill across, from the requirement page's Across the FYDP tab (xfAddOpen, xfFillOpen) -->
+<div class="modal-bg" id="xfAddPanel" onclick="if(event.target===this)xfAddClose()">
+  <div class="modal xf-m"><h3><span id="xfAddTtl">Add to a year</span> <button type="button" class="x" onclick="xfAddClose()">✕ Close</button></h3>
+    <div id="xfAddBody"></div></div>
+</div>
+<div class="modal-bg" id="xfFillPanel" onclick="if(event.target===this)xfFillClose()">
+  <div class="modal xf-m xf-fill"><h3><span>Fill across the FYDP</span> <button type="button" class="x" onclick="xfFillClose()">✕ Close</button></h3>
+    <div id="xfFillBody"></div></div>
 </div>
 
 <div class="modal-bg" id="exPanel" onclick="if(event.target===this)toggleEx()">
@@ -39050,12 +39119,14 @@ function fydpSameIn(K, y0, id, y){
 // drawn on every render -- on a board of several years the first cut made every edit cost five lane walks in the draw. So the draw uses what is already worked out for the board as it is, or leaves the line empty and fills it once the page is
 // idle (recYearsFill), for the requirement then on the record.
 var _recYrT=null;
+// v2.23 W2 (item 158): the years are the Across the FYDP tab's (xfWindow: the year before the base to base + 4), and the line is drawn
+// whenever the year on screen holds the requirement -- with one year it still carries Manage across the FYDP, the way to the others
 function recYearsKey(){
   if(typeof MS==='undefined' || !MS || !MS.years || typeof fydpData!=='function') return null;
-  let W=[]; try{ W=fydpWindow(); }catch(e){ return null; }
+  let W=[]; try{ W=xfWindow(); }catch(e){ return null; }
   const held=W.filter(function(y){ return !!MS.years[y]; });
-  if(held.length<2) return null;
-  return [_saveGen, MS.cur, held.join(','), (typeof CYCVIEW!=='undefined'? CYCVIEW : ''), _fyMoves].join('|');
+  if(held.length<1) return null;
+  return [_saveGen, MS.cur, held.join(','), (typeof CYCVIEW!=='undefined'? CYCVIEW : ''), _fyMoves, MS.base].join('|');
 }
 function recYearsOf(id, now){
   if(!id) return null;
@@ -39068,17 +39139,13 @@ function recYearsOf(id, now){
       // the ones the last line was worked out for, that line is drawn (marked stale) and the fill replaces it.
       const v0=(typeof CYCVIEW!=='undefined'? CYCVIEW : '');
       if(!(_recYrC && _recYrC.ms===MS && _recYrC.cur===MS.cur && _recYrC.v===v0)) return {pending:true};
-    } else {
-      let D=null, LK=null;
-      try{ D=fydpData('working'); LK=fydpLineKeys(D, D.held); }catch(e){ return null; }
-      _recYrC={k:k, ms:MS, cur:MS.cur, v:(typeof CYCVIEW!=='undefined'? CYCVIEW : ''), D:D, LK:LK};
-    }
+    } else if(!xfDataNow()) return null;   // v2.23 W2 (item 158): each year read inside itself (xfYears), shared with the tab
   }
   const C=_recYrC, stale=(C.k!==k);
   const out=C.D.held.map(function(y){
-    const yid=fydpSameIn(C.LK, MS.cur, id, y);
+    const yid=fydpSameIn(C.LK, MS.cur, id, y) || (typeof xfRolledIn==='function'? xfRolledIn(id, y) : '');   // v2.23 W2: and a rolled copy
     const r=yid? ((C.D.proj[y]||{}).reqs||[]).filter(function(x){ return String(x.id)===yid; })[0] : null;
-    return {y:+y, id:yid, ask:r? fydpSum(r.ask) : null};
+    return {y:+y, id:yid, ask:r? fydpSum(r.ask) : null, lane:r? r.lane : ''};   // v2.23 W2: and its lane status that year
   });
   if(stale) out.stale=true;
   return out;
@@ -39098,19 +39165,21 @@ function recYearsFill(){
   const a=[].slice.call(e2.children), c=[].slice.call(nu.children);
   const same=a.length===c.length && a.every(function(x, i){ return x.tagName===c[i].tagName && x.getAttribute('onclick')===c[i].getAttribute('onclick'); });
   if(!same){ e2.replaceWith(nu); return; }
-  a.forEach(function(x, i){ x.className=c[i].className; x.textContent=c[i].textContent;
+  a.forEach(function(x, i){ x.className=c[i].className; x.innerHTML=c[i].innerHTML;   // v2.23 W2: a year carries its lane word in a span of its own
     if(c[i].hasAttribute('title')) x.setAttribute('title', c[i].getAttribute('title')); else x.removeAttribute('title'); });
   e2.className=nu.className; e2.removeAttribute('aria-busy');
 }
+// v2.23 W2 (item 158): A YEAR STRIP -- each year's requirement and its lane status in words, the year on screen marked -- and Manage
+// across the FYDP, which opens the requirement page at its Across the FYDP tab. The card keeps its one-year view.
 function recYearsHtml(id, Y){
   if(Y && Y.pending) return '<div class="recyrs" id="recYrs"></div>';
-  if(!Y || Y.length<2) return '';
+  if(!Y || !Y.length) return '';
   return '<div class="recyrs'+(Y.stale? ' stale' : '')+'" id="recYrs"'+(Y.stale? ' aria-busy="true"' : '')+'><span class="rl">Requirement by year</span> '+Y.map(function(r){
-    const lbl='FY'+(r.y%100)+' '+(r.ask===null? '—' : fM(r.ask));
+    const lbl='FY'+(r.y%100)+' '+(r.ask===null? '—' : fM(r.ask))+(r.lane? '<span class="recyrlk" data-lk="'+r.lane+'"> · '+laneWord(r.lane)+'</span>' : '');
     if(r.y===+MS.cur) return '<span class="recyr cur" title="the year on screen">'+lbl+'</span>';
     if(r.ask===null) return '<span class="recyr none" title="FY'+(r.y%100)+' holds no requirement that is this one">'+lbl+'</span>';
     return '<button type="button" class="recyr" onclick="recYearGo('+r.y+','+jsa(r.id)+')" title="open this requirement in FY'+(r.y%100)+'">'+lbl+'</button>';
-  }).join('')+'</div>';
+  }).join('')+'<button type="button" class="recyrman" onclick="reqPageOpen('+jsa(id)+','+jsa('fydp')+')" title="every year’s requirement and Disc / Mand by service, edited in one place">Manage across the FYDP ›</button></div>';
 }
 function recYearGo(y, yid){
   switchYear(y);
@@ -39742,6 +39811,442 @@ function fydpChartHtml(B){
 }
 // ==== end v2.23 W1 ====
 // ==== v2.23 W2 ====
+// v2.23 W2 (item 158): ONE REQUIREMENT ACROSS THE FYDP, BY SERVICE. Brad, 25 Nov 2026: "pull up a requirement and manage the funding
+// needs by service across all FYDP years ... it's not user friendly to only manage one year at a time", and his answers: FY27, the
+// year before the base, is editable like the others; four lines per service, all shown; Fill across never offers Disc/Mand.
+// The rules it keeps (recovery/v223/contract.md §0, §1.2):
+//  - THE YEARS ARE JOINED BY THE WORK, NEVER BY THE ID (v2.16): the requirement in each year is fydpSameIn over fydpLineKeys, the
+//    rule the five-year plan reads. An added requirement's id is its own year's number: FY28's NEW-1 and FY30's NEW-1 can be two
+//    pieces of work, and a figure typed under one must never land on the other.
+//  - EVERY FIGURE IS ONE THE BOARD ALREADY WORKS OUT, from that year's own lane walk: each year is opened through aceWithYear and read
+//    by tiers(), unfSvcOf() and basisSvcOf() inside it (xfYearNow). Nothing here restates the funding model.
+//  - A FIGURE TYPED FOR ANOTHER YEAR GOES IN THROUGH THE SETTER THAT WRITES IT THERE: setAsk (and so applyAskVec) for the
+//    requirement, setFsrcSvc (seeded by seedSplit the first time) for a directed Disc or Mand. The setter runs inside that year
+//    (aceWithYear), its own save(), render() and flash() held (xfIn), and the year on screen is put back; then ONE save() writes every
+//    year and the journal files each line under the year its path names (jrnlCapture reads the year from the path), so Put back puts
+//    back that year's figure. Nothing switches the year on screen.
+//  - Where a lane cannot pay what was typed the box keeps the typed (directed) figure and the drewLine reading says what it drew.
+//  - A PMO copy types requirement values only (Disc and Mand are the portfolio team's: allocLocked), and only in a year it submits
+//    for; a locked view is read only. Mandatory is hidden for a year where mandOn() says it is off (W3's switch).
+// The tab is drawn from REQPG_TABS by W1's requirement page; Add to a year and Fill across are boxes of their own (#xfAddPanel,
+// #xfFillPanel); the RECORD card's other-years line (recYearsOf, recYearsFill, recYearsHtml, above) reads the same years from here.
+REQPG_TABS.push({k:'fydp', label:'Across the FYDP', order:40,
+  html:function(id){ return xfTabHtml(id); }, after:function(id){ xfTabAfter(id); }});
+// THE YEARS: the year before the base to base + 4 (base FY28: FY27-FY32), and the year on screen if it sits outside them.
+function xfWindow(){
+  const b=+MS.base||+MS.cur, out=[];
+  for(let y=b-1; y<=b+4; y++) out.push(y);
+  if(out.indexOf(+MS.cur)===-1) out.push(+MS.cur);
+  return out.sort(function(a, c){ return a-c; });
+}
+// ONE YEAR, AS ITS OWN LANE WALK READS IT -- run inside aceWithYear(y), so S, the requirement list and the lanes are that year's.
+// Every requirement, with what fydpLineKeys needs to join the years (id, custom, prior, title, office, CCaR) and what the grid
+// prints: its rank in that year's priority order, the requirement by service, what each lane drew, unfunded (unfSvcOf), the basis
+// each cell was measured against (basisSvcOf), the directed split where there is one, and the lane status (laneOf).
+function xfYearNow(){
+  const T=tiers(), z=function(){ return SVC.map(function(){ return 0; }); }, reqs=[];
+  const sum=function(a){ return a.reduce(function(x, v){ return x+v; }, 0); };
+  (S.order||[]).forEach(function(id){
+    const it=itemById(id); if(!it) return;
+    const p=T[id]||{d:z(), m:z()};
+    const d=SVC.map(function(_, i){ return +p.d[i]||0; }), m=SVC.map(function(_, i){ return +p.m[i]||0; });
+    const fo=(S.fsrc||{})[id], sp=!!(fo && fo.m==='split' && Array.isArray(fo.dv));
+    const row={id:id, rank:reqs.length+1, title:dispTitle(it), grp:grpOf(it), ccar:ccarOf(it)||'', pid:pidOf(it)||'',
+      ask:SVC.map(function(_, i){ return +it.ask[i]||0; }), d:d, m:m, u:unfSvcOf(it, p).map(function(v){ return +v||0; }),
+      bs:basisSvcOf(it).slice(), dv:sp? fo.dv.map(function(v){ return +v||0; }) : null,
+      mv:sp? (Array.isArray(fo.mv)? fo.mv : []).map(function(v){ return +v||0; }) : null,
+      lane:laneOf({dT:sum(d), mT:sum(m)})};
+    if(it.custom) row.custom=true;
+    if(it.prior && it.prior.id!=null) row.prior={id:String(it.prior.id), fy:+it.prior.fy};
+    reqs.push(row);
+  });
+  return {fy:+MS.cur, n:reqs.length, mand:mandOn(S)!==false, reqs:reqs};
+}
+// Every year of the window the board holds, each read inside itself; the shape fydpLineKeys reads ({proj:{y:{reqs}}, held}).
+function xfYears(){
+  const W=xfWindow(), out={years:W, held:[], proj:{}};
+  W.forEach(function(y){ if(!(MS.years||{})[y]) return; out.proj[y]=aceWithYear(y, xfYearNow); out.held.push(y); });
+  return out;
+}
+// Worked out once per change of the board -- the RECORD card's line shares it (_recYrC, keyed by recYearsKey: every edit moves
+// _saveGen) -- and synchronously when asked: the tab is drawn after the rows and the RECORD panel (v223After), never inside them.
+function xfDataNow(){
+  const k=recYearsKey(); if(!k) return null;
+  if(typeof _recYrC!=='undefined' && _recYrC && _recYrC.k===k && _recYrC.ms===MS) return _recYrC;
+  let D=null, LK=null;
+  try{ D=xfYears(); LK=fydpLineKeys(D, D.held); }catch(e){ return null; }
+  _recYrC={k:k, ms:MS, cur:MS.cur, v:(typeof CYCVIEW!=='undefined'? CYCVIEW : ''), D:D, LK:LK};
+  return _recYrC;
+}
+// The requirement `id` of the year on screen, year by year: {y, held, id (that year's id for the same work, '' when it holds none),
+// r (its row), n (requirements that year), mand, tag}.
+function xfModel(id){
+  const C=xfDataNow(); if(!C) return null;
+  const b=+MS.base||+MS.cur, here=fydpSameIn(C.LK, MS.cur, id, MS.cur);
+  if(!here) return {id:id, base:b, missing:true, ys:[]};
+  const ys=C.D.years.map(function(y){
+    const P=C.D.proj[y], held=!!P;
+    const yid=held? (fydpSameIn(C.LK, MS.cur, id, y) || xfRolledIn(id, y)) : '';
+    const r=yid? ((P.reqs||[]).filter(function(x){ return String(x.id)===yid; })[0]||null) : null;
+    return {y:+y, held:held, id:r? yid : '', r:r, n:held? P.n : 0, mand:held? P.mand : true,
+      tag:(+y===b-1)? 'before base' : (+y===b)? 'base' : (+y<b-1 || +y>b+4)? 'outside the FYDP' : ''};
+  });
+  return {id:id, base:b, ys:ys};
+}
+// A YEAR ROLLED FORWARD FROM THE YEAR ON SCREEN holds this very requirement under its own id: the same work by the rolled-year rule
+// fydpLineKeys itself uses (yrCopySame: the same id, link, plan event, title, office and CCaR work). fydpLineKeys asks only the
+// nearest earlier year holding that id, and stops there -- so a year between them that numbered OTHER work (or the same work, added
+// there by Add to a year) with the id read FY31's rolled copy as new work, and Add would have made the same work twice. Asked only
+// where fydpSameIn found nothing, and only of the year's own order.
+function xfRolledIn(id, y){
+  const T=(MS.years||{})[y], me=itemById(id);
+  if(!T || !me || +y===+MS.cur || (T.order||[]).indexOf(id)<0) return '';
+  const x=yrItemOf(T, id);
+  return (x && yrCopySame(x, T, me, S))? String(id) : '';
+}
+var XF_LINE={q:'requirement', d:'discretionary', m:'mandatory'};
+// '' when a figure of this kind can be typed for year y, else why not
+function xfCan(y, kind){
+  if(typeof CYCVIEW!=='undefined' && CYCVIEW) return 'a locked cycle is on screen: read only';
+  if(typeof SANDBOX!=='undefined' && SANDBOX){
+    if(kind!=='q') return 'set by the portfolio team: a PMO copy edits requirement values only';
+    if(PMODE && PMODE.fy && !pmoBaseOf(y)) return 'this copy does not submit for FY'+(y%100);
+  }
+  return '';
+}
+// $1.23M, for the chart's labels (the grid prints whole dollars)
+function xfMs(v){ v=+v||0; return Math.abs(v)>=1e6? '$'+(v/1e6).toFixed(2)+'M' : fM(v); }
+function xfSum(a){ return (a||[]).reduce(function(x, v){ return x+(+v||0); }, 0); }
+// can a year be added to from here? (a button on its heading)
+function xfAddable(y){
+  if(typeof CYCVIEW!=='undefined' && CYCVIEW) return false;
+  if(typeof SANDBOX!=='undefined' && SANDBOX && PMODE && PMODE.fy && !pmoBaseOf(y)) return false;
+  return true;
+}
+// THE TAB. One block per service with its four lines, a column per year and the FYDP total (base to base + 4), and above it a
+// chart of each year's requirement against what was funded.
+var _xfScroll=0;
+function xfTabHtml(id){
+  const M=xfModel(id);
+  if(!M) return '<div class="xf" id="xfTab"><p class="xfnote">The years could not be read.</p></div>';
+  if(M.missing) return '<div class="xf" id="xfTab"><p class="xfnote">'+esc(FYL())+' does not hold this requirement, so it has no years to show.</p></div>';
+  const b=M.base, ro=(typeof CYCVIEW!=='undefined' && CYCVIEW), copy=(typeof SANDBOX!=='undefined' && SANDBOX);
+  const fydp=function(y){ return y>=b && y<=b+4; };
+  const anyMand=M.ys.some(function(Y){ return Y.r && Y.mand; });
+  // the chart: each year's requirement, funded green and unfunded red, its figures as words beside the colours
+  const reqT=function(Y){ return Y.r? xfSum(Y.r.ask) : 0; }, funT=function(Y){ return Y.r? xfSum(Y.r.d)+xfSum(Y.r.m) : 0; };
+  const unfT=function(Y){ return Y.r? xfSum(Y.r.u) : 0; };
+  const mx=Math.max.apply(null, [1].concat(M.ys.map(reqT)));
+  let fyReq=0, fyUnf=0;
+  M.ys.forEach(function(Y){ if(Y.r && fydp(Y.y)){ fyReq+=reqT(Y); fyUnf+=unfT(Y); } });
+  const chart='<div class="xfchart"><div class="xfch"><b>Requirement and funding by year</b><span>each bar is the requirement: green funded, red unfunded'
+      +' · FYDP FY'+(b%100)+'–'+((b+4)%100)+' '+esc(xfMs(fyReq))+' asked, '+esc(xfMs(fyUnf))+' unfunded</span></div><div class="xfbars">'
+    +M.ys.map(function(Y){
+      const fy='FY'+(Y.y%100), q=reqT(Y), f=Math.min(q, funT(Y)), u=unfT(Y);
+      const h=Y.r? Math.max(4, Math.round(110*q/mx)) : 4;
+      const say=!Y.held? 'not started' : !Y.r? 'not in '+fy+' yet' : u>0.5? esc(xfMs(u))+' short' : 'fully funded';
+      return '<div class="xfbar'+(Y.r? '' : ' none')+'" title="'+esc(fy+(Y.r? ': requirement '+fM(q)+', funded '+fM(f)+', unfunded '+fM(u) : ' — '+say))+'">'
+        +'<div class="xfbv">'+(Y.r? esc(xfMs(q)) : '—')+'</div>'
+        +'<div class="xfstack" style="height:'+h+'px">'+(Y.r && q>0? '<div class="xfbu" style="flex:'+Math.max(0, q-f)+'"></div><div class="xfbf" style="flex:'+f+'"></div>' : '')+'</div>'
+        +'<div class="xfbl"><b>'+fy+'</b>'+(Y.tag? ' · '+esc(Y.tag==='before base'? 'year before the base' : Y.tag) : '')+'<br>'+say+'</div></div>';
+    }).join('')+'</div></div>';
+  // the headings: that year's rank and lane, read only; a year without it offers Add
+  const th=M.ys.map(function(Y){
+    const fy='FY'+(Y.y%100), cur=(Y.y===+MS.cur);
+    let sub;
+    if(Y.r) sub='#'+Y.r.rank+' of '+Y.n+' · '+laneWord(Y.r.lane);
+    else sub=(Y.held? 'not in '+fy+'’s plan' : 'not started')
+      +(xfAddable(Y.y)? '<br><button type="button" class="xfaddb" onclick="xfAddOpen('+jsa(id)+','+Y.y+')">Add to '+fy+'…</button>' : '');
+    return '<th scope="col" class="xfyh'+(cur? ' cur' : '')+'"><b>'+fy+'</b>'+(Y.tag? ' <span class="xftag">'+esc(Y.tag)+'</span>' : '')
+      +(cur? ' <span class="xftag">on screen</span>' : '')+'<div class="xfsub">'+sub+'</div></th>';
+  }).join('');
+  const cell=function(Y, kind, i, sname){
+    const r=Y.r; if(!r) return '<td class="xfna">—</td>';
+    if(kind==='u') return '<td class="xfro'+(r.u[i]>0.5? ' xfu' : '')+'">'+(r.u[i]>0.5? fM(r.u[i]) : '—')+'</td>';
+    if(kind==='m' && !Y.mand) return '<td class="xfna" title="mandatory funding is off in FY'+(Y.y%100)+'">—</td>';
+    const val=(kind==='q')? r.ask[i] : (kind==='d')? (r.dv? (r.dv[i]||0) : r.d[i]) : (r.mv? (r.mv[i]||0) : r.m[i]);
+    const drew=(kind==='d')? r.d[i] : r.m[i], cap=(kind==='d')? r.bs[i] : r.bs[i]-r.d[i];
+    const lbl=sname+' '+XF_LINE[kind]+', FY'+(Y.y%100), why=xfCan(Y.y, kind), note=(kind==='q')? '' : drewLine(val, drew, cap);
+    if(why) return '<td><span class="xfrov" title="'+esc(lbl+' — '+why)+'">'+(val? fM(val) : '—')+'</span>'+note+'</td>';
+    return '<td><input class="xfin" type="text" inputmode="numeric" autocomplete="off" data-xf="'+kind+'" data-y="'+Y.y+'" data-si="'+i+'"'
+      +' value="'+(val? Math.round(val).toLocaleString() : '')+'" placeholder="0" aria-label="'+esc(lbl)+'"'
+      +' title="'+esc(lbl+((kind==='q')? '' : drewTip(val, drew, cap)))+'" onfocus="this.select()"'
+      +' onchange="xfSet('+Y.y+','+jsa(Y.id)+','+jsa(kind)+','+i+',this.value)">'+note+'</td>';
+  };
+  const tot=function(kind, i){ let t=0, any=false;
+    M.ys.forEach(function(Y){ if(!Y.r || !fydp(Y.y)) return; any=true;
+      t+=(kind==='q')? Y.r.ask[i] : (kind==='d')? Y.r.d[i] : (kind==='m')? (Y.mand? Y.r.m[i] : 0) : Y.r.u[i]; });
+    return '<td class="xftot'+((kind==='u' && t>0.5)? ' xfu' : '')+'">'+(any? fM(t) : '—')+'</td>'; };
+  const lines=[['q', 'Requirement'], ['d', 'Discretionary'], ['m', 'Mandatory'], ['u', 'Unfunded']].filter(function(l){ return l[0]!=='m' || anyMand; });
+  const body=SVC.map(function(sname, i){
+    return lines.map(function(l, k){
+      return '<tr class="xfl xf-'+l[0]+(k===0? ' xfs0' : '')+'"><th scope="row" class="xflh">'+(k===0? '<b>'+esc(sname)+'</b><br>' : '')
+        +'<span>'+l[1]+'</span></th>'+M.ys.map(function(Y){ return cell(Y, l[0], i, sname); }).join('')+tot(l[0], i)+'</tr>';
+    }).join('');
+  }).join('');
+  const foot=[['Requirement', reqT], ['Funded', funT], ['Unfunded', unfT]].map(function(f){
+    let t=0, any=false;
+    const tds=M.ys.map(function(Y){ if(!Y.r) return '<td class="xfna">—</td>'; const v=f[1](Y);
+      if(fydp(Y.y)){ t+=v; any=true; } return '<td'+((f[0]==='Unfunded' && v>0.5)? ' class="xfu"' : '')+'>'+fM(v)+'</td>'; }).join('');
+    return '<tr class="xfsum"><th scope="row" class="xflh">'+f[0]+'</th>'+tds+'<td class="xftot'+((f[0]==='Unfunded' && t>0.5)? ' xfu' : '')+'">'+(any? fM(t) : '—')+'</td></tr>';
+  }).join('');
+  const bar='<div class="xftools">'+(ro? '' : '<button type="button" class="btn" onclick="xfFillOpen('+jsa(id)+')">Fill across…</button>')
+    +'<span class="xfnote">'+(ro? 'A locked cycle is on screen: read only.'
+      : copy? 'In a PMO copy only the requirement values can be typed, in the years this copy submits for; Discretionary and Mandatory are set by the portfolio team.'
+      : 'A figure typed in any year goes into that year’s plan, as if typed there. Nothing switches year. One Save writes every year.')+'</span></div>';
+  return '<div class="xf" id="xfTab" data-id="'+esc(id)+'">'+chart+bar
+    +'<div class="xfwrap"><table class="xftab"><thead><tr><th scope="col" class="xflh">Service</th>'+th
+    +'<th scope="col" class="xfyh xftot"><b>FYDP</b><div class="xfsub">FY'+(b%100)+'–'+((b+4)%100)+' total</div></th></tr></thead><tbody>'
+    +body+foot+'</tbody></table></div>'
+    +'<p class="xfnote">Unfunded is the requirement less what each year’s lanes actually drew, per service. Where a year’s lane cannot pay what was typed, the box keeps the typed figure and says what it drew. Each year keeps its own priority order: the rank shown is that year’s and is changed on that year’s Requirements page. FY'+((b-1)%100)+' is the year before the base: editable, and outside the FYDP total.</p></div>';
+}
+// the grid keeps its sideways place across a redraw (a figure typed in FY31 redraws the tab)
+function xfTabAfter(id){ const w=document.querySelector('#xfTab .xfwrap'); if(!w) return;
+  if(_xfScroll) try{ w.scrollLeft=_xfScroll; }catch(e){}
+  w.addEventListener('scroll', function(){ _xfScroll=w.scrollLeft; }, {passive:true}); }
+// RUN A SETTER INSIDE YEAR y, its own save(), render() and flash() held: the setter writes that year's state exactly as it would
+// if the year were on screen (its checks, its refusals, its seed), and the caller saves once, with the year on screen put back.
+// r.saved says whether the setter wrote (it calls save() only once it has).
+function xfIn(y, fn){
+  const r={saved:0, v:undefined}, sv=save, rd=render, fl=flash;
+  save=function(){ r.saved++; return true; }; render=function(){}; flash=function(){};
+  try{ r.v=aceWithYear(y, fn); } finally { save=sv; render=rd; flash=fl; }
+  return r;
+}
+// A FIGURE TYPED IN THE GRID: kind 'q' the requirement, 'd' or 'm' a directed figure, for service i of requirement yid in year y.
+function xfSet(y, yid, kind, i, val){
+  y=+y;
+  if(cycBlock('Editing across the FYDP')) return;
+  if(kind!=='q' && allocLocked()) return;
+  const why=xfCan(y, kind);
+  if(why){ setStat('⚠ FY'+(y%100)+': '+esc(why)+'. Nothing was changed.'); try{ render(); }catch(e){} return; }
+  if(!(MS.years||{})[y]){ setStat('⚠ FY'+(y%100)+' is not started. Nothing was changed.'); return; }
+  let gone=false;
+  const r=xfIn(y, function(){
+    if(!itemById(yid)){ gone=true; return; }
+    if(kind==='m' && !mandOn(S)) return;
+    if(kind==='q') setAsk(yid, i, val); else setFsrcSvc(yid, kind, i, val);
+  });
+  if(gone){ setStat('⚠ FY'+(y%100)+' no longer holds that requirement. Nothing was changed.'); try{ render(); }catch(e){} return; }
+  if(!r.saved) return;          // refused (it said why) or nothing to write: the box keeps what was typed
+  save(); render();
+  if(y!==+MS.cur) setStat('✓ '+esc(SVC[i]||'')+' '+XF_LINE[kind]+' written into FY'+(y%100)+'’s plan. '+esc(FYL())+' is still on screen; the change journal files it under FY'+(y%100)+'.');
+}
+// ── ADD TO A YEAR ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+// A year the requirement is not in: a new requirement of that year, made by reqCreate (the one writer of a new requirement),
+// linked to the nearest year's as the same work (prior, v2.06), starting from its requirement by service (grown by an optional
+// %, whole dollars per service), office, CCaR, PID and record fields. Not carried: Disc and Mand (that year's lanes decide them),
+// the star, award dates. Last in that year's priority order. A year nobody has started is asked about once first -- roll forward
+// or start blank, through pmoYearStart, as PMO Apply asks -- and Cancel starts nothing.
+var XFA=null;
+function xfAddSrc(M, y){
+  const c=M.ys.filter(function(Y){ return Y.r; });
+  c.sort(function(a, b){ return (Math.abs(a.y-y)-Math.abs(b.y-y)) || (a.y-b.y); });
+  return c[0]||null;
+}
+function xfStartYear(y){
+  const fy='FY'+(y%100);
+  if(typeof SANDBOX!=='undefined' && SANDBOX){
+    if(PMODE && PMODE.fy && !pmoBaseOf(y)){ setStat('⚠ This copy submits for '+esc(pmoYearsLbl())+'. '+fy+' is not one of them, and is not started here.'); return false; }
+    if(!confirm(fy+' is not started in this copy.\n\nOK — start '+fy+' blank (a PMO copy never rolls a year forward), then add the requirement to it.\nCancel — start nothing.')){
+      setStat('ℹ '+fy+' was not started.'); return false; }
+    MS.years[y]=pmoYearStart(y, false);
+  } else {
+    const b=+MS.base||+MS.cur, out=(y<b || y>b+4)? '\n\n⚠ '+fy+' is outside the FYDP window (FY'+(b%100)+'–FY'+((b+4)%100)+'): it is in no five-year report or locked cycle.' : '';
+    let seed=null;
+    if(confirm(fy+' has not been started on this board.\n\nOK — ROLL FORWARD: start '+fy+' from a copy of '+FYL()+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '
+        +(y-MS.cur>0? '+' : '')+(y-MS.cur)+' year(s)).\nCancel — start it blank instead, or start nothing.'+out)) seed=pmoYearStart(y, true);
+    else if(confirm('Start '+fy+' BLANK — no requirements, zero BA — and add the requirement to it?\n\nOK — start '+fy+' blank.\nCancel — start nothing.')) seed=pmoYearStart(y, false);
+    else { setStat('ℹ '+fy+' was not started. Nothing was changed.'); return false; }
+    MS.years[y]=seed;
+  }
+  save();            // the start is a line of its own in the change journal
+  return true;
+}
+function xfAddOpen(id, y){
+  y=+y;
+  if(cycBlock('Adding a requirement to another year')) return;
+  if(!xfAddable(y)){ setStat('⚠ This copy submits for '+esc(pmoYearsLbl())+'. A requirement added in FY'+(y%100)+' could never be sent.'); return; }
+  let M=xfModel(id); if(!M || M.missing) return;
+  let Y=M.ys.filter(function(x){ return x.y===y; })[0];
+  if(!Y) return;
+  if(Y.r){ setStat('ℹ FY'+(y%100)+' already holds this requirement.'); return; }
+  if(!Y.held){
+    if(!xfStartYear(y)) return;
+    try{ render(); }catch(e){}
+    // rolled forward from the year on screen, the year holds this very requirement under its own id: the model reads it as the same
+    // work (xfRolledIn), whatever another year between them does with the id, and nothing is added
+    M=xfModel(id); Y=M && M.ys.filter(function(x){ return x.y===y; })[0];
+    if(Y && Y.r){ setStat('✓ FY'+(y%100)+' was started from '+esc(FYL())+' and already holds this requirement (#'+Y.r.rank+' of '+Y.n+'). Nothing was added.'); return; }
+  }
+  const S0=xfAddSrc(M, y); if(!S0) return;
+  const T=MS.years[S0.y], src=yrItemOf(T, S0.id); if(!src) return;
+  const g=(typeof SANDBOX!=='undefined' && SANDBOX)? myPmo() : grpOf(src, T);
+  if(typeof SANDBOX!=='undefined' && SANDBOX && grpOf(src, T)!==g){ setStat('⚠ This requirement is '+esc(grpOf(src, T))+'’s; this copy adds for '+esc(g)+'. Nothing was added.'); return; }
+  XFA={id:id, y:y, sy:S0.y, sid:S0.id, g:g, title:dispTitle(src, T), ask:askVecOf(src.ask), ccar:ccarOf(src, T)||'', pid:((T.pid||{})[S0.id])||''};
+  xfAddDraw();
+  const bg=document.getElementById('xfAddPanel'); if(bg) bg.classList.add('open');
+}
+function xfAddClose(){ XFA=null; const bg=document.getElementById('xfAddPanel'); if(bg) bg.classList.remove('open'); const b=document.getElementById('xfAddBody'); if(b) b.innerHTML=''; }
+// the growth: '' (none), a number, or NaN (not a percentage it can take)
+function xfPct(on, txt){
+  if(!on) return 0;
+  const t=String(txt==null? '' : txt).trim().replace(/%$/, '').trim();
+  if(!/^-?\d{1,4}(\.\d{1,4})?$/.test(t)) return NaN;
+  const p=parseFloat(t);
+  return (p>-100 && p<=1000)? p : NaN;
+}
+function xfAddVec(A, p){ return A.ask.map(function(a){ return D$(a*(1+p/100)); }); }
+function xfAddDraw(){
+  const A=XFA, el=document.getElementById('xfAddBody'), t=document.getElementById('xfAddTtl'); if(!A || !el) return;
+  const fy='FY'+(A.y%100), sfy='FY'+(A.sy%100);
+  if(t) t.textContent='Add to '+fy;
+  el.innerHTML='<p class="xflead"><b>'+esc(A.title)+'</b> is not in '+fy+'’s plan. Adding it makes a new '+fy+' requirement, linked to '+sfy
+      +'’s as the same work, so the years read as one line.</p>'
+    +'<div class="xfstart"><div class="xfk">Starts from '+sfy+'</div>'
+    +'<div>Requirement by service, <b>'+fM(xfSum(A.ask))+'</b> in all · office '+esc(A.g)+(A.ccar? ' · CCaR '+esc(A.ccar) : '')+(A.pid? ' · '+esc(A.pid) : '')+' · the record fields</div>'
+    +'<div class="xfgrow"><label><input type="checkbox" id="xfAddGrow" data-held="1" onchange="xfAddSay()"> Grow the requirement by</label> '
+    +'<input id="xfAddPct" class="xfpct" type="text" inputmode="decimal" data-held="1" value="3" aria-label="Growth, percent" oninput="xfAddSay()"> % → <b id="xfAddTot"></b></div>'
+    +'<table class="xfmini" id="xfAddSvc"></table></div>'
+    +'<p class="xfnote">Not carried: Discretionary and Mandatory ('+fy+'’s lanes decide those: set them on the grid), ★ Mission Critical, award dates. It goes last in '+fy+'’s priority order, for the SFWG to place.</p>'
+    +'<div class="xfmsg" id="xfAddMsg" role="status"></div>'
+    +'<div class="xfft"><button type="button" class="btn" onclick="xfAddClose()">Cancel</button> <button type="button" class="btn pri" id="xfAddGo" onclick="xfAddDo()">Add to '+fy+'</button></div>';
+  xfAddSay();
+}
+function xfAddSay(){
+  const A=XFA; if(!A) return;
+  const on=!!(document.getElementById('xfAddGrow')||{}).checked, pe=document.getElementById('xfAddPct');
+  const p=xfPct(on, pe? pe.value : '');
+  const out=document.getElementById('xfAddTot'), tb=document.getElementById('xfAddSvc'), msg=document.getElementById('xfAddMsg');
+  if(pe) pe.disabled=!on;
+  if(msg) msg.textContent=isNaN(p)? 'The growth is not a percentage it can take: a number above −100 and up to 1,000, such as 3 or 2.5.' : '';
+  const v=isNaN(p)? A.ask : xfAddVec(A, p);
+  if(out) out.textContent=fM(xfSum(v));
+  if(tb) tb.innerHTML='<tr><th scope="col">Service</th><th scope="col">FY'+(A.sy%100)+'</th><th scope="col">FY'+(A.y%100)+'</th></tr>'
+    +SVC.map(function(s, i){ return '<tr><th scope="row">'+esc(s)+'</th><td>'+fM(A.ask[i]||0)+'</td><td>'+fM(v[i]||0)+'</td></tr>'; }).join('');
+}
+function xfAddDo(){
+  const A=XFA; if(!A) return;
+  if(cycBlock('Adding a requirement to another year')){ xfAddClose(); return; }
+  const on=!!(document.getElementById('xfAddGrow')||{}).checked, p=xfPct(on, (document.getElementById('xfAddPct')||{}).value);
+  if(isNaN(p)){ xfAddSay(); try{ document.getElementById('xfAddPct').focus(); }catch(e){} return; }
+  // read again: the year, the source and the work may have moved while the box was open
+  const M=xfModel(A.id), Y=M && !M.missing && M.ys.filter(function(x){ return x.y===A.y; })[0];
+  const T=(MS.years||{})[A.sy], src=T? yrItemOf(T, A.sid) : null;
+  const say=function(m){ const e=document.getElementById('xfAddMsg'); if(e) e.textContent=m; };
+  if(!Y || !Y.held || Y.r || !src){ say('Nothing was added: '+(!Y || !Y.held? 'FY'+(A.y%100)+' is not on the board' : Y.r? 'FY'+(A.y%100)+' holds this requirement now' : 'FY'+(A.sy%100)+' no longer holds the requirement it starts from')+'.'); return; }
+  const vec=xfAddVec(A, p);
+  let nid='';
+  aceWithYear(A.y, function(){
+    nid=reqCreate(A.g, {title:src.title||'', event:src.event||'', ask:vec}, {y:A.sy, id:A.sid});
+    // award dates are not carried: that year's awards are its own decision (reqCreate carries them for From another year)
+    if(nid && S.awards) delete S.awards[nid];
+  });
+  if(!nid){ say('Nothing was added: FY'+(A.sy%100)+'’s record could not be read.'); return; }
+  const fy='FY'+(A.y%100), t=A.title;
+  xfAddClose();
+  save(); render();
+  setStat('＋ <b>'+esc(t)+'</b> added to '+fy+' ('+fM(xfSum(vec))+'), linked to FY'+(A.sy%100)+'’s as the same work, last in '+fy+'’s priority order. '+esc(FYL())+' is still on screen.');
+}
+// ── FILL ACROSS ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+// The requirement from one year into the later years that hold it, copied or grown N% a year, previewed as was → becomes per
+// service and year. THE REQUIREMENT ONLY, NEVER DISC OR MAND (Brad): each year's lanes decide what can be paid. Whole dollars per
+// service. A later year without the requirement is listed as not filled, with Add to its year. Written by applyAskVec inside each
+// year, one save() for every year.
+var XFF=null;
+function xfFillOpen(id){
+  if(cycBlock('Filling across the FYDP')) return;
+  const M=xfModel(id); if(!M || M.missing) return;
+  const has=M.ys.filter(function(Y){ return Y.r; }).map(function(Y){ return Y.y; });
+  const from=(has.indexOf(+MS.cur)>=0)? +MS.cur : has[0];
+  const later=M.ys.map(function(Y){ return Y.y; }).filter(function(y){ return y>from; });
+  if(!later.length){ setStat('ℹ No year after FY'+(from%100)+' is in the window to fill.'); return; }
+  XFF={id:id, from:from, to:later[later.length-1], grow:false, pct:'3'};
+  xfFillDraw();
+  const bg=document.getElementById('xfFillPanel'); if(bg) bg.classList.add('open');
+}
+function xfFillClose(){ XFF=null; const bg=document.getElementById('xfFillPanel'); if(bg) bg.classList.remove('open'); const b=document.getElementById('xfFillBody'); if(b) b.innerHTML=''; }
+// THE PLAN, from the years as they are now: [{y, id, was, now, moved}] for a year it fills, [{y, why}] for one it cannot
+function xfFillPlan(F){
+  const M=xfModel(F.id); if(!M || M.missing) return null;
+  const src=M.ys.filter(function(Y){ return Y.y===F.from && Y.r; })[0]; if(!src) return null;
+  const p=xfPct(F.grow, F.pct); if(isNaN(p)) return {bad:true, rows:[]};
+  const rows=M.ys.filter(function(Y){ return Y.y>F.from && Y.y<=F.to; }).map(function(Y){
+    if(!Y.held) return {y:Y.y, why:'FY'+(Y.y%100)+' is not started', add:xfAddable(Y.y)};
+    if(!Y.r) return {y:Y.y, why:'not in FY'+(Y.y%100)+'’s plan', add:xfAddable(Y.y)};
+    const no=xfCan(Y.y, 'q'); if(no) return {y:Y.y, why:no};
+    const now=src.r.ask.map(function(a){ return D$(a*Math.pow(1+p/100, Y.y-F.from)); });
+    return {y:Y.y, id:Y.id, was:Y.r.ask.slice(), now:now, moved:now.some(function(v, i){ return v!==Y.r.ask[i]; })};
+  });
+  return {rows:rows, from:F.from, src:src};
+}
+function xfFillDraw(){
+  const F=XFF, el=document.getElementById('xfFillBody'); if(!F || !el) return;
+  const M=xfModel(F.id); if(!M) return;
+  const has=M.ys.filter(function(Y){ return Y.r; }).map(function(Y){ return Y.y; });
+  const later=M.ys.map(function(Y){ return Y.y; }).filter(function(y){ return y>F.from; });
+  el.innerHTML='<div class="xffrom"><label for="xfFillFrom">From</label> <select id="xfFillFrom" data-held="1" onchange="xfFillPick()">'
+      +has.map(function(y){ return '<option value="'+y+'"'+(y===F.from? ' selected' : '')+'>FY'+(y%100)+(y===M.base? ' (base)' : '')+'</option>'; }).join('')+'</select>'
+    +' <label for="xfFillTo">into</label> <select id="xfFillTo" data-held="1" onchange="xfFillPick()">'
+      +later.map(function(y){ return '<option value="'+y+'"'+(y===F.to? ' selected' : '')+'>FY'+((F.from+1)%100)+(y>F.from+1? ' to FY'+(y%100) : '')+'</option>'; }).join('')+'</select></div>'
+    +'<div class="xfmode" role="radiogroup" aria-label="How"><label><input type="radio" name="xfFillHow" value="copy" data-held="1"'+(F.grow? '' : ' checked')+' onchange="xfFillPick()"> Copy as is</label>'
+    +' <label><input type="radio" name="xfFillHow" value="grow" data-held="1"'+(F.grow? ' checked' : '')+' onchange="xfFillPick()"> Grow by</label>'
+    +' <input id="xfFillPct" class="xfpct" type="text" inputmode="decimal" data-held="1" value="'+esc(F.pct)+'" aria-label="Growth, percent a year" oninput="xfFillPick()"> % a year</div>'
+    +'<p class="xfnote">Fills the <b>requirement</b> only. Discretionary and Mandatory are never filled for you: each year’s lanes decide what can be paid.</p>'
+    +'<div id="xfFillPrev"></div>'
+    +'<div class="xfft"><button type="button" class="btn" onclick="xfFillClose()">Cancel</button> <button type="button" class="btn pri" id="xfFillGo" onclick="xfFillDo()">Fill</button></div>';
+  xfFillPrev();
+}
+function xfFillPick(){
+  const F=XFF; if(!F) return;
+  const fr=document.getElementById('xfFillFrom'), to=document.getElementById('xfFillTo'), pe=document.getElementById('xfFillPct');
+  const how=document.querySelector('input[name="xfFillHow"]:checked');
+  const f0=F.from;
+  F.from=fr? +fr.value : F.from; F.grow=!!(how && how.value==='grow'); F.pct=pe? pe.value : F.pct;
+  if(F.from!==f0){                      // the into list follows the year it fills from
+    const M=xfModel(F.id), later=M? M.ys.map(function(Y){ return Y.y; }).filter(function(y){ return y>F.from; }) : [];
+    if(!later.length){ F.from=f0; if(fr) fr.value=String(f0); setStat('ℹ No year after FY'+(F.from%100)+' is in the window to fill.'); }
+    else { F.to=Math.max(later[0], Math.min(+(to? to.value : F.to), later[later.length-1]));
+      if(F.to<=F.from) F.to=later[later.length-1];
+      if(to) to.innerHTML=later.map(function(y){ return '<option value="'+y+'"'+(y===F.to? ' selected' : '')+'>FY'+((F.from+1)%100)+(y>F.from+1? ' to FY'+(y%100) : '')+'</option>'; }).join(''); }
+  } else F.to=to? +to.value : F.to;
+  xfFillPrev();
+}
+function xfFillPrev(){
+  const F=XFF, el=document.getElementById('xfFillPrev'), go=document.getElementById('xfFillGo'); if(!F || !el) return;
+  const pe=document.getElementById('xfFillPct'); if(pe) pe.disabled=!F.grow;
+  const P=xfFillPlan(F);
+  if(!P || P.bad){ el.innerHTML='<div class="xfmsg" role="status">'+(P? 'The growth is not a percentage it can take: a number above −100 and up to 1,000, such as 3 or 2.5.' : 'The year it fills from no longer holds the requirement.')+'</div>';
+    if(go){ go.disabled=true; go.textContent='Fill'; } return; }
+  const fill=P.rows.filter(function(r){ return r.now; }), moved=fill.filter(function(r){ return r.moved; });
+  let h='<div class="xfwrap"><table class="xfmini xfprev"><tr><th scope="col">Service</th>'+P.rows.map(function(r){ return '<th scope="col">FY'+(r.y%100)+'</th>'; }).join('')+'</tr>';
+  h+=SVC.map(function(s, i){ return '<tr><th scope="row">'+esc(s)+'</th>'+P.rows.map(function(r){
+    if(!r.now) return '<td class="xfna">—</td>';
+    return '<td'+(r.now[i]!==r.was[i]? ' class="xfchg"' : '')+'>'+fM(r.was[i])+' → <b>'+fM(r.now[i])+'</b></td>'; }).join('')+'</tr>'; }).join('');
+  h+='</table></div>';
+  const nf=P.rows.filter(function(r){ return !r.now; });
+  if(nf.length) h+='<ul class="xfnot">'+nf.map(function(r){ return '<li>FY'+(r.y%100)+': not filled — '+esc(r.why)
+    +(r.add? ' <button type="button" class="btn xfaddb" onclick="xfFillToAdd('+r.y+')">Add to FY'+(r.y%100)+'…</button>' : '')+'</li>'; }).join('')+'</ul>';
+  const ns=SVC.filter(function(_, i){ return moved.some(function(r){ return r.now[i]!==r.was[i]; }); }).length;
+  h+='<p class="xfnote">'+(moved.length? moved.length+' year'+(moved.length===1? '' : 's')+' × '+ns+' service'+(ns===1? '' : 's')+' change. Each goes into that year’s plan and its change journal, and can be put back from there.'
+    : 'Nothing would change: every year shown already holds these figures.')+'</p>';
+  el.innerHTML=h;
+  if(go){ go.disabled=!moved.length; go.textContent=moved.length? 'Fill '+moved.length+' year'+(moved.length===1? '' : 's') : 'Fill'; }
+}
+function xfFillToAdd(y){ const id=XFF && XFF.id; xfFillClose(); if(id) xfAddOpen(id, y); }
+function xfFillDo(){
+  const F=XFF; if(!F) return;
+  if(cycBlock('Filling across the FYDP')){ xfFillClose(); return; }
+  const P=xfFillPlan(F);                // read again: the years as they are at the press
+  if(!P || P.bad){ xfFillPrev(); return; }
+  const go=P.rows.filter(function(r){ return r.now && r.moved; });
+  if(!go.length){ xfFillPrev(); return; }
+  go.forEach(function(r){ aceWithYear(r.y, function(){ applyAskVec(r.id, r.now); }); });
+  xfFillClose();
+  save(); render();
+  setStat('✓ The requirement filled from FY'+(P.from%100)+' into '+go.map(function(r){ return 'FY'+(r.y%100); }).join(', ')
+    +'. Discretionary and Mandatory were not touched. Each year’s change is in the change journal under its year.');
+}
 // ==== end v2.23 W2 ====
 // ==== v2.23 W3 ====
 // ==== end v2.23 W3 ====

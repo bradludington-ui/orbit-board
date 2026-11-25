@@ -52,6 +52,10 @@ const SPECIAL = {
   ndPanel:   `S.fsrc[S.order[S.order.length-1]]={m:'split', dv:SVC.map(function(){ return 9e11; }), mv:SVC.map(function(){ return 0; })};
               ndOpen=true; render();`,
   helpPanel: `openHelp('');`,
+  // v2.23 W2 (item 158): Add to a year -- the first requirement into the next year, started blank for it -- and Fill across from the
+  // year on screen (the requirement page's Across the FYDP tab opens both)
+  xfAddPanel: `if(!MS.years[MS.cur+1]) MS.years[MS.cur+1]=pmoYearStart(MS.cur+1, false); _recYrC=null; xfAddOpen(S.order[0], MS.cur+1);`,
+  xfFillPanel: `xfFillOpen(S.order[0]);`,
   // v2.22 W2 (item 155): Ctrl K's palette, with results in each of its groups (a requirement, an action)
   cmdPanel:  `cmdOpen(); var q=document.getElementById('cmdQ'); q.value='OGC'; cmdTyped();`,
   // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has. v2.19: a second pass below

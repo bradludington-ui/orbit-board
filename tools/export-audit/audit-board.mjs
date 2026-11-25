@@ -10877,7 +10877,8 @@ await (async () => {
     chk(name, 'years', 'CONTROL: FY28’s own added requirement carries the same number as FY27’s, and is other work', J([ev(`window.__n28`), ev(`dispTitle(itemById(window.__n28))`)]), J([n27, 'Field team']));
     ev(`switchYear(2027); setCur(${J(n27)}); 'ok'`);
     // the line is filled once the page is idle (recYearsFill: working the years out is not done in the draw)
-    const yrs = async () => { await new Promise(r => setTimeout(r, 40)); return JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.textContent; }))`)); };
+    // v2.23 W2 (item 158): a year now carries its lane word in a span of its own after the figure; the figure is the first text
+    const yrs = async () => { await new Promise(r => setTimeout(r, 40)); return JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.childNodes[0].textContent; }))`)); };
     chk(name, 'years', 'FY27’s added requirement: FY27 its own value; FY28 holds no such work, so a dash -- never FY28’s other requirement with its number',
       J(await yrs()), J(['SPAN:FY27 ' + fm(40), 'SPAN:FY28 —']));
     ev(`setAsk(${J(n27)}, 0, '45'); setCur(${J(n27)}); 'ok'`);
@@ -11007,10 +11008,11 @@ await (async () => {
       chk(name, 'refusal', 'it is kept as text: no control inside it', ev(`String(document.querySelectorAll('#recMsg button, #recMsg [onclick]').length)`), '0');
       // the years line: after an edit it is drawn (stale) with its buttons, and the fill keeps the very elements
       ev(`setCur('A'); recYearsFill(); 'ok'`);
-      const yb0 = ev(`String(document.querySelectorAll('#recYrs button').length)`);
+      // v2.23 W2 (item 158): the line now ends with Manage across the FYDP, a button of its own; the years are .recyr
+      const yb0 = ev(`String(document.querySelectorAll('#recYrs button.recyr').length)`);
       chk(name, 'years', 'the line has a button to the other year (a CONTROL)', yb0, '1');
       ev(`(function(){ var i=document.querySelector('#inspector .insp-split input[data-col="q"][data-si="0"]'); i.value='310'; i.dispatchEvent(new Event('change',{bubbles:true})); })(); window.__yb=document.querySelector('#recYrs button'); 'ok'`);
-      chk(name, 'years', 'after an edit the line is drawn with its button, marked stale -- not empty', J([ev(`String(document.querySelectorAll('#recYrs button').length)`), ev(`document.getElementById('recYrs').className`)]), J(['1', 'recyrs stale']));
+      chk(name, 'years', 'after an edit the line is drawn with its button, marked stale -- not empty', J([ev(`String(document.querySelectorAll('#recYrs button.recyr').length)`), ev(`document.getElementById('recYrs').className`)]), J(['1', 'recyrs stale']));
       ev(`recYearsFill(); 'ok'`);
       chk(name, 'years', 'the fill brings it up to date in place: the same button, no longer stale', J([ev(`String(document.querySelector('#recYrs button')===window.__yb)`), ev(`document.getElementById('recYrs').className`)]), J(['true', 'recyrs']));
       // a refusal typed on a locked view: said there as text (the view's own sentence carries a Leave button), and gone once the
@@ -11271,6 +11273,153 @@ await (async () => {
 })();
 // ==== end v2.23 W1 ====
 // ==== v2.23 W2 ====
+// v2.23 W2 (item 158): ONE REQUIREMENT ACROSS THE FYDP, BY SERVICE. Brad, 25 Nov 2026, and his answers (FY27, the year before the base,
+// editable; four lines per service; Fill never offers Disc/Mand). What jsdom can hold -- the fit, a real pointer and real keys are
+// tools/fydp-across.mjs's (npm run across) -- held here on a board where the alternatives disagree:
+//   - the year before the base is ON SCREEN (base FY28, FY27 shown), so a window that starts at the base, or a FYDP total that counts
+//     the year before it, both read differently;
+//   - FY29 was started blank and holds OTHER WORK under FY27's added requirement's own id (NEW-1), with FY27's work there as NEW-2,
+//     linked: a figure typed for FY29 that follows the id lands on the wrong requirement;
+//   - FY29's lanes are empty, so a directed discretionary dollar typed there cannot be paid (the box keeps it, the line says what drew);
+//   - a requirement from the board's data (A), whose FY28 value lives in S.asks, beside an added one whose value lives on itself;
+//   - FY30 and FY32 not started (Add asks to start them; Cancel starts nothing), FY31 rolled forward from the year on screen (it holds
+//     the very requirement, so Add must not make a second one).
+// Expectations come from the fixture's own figures (FY27's lanes are spent on A and B before NEW-1; FY29's are empty), never from the
+// tab's own reading. FAILS ON THE SLOT COMMIT (9f82139): REQPG_TABS holds no Across the FYDP tab there, and the strip has no Manage.
+await (async () => {
+  const name = 'v2.23 W2 — Across the FYDP: the years by the work, a figure for another year written there through its setter and journalled with its year, what a lane drew, Add to a year, Fill across, the year strip';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('B', 'AV', [200, 50])], disc: [400, 100], mand: [100, 50], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.order.forEach(function(id){ seedSplit(id); }); MS.base=2028;
+      window.__n=reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[40,0]}); save(); render();
+      window.__ans=[]; window.confirm=function(){ return window.__ans.length? window.__ans.shift() : true; }; window.alert=function(){};
+      window.__d=document.createElement('div'); document.body.appendChild(window.__d);
+      window.__xd=function(id){ var t=REQPG_TABS.filter(function(x){ return x.k==='fydp'; })[0]; window.__d.innerHTML=t.html(id||'NEW-1'); t.after(id||'NEW-1'); };
+      window.__in=function(y, k, si){ return window.__d.querySelector('input[data-y="'+y+'"][data-xf="'+k+'"][data-si="'+si+'"]'); };
+      window.__type=function(y, k, si, v){ var i=window.__in(y, k, si); if(!i) return 'no box'; i.value=v; i.dispatchEvent(new Event('change',{bubbles:true})); return 'ok'; };
+      // every leaf of every year, as a flat map, for "nothing else moved"
+      window.__flat=function(){ var o={}; (function w(v, p){ if(v && typeof v==='object'){ Object.keys(v).forEach(function(k){ if(p.length===1 && (k==='ts' || k==='sync' || k==='by')) return; w(v[k], p.concat(k)); }); }
+        else o[p.join('.')]=JSON.stringify(v); })(JSON.parse(JSON.stringify(MS.years)), []); return o; };
+      window.__diff=function(a, b){ var ks={}, out=[]; Object.keys(a).forEach(function(k){ ks[k]=1; }); Object.keys(b).forEach(function(k){ ks[k]=1; });
+        Object.keys(ks).forEach(function(k){ if(a[k]!==b[k]) out.push(k); }); return out.sort(); };
+      window.__ask=function(y, id){ var T=MS.years[y], x=T && yrItemOf(T, id); return x? x.ask.slice() : null; };
+      'ok'`);
+    const n = ev(`window.__n`);
+    chk(name, 'fixture', 'CONTROL: the added requirement is NEW-1, and the year on screen is FY27, the year before the base FY28', J([n, ev(`String(MS.cur)`), ev(`String(MS.base)`)]), J(['NEW-1', '2027', '2028']));
+    // 0. the strip on a board of one year: Manage across the FYDP is there (the line stood only with two years held)
+    ev(`setCur('NEW-1'); recYearsFill(); 'ok'`);
+    chk(name, 'strip', 'one year held: the strip shows FY27 with its lane word and Manage across the FYDP', J(JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#recYrs > *'), function(e){ return e.tagName+':'+e.textContent; }))`))),
+      J(['SPAN:Requirement by year', 'SPAN:FY27 ' + ev(`fM(40)`) + ' · Unfunded', 'BUTTON:Manage across the FYDP ›']));
+    // FY28 rolled forward; FY29 started blank with other work under NEW-1 and FY27's work as NEW-2, linked
+    ev(`window.__ans=[true]; switchYear(2028); switchYear(2027);
+      window.__ans=[false, true]; switchYear(2029);
+      window.__o=reqCreate('AV', {title:'Other work', event:'Other work', ask:[999,0]});
+      window.__l=reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[55,0]}, {y:2027, id:'NEW-1'}); save(); switchYear(2027); setCur('A'); 'ok'`);
+    chk(name, 'fixture', 'CONTROL: FY29 holds other work as NEW-1 and FY27’s Field kit as NEW-2, its lanes empty', J([ev(`window.__o`), ev(`window.__l`), ev(`JSON.stringify(MS.years[2029].discSvc)`)]), J(['NEW-1', 'NEW-2', '[0,0]']));
+    ev(`window.__xd('NEW-1'); 'ok'`);
+    // 1. the years: the year before the base to base + 4, each heading its rank and lane, and the FYDP total
+    const heads = JSON.parse(ev(`JSON.stringify([].map.call(window.__d.querySelectorAll('thead th.xfyh'), function(e){ return e.querySelector('b').textContent+' | '+(e.querySelector('.xfsub')||{}).textContent; }))`));
+    chk(name, 'years', 'FY27 (before the base, on screen) to FY32, then the FYDP total; each year held says its rank and lane, the others not in or not started',
+      J(heads), J(['FY27 | #3 of 3 · Unfunded', 'FY28 | #3 of 3 · Unfunded', 'FY29 | #2 of 2 · Unfunded', 'FY30 | not startedAdd to FY30…', 'FY31 | not startedAdd to FY31…', 'FY32 | not startedAdd to FY32…', 'FYDP | FY28–32 total']));
+    // the window is the year before the BASE, wherever the year on screen is: from FY28 it still starts at FY27
+    ev(`switchYear(2028); window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'years', 'from FY28 (the base) the years still start at FY27, the year before it', ev(`[].map.call(window.__d.querySelectorAll('thead th.xfyh b'), function(e){ return e.textContent; }).slice(0, 2).join(',')`), 'FY27,FY28');
+    ev(`switchYear(2027); setCur('A'); window.__xd('NEW-1'); 'ok'`);
+    // 2. the requirement in FY29 is NEW-2 -- the same work -- never FY29's NEW-1
+    chk(name, 'work', 'FY29’s boxes are NEW-2’s ($55), never the other work that carries FY27’s id ($999)',
+      J([ev(`window.__in(2029,'q',0).value`), ev(`window.__in(2029,'q',0).getAttribute('onchange')`)]), J(['55', 'xfSet(2029,"NEW-2","q",0,this.value)']));
+    // 3. the figures, from the fixture: FY27's lanes are spent on A and B, so NEW-1 is unfunded there and in FY28 (rolled); FY29 has no lanes
+    const unf = JSON.parse(ev(`JSON.stringify([].map.call(window.__d.querySelectorAll('tbody tr.xf-u')[0].querySelectorAll('td'), function(e){ return e.textContent; }))`));
+    const fm = v => ev(`fM(${v})`);
+    chk(name, 'figures', 'USAF unfunded by year: $40, $40, $55, three dashes, and the FYDP total FY28-FY32 ($95) -- the year before the base left out',
+      J(unf), J([fm(40), fm(40), fm(55), '—', '—', '—', fm(95)]));
+    // 4. a figure typed for FY29 lands in FY29's plan, on NEW-2, through the setter, in one save -- and nothing else in any year moves
+    const f0 = ev(`JSON.stringify(window.__flat())`), g0 = +ev(`String(_saveGen)`), j0 = +ev(`String(MS.jrnl.length)`);
+    ev(`window.__type(2029,'q',0,'70')`);
+    const f1 = ev(`JSON.stringify(window.__flat())`);
+    chk(name, 'write', 'typed 70 in FY29: NEW-2 there reads 70, FY29’s NEW-1 still 999, FY27’s and FY28’s Field kit still 40, FY27 on screen',
+      J([ev(`JSON.stringify(window.__ask(2029,'NEW-2'))`), ev(`JSON.stringify(window.__ask(2029,'NEW-1'))`), ev(`JSON.stringify(window.__ask(2027,'NEW-1'))`), ev(`JSON.stringify(window.__ask(2028,'NEW-1'))`), ev(`String(MS.cur)`)]),
+      J(['[70,0]', '[999,0]', '[40,0]', '[40,0]', '2027']));
+    chk(name, 'write', 'and that is the only figure that moved in any year', J(JSON.parse(ev(`JSON.stringify(window.__diff(${f0}, ${f1}))`))), J(['2029.custom.1.ask.0']));
+    chk(name, 'write', 'one save for the commit', +ev(`String(_saveGen)`) - g0, 1);
+    const jl = JSON.parse(ev(`JSON.stringify(MS.jrnl.slice(${j0}).map(function(e){ return [e.fy, e.p, e.a, e.b]; }))`));
+    chk(name, 'journal', 'the change journal files it under FY29, as typed there', J(jl), J([[2029, ['custom', 'NEW-2', 'ask', 0], 55, 70]]));
+    // 5. Put back of that line puts back FY29's figure, from FY27
+    ev(`jrnlUndo(${j0}); 'ok'`);
+    chk(name, 'put back', 'Put back from FY27 puts FY29’s figure back, and the years are as they were', J([ev(`JSON.stringify(window.__ask(2029,'NEW-2'))`), ev(`String(MS.cur)`),
+      J(JSON.parse(ev(`JSON.stringify(window.__diff(${f0}, window.__flat()))`)))]), J(['[55,0]', '2027', '[]']));
+    // 6. a board-data requirement's figure for another year: in FY28's S.asks, the year on screen untouched
+    ev(`window.__xd('A'); window.__type(2028,'q',0,'333'); 'ok'`);
+    chk(name, 'board data', 'A typed 333 for FY28 lands in FY28’s plan; FY27’s A is still 300', J([ev(`JSON.stringify(MS.years[2028].asks.A)`), ev(`JSON.stringify(itemById('A').ask)`)]), J(['[333,100]', '[300,100]']));
+    // 7. a directed figure FY29's lane cannot pay: written through setFsrcSvc (seeded the first time), the box keeps it, the line says what drew
+    ev(`window.__xd('NEW-1'); window.__type(2029,'d',0,'30'); window.__xd('NEW-1'); 'ok'`);
+    const dr = JSON.parse(ev(`JSON.stringify([MS.years[2029].fsrc['NEW-2'].dv, MS.years[2029].fsrc['NEW-2'].mv, window.__in(2029,'d',0).value, (window.__in(2029,'d',0).parentElement.querySelector('.drew')||{}).textContent||'none', window.__d.querySelectorAll('tbody tr.xf-u')[0].querySelectorAll('td')[2].textContent])`));
+    chk(name, 'lane', 'FY29 USAF discretionary 30: directed 30 (mandatory left as seeded), the box keeps 30, "drew $0" under it, and $55 still unfunded',
+      J(dr), J([[30, 0], [0, 0], '30', 'drew ' + fm(0), fm(55)]));
+    // 8. a figure it cannot read changes nothing and keeps what was typed
+    const g1 = +ev(`String(_saveGen)`);
+    ev(`window.__type(2029,'q',0,'12x'); 'ok'`);
+    chk(name, 'refusal', '"12x" changes nothing and is not saved; the box keeps it', J([ev(`JSON.stringify(window.__ask(2029,'NEW-2'))`), +ev(`String(_saveGen)`) - g1, ev(`window.__in(2029,'q',0).value`)]), J(['[55,0]', 0, '12x']));
+    // 9. mandatory off in a year (W3's switch, read through mandOn): that year's Mandatory boxes go; with it off everywhere, the line goes
+    ev(`window.__mo=mandOn; mandOn=function(St){ return !(St && St.__xfOff); }; MS.years[2028].__xfOff=1; _recYrC=null; window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'mandatory', 'off in FY28: FY28 has no Mandatory box, FY27 and FY29 still have theirs', J([!!+ev(`String(+!!window.__in(2028,'m',0))`), !!+ev(`String(+!!window.__in(2027,'m',0))`), !!+ev(`String(+!!window.__in(2029,'m',0))`)]), J([false, true, true]));
+    ev(`[2027,2029].forEach(function(y){ MS.years[y].__xfOff=1; }); _recYrC=null; window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'mandatory', 'off in every year: no Mandatory line at all', ev(`String(window.__d.querySelectorAll('tr.xf-m').length)`), '0');
+    ev(`[2027,2028,2029].forEach(function(y){ delete MS.years[y].__xfOff; }); mandOn=window.__mo; _recYrC=null; 'ok'`);
+    // 10. Add to FY30, not started: Cancel to both questions starts nothing; then started blank, grown 10%
+    ev(`MS.years[2029].mc=MS.years[2029].mc||{}; MS.years[2029].mc['NEW-2']=true; MS.years[2029].awards=MS.years[2029].awards||{};
+      MS.years[2029].awards['NEW-2']={mode:'single', d:'2029-03', day:4}; save(); 'ok'`);
+    ev(`window.__ans=[false, false]; xfAddOpen('NEW-1', 2030); 'ok'`);
+    chk(name, 'add', 'Cancel to roll forward and to blank: FY30 is not started and no box opens', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`)]), J(['false', false]));
+    ev(`window.__ans=[false, true]; xfAddOpen('NEW-1', 2030); 'ok'`);
+    chk(name, 'add', 'started blank: the box opens, starting from FY29, the nearest year holding the work', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`), /linked to FY29’s/.test(ev(`document.getElementById('xfAddBody').textContent`))]), J(['true', true, true]));
+    ev(`document.getElementById('xfAddGrow').checked=true; document.getElementById('xfAddPct').value='10'; xfAddSay(); xfAddDo(); 'ok'`);
+    const ad = JSON.parse(ev(`(function(){ var T=MS.years[2030], c=(T.custom||[]).filter(function(x){ return x.prior && x.prior.id==='NEW-2'; })[0];
+      return JSON.stringify(c? [c.prior, c.ask, T.order[T.order.length-1]===c.id, !!(T.awards||{})[c.id], !!(T.mc||{})[c.id], grpOf(c, T), MS.cur] : null); })()`));
+    chk(name, 'add', 'FY30’s new requirement: linked to FY29’s NEW-2, its requirement grown 10% to whole dollars, last in FY30’s order, no award dates, no star, PSM; FY27 still on screen',
+      J(ad), J([{ fy: 2029, id: 'NEW-2' }, [61, 0], true, false, false, 'PSM', 2027]));
+    ev(`window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'add', 'and the tab reads it as the same work in FY30', ev(`String((window.__in(2030,'q',0)||{}).value)`), '61');
+    // 11. Add to FY31 by rolling it forward from FY27: it holds the very requirement, so nothing more is added
+    ev(`window.__ans=[true]; xfAddOpen('NEW-1', 2031); 'ok'`);
+    chk(name, 'add', 'FY31 rolled forward from FY27 already holds Field kit: no second one, no box', J([ev(`String((MS.years[2031].custom||[]).filter(function(x){ return x.title==='Field kit'; }).length)`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`)]), J(['1', false]));
+    // 12. Fill across, grown 10% a year from FY27: the requirement only, compounding, every year in one save; FY32 not filled
+    const al0 = ev(`JSON.stringify([2027,2028,2029,2030,2031].map(function(y){ return [MS.years[y].fsrc, MS.years[y].alloc]; }))`), g2 = +ev(`String(_saveGen)`), j2 = +ev(`String(MS.jrnl.length)`);
+    ev(`xfFillOpen('NEW-1'); document.querySelector('input[name="xfFillHow"][value="grow"]').checked=true; document.getElementById('xfFillPct').value='10'; xfFillPick(); 'ok'`);
+    chk(name, 'fill', 'the preview: FY27 into FY28-FY32, FY32 not filled with Add to FY32, four years to fill', J([ev(`document.getElementById('xfFillFrom').value`), ev(`document.getElementById('xfFillTo').value`),
+      /FY32: not filled/.test(ev(`document.getElementById('xfFillPrev').textContent`)), ev(`document.getElementById('xfFillGo').textContent`)]), J(['2027', '2032', true, 'Fill 4 years']));
+    ev(`xfFillDo(); 'ok'`);
+    chk(name, 'fill', 'Fill: $44, $48, $53, $59 by year (40 × 1.1^n, whole dollars), FY29’s other work still $999, FY27 still $40',
+      J(JSON.parse(ev(`JSON.stringify([window.__ask(2028,'NEW-1'), window.__ask(2029,'NEW-2'), (MS.years[2030].custom.filter(function(x){ return x.prior && x.prior.id==='NEW-2'; })[0]||{}).ask, window.__ask(2031,'NEW-1'), window.__ask(2029,'NEW-1'), window.__ask(2027,'NEW-1')])`))),
+      J([[44, 0], [48, 0], [53, 0], [59, 0], [999, 0], [40, 0]]));
+    chk(name, 'fill', 'never a Disc or Mand figure, in any year', ev(`JSON.stringify([2027,2028,2029,2030,2031].map(function(y){ return [MS.years[y].fsrc, MS.years[y].alloc]; }))`), al0);
+    chk(name, 'fill', 'one save, and the journal files each year’s line under its year', J([+ev(`String(_saveGen)`) - g2, JSON.parse(ev(`JSON.stringify(MS.jrnl.slice(${j2}).map(function(e){ return e.fy; }).sort())`))]), J([1, [2028, 2029, 2030, 2031]]));
+    // 13. the strip: each year's requirement and lane word, the year on screen marked, each other year opening the same work, and Manage
+    ev(`setCur('NEW-1'); recYearsFill(); 'ok'`);
+    const sp = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#recYrs > button, #recYrs > .recyr'), function(e){ return e.tagName+':'+e.textContent+':'+(e.getAttribute('onclick')||''); }))`));
+    chk(name, 'strip', 'FY27 marked, FY28-FY31 each a button to the same work (FY29’s is NEW-2), each with its lane word; then Manage across the FYDP to the page at its tab',
+      J(sp), J(['SPAN:FY27 ' + fm(40) + ' · Unfunded:', 'BUTTON:FY28 ' + fm(44) + ' · Unfunded:recYearGo(2028,"NEW-1")', 'BUTTON:FY29 ' + fm(48) + ' · Unfunded:recYearGo(2029,"NEW-2")',
+        'BUTTON:FY30 ' + fm(53) + ' · Unfunded:recYearGo(2030,' + J(ev(`(MS.years[2030].custom.filter(function(x){ return x.prior && x.prior.id==='NEW-2'; })[0]||{}).id`)) + ')',
+        'BUTTON:FY31 ' + fm(59) + ' · Unfunded:recYearGo(2031,"NEW-1")', 'BUTTON:Manage across the FYDP ›:reqPageOpen("NEW-1","fydp")']));
+    // 14. text from a file is drawn as text in the Add box
+    ev(`xfModel('NEW-1').ys.forEach(function(Y){ if(!Y.r) return; var T=MS.years[Y.y]; T.titles=T.titles||{}; T.titles[Y.id]='<img src=x onerror="window.__pw=1">'; });
+      applyState(S); save(); window.__ans=[false, true]; xfAddOpen('NEW-1', 2032); 'ok'`);
+    chk(name, 'text', 'a title holding markup is drawn as text in the Add box', J([ev(`String(document.querySelectorAll('#xfAddBody img').length)`), /<img src=x/.test(ev(`document.getElementById('xfAddBody').textContent`))]), J(['0', true]));
+    ev(`xfAddClose(); 'ok'`);
+    // 15. a locked view: read only, no Add, no Fill, and a figure handed to the writer anyway changes nothing
+    ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView(blKey('PB', MS.cur)); window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'locked', 'on a locked view: no box to type in, no Add, no Fill', J([ev(`String(window.__d.querySelectorAll('input.xfin').length)`), ev(`String(window.__d.querySelectorAll('.xfaddb').length)`), /Fill across/.test(ev(`window.__d.textContent`))]), J(['0', '0', false]));
+    const lk0 = ev(`JSON.stringify(window.__ask(2028,'NEW-1'))`);
+    ev(`xfSet(2028,'NEW-1','q',0,'777'); cycLeave(); 'ok'`);
+    chk(name, 'locked', 'and xfSet on it writes nothing', ev(`JSON.stringify(window.__ask(2028,'NEW-1'))`), lk0);
+    chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.23 W2 ====
 // ==== v2.23 W3 ====
 // ==== end v2.23 W3 ====
