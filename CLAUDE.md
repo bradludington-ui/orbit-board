@@ -5370,6 +5370,45 @@ first (boxes take the look from the shared styles); optimize means cleaner code.
   left-menu A/C/D/E rewritten for Save in the header and a menu of words; toolbar-fits' "under the sidebar" is a box
   intersection now the menu sits under the header; standards drops the rail. 9 `v221-*` mutations, 1 retargeted.
 
+### v2.22 (items 155, 154; 149.18–149.53): the new look, the Funding page's tiles, the record as a card
+
+Brad, 25 Nov 2026, on the concept canvas: *"I like it all from your previous screenshots and I like the new items. Let's go"*; three
+versions (this is the first), 149.18–149.53 folded in, each merged on his word. Three builders to one contract
+(`recovery/v222/contract.md`); `NEXT-VERSION.md` › Shipped › v2.22 has every decision and gap, `recovery/v222/notes-W*.md` each
+builder's record.
+
+- **The header holds one find box** (`#cmdOpen`, Ctrl K / ⌘K): **the palette** (`#cmdPanel`, `cmdOpen`/`cmdClose`) finds
+  requirements by the list's own predicate (`listSearchHit`), CCaR records, and every left-menu action, which it runs by
+  **clicking that item** (`cmdRunAct`), so a refusal or a confirm the menu path has applies. A new action is a left-menu item, never a
+  palette entry of its own. `fitTop` has a step `cmd1` (the box folds to its icon).
+- **The page:** tiles with meters (`#uiKpis`), the money bar (`.moneybar`, `moneyBarHtml`, one list box: each block a requirement
+  sized by its ask, green / yellow / red by `laneOf`, the cutlines from `cutlinesOf`, the bands' own places), lighter rows with a
+  Funded meter and a status pill, and the title band's chips (`#gridBand`: All lanes, Unfunded, ★ Mission Critical, Incomplete,
+  Needs attention). **Incomplete** (`incOnly`) is a filter like the others: `listOnSay` says it, `listClearAll` and `listReveal`
+  take it off, the Filter menu's Clear all clears it. **A new filter joins all four**, and the "N on" count.
+- **The Funding page (item 154)** is APEX's tiles, Unfunded by service as bars, Needs attention as buttons, one bar of the lanes; every
+  figure is the one `scoreboard()` printed. Under ◨ the mandatory pot reads **withheld**, never "all drawn" or "$0 left".
+- **The RECORD card** (W3): a pinned bar (position, ‹ Previous, Next ›, `recStep`), one line of figures, the ★ switch (the row's own
+  call), what is still needed with a jump to each field (`recNeedGo`), the budgets once each, awards as blocks, a prime's CLINs read
+  through `clinReadOnly`, a read-only line on a locked view, and **the requirement's other years by the work** (`fydpSameIn`, v2.16's
+  rule, restored). The years are worked out when the page is idle (`recYearsFill`); after an edit the last line is drawn stale and
+  updated **in place**, because replacing it took away the button a press was on.
+- **A refusal said in the record** (`REC_MSG`, `recMsgFor`) belongs to one requirement of one year, one view and one plan, and is
+  kept as text.
+- **Closing what holds the keyboard hands it home first** (`uiFocusHome`, in `uiPopsClose`, `uiFlyClose` and `cmdOpen`): a popover
+  or a flyout that closed with the keyboard inside left it on `<body>`, and a box opened from it had a hidden opener. A new
+  transient container (popover, flyout, menu) that can close while it has the keyboard goes through it.
+- **A draft is a read**: `reqDraftOf` runs under `clinReadOnly` (drawing a prime's record wrote CLIN containers since v2.08).
+- **The docked record leaves the room below the table** (`--footH`, set by `syncSticky`): pushed up at the page's end, its bar went
+  under the header.
+- **`npm run check` refuses a top-level function declared twice** ("one declaration per name"): with three builders, the later
+  `awdDateOk` silently replaced the earlier.
+- **149.52 is not met, on purpose** (the approved look puts tiles and the money bar above the table): layout D fails by more than it
+  has since v2.00 (first row 476px at 1440, 8 rows). It is Brad's to decide.
+- **Checks:** audit-board "v2.22 W1", "W3", "integration", "review"; audit-other "v2.22 W2"; `npm run look`, `palette`, `record` in
+  `verify:grid` (before layout, whose carried D stops the chain: run what follows it by hand). 136 `v222-*` mutations, each proved
+  against its own check; two browser-only fixes proved by hand on their mutants.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
+Current version: **v2.21**; **v2.22** (item 155, with 154 and 149.18–149.53) is built and reviewed, its merge waiting on Brad's word; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 
 ## Open
 
@@ -38,22 +38,6 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
 - **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
 
-#### 155. The new look: one search box, pill pickers, the money bar, tiles with meters, lighter rows, the record as a card (v2.22)
-- **From the canvas's Requirements, Funding and Ctrl K screens:** the header holds ORBIT, one search box ("Search
-  requirements, CCaR, PID, or type a command", Ctrl K), the appropriation, year, cycle and office as pill pickers, the save
-  state and Save; the navy word menu grouped PLAN and BOARD; the page heading with the mode as a segmented control and one
-  Add requirement; four tiles with a meter of budget authority used; **where the money runs out, in priority order** (one bar,
-  each block a requirement sized by its ask: green where discretionary pays, yellow where both lanes, red where any of it is
-  unfunded, the cutline figures beneath); a table with a status pill, a funded meter, the office chip and filter chips (All
-  lanes, ★ Mission Critical, Needs attention); the RECORD as a card beside the table where the window allows.
-- **Ctrl K:** one palette that finds requirements (title, CCaR, PID, event, the row's second line), CCaR records, and every
-  left-menu action by its words, arrow keys and Enter, Esc to close, `>` for actions only. It runs the action's own call.
-- **The Funding page (item 154):** the four tiles, Unfunded by service as a bar chart, Needs attention as buttons with counts,
-  and one bar of discretionary, mandatory and unfunded against the requirement.
-- **Rules:** every figure is one the board already works out (tiers(), unfSvcOf, mcCalc, the posture); no control loses its
-  call; CUI lines, APEX status colours with their words, Section 508 as today; the money bar is drawn from the same lane walk
-  the rows use, and its blocks add to the requirement total.
-
 #### 156. Three new views: the requirement page, Rank by band, the five-year chart (v2.23)
 - **The requirement as its own page** (*Open full page* from the RECORD card): tabs Overview, Funding by service, Awards,
   Five years, History; the four figures; the month-by-month obligation chart (the award block's own landing rule, landSvc);
@@ -71,21 +55,8 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
   moves, removed) whose steps add exactly to the change, and the change list with who and when, from cycCmpData and the
   journal.
 
-#### 154. The Funding page's posture strip in APEX's tiles (Brad, 25 Nov 2026: "Log the Funding tiles for the next version")
-- **What he sees:** v2.21 dressed the Requirements page's four tiles as APEX's, but the Funding page (Fund mode) still opens on
-  the compact pre-v2.21 posture strip (`#posture`, written by `scoreboard()`): Discretionary and Mandatory BA with what is left,
-  Mission Critical, Whole budget and Unfunded by service in one dense band, then Needs attention. Seen in the v2.21 screenshots
-  of 25 Nov.
-- **Proposed:** the same figures as APEX tiles in a row -- Discretionary (BA, drawn, left), Mandatory (the same), ★ Mission
-  Critical (unfunded of the must-pay total), Whole budget (asked, funded, unfunded) -- with Unfunded by service and Needs
-  attention beneath as their own tile-styled blocks. Restyle only: every figure stays the one `scoreboard()` prints today,
-  every Needs attention entry keeps its button and its call, and Funding detail ▾ stays where it is.
-- **Checks to hold:** layout A (the posture prints the scorecards' figures and its unfunded-by-service figures add to the
-  Funding by service table), audit-board's "the funding posture prints the scorecards' figures", keyboard-reach on the Needs
-  attention buttons, standards (2.5.8 and 1.4.11 on the new tiles), and the row's first requirement still on screen (layout D).
-- **Next version:** v2.22, beside item 149.18–149.53. Built on go.
-
 #### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
+- **149.18–149.53 were built in v2.22** (folded into item 155 on Brad's go of 25 Nov); see Shipped › v2.22.
 - **Asked:** Brad, 21 Nov 2026: *"review the front landing page where my requirements are listed to include the pop up window after clicking a requirement ... for redundant clicks and information ... simplicity but usefulness."*
 - **How it was found:** six reviewers measured v2.16 in Chromium on a synthetic 36-requirement board (1920, ~1500, 1366 wide); twelve checkers re-measured every claim with a real pointer and keyboard (55 confirmed, 6 in part, 1 refuted: the folded menu already marks unsaved work); a completeness critic added seven. The report Brad read: https://claude.ai/artifact/6ZTkCPLox7EPAk5pCtXrnr . Scratch evidence (not in the repo): the session scratchpad `review/`.
 - **Answer:** *"Go with recommendations."* Order, as recommended: **v2.17 = 149.1–149.6** (they can put a wrong value in the board; data loss first, the 3 Nov rule), **v2.18 = 149.7–149.17** (labels that print the wrong thing), **v2.19 = 149.18–149.53** (clicks, repeats, additions). *(24 Nov: these move to v2.20; item 150, the scope-down, is v2.19, and may make some of them moot.)* **Item 133 moves to v2.20.** Each version merges on Brad's word.
@@ -637,6 +608,75 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.22 — 25 Nov 2026: the new look (item 155), the Funding page's tiles (item 154), and the clicks, repeats and additions of the 21 Nov review (149.18–149.53) -- built on Brad's go of 25 Nov; merge waits on his word
+- **How it was built:** three builders to one contract (`recovery/v222/contract.md`): W1 the page and the Funding page, W2 Ctrl K,
+  the list's search, Filter, the empty program, new years and the Add box, W3 the RECORD card and the edit box. Each builder's record
+  -- what was built, what it decided (each Brad's to reverse), its checks and mutations, what it left -- is
+  `recovery/v222/notes-W1.md`, `notes-W2.md`, `notes-W3.md`; its screenshots `shots-W*/`.
+- **The integration** joined the seams: the find box opens the palette by its own opener; Incomplete is said, cleared and revealed
+  like every other filter; the office picker's Reassign line names the requirement on the record; three browser checks join
+  `verify:grid` (`npm run look`, `palette`, `record`); `npm run check` refuses a top-level function name declared twice (two
+  builders both declared `awdDateOk`; the later one silently replaced the other).
+- **The review** (three reviewers, one per builder, each finding reproduced and argued against; no data loss and no wrong figure
+  found) and what was fixed:
+  - Ctrl K, or a Needs attention entry, from inside a popover, a flyout or a row's ⋯ menu left the keyboard on nothing at Esc:
+    the keyboard now goes home before what holds it closes (`uiFocusHome`).
+  - A CCaR record's number as the search took a requirement on JSF21 for JSF2 and missed one filed "JSF 2": it is matched exactly.
+  - The Add box's sentence printed `r&amp;d`; it is escaped once.
+  - "Award needs repair" on an award cleared on purpose after its repair was checked: only an unreadable date or an unchecked
+    repair is flagged.
+  - The tiles said "all drawn" with nothing drawn, and under the ◨ view for a mandatory pot the view withheld: they say
+    "withheld (◨ discretionary only)", and "all drawn" only where something was drawn.
+  - A refusal in the record showed on another year's requirement of the same id, and on the working plan after leaving a locked
+    view with a live Leave button: it belongs to that requirement, year, view and plan, and is kept as text.
+  - Docked, at the end of the page, the record's bar went under the header and its buttons did nothing: the docked record leaves
+    the room below the table (`--footH`).
+  - The first press on a year button after an edit went nowhere: the years line is drawn (stale) after an edit and brought up to
+    date in place.
+  - There since v2.08: drawing a prime's record wrote empty CLIN containers (`reqDraftOf` now reads under `clinReadOnly`).
+- **Known gaps, each for Brad:**
+  - **149.52 ("more requirements on screen") is not met.** The concept puts the tiles and the money bar above the table: at
+    1440×1000 the first row is 476px down and 8 rows show (v2.21: 323px, 13); at 1366×768, 4 (8). View › Compact still shows more.
+    Layout D fails by more than it has since v2.00.
+  - Below 1100px the mode's tools, Add requirement with them, fold into Tools ▾.
+  - Help, at its size limit, does not describe the money bar, the chips or the Funding page's tiles.
+  - The RECORD card still slides over the table by default; docked is a per-browser choice (View ▾).
+- **Checks:** audit-board "v2.22 W1", "v2.22 W3", "v2.22 integration" and "v2.22 review"; audit-other "v2.22 W2"; `npm run look`,
+  `palette` (R: the keyboard home), `record` (K: the docked bar at the end of the page; L: the first year press); `npm run check`
+  "one declaration per name". **Mutations:** 136 `v222-*` (W1 29, W2 54, W3 37, integration 5, review 11) and their retargets,
+  each proved against its own check (`recovery/v222/proved-*.jsonl`); none retired. No sweep (Brad's rule of 20 Oct).
+
+##### 155. The new look: one search box, pill pickers, the money bar, tiles with meters, lighter rows, the record as a card (v2.22)
+- **From the canvas's Requirements, Funding and Ctrl K screens:** the header holds ORBIT, one search box ("Search
+  requirements, CCaR, PID, or type a command", Ctrl K), the appropriation, year, cycle and office as pill pickers, the save
+  state and Save; the navy word menu grouped PLAN and BOARD; the page heading with the mode as a segmented control and one
+  Add requirement; four tiles with a meter of budget authority used; **where the money runs out, in priority order** (one bar,
+  each block a requirement sized by its ask: green where discretionary pays, yellow where both lanes, red where any of it is
+  unfunded, the cutline figures beneath); a table with a status pill, a funded meter, the office chip and filter chips (All
+  lanes, ★ Mission Critical, Needs attention); the RECORD as a card beside the table where the window allows.
+- **Ctrl K:** one palette that finds requirements (title, CCaR, PID, event, the row's second line), CCaR records, and every
+  left-menu action by its words, arrow keys and Enter, Esc to close, `>` for actions only. It runs the action's own call.
+- **The Funding page (item 154):** the four tiles, Unfunded by service as a bar chart, Needs attention as buttons with counts,
+  and one bar of discretionary, mandatory and unfunded against the requirement.
+- **Rules:** every figure is one the board already works out (tiers(), unfSvcOf, mcCalc, the posture); no control loses its
+  call; CUI lines, APEX status colours with their words, Section 508 as today; the money bar is drawn from the same lane walk
+  the rows use, and its blocks add to the requirement total.
+
+##### 154. The Funding page's posture strip in APEX's tiles (Brad, 25 Nov 2026: "Log the Funding tiles for the next version")
+- **What he sees:** v2.21 dressed the Requirements page's four tiles as APEX's, but the Funding page (Fund mode) still opens on
+  the compact pre-v2.21 posture strip (`#posture`, written by `scoreboard()`): Discretionary and Mandatory BA with what is left,
+  Mission Critical, Whole budget and Unfunded by service in one dense band, then Needs attention. Seen in the v2.21 screenshots
+  of 25 Nov.
+- **Proposed:** the same figures as APEX tiles in a row -- Discretionary (BA, drawn, left), Mandatory (the same), ★ Mission
+  Critical (unfunded of the must-pay total), Whole budget (asked, funded, unfunded) -- with Unfunded by service and Needs
+  attention beneath as their own tile-styled blocks. Restyle only: every figure stays the one `scoreboard()` prints today,
+  every Needs attention entry keeps its button and its call, and Funding detail ▾ stays where it is.
+- **Checks to hold:** layout A (the posture prints the scorecards' figures and its unfunded-by-service figures add to the
+  Funding by service table), audit-board's "the funding posture prints the scorecards' figures", keyboard-reach on the Needs
+  attention buttons, standards (2.5.8 and 1.4.11 on the new tiles), and the row's first requirement still on screen (layout D).
+- **Next version:** v2.22, beside item 149.18–149.53. Built on go.
+
 
 ### v2.21 — 25 Nov 2026: ORBIT in APEX's look; cleaner code (items 152, 153) -- built on Brad's "Let's do it. Let's also optimize" of 24 Nov and his four answers; merged on his "Merge" of 25 Nov (PR #80)
 #### 152. ORBIT in APEX's look (Brad, 24 Nov 2026: "No I want ORBIT to look like APEX", then "Let's do it")
