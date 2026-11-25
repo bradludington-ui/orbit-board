@@ -96,8 +96,13 @@ for (const [w, h] of [[1440, 900], [1024, 768]]) {
     await p.evaluate(() => document.getElementById('rptab_awd').focus()); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
     chk(`B · ${w}: Enter on Awards shows it, pressed, the keyboard still on it`, await p.evaluate(() => [REQPG.k, document.getElementById('rptab_awd').getAttribute('aria-pressed'), document.activeElement.id].join()) === 'awd,true,rptab_awd',
       await p.evaluate(() => [REQPG.k, document.activeElement.id].join()));
+    await p.keyboard.press('j'); await p.waitForTimeout(250);
+    const j1 = await p.evaluate(() => [REQPG && REQPG.id, curRow, document.getElementById('inspector').classList.contains('open'), document.getElementById('reqPage').hidden].join());
+    chk(`B · ${w}: J steps the page to R003 (the list's J would open the hidden record)`, j1 === 'R003,R003,false,false', j1);
+    await p.keyboard.press('k'); await p.waitForTimeout(250);
+    await p.evaluate(() => document.getElementById('rptab_awd').focus());
     await p.keyboard.press('Escape'); await p.waitForTimeout(250);
-    const e1 = await p.evaluate(() => [!!REQPG, curRow, document.activeElement.id, document.getElementById('reqPage').hidden].join());
+    const e1 =await p.evaluate(() => [!!REQPG, curRow, document.activeElement.id, document.getElementById('reqPage').hidden].join());
     chk(`B · ${w}: Esc goes back to the list, the keyboard on R002’s row`, e1 === 'false,R002,row-R002,true', e1);
     await ctx.close();
   } catch (e) { chk(`B · ${w}: ran`, false, e.message); }

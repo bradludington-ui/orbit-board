@@ -10935,6 +10935,8 @@ const MUTATIONS = [
     find: "Math.max(0, Math.min(100, v.l/v.a*100)) : 0;", repl: "100 : 0;" },
   { id: 'v223-w1-fy-fydp-first-year', area: "fydpChartHtml", what: "the FYDP column prints the first year, not the window",
     find: "return cell(p.all.fy[y]); }).join('')+cell(p.all.tot)+'</tr>';", repl: "return cell(p.all.fy[y]); }).join('')+cell(p.all.fy[Y[0]])+'</tr>';" },
+  { id: 'v223-w1-jk-behind-page', area: "reqPgDraw", what: "J and K step the list behind the page and open the hidden record, the page staying where it was",
+    find: "  e.preventDefault(); e.stopImmediatePropagation();\n  reqPageStep(k==='j'? 1 : -1);", repl: "" },
   // ==== end v2.23 W1 ====
   // ==== v2.23 W2 ====
   // ==== end v2.23 W2 ====

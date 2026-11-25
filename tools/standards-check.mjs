@@ -347,6 +347,27 @@ for (const build of BUILDS) {
     if (!cmdShown) record(build, theme, { sc: 'coverage', key: 'Ctrl K’s palette was not on screen to measure',
       detail: 'the palette with a requirement and an action in it, and the list’s search with its ✕, were NOT drawn', n: 1 });
     await page.evaluate(() => { try { cmdClose(); qClear(); } catch (e) {} });
+    // v2.23 W1 (item 156): THE REQUIREMENT PAGE (every tab), RANK BY BAND and THE FIVE-YEAR CHART, each measured on screen. All three
+    // must have been drawn, or the run fails: a surface measured by nothing would pass by being absent.
+    const w1Shown = { page: 0, board: false, chart: false };
+    if (await page.evaluate(() => typeof reqPgOpen === 'function')) {
+      const tabs = await page.evaluate(() => { try { reqPageOpen(gridIds()[0]); return [].map.call(document.querySelectorAll('#reqPage .rptab'), b => b.id.slice(6)); } catch (e) { return []; } });
+      for (const k of tabs) {
+        const on = await page.evaluate(k => { try { reqPageTab(k); const p = document.getElementById('reqPage'); return !!p && !p.hidden && p.getClientRects().length > 0; } catch (e) { return false; } }, k);
+        await page.waitForTimeout(80);
+        if (on) { w1Shown.page++; for (const f of await page.evaluate(PROBE)) record(build, theme, f); }
+      }
+      w1Shown.board = await page.evaluate(() => { try { reqPageClose(false); uiMode = 'rank'; uiApply(); rkSetView('board'); render();
+        return !!document.querySelector('#rkBoard:not([hidden]) .rkcard') && !!document.querySelector('#rkViewSw button[aria-pressed="true"]'); } catch (e) { return false; } });
+      await page.waitForTimeout(100);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      w1Shown.chart = await page.evaluate(() => { try { rkSetView('list'); uiMode = 'review'; uiApply(); render(); toggleFydp(); return !!document.querySelector('#fydpPanel.open .fydpchart .fyb'); } catch (e) { return false; } });
+      await page.waitForTimeout(100);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      await page.evaluate(() => { try { if (fydpOpen) toggleFydp(); } catch (e) {} });
+      if (w1Shown.page < 4 || !w1Shown.board || !w1Shown.chart) record(build, theme, { sc: 'coverage', key: 'the requirement page, the board by band or the five-year chart was not on screen to measure',
+        detail: `${w1Shown.page} of the page's tabs measured; the board ${w1Shown.board ? 'was' : 'was NOT'} drawn; the chart ${w1Shown.chart ? 'was' : 'was NOT'} drawn`, n: 1 });
+    }
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it
     // opened; the 🔧 list under Needs attention is measured open, then the award block of one, with ✓ Checked. Both must
     // be on screen, or the run fails: a control measured by nothing would pass by being absent.

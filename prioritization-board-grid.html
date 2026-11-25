@@ -2133,7 +2133,7 @@ html.ui-reqpage #allocView,html.ui-reqpage #drawerScrim{display:none!important}
 .rpsw.none{background:var(--panel2)}
 #reqPage .rphact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #reqPage .rphact .btn{min-height:34px}
-#reqPage .rpmc.on{border-color:var(--gold);color:var(--ink)}
+#reqPage .rpmc[aria-pressed="true"]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 #reqPage .rptabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--edge);margin:0 0 14px}
 #reqPage .rptab{background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:8px 14px;min-height:36px;font:inherit;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer}
 #reqPage .rptab:hover{color:var(--ink)}
@@ -24009,7 +24009,7 @@ function fydpBody(){
     +'</select> View <select style="font-size:10px;padding:3px 6px" onchange="fydpSetView(this.value)" title="one tab of the workbook, for this appropriation">'
     +views.map(function(v){ return '<option value="'+esc(v[0])+'"'+(fydpView===v[0]?' selected':'')+'>'+esc(v[1])+'</option>'; }).join('')+'</select>'
     +' <b style="color:var(--gold)">'+span+'</b> <span style="color:var(--dim);font-size:10px">$ in millions</span>'
-    +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
+    +' <button class="btn on" style="font-size:10px;padding:4px 10px;min-height:24px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
   if(!own){ h+='<div class="hint">No year of '+esc(D.label)+' from '+fyl(Y[0])+' to '+fyl(Y[4])+' holds a plan.</div>'; el.innerHTML=h; return; }
   const th='<tr><th rowspan="2">%A%</th><th rowspan="2">%B%</th>'+Y.map(function(y){ return '<th colspan="2">'+fyl(y)+'</th>'; }).join('')
     +'<th colspan="2" class="fydptot">TOTAL '+span+'</th></tr><tr>'+Y.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th>'; }).join('')
@@ -39399,7 +39399,7 @@ function reqPgHtml(){
         +'<span class="rpchip">'+(bd? '<i class="rpsw" style="background:'+readableOn(bd.c,'#ffffff',1)+'"></i>'+(bi>=0? bi+' · ' : '')+esc(bd.n) : 'No decision band')+'</span>'
       +'</div></div>'
       +'<div class="rphact">'
-        +'<button type="button" class="btn rpmc'+(on? ' on' : '')+'" aria-pressed="'+(on? 'true' : 'false')+'" onclick="'+mcH+'"'
+        +'<button type="button" class="btn rpmc" aria-pressed="'+(on? 'true' : 'false')+'" onclick="'+mcH+'"'
           +' title="★ Mission Critical — this must be paid this year'+(on? ' (on — click to clear)' : '')+'">'+(on? '★ Mission Critical' : '☆ Mark Mission Critical')+'</button>'
         +'<button type="button" class="btn pri rpedit" onclick="openEdit('+jsa(id)+')" title="The whole record, in one box">Edit record</button>'
       +'</div></div>'
@@ -39588,6 +39588,17 @@ document.addEventListener('click', function(e){
   if(!reqPgOn()) return;
   const b=e.target && e.target.closest && e.target.closest('#uiSide button.uiNi:not([aria-haspopup])');
   if(b) reqPageClose(false);
+}, true);
+// J and K step the page, as Previous and Next do: the list's own J / K (recStep) moved the selection behind the page and opened the
+// record, which the page hides. Taken on the way down, before the list's; a field, a box or a modifier keeps them, as there.
+document.addEventListener('keydown', function(e){
+  if(!reqPgOn() || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k=String(e.key||'').toLowerCase(); if(k!=='j' && k!=='k') return;
+  const a=document.activeElement;
+  if(a && (a.tagName==='INPUT' || a.tagName==='TEXTAREA' || a.tagName==='SELECT' || a.isContentEditable)) return;
+  try{ if(DLG.stack.length>0) return; }catch(x){}
+  e.preventDefault(); e.stopImmediatePropagation();
+  reqPageStep(k==='j'? 1 : -1);
 }, true);
 
 // ── RANK BY BAND (view only) ──

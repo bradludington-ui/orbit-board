@@ -11179,9 +11179,11 @@ await (async () => {
     chk(name, 'step', 'Next from A is B, selected behind the page, the keyboard on Next', J([ev('REQPG.id'), ev('curRow'), ev(`document.activeElement.getAttribute('data-step')`)]), J(['B', 'B', '1']));
     ev(`document.querySelector('#reqPage .rpnav[data-step="-1"]').click(); document.querySelector('#reqPage .rpnav[data-step="-1"]').click(); 'ok'`);
     chk(name, 'step', 'Previous twice: P, the first -- its Previous is off', J([ev('REQPG.id'), ev(`document.querySelector('#reqPage .rpnav[data-step="-1"]').disabled`)]), J(['P', true]));
+    ev(`document.body.focus(); try{ dlgSync(); }catch(e){} document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'j', bubbles:true, cancelable:true})); 'ok'`);
+    chk(name, 'step', 'J steps the page as Next does (the list’s J moved the selection behind it): A, selected, the record not opened', J([ev('REQPG.id'), ev('curRow'), ev(`document.getElementById('inspector').classList.contains('open')`)]), J(['A', 'A', false]));
     // 12. a tab that throws shows its own failure; the page and the other tabs stand
     ev(`REQPG_TABS.push({k:'boom', label:'Boom', order:45, html:function(){ throw new Error('kaput'); }}); reqPgOpen('A','boom'); 'ok'`);
-    chk(name, 'a tab fails', 'its own failure, under the header and the tabs', J([/The Boom tab could not be drawn — kaput/.test(ev(`document.querySelector('#reqPage .rpbody').textContent`)), ev(`document.querySelectorAll('#reqPage .rptab').length`), ev(`document.getElementById('rpTitle').textContent`)]),
+    chk(name, 'a tab fails', 'its own failure, under the header and the tabs', J([/The Boom tab could not be drawn — kaput/.test(ev(`(document.querySelector('#reqPage .rpbody')||{}).textContent||''`)), ev(`document.querySelectorAll('#reqPage .rptab').length`), ev(`(document.getElementById('rpTitle')||{}).textContent||''`)]),
       J([true, 5, ev(`dispTitle(itemById('A'))`)]));
     chk(name, 'a tab fails', 'the tabs by their order, a tab registered later in its place', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent; }).join(',')`),
       'Overview,Funding by service,Awards,Boom,History · 7');
