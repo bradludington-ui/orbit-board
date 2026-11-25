@@ -21870,7 +21870,9 @@ function fsDirected(id, T){
    (fsDirVec, basisSvcOf) -- never a dollar above what a service asks for, never a trimmed dollar. */
 function planWant(it, plan){
   const fo=(S.fsrc||{})[it.id];
-  const A=(plan==='a');
+  // v2.23 review RV-D (D5): in a year with mandatory funding off every plan asks only for what was directed to discretionary -- a
+  // mandatory dollar directed there is one this year never draws (tiers' RULE), so Plan B asks exactly what Plan A asks
+  const A=(plan==='a') || !mandOn();
   const base=(function(){
     const v=fsDirVec(it);
     if(!v) return basisSvcOf(it);                       // no override: the allocation
@@ -21907,7 +21909,9 @@ function planWalk(budget, ord, plan){
 }
 function planCompute(){
   const dB=(S.discSvc||SVC.map(_=>0)).slice();
-  const fB=SVC.map((sv,i)=>((S.discSvc||[])[i]||0)+((S.mandSvc||[])[i]||0));
+  // v2.23 review RV-D (D5): Plan B's topline is discretionary + mandatory -- and in a year with mandatory funding off, discretionary
+  // alone (planMandOffNote): the board draws no mandatory that year, so a Plan B funding it would describe money that is not coming
+  const fB=SVC.map((sv,i)=>((S.discSvc||[])[i]||0)+(mandOn()? ((S.mandSvc||[])[i]||0) : 0));
   const A=planWalk(dB, null, 'a'), B=planWalk(fB, null, 'b');
   const tot=P=>{ let want=0,got=0,full=0,part=0,cut=0;
     S.order.forEach(id=>{ const r=P[id]; if(!r||r.st==='none') return;
@@ -21959,8 +21963,9 @@ function scenTitle(t){
 }
 function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }
 function scenOn(){ return scenView==='disc'; }
-// the mandatory BA as the CURRENT VIEW sees it -- zero when the pot is withheld
-function scenMand(i){ return scenOn()? 0 : (S.mandSvc[i]||0); }
+// the mandatory BA as the CURRENT VIEW can DRAW it -- zero when the pot is withheld (◨), and zero in a year with mandatory funding
+// off (v2.23 review RV-D: tiers() draws none there, so a full-budget tick or line at disc + mand marks money the walk never had)
+function scenMand(i){ return (scenOn() || !mandOn())? 0 : (S.mandSvc[i]||0); }
 function setScen(v){ scenView = (scenView===v? '' : v); render(); }
 let planOpen=false, planOnly='';        // '' | 'moved' | 'cutA' | 'partA' | 'none'
 function togglePlans(){ planOpen=!planOpen; render(); }
@@ -22089,11 +22094,11 @@ function planBody(){
   let h='<div class="planhead">'
     +card('PLAN A','DISCRETIONARY ONLY','the worst case — the plan you may have to work within',
           R.aTop, R.aT, R.A.__cut)
-    +card('PLAN B','DISCRETIONARY + MANDATORY','both together, treated as a new top line',
+    +card('PLAN B','DISCRETIONARY + MANDATORY',planMandOffNote()? esc(planMandOffNote()) : 'both together, treated as a new top line',   // v2.23 review RV-D (D5)
           R.bTop, R.bT, R.B.__cut)
     +'<div class="plancard delta"><div class="pt">WHAT MANDATORY BUYS</div>'
       +'<div class="pn">'+fM(R.bT.got-R.aT.got)+'</div>'
-      +'<div class="ps">the difference between the two plans</div>'
+      +'<div class="ps">'+(mandOn()? 'the difference between the two plans' : 'mandatory funding is off for '+esc(FYL()))+'</div>'
       +'<table class="pk">'
       +'<tr><td>Rescued from cut</td><td><b>'+rows.filter(r=>r.a.st==='cut'&&r.b.st!=='cut').length+'</b> requirements</td></tr>'
       +'<tr><td>Topped up from partial</td><td><b>'+rows.filter(r=>r.a.st==='part'&&r.b.st==='full').length+'</b></td></tr>'
@@ -22230,7 +22235,7 @@ function exportPlans(){
   const sheet=(name,key,budget,tt,cut,pot)=>{
     const uk=(key==='a')? 'ua' : 'ub';
     const r=[[{v:expTitle()+' \u2014 '+name,s:TI}],
-      [{v:'Every figure on this tab is funded from '+pot+'.',s:0}],
+      [{v:'Every figure on this tab is funded from '+pot+'.'+(key==='b' && planMandOffNote()? ' '+planMandOffNote() : ''),s:0}],   // v2.23 review RV-D (D5)
       [{v:DEFN,s:0}],
       [{v:OFFLINE,s:0}],[],
       [{v:'TOP LINE',s:SEC},...SVC.map((sv,i)=>({v:budget[i],s:NB})),{v:budget.reduce((a,b)=>a+b,0),s:NB}],
@@ -22293,7 +22298,8 @@ function exportPlans(){
       [{v:OFFLINE,s:0}],[],
       [{v:'Plan A buys',s:B},'','',{v:R.aT.got,s:NB}],
       [{v:'Plan B buys',s:B},'','',{v:R.bT.got,s:NB}],
-      [{v:'Difference \u2014 what mandatory pays for',s:SEC},'','',{v:R.bT.got-R.aT.got,s:NB}],[],
+      [{v:'Difference \u2014 what mandatory pays for',s:SEC},'','',{v:R.bT.got-R.aT.got,s:NB}],
+      ...(planMandOffNote()? [[{v:planMandOffNote(),s:0}]] : []),[],   // v2.23 review RV-D (D5)
       // CCaR and the AWARD DATES sit between the requirement and the money, because that is the
       // order the question is asked in: which record is this, when does it obligate, how much.
       ['Rank','Band / Priority','PMO','Requirement','CCaR','Award date(s)',FYL()+' Requirement','Allocated','Disc allocated','Mand allocated',
@@ -22470,7 +22476,8 @@ function edCompute(ord){
   const disc=[], full=[];
   for(let i=0;i<nS;i++){
     disc.push(edWalk(i, (S.discSvc||[])[i]||0, O));
-    full.push(edWalk(i, ((S.discSvc||[])[i]||0)+((S.mandSvc||[])[i]||0), O));
+    // v2.23 review RV-D: the full budget is discretionary alone in a year with mandatory funding off (tiers' RULE draws none)
+    full.push(edWalk(i, ((S.discSvc||[])[i]||0)+(mandOn()? ((S.mandSvc||[])[i]||0) : 0), O));
   }
   const sumF=runs=>runs.reduce((a,r)=>a+Object.keys(r.funded).reduce((x,k)=>x+r.funded[k],0),0);
   let minGap=0, fullGap=0, critCount=0, unfundedAtFull=0;
@@ -22496,7 +22503,7 @@ function edCompute(ord){
   });
   return {disc, full, discTotal:sumF(disc), fullTotal:sumF(full),
           discBA:(S.discSvc||[]).reduce((a,b)=>a+b,0),
-          fullBA:(S.discSvc||[]).reduce((a,b)=>a+b,0)+(S.mandSvc||[]).reduce((a,b)=>a+b,0),
+          fullBA:(S.discSvc||[]).reduce((a,b)=>a+b,0)+(mandOn()? (S.mandSvc||[]).reduce((a,b)=>a+b,0) : 0),
           minGap, fullGap, critCount, unfundedAtFull, bandCount, unbanded, needCons};
 }
 // v2.08 (F1): clearing the band leaves the impact statement. It deleted S.cons[id] with the band since the first commit, from
@@ -26660,7 +26667,7 @@ function scoreboard(){
         : (mcN? '<span style="color:var(--green)">✓ no MC need — discretionary covers the must-pays in every service lane</span>'
               : '<span style="color:var(--dim)">nothing flagged must-pay yet — use ★ MC on a requirement</span>')}</div>
     <div class="sub"><b style="color:var(--amber)">Program floor (Discretionary BA + MC need): ${fM(floor)}</b></div>
-    ${mcUnf>0.5? `<div class="sub" style="color:var(--red)">⚠ ${fM(mcUnf)} of the must-pay total is UNFUNDED even with mandatory</div>` : ''}
+    ${mcUnf>0.5? `<div class="sub" style="color:var(--red)">⚠ ${fM(mcUnf)} of the must-pay total is UNFUNDED ${mandLive()? 'even with mandatory' : '\u2014 '+esc(mandOffWhy())}</div>` : ''}
     <div class="bar"><i style="width:${dBA>0?Math.min(100,mcTot/dBA*100):(mcTot>0?100:0)}%;background:${mcNeed>0.5?'var(--red)':'var(--amber)'}"></i></div></div>
   ${!mandOn()? `<div class="sc mand"><div class="nm" style="color:var(--purp)">3 · Mandatory</div><div class="sub">Mandatory funding is off for ${esc(FYL())}; its BA ${fM(mBA)} stays in 💰 Budget Management.</div></div>` : ''}${mandOn()? `
   <div class="sc mand"><div class="nm" style="color:var(--purp)">3 · Mandatory (spillover)</div>
@@ -26786,7 +26793,8 @@ function scoreboard(){
             : '<div class="pp ppt mandoff"><div class="k">Mandatory</div><div class="x">Mandatory funding is off for '+esc(FYL())+'. Its budget authority stays in Budget Management; Allocate turns it back on.</div></div>')
         +'</div>'
         +'<div class="pp ppt mc'+(mcUnf>0.5?' warn':'')+'"><div class="k">★ Mission critical · '+pl(mcN,'must-pay','must-pay')+'</div>'
-          +'<div class="v" data-v="'+Math.round(mcUnf)+'">'+(mcUnf>0.5? fM(mcUnf)+'</div><div class="x">unfunded of '+fM(mcTot)+', even with mandatory'
+          // v2.23 review RV-D (D11): "even with mandatory" only where mandatory can be drawn; a year with it off or the ◨ view says why not
+          +'<div class="v" data-v="'+Math.round(mcUnf)+'">'+(mcUnf>0.5? fM(mcUnf)+'</div><div class="x">unfunded of '+fM(mcTot)+(mandLive()? ', even with mandatory' : ', '+esc(mandOffWhy()))
              : (mcN? 'covered</div><div class="x">'+fM(mcTot)+' must-pay' : '—</div><div class="x">nothing flagged yet'))+'</div>'
           +meter([[pc(mcUnf,mcTot),'var(--purp)']])
           +'<div class="pft">'+(mcNeed>0.5? fM(mcNeed)+' short of discretionary alone' : (mcN? 'discretionary covers them' : 'flag one with ★ on its row'))+'</div></div>'
@@ -27487,23 +27495,26 @@ function svcSummary(){
   const chart=fitChartSvg(T);
   let rows='';
   SVC.forEach((s,i)=>{
-    const dRem=Math.max(0,T.__rem.dRem[i]), mRem=Math.max(0,T.__rem.mRem[i]);
+    // v2.23 review RV-D (D6): Mand BA is the authority and Mand remaining what is left of it -- all of it in a year with mandatory
+    // off (mandLeftOf); under ◨ both read $0, as they always have, because the view sets the pot aside
+    const dRem=Math.max(0,T.__rem.dRem[i]), mRem=scenOn()? 0 : mandLeftOf(T,i);
     rows+=`<tr><td>${esc(s)}</td><td>${fM(ask[i])}</td>
       <td title="effective ${esc(s)} discretionary BA (base + funding sources) — edit in 💰 Budget Management">${fM(S.discSvc[i])}</td>
       <td style="color:var(--green)">${fM(d[i])}</td>
       <td style="color:var(--green)">${fM(dRem)}</td>
       <td style="color:var(--red);font-weight:700">${fM(mc[i])}</td>
       <td style="color:var(--amber);font-weight:700">${fM(mct[i])}</td>
-      <td title="effective ${esc(s)} mandatory BA — edit in 💰 Budget Management">${fM(scenMand(i))}</td>
+      <td title="effective ${esc(s)} mandatory BA — edit in 💰 Budget Management">${fM(scenOn()? 0 : (S.mandSvc[i]||0))}</td>
       <td style="color:var(--purp)">${fM(m[i])}</td>
       <td style="color:var(--purp)">${fM(mRem)}</td>
       <td style="color:${u[i]>0.5?'var(--red)':'var(--dim)'}">${fM(u[i])}</td></tr>`;
   });
   const Dt=d.reduce((a,b)=>a+b,0), MCt=mc.reduce((a,b)=>a+b,0), MCTt=mct.reduce((a,b)=>a+b,0), Mt=m.reduce((a,b)=>a+b,0), Ut=u.reduce((a,b)=>a+b,0), At=ask.reduce((a,b)=>a+b,0);
   const DB=discTot(), MB=scenOn()? 0 : mandTot();
-  const DR=T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0), MRm=T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0);
+  const DR=T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0), MRm=scenOn()? 0 : mandLeftTot(T);
   el.innerHTML=(scenOn()? '<div class="hint" style="margin:4px 0;color:var(--amber);font-weight:700">\u25e8 '+esc(SCEN_TAG)
-      +' \u2014 a what-if: mandatory is set aside, so what it would have paid shows as unfunded.</div>' : '')
+      +' \u2014 a what-if: mandatory is set aside, so what it would have paid shows as unfunded.</div>'
+      : (mandOffLeftNote()? '<div class="hint mandoffleft" style="margin:4px 0">'+esc(mandOffLeftNote())+'</div>' : ''))
     +chart+`<table><tr><th>Service</th><th>${FYL()} Ask</th><th>Disc BA</th><th>Disc funded</th><th>Disc remaining</th><th style="color:var(--red)">★ Mission Critical need</th><th>Mission Critical Total</th><th>Mand BA</th><th>Mand drawn</th><th>Mand remaining</th><th>Unfunded</th></tr>
     ${rows}
     <tr class="tot"><td>TOTAL</td><td>${fM(At)}</td><td>${fM(DB)}</td><td>${fM(Dt)}</td><td>${fM(DR)}</td><td style="color:var(--red)">${fM(MCt)}</td><td style="color:var(--amber)">${fM(MCTt)}</td><td>${fM(MB)}</td><td>${fM(Mt)}</td><td>${fM(MRm)}</td><td>${fM(Ut)}</td></tr></table>
@@ -29380,9 +29391,7 @@ function pmoMatrix(){
     <tr class="tot" style="opacity:.95"><td>BUDGET AUTHORITY</td>
       ${SVC.map((s,i)=>`<td style="border-left:1px solid var(--lineSoft);color:var(--green)">${fM(S.discSvc[i])}</td><td style="color:var(--purp)">${fM(S.mandSvc[i])}</td>`).join('')}
       <td style="border-left:1px solid var(--gold);color:var(--green)">${fM(discTot())}</td><td style="color:var(--purp)">${fM(mandTot())}</td><td></td></tr>
-    <tr><td style="font-weight:800">REMAINING (lanes)</td>
-      ${SVC.map((s,i)=>`<td style="color:var(--green)">${fM(Math.max(0,T.__rem.dRem[i]))}</td><td style="color:var(--purp)">${fM(Math.max(0,T.__rem.mRem[i]))}</td>`).join('')}
-      <td style="color:var(--green)">${fM(T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0))}</td><td style="color:var(--purp)">${fM(T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0))}</td><td></td></tr>
+    ${lanesLeftRow(T)}
     <tr><td style="font-weight:800;color:${allU.some(v=>v>0.5)?'var(--red)':'var(--dim)'}">UNFUNDED (beyond both lanes)</td>
       ${SVC.map((s,i)=>`<td colspan="2" style="text-align:center;${allU[i]>0.5?'background:var(--redD);color:var(--red);font-weight:800':'color:var(--dim)'}">${allU[i]>0.5?fM(allU[i]):'—'}</td>`).join('')}
       <td colspan="2" style="text-align:center;${allU.some(v=>v>0.5)?'background:var(--redD);color:var(--red);font-weight:800':'color:var(--dim)'}">${fM(allU.reduce((a,b)=>a+b,0))}</td><td></td></tr></table>
@@ -29525,9 +29534,7 @@ function ceSummary(){
     baRows=`<tr class="tot" style="opacity:.95"><td>BUDGET AUTHORITY</td>
       ${SVC.map((s,i)=>`<td style="border-left:1px solid var(--lineSoft);color:var(--green)">${fM(S.discSvc[i])}</td><td style="color:var(--purp)">${fM(S.mandSvc[i])}</td>`).join('')}
       <td style="border-left:1px solid var(--gold);color:var(--green)">${fM(discTot())}</td><td style="color:var(--purp)">${fM(mandTot())}</td><td></td></tr>
-    <tr><td style="font-weight:800">REMAINING (lanes)</td>
-      ${SVC.map((s,i)=>`<td style="color:var(--green)">${fM(Math.max(0,T.__rem.dRem[i]))}</td><td style="color:var(--purp)">${fM(Math.max(0,T.__rem.mRem[i]))}</td>`).join('')}
-      <td style="color:var(--green)">${fM(T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0))}</td><td style="color:var(--purp)">${fM(T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0))}</td><td></td></tr>
+    ${lanesLeftRow(T)}
     <tr><td style="font-weight:800;color:${allU.some(v=>v>0.5)?'var(--red)':'var(--dim)'}">UNFUNDED (beyond both lanes)</td>
       ${SVC.map((s,i)=>`<td colspan="2" style="text-align:center;${allU[i]>0.5?'background:var(--redD);color:var(--red);font-weight:800':'color:var(--dim)'}">${allU[i]>0.5?fM(allU[i]):'—'}</td>`).join('')}
       <td colspan="2" style="text-align:center;${allU.some(v=>v>0.5)?'background:var(--redD);color:var(--red);font-weight:800':'color:var(--dim)'}">${fM(allU.reduce((a,b)=>a+b,0))}</td><td></td></tr>`;
@@ -30386,7 +30393,11 @@ function render(){
       // one service filtered means one clean cutline instead of six overlapping ones
       if(t.dryA[svcFilter] && (t.m[svcFilter]+t.u[svcFilter])>0.005 && !discCut){
         discCut=true;
-        h+=`<div class="cutline cut-disc"><span class="l"></span>\u25bc ${esc(SVC[svcFilter])} DISCRETIONARY EXHAUSTED \u2014 ${fM(S.discSvc[svcFilter]||0)} BA \u2014 everything below draws ${esc(SVC[svcFilter])} MANDATORY<span class="l"></span></div>`;
+        // v2.23 review RV-D (D4): where no mandatory can be drawn, below this line the service is unfunded -- one line, which says
+        // why; the full-budget line below would fall on the same row naming a budget nobody can draw, so it is not drawn
+        if(!mandLive()){ unfCut=true;
+          h+=`<div class="cutline cut-disc"><span class="l"></span>\u25bc ${esc(SVC[svcFilter])} DISCRETIONARY EXHAUSTED \u2014 ${fM(S.discSvc[svcFilter]||0)} BA \u2014 below this, ${esc(SVC[svcFilter])} is UNFUNDED (${esc(mandOffWhy())})<span class="l"></span></div>`; }
+        else h+=`<div class="cutline cut-disc"><span class="l"></span>\u25bc ${esc(SVC[svcFilter])} DISCRETIONARY EXHAUSTED \u2014 ${fM(S.discSvc[svcFilter]||0)} BA \u2014 everything below draws ${esc(SVC[svcFilter])} MANDATORY<span class="l"></span></div>`;
       }
       if(t.dryA[svcFilter] && t.mDryA[svcFilter] && t.u[svcFilter]>0.005 && !unfCut){
         unfCut=true;
@@ -30398,7 +30409,8 @@ function render(){
       // the order no longer drags the discretionary line up with it
       if(CL.disc && CL.disc.id===id && !discCut){
         discCut=true;
-        h+=`<div class="cutline cut-disc"><span class="l"></span>▼ DISCRETIONARY LANES BEGIN EXHAUSTING — ${fM(discTot())} BA — rows below draw MANDATORY for spent-out services<span class="l"></span></div>`;
+        h+=CL.disc.off? `<div class="cutline cut-disc"><span class="l"></span>▼ DISCRETIONARY LANES BEGIN EXHAUSTING — ${fM(discTot())} BA — rows below are UNFUNDED for spent-out services (${esc(CL.disc.off)})<span class="l"></span></div>`   // v2.23 review RV-D (D4)
+          : `<div class="cutline cut-disc"><span class="l"></span>▼ DISCRETIONARY LANES BEGIN EXHAUSTING — ${fM(discTot())} BA — rows below draw MANDATORY for spent-out services<span class="l"></span></div>`;
         if(CL.mc) h+=`<div class="cutline cut-mc"><span class="l"></span>★ MISSION CRITICAL SHORT — ${fM(TT.mcNeed)} of the ${fM(TT.mcTot)} must-pay total is not covered by the discretionary lane — PROGRAM FLOOR ${fM(discTot()+TT.mcNeed)}<span class="l"></span></div>`;
       }
       if(CL.unf && CL.unf.id===id && !unfCut){
@@ -35308,8 +35320,11 @@ function exportExcel(){
     return v; })();
   const baBlock=rows=>{
     rows.push([{v:'BUDGET AUTHORITY',s:SEC},...SVC.flatMap((s,i)=>[{v:S.discSvc[i],s:NB},{v:S.mandSvc[i],s:NB}]),{v:discTot(),s:NB},{v:mandTot(),s:NB},'']);
-    rows.push([{v:'REMAINING (lanes)',s:B},...SVC.flatMap((s,i)=>[{v:Math.max(0,T.__rem.dRem[i]),s:N},{v:Math.max(0,T.__rem.mRem[i]),s:N}]),
-      {v:T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},{v:T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},'']);
+    // v2.23 review RV-D (D6): the mandatory lane's remainder is mandLeftOf -- the whole BA in a year with mandatory off, never
+    // tiers()' empty walk -- so BA less drawn is what remains, on and off; the year off says so under the block
+    rows.push([{v:'REMAINING (lanes)',s:B},...SVC.flatMap((s,i)=>[{v:Math.max(0,T.__rem.dRem[i]),s:N},{v:mandLeftOf(T,i),s:N}]),
+      {v:T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},{v:mandLeftTot(T),s:NB},'']);
+    if(mandOffLeftNote()) rows.push([{v:mandOffLeftNote(),s:0}]);
     rows.push([{v:'UNFUNDED (beyond both lanes)',s:B},...SVC.flatMap((s,i)=>[{v:beyondSvc[i],s:beyondSvc[i]>0.5?NR:N},'']),
       {v:beyondSvc.reduce((a,b)=>a+b,0),s:beyondSvc.some(v=>v>0.5)?NR:NB},'','']);
     rows.push([{v:'ASK NOT ALLOCATED (trim deltas)',s:B},...SVC.flatMap((s,i)=>[{v:dltSvc[i],s:N},'']),
@@ -35379,13 +35394,13 @@ function exportExcel(){
       [{v:'Service',s:H},{v:FYL()+' Ask',s:H},{v:'Disc BA',s:H},{v:'Disc Funded',s:H},{v:'Disc Remaining',s:H},{v:'Mand BA',s:H},{v:'Mand Funded',s:H},{v:'Mand Remaining',s:H},{v:'Funded Total',s:H},{v:'Ask Not Allocated (delta)',s:H},{v:'Beyond Both Lanes',s:H},{v:'Unfunded vs DISC',s:H},{v:'TOTAL UNFUNDED',s:H}]]};
   SVC.forEach((s,i)=>{
     fs.rows.push([s,{v:allAsk[i],s:N},{v:S.discSvc[i],s:N},{v:allD[i],s:N},{v:Math.max(0,T.__rem.dRem[i]),s:N},
-      {v:S.mandSvc[i],s:N},{v:allM[i],s:N},{v:Math.max(0,T.__rem.mRem[i]),s:N},
+      {v:S.mandSvc[i],s:N},{v:allM[i],s:N},{v:mandLeftOf(T,i),s:N},   // v2.23 review RV-D (D6)
       {v:allD[i]+allM[i],s:NB},{v:dltSvc[i],s:N},{v:beyondSvc[i],s:beyondSvc[i]>0.5?NR:N},
       {v:discUnfSvc[i],s:discUnfSvc[i]>0.5?NR:N},{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N}]);
   });
   const sum=a=>a.reduce((x,y)=>x+y,0);
   fs.rows.push([{v:'TOTAL',s:SEC},{v:sum(allAsk),s:NB},{v:discTot(),s:NB},{v:sum(allD),s:NB},{v:T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
-    {v:mandTot(),s:NB},{v:sum(allM),s:NB},{v:T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
+    {v:mandTot(),s:NB},{v:sum(allM),s:NB},{v:mandLeftTot(T),s:NB},
     {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(beyondSvc),s:sum(beyondSvc)>0.5?NR:NB},
     {v:sum(discUnfSvc),s:sum(discUnfSvc)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
   // v2.12 (item 134): THE UPL, after the TOTAL and outside it -- added funding no requirement holds, by service and lane,
@@ -35398,6 +35413,7 @@ function exportExcel(){
         fs.rows.push([{v:'UPL · '+s,s:B},'','','',{v:ud,s:N},'','',{v:um,s:N}]); });
     } }
   fs.rows.push([]);
+  if(mandOffLeftNote()) fs.rows.push([mandOffLeftNote()]);   // v2.23 review RV-D (D6)
   fs.rows.push(['LANE MODEL: each service draws its own discretionary lane first, then spills into its mandatory lane. Deltas (Ask − Allocation) are trims made on the board — they are unfunded requirements too and are included in TOTAL UNFUNDED.']);
   fs.rows.push([]);
   fs.rows.push([{v:'\u2605 MISSION CRITICAL AGAINST THE DISCRETIONARY TOPLINE',s:SEC}]);
@@ -35487,7 +35503,7 @@ function exportExcel(){
     'The priority order funded against the discretionary topline alone, as if there were no '
     +'mandatory pot at all.', forecast(fcFrom(planFc.A)), planFc.aTop);
   fcBlock(fcSheet, 'PLAN B \u2014 DISCRETIONARY + MANDATORY',
-    'The same order funded against both pots together.', forecast(fcFrom(planFc.B)), planFc.bTop);
+    planMandOffNote() || 'The same order funded against both pots together.', forecast(fcFrom(planFc.B)), planFc.bTop);   // v2.23 review RV-D (D5)
   fcSheet.rows.push(['TWO INDEPENDENT WALKS down the priority order, not one plan split in two. Each '
     +'requirement asks for no more than its allocation, and never more than its requirement value: one '
     +'forced to MANDATORY asks Plan A for nothing and Plan B for its allocation; one forced to '
@@ -38498,15 +38514,21 @@ function cmdOpenGo(){
 // drag the line up) opens the discretionary cutline; the first with natU, the full-budget one; Mission Critical's, beside the first, when
 // the must-pays need more than discretionary (tierTotals' mcNeed, mcCalc's rule). rank is the requirement's place in that order, the
 // number its row prints. The rows' bands (render) and the money bar's sentences both read this: they cannot disagree about where.
+// v2.23 review RV-D (D4): WHERE NO MANDATORY CAN BE DRAWN (mandLive false: a year with mandatory off, or the ◨ view) there is no
+// separate full-budget line. The walk's mandatory lanes are empty, so nothing draws mandatory (natM is 0) and the discretionary line
+// IS where rows start going unfunded -- the first natU -- and a second line at the same row naming a budget of discretionary plus a
+// mandatory nobody can draw would describe money that is not there. The discretionary line carries `off` (why) and says so itself.
 function cutlinesOf(T, TT){
   const out={disc:null, mc:null, unf:null};
+  const live=mandLive();
   let rank=0;
   (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return; rank++;
     const t=T && T[id]; if(!t) return;
     if(!out.disc && (t.natM+t.natU)>0.005) out.disc={id:id, rank:rank, ba:discTot()};
-    if(!out.unf && t.natU>0.005) out.unf={id:id, rank:rank, ba:discTot()+mandTot()};
+    if(live && !out.unf && t.natU>0.005) out.unf={id:id, rank:rank, ba:discTot()+mandTot()};
   });
+  if(out.disc && !live) out.disc.off=mandOffWhy();
   if(out.disc && TT && TT.mcNeed>0.5) out.mc={need:TT.mcNeed, tot:TT.mcTot, floor:discTot()+TT.mcNeed};
   return out;
 }
@@ -38636,7 +38658,8 @@ function moneyBarHtml(T, CL){
           +' aria-label="'+esc(nm)+'" title="'+esc(nm)+'" style="flex-grow:'+Math.round(b.ask)+'"></span>'; }).join('')
       +'</span>'; }).join('');
   const say=[];
-  if(CL && CL.disc) say.push('▼ Discretionary lanes begin exhausting at #'+CL.disc.rank+' · '+fM(CL.disc.ba)+' BA');
+  if(CL && CL.disc) say.push('▼ Discretionary lanes begin exhausting at #'+CL.disc.rank+' · '+fM(CL.disc.ba)+' BA'
+    +(CL.disc.off? ' · below it, unfunded ('+CL.disc.off+')' : ''));   // v2.23 review RV-D (D4)
   if(CL && CL.mc) say.push('★ Mission Critical short '+fM(CL.mc.need)+' of '+fM(CL.mc.tot)+' · program floor '+fM(CL.mc.floor));
   if(CL && CL.unf) say.push('▼ Full-budget limit at #'+CL.unf.rank+' · '+fM(CL.unf.ba));
   if(!say.length) say.push('No lane runs out: discretionary pays every requirement as it is allocated');
@@ -39915,11 +39938,12 @@ function rkHtml(){
   const lines=[];
   if(!pmoMode() && svcFilter<0 && !hardOpen){
     if(CL.disc) lines.push({id:CL.disc.id, rank:CL.disc.rank, cls:'disc', t:'▼ Discretionary lanes begin exhausting here — '+fM(CL.disc.ba)+' BA'
+      +(CL.disc.off? '; below it, unfunded ('+CL.disc.off+')' : '')   // v2.23 review RV-D (D4)
       +(CL.mc? ' · ★ Mission Critical short '+fM(CL.mc.need)+' of '+fM(CL.mc.tot) : '')});
     if(CL.unf) lines.push({id:CL.unf.id, rank:CL.unf.rank, cls:'unf', t:'▼ Full-budget limit here — '+fM(CL.unf.ba)+'; below it, portions no lane can cover'});
   }
   const today=[];
-  if(CL.disc) today.push('discretionary runs out at #'+CL.disc.rank);
+  if(CL.disc) today.push('discretionary runs out at #'+CL.disc.rank+(CL.disc.off? ' and nothing pays below it ('+CL.disc.off+')' : ''));
   if(CL.mc) today.push('★ Mission Critical short '+fM(CL.mc.need));
   if(CL.unf) today.push('full-budget limit at #'+CL.unf.rank);
   const card=function(id){
@@ -41050,6 +41074,38 @@ try{ uiCols=(function(own){ return function(){ own.apply(this, arguments); try{ 
 // ==== v2.23 review RV-C ====
 // ==== end v2.23 review RV-C ====
 // ==== v2.23 review RV-D ====
+// MANDATORY AS THE LIST CAN DRAW IT (v2.23 review RV-D, D4 D11). Two things leave every mandatory lane empty for the walk: a year with
+// mandatory funding off (mandOn, item 159: tiers() draws none, saved with the year) and the ◨ discretionary-only what-if (scenOn: a
+// view, saved nowhere). Where either holds, a sentence that says "rows below draw MANDATORY", "even with mandatory" or names a full
+// budget of discretionary PLUS mandatory describes money the walk on screen does not have. mandLive() is the one question those
+// sentences ask; mandOffWhy() is the one way they say why not.
+function mandLive(){ return mandOn() && !scenOn(); }
+function mandOffWhy(){ return !mandOn()? 'mandatory funding is off for '+FYL() : (scenOn()? 'mandatory withheld, \u25e8 discretionary only' : ''); }
+// WHAT IS LEFT IN A MANDATORY LANE (v2.23 review RV-D, D6). Budget authority is the authority whether or not the year draws it -- it
+// stays in Budget Management and the PPBE position, every surface prints it as Mand BA, and the trace matrix holds Mand BA to
+// sum(mandSvc) -- so a year with mandatory off leaves the WHOLE of it in the lane: nothing drew any. tiers() starts that year's
+// walk with the lane empty (mRem 0; natU and mDryA read that), so mRem is the walk's own state, never the lane's remainder in an
+// off year, and every Remaining column reads this instead. BA - drawn = remaining then closes on every row, on and off.
+function mandLeftOf(T, i){
+  if(!mandOn()) return Math.max(0, +((S.mandSvc||[])[i])||0);
+  return Math.max(0, +(((T && T.__rem)||{}).mRem||[])[i]||0);
+}
+function mandLeftTot(T){ return SVC.reduce(function(a, _, i){ return a+mandLeftOf(T, i); }, 0); }
+// the line a surface that prints a mandatory Remaining carries in a year with mandatory off; '' in every other year
+function mandOffLeftNote(){ return mandOn()? '' : 'Mandatory funding is off for '+FYL()+': nothing draws the mandatory budget authority, so all of it is left in the lane (Mand Remaining = Mand BA).'; }
+// PLAN B IN A YEAR WITH MANDATORY OFF (v2.23 review RV-D, D5; the lead: "off means off"). The two plans walk the order against their
+// own toplines, and Plan B's is discretionary plus mandatory -- but this year draws no mandatory, so Plan B's topline is the
+// discretionary alone and it asks what Plan A asks (planWant): Plan B is Plan A, what mandatory buys is $0, and Plan B's unfunded
+// is the board's TOTAL unfunded again (v1.83's tie). '' in every year with mandatory on.
+function planMandOffNote(){ return mandOn()? '' : 'Mandatory funding is off for '+FYL()+': Plan B is the discretionary topline alone, the same as Plan A, and mandatory buys nothing.'; }
+// the REMAINING (lanes) row of the PMO and cost element tables on screen, once: what is left of each discretionary lane, and of each
+// mandatory lane by mandLeftOf (the whole BA in a year with mandatory off, which the row then says)
+function lanesLeftRow(T){
+  return '<tr><td style="font-weight:800"'+(mandOffLeftNote()? ' title="'+esc(mandOffLeftNote())+'"' : '')+'>REMAINING (lanes)'
+      +(mandOn()? '' : ' <span class="mandoffleft" style="font-weight:400;color:var(--dim)">\u00b7 mandatory off: its BA is all left</span>')+'</td>'
+    +SVC.map(function(s, i){ return '<td style="color:var(--green)">'+fM(Math.max(0,T.__rem.dRem[i]))+'</td><td style="color:var(--purp)">'+fM(mandLeftOf(T,i))+'</td>'; }).join('')
+    +'<td style="color:var(--green)">'+fM(T.__rem.dRem.reduce(function(a,b){ return a+Math.max(0,b); },0))+'</td><td style="color:var(--purp)">'+fM(mandLeftTot(T))+'</td><td></td></tr>';
+}
 // ==== end v2.23 review RV-D ====
 // ==== end v2.23 integration (the lead) ====
 uiBoot();

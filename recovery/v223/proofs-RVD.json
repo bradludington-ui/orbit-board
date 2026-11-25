@@ -1,0 +1,114 @@
+[
+ {
+  "id": "v223-rvd-cutline-full-budget-off",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-cutline-no-why",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-mandlive-ignores-off",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-mandlive-ignores-view",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-svc-banner-mandatory",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-moneybar-no-why",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-rank-line-no-why",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-rank-today-no-why",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-scenmand-off-drawn",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-mc-tile-even-with",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-mc-card-even-with",
+  "caughtBy": "board / v2.23 review RV-D — a year with mandatory off (and the ◨ view)"
+ },
+ {
+  "id": "v223-rvd-left-reads-walk",
+  "caughtBy": "board / v2.23 review RV-D — Mand remaining is what is left"
+ },
+ {
+  "id": "v223-rvd-fs-svc-walk",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-fs-total-walk",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-ba-block-walk",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-fs-no-note",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-screen-left-walk",
+  "caughtBy": "board / v2.23 review RV-D — Mand remaining is what is left"
+ },
+ {
+  "id": "v223-rvd-svcsum-left-walk",
+  "caughtBy": "board / v2.23 review RV-D — Mand remaining is what is left"
+ },
+ {
+  "id": "v223-rvd-plan-b-topline-mand",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-b-asks-mand",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-note-never",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-tab-no-note",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-forecast-no-note",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-cmp-no-note",
+  "caughtBy": "recon / v2.23 review RV-D — a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-card-both-pots",
+  "caughtBy": "board / v2.23 review RV-D — in a year with mandatory off the Two Spend Plans panel"
+ },
+ {
+  "id": "v223-rvd-buys-card-no-why",
+  "caughtBy": "board / v2.23 review RV-D — in a year with mandatory off the Two Spend Plans panel"
+ },
+ {
+  "id": "v223-rvd-ed-full-mand",
+  "caughtBy": "board / v2.23 review RV-D — in a year with mandatory off the Two Spend Plans panel"
+ },
+ {
+  "id": "v223-rvd-ed-fullba-mand",
+  "caughtBy": "board / v2.23 review RV-D — in a year with mandatory off the Two Spend Plans panel"
+ }
+]
