@@ -10500,6 +10500,7 @@ const MUTATIONS = [
     find: "after:ppSvcsOf(T).filter(sv=>!go.some(r=>r.sv===sv))", repl: "after:ppSvcsOf(T).filter(sv=>false)" },
   { id: 'v220-151-no-button', area: 'ppBody', what: "the box offers no way to copy controls",
     find: "+' <button type=\"button\" class=\"qb ppmigbtn\" aria-expanded=\"'+ppMigOpen+'\" onclick=\"ppMigShow()\">Copy controls from another cycle\\u2026</button>'", repl: "+''" },
+  // ==== end v2.20 ====
   // ==== v2.21 (item 152): ORBIT in APEX's look ====
   { id: 'v221-152-cui-top-gone', area: 'markup', what: "the CUI line at the top of the page is gone",
     find: '<div class="cui cui-top" role="note">CUI//REL TO US DoW</div>', repl: '' },
@@ -10519,7 +10520,15 @@ const MUTATIONS = [
     find: "  if(ss){ ss.classList.toggle('dirty', un);", repl: "  if(ss){ ss.classList.toggle('dirty', false);" },
   { id: 'v221-152-tight4-skipped', area: 'fitTop', what: "the context bar wraps before its fifth step (the O alone, the save state's dot) is taken",
     find: "      if(over(hdr)) hdr.classList.add('tight4');\n", repl: "" },
-  // ==== end v2.20 ====
+  // ==== end v2.21 ====
+  // ==== v2.22 W1 ====
+  // ==== end v2.22 W1 ====
+  // ==== v2.22 W2 ====
+  // ==== end v2.22 W2 ====
+  // ==== v2.22 W3 ====
+  // ==== end v2.22 W3 ====
+  // ==== v2.22 integration (the lead) ====
+  // ==== end v2.22 integration (the lead) ====
 
 ];
 
