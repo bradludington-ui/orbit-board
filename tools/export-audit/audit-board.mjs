@@ -11474,7 +11474,9 @@ await (async () => {
     ev(`S.mandOff=true; render(); 'ok'`);
     chk(name, 'RULE', 'RULE: in a year with mandatory funding off, the walk draws no mandatory, on a split or on the lane walk, and what would have spilled is unfunded (per requirement, per service, against the oracle)',
       ev(`JSON.stringify(['A','B','C'].map(function(id){ var p=tiers()[id]; return [p.d,p.m,p.u]; }))`), J(['A', 'B', 'C'].map(id => [off[id].d, off[id].m, off[id].u])));
-    chk(name, 'RULE', 'RULE: every mandatory lane is left whole, for nothing draws from it', ev(`JSON.stringify(tiers().__rem.mRem)`), J([0, 0]));
+    // v2.23 review RV-D: the label said "left whole" over an assertion that the walk's lanes are EMPTY -- they are: the walk starts this
+    // year with nothing in them (what is left of the lane's budget authority is mandLeftOf, the RV-D block below)
+    chk(name, 'RULE', 'RULE: every mandatory lane is empty for the walk, so nothing can draw from it (tiers()\u2019 mRem starts and ends at $0)', ev(`JSON.stringify(tiers().__rem.mRem)`), J([0, 0]));
     chk(name, 'RULE', 'RULE: discretionary draws are what they were with mandatory on (off moves no discretionary dollar)', ev(`JSON.stringify(['A','B','C'].map(function(id){ return tiers()[id].d; }))`), J(['A', 'B', 'C'].map(id => on[id].d)));
     chk(name, 'RULE', 'mandOn reads the year: off here, on in a year state that does not say off', J([ev(`String(mandOn())`), ev(`String(mandOn({}))`), ev(`String(mandOn({mandOff:false}))`)]), J(['false', 'true', 'true']));
     chk(name, 'RULE', 'unfunded is the ask less what discretionary paid, per service (unfSvcOf), on every requirement',
@@ -12104,6 +12106,158 @@ await (async () => {
 })();
 // ==== end v2.23 review RV-C ====
 // ==== v2.23 review RV-D ====
+// D4, D6 (on screen), D11: A YEAR WITH MANDATORY FUNDING OFF DESCRIBES NO MANDATORY MONEY IT DOES NOT HAVE. tiers() draws no mandatory in
+// such a year (item 159's RULE), and the ◨ view walks the same way. The cutline banners said "rows below draw MANDATORY" and named a
+// full-budget limit of discretionary PLUS a mandatory nobody could draw; the money bar and the Rank board said the same from
+// cutlinesOf; the Mission Critical tiles said "even with mandatory"; the Funding detail, PMO and cost element tables printed a Mand BA
+// beside a Mand remaining of $0 that it did not close to. Every expectation is worked by hand from the fixture below.
+// Fixture (two services): A [100,40] PSM, B [60,0] AV, C [50,20] PP (★), D [30,10] PP; discretionary [120,30], mandatory [60,15].
+//   Off (the walk's mandatory lanes empty): USAF 120 -> A 100, B 20 (dry); ANG 30 -> A 30 (dry), A short 10 on ANG. So the
+//   discretionary line falls above A (#1, A is the first short where a lane was dry), $150 BA = 120+30; C (★) draws nothing: Mission
+//   Critical short $70 of $70, floor $150+$70 = $220. Nothing draws mandatory: Mand remaining is the whole BA, [60,15], $75.
+//   One service (USAF): its lane runs dry inside B (A 100, then B 20 of 60), so its one line falls above B, at $120.
+//   On (CONTROL): C draws mandatory [20,5], is short [30,15] = $45 of its $70; every mandatory lane is drawn out ([0,0] left).
+// FAILS ON 56aa6c6: the off year printed the mandatory sentences, the full-budget line at $225 and a Mand remaining of $0.
+const RVDit = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+const RVDSC = {
+  services: ['USAF', 'ANG'],
+  items: [RVDit('A', 'PSM', [100, 40]), RVDit('B', 'AV', [60, 0]), RVDit('C', 'PP', [50, 20]), RVDit('D', 'PP', [30, 10])],
+  disc: [120, 30], mand: [60, 15], order: ['A', 'B', 'C', 'D'], mc: { C: true },
+};
+const { bootMark: _rvdMark, bootRelease: _rvdRelease, settleBoards: _rvdSettle } = await import('./boot.mjs');
+await (async () => {
+  const __bm = _rvdMark();
+  const name = 'v2.23 review RV-D — a year with mandatory off (and the ◨ view) says rows go unfunded: the cutlines, the money bar, the Rank board, the Mission Critical tiles';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, RVDSC);
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+    // the list's bands, each with the row that follows it
+    const bands = () => JSON.parse(ev(`(function(){ var out=[], pend=[]; [].forEach.call(document.querySelectorAll('#list .cutline, #list .row'), function(e){
+        if(e.classList.contains('cutline')) pend.push(e.textContent.trim()); else { pend.forEach(function(t){ out.push([t, e.id.replace('row-','')]); }); pend=[]; } });
+      pend.forEach(function(t){ out.push([t, null]); }); return JSON.stringify(out); })()`));
+    const say = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#moneyBar .mbsay span'), function(s){ return s.textContent; }))`));
+    const rk = () => JSON.parse(ev(`(function(){ var d=document.createElement('div'); d.innerHTML=rkHtml();
+      return JSON.stringify({lines:[].map.call(d.querySelectorAll('.rkcut'), function(e){ return [e.className.replace('rkcut ',''), e.textContent]; }), today:(d.querySelector('.rktoday')||{}).textContent||''}); })()`));
+    const mcTile = () => ev(`(document.querySelector('#posture .ppt.mc')||{textContent:'(none)'}).textContent.replace(/\\s+/g,' ').trim()`);
+    const mcCard = () => ev(`(document.querySelector('#scores .sc.mc')||{textContent:'(none)'}).textContent.replace(/\\s+/g,' ').trim()`);
+    ev(`uiMode='fund'; uiApply(); scOpen=true; render(); 'ok'`);
+    // CONTROL: mandatory on
+    chk(name, 'on', 'CONTROL: with mandatory on, the list says rows below draw MANDATORY and names a full-budget limit of $225 (150 + 75)',
+      J(bands().map(b => b[0]).filter(t => /▼/.test(t)).map(t => /draw MANDATORY/.test(t) || /FULL-BUDGET LIMIT — \$225/.test(t))), J([true, true]));
+    chk(name, 'on', 'CONTROL: the Mission Critical tile reads C’s $45 short of $70 even with mandatory (C draws [20,5])', /\$45.*unfunded of \$70, even with mandatory/.test(mcTile()), true);
+    // OFF
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'list', 'off: one discretionary line above A (#1), saying rows below are unfunded and why, then Mission Critical; no full-budget line',
+      J(bands()), J([
+        ['▼ DISCRETIONARY LANES BEGIN EXHAUSTING — $150 BA — rows below are UNFUNDED for spent-out services (mandatory funding is off for FY27)', 'A'],
+        ['★ MISSION CRITICAL SHORT — $70 of the $70 must-pay total is not covered by the discretionary lane — PROGRAM FLOOR $220', 'A']]));
+    chk(name, 'list', 'off: nothing on the list says rows draw mandatory, or names a full budget', /MANDATORY for|FULL-BUDGET|FULL BUDGET/.test(J(bands())), false);
+    chk(name, 'cutlinesOf', 'off: the one statement of where -- the discretionary line at #1 carries why, and there is no separate full-budget line',
+      ev(`JSON.stringify(cutlinesOf(tiers(), tierTotals(tiers())))`),
+      J({ disc: { id: 'A', rank: 1, ba: 150, off: 'mandatory funding is off for FY27' }, mc: { need: 70, tot: 70, floor: 220 }, unf: null }));
+    chk(name, 'money bar', 'off: the money bar says the same, from the same computation', J(say()),
+      J(['▼ Discretionary lanes begin exhausting at #1 · $150 BA · below it, unfunded (mandatory funding is off for FY27)', '★ Mission Critical short $70 of $70 · program floor $220']));
+    const R = rk();
+    chk(name, 'rank board', 'off: the Rank board draws one line, the discretionary one, saying below it is unfunded', J(R.lines),
+      J([['disc', '▼ Discretionary lanes begin exhausting here — $150 BA; below it, unfunded (mandatory funding is off for FY27) · ★ Mission Critical short $70 of $70']]));
+    chk(name, 'rank board', 'off: its Today line names no full-budget limit and says nothing pays below the line', J([/full-budget/.test(R.today), /discretionary runs out at #1 and nothing pays below it \(mandatory funding is off for FY27\)/.test(R.today)]), J([false, true]));
+    ev(`svcFilter=0; render(); 'ok'`);
+    chk(name, 'one service', 'off, USAF alone: one line above B (USAF runs dry inside B), at its $120, saying USAF is unfunded below it',
+      J(bands()), J([['▼ USAF DISCRETIONARY EXHAUSTED — $120 BA — below this, USAF is UNFUNDED (mandatory funding is off for FY27)', 'B']]));
+    ev(`svcFilter=-1; render(); 'ok'`);
+    chk(name, 'chart', 'off: the mandatory BA the view can draw is $0 (scenMand), so the fit chart marks no whole budget beyond discretionary',
+      J([ev(`scenMand(0)`), ev(`scenMand(1)`), /USAF whole budget/.test(ev(`fitChartSvg(tiers())`)), /USAF discretionary BA: \$120 — no mandatory, so this is its whole budget/.test(ev(`fitChartSvg(tiers())`))]),
+      J([0, 0, false, true]));
+    chk(name, 'Mission Critical', 'off: the tile says C’s $70 is unfunded because mandatory is off -- never "even with mandatory"',
+      J([/\$70.*unfunded of \$70, mandatory funding is off for FY27/.test(mcTile()), /even with mandatory/.test(mcTile())]), J([true, false]));
+    chk(name, 'Mission Critical', 'off: the scorecard says the same', J([/\$70 of the must-pay total is UNFUNDED — mandatory funding is off for FY27/.test(mcCard()), /even with mandatory/.test(mcCard())]), J([true, false]));
+    // ◨ in a year with mandatory ON: the view walks the same way, and says why in its own words
+    ev(`delete S.mandOff; setScen('disc'); render(); 'ok'`);
+    chk(name, '◨', '◨ (mandatory on): the same one line, saying mandatory is withheld; no full-budget line; the VIEWING banner first',
+      J(bands().map(b => b[0])), J([
+        '▲ VIEWING: DISCRETIONARY ONLY — mandatory withheld — these are not this board’s allocations, and exports still carry the real plan',
+        '▼ DISCRETIONARY LANES BEGIN EXHAUSTING — $150 BA — rows below are UNFUNDED for spent-out services (mandatory withheld, ◨ discretionary only)',
+        '★ MISSION CRITICAL SHORT — $70 of the $70 must-pay total is not covered by the discretionary lane — PROGRAM FLOOR $220']));
+    chk(name, '◨', '◨: the Mission Critical tile says mandatory is withheld', J([/unfunded of \$70, mandatory withheld, ◨ discretionary only/.test(mcTile()), /even with mandatory/.test(mcTile())]), J([true, false]));
+    chk(name, '◨', '◨ saved nothing: the year is still on', ev(`String(mandOn())`), 'true');
+    ev(`setScen('disc'); render(); 'ok'`);
+    chk(name, 'on', 'CONTROL: off again and ◨ off, the full-budget line is back at $225', /FULL-BUDGET LIMIT — \$225/.test(J(bands())), true);
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvdRelease(__bm, []);
+  await _rvdSettle();
+})();
+await (async () => {
+  const __bm = _rvdMark();
+  const name = 'v2.23 review RV-D — Mand remaining is what is left of the mandatory BA: all of it in a year with mandatory off (Funding detail, PMO and cost element tables)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, RVDSC);
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); DATA.costElems=['CE one']; applyState(S); save(); 'ok'`);
+    ev(`uiMode='fund'; uiApply(); gsOpen=true; pmoSumOpen=true; ceOpen=true; ceTab='ALL'; render(); 'ok'`);
+    const money = t => Number(String(t).replace(/[^0-9.-]/g, '')) || 0;
+    // the Funding detail table: Service, Ask, Disc BA, Disc funded, Disc remaining, MC need, MC total, Mand BA, Mand drawn, Mand remaining, Unfunded
+    const gs = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#gsBody table tr'),1).map(function(t){ return [].map.call(t.children, function(c){ return c.textContent.trim(); }); }))`))
+      .map(r => [r[0], money(r[7]), money(r[8]), money(r[9])]);
+    const lanesRow = sel => JSON.parse(ev(`(function(){ var tr=[].filter.call(document.querySelectorAll('${sel} tr'), function(t){ return /^REMAINING \\(lanes\\)/.test(t.textContent.trim()); })[0];
+      return JSON.stringify(tr? [].slice.call(tr.children,1,-1).map(function(c){ return c.textContent.trim(); }) : null); })()`));
+    chk(name, 'on', 'CONTROL: on, every mandatory lane is drawn out (C takes USAF’s last 20 and ANG’s last 5): Mand remaining [0,0], $0',
+      J(gs()), J([['USAF', 60, 60, 0], ['ANG', 15, 15, 0], ['TOTAL', 75, 75, 0]]));
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'Funding detail', 'off: Mand BA is the authority, nothing is drawn, and all of it remains -- BA less drawn closes on every row',
+      J(gs()), J([['USAF', 60, 0, 60], ['ANG', 15, 0, 15], ['TOTAL', 75, 0, 75]]));
+    chk(name, 'Funding detail', 'off: the table says why', /Mandatory funding is off for FY27: nothing draws the mandatory budget authority/.test(ev(`document.getElementById('gsBody').textContent`)), true);
+    chk(name, 'PMO table', 'off: REMAINING (lanes) is USAF disc $0 / mand $60, ANG $0 / $15, total $0 / $75', J(lanesRow('#pmBody')), J(['$0', '$60', '$0', '$15', '$0', '$75']));
+    chk(name, 'cost element table', 'off: the same in the cost element table', J(lanesRow('#ceBody')), J(['$0', '$60', '$0', '$15', '$0', '$75']));
+    chk(name, 'engine', 'the walk itself is untouched: tiers()’ mandatory lanes are empty for the year (natU and mDryA read them)', ev(`JSON.stringify(tiers().__rem.mRem)`), J([0, 0]));
+    ev(`setScen('disc'); delete S.mandOff; render(); 'ok'`);
+    chk(name, '◨', 'CONTROL: under ◨ (mandatory on) the Funding detail sets the pot aside, BA and remaining $0, as it always has', J(gs()), J([['USAF', 0, 0, 0], ['ANG', 0, 0, 0], ['TOTAL', 0, 0, 0]]));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvdRelease(__bm, []);
+  await _rvdSettle();
+})();
+// D5 on screen, and the proposed-order preview's full budget (found on the way): the Two Spend Plans panel walks Plan B against
+// discretionary alone in a year with mandatory off and says so; the preview's "Full budget buys" is what discretionary alone buys.
+// By hand from RVDSC, off: every plan and every walk has the discretionary lanes only, [120,30] = $150, and buys all of it (the
+// asks total $310). Plan B's card reads the same $150 as Plan A's, and what mandatory buys is $0.
+// FAILS ON 56aa6c6: Plan B's top line read $225 and bought $225; the preview's full budget walked $225.
+await (async () => {
+  const __bm = _rvdMark();
+  const name = 'v2.23 review RV-D — in a year with mandatory off the Two Spend Plans panel’s Plan B is Plan A, and the proposed-order preview’s full budget is discretionary alone';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, RVDSC);
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+    const cards = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#planBody .plancard'), function(c){ return c.textContent.replace(/\\s+/g,' ').trim(); }))`));
+    ev(`planOpen=true; render(); 'ok'`);
+    chk(name, 'on', 'CONTROL: with mandatory on, Plan B’s top line is $225 and the panel says both pots', /^PLAN B\s*DISCRETIONARY \+ MANDATORY\s*both together, treated as a new top line\s*Top line\s*\$225/.test(cards()[1] || ''), true);
+    chk(name, 'on', 'CONTROL: the preview’s full budget is $225 of authority', ev(`edCompute(S.order).fullBA`), 225);
+    ev(`S.mandOff=true; render(); 'ok'`);
+    const C = cards();
+    chk(name, 'Plan B', 'off: Plan B’s card says the year is discretionary alone, its top line is $150 and it buys $150, as Plan A',
+      J([/^PLAN B\s*DISCRETIONARY \+ MANDATORY\s*Mandatory funding is off for FY27: Plan B is the discretionary topline alone, the same as Plan A, and mandatory buys nothing\.\s*Top line\s*\$150\s*Buys\s*\$150/.test(C[1] || ''),
+         /^PLAN A\s*DISCRETIONARY ONLY.*Top line\s*\$150\s*Buys\s*\$150/.test(C[0] || '')]), J([true, true]));
+    chk(name, 'Plan B', 'off: what mandatory buys is $0, and the card says why', /^WHAT MANDATORY BUYS\s*\$0\s*mandatory funding is off for FY27/.test(C[2] || ''), true);
+    // the preview walks each service by the band rule -- unbanded, "full, or skip if it will not fit": USAF 120 takes A (100) and
+    // skips B, C and D; ANG 30 skips A (40), takes C (20) and D (10) -- $130, with or without the full budget, since it is $150 off
+    chk(name, 'preview', 'off: the preview’s full budget is the discretionary $150, and buys what discretionary alone buys, $130 by the skip rule',
+      ev(`JSON.stringify((function(){ var A=edCompute(S.order); return [A.fullBA, A.fullTotal===A.discTotal, A.discTotal]; })())`), J([150, true, 130]));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvdRelease(__bm, []);
+  await _rvdSettle();
+})();
 // ==== end v2.23 review RV-D ====
 // ==== end v2.23 integration (the lead) ====
 
