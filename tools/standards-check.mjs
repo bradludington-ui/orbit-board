@@ -301,18 +301,18 @@ for (const build of BUILDS) {
     // a row's ⋯ menu.
     // v2.00 (menu, 19 Oct): File, Reports & exports, Data and Setup left the toolbar for the LEFT MENU, so each place their items
     // went is measured open instead, the same way: its three boxes (left:rep, left:imp, left:data), each flyout (Setup with
-    // each folded group open, as the menu's were), the menu folded to icons, and Save showing unsaved work. Work kept aside
+    // each folded group open, as the menu's were), the menu folded to icons, and Save showing unsaved work. (v2.21, item 152: the
+    // fold to icons is gone with the icons; Save and its unsaved badge are in the header.) Work kept aside
     // is set, so History & recovery and the save state show their controls.
     // v2.13 (item 136): and the PPBE cycle's (cyc), its list naming every appropriation's cycle
     for (const m of ['view', 'fy', 'cyc', 'pmo', 'basis', 'modetools', '(row)', 'left:rep', 'left:imp', 'left:data', 'left:fydp', 'left:exec',
-                     'left:pmo', 'left:aud', 'left:hist', 'left:setup', 'left:save', 'left:rail', 'left:dirty']) {
+                     'left:pmo', 'left:aud', 'left:hist', 'left:setup', 'left:save', 'left:dirty']) {
       await page.evaluate(m => { try {
         if (m === 'basis' || m === 'modetools') { uiMode = 'fund'; uiApply(); render(); }
         if (m === '(row)') { openMenu = null; syncBtns(); rowMenuId = gridIds()[0]; render(); }
         else if (m.indexOf('left:') === 0) { const k = m.slice(5); rowMenuId = null; openMenu = null;
           _keptMeta = { t: 1700000000000, why: 'folder' }; render();
           if (k === 'rep') uiRepOpen(); else if (k === 'imp') uiImpOpen(); else if (k === 'data') uiDataOpen();
-          else if (k === 'rail') { UI2.rail = true; uiRailApply(); uiSync(); }
           else if (k === 'dirty') { DIRTY = true; syncBtns(); }
           else uiFlyOpen(k, document.getElementById('uiNav_' + k)); }
         else { rowMenuId = null; openMenu = m; syncBtns(); } } catch (e) {} }, m);
@@ -332,7 +332,7 @@ for (const build of BUILDS) {
       }
       if (gs.length) await page.evaluate(m => { try { menuGrpOpen[m] = ''; syncBtns(); } catch (e) {} }, gk);
       if (m.indexOf('left:') === 0) await page.evaluate(() => { try { uiFlyClose(); uiRepClose(); uiImpClose(); uiDataClose();
-        UI2.rail = false; uiRailApply(); uiSync(); DIRTY = false; _keptMeta = null; syncBtns(); } catch (e) {} });
+        uiSync(); DIRTY = false; _keptMeta = null; syncBtns(); } catch (e) {} });
     }
     await page.evaluate(() => { try { openMenu = null; rowMenuId = null; uiMode = 'review'; uiApply(); syncBtns(); render(); } catch (e) {} });
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it

@@ -9658,7 +9658,7 @@ await (async () => {
 })();
 // THE CONTEXT BAR'S STEPS (item 137), in jsdom: what the steps draw, and the order fitTop takes them in. jsdom lays nothing out, so the bar's
 // widths are stood in for: the bar is 1,000px of content in 700px until each step takes its share (the labels 100, the short figure 100,
-// the figure leaving 50, the fourth step 50) -- so it takes all four, in order, and stops at the first that fits. The real widths are
+// the figure leaving 50, the fourth step 50, v2.21's fifth 50) -- so it takes them all, in order, and stops at the first that fits. The real widths are
 // layout-fits S and toolbar-fits'. The figure is the v2.13 block's: FY27 · $541K unallocated · ⚠ $50 over against BES28.
 await (async () => {
   const name = 'v2.15 W1 — the context bar gives the PPBE cycle’s figure less room in steps, never wrapping first (item 137)';
@@ -9673,14 +9673,16 @@ await (async () => {
     ev(`(function(){ var h=document.querySelector('.hdr'), f=document.getElementById('cycFit');
       Object.defineProperty(h, 'clientWidth', {configurable:true, get:function(){ return window.__cw; }});
       Object.defineProperty(h, 'scrollWidth', {configurable:true, get:function(){ var w=1000, c=h.classList;
-        if(c.contains('tight1')) w-=100; if(c.contains('cyc1') && f.textContent===f.getAttribute('data-s')) w-=100; if(c.contains('cyc2')) w-=50; if(c.contains('tight3')) w-=50; return w; }}); })(); 'ok'`);
+        if(c.contains('tight1')) w-=100; if(c.contains('cyc1') && f.textContent===f.getAttribute('data-s')) w-=100; if(c.contains('cyc2')) w-=50; if(c.contains('tight3')) w-=50; if(c.contains('tight4')) w-=50; return w; }}); })(); 'ok'`);
     const at = cw => JSON.parse(ev(`window.__cw=${cw}; fitTop(); JSON.stringify([document.querySelector('.hdr').className, document.getElementById('cycFit').textContent])`));
     chk(name, 'the steps', 'room for it all: nothing changes', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
     chk(name, 'the steps', 'first the labels go, and nothing else', J(at(900)), J(['hdr tight1', 'FY27 · $541K unallocated · ⚠ $50 over']));
     chk(name, 'the steps', 'then the figure shortens', J(at(800)), J(['hdr tight1 cyc1', '$541K · ⚠ $50']));
     chk(name, 'the steps', 'then it leaves the bar for the list', J(at(750)), J(['hdr tight1 cyc1 cyc2', '$541K · ⚠ $50']));
     chk(name, 'the steps', 'then the fourth step, and the bar fits on one line -- never wrapped while a step is left', J(at(700)), J(['hdr tight1 cyc1 cyc2 tight3', '$541K · ⚠ $50']));
-    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(600)), J(['hdr tight1 cyc1 cyc2 tight3 tight2', '$541K · ⚠ $50']));
+    // v2.21 (item 152): a fifth step, the wordmark's O and the save state's dot alone (Save moved into this bar), before any wrap
+    chk(name, 'the steps', 'then the fifth step (v2.21), and the bar fits on one line', J(at(650)), J(['hdr tight1 cyc1 cyc2 tight3 tight4', '$541K · ⚠ $50']));
+    chk(name, 'the steps', 'only a bar that still does not fit wraps (the phone layout)', J(at(600)), J(['hdr tight1 cyc1 cyc2 tight3 tight4 tight2', '$541K · ⚠ $50']));
     chk(name, 'the steps', 'and given room again, it comes back whole', J(at(1000)), J(['hdr', 'FY27 · $541K unallocated · ⚠ $50 over']));
     // moved into the list: the list leads with the whole sentence, opening Fit to the PPBE position; the button carries the over
     at(750);
@@ -10429,6 +10431,74 @@ await (async () => {
   }
 })();
 // ==== end v2.20 ====
+
+// ==== v2.21 (item 152): ORBIT in APEX's look -- the frame, the rows, the status colours ====
+// Brad, 24 Nov 2026: "No I want ORBIT to look like APEX", then "Let's do it" and his answers: APEX's green / yellow / red status colours,
+// each with its word; the left menu text only and always wide; the frame and the main pages first. What jsdom can hold (it has no
+// layout; the browser checks hold the widths): the CUI lines top and bottom; Save, its ▾ and the save state in the header and not on
+// the menu; no fold control and no icon on the menu, which follows the sticky top in the page; the rows' title band naming the year,
+// the appropriation and an office filter; each row's lane cell carrying its lane, from a fixture where the four lanes all occur; the
+// three status colours tied to the lanes in the style sheet; and the unsaved badge.
+// FAILS ON v2.20 (7d6792b): no CUI line, Save at the menu's foot, the fold control and icons, no band, no status colours.
+await (async () => {
+  const name = 'v2.21 — ORBIT in APEX’s look: the CUI lines, Save in the header, a menu of words, the title band, the lane status colours (item 152)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    // one service, $150 discretionary and $100 mandatory against four asks of $100: A all discretionary, B both lanes, C mandatory
+    // and short, D nothing -- each of the four lanes once
+    seed(ev, { services: ['USAF'], items: [it('A', 'AV', [100]), it('B', 'AV', [100]), it('C', 'PSM', [100]), it('D', 'PSM', [100])],
+      disc: [150], mand: [100], order: ['A', 'B', 'C', 'D'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); filter='ALL'; save(); DIRTY=false; render(); 'ok'`);
+    chk(name, 'fixture', 'CONTROL: the UI layer is on, the board is FY27 O&M', J([ev(`String(document.documentElement.classList.contains('ui-on'))`), ev(`String(MS.cur)`), ev(`apLabel()`)]), J(['true', '2027', 'O&M']));
+    // 1. the CUI lines
+    const cui = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('.cui'), function(e){ return [e.className, e.getAttribute('role'), e.textContent.trim()]; }))`));
+    chk(name, 'CUI', 'a CUI line at the top and one at the bottom, each a note reading CUI//REL TO US DoW',
+      J(cui), J([['cui cui-top', 'note', 'CUI//REL TO US DoW'], ['cui cui-bottom', 'note', 'CUI//REL TO US DoW']]));
+    chk(name, 'CUI', 'the top line is the first thing in the page, before the sticky top', ev(`String(document.body.firstElementChild && document.body.firstElementChild.classList.contains('cui-top') && !!(document.querySelector('.cui-top').compareDocumentPosition(document.getElementById('topStack')) & Node.DOCUMENT_POSITION_FOLLOWING))`), 'true');
+    // 2. Save in the header
+    const sv = JSON.parse(ev(`(function(){ var h=document.querySelector('.hdr'), g=document.getElementById('uiSave'), m=document.getElementById('uiSide');
+      return JSON.stringify({ inHdr: !!(g && h.contains(g)), parts: ['saveBtn','uiNav_save','saveState'].map(function(id){ return !!(g && g.querySelector('#'+id)); }),
+        onMenu: !!m.querySelector('#saveBtn, #saveState, #uiNav_save, .uiSave'), foot: !!document.getElementById('uiFootT') }); })()`));
+    chk(name, 'save', 'Save, its ▾ and the save state are in the header, and nothing of them is on the left menu', J(sv), J({ inHdr: true, parts: [true, true, true], onMenu: false, foot: false }));
+    // 3. the menu: words only, nothing folds it, after the sticky top
+    const mn = JSON.parse(ev(`(function(){ var m=document.getElementById('uiSide'), t=document.getElementById('topStack'), pg=document.getElementById('uiPage');
+      return JSON.stringify({ fold: !!document.getElementById('uiCollapse'), icons: m.querySelectorAll('.ic, svg').length, tips: m.querySelectorAll('[data-tip]').length,
+        brand: !!m.querySelector('.uiBrand'), after: !!(t.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING), before: !!(pg && (m.compareDocumentPosition(pg) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        words: [].map.call(m.querySelectorAll('button[id^="uiNav_"]'), function(b){ return b.textContent.replace(/[▸]/g,'').trim(); }) }); })()`));
+    chk(name, 'menu', 'no fold control, no icon, no tooltip stand-in for a word, no brand block; the menu follows the sticky top and comes before the page',
+      J([mn.fold, mn.icons, mn.tips, mn.brand, mn.after, mn.before]), J([false, 0, 0, false, true, true]));
+    chk(name, 'menu', 'its entries are words, in order', J(mn.words),
+      J(['Requirements', 'Funding', 'FYDP', 'Execution', 'Cycles & compare', 'Brief', 'Reports & exports', 'Imports & exports', 'Data', 'Program offices', 'Audit', 'History & recovery', 'Setup']));
+    // 4. the rows' title band
+    const band = () => ev(`(document.getElementById('gridBand')||{}).textContent||''`);
+    chk(name, 'band', 'the rows carry a title band: FY2027 O&M · Priority order (1–N)', band(), 'FY2027 O&M · Priority order (1–N)');
+    ev(`filter='PSM'; render(); 'ok'`);
+    chk(name, 'band', 'one office showing: the band names it', band(), 'FY2027 O&M · Priority order (1–N) · PSM');
+    ev(`filter='ALL'; render(); 'ok'`);
+    // 5. each row's lane cell carries its lane, and its word
+    const ln = JSON.parse(ev(`JSON.stringify(['A','B','C','D'].map(function(id){ var c=document.querySelector('#row-'+id+' .lanec'); return c? [c.getAttribute('data-lk'), (c.querySelector('.ll')||{}).textContent||''] : null; }))`));
+    chk(name, 'lanes', 'A discretionary, B both lanes, C mandatory, D unfunded, each cell saying so in words',
+      J(ln), J([['disc', 'Discretionary'], ['split', 'Both'], ['mand', 'Mandatory'], ['unf', 'Unfunded']]));
+    // 6. the status colours: green discretionary, yellow both and mandatory, red unfunded, with black, black and white words
+    const css = ev(`(document.getElementById('uiApexCss')||{}).textContent||''`);
+    const tok = k => (new RegExp('--' + k + ':(#[0-9a-fA-F]{6})').exec(css) || [])[1] || null;
+    chk(name, 'colours', 'the three tokens are APEX’s: #00B050, #FFD700, #C00000', J([tok('apxOk'), tok('apxMid'), tok('apxBad')].map(x => x && x.toUpperCase())), J(['#00B050', '#FFD700', '#C00000']));
+    const rule = lk => { const m = new RegExp('\\.lanec\\[data-lk="' + lk + '"\\][^{]*\\{([^}]*)\\}').exec(css); return m ? m[1].replace(/\s+/g, '') : null; };
+    chk(name, 'colours', 'disc green with black words; both and mandatory yellow with black; unfunded red with white',
+      J(['disc', 'split', 'mand', 'unf'].map(rule)), J(['background:var(--apxOk);color:#000', 'background:var(--apxMid);color:#000', 'background:var(--apxMid);color:#000', 'background:var(--apxBad);color:#fff']));
+    // 7. the unsaved badge
+    const badge = () => JSON.parse(ev(`(function(){ syncBtns(); var s=document.getElementById('saveState'); return JSON.stringify([s.classList.contains('dirty'), s.textContent.trim()]); })()`));
+    ev(`DIRTY=false; _baseDirty=false; _sideSaved=_sideGen; for(var k in _lsRefused) delete _lsRefused[k]; sideBootNote.keys=[]; 'ok'`);   // as a file save leaves it
+    const b0 = badge();
+    ev(`setNote('A','v2.21 badge'); 'ok'`);
+    chk(name, 'badge', 'saved, the state is plain; once a note is typed it is the brown badge reading Unsaved changes', J([b0[0], badge()]), J([false, [true, 'Unsaved changes']]));
+    chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.21 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

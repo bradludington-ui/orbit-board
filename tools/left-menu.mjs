@@ -25,10 +25,11 @@
 //      in the Segoe stand-in -- its scroll width is its width, no item reaches past its edge, and no item's title starts with an
 //      icon (a tick, ● and ○ for the theme in use, and … or ▸ at the end are not icons). Four side panels scrolled 6px on v2.04,
 //      every hint 22px past its button.
-//   E. FOLDED TO ICONS AND FROM THE KEYBOARD ALONE: ‹ folds the menu to 64px; every entry is still there, in order, named
-//      for a screen reader and reached with Tab; Enter opens a flyout with the keyboard in it, Tab reaches its items, Esc
-//      closes it with the keyboard back on its entry; Enter opens a box the same way; Enter on an item runs it and its
-//      box gives the keyboard back to the entry; unsaved work shows as a dot on the Save icon.
+//   E. TEXT ONLY, ALWAYS WIDE, AND FROM THE KEYBOARD ALONE (v2.21, item 152; until then: folded to icons): the menu is 168px of
+//      words and nothing folds it; every entry is there, in order, and reached with Tab, Save before them in the header; Enter
+//      opens a flyout with the keyboard in it, Tab reaches its items, Esc closes it with the keyboard back on its entry; Enter
+//      opens a box the same way; Enter on an item runs it and its box gives the keyboard back to the entry; unsaved work shows
+//      as the header's brown badge.
 //
 //   node tools/left-menu.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -118,7 +119,8 @@ const shut = p => p.evaluate(() => { try { uiFlyClose(); } catch (e) {} ['uiImpP
 // every entry opened as a person opens it, and every control in it read; a folded group is opened from its heading
 const harvest = async p => {
   const got = [];
-  const navs = await p.evaluate(() => [...document.querySelectorAll('#uiSide button[id^="uiNav_"]')].filter(e => e.getClientRects().length).map(e => e.id));
+  // v2.21 (item 152): Save and its ▾ left the menu's foot for the header (#uiSave), as APEX has them; they are read there
+  const navs = await p.evaluate(() => [...document.querySelectorAll('#uiSide button[id^="uiNav_"], #uiSave button[id^="uiNav_"]')].filter(e => e.getClientRects().length).map(e => e.id));
   const read = (sel) => p.evaluate(sel => [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length && !e.disabled)
     .map(e => ({ h: e.getAttribute('onclick') || '', t: (e.textContent || '').trim().slice(0, 50) })), sel);
   for (const id of navs) {
@@ -138,8 +140,8 @@ const harvest = async p => {
     }
   }
   await shut(p);
-  // the foot: Save, and whatever the save state offers
-  for (const c of await read('#uiSide .uiSave button:not([id^="uiNav_"])')) got.push({ from: 'foot', ...c });
+  // Save, and whatever the save state offers: at the menu's foot until v2.21, in the header since (item 152)
+  for (const c of await read('#uiSave button:not([id^="uiNav_"])')) got.push({ from: 'save', ...c });
   return got;
 };
 const tally = got => { const n = {}; got.forEach(c => { const k = callOf(c.h); if (FURNITURE.test(c.h)) return; n[k] = (n[k] || 0) + 1; }); return n; };
@@ -203,12 +205,15 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       const words = [...top.querySelectorAll('button')].filter(e => e.getClientRects().length).map(e => (e.textContent || '').replace(/\s+/g, ' ').trim())
         .filter(t => /^(💾 ?)?Save\b|File ▾|Reports|^Data|^Setup/.test(t));
       const shown = id => { const e = document.getElementById(id); return !!(e && e.getClientRects().length); };
-      return { gone, saveInTop: !!(sb && top.contains(sb)), saveAtFoot: !!(sb && sb.closest('#uiSide .uiSave')), stateAtFoot: !!document.querySelector('#uiSide .uiSave #saveState'), words,
+      // v2.21 (item 152): Save and the save state are in the header, APEX's place for them; nothing of them is left on the menu
+      const hdr = document.querySelector('.hdr');
+      return { gone, saveInHdr: !!(sb && sb.closest('.hdr #uiSave')), stateInHdr: !!(hdr && hdr.querySelector('#uiSave #saveState')), onMenu: !!document.querySelector('#uiSide #saveBtn, #uiSide #saveState, #uiSide .uiSave'),
+        words: words.filter(t => !/^(💾 ?)?Save\b/.test(t)),
         kept: ['appnSel', 'b_fy', 'b_cyc', 'b_pmo', 'q', 'b_view', 'helpBtn'].filter(shown), status: !!document.querySelector('#topStack #shareStat') && !!document.querySelector('#topStack #statBtn') };
     });
-    chk('C · Save, Reports & exports ▾, Data ▾, Setup ▾ and 📁 File ▾ are not in the page, and no button at the top says them',
-      J([r.gone, r.saveInTop, r.words]) === J([[], false, []]), J(r));
-    chk('C · Save and the save state are at the left menu’s foot', r.saveAtFoot && r.stateAtFoot, J(r));
+    chk('C · Reports & exports ▾, Data ▾, Setup ▾ and 📁 File ▾ are not in the page, and no button at the top says them',
+      J([r.gone, r.words]) === J([[], []]), J(r));
+    chk('C · Save and the save state are in the header (v2.21, item 152), and not on the left menu', r.saveInHdr && r.stateInHdr && !r.onMenu, J(r));
     // v2.13 (item 136): and the PPBE cycle (#b_cyc), which replaced the Cycle control the left menu's boot put at the bar's start
     chk('C · Appropriation, Fiscal year, the PPBE cycle, the PMO filter, search, Filter, Help and the message line stay', J([r.kept, r.status]) === J([['appnSel', 'b_fy', 'b_cyc', 'b_pmo', 'q', 'b_view', 'helpBtn'], true]), J(r));
     chk('C · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -239,14 +244,14 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
     try {
       const r = await p.evaluate(() => {
         const sb = document.getElementById('saveBtn'), po = document.getElementById('uiNav_pmo');
-        return { sandbox: !!SANDBOX, foot: !!(sb && sb.closest('#uiSide .uiSave')), text: sb && sb.textContent.trim(), onclick: sb && sb.getAttribute('onclick'),
+        return { sandbox: !!SANDBOX, hdr: !!(sb && sb.closest('.hdr #uiSave')), text: sb && sb.textContent.trim(), onclick: sb && sb.getAttribute('onclick'),
           pmoShown: !!(po && po.getClientRects().length), offices: (document.getElementById('dd_offices') || {}).innerHTML };
       });
-      chk('D · the copy opens as a PMO copy, and the Save spot at the foot is ✉ Submit input, pmoSubmit()',
-        J(r.sandbox) === 'true' && r.foot && r.text === '✉ Submit input' && r.onclick === 'pmoSubmit()', J(r));
+      chk('D · the copy opens as a PMO copy, and the Save spot in the header is ✉ Submit input, pmoSubmit()',
+        J(r.sandbox) === 'true' && r.hdr && r.text === '✉ Submit input' && r.onclick === 'pmoSubmit()', J(r));
       chk('D · Program offices is not shown, and holds nothing', r.pmoShown === false && r.offices === '', J(r));
       const n = tally(await harvest(p));
-      chk('D · ✉ Submit input is reached from the left menu once; Publish PMO copy, Review submittals and the submittal loading not at all',
+      chk('D · ✉ Submit input is reached once; Publish PMO copy, Review submittals and the submittal loading not at all',
         J([n.pmoSubmit || 0, n.publishPmoCopy || 0, n.subOpenReview || 0, n["uiPmoLoad('one')"] || 0, n["uiPmoLoad('all')"] || 0]) === J([1, 0, 0, 0, 0]), J(n));
       // v2.09 (item 127): the copy's own Save, once, and its own Save a copy, once; the board's Save and Save a copy not at all
       chk('D · the copy’s 💾 Save and its Save a copy are each reached once, the board’s Save and Save a copy not at all',
@@ -263,41 +268,45 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
   }
 }
 
-// ── E. folded to icons, and from the keyboard alone ────────────────────────────────────────────────────────────────────
+// ── E. the menu, text only and always wide, and from the keyboard alone ─────────────────────────────────────────────────
+// v2.21 (item 152; Brad, 24 Nov 2026: "Text only, always wide"): the fold to a 64px rail of icons is gone with the icons -- APEX's
+// menu is words. Until v2.21 this section folded the menu with ‹ and held the rail, its Tab order with Save after the entries, and
+// the unsaved dot on the folded Save icon. Save is in the header now, before the menu in the page and in Tab order.
 {
   const { p, ctx, errs } = await open(FILE);
   try {
-    await p.focus('#uiCollapse'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const r = await p.evaluate(() => {
       const s = document.getElementById('uiSide').getBoundingClientRect();
       const navs = [...document.querySelectorAll('#uiSide button[id^="uiNav_"]')].filter(e => e.getClientRects().length);
-      return { rail: document.documentElement.classList.contains('ui-rail'), width: Math.round(s.width),
+      return { fold: !!document.getElementById('uiCollapse'), rail: document.documentElement.classList.contains('ui-rail'), width: Math.round(s.width),
         order: navs.map(e => e.id.slice(6)),
         inside: navs.every(e => { const r = e.getBoundingClientRect(); return r.left >= s.left - 0.5 && r.right <= s.right + 0.5 && r.width >= 24 && r.height >= 24; }),
-        labelsHidden: [...document.querySelectorAll('#uiSide .uiNi .t')].every(t => !t.getClientRects().length),
-        named: navs.every(e => !!(e.getAttribute('data-tip') || e.getAttribute('aria-label'))) };
+        words: navs.every(e => (e.textContent || '').trim().length > 2 && /^[A-Z]/.test((e.textContent || '').trim())),
+        icons: document.querySelectorAll('#uiSide .uiNi .ic, #uiSide .uiNi svg').length };
     });
-    chk('E · ‹ from the keyboard folds the menu to 64px of icons, every entry still there in order, 24px or more, and named',
-      J(r) === J({ rail: true, width: 64, order: ['req', 'fund', 'fydp', 'exec', 'cyc', 'brief', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup', 'save'], inside: true, labelsHidden: true, named: true }), J(r));
-    // Tab walks the entries in order, then Save and its ▾
+    chk('E · the menu is 168px of words, nothing folds it, and every entry is there in order, 24px or more, starting with its word',
+      J(r) === J({ fold: false, rail: false, width: 168, order: ['req', 'fund', 'fydp', 'exec', 'cyc', 'brief', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup'], inside: true, words: true, icons: 0 }), J(r));
+    // Tab walks the entries in order; Save and its ▾ come before them, in the header
     await p.focus('#uiNav_req');
     const walk = ['uiNav_req'];
-    for (let i = 0; i < 15; i++) { await p.keyboard.press('Tab'); walk.push(await p.evaluate(() => document.activeElement && document.activeElement.id)); }
-    chk('E · Tab reaches every entry, then 💾 Save and its ▾, in that order', J(walk) === J(['uiNav_req', 'uiNav_fund', 'uiNav_fydp', 'uiNav_exec', 'uiNav_cyc', 'uiNav_brief', 'uiNav_rep',
-      'uiNav_imp', 'uiNav_data', 'uiNav_pmo', 'uiNav_aud', 'uiNav_hist', 'uiNav_setup', 'saveBtn', 'uiNav_save', walk[15]]) && walk[15] !== 'uiNav_save', J(walk));
+    for (let i = 0; i < 13; i++) { await p.keyboard.press('Tab'); walk.push(await p.evaluate(() => document.activeElement && document.activeElement.id)); }
+    const before = await p.evaluate(() => { const sb = document.getElementById('saveBtn'), m = document.getElementById('uiNav_req');
+      return !!(sb && m && (sb.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING)); });
+    chk('E · Tab reaches every entry in order, and 💾 Save (in the header) comes before them', J(walk.slice(0, 13)) === J(['uiNav_req', 'uiNav_fund', 'uiNav_fydp', 'uiNav_exec', 'uiNav_cyc', 'uiNav_brief', 'uiNav_rep',
+      'uiNav_imp', 'uiNav_data', 'uiNav_pmo', 'uiNav_aud', 'uiNav_hist', 'uiNav_setup']) && !/^(uiNav_|saveBtn)/.test(walk[13] || '') && before, J([walk, before]));
     // a flyout: Enter opens it with the keyboard inside, Tab reaches its items, Esc closes it back onto its entry. An item is named
     // by its own words, without the line under them.
     await p.evaluate(() => { window.own = e => [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim(); });
     await p.focus('#uiNav_aud'); await p.keyboard.press('Enter'); await p.waitForTimeout(150);
     const f1 = await p.evaluate(() => ({ open: document.getElementById('uiFly').classList.contains('open'), exp: document.getElementById('uiNav_aud').getAttribute('aria-expanded'),
       inFly: document.getElementById('uiFly').contains(document.activeElement), first: own(document.activeElement),
-      left: Math.round(document.getElementById('uiFly').getBoundingClientRect().left) }));
+      left: Math.round(document.getElementById('uiFly').getBoundingClientRect().left - document.getElementById('uiNav_aud').getBoundingClientRect().right) }));
     const items = [];
     for (let i = 0; i < 3; i++) { await p.keyboard.press('Tab'); items.push(await p.evaluate(() => document.getElementById('uiFly').contains(document.activeElement) ? own(document.activeElement) : 'outside')); }
     await p.keyboard.press('Escape'); await p.waitForTimeout(120);
     const f2 = await p.evaluate(() => ({ open: document.getElementById('uiFly').classList.contains('open'), focus: document.activeElement && document.activeElement.id, exp: document.getElementById('uiNav_aud').getAttribute('aria-expanded') }));
-    chk('E · Audit: Enter opens its flyout beside the icons with the keyboard on its first item; Tab reaches the rest; Esc closes it back onto Audit',
-      J([f1, items, f2]) === J([{ open: true, exp: 'true', inFly: true, first: 'Change journal…', left: 70 }, ['Save history', 'Take the pen…', 'My editor name…']   /* v2.05 (item 114): no icons */, { open: false, focus: 'uiNav_aud', exp: 'false' }]), J([f1, items, f2]));
+    chk('E · Audit: Enter opens its flyout 6px right of its entry, beside the menu, with the keyboard on its first item; Tab reaches the rest; Esc closes it back onto Audit',
+      J([f1, items, f2]) === J([{ open: true, exp: 'true', inFly: true, first: 'Change journal…', left: 6 }, ['Save history', 'Take the pen…', 'My editor name…']   /* v2.05 (item 114): no icons */, { open: false, focus: 'uiNav_aud', exp: 'false' }]), J([f1, items, f2]));
     // Enter on an item runs it: the flyout closes, its box opens with the keyboard in it, and Esc gives the keyboard back to Audit
     await p.focus('#uiNav_aud'); await p.keyboard.press('Enter'); await p.waitForTimeout(150);
     await p.keyboard.press('Enter'); await p.waitForTimeout(400);
@@ -314,12 +323,12 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
     const h2 = await p.evaluate(() => ({ open: document.getElementById('uiRepPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     chk('E · Reports & exports: Enter opens the box with the keyboard in Find; Esc closes it back onto its entry',
       J([h1, h2]) === J([{ open: true, focus: 'mFind' }, { open: false, focus: 'uiNav_rep' }]), J([h1, h2]));
-    // unsaved work: a dot on the Save icon
-    const d = await p.evaluate(() => { const sb = document.getElementById('saveBtn');
-      const dot = () => { const c = getComputedStyle(sb, '::after'); return c.content !== 'none' && c.content !== 'normal' && parseFloat(c.width) > 0; };
-      DIRTY = false; syncBtns(); const clean = dot(); DIRTY = true; syncBtns(); const dirty = dot(); DIRTY = false; syncBtns();
-      const r = sb.getBoundingClientRect(); return { clean, dirty, icon: r.width <= 48 && r.width >= 24 && r.height >= 24, text: !document.getElementById('saveBtn_t').getClientRects().length }; });
-    chk('E · folded, 💾 Save is an icon, and unsaved work shows as a dot on it', J(d) === J({ clean: false, dirty: true, icon: true, text: true }), J(d));
+    // unsaved work: the header's save state, APEX's brown badge (v2.21; it was a dot on the folded Save icon)
+    const d = await p.evaluate(() => { const ss = document.getElementById('saveState');
+      DIRTY = false; syncBtns(); const clean = ss.classList.contains('dirty'); DIRTY = true; syncBtns();
+      const dirty = ss.classList.contains('dirty') && /Unsaved changes/.test(ss.textContent) && getComputedStyle(ss).backgroundColor === 'rgb(122, 74, 8)';
+      DIRTY = false; syncBtns(); return { clean, dirty }; });
+    chk('E · unsaved work shows as the header’s brown “Unsaved changes” badge', J(d) === J({ clean: false, dirty: true }), J(d));
     chk('E · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('E · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
@@ -395,5 +404,5 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
 function tag0(f, w) { return f + ' ' + w; }
 
 await b.close();
-console.log(bad ? `\n${bad} left-menu check(s) failed\n` : '\nEvery action has one home on the left menu, it works folded and from the keyboard, and the top bar keeps only what it should\n');
+console.log(bad ? `\n${bad} left-menu check(s) failed\n` : '\nEvery action has one home -- the left menu, or Save in the header -- it works from the keyboard, and the top bar keeps only what it should\n');
 process.exit(bad ? 1 : 0);

@@ -26,6 +26,10 @@
 //     fails. Every control on the left menu is held to the same rule as every control at the top: on screen, whole and
 //     clickable at every width (beside the sidebar's edge is where it belongs, so only the top's controls are held clear of it).
 //
+//   * v2.21 (item 152; Brad, 24 Nov 2026: "I want ORBIT to look like APEX"): the header runs across the page, the left menu (APEX's,
+//     text only) starts under it, and below 900px the menu is a row of its entries under the sticky top. Save and its ▾ are back in
+//     the header. "Under the menu" is now a control whose box meets the menu's box.
+//
 //   * v2.15 W1 (item 137; Brad, 2 Nov 2026: "No wrapping."): AND ON A TAGGED BOARD, not only the bare template. The template has no
 //     PPBE cycle figure, so it never meets the bar at its widest. The second pass opens a populated board on BES28 whose controls
 //     leave the year unallocated and over (tools/cyc-seed.mjs), with Full Fund on PB27 in this browser -- so the PPBE cycle reads
@@ -55,7 +59,9 @@ const measure=()=>{
        // Message button beside it opens it whole (the tagged pass meets the opening's offer; the template never has one)
        .filter(e=>!e.closest('#statWrap:not(.big)'));
      const unusable=[];
-     const side=q('#uiSide'), sideR=(side && getComputedStyle(side).display!=='none')? side.getBoundingClientRect().right : 0;
+     // v2.21 (item 152): the left menu is APEX's -- a column under the header across the page, and below 900px a row of its entries
+     // under the sticky top -- so "under the menu" is a control whose box meets the menu's box, not one left of its right edge
+     const side=q('#uiSide'), sR=(side && getComputedStyle(side).display!=='none')? side.getBoundingClientRect() : null, sideR=sR? sR.right : 0;
      ctl.forEach(e=>{
        const c=e.getBoundingClientRect(), why=[], lbl=(e.id? '#'+e.id : (e.textContent||e.getAttribute('aria-label')||e.tagName).replace(/\s+/g,' ').trim().slice(0,24));
        if(!(c.width>0 && c.height>0)) why.push('no size');
@@ -68,7 +74,7 @@ const measure=()=>{
        if(!t || !(t===e || e.contains(t))) why.push('covered by '+(t? (t.id? '#'+t.id : t.tagName.toLowerCase()) : 'nothing'));
        // v2.00 (UI S4, fix round): and whole -- clear of the sidebar, and itself (or its own label, which a click passes on
        // to it) just inside each side
-       if(!e.closest('#uiSide') && c.left<sideR-0.5) why.push('under the sidebar ('+Math.round(c.left)+' < '+Math.round(sideR)+')');
+       if(!e.closest('#uiSide') && sR && c.left<sR.right-0.5 && c.right>sR.left+0.5 && c.top<sR.bottom-0.5 && c.bottom>sR.top+0.5) why.push('under the sidebar ('+Math.round(c.left)+' < '+Math.round(sideR)+')');
        for(const [x,y,edge] of [[c.left+2, c.top+c.height/2, 'left'], [c.right-2, c.top+c.height/2, 'right'], [c.left+c.width/2, c.top+2, 'top'], [c.left+c.width/2, c.bottom-2, 'bottom']]){
          const t2=document.elementFromPoint(x, y);
          if(!t2 || !(t2===e || e.contains(t2) || [...(e.labels||[])].some(l=>l.contains(t2)))){ why.push('its '+edge+' edge covered by '+(t2? (t2.id? '#'+t2.id : t2.tagName.toLowerCase()) : 'nothing')); break; } }
