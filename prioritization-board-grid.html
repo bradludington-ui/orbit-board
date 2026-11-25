@@ -132,29 +132,17 @@ html[data-theme="harbor"]{--edge:#627185;--edge2:#4b5665}
 /* toolbar: CONTEXT (what you are looking at) | TOOLS (what you can do) */
 .tbar{position:sticky;top:var(--hdrH,56px);z-index:49;background:var(--panel);border-bottom:1px solid var(--line);padding:5px 18px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tlbl{font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);font-weight:800;white-space:nowrap}
-.tlbl.tsp{margin-left:10px}
-.tsep{width:1px;height:19px;background:var(--line);margin:0 8px;flex:none}
 /* the appropriation control is the board's primary context — gold, like the h1 accent */
 .apn-chip,#appnSel{background:var(--panel2);border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:6px 11px;font-size:11.5px;font-weight:800;letter-spacing:.3px;font-family:inherit}
 #appnSel{cursor:pointer}
 #appnSel:hover{border-color:var(--blue);color:var(--blue)}
-.apn-chip{cursor:default}
 /* toolbar menus open to the RIGHT (the header's File menu stays right-aligned) */
-/* The toolbar controls are ONE no-wrap group. They were direct children of a wrapping flex row,
-   so the last button — Export — dropped to a second line as soon as the row ran short. It needs
-   about 1040px; a 1280 laptop at Windows' usual 125% scaling reports 1024, which is exactly where
-   it broke. Grouping alone only guarantees they stay together, so the group is also made to FIT:
-   the two standing labels go first (the select reads "O&M" and the button reads "FY27", which is
-   what the labels were saying), then the separators tighten, then the buttons themselves.
-   No overflow on the group: overflow-x forces overflow-y to compute as auto, which would clip
-   every dropdown that opens out of it. */
-.tgrp{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
-@media (max-width:1240px){ .tbar .tlbl{display:none} .tbar .tsep{margin:0 4px} }
-@media (max-width:1060px){ .tbar .btn{padding:5px 7px} .tbar .tsep{margin:0 2px} .tbar .tgrp{gap:4px} }
+@media (max-width:1240px){ .tbar .tlbl{display:none} }
+@media (max-width:1060px){ .tbar .btn{padding:5px 7px} }
 /* One tier tighter, because the PMO menu is a ninth button on this row. HORIZONTAL padding only:
    trimming the vertical would take the buttons under the 24px target 2.5.8 asks for, which is a
    conformance finding traded for a layout one. */
-@media (max-width:900px){ .tbar .btn{padding:5px 4px} .tbar .tsep{margin:0 1px} .tbar .tgrp{gap:3px} }
+@media (max-width:900px){ .tbar .btn{padding:5px 4px} }
 @media (max-width:920px){ .tbar .dragnote{display:none} }
 .tbar .mdd{right:auto;left:0}
 .tbar .dragnote{margin-left:auto}
@@ -200,7 +188,6 @@ html[data-theme="harbor"]{--edge:#627185;--edge2:#4b5665}
 .chip .n{font-size:10px;opacity:.75;margin-left:4px}
 .search{background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:7px 12px;font-size:12px;width:220px}
 .search::placeholder{color:var(--dim)}
-.tgl{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
 .dragnote{font-size:10px;color:var(--dim)}
 .list{padding:0 18px}
 .fitwrap{background:var(--bg);border-bottom:1px solid var(--line);padding:6px 18px}
@@ -563,8 +550,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .acts .rowmenu .mdd{min-width:250px}
 .rowmenu .mi .sub{text-transform:none}
 .acts > *{width:100%;min-width:0}
-.acts .optz{display:flex;gap:3px;align-items:center;justify-content:flex-end;overflow:hidden}
-.acts .optz > *{flex:none}
 .acts input{width:100%;background:var(--sink);border:1px solid var(--line);border-radius:6px;color:var(--amber);font-weight:700;font-size:12px;padding:6px 8px;text-align:right}
 .acts input:focus{outline:none;border-color:var(--amber)}
 .acts input.svcmode{border-style:dashed;color:var(--blue)}
@@ -637,11 +622,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .cpb:hover{background:var(--gold);color:var(--onGold)}
 .clinbtn{background:var(--panel2);border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:10px;font-weight:800;padding:5px 7px;cursor:pointer}
 .clinbtn:hover{background:var(--gold);color:var(--onGold)}
-.perwrap{display:flex;flex-direction:column;gap:2px}
-.perb{background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:3px;font-size:8px;font-weight:800;padding:2px 5px;cursor:pointer;letter-spacing:.3px}
-.perb:hover{border-color:var(--gold);color:var(--gold)}
-.perb.on{background:var(--gold);color:var(--onGold);border-color:var(--gold)}
-.perb.unset{opacity:.35}
 /* The bottom pair of the execution panel: equal columns, equal height, no scrollbars.
    min-width:0 is load-bearing -- a grid item is min-width:auto by default and will not shrink
    below its own content, which pushes the overflow out and brings the scrollbars back. */
@@ -688,7 +668,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .fctab.obl-svc th{font-size:8.5px;padding:3px 4px}
 .fctab.obl-svc td{padding:3px 4px;font-size:10px}
 @media(max-width:820px){.obl-pair{grid-template-columns:1fr}}
-.clin-detail .peramt{width:130px;background:var(--panelA);border:1.5px solid var(--gold);border-radius:4px;color:var(--amber);font-size:11px;font-weight:800;padding:3px 6px;text-align:right}
 .note-detail{grid-column:1/-1;background:var(--sink);border-radius:6px;padding:8px 12px}
 .note-detail textarea{width:100%;min-height:44px;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:11.5px;padding:6px 8px;font-family:inherit;resize:vertical}
 /* The pop-up editor borrows the same shape. Without font-family:inherit a bare textarea falls back to the browser's monospace, which reads as a different application. */
@@ -738,12 +717,6 @@ table.pk .z{color:var(--line2)}
 .drillbar .dl{font-size:9.5px;font-weight:800;letter-spacing:.5px;color:var(--mut);margin-right:4px}
 .svclvl{font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 5px;border-radius:3px;
   background:var(--panel2);color:var(--amber);border:1px solid var(--amber);margin-left:5px}
-table.sp tr.lreq td{background:var(--panel2)}
-table.sp tr.lctl td{background:var(--panelA)}
-table.sp tr.ldel td{border-top:1px solid var(--line2);font-weight:700}
-table.sp tr.lpct td{border-bottom:1px solid var(--line2);color:var(--mut)}
-table.sp tr.lreq td:first-child,table.sp tr.lctl td:first-child{font-weight:700;color:var(--ink)}
-.pmoblk{margin:10px 0 14px}
 .pmoh{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin-bottom:3px}
 /* ── THE FIVE-YEAR PLAN TABLE: a year is a block. Each year's three columns start at a 2px rule and
    its header is centred over them, so the eye finds where one year ends and the next begins; the
@@ -760,7 +733,6 @@ table.sp tr.lreq td:first-child,table.sp tr.lctl td:first-child{font-weight:700;
 .fydpbook .fydptot{background:color-mix(in srgb,var(--gold) 14%,var(--panel))}
 .fydpbook tr.tot td{border-top:2px double var(--edge);font-weight:700}
 .fydpsec{margin:12px 0 4px;font-size:12px;color:var(--ink);border-bottom:2px solid var(--edge);padding-bottom:2px}
-
 .edcard{background:var(--panelA);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
 .edcard .l{font-size:9px;letter-spacing:.8px;color:var(--dim);font-weight:800;text-transform:uppercase}
 .edcard .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
@@ -884,7 +856,6 @@ input.mfind:focus-visible{outline:2px solid var(--gold);outline-offset:0}
    (820). Nothing anyone actually works at can move because of this block. */
 @media (max-width:640px){
   .tbar{padding:5px 10px}
-  .tgrp{flex-wrap:wrap}                     /* the one row that did not wrap while .tbar did */
   #chips{display:flex;flex-wrap:wrap;gap:6px}   /* a bare span: its chips had nothing to break on */
   .ctl{padding:8px 10px}
   .scores{grid-template-columns:1fr;padding:8px 10px}
@@ -933,7 +904,6 @@ span.tedit[onclick],.tt span.tedit[onclick],button.tedit[onclick]{display:inline
 input:not([type=checkbox]):not([type=radio]),select{min-height:24px;box-sizing:border-box}
 input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;vertical-align:middle}
 .qb,.mcb,.perb{min-height:24px;min-width:24px;box-sizing:border-box}
-
 /* ════ v1.90 (item 27) THE LAYOUT: one sticky top, workspace modes, three densities ═══════════════════
    Approved by Brad on 30 Sep 2026 exactly as prototyped. Every colour here is an existing theme token;
    the only new values are the selection tint (--sel, one per theme, measured below) and sizes.
@@ -952,7 +922,6 @@ html[data-theme="blueprint"]{--sel:#e7eff4}
 html[data-theme="harbor"]{--sel:#c7ced8}
 .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .ic{width:14px;height:14px;flex:none}
-
 /* ---- the sticky top ---------------------------------------------------------------------------- */
 #topStack{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line2);margin-bottom:8px}
 .hdr{position:static;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-height:44px;padding:6px 16px;
@@ -1027,7 +996,6 @@ html[data-theme="harbor"]{--sel:#c7ced8}
 .statx:hover{color:var(--ink)}
 .hdr .mdd{top:calc(100% + 5px)}
 .hdr .ctx .mdd,.hdr #m_view .mdd{left:0;right:auto}
-
 .tbar{position:static;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-height:38px;padding:5px 16px;
   background:var(--panel);border-bottom:1px solid var(--line)}
 .tabs{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:2px;flex:none}
@@ -1064,7 +1032,6 @@ html[data-mode="compare"] #t_compare,html[data-mode="brief"] #t_brief{display:fl
 .cycall-note{padding:4px 12px 8px;font-size:11px;max-width:320px;white-space:normal;line-height:1.4}
 .tbar.tight1 .lg{display:none} .tbar.tight1 .sh{display:inline}
 .tbar.tight2 .modetools{display:none!important} .tbar.tight2 #m_modetools{display:inline-block}
-
 /* ---- the funding posture: the four scorecards' headline figures, one line, always in view ---------- */
 .posture{display:flex;align-items:stretch;padding:0 16px;background:var(--panelA);min-height:50px;overflow-x:auto}
 .posture:empty{display:none}
@@ -1105,7 +1072,6 @@ html[data-mode="brief"] .posture{min-height:74px}
 .funddetail{display:none}
 .funddetail.open{display:block}
 .scstack{position:static}
-
 /* ---- the grid ------------------------------------------------------------------------------------ */
 .list{padding:0 16px}
 .gridwrap{border-radius:6px}
@@ -1188,7 +1154,6 @@ html[data-mode="brief"] .posture{min-height:74px}
 .row .clinbtn{height:24px;min-width:24px;padding:0 5px;margin-left:6px;font-size:11px;min-height:0}
 .row .sect-new,.row .absorbtag,.row .teamtag{margin-left:6px}
 .row > .clin-detail,.row > .note-detail{grid-column:1/-1}
-
 /* ---- selection, focus, hover ---------------------------------------------------------------------- */
 /* SELECTED is a narrow gold bar inside the lane edge and a quiet tint: the lane edge keeps its colour,
    and funding, MC and unfunded stay louder than the selection. KEYBOARD FOCUS is its own ring, drawn
@@ -1197,7 +1162,6 @@ html[data-mode="brief"] .posture{min-height:74px}
 .row.cur::after{box-shadow:none;inset:0 auto 0 5px;width:3px;background:var(--gold);border-radius:1px}
 .row:has(:focus-visible){outline:2px solid var(--blue);outline-offset:-2px}
 .row[tabindex]:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
-
 /* ---- cutlines: a rule and a label ----------------------------------------------------------------- */
 .cutline{font-size:10.5px;letter-spacing:.03em;padding:4px 12px;margin:0;font-weight:700;background:var(--panel2);
   border-top:2px solid currentColor}
@@ -1206,7 +1170,6 @@ html[data-mode="brief"] .posture{min-height:74px}
 .uplline{font-size:10.5px;padding:6px 12px;margin:0;background:var(--panel2);border-top:2px dashed var(--edge);color:var(--ink)}
 .uplline .k{font-weight:800;color:var(--gold);margin-right:6px}
 .uplline .u b{font-weight:800}
-
 /* ---- the RECORD panel: the same content, a legible scale, editable fields that look editable ------- */
 .inspector{border-radius:6px}
 .insp-hd b{font-size:10.5px}
@@ -1229,7 +1192,6 @@ button.tedit{border:0;background:transparent;font-family:inherit;line-height:inh
 button.tedit:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .insp-f[onclick]::after{content:"\270E  Change";position:absolute;right:8px;top:6px;font-size:10px;font-weight:700;color:var(--blue)}
 .insp-f[onclick]:hover{border-color:var(--blue)}
-
 /* ---- modes and densities --------------------------------------------------------------------------- */
 html[data-density="compact"] .row .t2{display:none}
 html[data-density="compact"] .row .xg{display:inline}
@@ -1237,7 +1199,6 @@ html[data-density="compact"] .meter{display:none}
 html[data-density="compact"] .pmoc{flex-direction:row;align-items:center;gap:4px}
 html[data-mode="brief"] .gridsplit{grid-template-columns:minmax(0,1fr)}
 html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:none!important}
-
 /* ---- narrower windows ------------------------------------------------------------------------------ */
 @media (max-width:1400px){ :root{--rowcols:58px 50px minmax(180px,1fr) 164px 104px 100px 112px 26px 26px} }
 @media (max-width:1100px){
@@ -1292,7 +1253,6 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   .gridhead{display:none}
 }
 @media (prefers-reduced-motion:reduce){ .row,.btn,.tab{transition:none} }
-
 /* 📖 HELP (v1.86): the guide, inside the file. The board's own tokens, so it reads in both themes. */
 #helpPanel .modal{width:980px;max-width:98vw}
 /* ＋ ADD REQUIREMENT (v2.07, item 121): one box that builds the whole record. 1366 x 768 and up it fits whole, nothing
@@ -1337,8 +1297,6 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 #editPanel .er-wbsl{display:flex;align-items:baseline;gap:8px;min-width:0}
 #editPanel .er-wbsl .ar-l{flex:none}
 #editPanel .er-wbsl .ar-n.wbsn{flex:1;min-width:0;text-align:left}
-.wbsnm{font-size:10px;color:var(--dim);margin-top:2px;white-space:normal;overflow-wrap:anywhere;line-height:1.3;text-align:left}
-.wbsnm.off{color:var(--amber);font-weight:600}
 :is(#addPanel,#editPanel) .ar-f input,:is(#addPanel,#editPanel) .ar-f select,:is(#addPanel,#editPanel) .ar-f textarea,:is(#addPanel,#editPanel) .ar-ro,:is(#addPanel,#editPanel) .ar-off select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px;width:100%;box-sizing:border-box}
 :is(#addPanel,#editPanel) .ar-ro{display:flex;align-items:center;background:var(--panel2);border-style:dashed;font-weight:600}
 :is(#addPanel,#editPanel) .ar-ro.dim{font-weight:500;color:var(--dim)}
@@ -1458,42 +1416,28 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
    own handlers, the file inputs' own .click()); nothing here computes, saves or reads a figure of its own. All of
    it is switched on by the class ui-on, which the UI script sets on <html> AFTER the page source (SRC0) is taken,
    so a saved board carries none of it. */
-:root{--uiNav:#0f2236;--uiNav2:#152c44;--uiNavAct:#1c4e63;--uiNavInk:#dbe6f0;--uiNavMut:#8fa6bb;--uiNavAcc:#6fd3c7;--uiSideW:232px}
-html.ui-rail{--uiSideW:64px}
+:root{--uiNav:#25394d;--uiNav2:#3b5470;--uiNavInk:#eaf0f6;--uiNavMut:#c3d4e6;--uiSideW:168px;--cuiH:20px}
+/* v2.21 (item 152): THE LEFT MENU IS APEX'S. Navy, text only, always its full width, starting under the header (--apxHdrH, set by
+   syncSticky); the section on screen is a light pill; a group's heading is white, bold and over a rule. Below 900px (html.ui-narrow)
+   it is a row of its entries under the sticky top, as APEX's is. */
 #uiSide,#uiPage,#uiFly,.uiPop{display:none}
 html.ui-on body{padding-left:var(--uiSideW)}
-html.ui-on #uiSide{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:0;bottom:0;width:var(--uiSideW);z-index:55;
-  padding:14px 10px;background:var(--uiNav);color:var(--uiNavInk);overflow-y:auto;overflow-x:hidden;box-sizing:border-box}
-#uiSide .uiBrand{display:flex;align-items:flex-start;gap:10px;padding:2px 6px 14px;position:relative}
-#uiSide .uiLogo{width:30px;height:30px;flex:none;color:#fff;--orbit-accent:var(--uiNavAcc)}
-#uiSide .uiBt{display:flex;flex-direction:column;min-width:0}
-#uiSide .uiBt b{font-size:20px;font-weight:800;letter-spacing:.5px;color:#fff;line-height:1.05}
-#uiSide .uiBt small{font-size:11px;color:var(--uiNavMut);margin-top:4px;white-space:nowrap}
-#uiSide #uiCollapse{margin-left:auto;background:transparent;border:0;color:var(--uiNavMut);font-size:16px;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}
-#uiSide #uiCollapse:hover,#uiSide #uiCollapse:focus-visible{background:var(--uiNav2);color:#fff}
-/* v2.00 (508): the fold control was 17x24px (2.5.8 needs 24x24) */
-#uiSide #uiCollapse{min-width:24px;min-height:24px}
-#uiSide .uiNi{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;
-  color:var(--uiNavInk);font-family:inherit;font-weight:600;font-size:13px;line-height:1.2;text-align:left;cursor:pointer;position:relative;white-space:nowrap}
-#uiSide .uiNi:hover,#uiSide .uiNi:focus-visible{background:var(--uiNav2);color:#fff;outline:none}
-#uiSide .uiNi.on{background:var(--uiNavAct);color:#fff}
-/* v2.00 (508): the entry for the section on screen showed no change when the keyboard reached it -- its own background
-   outranked the focus one (2.4.7). Every entry now takes a ring in the accent when focused from the keyboard. */
-#uiSide .uiNi:focus-visible{outline:2px solid var(--uiNavAcc);outline-offset:-2px}
-#uiSide .uiNi.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--uiNavAcc)}
-#uiSide .uiNi .ic{width:18px;height:18px;flex:none;display:grid;place-items:center}
-#uiSide .uiNi .ic svg{width:16px;height:16px}
+html.ui-on #uiSide{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:calc(var(--apxHdrH,70px) + 8px);bottom:var(--cuiH);width:var(--uiSideW);z-index:55;
+  padding:10px 6px 16px;background:var(--uiNav);color:var(--uiNavInk);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;border-radius:0 10px 0 0}
+#uiSide .uiNi{display:flex;align-items:center;gap:6px;width:100%;padding:7px 10px;border:0;border-radius:6px;background:transparent;min-height:30px;
+  color:var(--uiNavInk);font-family:inherit;font-weight:400;font-size:13px;line-height:1.2;text-align:left;cursor:pointer;position:relative}
+#uiSide .uiNi:hover{background:var(--uiNav2);color:#fff}
+#uiSide .uiNi.on{background:var(--uiNavInk);color:var(--uiNav);font-weight:700}
+/* v2.00 (508): every entry takes a ring when focused from the keyboard (2.4.7) -- white on the navy, navy on the light pill */
+#uiSide .uiNi:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+#uiSide .uiNi.on:focus-visible{outline-color:var(--uiNav)}
 #uiSide .uiNi .car{margin-left:auto;color:var(--uiNavMut);font-size:11px}
-#uiSide .uiGrp{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--uiNavMut);padding:12px 12px 4px}
-#uiSide .uiFoot{margin-top:auto;font-size:11px;color:var(--uiNavMut);padding:10px 12px 2px;border-top:1px solid #213a54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html.ui-rail #uiSide{padding:14px 8px;overflow:visible}
-html.ui-rail #uiSide .uiBt,html.ui-rail #uiSide .uiNi .t,html.ui-rail #uiSide .uiNi .car,html.ui-rail #uiSide .uiGrp,html.ui-rail #uiSide .uiFoot .t{display:none}
-html.ui-rail #uiSide .uiBrand{flex-direction:column;align-items:center;padding:2px 0 12px;gap:8px}
-html.ui-rail #uiSide #uiCollapse{margin:0}
-html.ui-rail #uiSide .uiNi{justify-content:center;padding:10px}
-html.ui-rail #uiSide .uiNi.on::before{left:-8px}
-html.ui-rail #uiSide .uiNi:hover::after,html.ui-rail #uiSide .uiNi:focus-visible::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
-  background:#0b1826;color:#fff;font-size:12px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.3);z-index:2;pointer-events:none}
+#uiSide .uiNi.on .car{color:var(--uiNav)}
+#uiSide .uiGrp{margin:12px 4px 3px;padding:9px 6px 0;border-top:1px solid #4d6781;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#fff;font-weight:800}
+html.ui-on.ui-narrow body{padding-left:0}
+html.ui-on.ui-narrow #uiSide{position:static;width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:2px 4px;padding:6px 8px;margin:0 0 8px;border-radius:0;overflow:visible}
+html.ui-on.ui-narrow #uiSide .uiNi{width:auto}
+html.ui-on.ui-narrow #uiSide .uiGrp{margin:0 4px 0 8px;padding:0;border-top:0}
 /* the section flyout: the section's own items, each the same call as its menu item */
 html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--uiSideW) + 6px);min-width:280px;max-width:380px;max-height:80vh;overflow:auto;
   background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
@@ -1517,40 +1461,6 @@ html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--u
 #uiFly .gh .now,#uiFly .gh .gn{font-size:10.5px}
 #uiFly .mlbl,.uiPanel .mlbl{font-size:10.5px;padding:8px 10px 3px}
 #uiFly .uiPopHint{font-size:11.5px;color:var(--mut);padding:4px 10px 8px;margin:0;line-height:1.4}
-/* Save, pinned at the foot: the button, the ▾ beside it for Save a copy, the save state and who holds the pen */
-#uiSide .uiSave{display:flex;flex-direction:column;gap:6px;padding:10px 2px 2px;white-space:normal;overflow:visible;color:var(--uiNavInk)}
-#uiSide .uiSvRow{display:flex;gap:4px;align-items:stretch}
-#uiSide #saveBtn{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;font-size:13px}
-/* its edge against the navy: the theme's own button colour is too close to it to show where the button ends (1.4.11) */
-#uiSide #saveBtn{border-color:#e8eef5}
-#uiSide .uiSvMore{flex:none;min-width:30px;min-height:34px;border:1px solid #8fa6bb;border-radius:7px;background:transparent;color:#fff;font-size:12px;cursor:pointer;padding:0 6px}
-#uiSide .uiSvMore:hover,#uiSide .uiSvMore:focus-visible,#uiSide .uiSvMore[aria-expanded="true"]{background:var(--uiNav2);outline:2px solid var(--uiNavAcc);outline-offset:1px}
-#uiSide #saveBtn:focus-visible{outline:2px solid var(--uiNavAcc);outline-offset:2px}
-html.ui-on #uiSide #saveState{display:flex;flex-wrap:wrap;background:transparent;border-radius:0;padding:0 2px;color:var(--uiNavInk);font-size:11.5px;white-space:normal;min-height:0}
-html.ui-on #uiSide #saveState b{color:#fff}
-html.ui-on #uiSide #saveState.dirty b{color:#ffcf70}
-html.ui-on #uiSide #saveState .keptbtn{color:#ffd88a;text-decoration:underline}
-/* v2.09 (item 127): a PMO copy's 💾 Save, above the primary ✉ Submit input -- plain, with the ▾'s edge against the navy (1.4.11) */
-#uiSide .uiSvRow[hidden]{display:none}
-#uiSide #pmoSaveBtn{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;font-size:13px;font-weight:600;
-  border:1px solid #8fa6bb;border-radius:7px;background:transparent;color:#fff;cursor:pointer;padding:0 10px;font-family:inherit}
-#uiSide #pmoSaveBtn:hover,#uiSide #pmoSaveBtn:focus-visible{background:var(--uiNav2)}
-#uiSide #pmoSaveBtn:focus-visible{outline:2px solid var(--uiNavAcc);outline-offset:2px}
-#uiSide #pmoSaveBtn.dirty{border-color:#ffcf70}
-#uiSide .uiSvPen{font-size:11.5px;color:#ffd88a;padding:0 2px}
-#uiSide .uiSvPen:empty{display:none}
-#uiSide .uiSave .t{font-size:10.5px;color:var(--uiNavMut);padding:0 2px}
-html.ui-rail #uiSide .uiSave{align-items:center;padding:10px 0 2px}
-html.ui-rail #uiSide .uiSvRow{flex-direction:column;align-items:center}
-html.ui-rail #uiSide #saveBtn{flex:none;width:44px;height:40px;padding:0;position:relative}
-html.ui-rail #uiSide #saveBtn_t,html.ui-rail #uiSide #saveBtn .uiSvT,html.ui-rail #uiSide #saveState,html.ui-rail #uiSide .uiSvPen{display:none}
-html.ui-rail #uiSide #saveBtn .uiSvIc{font-size:16px}
-html.ui-rail #uiSide .uiSvMore{min-height:24px;width:44px}
-html.ui-rail #uiSide #pmoSaveBtn{flex:none;width:44px;height:40px;padding:0;position:relative}
-html.ui-rail #uiSide #pmoSaveBtn .uiSvT{display:none}
-html.ui-rail #uiSide #pmoSaveBtn.dirty::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ff6b5e;box-shadow:0 0 0 2px var(--uiNav)}
-/* folded to icons, unsaved work shows as a dot on the Save icon (the button itself turns amber, as it always has) */
-html.ui-rail #uiSide #saveBtn.dirty::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ff6b5e;box-shadow:0 0 0 2px var(--uiNav)}
 /* the three boxes */
 .uiPanel h3{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-size:17px}
 .uiPanel h3 .x{margin-left:auto}
@@ -1629,12 +1539,6 @@ html.ui-on #uiPage{display:block;padding:10px 18px 2px}
 #uiKpis .k .l{color:var(--mut);font-size:12px;font-weight:700}
 #uiKpis .k .v{font-size:21px;font-weight:800;letter-spacing:-.3px;margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
 #uiKpis .k .x{color:var(--dim);font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#uiKpis .k .i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
-#uiKpis .k .i svg{width:16px;height:16px}
-#uiKpis .k.ask .i{background:color-mix(in srgb,var(--blue,#2f63c9) 14%,transparent);color:var(--blue,#2f63c9)}
-#uiKpis .k.disc .i{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
-#uiKpis .k.mand .i{background:color-mix(in srgb,var(--purp) 14%,transparent);color:var(--purp)}
-#uiKpis .k.ufr .i{background:color-mix(in srgb,var(--mut) 14%,transparent);color:var(--mut)}
 #uiKpis .k.ufr.short .v{color:var(--red)}
 .uiTools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 html.ui-on .uiTools .srch{flex:1 1 220px;max-width:360px}
@@ -1663,8 +1567,8 @@ html.ui-on:not(.ui-dock) .inspector .drawerbar{display:flex}
 html.ui-on:not(.ui-dock) .drawerscrim.on{display:block}
 @media (prefers-reduced-motion:reduce){ html.ui-on .inspector{transition:none} }
 /* THE ROW IS SIZED FOR THE ROOM IT HAS. The board's own column lists are chosen by the window's width, which assumed
-   the row had the whole window (or the window less the docked panel). The sidebar takes 232px (64 as the rail), so
-   uiRailApply() works out the room the row really has -- the window, less the sidebar, less the docked panel -- and
+   the row had the whole window (or the window less the docked panel). The left menu takes 168px (v2.21; none below 900px, where it is a row), so
+   uiLayoutApply() works out the room the row really has -- the window, less the sidebar, less the docked panel -- and
    sets html.ui-e1400 / ui-e1100 / ui-e940 / ui-e760 / ui-e640 for it. Each class applies the board's OWN list for a
    window of that width (copied from its media rules above), so the row gets the columns the board already gives a
    window that size. WHERE THE BOARD'S OWN LIST CUTS A NINE-DIGIT FIGURE it is replaced, not copied: a nine-digit figure
@@ -1699,11 +1603,6 @@ html.ui-on.ui-e640 .gridhead{display:none}
 html.ui-on.ui-e640 .hdr .ctx{flex:1 1 auto;min-width:0;max-width:100%;flex-wrap:wrap;row-gap:6px}
 @media (max-width:1100px){ #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
 html.ui-on.ui-e940 #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-/* 900px AND NARROWER: the sidebar sits as the 64px rail whatever was chosen for wide windows (html.ui-narrow, set by
-   uiRailApply; nothing is written for it). Opening it lays it OVER the page (html.ui-peek), the way the record drawer
-   does, so the table keeps its room; a click outside it, Esc or a choice closes it. */
-html.ui-on.ui-narrow body{padding-left:64px}
-html.ui-on.ui-narrow.ui-peek #uiSide{box-shadow:14px 0 40px rgba(0,0,0,.35)}
 /* Add requirement is Review's, as the board's own task bar and its folded Review tools menu offer it (#toolAdd sits in
    #t_review); a PMO copy's left menu leaves out Program offices (uiSync hides it) */
 html.ui-on:not([data-mode="review"]) #uiAddBtn{display:none}
@@ -1755,6 +1654,117 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 .uiImpFoot .sp{margin-left:auto}
 @media (max-width:760px){ .uiImpCh{grid-template-columns:1fr} }
 </style>
+<style id="uiApexCss">
+/* ── v2.21 (item 152): ORBIT IN APEX'S LOOK ───────────────────────────────────────────────────────────────────────────────
+   Brad, 24 Nov 2026: "I want ORBIT to look like APEX". Presentation only, like uiV2css above: no control, id or call changes,
+   and nothing here is read by a figure. APEX's frame: the CUI marking top and bottom, a light header across the page holding the
+   mark, the name, the pickers, Save and the save state; the navy text-only menu beneath it (uiV2css); APEX's tiles; Calibri; gridded
+   tables with a navy title band and TOTAL; lane and status cells in APEX's green, yellow and red, each with its word -- Brad's
+   choice of 24 Nov over Harbor's colour-blind-safe lane hues, the word being what a colour-deficient reader goes by. Colours are
+   the theme's tokens wherever APEX's are Harbor's (Harbor is APEX's palette), so the other themes stay whole. */
+:root{--apxOk:#00B050;--apxMid:#FFD700;--apxBad:#C00000;--apxNav:#25394d}
+html.ui-on body{font-family:Calibri,Carlito,'Segoe UI',Arial,sans-serif}
+/* the CUI marking stays on screen at the top and the bottom whatever is scrolled, as in APEX */
+.cui{position:sticky;z-index:58;height:var(--cuiH,20px);line-height:var(--cuiH,20px);text-align:center;font-weight:700;font-size:12px;letter-spacing:.04em;
+  background:#fff;color:#000;border:0 solid #000}
+.cui-top{top:0;border-bottom-width:1px}
+.cui-bottom{bottom:0;border-top-width:1px}
+html.ui-on .cui{margin-left:calc(-1 * var(--uiSideW))}
+html.ui-on.ui-narrow .cui{margin-left:0}
+/* the bottom line is the window's, however short the board: fixed, with the page's foot kept clear of it */
+html.ui-on .cui-bottom{position:fixed;left:0;right:0;margin-left:0}
+html.ui-on body{padding-bottom:calc(24px + var(--cuiH,20px))}
+@media print{.cui{position:static}}
+/* THE HEADER RUNS ACROSS THE PAGE, the left menu beneath it: the sticky top reaches back over the menu's column, and what sits
+   under the header in it (the task bar, the posture) stays in the page's column */
+html.ui-on #topStack{top:var(--cuiH,20px);margin-left:calc(-1 * var(--uiSideW));border-bottom:0;background:transparent}
+html.ui-on #topStack > :not(.hdr){margin-left:var(--uiSideW)}
+html.ui-on.ui-narrow #topStack{margin-left:0}
+html.ui-on.ui-narrow #topStack > :not(.hdr){margin-left:0}
+html.ui-on .hdr{background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(24,32,41,.25);padding:7px 14px;gap:6px 10px}
+html.ui-on .hdr .brand{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;flex:none}
+html.ui-on .hdr .brand .logo{height:24px;width:auto;color:var(--ink);--orbit-accent:var(--green)}
+.hdr .apxSub{display:none}
+html.ui-on .hdr .apxSub{display:inline;font-size:13px;font-weight:400;color:var(--mut);padding-left:9px;border-left:1px solid var(--edge)}
+html.ui-on .hdr.tight1 .apxSub{display:none}
+/* fitTop()'s fourth step (tight3), before the bar would wrap: the version pill and the separators go, the mark is a little smaller
+   and the gaps close -- every control keeps its words (the build is in Help and the version line) */
+html.ui-on .hdr.tight3{gap:4px 6px;padding-left:10px;padding-right:10px}
+html.ui-on .hdr.tight3 .bld,html.ui-on .hdr.tight3 .csep{display:none}
+html.ui-on .hdr.tight3 .brand .logo{height:20px}
+html.ui-on .hdr.tight3 #uiSave{gap:4px}
+/* (v2.21) tight4: the wordmark's O alone (the O is the left 23% of the mark) and the save state's dot alone */
+html.ui-on .hdr.tight4 .brand .logo{clip-path:inset(0 77% 0 0);margin-right:-66px}
+/* and Save its disk alone: its word stays its accessible name, clipped, never removed */
+html.ui-on .hdr.tight4 #saveBtn_t{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html.ui-on .hdr.tight4 #saveBtn,html.ui-on .hdr.tight4 #pmoSaveBtn{padding:3px 7px;gap:0}
+html.ui-on .hdr.tight4 #saveState{font-size:0;line-height:0;padding:0;width:14px;height:14px;min-width:14px;border-radius:50%;border:1px solid var(--edge);overflow:hidden;flex:none}
+html.ui-on .hdr .bld{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--green);background:var(--greenD);color:var(--ink);font-size:12px;font-weight:700}
+html.ui-on .hdr .tlbl{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--ink)}
+html.ui-on .hdr .btn,html.ui-on .hdr select{font-family:inherit;font-weight:600;border:1px solid var(--edge);border-radius:6px;background:var(--panelA);color:var(--ink);min-height:28px;padding:3px 10px}
+html.ui-on .hdr .btn:hover{background:var(--greenD)}
+/* Save and the save state, in the header (they were at the left menu's foot): the state reads as APEX's badge, brown while
+   work is unsaved */
+html.ui-on #uiSave{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+html.ui-on .uiSvRow{display:flex;gap:4px;align-items:center}
+html.ui-on .uiSvRow[hidden]{display:none}
+html.ui-on #saveBtn,html.ui-on #pmoSaveBtn{display:inline-flex;align-items:center;gap:6px;min-height:28px;font-family:inherit;font-weight:600;font-size:13px;border:1px solid var(--edge);border-radius:6px;background:var(--panelA);color:var(--ink);padding:3px 10px;cursor:pointer}
+html.ui-on .uiSvMore{min-width:28px;min-height:28px;border:1px solid var(--edge);border-radius:6px;background:var(--panelA);color:var(--ink);cursor:pointer;padding:0 6px;font-family:inherit}
+html.ui-on .uiSvMore[aria-expanded="true"]{background:var(--gold);color:var(--onGold)}
+html.ui-on #saveState{border-radius:6px;padding:3px 10px;background:var(--panelA);color:var(--ink);font-weight:400;white-space:nowrap}
+html.ui-on #saveState.dirty{background:#7a4a08;color:#fff}
+html.ui-on #saveState.dirty b{color:#fff}
+html.ui-on #saveState .keptbtn{color:inherit;text-decoration:underline}
+html.ui-on .uiSvPen{font-size:12px;color:var(--mut)}
+html.ui-on .uiSvPen:empty{display:none}
+html.ui-on .hdr.tight2 #saveState b + *{display:none}
+/* the message, as APEX's strip: yellow with an ochre edge while it shows */
+html.ui-on .statwrap.fresh,html.ui-on .statwrap.big{background:#fff7d1;border:1px solid #c9a227;border-left:4px solid #7a4a08;border-radius:4px;padding:2px 8px}
+html.ui-on .statwrap.fresh #shareStat,html.ui-on .statwrap.big #shareStat{color:#3a2604;font-weight:600}
+/* the page heading and the tiles, as APEX's */
+#uiPage .uiHd h2{font-size:22px;font-weight:700;letter-spacing:0}
+#uiPage .uiHd .uiSub{font-size:13px}
+#uiKpis .k{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:none}
+#uiKpis .k .l{font-size:12px;font-weight:400;color:var(--mut)}
+#uiKpis .k .v{font-size:24px;font-weight:700;letter-spacing:0}
+#uiKpis .k .x{font-size:12px;color:var(--mut)}
+/* THE REQUIREMENT ROWS ARE A GRIDDED TABLE, as APEX's lists are: a navy title band, a header row, and a 1px rule between every
+   cell (the row's own colour shows through a 1px gap; each cell carries the panel). Each cell's contents sit at its top, as in
+   APEX; nothing inside a cell moves. */
+.apxBand{display:none}
+html.ui-on .apxBand:not(:empty){display:block;background:var(--apxNav);color:#fff;font-size:15px;font-weight:700;padding:7px 10px}
+html.ui-on .gridwrap{border:1px solid var(--line2);border-radius:0}
+html.ui-on .gridhead{gap:1px;padding:0;background:var(--line2);align-items:stretch;font-size:11.5px;letter-spacing:0;text-transform:none;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line2)}
+html.ui-on .gridhead > *{background:var(--panel2);padding:6px 6px;align-self:stretch}
+html.ui-on #list .row{gap:1px;padding:0;background:var(--line2);align-items:stretch;border-bottom:1px solid var(--line2);box-shadow:none}
+html.ui-on #list .row > *{background:var(--panel);padding:5px 6px;min-width:0}
+html.ui-on #list .row > .clin-detail,html.ui-on #list .row > .note-detail{background:var(--panel)}
+/* a box that holds a figure keeps the width its own cell had before the gridlines: it pads 2px, not 6 (a nine-digit
+   allocation is 67px of figures; at 1000 wide the 6px pad left it 62, pointer F3) */
+html.ui-on #list .row > .acts.alloc,html.ui-on #list .row > .rank{padding-left:2px;padding-right:2px}
+/* ★ and ⋯ sit in 26px columns: a 24px button there pads 1px, or the cell cuts it (layout C) */
+html.ui-on #list .row > .mcc,html.ui-on #list .row > .morec{padding-left:1px;padding-right:1px}
+html.ui-on #list .row.cur > *{background:var(--sel)}
+html.ui-on #list .row.flash > *{background:var(--flash)}
+html.ui-on #list .row.cur::after{inset:0 auto 0 0;width:3px}
+/* the lane, as APEX states a status: the cell's colour AND its word */
+html.ui-on #list .row > .lanec[data-lk="disc"]{background:var(--apxOk);color:#000}
+html.ui-on #list .row > .lanec[data-lk="split"],html.ui-on #list .row > .lanec[data-lk="mand"]{background:var(--apxMid);color:#000}
+html.ui-on #list .row > .lanec[data-lk="unf"]{background:var(--apxBad);color:#fff}
+html.ui-on .lanec[data-lk] .ll,html.ui-on .lanec[data-lk] .sfl{color:inherit!important}
+html.ui-on .lanec[data-lk] .meter{background:rgba(255,255,255,.55);border-color:rgba(0,0,0,.55)}
+html.ui-on .lanec[data-lk] .meter b.d{background:#000}
+html.ui-on .lanec[data-lk] .meter b.m{background:repeating-linear-gradient(135deg,#000 0 2px,transparent 2px 4px)}
+/* the cutlines, as APEX's bands: a full-width line of white on its colour */
+html.ui-on .cutline{border-top:0;background:var(--apxNav);color:#fff!important;padding:5px 10px;font-size:12px}
+html.ui-on .cutline .l{display:none}
+html.ui-on .cutline.cut-mc{background:#4a2a7a}
+html.ui-on .cutline.cut-mand{background:#7a4a08}
+/* THE SHARED TABLE STYLE (every box's .fctab): a rule round every cell, a header row, and the TOTAL as APEX's navy line */
+html.ui-on .fctab th,html.ui-on .fctab td{border:1px solid var(--line2)}
+html.ui-on .fctab th{background:var(--panel2);color:var(--ink);font-size:11px;letter-spacing:0;font-weight:700}
+html.ui-on .fctab tr.tot td,html.ui-on .fctab tr.tot th{background:var(--apxNav);color:#fff}
+</style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
    default palette and then swap, which is a visible flash on every open. The key carries no
@@ -1784,41 +1794,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </script>
 </head>
 <body>
-<!-- v2.00 UI (chunk 1): THE NAVY SIDEBAR. Hidden until the UI script sets html.ui-on (after the page source is
-     taken). Each section runs what the board already had: a workspace mode (uiSetMode), a menu (toggleMenu), or a
-     short list of that section's own menu items, each the same call as the item. -->
-<nav id="uiSide" aria-label="Sections">
-  <div class="uiBrand">
-    <svg class="uiLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" aria-hidden="true"><mask id="uiLogoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="15" mask="url(#uiLogoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/></svg>
-    <span class="uiBt"><b>ORBIT</b><small>Portfolio Funding Board</small></span>
-    <button type="button" id="uiCollapse" onclick="uiRailToggle()" aria-label="Collapse the sidebar" title="Collapse the sidebar to icons">&#8249;</button>
-  </div>
-  <button type="button" class="uiNi" id="uiNav_req" data-tip="Requirements" onclick="uiGo('req',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h8"/></svg></span><span class="t">Requirements</span></button>
-  <button type="button" class="uiNi" id="uiNav_fund" data-tip="Funding" onclick="uiGo('fund',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg></span><span class="t">Funding</span></button>
-  <button type="button" class="uiNi" id="uiNav_fydp" data-tip="FYDP" aria-haspopup="true" onclick="uiGo('fydp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 11V8M8 11V5M11 11V7"/></svg></span><span class="t">FYDP</span><span class="car">&#9656;</span></button>
-  <button type="button" class="uiNi" id="uiNav_exec" data-tip="Execution" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/></svg></span><span class="t">Execution</span><span class="car">&#9656;</span></button>
-  <button type="button" class="uiNi" id="uiNav_cyc" data-tip="Cycles &amp; compare" onclick="uiGo('cyc',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg></span><span class="t">Cycles &amp; compare</span></button>
-  <button type="button" class="uiNi" id="uiNav_brief" data-tip="Brief" onclick="uiGo('brief',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg></span><span class="t">Brief</span></button>
-  <button type="button" class="uiNi" id="uiNav_rep" data-tip="Reports &amp; exports" aria-haspopup="dialog" onclick="uiGo('rep',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 1.5h7l3 3v10H3z"/><path d="M5.5 12V9.5M8 12V7M10.5 12V8.5"/></svg></span><span class="t">Reports &amp; exports</span></button>
-  <div class="uiGrp">Board</div>
-  <button type="button" class="uiNi" id="uiNav_imp" data-tip="Imports &amp; exports" aria-haspopup="dialog" onclick="uiGo('imp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg></span><span class="t">Imports &amp; exports</span></button>
-  <button type="button" class="uiNi" id="uiNav_data" data-tip="Data" aria-haspopup="dialog" onclick="uiGo('data',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="8" cy="3.8" rx="5.5" ry="2"/><path d="M2.5 3.8v8.4c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2V3.8M2.5 8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2"/></svg></span><span class="t">Data</span></button>
-  <button type="button" class="uiNi" id="uiNav_pmo" data-tip="Program offices" aria-haspopup="true" onclick="uiGo('pmo',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 4.5h13v9h-13z"/><path d="M1.5 4.5 8 9l6.5-4.5"/></svg></span><span class="t">Program offices</span><span class="car">&#9656;</span></button>
-  <button type="button" class="uiNi" id="uiNav_aud" data-tip="Audit" aria-haspopup="true" onclick="uiGo('aud',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="2.5" width="10" height="12" rx="1"/><path d="M6 1.5h4v2.2H6zM5.5 7.5h5M5.5 10h5M5.5 12.5h3"/></svg></span><span class="t">Audit</span><span class="car">&#9656;</span></button>
-  <button type="button" class="uiNi" id="uiNav_hist" data-tip="History &amp; recovery" aria-haspopup="true" onclick="uiGo('hist',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2 2.5v3h3"/><path d="M8 5v3.2l2 1.3"/></svg></span><span class="t">History &amp; recovery</span><span class="car">&#9656;</span></button>
-  <button type="button" class="uiNi" id="uiNav_setup" data-tip="Setup" aria-haspopup="true" onclick="uiGo('setup',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></span><span class="t">Setup</span><span class="car">&#9656;</span></button>
-  <!-- v2.00 (menu, 19 Oct): SAVE IS PINNED AT THE FOOT, where the ORBIT footer was -- the same 💾 Save button (#saveBtn,
-       saveInPlace()), the same save state (#saveState, saveStateShow()) and, beside it, ▾ for Save a copy. In a PMO copy the
-       button is ✉ Submit input (pmoSubmit()), as saveStateShow() has always made it. -->
-  <div class="uiFoot uiSave" id="uiSave">
-    <!-- v2.09 (item 127): a PMO copy's 💾 Save (pmoSaveCopy()), above ✉ Submit input; pmoFootSet() shows it and puts the ▾ beside it -->
-    <div class="uiSvRow" id="pmoSaveRow" hidden><button type="button" id="pmoSaveBtn" onclick="pmoSaveCopy()" title="Save your office’s work in its own file."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span class="uiSvT">Save</span></button></div>
-    <div class="uiSvRow"><button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button><button type="button" class="uiSvMore" id="uiNav_save" aria-haspopup="true" aria-expanded="false" aria-label="More ways to save: Save a copy" title="Save a copy…" onclick="uiGo('save',this)">&#9662;</button></div>
-    <span class="savestate" id="saveState" title=""></span>
-    <span class="uiSvPen" id="uiSavePen"></span>
-    <span class="t" id="uiFootT">ORBIT</span>
-  </div>
-</nav>
+<div class="cui cui-top" role="note">CUI//REL TO US DoW</div>
 <div id="uiFly" role="group" aria-label="Section items"></div>
 <!-- the left menu's own lists, written by syncBtns() as the toolbar menus were; a flyout takes the one it shows and gives it
      back when it closes -->
@@ -1829,7 +1805,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
      header, the toolbar, the status line and the search row it replaces are gone; every control they
      held is here, by the same id. -->
 <div class="hdr" role="banner">
-  <div class="brand"><svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 462.92 108" role="img" aria-label="ORBIT"><mask id="logoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="19.89" mask="url(#logoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/><path d="M183.8 104 160.59 66.03H136.03V104H115.1V4H165.06Q182.95 4 192.67 11.7Q202.39 19.4 202.39 33.81Q202.39 44.31 196.43 51.94Q190.47 59.57 180.32 61.98L207.36 104ZM181.31 34.66Q181.31 20.25 162.86 20.25H136.03V49.78H163.43Q172.23 49.78 176.77 45.8Q181.31 41.83 181.31 34.66Z M314.71 75.47Q314.71 89.1 304.49 96.55Q294.27 104 276.1 104H226.07V4H271.84Q290.15 4 299.56 10.35Q308.96 16.7 308.96 29.12Q308.96 37.64 304.24 43.5Q299.52 49.35 289.87 51.41Q302.01 52.83 308.36 59.04Q314.71 65.25 314.71 75.47ZM287.88 31.96Q287.88 25.22 283.59 22.38Q279.29 19.54 270.85 19.54H247V44.31H270.99Q279.86 44.31 283.87 41.22Q287.88 38.14 287.88 31.96ZM293.7 73.84Q293.7 59.78 273.55 59.78H247V88.46H274.33Q284.4 88.46 289.05 84.8Q293.7 81.15 293.7 73.84Z M337.03 104V4H357.97V104Z M428.56 20.18V104H407.62V20.18H375.33V4H460.92V20.18Z" fill="currentColor"/></svg><span class="bld" id="bldTag"></span><span id="cycTag"></span>
+  <div class="brand"><svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 462.92 108" role="img" aria-label="ORBIT"><mask id="logoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="19.89" mask="url(#logoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/><path d="M183.8 104 160.59 66.03H136.03V104H115.1V4H165.06Q182.95 4 192.67 11.7Q202.39 19.4 202.39 33.81Q202.39 44.31 196.43 51.94Q190.47 59.57 180.32 61.98L207.36 104ZM181.31 34.66Q181.31 20.25 162.86 20.25H136.03V49.78H163.43Q172.23 49.78 176.77 45.8Q181.31 41.83 181.31 34.66Z M314.71 75.47Q314.71 89.1 304.49 96.55Q294.27 104 276.1 104H226.07V4H271.84Q290.15 4 299.56 10.35Q308.96 16.7 308.96 29.12Q308.96 37.64 304.24 43.5Q299.52 49.35 289.87 51.41Q302.01 52.83 308.36 59.04Q314.71 65.25 314.71 75.47ZM287.88 31.96Q287.88 25.22 283.59 22.38Q279.29 19.54 270.85 19.54H247V44.31H270.99Q279.86 44.31 283.87 41.22Q287.88 38.14 287.88 31.96ZM293.7 73.84Q293.7 59.78 273.55 59.78H247V88.46H274.33Q284.4 88.46 289.05 84.8Q293.7 81.15 293.7 73.84Z M337.03 104V4H357.97V104Z M428.56 20.18V104H407.62V20.18H375.33V4H460.92V20.18Z" fill="currentColor"/></svg><span class="apxSub">Out-year Requirements &amp; Budget Integration</span><span class="bld" id="bldTag"></span><span id="cycTag"></span>
   <h1 class="vh"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD</h1></div>
   <span class="csep" aria-hidden="true"></span>
   <div class="ctx">
@@ -1855,6 +1831,16 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <button type="button" class="statbtn" id="statBtn" aria-expanded="false" aria-controls="statWrap" onclick="statToggle()" hidden>Message</button>
     <button type="button" class="statx" id="statX" onclick="statHide()" aria-label="Hide this message" title="Hide this message — the Message button brings it back" hidden>✕</button>
     <button type="button" class="statbtn statkeep" id="statKeep" onclick="msgOpen()" hidden>⚠ 1 unread</button>
+  <!-- v2.00 (menu, 19 Oct): SAVE (v2.21, item 152: in the header, as APEX has it; it was pinned at the left menu's foot) -- the same 💾 Save button (#saveBtn,
+       saveInPlace()), the same save state (#saveState, saveStateShow()) and, beside it, ▾ for Save a copy. In a PMO copy the
+       button is ✉ Submit input (pmoSubmit()), as saveStateShow() has always made it. -->
+  <div class="uiSave" id="uiSave">
+    <!-- v2.09 (item 127): a PMO copy's 💾 Save (pmoSaveCopy()), above ✉ Submit input; pmoFootSet() shows it and puts the ▾ beside it -->
+    <div class="uiSvRow" id="pmoSaveRow" hidden><button type="button" id="pmoSaveBtn" onclick="pmoSaveCopy()" title="Save your office’s work in its own file."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span class="uiSvT">Save</span></button></div>
+    <div class="uiSvRow"><button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button><button type="button" class="uiSvMore" id="uiNav_save" aria-haspopup="true" aria-expanded="false" aria-label="More ways to save: Save a copy" title="Save a copy…" onclick="uiGo('save',this)">&#9662;</button></div>
+    <span class="savestate" id="saveState" title=""></span>
+    <span class="uiSvPen" id="uiSavePen"></span>
+  </div>
     <button class="btn quiet" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/></svg><span class="hlp-t">Help</span></button>
   </div>
 </div>
@@ -1905,6 +1891,26 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </div>
 <div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
 </div>
+<!-- v2.00 UI (chunk 1): THE NAVY LEFT MENU (v2.21, item 152: APEX's -- text only, beneath the header, after it in the page). Hidden until the UI script sets html.ui-on (after the page source is
+     taken). Each section runs what the board already had: a workspace mode (uiSetMode), a menu (toggleMenu), or a
+     short list of that section's own menu items, each the same call as the item. -->
+<nav id="uiSide" aria-label="Sections">
+  
+  <button type="button" class="uiNi" id="uiNav_req" onclick="uiGo('req',this)"><span class="t">Requirements</span></button>
+  <button type="button" class="uiNi" id="uiNav_fund" onclick="uiGo('fund',this)"><span class="t">Funding</span></button>
+  <button type="button" class="uiNi" id="uiNav_fydp" aria-haspopup="true" onclick="uiGo('fydp',this)"><span class="t">FYDP</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_exec" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="t">Execution</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_cyc" onclick="uiGo('cyc',this)"><span class="t">Cycles &amp; compare</span></button>
+  <button type="button" class="uiNi" id="uiNav_brief" onclick="uiGo('brief',this)"><span class="t">Brief</span></button>
+  <button type="button" class="uiNi" id="uiNav_rep" aria-haspopup="dialog" onclick="uiGo('rep',this)"><span class="t">Reports &amp; exports</span></button>
+  <div class="uiGrp">Board</div>
+  <button type="button" class="uiNi" id="uiNav_imp" aria-haspopup="dialog" onclick="uiGo('imp',this)"><span class="t">Imports &amp; exports</span></button>
+  <button type="button" class="uiNi" id="uiNav_data" aria-haspopup="dialog" onclick="uiGo('data',this)"><span class="t">Data</span></button>
+  <button type="button" class="uiNi" id="uiNav_pmo" aria-haspopup="true" onclick="uiGo('pmo',this)"><span class="t">Program offices</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_aud" aria-haspopup="true" onclick="uiGo('aud',this)"><span class="t">Audit</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_hist" aria-haspopup="true" onclick="uiGo('hist',this)"><span class="t">History &amp; recovery</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_setup" aria-haspopup="true" onclick="uiGo('setup',this)"><span class="t">Setup</span><span class="car">&#9656;</span></button>
+</nav>
 <!-- v2.00 UI (chunk 1): the page heading, the four KPI cards (whole dollars, the figures scoreboard() already
      worked out for the posture strip) and the toolbar. The search box and the Filter menu are moved in here by the
      UI script, by the same ids. -->
@@ -2092,13 +2098,13 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>A requirement that recurs is added one year at a time. In each year, <b class="bt" data-q="#toolAdd">＋ Add requirement</b> › <i>From another year</i> brings it in as a requirement of its own, linked to the one it came from. Rolling requirements forward, copying or moving one to another year, setting the base year and resetting a year are the portfolio team’s, and are off in a copy.</p>
 </section>
 <section data-part="office" data-id="o-save" data-t="Save your work, and come back to it">
-<p>Press <b class="bt" data-q="#pmoSaveBtn">💾 Save</b> at the foot of the left menu, above ✉ Submit input, or press Ctrl+S. The first time, it asks which office you work for if you have not set it, then where to keep <b>your office’s file</b>: it suggests a new name with your office in it, like <i>… — PMO COPY — AV — 2026-10-26.html</i>. Keep it where your office can reach it — a synced Teams folder or the shared drive. Every Save after that writes over that file, in place; the line under the button says <i>Saved</i> and the time, or <i>Unsaved changes</i>.</p>
+<p>Press <b class="bt" data-q="#pmoSaveBtn">💾 Save</b> at the top right, beside ✉ Submit input, or press Ctrl+S. The first time, it asks which office you work for if you have not set it, then where to keep <b>your office’s file</b>: it suggests a new name with your office in it, like <i>… — PMO COPY — AV — 2026-10-26.html</i>. Keep it where your office can reach it — a synced Teams folder or the shared drive. Every Save after that writes over that file, in place; the line under the button says <i>Saved</i> and the time, or <i>Unsaved changes</i>.</p>
 <p><b>One file per office.</b> The copy you were sent is every office’s, so Save never writes over it — nor over another office’s file, a file from another copy, or the portfolio team’s board. It says so, writes nothing, and asks you to pick your own office’s file or a new one. To carry on later, on any machine, open your office’s file: it opens on your office (🏢 in the bar at the top says which), and ✉ Submit input sends for that office alone. Two people in one office can take turns in the same file; if someone saved it after the copy you are working from, Save asks before it writes over their work.</p>
 <p><b>Save a copy</b>, under the <b>▾</b> beside Save, downloads your office’s file instead — to hand to a colleague, or where the browser cannot save in place (Firefox). A download does not count as saved: put it where your office’s file is kept, replacing the old one, or press 💾 Save.</p>
 <p>Saving keeps your work; it sends nothing. Only ✉ Submit input sends your office’s changes to the portfolio team.</p>
 </section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
-<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, under 💾 Save. If you have not set your office yet, it asks for it first.</p>
+<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — at the top right, beside 💾 Save. If you have not set your office yet, it asks for it first.</p>
 <p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message at the top right confirms it (hidden, the <b>Message</b> button there brings it back). Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
 <p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
 </section>
@@ -2133,7 +2139,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <dt>The DISC and MAND boxes are greyed out</dt><dd>Working as intended: the allocation is the portfolio team’s decision.</dd>
 <dt>💾 Save says “Not saved” — the file is not your office’s</dt><dd>Working as intended. Save writes only your office’s own file from this copy: the copy everyone was sent, another office’s file, a file from another copy and the team’s board are never written over. Press 💾 Save again and pick your office’s file, or make a new one.</dd>
 <dt>“This work was saved for …”, when submitting</dt><dd>The file you opened holds another office’s work. Set 🏢 back to that office to submit it, or, if the work is yours, press 💾 Save first: it goes to a file of your office’s own.</dd>
-<dt>After opening another office’s file, my own work is not on screen</dt><dd>It is kept aside, not lost: <b>↶ work kept aside</b>, at the foot of the left menu, puts it back on your own office.</dd>
+<dt>After opening another office’s file, my own work is not on screen</dt><dd>It is kept aside, not lost: <b>↶ work kept aside</b>, beside Save at the top, puts it back on your own office.</dd>
 <dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy, and in your office’s file once you have pressed 💾 Save. On another machine, or in another browser, open your office’s file.</dd>
 <dt>My requirement is not in the list</dt><dd>Check the <b>PMO</b> box at the top is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
 <dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
@@ -2146,9 +2152,9 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
 <p><b>Every box works the same way.</b> A report, an editor or a list opens with the keyboard inside it, and Tab and Shift+Tab go round the box, never out onto the board behind it. Esc closes the box on top and puts you back on what opened it. If you have typed something the box has not saved yet, Esc, <b>✕ Close</b> or a click outside asks <i>Discard what you typed?</i> first: Cancel keeps the box open with your text in it. Every menu, a row’s <b>⋯</b> included, opens whole on screen: near the bottom of the window it opens upward, and a long one scrolls.</p>
 <p><b>A long menu opens folded.</b> Setup and Filter show their everyday items and a heading for each group, with how many items it holds; press a heading, or Tab to it and press Enter, and the group opens under it. One group is open at a time, and each menu opens again on the group you used last, in this browser. <b>Reports &amp; exports</b> lays its groups out in two lists, each report with the kind of file it gives on a tag at the right (XLSX, TXT; VIEW when it opens on screen first), and its <b>Find</b> box at the top lists every report and export whose name you type, from every group at once. A path in this guide names the group: <i>Reports &amp; exports › Working Documents › Excel Workbook</i>.</p>
-<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. The first 💾 Save of a file in a browser asks which file: pick the board file you opened, which ORBIT reads and checks before writing anything, or save it as a new file. Save asks, naming them, before writing over an appropriation, a requirement, a locked cycle or a list the board on screen does not carry. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the save state at the foot of the left menu says <i>↶ work kept aside</i>, and one click puts it back.</p>
+<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. The first 💾 Save of a file in a browser asks which file: pick the board file you opened, which ORBIT reads and checks before writing anything, or save it as a new file. Save asks, naming them, before writing over an appropriation, a requirement, a locked cycle or a list the board on screen does not carry. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the save state beside Save at the top says <i>↶ work kept aside</i>, and one click puts it back.</p>
 <p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="aud">Audit › Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
-<p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a cycle locked or unlocked, a destination, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the save state at the foot of the left menu says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import takes nothing unless it reads to the end.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
+<p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a cycle locked or unlocked, a destination, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the save state beside Save at the top says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import takes nothing unless it reads to the end.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
 </section>
 <section data-part="team" data-id="t-add" data-t="Adding a requirement">
 <p><b class="bt" data-q="#toolAdd">＋ Add requirement</b> opens one box that builds the whole record, for one office: the office chosen at the top, or — with all offices showing — the one you choose when the box opens, kept for as long as it is open. Everything a requirement needs is asked for at once, and <i>Add</i> is refused until it is all there, naming what is missing and taking you to the first of it — the same list a PMO copy is held to when it submits a proposal. A BAE budget is asked for each service with a value, from that office’s budgets alone; where the office has none for a service, or no BAE list is loaded, it is not asked for and is chosen later in the record.</p>
@@ -2449,6 +2455,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <div class="list">
  <div class="gridsplit">
   <div class="gridwrap">
+    <div class="apxBand" id="gridBand"></div>
     <div class="gridhead" id="gridHead"></div>
     <div id="list"></div>
   </div>
@@ -3493,7 +3500,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.20 (24 Nov 2026)';
+const BUILD='v2.21 (25 Nov 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -8479,7 +8486,7 @@ function keptPutBack(){
   // came from, over the checkpoint the kept work brings back, so the next Save would write over that copy without asking.
   // Nothing is changed: the kept work stays kept and what is on screen stays as it is, to be put back once the save is done.
   // Said in the past tense: a quiet autosave says nothing when it lands, so this line can still be on screen after it.
-  if(_saveBusy){ setStat('⏳ <b>Not put back</b>: a save was under way. Nothing was changed: the kept work is still kept, and what is on screen is unchanged. Put it back once the save has finished (\u21b6 work kept aside, at the foot of the left menu, or from History &amp; recovery).'); render(); return; }
+  if(_saveBusy){ setStat('⏳ <b>Not put back</b>: a save was under way. Nothing was changed: the kept work is still kept, and what is on screen is unchanged. Put it back once the save has finished (\u21b6 work kept aside, beside Save at the top, or from History &amp; recovery).'); render(); return; }
   // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT IN ITS PLACE (v1.95, item 50): putting work back
   // never throws away the work it replaces. The slot it frees takes what is on screen.
   const nowUnsaved=!!(DIRTY || baseGet().dirty);
@@ -10856,7 +10863,7 @@ function sandboxBlock(what){
     + (PMODE && PMODE.ts ? ' on ' + new Date(PMODE.ts).toLocaleDateString() : '') + '.\n\n'
     + what + ' is turned off here, so this copy can never be mistaken for the team\u2019s board.\n\n'
     // v2.09 (item 127): the copy's own Save keeps the office's work; it said the work was in this browser only
-    + 'Your changes are kept in this browser as you go, and \ud83d\udcbe Save (at the foot of the left menu) keeps them in your '
+    + 'Your changes are kept in this browser as you go, and \ud83d\udcbe Save (at the top right) keeps them in your '
     + 'office\u2019s own file, to come back to on any machine. To send your descriptions, impact statements and requirement '
     + 'values back, use \u2709 Submit input, which produces a small file for the portfolio team.');
   return true;
@@ -12370,7 +12377,7 @@ function pkgBody(){
   if(SANDBOX){
     el.innerHTML='<div class="hint">Appropriation packages are the portfolio team’s: they hand an appropriation to its manager '
       +'and take it back. A PMO copy issues, sends back and pushes none. Your office’s work goes to the portfolio team as '
-      +'<b>✉ Submit input</b>, at the foot of the left menu, and they review it field by field before anything is applied.</div>';
+      +'<b>✉ Submit input</b>, at the top right, and they review it field by field before anything is applied.</div>';
     return;
   }
   const cons=pkgIsCons();
@@ -29638,7 +29645,7 @@ function render(){
       fundM && _bd? `<span class="x">${_bi>=0? _bi+' · ':''}${esc(_bd.n)}</span>` : ''].filter(Boolean).join(' · ');
     const _band=`<div class="bandc" title="Decision band — the funding rule travels with the band. Set it on the RECORD panel; manage the ladder in ⚖ Bands.">`
       +(_bd? `<i style="background:${readableOn(_bd.c,'#ffffff',1)}"></i><span><span class="n">${_bi>=0? _bi : ''}</span> ${esc(_bd.n)}</span>` : '<span class="none">— no band</span>')+`</div>`;
-    const _lane=`<div class="lanec" title="Disc ${fM(t.dT)} · Mand ${fM(t.mT)} · Unfunded ${fM(_u)}${t.set?' · funding source SET manually ('+esc(t.set.toUpperCase())+')':''}">`
+    const _lane=`<div class="lanec" data-lk="${_lk}" title="Disc ${fM(t.dT)} · Mand ${fM(t.mT)} · Unfunded ${fM(_u)}${t.set?' · funding source SET manually ('+esc(t.set.toUpperCase())+')':''}">`
       +`<span class="meter" aria-hidden="true"><b class="d" style="width:${_w(t.dT)}%"></b><b class="m" style="width:${_w(t.mT)}%"></b></span>`
       +`<span class="ll ${_lk}">${t.set?'⚙ ':''}${_ll.charAt(0)+_ll.slice(1).toLowerCase()}</span>`
       +(svcFilter>=0? `<span class="sfl" style="color:${sfLeft>0.5?'var(--green)':'var(--red)'}" title="${esc(SVC[svcFilter])} discretionary remaining after this row and everything above it">${esc(SVC[svcFilter])} disc ${sfLeft>0.5? fM(sfLeft)+' left':'exhausted'}</span>`:'')
@@ -29767,7 +29774,7 @@ function fitMenu(){
 function fitTop(){
   try{
     const hdr=document.querySelector('.hdr'), tbar=document.querySelector('.tbar'), f=document.getElementById('cycFit');
-    [hdr, tbar].forEach(function(el){ if(el) el.classList.remove('tight1','tight2','tight3','cyc1','cyc2'); });
+    [hdr, tbar].forEach(function(el){ if(el) el.classList.remove('tight1','tight2','tight3','tight4','cyc1','cyc2'); });
     const say=function(short){ if(!f) return; const t=f.getAttribute(short? 'data-s' : 'data-l'); if(t && f.textContent!==t) f.textContent=t; };
     say(false);
     // strictly wider: a bar 1px over its room scrolls the page 1px sideways (layout-fits J, Brief at 925px)
@@ -29779,6 +29786,9 @@ function fitTop(){
       // (4) still too long -- a narrow window with a message and its unread warning beside it: Help shows its icon alone, as on a phone,
       // "⚠ 1 unread" reads "⚠ 1" (its accessible name and tooltip still say what it is), and the plain "✎ Editable" chip reads ✎
       if(over(hdr)) hdr.classList.add('tight3');
+      // (5) v2.21 (item 152): Save in the header made the bar ~220px longer. Still too long: the wordmark shows its O alone, and the
+      // save state its dot alone, brown while work is unsaved -- its words stay its accessible text and its tooltip
+      if(over(hdr)) hdr.classList.add('tight4');
       if(over(hdr)) hdr.classList.add('tight2');
     }
     if(tbar && tbar.clientWidth){
@@ -29793,7 +29803,12 @@ function syncSticky(){
     const r=document.documentElement.style, px=el=>el&&el.offsetHeight? el.offsetHeight+'px':null;
     const set=(k,el)=>{ const v=px(el); if(v) r.setProperty(k,v); };
     // v1.90: ONE sticky stack. The grid header and the docked RECORD panel pin beneath all of it.
-    set('--hdrH', document.getElementById('topStack'));
+    // v2.21 (item 152): the sticky top sits under the CUI line, so everything pinned beneath it starts that much lower; the left
+    // menu starts under the header (--apxHdrH), as APEX's does
+    const cui=document.querySelector('.cui-top'), ts=document.getElementById('topStack'), hd=document.querySelector('.hdr');
+    const ch=(cui && cui.offsetHeight)||0;
+    if(ts && ts.offsetHeight) r.setProperty('--hdrH', (ts.offsetHeight+ch)+'px');
+    if(hd && hd.offsetHeight) r.setProperty('--apxHdrH', (hd.offsetHeight+ch)+'px');
     r.setProperty('--tbarH','0px');
     set('--schH', document.querySelector('.sc-h'));
   }catch(e){}
@@ -36716,7 +36731,10 @@ loadShared(sharedOpened);
 //   Its own preferences (the sidebar as a rail, the hidden columns) are READ at opening and WRITTEN only when the
 //   person changes them, under keys prefixed prio27ui. Opening the board writes nothing.
 // ==============================================================================================================
-var UI2={on:false, rail:false, dock:false, peek:false, cols:{}, fly:'', t:0, kpiErr:''};
+var UI2={on:false, dock:false, cols:{}, fly:'', t:0, kpiErr:''};
+// v2.21 (item 152): the left menu is APEX's, text only and always its full width -- the rail it could fold to, and that rail's
+// peek over the page at 900px and narrower, are gone (Brad, 24 Nov 2026). Below 900px it is a row of its items under the header.
+const UI_SIDEW=168;
 var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief'};
 var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief'};
 var UI_NAV=['req','fund','fydp','exec','cyc','brief','rep','imp','data','pmo','aud','hist','setup','save'];
@@ -36729,7 +36747,6 @@ var UI_COLIX={ review:{pmo:1,band:3,cum:5,lane:6,n:9}, rank:{pmo:1,band:3,cum:5,
                fund:{pmo:1,n:10}, brief:{pmo:1,band:3,cum:8,n:9} };
 var UI_BATCH=null;   // what the last "All submissions at once" did: {files, ok, why} -- read by nothing in the board
 function uiPrefRead(){
-  try{ UI2.rail = localStorage.getItem('prio27uiRail')==='1'; }catch(e){}
   try{ UI2.dock = localStorage.getItem('prio27uiDock')==='1'; }catch(e){}
   try{ const c=JSON.parse(localStorage.getItem('prio27uiCols')||'{}'); UI2.cols=(c && typeof c==='object' && !Array.isArray(c))? c : {}; }catch(e){ UI2.cols={}; }
 }
@@ -36748,7 +36765,7 @@ function uiDockSet(dock){
   UI2.dock=dock;
   uiPrefWrite('prio27uiDock', dock? '1' : '0');
   try{ drawerClose(); }catch(e){}
-  uiRailApply(); uiCols();
+  uiLayoutApply(); uiCols();
   try{ fitTop(); syncSticky(); }catch(e){}
 }
 // ── the room the row has, and the sidebar at 900px and narrower ──────────────────────────────────────────────
@@ -36756,24 +36773,20 @@ function uiNarrow(){ const w=window.innerWidth||0; return w>0 && w<=900; }
 function uiRoom(){
   const w=window.innerWidth||(document.documentElement && document.documentElement.clientWidth)||0;
   if(!w) return 0;
-  const side=(uiNarrow() || UI2.rail)? 64 : 232;
+  const side=uiNarrow()? 0 : UI_SIDEW;
   // docked above 1400px the board's own panel takes clamp(420px,30vw,600px) and the 10px gap (Brief draws no panel)
   const dockW=(UI2.dock && w>1400 && uiMode!=='brief')? Math.min(600, Math.max(420, w*0.30))+10 : 0;
   return w-side-dockW;
 }
-function uiRailApply(){
+function uiLayoutApply(){
   if(!UI2 || !UI2.on) return;
-  const h=document.documentElement, n=uiNarrow();
-  if(!n) UI2.peek=false;
-  h.classList.toggle('ui-narrow', n);
-  h.classList.toggle('ui-peek', n && UI2.peek);
-  h.classList.toggle('ui-rail', n? !UI2.peek : !!UI2.rail);
+  const h=document.documentElement;
+  h.classList.toggle('ui-narrow', uiNarrow());
   h.classList.toggle('ui-dock', !!UI2.dock);
   h.classList.toggle('ui-sandbox', uiSandbox());
   const r=uiRoom();
   [1400,1100,940,760,640].forEach(function(b){ h.classList.toggle('ui-e'+b, r>0 && r<=b); });
 }
-function uiPeekClose(){ if(UI2.peek){ UI2.peek=false; uiRailApply(); uiSync(); } }
 function uiBoot(){
   if(UI2.on) return;
   const h=document.documentElement, side=document.getElementById('uiSide'), pg=document.getElementById('uiPage');
@@ -36792,8 +36805,7 @@ function uiBoot(){
   if(!document.getElementById('uiColsCss')){ const st=document.createElement('style'); st.id='uiColsCss'; document.head.appendChild(st); }
   h.classList.add('ui-on');
   UI2.on=true;
-  uiRailApply();
-  try{ const b=document.getElementById('uiFootT'); if(b) b.textContent='ORBIT '+(typeof BUILD!=='undefined'? BUILD : ''); }catch(e){}
+  uiLayoutApply();
   try{ uiKpis(); }catch(e){ try{ uiKpisNa(e); }catch(x){} }
   try{ const ins=document.getElementById('inspector'); if(ins && typeof MutationObserver!=='undefined') new MutationObserver(uiDrawerTabs).observe(ins, {childList:true}); }catch(e){}
   try{ uiDrawerTabs(); }catch(e){}
@@ -36803,7 +36815,7 @@ function uiBoot(){
   document.addEventListener('keydown', uiKey);
   document.addEventListener('keydown', uiSaveKey);
   window.addEventListener('resize', function(){
-    uiRailApply(); uiCols();
+    uiLayoutApply(); uiCols();
     clearTimeout(UI2.t); UI2.t=setTimeout(function(){ uiCols(); try{ fitTop(); syncSticky(); }catch(e){} }, 120); });
   try{ fitTop(); syncSticky(); }catch(e){}
 }
@@ -36833,7 +36845,7 @@ function uiCycLabel(){
 // the active section, the heading, the cycle and the Editable chip -- read from the board's own state
 function uiSync(){
   if(!UI2 || !UI2.on) return;
-  uiRailApply();
+  uiLayoutApply();
   const sec=UI_SEC[uiMode]||'req';
   UI_NAV.forEach(function(k){ const b=document.getElementById('uiNav_'+k); if(!b) return;
     b.classList.toggle('on', k===sec); if(k===sec) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
@@ -36841,6 +36853,11 @@ function uiSync(){
   const st=document.getElementById('uiSubT');
   if(st){ let ap=''; try{ ap=apLabel(); }catch(e){}
     st.textContent=['FY'+((typeof MS!=='undefined' && MS && MS.cur)||''), ap, uiPmoLabel(), uiCycLabel()].filter(Boolean).join(' · '); }
+  // v2.21 (item 152): the rows' title band, as APEX's tables carry one: the year, the appropriation, what the list is, whose
+  const gb=document.getElementById('gridBand');
+  if(gb){ let ap=''; try{ ap=apLabel(); }catch(e){}
+    const pl=uiPmoLabel();
+    gb.textContent=['FY'+((typeof MS!=='undefined' && MS && MS.cur)||'')+(ap? ' '+ap : ''), 'Priority order (1\u2013N)', (pl && pl!=='All offices')? pl : ''].filter(Boolean).join(' \u00b7 '); }
   const ec=document.getElementById('uiEdChip');
   if(ec){ let ro='';
     try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) ro='🔒 Read only — locked cycle'; }catch(e){}
@@ -36859,25 +36876,14 @@ function uiSync(){
   const po=document.getElementById('uiNav_pmo'); if(po) po.hidden=uiSandbox();
   const sp=document.getElementById('uiSavePen');
   if(sp){ const pen=uiSandbox()? '' : uiPenOther(); sp.textContent=pen? '✍ '+pen+' holds the pen' : ''; }
-  const cl=document.getElementById('uiCollapse');
-  if(cl){ const n=uiNarrow(), r=n? !UI2.peek : UI2.rail;
-    cl.innerHTML=r? '&#8250;' : '&#8249;';
-    const l=n? (UI2.peek? 'Close the sidebar' : 'Open the sidebar over the page') : (UI2.rail? 'Expand the sidebar' : 'Collapse the sidebar to icons');
-    cl.setAttribute('aria-label', l); cl.title=l; }
 }
 // THE FOUR KPI CARDS. scoreboard() hands over the figures it has just printed in the posture strip (UI_KPI);
 // nothing here adds, rounds or re-derives a figure beyond fM()'s own whole dollars. A card that cannot be drawn
 // makes all four say "unavailable" (uiKpisNa) -- never the figures from an earlier render.
-var UI_KIC={
-  ask:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.2"/><path d="M5 5.5h6M5 8h6M5 10.5h4"/></svg>',
-  disc:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4 3.5"/></svg>',
-  mand:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 6.5 8 3l6 3.5M3 6.5v6M6.3 6.5v6M9.7 6.5v6M13 6.5v6M2 13.5h12"/></svg>',
-  ufr:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg>' };
-function uiKpiCard(cls, lbl, v, x, i){
+function uiKpiCard(cls, lbl, v, x){
   if(typeof v!=='number' || !isFinite(v)) throw new Error('the '+lbl+' figure is not a number');
   return '<div class="k '+cls+'"><div style="min-width:0"><div class="l">'+lbl+'</div>'
-    +'<div class="v" data-v="'+Math.round(v)+'" title="'+fM(v)+'">'+fM(v)+'</div><div class="x">'+x+'</div></div>'
-    +'<span class="i" aria-hidden="true">'+i+'</span></div>';
+    +'<div class="v" data-v="'+Math.round(v)+'" title="'+fM(v)+'">'+fM(v)+'</div><div class="x">'+x+'</div></div></div>';
 }
 function uiKpisNa(e){
   UI2.kpiErr=String((e && e.message) || e || 'error');
@@ -36896,11 +36902,11 @@ function uiKpis(){
       if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
       else {
         const html=
-            uiKpiCard('ask', 'Total Ask', K.ask, K.n+' requirement'+(K.n===1?'':'s'), UI_KIC.ask)
-          + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA', UI_KIC.disc)
-          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA', UI_KIC.mand)
+            uiKpiCard('ask', 'Total Ask', K.ask, K.n+' requirement'+(K.n===1?'':'s'))
+          + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA')
+          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA')
           + uiKpiCard('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Total UFR', K.u2Amt,
-                 K.u2Amt>0.5? (K.uN+' requirement'+(K.uN===1?'':'s')+' short') : 'nothing unfunded', UI_KIC.ufr);
+                 K.u2Amt>0.5? (K.uN+' requirement'+(K.uN===1?'':'s')+' short') : 'nothing unfunded');
         el.innerHTML=html;
       }
       UI2.kpiErr='';
@@ -36986,14 +36992,6 @@ function uiPop(id, btn){
   if(open){ uiPopFill(id); p.classList.add('open'); if(btn) btn.setAttribute('aria-expanded','true'); }
 }
 // ── the sidebar ──────────────────────────────────────────────────────────────────────────────────────────────
-function uiRailToggle(){
-  if(uiNarrow()){ UI2.peek=!UI2.peek; uiRailApply(); uiFlyClose(); uiSync(); return; }   // over the page; nothing written
-  UI2.rail=!UI2.rail;
-  uiPrefWrite('prio27uiRail', UI2.rail? '1' : '0');
-  uiRailApply();
-  uiFlyClose(); uiSync(); uiCols();
-  try{ fitTop(); syncSticky(); }catch(e){}
-}
 // v2.00 (UI S5): A TOOLBAR MENU STAYS CLEAR OF THE SIDEBAR. The board's own fitMenus() keeps an open menu inside the
 // window, 8px from its left edge -- the edge the sidebar now covers. Reports & exports hangs from its button's right edge
 // and, with Five years & PPBE or CCaR & accounting files unfolded, is wider than the room to that button's left: at 760
@@ -37005,7 +37003,7 @@ function uiRailToggle(){
 // fixed-position branch) is left as it places it.
 function uiMenuFit(){
   if(!UI2 || !UI2.on) return;
-  const side=document.getElementById('uiSide'); if(!side) return;
+  const side=document.getElementById('uiSide'); if(!side || uiNarrow()) return;   // v2.21: below 900px it is a row, not a column
   const sr=side.getBoundingClientRect(); if(!(sr.width>0)) return;
   const pad=8, CW=(document.documentElement && document.documentElement.clientWidth) || window.innerWidth || 0, L=Math.ceil(sr.right)+pad;
   [].slice.call(document.querySelectorAll('.menu.open > .mdd')).forEach(function(dd){ try{
@@ -37020,7 +37018,7 @@ try{ fitMenus=(function(own){ return function(){ own.apply(this, arguments); try
 function uiGo(k, btn){
   uiPopsClose();
   if(UI_FLY.indexOf(k)>=0){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
-  uiFlyClose(); uiPeekClose();
+  uiFlyClose();
   if(k==='req'){ if(uiMode!=='review' && uiMode!=='rank') uiSetMode('review'); return; }
   if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
   if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
@@ -37100,8 +37098,12 @@ function uiFlyOpen(k, btn){
   [].slice.call(f.querySelectorAll('[data-host]')).forEach(function(p){ const d=document.getElementById(p.getAttribute('data-host')); if(d) p.parentNode.replaceChild(d, p); });
   f.setAttribute('aria-label', ({fydp:'FYDP', exec:'Execution', pmo:'Program offices', aud:'Audit', hist:'History and recovery', setup:'Setup', save:'Save'})[k]||'Section items');
   UI2.fly=k; f.classList.add('open');
-  try{ const r=btn.getBoundingClientRect(); let top=r.top;
+  // v2.21 (item 152): an entry of the left menu opens its list beside it (a row of entries below 900px: under it); Save's ▾, in the
+  // header, opens its list under itself
+  try{ const r=btn.getBoundingClientRect(), n=uiNarrow() || !(btn.closest && btn.closest('#uiSide')); let top=n? r.bottom+4 : r.top;
     const hgt=f.offsetHeight; if(top+hgt>window.innerHeight-8) top=Math.max(8, window.innerHeight-8-hgt);
+    const W=window.innerWidth||0, wid=f.offsetWidth||0;
+    f.style.left=Math.max(8, Math.min(n? r.left : r.right+6, W-wid-8))+'px';
     f.style.top=top+'px'; }catch(e){}
   UI_NAV.forEach(function(n){ const b=document.getElementById('uiNav_'+n); if(b) b.setAttribute('aria-expanded', n===k? 'true' : 'false'); });
   try{ const b=f.querySelector('button:not([disabled])'); if(b) b.focus({preventScroll:true}); }catch(e){}
@@ -37115,13 +37117,11 @@ function uiFlyClose(){
 function uiDocClick(e){
   const t=e.target; if(!t || !t.closest) return;
   if(!t.closest('.uiMenu')) uiPopsClose();
-  if(UI2.fly && !t.closest('#uiFly') && !t.closest('#uiSide')) uiFlyClose();
-  if(UI2.peek && !t.closest('#uiSide') && !t.closest('#uiFly')) uiPeekClose();
+  if(UI2.fly && !t.closest('#uiFly') && !t.closest('#uiSide') && !t.closest('#uiSave')) uiFlyClose();   // v2.21: Save's ▾ is in the header
 }
 function uiKey(e){
   if(e.key!=='Escape') return;
   if(UI2.fly){ const k=UI2.fly; uiFlyClose(); const b=document.getElementById('uiNav_'+k); try{ if(b) b.focus(); }catch(x){} }
-  else if(UI2.peek) uiPeekClose();
   uiPopsClose();
 }
 // ── THE RECORD PANEL'S TABS: drawn onto each RECORD panel the board draws (inspectorBody is not changed) ─────────
@@ -37216,7 +37216,7 @@ function uiAddReq(){
 // was, rather than the opener. So the left-menu entry that opened it takes the keyboard first, and the controller hands it
 // back there. v2.00 (menu, 19 Oct): the same for all three boxes; what each holds is syncBtns()' list, drawn fresh on opening.
 function uiBoxOpen(id, from){
-  uiFlyClose(); uiPopsClose(); uiPeekClose();
+  uiFlyClose(); uiPopsClose();
   if(from && typeof from.focus==='function'){ try{ from.focus({preventScroll:true}); }catch(e){} }
   const p=document.getElementById(id); if(!p) return;
   // drawn while it is still closed, so what only lasts while a box is open (Find's text in Reports & exports) starts afresh
@@ -37509,5 +37509,6 @@ async function uiSubMany(inp){
 }
 uiBoot();
 </script>
+<div class="cui cui-bottom" role="note">CUI//REL TO US DoW</div>
 </body>
 </html>

@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.19** (item 150, the scope-down), merged 24 Nov 2026 (PR #78). **v2.20 is item 151** (copy one PPBE cycle's controls into another; Brad's "Go" of 24 Nov 2026), so item 149.18–149.53 is v2.21. Item 133 is withdrawn.
+Current version: **v2.21**; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 149.18–149.53). Item 133 is withdrawn.
 
 ## Open
 
@@ -582,7 +582,55 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.20 — 24 Nov 2026: copy one PPBE cycle's controls into another, in PPBE Budget Positions (item 151) -- built on Brad's "Go" of 24 Nov (all six recommended answers); merge waits on his word
+### v2.21 — 25 Nov 2026: ORBIT in APEX's look; cleaner code (items 152, 153) -- built on Brad's "Let's do it. Let's also optimize" of 24 Nov and his four answers; merged on his "Merge" of 25 Nov (PR #80)
+#### 152. ORBIT in APEX's look (Brad, 24 Nov 2026: "No I want ORBIT to look like APEX", then "Let's do it")
+- **Asked:** Brad reviewed APEX (the active-year spend plan tool) and asked for ORBIT to look like it. Mock-ups (canvas
+  https://claude.ai/artifact/FGzYeSqLTnTywFWB2Dmts3) of Requirements, Funding and the five-year spend plan were shown and approved
+  ("Let's do it").
+- **His answers (24 Nov):** status colours are APEX's solid green, yellow and red, each with its word (the colour checks are
+  updated to allow it); the left menu is text only and always wide, as APEX's (the fold-to-icons rail and its icons go); this
+  version reaches the frame and the main pages (header, left menu, messages, tiles, the requirement rows, the shared table style),
+  and the boxes take the new look from the shared styles without a box-by-box redesign.
+- **What changes:** APEX's frame -- the CUI marking top and bottom, a light header across the page holding the ORBIT mark and name,
+  the fiscal-year pill, the plan and the save state, and the buttons; the navy text-only menu beneath it; the message line as a
+  strip under the header; APEX's tiles; Calibri; gridded tables with a navy title band and TOTAL row; lane and status cells in
+  APEX's colours with their words. No figure, control or route changes: every control keeps its id and its call.
+
+#### 153. Cleaner code (Brad, 24 Nov 2026: "Let's also optimize", answered "Cleaner code")
+- Remove what nothing reaches, as v2.03 did (a call graph from the top-level code and every handler, never a name count),
+  the rail and icon code item 152 retires, and styles nothing draws any more. No behaviour changes.
+
+- **Built:**
+  - **The frame.** A CUI line top and bottom (`.cui`, "CUI//REL TO US DoW", a note). The header is light and across the page: the
+    ORBIT mark, "Out-year Requirements & Budget Integration" (dropped first when the bar is short), the build pill, the
+    appropriation, fiscal year, PPBE cycle and PMO pickers, the message strip, **Save, its ▾ and the save state** (moved here from
+    the menu's foot: APEX's place for them; the state is a brown "Unsaved changes" badge while work is unsaved), the Editable chip
+    and Help. The left menu is navy, words only, 168px, under the header; the page it is on is a light pill; the groups are
+    uppercase over a rule. Below 900px it is a row of words under the sticky top, as before.
+  - **Fit.** Save made the header about 220px longer, so `fitTop()` takes a fifth step before it wraps, `tight4`: the wordmark's O
+    alone and the save state's dot alone (its words stay its text and tooltip). Measured on a busy board (Mixed cycle, its figure,
+    a message, an unread warning): one line at every width from 1920 down to 820, as before.
+  - **The pages.** Calibri (Carlito on a machine without it); the heading at 22px; APEX's tiles; the requirement rows gridded,
+    cells top-aligned, under a navy title band naming the year, appropriation and any office filter (`#gridBand`); the cutlines as
+    navy (Mission Critical purple, mandatory brown) bands; tables (`.fctab`) with cell borders and a navy TOTAL row.
+  - **Status colours.** The lane cell is APEX's green (discretionary), yellow (both lanes, mandatory) or red (unfunded), each with
+    its word; the meter stays.
+  - **What did not change:** every figure, every control's id and handler (Save's only moved), every box's own layout, the themes'
+    tokens. Boxes take the new font and tables from the shared styles.
+- **153, cleaner code:** the call graph (acorn, from the top-level code and every handler) found six functions nothing in the page
+  reaches; all six are the suites' entry points and stay. The rail went with the icons (`uiRailApply`, `uiPeekClose`,
+  `uiRailToggle`, `UI_KIC`, `#uiCollapse`, the foot, `data-tip`), and 27 style rules nothing could match (the old toolbar's
+  `tgrp`, `tsep`, `apn-chip`, the period chips, the spend plan's line classes and others).
+- **Checks:** audit-board "v2.21 — ORBIT in APEX's look: the CUI lines, Save in the header, a menu of words, the title band, the
+  lane status colours (item 152)", failing on v2.20 (7d6792b); the v2.15 W1 steps block gains the fifth step. left-menu A, C, D and
+  E rewritten (Save in the header; E holds the menu of words, its Tab order and the brown badge in place of the fold); toolbar-fits
+  reads "under the sidebar" as a box meeting the menu's box; standards no longer folds a rail. Help and five messages that said Save
+  sits at the menu's foot now say the top right (the mutations quoting them follow). Mutations: 9 new (`v221-152-*`), 1 retargeted
+  (`v215-w1-fit-not-reset`, the list gained `tight4`); all proved (`recovery/v221/proved-v221.jsonl`). 3,266 targets, each once.
+- **Gate (merged on Brad's "Merge" of 25 Nov 2026, before the nightly gate ran):** the whole board suite, `npm run check`, all 10 v2.21 mutations proved, and every browser check on the final tree -- leftmenu, keys, dropdowns, dialogs, panels, toolbar, editors, pointer, colours, menus, csp, pmosave, savetarget, fileimport, storagefull, pmoyears, standards (0 new findings) -- and layout, which fails on its carried D x8 alone, as on main. **Not run before the merge:** `validate:nightly` (the other suites whole, the fuzz, the trace matrix, the money map); the 07:00 UTC Routine runs it on main.
+
+
+### v2.20 — 24 Nov 2026: copy one PPBE cycle's controls into another, in PPBE Budget Positions (item 151) -- built on Brad's "Go" of 24 Nov (all six recommended answers); merged on his word of 24 Nov (PR #79)
 - **Copy controls from another cycle…**, beside delete in the PPBE Budget Positions box, opens a preview for the position on
   screen (`ppMigShow`, `ppMigHtml`): a picker of this appropriation's other cycles that hold a figure, newest first
   (`ppMigSrcs`), and a row per service the source holds -- a tick box, its lines, its fiscal years, the source's total, the

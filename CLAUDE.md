@@ -99,8 +99,9 @@ left menu, top to bottom:
   copy); **Audit ▸** (`dd_audit`: change journal, save history, take the pen, my editor name); **History & recovery ▸**
   (earlier copies, and work kept aside from `dd_kept`); **Setup ▸** (`dd_setup`: Who and where -- Linked tool… among it
   since v2.05 --, Codes and structure, Appearance as folded groups, then Live view, Save diagnostics, Clear this computer).
-- **Foot:** 💾 Save (`#saveBtn`, `saveInPlace()`; Ctrl+S too), its ▾ (`dd_save`: Save a copy), the save state
-  (`#saveState`) and who holds the pen. In a PMO copy the button is ✉ Submit input.
+- **Save is in the header since v2.21** (`#uiSave`, item 152; it was the menu's foot): 💾 Save (`#saveBtn`, `saveInPlace()`;
+  Ctrl+S too), its ▾ (`dd_save`: Save a copy), the save state (`#saveState`, APEX's brown badge while unsaved) and who holds the
+  pen. In a PMO copy the button is ✉ Submit input. The menu itself is words only and always 168px wide: no icons, no fold.
 
 `syncBtns()` writes every list, by the same `mi()`/`grp()` items and calls the menus had; a flyout (`#uiFly`) borrows
 its list from `#uiHold` while open. **No item in the left menu's boxes and side panels carries an icon** (v2.05, item 114:
@@ -5339,6 +5340,35 @@ section"*, and "Go" on the six recommended answers. `NEXT-VERSION.md` › Shippe
   `now` (`ppMigMoved` names what changed). A new position writer that discards figures does the same, or asks and cannot be undone.
 - **A copy into the tagged cycle moves the live budget at once** (`baLiveAll`); a copy into a newer cycle offers the retag and
   never does it.
+
+### v2.21 (items 152, 153): ORBIT in APEX's look; cleaner code
+
+Brad, 24 Nov 2026: *"No I want ORBIT to look like APEX"*, then *"Let's do it. Let's also optimize"*, and his answers: APEX's
+green / yellow / red status colours, each with its word; the left menu text only and always wide; the frame and the main pages
+first (boxes take the look from the shared styles); optimize means cleaner code. `NEXT-VERSION.md` › Shipped › v2.21 has the detail.
+
+- **The look is one style sheet, `#uiApexCss`, after `uiV2css`.** It restyles; it moves no control and changes no call: every id
+  and handler is where it was, but for Save (below). Calibri (Carlito where Calibri is absent), the CUI line top and bottom
+  (`.cui`, a note, never a control), a light header across the page, the navy word menu under it (`#uiSide`, now after
+  `#topStack` in the page), APEX's tiles, gridded rows with a navy title band (`#gridBand`, written by `uiSync`) and navy cutlines,
+  and `.fctab` tables with a navy TOTAL row.
+- **Save moved into the header** (`#uiSave`, before Help), so the header is ~220px longer: `fitTop()` has a fifth step,
+  **`tight4`** (the wordmark's O alone, the save state's dot alone, its words kept as its text and tooltip), before the wrap.
+  A new step goes in the `remove` list too, or a bar given room again keeps it.
+- **The lane cell carries its status colour** keyed on `data-lk` (`laneOf`): discretionary green `#00B050`, both and mandatory
+  yellow `#FFD700` (black words), unfunded red `#C00000` (white words) -- `--apxOk/--apxMid/--apxBad`. The word stays in the
+  cell: the colour is never alone. Selectors go through `#list .row > .lanec[...]`: the gridline rule `#list .row > *` outranks
+  a bare `.lanec`.
+- **Gridlines are the gap trick**: the row's background is the line colour and each cell is painted the panel colour. A box that
+  holds a figure pads 2px, not 6 (`.acts.alloc`, `.rank`), or a nine-digit allocation is cut at 1000px (pointer F3).
+- **The rail is gone** (`uiRailApply`, `uiPeekClose`, `uiRailToggle`, `UI_KIC`, `#uiCollapse`, the nav icons and `data-tip`);
+  `uiLayoutApply` keeps the narrow, docked and sandbox classes. A flyout opens 6px right of its entry; one from the header (Save's
+  ▾) opens under its button, and `uiDocClick` leaves `#uiSave` alone.
+- **Cleaner code (153):** the parser-built call graph found nothing more to remove (six functions only the tests call stay as
+  their entry points); 27 style rules nothing matched were removed.
+- **Checks:** audit-board "v2.21 — ORBIT in APEX's look …" (fails on v2.20) and the v2.15 W1 steps block's fifth step;
+  left-menu A/C/D/E rewritten for Save in the header and a menu of words; toolbar-fits' "under the sidebar" is a box
+  intersection now the menu sits under the header; standards drops the rail. 9 `v221-*` mutations, 1 retargeted.
 
 ## Colour: one token, one job
 
