@@ -6940,6 +6940,14 @@ let _cycRefusedAt=0;
 // back to it is a switch.)
 let _fyMoves=0;
 let _cycDeltaCache=null;        // {fy, ref, d}: the deltas against the reference, once per render
+// v2.24 (item 163): THE LANE WALK, ONCE PER DRAW, for the readers drawn once per ROW. A row's "N to complete" reads the record's
+// draft (reqDraftRead -> budLines), and budLines walked every lane again for each row: 130 walks for one redraw of 120 requirements,
+// most of a redraw's time. tiersDraw() hands those readers one walk per draw: valid only while a render runs (_rPass, set by
+// render's wrapper) and only while nothing has been saved since it was taken (_rTGen, the save count) -- an edit made during a
+// draw (Chromium fires change as innerHTML replaces a field) is never answered from the walk before it. Outside a draw it is
+// tiers() itself. Read-only: budLines reads one requirement's lanes from it and writes nothing.
+var _rPass=0, _rT=null, _rTGen=-1, _rAZ={};   // var, not let: the board draws while the script is still being read (applyStore), before this line runs
+function tiersDraw(){ if(!_rPass) return tiers(); if(!_rT || _rTGen!==_saveGen){ _rT=tiers(); _rTGen=_saveGen; } return _rT; }
 const BASE_FY_DEFAULT=2027;
 const FYL = ()=> 'FY'+(MS? MS.cur%100 : 27);
 function freshYearState(){
@@ -16926,7 +16934,7 @@ function budAskSvcs(id){
 // exactly as a service with no money is. A service drawing discretionary needs none: that line carries the rest.
 function budLines(id, T){
   const it=itemById(id); if(!it) return [];
-  const p=(T||tiers())[id]||{}, out=[], unf=unfSvcOf(it, p);
+  const p=(T||tiersDraw())[id]||{}, out=[], unf=unfSvcOf(it, p);
   SVC.forEach(function(sv,i){
     const d=(+(p.d||[])[i]||0)>0.005, m=(+(p.m||[])[i]||0)>0.005;
     if(d) out.push({svc:sv, lane:'disc'});
@@ -18397,9 +18405,18 @@ function flowEnts(){
 // holding dA twice offered dA under both names, and R1's Goes to showed the second, "Bravo Yard", where the funds flow, the MIPR
 // rule and every message read R1 as on "Alpha Depot". `all`: every entry, as the destinations panel lists them.
 function flowEntsAZ(all){
-  return flowEnts().filter(function(e,i,L){ return all || L.findIndex(function(x){ return x.k===e.k; })===i; })
+  // v2.24 (item 163): ONCE PER DRAW. Every row's record fields offer the destinations (recFields -> the Goes to options), so a
+  // redraw of 120 requirements sorted the whole list 124 times (localeCompare, and a findIndex per entry). Inside a draw the
+  // sorted list is kept while nothing is saved and no side list (the destination list is one) is written; each caller gets its
+  // own copy. Outside a draw it is worked out every time, as before.
+  const key=all? 1 : 0;
+  if(_rPass && _rAZ[key] && _rAZ.gen===_saveGen && _rAZ.side===_sideGen && _rAZ.ents===DESTDB.ents) return _rAZ[key].slice();
+  const L=flowEnts().filter(function(e,i,L){ return all || L.findIndex(function(x){ return x.k===e.k; })===i; })
     .sort(function(a,b){
     return String(a.n||'').trim().localeCompare(String(b.n||'').trim(), undefined, {sensitivity:'base', numeric:true}); });
+  if(_rPass){ if(_rAZ.gen!==_saveGen || _rAZ.side!==_sideGen || _rAZ.ents!==DESTDB.ents) _rAZ={gen:_saveGen, side:_sideGen, ents:DESTDB.ents};
+    _rAZ[key]=L.slice(); }
+  return L;
 }
 // Two destinations are the same destination when their NAMES match, ignoring case and extra
 // spaces. One nobody has named yet is never merged with another.
@@ -35628,7 +35645,9 @@ function dlgInit(){
 try{ dlgInit(); }catch(e){}
 // A RECORD PANEL THAT FAILED TO REDRAW IS EMPTIED, NEVER LEFT STANDING (v1.89). This catch was empty:
 // the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
-render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
+render = function(){ _rPass++; _rT=null; _rAZ={}; try{ return renderDraw.apply(this, arguments); } finally{ _rPass--; if(!_rPass){ _rT=null; _rAZ={}; } } };
+// v2.24 (item 163): the draw itself, inside the pass above (tiersDraw)
+function renderDraw(){ let fm=null; try{ fm=focusMark(); }catch(e){}
   _diagSec=null;                            // v1.92 (item 18): a message after this is cleaned against what is on screen now
   // v2.09 (item 125): A REDRAW KEEPS WHAT IS TYPED IN A ROW, as v2.08 made the RECORD panel keep it (inspectorBody): the
   // field with the keyboard, typed into and not yet committed, is read before the rows are drawn and put back after, the

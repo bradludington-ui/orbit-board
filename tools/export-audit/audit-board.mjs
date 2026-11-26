@@ -12511,6 +12511,96 @@ await (async () => {
   await _v223Settle();
 })();
 // ==== end v2.24 item 164 ====
+// ==== v2.24 item 163 ====
+// THE CLEAN-UP (Brad, 26 Nov 2026: "once we remove these sections let's optimize our code and remove inefficiencies or dead code").
+// (1) The shared folder's execution share is gone (driveExecPush / driveExecPull): ORBIT takes no CCaR data in. The execution data a
+//     board file carries is still carried, byte for byte.
+// (2) A draw walks the lanes once for the readers drawn once per ROW (tiersDraw: a row's "N to complete" reads budLines, which walked
+//     every lane again for each row), and sorts the destination list once (flowEntsAZ). Neither may ever serve a figure from before
+//     an edit: the walk is the board's as it stands, inside a draw and out. Every expectation is the walk worked out afresh (tiers())
+//     beside the cached one, never read back from the cache.
+// FAILS ON 0fa083c: the share is there and nothing is cached (tiersDraw does not exist).
+const V163 = {
+  services: ['USAF', 'ANG'],
+  items: [W3it('A', 'PSM', [100, 50]), W3it('B', 'AV', [80, 0])],
+  disc: [150, 60], mand: [50, 20], order: ['A', 'B'],
+};
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.24 item 163 — the folder no longer shares execution data, and a draw’s lane walk and destination list never serve a figure from before an edit';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, V163); W3base(ev);
+    // (1) the share is gone; the carried execution data is saved back byte for byte
+    // Live view drawn working out of a folder (the store on, which is when the button was drawn), then closed again
+    const live = ev(`(function(){ var c=liveCfg(), was=c.store; c.store=true; c.mode='drive'; liveOpen=true; try{ liveBody(); return document.getElementById('liveBody')? document.getElementById('liveBody').innerHTML : document.getElementById('livePanel').innerHTML; } finally { c.store=was; liveOpen=false; render(); } })()`);
+    chk(name, 'share', 'the shared folder’s execution share is gone: no push, no pull, and Live view working out of a folder offers no "share mine"',
+      J([ev(`typeof driveExecPush`), ev(`typeof driveExecPull`), /Loaded/.test(live), /share mine/.test(live)]),
+      J(['undefined', 'undefined', true, false]));
+    ev(`EXDB={ts:1700000000000, all:{om:{fy:2027, at:1700000000000, rows:{2027:[['FY27','JSF1','x','A title',5000]]}}}}; persistExdb(); 'ok'`);
+    const ex0 = ev(`JSON.stringify(EXDB)`);
+    const R = boot({ html: ev(`buildSavedHtml()`) });
+    chk(name, 'carried', 'CONTROL: a board file carrying execution data opens with it, byte for byte', R.ev(`JSON.stringify(EXDB)`), ex0);
+    // (2a) outside a draw: tiersDraw is a fresh walk every time, as tiers() is
+    chk(name, 'walk', 'outside a draw the walk is worked out every time (no cache): two calls, two walks, each the board’s own',
+      J([ev(`String(tiersDraw()!==tiersDraw())`), ev(`JSON.stringify(tiersDraw().A)===JSON.stringify(tiers().A)`)]), J(['true', true]));
+    // (2b) inside a draw: one walk, until something is saved -- then the new walk, showing the edit
+    const inPass = JSON.parse(ev(`(function(){ _rPass++; try{
+      var a=tiersDraw(), b=tiersDraw(), dA=a.A.d[0];
+      setFsrcSvc('A', 'd', 0, '40', {quiet:true}); save();   // the figure written and saved, with no redraw in between (a redraw starts its own walk)
+      var c=tiersDraw();
+      return JSON.stringify({same:a===b, before:dA, fresh:c!==a, after:c.A.d[0], truth:tiers().A.d[0]});
+    } finally { _rPass--; } })()`));
+    chk(name, 'walk', 'inside a draw: one walk serves every row; an edit saved during the draw gets a new walk showing it ($100 → $40, as the board now walks)',
+      J([inPass.same, inPass.before, inPass.fresh, inPass.after, inPass.truth]), J([true, 100, true, 40, 40]));
+    // (2c) a draw starts from nothing: a walk left from before (a year switched, nothing saved) is never served to its rows
+    const planted = JSON.parse(ev(`(function(){
+      var seen=0, seenAZ=0, calls=0, orig=tiersDraw, origAZ=flowEntsAZ, fake={A:{d:[0,0], m:[0,0], u:[0,0]}, B:{d:[0,0], m:[0,0], u:[0,0]}};
+      _rT=fake; _rTGen=_saveGen; _rAZ={gen:_saveGen, side:_sideGen, ents:DESTDB.ents, 0:[{k:'zz', n:'PLANTED'}]};
+      tiersDraw=function(){ var r=orig.apply(this, arguments); if(r===fake) seen++; return r; };
+      flowEntsAZ=function(){ var r=origAZ.apply(this, arguments); calls++; if(r.some(function(x){ return x.n==='PLANTED'; })) seenAZ++; return r; };
+      try{ render(); } finally { tiersDraw=orig; flowEntsAZ=origAZ; }
+      return JSON.stringify({seen:seen, seenAZ:seenAZ, calls:calls, after:_rT===null, rows:document.querySelectorAll('#list .row').length});
+    })()`));
+    chk(name, 'walk', 'a draw starts afresh: a walk or a destination list cached before it is never served to its rows, and nothing is kept after it',
+      J([planted.seen, planted.seenAZ, planted.calls > 0, planted.after, planted.rows > 0]), J([0, 0, true, true, true]));
+    // (2d) the destination list: inside a draw one sorted list; a destination renamed (the list written) is seen; a caller's copy is its own
+    const dz = JSON.parse(ev(`(function(){ _rPass++; try{
+      flowEntsAZ();   // the first call sorts and keeps the list; the next is served from what was kept
+      var a=flowEntsAZ(), n0=a.length; a.push({k:'junk', n:'JUNK'});
+      var b=flowEntsAZ(), i=0, was=flowEnts()[0].n;
+      // renamed through the destinations box's own setter, during the draw
+      flowSetEnt(i, 'n', 'Aardvark Depot (renamed)');
+      var c=flowEntsAZ(), seen={own:b.length===n0, renamed:c.some(function(x){ return x.n==='Aardvark Depot (renamed)'; }), first:c[0].n};
+      flowSetEnt(i, 'n', was);   // (read before this: the list holds the destinations themselves, as it always has)
+      return JSON.stringify(seen);
+    } finally { _rPass--; } })()`));
+    chk(name, 'destinations', 'inside a draw: a caller’s list is its own copy, and a destination renamed during the draw is seen, sorted first',
+      J([dz.own, dz.renamed, dz.first]), J([true, true, 'Aardvark Depot (renamed)']));
+    // a destination added during a draw by a write that does not redraw (the list and the plan saved, as Add a destination does
+    // before its redraw): the list the draw sorted before it is not served again
+    const dw = JSON.parse(ev(`(function(){ _rPass++; try{
+      var a=flowEntsAZ(), L=flowEnts();
+      L.push({k:'zz163', n:'Zulu Test Yard', kind:'other', t:''}); persistDest(); save();
+      var c=flowEntsAZ(), seen={before:a.some(function(x){ return x.k==='zz163'; }), after:c.some(function(x){ return x.k==='zz163'; }), last:c[c.length-1].n};
+      L.splice(L.findIndex(function(x){ return x.k==='zz163'; }), 1); persistDest(); save();
+      return JSON.stringify(seen);
+    } finally { _rPass--; } })()`));
+    chk(name, 'destinations', 'a destination added during a draw by a save with no redraw is in the next list, sorted last', J([dw.before, dw.after, dw.last]), J([false, true, 'Zulu Test Yard']));
+    chk(name, 'destinations', 'outside a draw the sorted list is worked out every time', ev(`String(flowEntsAZ()!==flowEntsAZ())`), 'true');
+    // and a list left kept outside a draw (keys all matching) is never served there: outside a draw nothing is read from the cache
+    chk(name, 'destinations', 'outside a draw a kept list is never served, even one whose keys all match',
+      ev(`(function(){ _rAZ={gen:_saveGen, side:_sideGen, ents:DESTDB.ents, 0:[{k:'zz', n:'PLANTED'}]};
+        try{ return String(flowEntsAZ().some(function(x){ return x.n==='PLANTED'; })); } finally { _rAZ={}; } })()`), 'false');
+    chk(name, 'errors', 'no page error', B.errors.length + R.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);
+  await _v223Settle();
+})();
+// ==== end v2.24 item 163 ====
 // ==== end v2.24 ====
 // ==== v2.24 item 162 ====
 // BUDGET YEAR, AND NO CCaR PULL TAKEN IN (item 162). Brad, 26 Nov 2026: "Keep spend plan forecast, CR Cash Needs, but remove the
