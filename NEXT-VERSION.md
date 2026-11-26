@@ -2,7 +2,7 @@
 
 Changes are logged here as they come up and built together as ONE version when Brad says **go**.
 Nothing on this list touches the board until then. On go: build every open item, run the full
-math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
+math gate once, bump the version once, push once, and move the items to `SHIPPED.md` under the version.
 
 Current version: **v2.23** (items 156, 158, 159; merged 26 Nov 2026, PR #85); **v2.24** (items 160–164: Allocate's Present in $K, the mandatory box's wording, Budget Year with no CCaR pull taken in, its screens restyled, dead code removed) is built, to merge when its gate passes; items 165–170 (the outside critique, 26 Nov) are logged; items 100 and 107 are withdrawn (no hosting: ORBIT runs locally); v2.22 (item 155, with 154 and 149.18–149.53) merged 25 Nov 2026 (PR #81); v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 

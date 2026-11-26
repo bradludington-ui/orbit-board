@@ -663,6 +663,31 @@ booted board): an addition trims or raises the budget on purpose. (history: v1.8
   "The PMO menu never opened")
 - **The suite's epsilon is 0.005 dollars**: scale anything printed in $M to dollars before comparing. (history: "Auditing the
   exports")
+- **A test fixture's time must be able to lose**: stamp one copy ahead of the other, or "newer than both" passes for any rule.
+  (history: v2.13)
+- **The reconciliation suite asserts arithmetic, never a board helper**: conservation (disc + mand + beyond + trim = ask, per
+  requirement and service), capacity (Σ draw ≤ BA per lane and service), cross-foot (every TOTAL is its rows), rows close, and
+  agreement across artefacts. The trace matrix's cells are `ok`, `MISMATCH` (fails, naming got and want) or `--` (the surface
+  does not state it: silence, not an error). (history: "Do the totals add up?", "The trace matrix")
+- **Suite order in the sweep is a cost decision, never a verdict**; equivalent mutations still run every sweep, because that is
+  the only way to see an equivalence go stale. (history: "What the run costs")
+
+### Small rules kept from the history (one line each)
+- Never read a label off another control's face: the order they are drawn in decides whether it is current. A message that
+  sends a reader somewhere names the place as it is now. (history: v2.18)
+- A cache moved to another cycle is worked out again (`baOf`) or marked stale, never carried; stamp a reason when the line is
+  recorded, never judge it later from the year as it stands. (history: v2.15)
+- An office with nothing in it is still listed, under its own heading. (history: "The offices are chosen in one place")
+- Every report that spans years files each year under the PMO that year assigns; the journal joins entries only within one
+  fiscal year. (history: v1.95 §54, §55)
+- In a year with mandatory off, exports keep their Mandatory columns at $0; under ◨ the mandatory pot reads *withheld*, never
+  "all drawn" or "$0 left". (history: v2.23, v2.22)
+- CSS: a `1fr` track cannot shrink below its content (`minmax(0,1fr)`); never give an ancestor of a `position:sticky` header
+  `overflow:auto`; `[onclick]` weighs as a class in specificity; `min-width` is ignored in a `table-layout:fixed` table (give
+  `width`). (history: "Layout is a correctness property", v1.77, "Photograph every panel")
+- **Open question, not a rule:** `p.d` is invariant under ◨, which is why the Spend Plan Source once needed no `[DISC-ONLY]`
+  mark; since v1.83 it also sends mandatory, and neither file says whether it must follow ◨ or carry the mark. Ask Brad before
+  changing it. (history: "The spend plan sends what DISCRETIONARY paid", v1.83)
 
 ---
 
