@@ -679,7 +679,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.24 — 26 Nov 2026: Allocate's Present prints $K; the mandatory box's wording; Budget Year, with no CCaR pull taken in; the Budget Year screens restyled; dead code and repeated work removed (items 160–164) -- built on Brad's words of 26 Nov (each item names its own); to merge when the gate passes ("merge v2.24 when it passes")
+### v2.24 — 26 Nov 2026: Allocate's Present prints $K; the mandatory box's wording; Budget Year, with no CCaR pull taken in; the Budget Year screens restyled; dead code and repeated work removed (items 160–164) -- built on Brad's words of 26 Nov (each item names its own); merged on his "merge v2.24 when it passes" once the gate passed
 ##### 160. Allocate's Present prints $K (Brad, 26 Nov 2026: "Print Present in $K")
 - **What he saw** (the v2.23 screens of 26 Nov): Present at 1920 with six services and mandatory on ran past the sheet's frame in whole
   dollars; USN was cut off and had to be scrolled to.
@@ -742,6 +742,13 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 - **Guard:** `node tools/export-delta.mjs --ref 0fa083c`: 2,096 figures, none moved; every suite whole; the browser checks (layout's
   carried D ×8 alone failing, as on main). **Checks:** audit-board "v2.24 item 163" (an edit between two draws, or a list written mid-draw,
   is never served from the cache); 7 `v224-163-*` mutations, 7 of 7 caught; 4 retired with the share (`v202-d4-*`).
+
+- **The gate (26 Nov, on `9a558f7`; the board byte-identical to `f5deb5e`):** the 42 `v224-*` mutations proved together on the final
+  tree, 42 of 42 caught by a failed check (`recovery/v224/proved-FINAL.jsonl`); `npm run validate:nightly`: every stage holds but the
+  browser stage, which fails on layout's carried D ×8 alone, as on main (defects 15 / 41; coverage 19/19; money map 245 cells, 97
+  proven, 148 n/a, 0 open; trace 74 cells; suites 51.4 min, 8 banners + legacy; fuzz seed 942022521; verify-file self-test held); and
+  the browser checks it does not reach, all passing: keys, dropdowns, dialogs, leftmenu, menus, panels, pmosave, savetarget,
+  fileimport, pmoyears, pointer, storagefull, standards (0 findings, nothing new), alloc, reqpage, across, record, look, palette. No sweep.
 
 ### v2.23 — 25 Nov 2026: the requirement as a page, Rank by band and the five-year chart (item 156); one requirement across the FYDP (item 158); Allocate every requirement in one year, and mandatory funding on or off (item 159) -- built on Brad's "Go on v2.23" of 25 Nov and his answers; merged on his "Merge it when it passes" of 26 Nov (PR #85)
 - **How it was built:** three builders to one contract (`recovery/v223/contract.md`): W1 the requirement page, Rank by band and

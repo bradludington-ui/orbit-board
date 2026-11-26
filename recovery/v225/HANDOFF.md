@@ -56,7 +56,7 @@ export, the chart of accounts and the AI review) and again in v2.24 (Budget Year
 |---|---|
 | Versions this lead shipped | v2.19 scope-down (PR #78), v2.20 copy a cycle's controls (#79), v2.21 APEX look (#80), v2.22 new look and tiles (#81), v2.23 the requirement page, Across the FYDP, Allocate and mandatory on/off (#85, `ea0a273`), v2.24 (this PR). v2.16–v2.18 were also this lead's. |
 | v2.24 (items 160–164) | Present in $K; the mandatory box's wording; Execution renamed **Budget Year** with only Spend Plan Forecast and CR Cash Needs, and no CCaR pull taken in (a pull in a file is carried, byte for byte); the two screens restyled; dead code and repeated work removed (`npm run deadcode`, one lane walk per draw). Detail: `NEXT-VERSION.md` › Shipped › v2.24; rules: `CLAUDE.md` › v2.24. |
-| v2.24's gate | All 42 `v224-*` mutations proved together on the final tree, 42 of 42 caught by a failed check (`recovery/v224/proved-FINAL.jsonl`). `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D ×8 alone, as on main (defects 15 / 41; coverage 19/19; money map 245 / 97 / 148 / 0; trace 74 cells; suites 51.4 min, 8 banners + legacy; fuzz seed 942022521; verify-file self-test held). The browser checks the gate does not reach: see the v2.24 notes for the final list. |
+| v2.24's gate | All 42 `v224-*` mutations proved together on the final tree, 42 of 42 caught by a failed check (`recovery/v224/proved-FINAL.jsonl`). `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D ×8 alone, as on main (defects 15 / 41; coverage 19/19; money map 245 / 97 / 148 / 0; trace 74 cells; suites 51.4 min, 8 banners + legacy; fuzz seed 942022521; verify-file self-test held). The 19 browser checks the gate does not reach all passed (standards 0 findings). |
 | Mutation targets | 3,602, each matching once. Never swept as a set since v1.99 (7 Oct); every version since has proved its own new and retargeted ones against their checks, then together on its final tree. Item 167 is the sweep, on Brad's named go only. |
 | Open PRs | None after v2.24 merges. |
 | Routines (`list_triggers`, 26 Nov) | **Nightly ORBIT math validation (no sweep)** 07:00 UTC; **Nightly ORBIT data-loss fuzz** 09:00 UTC; **Weekly ORBIT Interface Review** Mondays 08:00 UTC. (A fourth, "Ludington Around Town research", is not ORBIT's: leave it alone.) **Check the nightly validation's runs:** on 26 Nov it fired 07:02 and finished 07:03 UTC, a minute for a run that takes 45–75; it probably ended its turn without watching the gate finish, which its own prompt calls the worst result it can produce. Read that run's session (`cse_01XFu2twjYsi3AYTBn8npuWr`) before trusting a nightly pass, and tell Brad. |
@@ -152,7 +152,6 @@ v2.24 was smaller (one lead, two builders for items 162 / 164 and one for 163); 
 ## 8. What this file does not know
 
 - Whether the 26 Nov nightly Routine run reported a pass it did not watch (§3); read its session.
-- The browser checks' final results on the v2.24 tree were still running when this was written; the v2.24 notes record them.
 - Anything Brad holds outside git: real boards, the security team's correspondence, IT's records-management questions.
 
 ## 9. A starting message for the new chat (Brad can paste this)
