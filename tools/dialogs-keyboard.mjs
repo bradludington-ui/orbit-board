@@ -11,7 +11,7 @@
 //     box open with the text, and OK on Esc then closes it.
 // And one box opened from another: Esc closes the top one and hands the keyboard back to the one below.
 // v2.00 (menu, 19 Oct): most boxes open from the LEFT MENU now -- an item in one of its boxes (Reports & exports, Data,
-// Imports & exports) or flyouts (Setup, Program offices, Audit, History & recovery, FYDP, Execution, Save's ▾). Such a box is
+// Imports & exports) or flyouts (Setup, Program offices, Audit, History & recovery, FYDP, Budget Year, Save's ▾). Such a box is
 // opened the same way, by keyboard: the left-menu entry by Enter, a folded group by Enter on its heading, the item by Enter;
 // and closing it must leave the keyboard on that entry.
 //

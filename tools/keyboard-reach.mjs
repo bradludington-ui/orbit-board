@@ -382,14 +382,14 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 
 // ── G3. THE LEFT MENU'S FLYOUTS, FROM THE KEYBOARD (v2.00, menu) ─────────────────────────────────────────
 // What G holds every toolbar menu to, for each flyout that took a toolbar menu's items: Program offices, Audit, History &
-// recovery, Setup and Save's ▾, with FYDP and Execution; and G2's folded groups, for Setup's. Work kept aside is set, so
+// recovery, Setup and Save's ▾, with FYDP and Budget Year; and G2's folded groups, for Setup's. Work kept aside is set, so
 // History & recovery draws its items.
 {
   try {
     const { p, ctx, errs } = await open('review');
     await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = {}; _keptMeta = { t: Date.now(), why: 'folder' }; syncBtns(); });
     const FLY = await p.evaluate(() => (typeof UI_FLY !== 'undefined' ? UI_FLY : []).filter(k => { const e = document.getElementById('uiNav_' + k); return e && e.getClientRects().length; }));
-    chk('G3 · the left menu has its flyouts to check: FYDP, Execution, Program offices, Audit, History & recovery, Setup and Save’s ▾',
+    chk('G3 · the left menu has its flyouts to check: FYDP, Budget Year, Program offices, Audit, History & recovery, Setup and Save’s ▾',
       FLY.join() === 'fydp,exec,pmo,aud,hist,setup,save', FLY.join(', '));
     for (const k of FLY) {
       await p.evaluate(() => uiFlyClose());

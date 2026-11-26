@@ -1,0 +1,13 @@
+{"id": "v224-160-present-dollars", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-edit-in-k", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-k-floors", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-under-1k-zero", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-box-dollars", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-box-no-exact", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-header-dollars", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-row-total-dollars", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-pin-goal-dollars", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-tile-dollars", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-160-lane-goal-dollars", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-161-box-wording", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}
+{"id": "v224-161-status-wording", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-be1559ae.mjs", "detail": ""}

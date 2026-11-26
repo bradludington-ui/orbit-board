@@ -74,7 +74,9 @@ const WANT = {
   toggleDiag: 1,
   clearComputer: 1,       // v2.04 (item 106): Setup › Clear this computer…
   // Data
-  '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#budFile': 1, toggleBudReg: 1,
+  '#ccarFile': 1, '#budFile': 1, toggleBudReg: 1,
+  // v2.24 (item 162): '#srcFile' (the CCaR QPE import) and toggleExw (WBS from execution data) went with the pull ORBIT
+  // no longer takes
   // v2.19 (item 150): '#aceFile', toggleAce and aceRepShow removed with the Annual Cost Estimate
   // Reports & exports
   togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportCSV: 1,   // v2.05 (item 114): the deck, the synopsis and Executive Decision are gone
@@ -86,8 +88,10 @@ const WANT = {
   toggleFydp: 1, toggleP2: 1,
   // v2.19 (item 150): toggleSp, toggleFlow, toggleFdc and toggleFit removed with the Spruills, the Funds Flow, FYDP Disconnects
   // and Fit to the PPBE position (its figures are Needs attention's list of the overs)
-  // Execution ▸ (views only; ⚖ Reprogramming Actions, and the ATR/BTR log export above, went with the tracker in v2.02)
-  toggleEx: 1, toggleFc: 1, toggleCr: 1, toggleQpe: 1, toggleDiv: 1,
+  // Budget Year ▸ (views only; it was Execution ▸ until v2.24 -- ⚖ Reprogramming Actions, and the ATR/BTR log export above,
+  // went with the tracker in v2.02, and Active Year Execution (toggleEx), QPE coverage (toggleQpe) and ORBIT vs CCaR
+  // (toggleDiv) in v2.24, item 162)
+  toggleFc: 1, toggleCr: 1,
 };
 // The left menu's own furniture, which runs no action of the board's: opening and closing its entries and boxes, a group's
 // heading, the fold.
@@ -168,7 +172,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.15 W3: 73 -- Save as a new file… and Choose another file…, under the ▾ beside Save (item 146)
       // v2.19 (item 150): 59 -- 14 calls removed with the cost estimate, the Spruills, FYDP Disconnects, Fit to the PPBE position,
       // the Funds Flow, the Chart of Accounts, the IDS export, the ACE tie-out and the AI review
-      off.length === 0 && Object.keys(WANT).length === 59, off.slice(0, 12).join(' | '));
+      // v2.24 (item 162): 54 -- the CCaR QPE import, WBS from execution data, Active Year Execution, QPE coverage and ORBIT vs CCaR
+      off.length === 0 && Object.keys(WANT).length === 54, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();

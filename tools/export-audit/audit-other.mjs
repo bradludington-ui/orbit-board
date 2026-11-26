@@ -365,15 +365,13 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const { ev, errors } = boot();
   seed(ev, sc);
   if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
-  // D was pointed at a LEGACY name by hand; E at a CONG budget by hand. A carries CCaR JSF1, and the
-  // last pull files it under 1A9B -- the one fact that settles A's STOVL mandatory line, where two
-  // ordinary lane-less 1A9x names fit.
+  // D was pointed at a LEGACY name by hand; E at a CONG budget by hand. A's STOVL mandatory line has two ordinary lane-less
+  // 1A9x names that fit, and nothing in the rule decides between them: it is NOT SET until a person picks (v2.24, item 162,
+  // Brad, 26 Nov 2026: "Leave it as Not Set" -- the CCaR pull that used to decide is no longer read). A person picks 1A9B here.
   ev(`BUDDB={ts:1700000000009, files:[], rows:${JSON.stringify(OM.concat(FF))}.map(budParseName).filter(Boolean)};
       _budRegCache=null;
-      S.budgetAsg={D:{'USAF|disc':'USAF O&M- CAM'}, E:{'USAF|disc':'USAF O&M- CAM CONG AV'}};
-      S.ccar={A:'JSF1'};
-      globalThis.__dcs=divCcarSide; divCcarSide=function(){ return {by:{'JSF1':{buds:{'USMC STOVL O&M -1A9B AV':1}}}, rows:1}; };
-      _budCcMemo=null; 'ok'`);
+      S.budgetAsg={D:{'USAF|disc':'USAF O&M- CAM'}, E:{'USAF|disc':'USAF O&M- CAM CONG AV'}, A:{'STOVL|mand':'USMC STOVL O&M -1A9B AV'}};
+      'ok'`);
   // v1.92: D's LEGACY CHOICE STOPS THE FILE. The resolver calls it unusable, so the Spend Plan Source refuses --
   // it neither prints the name, nor blanks the line, nor puts the rule's answer in a person's place -- and says which.
   const refused = JSON.parse(ev(`(function(){ var built=false, msg='';
@@ -404,7 +402,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     [57,  'USAF O&M - ANG CAM Discretionary AV',   'ANG discretionary AV: the ANG Discretionary name'],
     [23,  'USAF O&M - ANG CAM OBBBA Mandatory AV', 'the same requirement’s ANG MANDATORY line: its own budget'],
     [37,  'USMC STOVL O&M -1A9A FL Discretionary AV', 'STOVL discretionary AV: the one Discretionary name'],
-    [13,  'USMC STOVL O&M -1A9B AV',               'STOVL mandatory AV: two lane-less names fit, never OCO; the CCaR pull decides'],
+    [13,  'USMC STOVL O&M -1A9B AV',               'STOVL mandatory AV: two lane-less names fit, never OCO; a person picks 1A9B'],
     [17,  'USAF O&M - ANG CAM OBBBA Mandatory MxS', 'ANG mandatory MxS: the Mandatory name'],
     [29,  'USAF O&M - ANG CAM CDS',                'ANG CDS: the office’s lane-less CAM name serves the mandatory line, never CONG'],
     [11,  'USAF O&M- CAM Discretionary PP',        'once the legacy choice is cleared, the rule answers D’s line'],
@@ -427,10 +425,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'pick list', 'but never a legacy name', pick.some(n => !JSON.parse(ev(`JSON.stringify(!!(budParseName(${JSON.stringify(n)})||{}).pmo)`))), false);
   chk(name, 'pick list', 'and a mandatory line is never offered a Discretionary name',
     JSON.parse(ev(`JSON.stringify(budPickList('A','ANG','mand').filter(function(b){ return b.dm==='disc'; }).length)`)), 0);
-  // THE WARNING COMES BEFORE THE FILE. Without the CCaR pull, A's STOVL mandatory line has two lane-less names
+  // THE WARNING COMES BEFORE THE FILE. Without the hand pick, A's STOVL mandatory line has two lane-less names
   // and nothing to decide between them, so it has no budget: the export must stop and ask -- and when the answer
   // is no, no workbook is built at all. (A line with NO choice asks; a line whose CHOICE cannot be used refuses.)
-  ev(`divCcarSide=globalThis.__dcs; _budCcMemo=null; 'ok'`);
+  ev(`delete S.budgetAsg.A; save(); 'ok'`);
   const warned = JSON.parse(ev(`(function(){ var built=false, msg='';
     var oc=window.confirm; window.confirm=function(m){ msg=String(m); return false; };
     if(!globalThis.__ob5) globalThis.__ob5=buildXlsx;
@@ -556,17 +554,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'rule', 'a line the rule settles says so, naming the budget the file prints', ud.how + ' · ' + ud.first + ' · ' + ud.name,
     'rule · — keep the rule — · ' + DISC_AV);
   const sm = a.rows.find(r => r.svc === 'STOVL' && r.lane === 'mandatory') || {};
-  chk(name, 'not set', 'two lane-less names fit STOVL mandatory and no CCaR settles it: not set', sm.how, 'unset');
+  chk(name, 'not set', 'two lane-less names fit STOVL mandatory and nothing settles it: not set', sm.how, 'unset');
   chk(name, 'not set', 'and the file leaves that $13 line blank', onFile(13), '');
   agree('start');
-  // FROM CCaR: the panel says what the file does
-  ev(`S.ccar.A='JSF1'; globalThis.__dcs7=divCcarSide;
-      divCcarSide=function(){ return {by:{'JSF1':{buds:{'USMC STOVL O&M -1A9B AV':1}}}, rows:1}; };
-      _budCcMemo=null; save(); render(); 'ok'`);
-  const sc2 = panel('A').rows.find(r => r.svc === 'STOVL' && r.lane === 'mandatory') || {};
-  chk(name, 'from CCaR', 'the CCaR pull settles STOVL mandatory, and the panel says so', sc2.how + ' · ' + onFile(13),
-    'ccar · USMC STOVL O&M -1A9B AV');
-  agree('from CCaR');
+  // FROM CCaR: retired in v2.24 (item 162, Brad, 26 Nov 2026: "Leave it as Not Set") -- the CCaR pull no longer settles a line
   // v1.92: CHOICES THE RESOLVER CANNOT USE -- a legacy name left by an older board, a retired name, another
   // office's budget -- stay chosen, are SHOWN for what they are (never "back to the rule" while the file printed
   // the stored name), and stop the Spend Plan Source. Nothing falls back to the rule on its own.
@@ -604,7 +595,6 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'invalid', '“back to the rule” clears the stored key, and the file is made with the rule’s answer',
     choose('D', line('USAF discretionary'), '') + ' · ' + asg('D') + ' · ' + srcRefused() + ' · ' + onFile(11), 'ok · null · made · USAF O&M- CAM Discretionary PP');
   agree('invalid choices cleared');
-  ev(`divCcarSide=globalThis.__dcs7; _budCcMemo=null; S.ccar={}; save(); render(); 'ok'`);
 
   // A CHOICE WITH NO MONEY YET, then the money
   chk(name, 'unfunded', 'the unfunded line takes a budget from its picker', choose('F', line('USAF not funded yet'), CONG_AV), 'ok');
@@ -979,7 +969,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   ev(`toggleCr(); dlgSync(); 'ok'`);
   const m = JSON.parse(ev(`(function(){ var m=document.querySelector('#crPanel .modal');
     return JSON.stringify([m.getAttribute('role'), m.getAttribute('aria-modal'), m.getAttribute('aria-label'), m.getAttribute('tabindex')]); })()`));
-  chk(name, 'named', 'the CR box is a modal dialog named from its heading, not its ✕ Close', J(m.slice(0, 2)) + ' ' + m[3] + ' ' + /^⚖ CONTINUING RESOLUTION/.test(m[2]) + ' ' + /Close/.test(m[2]), '["dialog","true"] -1 true false');
+  // v2.24 (item 164): the heading is plain now, "Continuing resolution cash needs · Oct – Mar"
+  chk(name, 'named', 'the CR box is a modal dialog named from its heading, not its ✕ Close', J(m.slice(0, 2)) + ' ' + m[3] + ' ' + /^Continuing resolution cash needs/.test(m[2]) + ' ' + /Close/.test(m[2]), '["dialog","true"] -1 true false');
   let st = state();
   chk(name, 'inert', 'every other part of the page is inert while the box is up, the box itself is not',
     J([st.stack, st.inert.length > 3, st.inert.includes('crPanel'), ev(`!!document.querySelector('.hdr, header') && (document.querySelector('.hdr, header').closest('[inert]')!==null)`)]), J([['crPanel'], true, false, true]));
@@ -1346,8 +1337,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const NOHOUSE = /^(exportSrc|crExport)$/;
   chk(name, 'which reports', 'every report workbook asks for the house style but the Spend Plan Source and the 1A9A, which CCaR and the comptroller read in',
     J(calls.filter(c => c[1] === NOHOUSE.test(c[0])).map(c => c[0])), '[]');
-  chk(name, 'which reports', 'and the list is the nine reports that write a workbook and the two that do not',
-    calls.length, 11);
+  // v2.24 (item 162): Active Year Execution's workbook (exportExView) went with the view: ten
+  chk(name, 'which reports', 'and the list is the eight reports that write a workbook and the two that do not',
+    calls.length, 10);
   ev(`blLock('PB|'+MS.cur, false); blDelete('PB|'+MS.cur); 'ok'`);
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
@@ -2780,8 +2772,7 @@ await (async () => {
     const fmt = l => [l.id, l.key, l.amt, l.w].join(' · ');
     chk(name, 'lines', 'every line: requirement, service and lane, amount and WBS -- a line per paragraph, the unassigned part on a line with the column blank',
       J(got.map(fmt).sort()), J(W.map(w => w.join(' · ')).sort()));
-    chk(name, 'lines', 'each line’s WBS reads back to its code (srcWbsPara, as WBS from execution data reads the column)',
-      X.ev(`JSON.stringify(${J(got.map(l => l.w))}.map(srcWbsPara))`), J(got.map(l => l.w.split(' - ')[0])));
+    // (v2.24, item 162: the check that each line's WBS read back through srcWbsPara went with WBS from execution data, its only reader)
     // THE LINES ADD UP TO THE LINE THEY REPLACE: per requirement, service and lane, what the lane paid
     const T = JSON.parse(X.ev(`JSON.stringify(tiers())`));
     ['A', 'B', 'C', 'P'].forEach(id => ['USAF', 'ANG'].forEach((sv, i) => ['disc', 'mand'].forEach(ln => {

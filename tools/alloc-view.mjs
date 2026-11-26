@@ -117,6 +117,15 @@ try {
       pres: document.getElementById('allocView').classList.contains('avpres') }; });
   chk('B · 1920: Present is the same Sheet, read only (no box, no field), in larger type', ty.pres && ty.ro && ty.inputs === 0 && ty.font >= 15, JSON.stringify(ty));
   chk('B · 1920: nothing cut, no sideways scroll of the page', f.pageSide <= 0 && f.nCut === 0 && f.right <= f.W, JSON.stringify(f));
+  // v2.24 (item 160, Brad: "Print Present in $K"): six services with mandatory on fit the room's screen -- the sheet's own frame does not
+  // scroll sideways either (v2.23 printed whole dollars and USN ran past the frame) -- and every figure printed reads in $K
+  const k = await p.evaluate(() => { const fr = document.querySelector('#allocView .avscroll'), t = fr.querySelector('table');
+    const figs = [...document.querySelectorAll('#allocView .avro, #allocView .avs td:not(.t):not(.n):not(:first-child), #allocView .avt .v')].filter(e => !e.querySelector('.avro')).map(e => e.textContent.trim()).filter(x => /\d/.test(x) && !/%$/.test(x));
+    return { frame: fr.clientWidth, table: t.scrollWidth, svc: document.querySelectorAll('#allocView .avs th.sv').length,
+      mand: !!document.querySelector('#allocView .avs th.sv') && /Mand/.test(document.querySelector('#allocView .avs thead').textContent),
+      n: figs.length, notK: figs.filter(x => !/^−?(\$[\d,]+K|<\$1K)$/.test(x)).slice(0, 4) }; });
+  chk('B · 1920: Present with six services and mandatory on fits: the sheet’s frame does not scroll sideways', k.svc === 6 && k.mand && k.table <= k.frame + 1, JSON.stringify(k));
+  chk('B · 1920: every figure Present prints reads in $K', k.n > 100 && k.notK.length === 0, JSON.stringify({ n: k.n, notK: k.notK }));
   await shot(p, 'present-1920');
   await press(p, '#allocView .avbar .avgrp:nth-of-type(1) button:nth-child(2)', 400);
   await shot(p, 'present-lane-1920');
