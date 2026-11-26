@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.23** (items 156, 158, 159; merged 26 Nov 2026, PR #85); **v2.24** (items 160, 161: Allocate's Present in $K, and the mandatory box's wording) is built, its merge waiting on Brad's word; v2.22 (item 155, with 154 and 149.18–149.53) merged 25 Nov 2026 (PR #81); v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
+Current version: **v2.23** (items 156, 158, 159; merged 26 Nov 2026, PR #85); **v2.24** (items 160–164: Allocate's Present in $K, the mandatory box's wording, Budget Year with no CCaR pull taken in, its screens restyled, dead code removed) is built, to merge when its gate passes; items 165–170 (the outside critique, 26 Nov) are logged; items 100 and 107 are withdrawn (no hosting: ORBIT runs locally); v2.22 (item 155, with 154 and 149.18–149.53) merged 25 Nov 2026 (PR #81); v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 
 ## Open
 
@@ -27,7 +27,7 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
 - **The older "your call" behaviours stay as built:** a kept PPBE cycle freezes its services; the ACE alignment breakout shows the
   allocation; the RCN-EEIC tab prorates a split prime's ask by the CLIN allocation; FYDP Disconnects' workbook prints — without
   saying why.
-- **Items 100 and 107 (Azure):** left until hosting is chosen.
+- **Items 100 and 107 (Azure):** left until hosting is chosen. *(26 Nov 2026: both withdrawn, Brad: "I have no plans to host on SharePoint or azure. I will run locally and own all data and information.")*
 
 #### Brad's go of 25 Nov 2026: ORBIT, modernized, in three versions (items 155-157)
 Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eSaH3rFcjEygq, eight screens, invented figures):
@@ -45,6 +45,80 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **What changed since a locked cycle:** before-and-after tiles, a bridge of why unfunded moved (added, values changed, rank
   moves, removed) whose steps add exactly to the change, and the change list with who and when, from cycCmpData and the
   journal.
+
+#### Brad's word of 26 Nov 2026: the outside critique, logged (items 165-170)
+Brad, 26 Nov 2026, asked for a critique of ORBIT from the outside, then: *"Log all of these as items except #5. I have no plans to
+host on SharePoint or azure. I will run locally and own all data and information."* So **the local file is the product**: it is
+not a pilot waiting for a hosted build. Items 100 and 107 are withdrawn (see Withdrawn), and item 106 is the file's own
+hardening, no longer a stopgap. Each item below waits for his go, as every item does.
+
+#### 165. The project notes cut to what is true now (no board change)
+- **Why:** `CLAUDE.md` is 470 KB and `NEXT-VERSION.md` 1.1 MB (26 Nov 2026). Every session reads `CLAUDE.md` whole before it
+  starts, so the history of why each rule exists now competes with the rules for attention, and every change pays for it.
+- **What:** `CLAUDE.md` becomes the current rulebook, about 15 pages: the funding model and its identities, how the file
+  saves, the data-loss rules, the checks to run and the house style, each rule stated once as it is now. The version sections
+  move to `HISTORY.md`, which nothing loads automatically, and each rule in the rulebook names the history section that
+  explains it. `NEXT-VERSION.md` keeps Open, Later and Withdrawn; Shipped moves to `SHIPPED.md`.
+- **Also:** every rule that rests on the Azure build is restated for a local-only tool (see Withdrawn, items 100 and 107).
+- **Proof:** no rule is lost: a list of every rule in today's `CLAUDE.md`, each marked kept (where), merged (into which) or
+  history only (why), given to Brad with the change. Nothing in the board or the tools changes; no tool reads these files.
+
+#### 166. A release check sized to the change (tooling only)
+- **Why:** every version runs the same check, about an hour of suites and browser checks before any mutation proof, whether
+  it changes a word or the lane engine. Small requests wait half a day for it.
+- **What:** three tiers, chosen by what the change touches, and the tier named in the commit and the notes:
+  1. **Wording or look:** `npm run check`, the blocks nearest the change, and the browser checks.
+  2. **A screen's behaviour:** tier 1, plus every suite that covers that screen, run whole.
+  3. **Money or saving data:** the full gate, as today.
+  A tool (`npm run tier`) reads the diff and says the least tier it allows: anything touching `tiers()`, the money helpers, an
+  export, `buildSavedHtml`, an import door or storage is tier 3, and a change cannot claim a lower tier than the tool says.
+- **Proof:** the tool's classification is checked against the last ten versions' diffs, each of which had a known kind.
+
+#### 167. One mutation sweep, scheduled (tooling only; runs only on Brad's named go)
+- **Why:** about 2,500 planted mistakes added since v2.00 have each been proven against their own check, never as a set. Until
+  they are swept together, "every check bites" is a claim measured one at a time.
+- **What:** one full sweep after v2.24 merges, on a committed tree, in saved batches that survive a container restart
+  (`sweep-shards.mjs`), nothing else running; it reports and changes nothing. A survivor is a gap: logged as an item with
+  the check it needs. After that, a sweep of just the new mutations before each money or data-loss release (tier 3).
+- **Needs:** Brad's named go for the run itself (the rule of 20 Oct 2026 stands).
+
+#### 168. Certify this board, from inside the board
+- **Why:** the strongest check of a real board (`npm run verify:file`: it loads, it saves and reopens whole, every lane
+  identity holds, every printed total adds up) runs only from a developer's command line. The person briefing a board, or
+  leadership asking whether a figure can be trusted, has no way to run it.
+- **What:** **Certify this board** under Reports & exports: runs the same checks in the page on the board on screen and writes
+  a one-page, dated certificate (a workbook tab and a printable page) naming the file, the build, the appropriations and years
+  checked, and each check with its result: the file reopens with every value, every requirement's lanes add to its value per
+  service, no lane is drawn past its budget, every export's totals add to their rows and agree with the screen. A failure
+  names the requirement and the figure. Nothing is changed by running it.
+- **One implementation:** the checks move out of `verify-file.mjs` into the board, and `verify:file` calls the board's, so the
+  command line and the button cannot disagree.
+- **Fits with item 157** (the leadership brief): the brief can carry the certificate's date and result.
+
+#### 169. Watch it used, and count what is used (the count stays on this computer)
+- **Why:** the Help guide is at its 70,000-character limit and many screens carry warnings and questions: signs the tool may be
+  harder to learn than it needs to be. Nothing today says which actions anyone uses.
+- **What:** (a) Brad watches one programme office fill in and submit a PMO copy, and one leader read the Funding page, for 30
+  minutes each, and notes where each hesitates; what he sees becomes items. (b) An optional count of how often each left-menu
+  item and each box is opened, kept in this browser only (`spmtUsage`, never in the file, never sent), shown under Setup with
+  a Clear button, and reported by Save diagnostics only if he chooses. It counts actions, never figures or names.
+- **Use:** after a month of real use, anything opened rarely or never is a candidate to retire, as item 150 did.
+
+#### 170. A second person can run ORBIT (a runbook, no code)
+- **Why:** today ORBIT depends on Brad and these sessions. Nobody else could publish the PMO copies, take the submittals, lock a
+  cycle or roll the year if he were away.
+- **What:** a two-page runbook for a named second person, in plain steps with the menu paths as the board shows them: open and
+  save the board, certify it (item 168), publish and take PMO copies, lock and retag a cycle, roll the year, import the BAE
+  extract and the CCaR records list, and what to do when Save refuses or a file will not open. It goes inside the Help guide
+  (or beside it, if the guide's size limit is the obstacle), and `npm run menus` checks every path it names.
+- **Proof:** the second person does each step once from the runbook alone, with Brad watching.
+
+#### 171. Help stops promising a hosted version (found logging items 165-170)
+- **Why:** the guide's PPBE cycles section says *"The Azure version will enforce the role."* With no hosted build (items 100
+  and 107 withdrawn) that is no longer true, and a reader would wait for something that is not coming.
+- **What:** the sentence says what is true: who can lock is not checked by the file; the guard is who can write to the
+  board's folder. Two code comments that name the Azure build (the Content-Security-Policy's, and the removed transports')
+  say the same. Wording only; any small version can carry it.
 
 #### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
 - **149.18–149.53 were built in v2.22** (folded into item 155 on Brad's go of 25 Nov); see Shipped › v2.22.
@@ -218,57 +292,6 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
   on folder copies cannot certify older readers as safe. The RCN-EEIC tab's ask for a split prime stays for review, because
   showing each CLIN's own request changes what the ask column means.
 
-#### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
-- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
-  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
-  Not in the v2.00 code build; it follows once they answer.
-- **Brad, 21 Oct 2026 (answers that move this item):** hosting is **Azure, web-based**; the data is **unclassified CUI**; the
-  interim pilot restrictions stand for now; and on how strictly to read the requirements, **"err on the side of
-  caution"** -- so every control is treated as applying unless the security team rules it out, a partial is recorded
-  as a gap, and the hosted design aims at the stricter cloud level the security team names (the handoff says IL5) rather
-  than the least that might pass. The plan that follows from these is items 106 and 107; the traceability table itself
-  stays outside git (CUI).
-- **The security team's request (9 Oct 2026, shown by Brad on 21 Oct):** apply the standards above "to ensure this is
-  compatible in the DoD IL5 Azure environment and meets or exceed the DoD Zero Trust requirements". So the level is
-  **IL5** (not IL4), and **DoD Zero Trust** is a requirement in its own right. A file that is its own database, opened
-  from a shared drive and mailed as a PMO copy, cannot meet Zero Trust: there is no identity on each request, no device
-  check, and the data travels whole outside any control. Zero Trust is therefore met by the Azure build (item 107).
-- **Brad, 21 Oct 2026:** *"For the desktop platform we currently have we do not need to meet these requirements. These
-  requirements are for the eventual web based azure hosted application."* The file keeps running as the pilot under the
-  interim restrictions; the standards above, IL5 and Zero Trust apply to item 107 only. Item 106 moved to Later.
-
-#### 107. The Azure web build (Brad, 21 Oct 2026: Azure, web-based, CUI)
-- **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
-  sanitization cannot be built into a file on a shared drive. On Azure they come from the platform -- if the design
-  uses them.
-- **What (design first, for Brad and the security team to approve before any build):** sign-in through enterprise
-  identity (CAC), with roles for viewer, office editor and portfolio team; every change written to the enclave's central
-  log; data held server-side, encrypted, backed up; the provider's sanitization for storage. The money engine, the
-  exports and every check carry over: the suites, the trace matrix, the money map and the fuzz become the rebuild's
-  regression net. "The file is its own database" ends here; the saved-file format stays readable so every board people
-  hold today can be brought in.
-- **Zero Trust, pillar by pillar (the security team's 9 Oct request):** every request signed in and authorized, never
-  trusted for being inside the network (user); only managed, compliant devices (device); the app reachable only through
-  the enclave, no public endpoint (network); the data labelled CUI, encrypted under keys the program controls, and every
-  export marked and logged (data); every access and change sent to the enclave's monitoring (visibility); and the
-  deployment and its checks automated (automation). **The PMO copy changes most:** in place of a whole-portfolio file
-  mailed to each office, an office signs in and sees and edits only what its role allows, and its submittal is a change
-  held for review on the server.
-- **Depends on:** the controls the IL5 environment provides (what is inherited), the security team's Zero Trust target
-  for this system, and the hosting milestones.
-- **Brad, 21 Oct 2026:** *"Let's start working a plan and drafting it so that when we're ready to execute it we're
-  ready."* Design and execution plan, draft 1, written that day and given to Brad as a file. It is kept OUTSIDE git (it
-  describes the security design of a CUI system). Its shape, for the record: re-host the current interface first, then
-  move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
-  line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
-  D+180, then cutover after authorization); eight questions for the security team.
-- **Brad, 2 Nov 2026 (v2.13's question 4):** nobody works out of the shared folder today; on Azure everyone works in one hosted
-  environment. A PPBE cycle chosen there moves every appropriation for everyone at once, which the shared folder cannot do
-  (each folder copy is saved only by its own board).
-- **Brad, 22 Oct 2026 (with items 110-111):** the file's outside connections were removed "for now"; "once we build the azure
-  update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
-  server-side under the user's sign-in, with a policy that allows exactly those services.
-
 #### 131. Found while building v2.10, not built
 Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none is a regression of v2.10's.
 - ~~A service in no group reaches the Summary only, and the workbook does not say so~~ -- **built in v2.11** (Brad, 27 Oct:
@@ -436,6 +459,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   choke points make that one change); and an independent static-analysis scan of the board and the tools, every
   finding fixed or written down, plus `npm audit` for the test tooling.
 - **Proof:** each change ships with a check that fails without it, as every version does.
+- **Brad, 26 Nov 2026:** no hosted build follows (items 100 and 107 withdrawn), so this is the file's own hardening, not a stopgap. Built since: the Content-Security-Policy and Clear this computer (v2.04), the CUI line (v2.21). Still open: SHA-256 fingerprints, the hash-chained journal, CUI marks on every export, the static-analysis scan.
 - **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
   Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
 
@@ -470,6 +494,61 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   requirements is 4.4 MB, and the check takes files up to 64 MB.
 
 ## Withdrawn
+
+### 100. DoD security standards for the IL5 Azure environment (withdrawn 26 Nov 2026)
+*Withdrawn 26 Nov 2026, Brad: "I have no plans to host on SharePoint or azure. I will run locally and own all data and information."* ORBIT stays one local file; no hosted build follows, so the IL5 and Zero Trust requirements below, which applied only to the hosted build, have no system to apply to. What the local file needs is item 106. Kept as logged, for the record:
+
+- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
+  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
+  Not in the v2.00 code build; it follows once they answer.
+- **Brad, 21 Oct 2026 (answers that move this item):** hosting is **Azure, web-based**; the data is **unclassified CUI**; the
+  interim pilot restrictions stand for now; and on how strictly to read the requirements, **"err on the side of
+  caution"** -- so every control is treated as applying unless the security team rules it out, a partial is recorded
+  as a gap, and the hosted design aims at the stricter cloud level the security team names (the handoff says IL5) rather
+  than the least that might pass. The plan that follows from these is items 106 and 107; the traceability table itself
+  stays outside git (CUI).
+- **The security team's request (9 Oct 2026, shown by Brad on 21 Oct):** apply the standards above "to ensure this is
+  compatible in the DoD IL5 Azure environment and meets or exceed the DoD Zero Trust requirements". So the level is
+  **IL5** (not IL4), and **DoD Zero Trust** is a requirement in its own right. A file that is its own database, opened
+  from a shared drive and mailed as a PMO copy, cannot meet Zero Trust: there is no identity on each request, no device
+  check, and the data travels whole outside any control. Zero Trust is therefore met by the Azure build (item 107).
+- **Brad, 21 Oct 2026:** *"For the desktop platform we currently have we do not need to meet these requirements. These
+  requirements are for the eventual web based azure hosted application."* The file keeps running as the pilot under the
+  interim restrictions; the standards above, IL5 and Zero Trust apply to item 107 only. Item 106 moved to Later.
+
+### 107. The Azure web build (withdrawn 26 Nov 2026)
+*Withdrawn 26 Nov 2026, Brad: "I have no plans to host on SharePoint or azure. I will run locally and own all data and information."* ORBIT stays one local file; no hosted build follows, so the IL5 and Zero Trust requirements below, which applied only to the hosted build, have no system to apply to. What the local file needs is item 106. Kept as logged, for the record:
+
+- **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
+  sanitization cannot be built into a file on a shared drive. On Azure they come from the platform -- if the design
+  uses them.
+- **What (design first, for Brad and the security team to approve before any build):** sign-in through enterprise
+  identity (CAC), with roles for viewer, office editor and portfolio team; every change written to the enclave's central
+  log; data held server-side, encrypted, backed up; the provider's sanitization for storage. The money engine, the
+  exports and every check carry over: the suites, the trace matrix, the money map and the fuzz become the rebuild's
+  regression net. "The file is its own database" ends here; the saved-file format stays readable so every board people
+  hold today can be brought in.
+- **Zero Trust, pillar by pillar (the security team's 9 Oct request):** every request signed in and authorized, never
+  trusted for being inside the network (user); only managed, compliant devices (device); the app reachable only through
+  the enclave, no public endpoint (network); the data labelled CUI, encrypted under keys the program controls, and every
+  export marked and logged (data); every access and change sent to the enclave's monitoring (visibility); and the
+  deployment and its checks automated (automation). **The PMO copy changes most:** in place of a whole-portfolio file
+  mailed to each office, an office signs in and sees and edits only what its role allows, and its submittal is a change
+  held for review on the server.
+- **Depends on:** the controls the IL5 environment provides (what is inherited), the security team's Zero Trust target
+  for this system, and the hosting milestones.
+- **Brad, 21 Oct 2026:** *"Let's start working a plan and drafting it so that when we're ready to execute it we're
+  ready."* Design and execution plan, draft 1, written that day and given to Brad as a file. It is kept OUTSIDE git (it
+  describes the security design of a CUI system). Its shape, for the record: re-host the current interface first, then
+  move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
+  line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
+  D+180, then cutover after authorization); eight questions for the security team.
+- **Brad, 2 Nov 2026 (v2.13's question 4):** nobody works out of the shared folder today; on Azure everyone works in one hosted
+  environment. A PPBE cycle chosen there moves every appropriation for everyone at once, which the shared folder cannot do
+  (each folder copy is saved only by its own board).
+- **Brad, 22 Oct 2026 (with items 110-111):** the file's outside connections were removed "for now"; "once we build the azure
+  update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
+  server-side under the user's sign-in, with a policy that allows exactly those services.
 
 ### 133. The Service share workbook (withdrawn 24 Nov 2026, Brad: item 150 removes the cost estimate it was built on)
 *As logged (Brad, 28 Oct 2026):*
