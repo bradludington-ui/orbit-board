@@ -2441,6 +2441,40 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 <style id="v223rvc">
 /* v2.23 review RV-C */
 </style>
+<style id="v224by">
+/* v2.24 (item 164, Brad, 26 Nov 2026: "Simplicity but professional"): the two Budget Year boxes, Spend Plan Forecast and CR Cash
+   Needs. One quiet table: right-aligned figures in even-width digits and the page's ink; an empty cell is blank; Unscheduled / No date
+   and the total set apart by a thin rule, never by colour; TOTAL the APEX navy with white in EVERY cell (v2.21-v2.23 left the TOTAL
+   and Unscheduled cells in their inline gold and amber, unreadable on navy); Cumulative a light row of its own. Scoped to .bytab, so
+   no other box's .fctab moves. */
+.byhd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.bysw{display:inline-flex;border:1px solid var(--edge);border-radius:8px;overflow:hidden}
+.bysw button{font:inherit;font-size:12.5px;font-weight:600;padding:4px 12px;min-height:28px;border:0;background:var(--panel);color:var(--ink);cursor:pointer}
+.bysw button+button{border-left:1px solid var(--edge)}
+.bysw button[aria-pressed="true"]{background:var(--apxNav);color:#fff}
+.bysw button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.byh4{font-size:12.5px;font-weight:700;color:var(--mut);margin:14px 0 6px;letter-spacing:0;text-transform:none}
+.byh4:first-child{margin-top:2px}
+html.ui-on .fctab.bytab{font-size:12px}
+html.ui-on .fctab.bytab th{background:var(--panel2);color:var(--mut);font-size:11px;font-weight:700;letter-spacing:0;text-align:right;padding:6px 8px;border:0;border-bottom:1px solid var(--line2)}
+html.ui-on .fctab.bytab th:first-child{text-align:left}
+html.ui-on .fctab.bytab td{padding:6px 8px;border:0;border-bottom:1px solid var(--lineSoft);color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+html.ui-on .fctab.bytab td:first-child{text-align:left;font-weight:600}
+html.ui-on .fctab.bytab .bysep{border-left:1px solid var(--line2)}
+html.ui-on .fctab.bytab tr.tot td{background:var(--apxNav);color:#fff;font-weight:700;border-bottom:0}
+html.ui-on .fctab.bytab tr.cum td{background:var(--panel2);color:var(--ink);font-weight:600;border-bottom:0}
+html.ui-on .fctab.bytab tr.bysub td{color:var(--mut);font-size:11.5px}
+html.ui-on .fctab.bytab tr.bysub td:first-child{padding-left:28px;font-weight:400}
+.byx{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:2px 6px;margin:-2px -6px;border:0;border-radius:4px;background:none;color:var(--ink);font:inherit;font-weight:700;cursor:pointer;text-align:left}
+.byx:hover{background:var(--panel2)}
+.byx:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.byx .chev{display:inline-block;width:10px;color:var(--mut)}
+.byx .n{color:var(--mut);font-weight:400;font-size:11px}
+.bynote{font-size:12px;color:var(--mut);margin:10px 0 0}
+.byhow{margin-top:6px;font-size:12px;color:var(--mut)}
+.byhow summary{cursor:pointer;color:var(--ink);font-weight:600;min-height:24px;line-height:24px}
+.byhow p{margin:4px 0 0;max-width:110ch}
+</style>
 <style id="v223rvd">
 /* v2.23 review RV-D */
 </style>
@@ -3120,14 +3154,14 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 
 <div class="modal-bg" id="crPanel" onclick="if(event.target===this)toggleCr()">
   <div class="modal" style="width:1280px;max-width:97vw">
-    <h3><span id="crTitle">⚖ CONTINUING RESOLUTION — CASH NEEDS BY HALF-MONTH (OCT – MAR)</span> <button class="x" onclick="toggleCr()">✕ Close</button></h3>
+    <h3><span id="crTitle">Continuing resolution cash needs · Oct – Mar</span> <button class="x" onclick="toggleCr()">✕ Close</button></h3>
     <div id="crBody"></div>
   </div>
 </div>
 
 <div class="modal-bg" id="fcPanel" onclick="if(event.target===this)toggleFc()">
   <div class="modal" style="width:1240px;max-width:96vw">
-    <h3><span id="fcTitle">📅 FY27 PROJECTED SPEND PLAN FORECAST — OCT 2026 – SEP 2027</span> <span id="fcCtl" class="fcctl"></span> <button class="x" onclick="toggleFc()">✕ Close</button></h3>
+    <h3><span id="fcTitle">FY27 spend plan forecast · Oct 2026 – Sep 2027</span> <span id="fcCtl" class="fcctl"></span> <button class="x" onclick="toggleFc()">✕ Close</button></h3>
     <div id="fcBody"></div>
   </div>
 </div>
@@ -24579,31 +24613,30 @@ function crBody(){
         +' \u00b7 '+fM2(e.amt)+' <button type="button" class="nb lnk" onclick="crGo('+jsa(e.id)+')">Go to it</button></div>'; }).join('')
     +'<div style="margin-top:6px"><button type="button" class="btn" style="font-size:10px;padding:4px 10px" onclick="crClearOldMarks()">'
     +'\u2713 The dates are right \u2014 clear the old marks</button></div></div>' : '';
-  const hd='<tr><th style="text-align:left">'+(crBy==='svc'?'Service':'PMO')+'</th>'+wins.map(w=>'<th>'+w.lbl+'</th>').join('')+'<th style="border-left:1px solid var(--amber)">No date</th>'
-    +'<th style="border-left:1px solid var(--gold)" title="Funded dollars with an obligation date inside the CR window. '
-    +'Excludes the No date column and anything obligating after March.">TOTAL IN WINDOW</th></tr>';
-  const cell=v=>'<td>'+(v>5e3?fM2(v):'\u2014')+'</td>';
-  let h=moved+'<div style="margin-bottom:6px">'
-    +'<button class="btn '+(crMode==='half'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crMode=\'half\';render()">Half-month</button> '
-    +'<button class="btn '+(crMode==='month'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crMode=\'month\';render()">Full month</button>'
-    +'&nbsp;&nbsp;<button class="btn '+(crBy==='svc'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crBy=\'svc\';render()">By Service</button> '
-    +'<button class="btn '+(crBy==='pmo'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crBy=\'pmo\';render()">By PMO</button></div>'
-    +(crBy==='pmo'? '<div class="hint" style="margin-bottom:6px">'+esc(PLAN_SHARE_TXT)+'</div>' : '')   // v2.02 (E5)
-    +'<table class="fctab">'+hd;
+  // v2.24 (item 164): the quiet table (.bytab) with a colgroup -- .fctab is table-layout:fixed, and with none the label took one
+  // window's width and wrapped to three lines; No date and the total behind a thin rule (.bysep), never a colour
+  const hd='<tr><th>'+(crBy==='svc'?'Service':'PMO')+'</th>'+wins.map(w=>'<th>'+w.lbl+'</th>').join('')+'<th class="bysep">No date</th>'
+    +'<th class="bysep" title="Funded dollars with an obligation date inside the CR window. '
+    +'Excludes the No date column and anything obligating after March.">Total in window</th></tr>';
+  const cols='<colgroup><col style="width:190px">'+wins.map(()=>'<col style="width:'+(monthly? 120 : 70)+'px">').join('')+'<col style="width:80px"><col style="width:96px"></colgroup>';
+  const cell=v=>'<td>'+(v>5e3?fM2(v):'')+'</td>';
+  const sw=(on, l, js)=>'<button type="button" aria-pressed="'+(on?'true':'false')+'" onclick="'+js+'">'+l+'</button>';
+  let h=moved+'<div class="byhd">'
+    +'<span class="bysw" role="group" aria-label="Half-month or full month">'+sw(crMode==='half', 'Half-month', "crMode='half';render()")+sw(crMode==='month', 'Full month', "crMode='month';render()")+'</span>'
+    +'<span class="bysw" role="group" aria-label="By service or by PMO">'+sw(crBy==='svc', 'By Service', "crBy='svc';render()")+sw(crBy==='pmo', 'By PMO', "crBy='pmo';render()")+'</span></div>'
+    +(crBy==='pmo'? '<p class="bynote" style="margin:0 0 8px">'+esc(PLAN_SHARE_TXT)+'</p>' : '')   // v2.02 (E5)
+    +'<table class="fctab bytab">'+cols+hd;
   keys.forEach((s,i)=>{
     const sv=D[i];
-    h+='<tr><td style="text-align:left;font-weight:800;color:var(--gold)"><button type="button" class="nb" aria-expanded="'+(crX[s]?'true':'false')+'" onclick="crX['+jsa(s)+']=!crX['+jsa(s)+'];render()" title="click to show '+esc(s)+'\u2019s requirements individually">'+(crX[s]?'\u25be ':'\u25b8 ')+esc(s)+' <span style="color:var(--dim);font-size:8.5px">'+sv.items.length+' reqs</span></button></td>'
+    h+='<tr><td><button type="button" class="nb byx" aria-expanded="'+(crX[s]?'true':'false')+'" onclick="crX['+jsa(s)+']=!crX['+jsa(s)+'];render()" title="show '+esc(s)+'\u2019s requirements individually"><span class="chev" aria-hidden="true">'+(crX[s]?'\u25be':'\u25b8')+'</span>'+esc(s)+' <span class="n">'+sv.items.length+' req'+(sv.items.length===1?'':'s')+'</span></button></td>'
       +fold(sv.win).map(cell).join('')
-      +'<td style="border-left:1px solid var(--amber);color:'+(sv.nodate>5e3?'var(--amber)':'var(--dim)')+'">'+(sv.nodate>5e3?fM2(sv.nodate):'\u2014')+'</td>'
-      +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--gold)">'+fM2(sv.tot)+'</td></tr>';
+      +'<td class="bysep">'+(sv.nodate>5e3?fM2(sv.nodate):'')+'</td>'
+      +'<td class="bysep">'+fM2(sv.tot)+'</td></tr>';
     if(crX[s]){
       sv.items.forEach(r=>{
-        h+='<tr style="opacity:.92"><td style="text-align:left;padding-left:22px;font-size:9px" title="'+esc(r.title)+'">#'+(r.rank||'\u2014')+' '+esc(r.title.length>38?r.title.slice(0,38)+'\u2026':r.title)+(r.ccar?' <span style="color:var(--gold)">'+esc(r.ccar)+'</span>':'')+'</td>'
-          +fold(r.wins).map((v,w)=>{
-            if(v<=5e3) return '<td style="color:var(--line2)">\u2014</td>';
-            return '<td>'+fM2(v)+'</td>';              // v1.94: the date decides; nothing to click
-          }).join('')
-          +'<td></td><td style="border-left:1px solid var(--gold);font-size:9px">'+fM2(r.wins.reduce((a,b)=>a+b,0))+'</td></tr>';
+        h+='<tr class="bysub"><td title="'+esc(r.title)+'">#'+(r.rank||'\u2014')+' '+esc(r.title.length>38?r.title.slice(0,38)+'\u2026':r.title)+(r.ccar?' \u00b7 '+esc(r.ccar):'')+'</td>'
+          +fold(r.wins).map(cell).join('')              // v1.94: the date decides; nothing to click
+          +'<td class="bysep"></td><td class="bysep">'+fM2(r.wins.reduce((a,b)=>a+b,0))+'</td></tr>';
       });
     }
   });
@@ -24611,11 +24644,13 @@ function crBody(){
   D.forEach(sv=>{ sv.win.forEach((v,w)=>totW[w]+=v); totND+=sv.nodate; totT+=sv.tot; });
   const totF=fold(totW);
   let cum=0;
-  h+='<tr class="tot"><td style="text-align:left">TOTAL</td>'+totF.map(cell).join('')+'<td style="border-left:1px solid var(--amber)">'+(totND>5e3?fM2(totND):'\u2014')+'</td><td style="border-left:1px solid var(--gold)">'+fM2(totT)+'</td></tr>';
-  h+='<tr class="tot" style="opacity:.9"><td style="text-align:left">CUMULATIVE (cash needed through\u2026)</td>'+totF.map(v=>{cum+=v;return '<td>'+fM2(cum)+'</td>';}).join('')+'<td></td><td></td></tr></table>';
+  h+='<tr class="tot"><td>Total</td>'+totF.map(cell).join('')+'<td class="bysep">'+(totND>5e3?fM2(totND):'')+'</td><td class="bysep">'+fM2(totT)+'</td></tr>';
+  // Cumulative is its own light row (it was a second navy TOTAL): the cash needed through each window
+  h+='<tr class="cum"><td title="the cash needed through each window">Cumulative</td>'+totF.map(v=>{cum+=v;return '<td>'+fM2(cum)+'</td>';}).join('')+'<td class="bysep"></td><td class="bysep"></td></tr></table>';
   el.innerHTML=h
-    +'<div class="hint" style="margin-top:8px">Cash = funded dollars (discretionary + mandatory drawn), each in the half-month of its own award\u2019s date, by the rule every spend plan uses: an award is the whole award, discretionary fills the awards forward from the first and mandatory backward from the last. An award dated the 1st to the 15th is in the first half of its month, the 16th to the end in the second; an award with a month and no day counts as the 1st. To move cash, change the award\u2019s date in the RECORD panel. "No date" = funded with no date in this fiscal year: no award date, funding the awards do not yet cover, or a date outside the year. Obligations after March fall outside the CR window and are excluded.'
-      +(scenOn()? ' <b style="color:var(--amber)">\u25e8 '+esc(SCEN_TAG)+' \u2014 a what-if.</b>' : '')+'</div>';
+    +'<p class="bynote">Funded dollars in the half-month of each award\u2019s own date; No date is funding with no date in this fiscal year.'
+      +(scenOn()? ' <b>\u25e8 '+esc(SCEN_TAG)+' \u2014 a what-if.</b>' : '')+'</p>'
+    +'<details class="byhow"><summary>How this is worked out</summary><p>Cash = funded dollars (discretionary + mandatory drawn), each in the half-month of its own award\u2019s date, by the rule every spend plan uses: an award is the whole award, discretionary fills the awards forward from the first and mandatory backward from the last. An award dated the 1st to the 15th is in the first half of its month, the 16th to the end in the second; an award with a month and no day counts as the 1st. To move cash, change the award\u2019s date in the RECORD panel. "No date" = funded with no date in this fiscal year: no award date, funding the awards do not yet cover, or a date outside the year. Obligations after March fall outside the CR window and are excluded.</p></details>';
 }
 let fcOpen=false, fcView='';   // fcView: '' the whole portfolio, 'p:AV' one PMO, 's:0' one service -- never kept
 function toggleFc(){
@@ -24625,7 +24660,7 @@ function toggleFc(){
 }
 // Column geometry for the forecast view. Without this the 15 columns share the width equally and
 // the label -- a requirement's plan event, or a PMO -- gets about 80px and wraps to three lines.
-const FC_LABW=300, FC_MONW=52, FC_ENDW=60;
+const FC_LABW=240, FC_MONW=66, FC_ENDW=80;   // v2.24 (item 164): sized for the 12px figures of the quiet table
 function fcGrid(nMon){
   return {minW: FC_LABW + nMon*FC_MONW + 2*FC_ENDW,
     cols: '<colgroup><col style="width:'+FC_LABW+'px">'
@@ -24656,7 +24691,8 @@ function fcBody(){
   if(!fcOpen){ if(el) el.innerHTML=''; return; }
   const D=fcViewData(), view=D.view;
   { const ttl=document.getElementById('fcTitle');
-    if(ttl) ttl.innerHTML='\ud83d\udcc5 '+FYL()+' PROJECTED SPEND PLAN FORECAST \u2014 OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur
+    // v2.24 (item 164): a plain title in sentence case, no emoji; the \u25e8 marker below is unchanged (audit-board holds it)
+    if(ttl) ttl.innerHTML=FYL()+' spend plan forecast \u00b7 Oct '+(MS.cur-1)+' \u2013 Sep '+MS.cur
       + (view? ' \u2014 '+esc(view.label) : '')
       + (scenOn()? ' <span style="color:var(--amber);font-weight:800">\u25e8 '+esc(SCEN_TAG)+'</span>' : ''); }
   // SHOW: one small picker and the export, in the title line (v1.93, item 41). Only offices and services that
@@ -24670,20 +24706,25 @@ function fcBody(){
         +'<optgroup label="Service">'+svcs.map(i=>opt('s:'+i, SVC[i])).join('')+'</optgroup></select>'
         +' <button type="button" class="qb" id="fcExport" onclick="exportFcView()" title="an Excel workbook of exactly this view">\u2b07 Export this view</button>'; } }
   const FG=fcGrid(FYMON.length);
-  const TBL='<div style="overflow-x:auto"><table class="fctab" style="min-width:'+FG.minW+'px">'+FG.cols;
-  const hd='<tr><th style="text-align:left">&nbsp;</th>'+FYMON.map(([k,l])=>'<th>'+l+'</th>').join('')+'<th>UNSCH</th><th style="border-left:1px solid var(--gold)">TOTAL</th></tr>';
-  const row=(label,b,cls)=>'<tr'+(cls?' class="'+cls+'"':'')+'><td style="text-align:left;font-weight:700">'+esc(label)+'</td>'
-    +b.m.map(v=>'<td>'+(v>5e3?fM2(v):'—')+'</td>').join('')
-    +'<td style="color:'+(b.unsch>5e3?'var(--amber)':'var(--dim)')+'">'+(b.unsch>5e3?fM2(b.unsch):'—')+'</td>'
-    +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--gold)">'+fM2(b.tot)+'</td></tr>';
+  // v2.24 (item 164): the quiet table (.bytab): no inline colour on a figure, an empty month blank, Unscheduled and Total each
+  // behind a thin rule (.bysep); TOTAL is the APEX navy with white in every cell
+  const TBL='<div style="overflow-x:auto"><table class="fctab bytab" style="min-width:'+FG.minW+'px">'+FG.cols;
+  const hd='<tr><th>&nbsp;</th>'+FYMON.map(([k,l])=>'<th>'+l+'</th>').join('')+'<th class="bysep">Unscheduled</th><th class="bysep">Total</th></tr>';
+  const row=(label,b,cls)=>'<tr'+(cls?' class="'+cls+'"':'')+'><td>'+esc(label)+'</td>'
+    +b.m.map(v=>'<td>'+(v>5e3?fM2(v):'')+'</td>').join('')
+    +'<td class="bysep">'+(b.unsch>5e3?fM2(b.unsch):'')+'</td>'
+    +'<td class="bysep">'+fM2(b.tot)+'</td></tr>';
+  // the breakdown's heading in sentence case: fcViewData's head ('BY PMO', 'TSS BY SERVICE') stays as the export prints it
+  const byHead=(view && view.pmo)? esc(view.label)+' by service' : (view? esc(view.label)+' by PMO' : 'By PMO');
   el.innerHTML=
-    '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">ROLLUP — PRIME CONTRACTS + MISCELLANEOUS OGC'+(view? ' — '+esc(view.label) : '')+' ($M, funded dollars spread by award schedule)</div>'
-    +(D.roll.length? TBL+hd+D.roll.map(b=>row(b.label,b)).join('')+row('TOTAL',D.rollTot,'tot')+'</table></div>'
+    '<div class="byh4">Rollup \u2014 prime contracts and miscellaneous OGC'+(view? ' \u2014 '+esc(view.label) : '')+' ($M, funded dollars spread by award schedule)</div>'
+    +(D.roll.length? TBL+hd+D.roll.map(b=>row(b.label,b)).join('')+row('Total',D.rollTot,'tot')+'</table></div>'
        : '<div class="hint">Nothing funded'+(view? ' for '+esc(view.label) : '')+'.</div>')
-    +'<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:12px 0 4px">'+esc(D.by.head)+' ($M)</div>'
-    +TBL+hd+D.by.rows.map(r=>row(r.label,r.b)).join('')+row('TOTAL',D.byTot,'tot')+'</table></div>'
-    +'<div class="hint" style="margin-top:8px">Funded = Discretionary + Mandatory drawn per requirement'+(view && view.pmo? ', this office\u2019s planning share of each' : '')+(view && view.svc!==undefined? ', this service alone' : '')
-    +'. An award is the whole award: discretionary fills the awards forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED. Every view adds back to the whole portfolio, month by month. '+esc(PLAN_SHARE_TXT)+'</div>';
+    +'<div class="byh4">'+byHead+' ($M)</div>'
+    +TBL+hd+D.by.rows.map(r=>row(r.label,r.b)).join('')+row('Total',D.byTot,'tot')+'</table></div>'
+    +'<p class="bynote">Funded dollars (discretionary + mandatory drawn), placed by each award\u2019s date; what the awards do not cover is Unscheduled.</p>'
+    +'<details class="byhow"><summary>How this is worked out</summary><p>Funded = Discretionary + Mandatory drawn per requirement'+(view && view.pmo? ', this office\u2019s planning share of each' : '')+(view && view.svc!==undefined? ', this service alone' : '')
+    +'. An award is the whole award: discretionary fills the awards forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED. Every view adds back to the whole portfolio, month by month. '+esc(PLAN_SHARE_TXT)+'</p></details>';
 }
 // EXPORT THIS VIEW (v1.93, item 41): one sheet, exactly the rows the box shows, in dollars to the cent. Each
 // TOTAL is the sum of the figures printed above it, so the sheet cross-foots as printed.

@@ -969,7 +969,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   ev(`toggleCr(); dlgSync(); 'ok'`);
   const m = JSON.parse(ev(`(function(){ var m=document.querySelector('#crPanel .modal');
     return JSON.stringify([m.getAttribute('role'), m.getAttribute('aria-modal'), m.getAttribute('aria-label'), m.getAttribute('tabindex')]); })()`));
-  chk(name, 'named', 'the CR box is a modal dialog named from its heading, not its ✕ Close', J(m.slice(0, 2)) + ' ' + m[3] + ' ' + /^⚖ CONTINUING RESOLUTION/.test(m[2]) + ' ' + /Close/.test(m[2]), '["dialog","true"] -1 true false');
+  // v2.24 (item 164): the heading is plain now, "Continuing resolution cash needs · Oct – Mar"
+  chk(name, 'named', 'the CR box is a modal dialog named from its heading, not its ✕ Close', J(m.slice(0, 2)) + ' ' + m[3] + ' ' + /^Continuing resolution cash needs/.test(m[2]) + ' ' + /Close/.test(m[2]), '["dialog","true"] -1 true false');
   let st = state();
   chk(name, 'inert', 'every other part of the page is inert while the box is up, the box itself is not',
     J([st.stack, st.inert.length > 3, st.inert.includes('crPanel'), ev(`!!document.querySelector('.hdr, header') && (document.querySelector('.hdr, header').closest('[inert]')!==null)`)]), J([['crPanel'], true, false, true]));
