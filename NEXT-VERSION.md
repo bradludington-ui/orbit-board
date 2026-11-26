@@ -600,7 +600,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.24 — 26 Nov 2026: Allocate's Present prints $K, and the mandatory box says when a cleared figure comes back (items 160, 161) -- built on Brad's "Print Present in $K and fix the wording" of 26 Nov; merge waits on his word
+### v2.24 — 26 Nov 2026: Allocate's Present prints $K; the mandatory box's wording; Budget Year, with no CCaR pull taken in; the Budget Year screens restyled; dead code and repeated work removed (items 160–164) -- built on Brad's words of 26 Nov (each item names its own); to merge when the gate passes ("merge v2.24 when it passes")
 ##### 160. Allocate's Present prints $K (Brad, 26 Nov 2026: "Print Present in $K")
 - **What he saw** (the v2.23 screens of 26 Nov): Present at 1920 with six services and mandatory on ran past the sheet's frame in whole
   dollars; USN was cut off and had to be scrolled to.
@@ -620,6 +620,37 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   1920 with six services and mandatory on fits its frame, and all 854 figures it prints read in $K (both fail on v2.23). **Mutations:**
   13 new (`v224-160-*` 11, `v224-161-*` 2), 13 of 13 caught by a failed check (`recovery/v224/proved.jsonl`); the fit proved by hand
   (the 80px minimum put back: 2,061px in a 1,718px frame, alloc B fails). 3,607 targets, each once. No sweep (Brad's rule of 20 Oct).
+
+##### 162. Budget Year: the planning views kept, the CCaR pull no longer taken in (Brad, 26 Nov 2026)
+- **Asked:** *"I don't plan on importing any CCaR data from here out, only exporting to CCaR from ORBIT"*; *"Keep spend plan forecast,
+  CR Cash Needs, but remove the other three. Instead of calling it Execution, let's call it Budget Year, as this section is primarily
+  concerned with us preparing for the upcoming budget year"*; *"I will still pull in BAE so we can apply dollars to budgets against
+  requirements"*; and of the BAE rule's CCaR tiebreak, *"Leave it as Not Set"*.
+- **Built:** the left menu's Execution ▸ is **Budget Year ▸** (Spend Plan Forecast, CR Cash Needs; the key `exec` and id `uiNav_exec`
+  kept). Removed: Active Year Execution, QPE coverage, ORBIT vs CCaR, the Data panel's CCaR QPE import, WBS from execution data, Funding
+  realignment's pull readers (the active-year source, the receiving-year ceiling, the UPL pots read from the pull), the shared folder's
+  execution-data share (item 163), and the BAE rule's step 5: where steps 1–4 leave more than one budget the line reads **Not set**, picked by
+  hand, and the Spend Plan Source names it before writing. **Kept:** the CCaR records list and the BAE extract (the export uses both). A
+  pull a board file already holds is **carried** (`EXDB`: read on opening, saved back byte for byte, carried by a full import, a PMO copy,
+  kept-aside files and one-appropriation exports), as v2.02 carried the reprogramming log; nothing shows it but Snapshots ("plan only —
+  no execution was imported" when there is none) and Save diagnostics' counts.
+- **Open, Brad's:** the Spend Plan Source counts a year as active when it is before the budget year *or* a carried pull holds data for it
+  (`srcActiveFy`, which sets the allocation-text column); left as it was unless he says to decide by the year alone.
+- **Checks:** audit-board "v2.24 item 162" (all 10 non-CONTROL checks fail on adeec0c); 10 `v224-162-*` mutations, 10 of 10 caught
+  (`recovery/v224/proved-162.jsonl`); 30 retired as obsolete; the expectations that named the removed parts moved, each with a comment.
+##### 164. The Budget Year screens, plain (Brad, 26 Nov 2026: "Cleanup the screens and layout to look more professional. Simplicity but professional")
+- **Built:** Spend Plan Forecast and CR Cash Needs restyled, nothing else: plain sentence-case titles (no emoji, no gold capitals);
+  Half-month / Full month and By Service / By PMO as segmented switches; one quiet table style (`bytab`: figures right-aligned in
+  even-width digits and normal ink, an empty cell blank, Unscheduled / No date set apart by a rule); TOTAL rows navy with white text in
+  every cell; Cumulative a light shaded row; CR service rows a chevron, the name and a muted count; one short note under each table, the
+  rest behind *How this is worked out*. Every figure, control and export as before.
+- **Found:** the TOTAL rows' Unscheduled and Total cells were gold and amber on navy since v2.21 (1.00:1 in Harbor), and
+  `npm run standards` had never opened these screens with figures: taught to, it found 17 problems on v2.23 (1.4.3 ×10, 2.5.8 ×2, 1.4.11
+  ×5), 0 on the restyle. Left: the By PMO note's capitals ("PLANNING SHARE", "CLIN AMOUNTS") are a sentence the export shares.
+- **Checks:** audit-board "v2.24 item 164" (19 fail on adeec0c, the figures held cell by cell from a hand-worked fixture); 12
+  `v224-164-*` mutations, 12 of 12 caught (`proved-164.jsonl`); before/after screens in `recovery/v224/shots-164/`.
+##### 163. Dead code and repeated work (Brad, 26 Nov 2026: "let's optimize our code and remove inefficiencies or dead code")
+- ITEM163
 
 ### v2.23 — 25 Nov 2026: the requirement as a page, Rank by band and the five-year chart (item 156); one requirement across the FYDP (item 158); Allocate every requirement in one year, and mandatory funding on or off (item 159) -- built on Brad's "Go on v2.23" of 25 Nov and his answers; merged on his "Merge it when it passes" of 26 Nov (PR #85)
 - **How it was built:** three builders to one contract (`recovery/v223/contract.md`): W1 the requirement page, Rank by band and

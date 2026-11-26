@@ -87,8 +87,8 @@ and 📁 File ▾ are gone, and so are the task bar's Bands, Executive decision,
 left menu, top to bottom:
 
 - **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, PPBE Budget Positions; v2.19 took out the Spruills, FYDP Disconnects, the Fit panel and the Funds Flow),
-  **Execution ▸** (Active Year Execution, Spend Plan Forecast, CR Cash Needs, QPE coverage, ORBIT vs CCaR; Reprogramming
-  Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
+  **Budget Year ▸** (Spend Plan Forecast, CR Cash Needs; it was Execution ▸ until v2.24 took out Active Year Execution, QPE coverage
+  and ORBIT vs CCaR, and Reprogramming Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
 - **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Find with Pre-Flight Check beside it, then two plain
   lists of sections (`sec()`: Working Documents, Spend Plan & Cash, Five Years & PPBE; CCaR Files -- v2.19 took out the ACE Tie-Out, the IDS Batch Import, the Chart of Accounts and the AI Review),
   each item one click, a title in title case with its format on a tag (`ri()`: XLSX, TXT, VIEW, READ), and a foot naming
@@ -5467,6 +5467,13 @@ Brad, 26 Nov 2026: *"Print Present in $K and fix the wording"*, after the v2.23 
   on at 1920; `npm run alloc` B measures the frame, not only the page.
 - **Wording that names Put back follows `jrnlMandBack`**: a cleared mandatory figure comes back once mandatory funding is on again.
 - **Checks:** audit-board "v2.24 — …"; alloc B; 13 `v224-*` mutations, 13 of 13 caught.
+- **Budget Year (item 162): ORBIT takes no CCaR pull in.** Brad exports to CCaR and imports only the BAE extract and the CCaR
+  records list. The pull a file already holds (`EXDB`) is **carried** -- read, saved back byte for byte, carried by every file this page
+  writes -- and read by nothing that decides a figure but `srcActiveFy` (an open question) and Snapshots. **Do not add a reader of
+  `EXDB`.** The BAE rule has four steps now: more than one fitting name is Not set, picked by hand.
+- **The Budget Year screens (item 164) are one quiet table style** (`bytab`, `<style id="v224by">`): no inline colour on a figure,
+  TOTAL navy with white in every cell, notes behind `<details>`. **A figure never carries an inline colour inside a `tr.tot`**: it beats
+  the row's white and, in Harbor, gold IS the navy. `npm run standards` now measures both screens with figures.
 
 ## Colour: one token, one job
 
