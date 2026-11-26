@@ -618,6 +618,17 @@ const rowCloses = (name, wb) => {
                 it('C', 'TSS', [1000000, 200000, 150000])],
         disc: [5000000, 900000, 500000], mand: [1500000, 300000, 200000], order: ['A', 'B', 'C'] },
       dress: e => e(`S.absorb='C'; S.absorbFloor=0; applyState(S); save(); 'ok'`) },
+    // v2.23 review RV-D: a year with mandatory funding off (item 159) -- tiers() draws no mandatory, so a requirement on a split that
+    // directs mandatory, and one on the lane walk that would have spilled into it, are both short by what mandatory would have paid.
+    // Every identity above must hold the same way, the mandatory BA is still the authority (nothing exceeds it: nothing draws it),
+    // and the workbook prints the same figures.
+    'a year with mandatory funding off': {
+      sc: { services: ['USAF', 'ANG', 'AFRC'],
+        items: [it('A', 'PSM', [6000000, 1200000, 800000]), it('B', 'ATL', [2000000, 400000, 300000]),
+                it('C', 'TSS', [1000000, 200000, 150000])],
+        disc: [5000000, 900000, 500000], mand: [1500000, 300000, 200000], order: ['A', 'B', 'C'], mc: { B: true },
+        fsrc: { B: { m: 'split', dv: [500000, 100000, 0], mv: [1500000, 300000, 300000] } } },
+      dress: e => e(`S.mandOff=true; applyState(S); save(); 'ok'`) },
   };
   for (const [label, { sc: s2, dress: d2 }] of Object.entries(shapes)) {
     const B = boot();
@@ -6846,6 +6857,105 @@ function w1LockAsBefore() {
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====
+// ==== v2.23 W1 ====
+// ==== end v2.23 W1 ====
+// ==== v2.23 W2 ====
+// ==== end v2.23 W2 ====
+// ==== v2.23 W3 ====
+// ==== end v2.23 W3 ====
+// ==== v2.23 integration (the lead) ====
+// ==== v2.23 review RV-A ====
+// ==== end v2.23 review RV-A ====
+// ==== v2.23 review RV-B ====
+// ==== end v2.23 review RV-B ====
+// ==== v2.23 review RV-C ====
+// ==== end v2.23 review RV-C ====
+// ==== v2.23 review RV-D ====
+// D5, D6: THE WORKBOOKS OF A YEAR WITH MANDATORY FUNDING OFF, read back from their bytes. Item 159's RULE: tiers() draws no mandatory
+// in such a year. The Two Spend Plans and the Two-Plan Forecast still walked Plan B against discretionary PLUS mandatory (the lead,
+// for Brad: "off means off" -- Plan B is Plan A, mandatory buys $0, and Plan B's unfunded is the board's TOTAL unfunded again, v1.83's
+// tie); and the Funding Streams and PMO Matrix sheets printed the mandatory BA beside a Mand Remaining of $0, a row that did not close.
+// Mandatory BUDGET AUTHORITY stays the authority in an off year (Budget Management, the PPBE position, the trace matrix's Σ mandSvc):
+// nothing draws it, so all of it remains. Every expectation is worked by hand from this fixture, never read back from the board:
+//   A [100,40] PSM, B [60,0] AV on a split directing disc [10,0] and mand [40,0], C [50,20] PP; disc [120,30], mand [60,15].
+//   Off: USAF 120 -> A 100, B 10 (its directed disc), C 10 (dry); ANG 30 -> A 30 (dry). Drawn [120,30] = $150; no mandatory.
+//   TOTAL unfunded per requirement: A [0,10] $10, B [50,0] $50, C [40,20] $60 = $120 (= unfunded vs DISC: nothing is mandatory).
+//   Plan B, off: topline [120,30]; B asks its directed DISCRETIONARY only ($10, not $50) -- asked $50 it would take USAF's last $20
+//   and leave C $0, so B's row would read $40 short where the board says $50. Unfunded A 10, B 50, C 60, as the board.
+//   On (CONTROL): Plan B's topline is [180,45] = $225; C draws USAF's last 20 and ANG's last 5 of mandatory: nothing remains.
+// FAILS ON 56aa6c6: Plan B walked $225 in the off year and Mand Remaining printed $0 beside a BA of $75.
+await (async () => {
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  const name = 'v2.23 review RV-D — a year with mandatory off: Plan B is Plan A and ties to TOTAL unfunded, and Mand Remaining is the BA (Two Spend Plans, Two-Plan Forecast, Funding Streams, PMO Matrix)';
+  try {
+    const J = JSON.stringify;
+    const SC = { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 40]), it('B', 'AV', [60, 0]), it('C', 'PP', [50, 20])],
+      disc: [120, 30], mand: [60, 15], order: ['A', 'B', 'C'], fsrc: { B: { m: 'split', dv: [10, 0], mv: [40, 0] } } };
+    const mk = off => { const X = boot(); seed(X.ev, SC);
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); ${off ? 'S.mandOff=true; ' : ''}applyState(S); save(); render(); 'ok'`);
+      return X; };
+    const lane = (rows, h, head, label) => { const c = colOf(rows, h, head); const r = rows.find((x, j) => j > h && w6Lbl(x) === label); return c < 0 || !r ? null : num(r[c]); };
+    const vecOf = (rows, lbl) => { const r = rows.find(x => w6Lbl(x) === lbl) || []; return [num(r[1]), num(r[2]), num(r[3])]; };
+    // ---- CONTROL: mandatory on
+    {
+      const X = mk(false);
+      const pl = JSON.parse(await w6Book(X.w, 'exportPlans'));
+      chk(name, 'on', 'CONTROL: with mandatory on, Plan B’s topline is discretionary + mandatory, [180,45] = $225', J(vecOf(pl['PLAN B — Disc + Mandatory'] || [], 'TOP LINE')), J([180, 45, 225]));
+      const bk = JSON.parse(await workbook(X.w));
+      const fs = bk['Funding Streams'] || [], h = headerRow(fs, 'Service', 'Mand BA');
+      chk(name, 'on', 'CONTROL: and every mandatory lane is drawn out: Mand Remaining $0, $0', J(['USAF', 'ANG', 'TOTAL'].map(s => lane(fs, h, 'Mand Remaining', s))), J([0, 0, 0]));
+    }
+    // ---- OFF
+    const X = mk(true);
+    chk(name, 'fixture', 'the board is in a year with mandatory off, and draws by hand: A [100,30], B [10,0], C [10,0], no mandatory',
+      X.ev(`JSON.stringify([String(mandOn())].concat(['A','B','C'].map(function(id){ var p=tiers()[id]; return [p.d,p.m]; })))`),
+      J(['false', [[100, 30], [0, 0]], [[10, 0], [0, 0]], [[10, 0], [0, 0]]]));
+    const pl = JSON.parse(await w6Book(X.w, 'exportPlans'));
+    chk(name, 'workbook', 'the two spend plans build and read back', pl.__err || 'ok', 'ok');
+    const PB = pl['PLAN B — Disc + Mandatory'] || [], PA = pl['PLAN A — Discretionary only'] || [];
+    chk(name, 'Plan B', 'TOP LINE: discretionary alone, [120,30] = $150', J(vecOf(PB, 'TOP LINE')), J([120, 30, 150]));
+    chk(name, 'Plan B', 'FUNDED BY THIS PLAN: [120,30] = $150, as Plan A', J([vecOf(PB, 'FUNDED BY THIS PLAN'), vecOf(PA, 'FUNDED BY THIS PLAN')]), J([[120, 30, 150], [120, 30, 150]]));
+    chk(name, 'Plan B', 'UNFUNDED: [90,30] = $120, the board’s TOTAL unfunded (v1.83’s tie), as Plan A', J([vecOf(PB, 'UNFUNDED'), vecOf(PA, 'UNFUNDED')]), J([[90, 30, 120], [90, 30, 120]]));
+    { const h = headerRow(PB, 'Rank', 'Allocated');
+      const row = id => PB.find((r, j) => j > h && String((r || [])[colOf(PB, h, 'Requirement')] ?? '') === 'Ev ' + id) || [];
+      chk(name, 'Plan B · requirement', 'per requirement, Plan B’s Unfunded is the board’s TOTAL unfunded: A $10, B $50, C $60',
+        J(['A', 'B', 'C'].map(id => num(row(id)[colOf(PB, h, 'Unfunded')]))), J([10, 50, 60]));
+      chk(name, 'Plan B · requirement', 'B asks Plan B for its directed discretionary only, USAF $10 (never the $50 it directed across both lanes)',
+        num(row('B')[colOf(PB, h, 'USAF asked')]), 10); }
+    chk(name, 'Plan B', 'the tab says Plan B is the discretionary alone this year',
+      PB.some(r => /^Every figure on this tab is funded from DISCRETIONARY \+ MANDATORY\. Mandatory funding is off for FY27: Plan B is the discretionary topline alone, the same as Plan A, and mandatory buys nothing\.$/.test(w6Lbl(r))), true);
+    { const cmp = pl['A vs B'] || [], ln = l => num((cmp.find(r => w6Lbl(r) === l) || [])[3]);
+      chk(name, 'A vs B', 'Plan A buys $150, Plan B buys $150, and mandatory pays for $0', J([ln('Plan A buys'), ln('Plan B buys'), ln('Difference — what mandatory pays for')]), J([150, 150, 0]));
+      chk(name, 'A vs B', 'and the tab says why', cmp.some(r => /^Mandatory funding is off for FY27: Plan B is the discretionary topline alone/.test(w6Lbl(r))), true); }
+    const bk = JSON.parse(await workbook(X.w));
+    chk(name, 'workbook', 'the workbook builds and reads back', bk.__err || 'ok', 'ok');
+    { const fc = bk[Object.keys(bk).filter(k => /Two-Plan Forecast/.test(k))[0]] || [];
+      chk(name, 'Two-Plan Forecast', 'Plan B is walked against the discretionary topline, $150', fc.some(r => /^PLAN B — DISCRETIONARY \+ MANDATORY\s+—\s+topline \$150$/.test(w6Lbl(r))), true);
+      chk(name, 'Two-Plan Forecast', 'and its subtitle says mandatory is off', fc.some(r => /^Mandatory funding is off for FY27: Plan B is the discretionary topline alone/.test(w6Lbl(r))), true);
+      const tots = fc.filter(r => w6Lbl(r) === 'TOTAL').map(r => num(r[r.length - 1]));
+      chk(name, 'Two-Plan Forecast', 'both plans spread $150 ($0.00015M), Plan A’s two blocks and Plan B’s two', J(tots.map(v => Math.round(v * 1e6))), J([150, 150, 150, 150])); }
+    { const fs = bk['Funding Streams'] || [], h = headerRow(fs, 'Service', 'Mand BA');
+      const g = (c, s) => lane(fs, h, c, s);
+      chk(name, 'Funding Streams', 'Mand BA [60,15] $75 (the authority), Mand Funded $0, Mand Remaining [60,15] $75',
+        J(['USAF', 'ANG', 'TOTAL'].map(s => [g('Mand BA', s), g('Mand Funded', s), g('Mand Remaining', s)])), J([[60, 0, 60], [15, 0, 15], [75, 0, 75]]));
+      ['USAF', 'ANG', 'TOTAL'].forEach(s => {
+        chk(name, 'Funding Streams · ' + s, 'the row closes: Mand BA − Mand Funded = Mand Remaining', money(g('Mand BA', s) - g('Mand Funded', s)), money(g('Mand Remaining', s)));
+        chk(name, 'Funding Streams · ' + s, 'the row closes: Disc BA − Disc Funded = Disc Remaining', money(g('Disc BA', s) - g('Disc Funded', s)), money(g('Disc Remaining', s))); });
+      chk(name, 'Funding Streams', 'TOTAL UNFUNDED $120 and Funded Total $150, from the fixture', J([g('TOTAL UNFUNDED', 'TOTAL'), g('Funded Total', 'TOTAL')]), J([120, 150]));
+      chk(name, 'Funding Streams', 'the sheet says why all of the mandatory BA remains', fs.some(r => /^Mandatory funding is off for FY27: nothing draws the mandatory budget authority/.test(w6Lbl(r))), true); }
+    { const pm = bk['PMO Matrix'] || [], r = pm.find(x => w6Lbl(x) === 'REMAINING (lanes)') || [], ba = pm.find(x => w6Lbl(x) === 'BUDGET AUTHORITY') || [];
+      chk(name, 'PMO Matrix', 'REMAINING (lanes): USAF disc $0 mand $60, ANG $0 / $15, total $0 / $75', J(r.slice(1, 7).map(num)), J([0, 60, 0, 15, 0, 75]));
+      chk(name, 'PMO Matrix', 'and its mandatory columns are the BUDGET AUTHORITY row’s, for nothing drew them', J([2, 4, 6].map(k => num(r[k]))), J([2, 4, 6].map(k => num(ba[k])))); }
+    chk(name, 'errors', 'no page error', X.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.23 review RV-D ====
+// ==== end v2.23 integration (the lead) ====
 // ==== v2.16 (item 148) ====
 // Brad, 19 Nov 2026, from the real board: "GEX/GATES is somehow being confused with the Option Year requirement in the five year
 // spend plan export." An added requirement is numbered within its own year, and the five-year plan joined the years by that number:

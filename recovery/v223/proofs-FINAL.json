@@ -1,0 +1,802 @@
+[
+ {
+  "id": "v223-w1-months-outyear-dropped",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-months-mand-as-disc",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-months-unsched-not-landsvc",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-months-wrong-award",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-chart-sched-counts-unsched",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-fig-unf-beyond",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-fig-mand-always",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-svc-unf-beyond",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-svc-drew-dropped",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-svc-directed-as-drawn",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-mand-col-always",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-jrnl-every-line",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-jrnl-oldest-first",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-jrnl-narrowing-left",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-recent-six",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-rank-off-by-one",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-prev-is-next",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-step-not-selected",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-back-no-keyboard",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-esc-over-menu",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-esc-dead",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-mode-keeps-page",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-nav-keeps-page",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-other-year-by-id",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-tab-fails-whole-page",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-tabs-unordered",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-record-miss-unflagged",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-pill-not-lane",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-impact-not-at-field",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-awd-split-reversed",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-awd-outyear-silent",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-awd-unsched-zero",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w1-rk-cut-at-top",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-cut-after",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-cut-first-column",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-no-band-first",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-total-counts",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-unfiltered",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-lines-in-office",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-mc-not-said",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-pick-no-record",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-view-unkept",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-rk-every-mode",
+  "caughtBy": "board / v2.23 W1 \u2014 Rank by band"
+ },
+ {
+  "id": "v223-w1-fy-bars-swapped",
+  "caughtBy": "other / v2.23 W1 \u2014 the five-year chart"
+ },
+ {
+  "id": "v223-w1-fy-gap-reversed",
+  "caughtBy": "other / v2.23 W1 \u2014 the five-year chart"
+ },
+ {
+  "id": "v223-w1-fy-max-funded",
+  "caughtBy": "other / v2.23 W1 \u2014 the five-year chart"
+ },
+ {
+  "id": "v223-w1-fy-notheld-zero",
+  "caughtBy": "other / v2.23 W1 \u2014 the five-year chart"
+ },
+ {
+  "id": "v223-w1-fy-meter-full",
+  "caughtBy": "other / v2.23 W1 \u2014 the five-year chart"
+ },
+ {
+  "id": "v223-w1-fy-fydp-first-year",
+  "caughtBy": "other / v2.23 W1 \u2014 the five-year chart"
+ },
+ {
+  "id": "v223-w1-jk-behind-page",
+  "caughtBy": "board / v2.23 W1 \u2014 the requirement page"
+ },
+ {
+  "id": "v223-w2-join-by-id",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-rolled-ignored",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-write-on-screen",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-no-save",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-refusal-saves",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-setter-saves",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-save-left-held",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-bypass-setter",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-drew-hidden",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-box-shows-drawn",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-unf-beyond",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-total-before-base",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-window-at-base",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-locked-boxes",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-copy-disc-box",
+  "caughtBy": "audit-import / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-copy-other-year",
+  "caughtBy": "audit-import / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-mand-ignored",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-mand-line-kept",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-start-unasked",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-add-awards",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-add-unlinked",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-add-grow-lost",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-add-farthest",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-add-other-office",
+  "caughtBy": "audit-import / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-add-title-raw",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-fill-writes-split",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-fill-flat",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-fill-saves-each",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-strip-no-tab",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-strip-no-lane",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v223-w2-strip-two-years",
+  "caughtBy": "audit-board / v2.23 W2"
+ },
+ {
+  "id": "v222-w3-years-by-id",
+  "caughtBy": "audit-board / v2.22 W3"
+ },
+ {
+  "id": "v223-w3-rule-ignores-year",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-rule-leaks-years",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding on: no figure moves"
+ },
+ {
+  "id": "v223-w3-mandon-always",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-normalise-keeps",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-door-takes-any",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory off travels"
+ },
+ {
+  "id": "v223-w3-setter-takes-mand-off",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-quiet-saves",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-plan-by-size",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-room-whole-ba",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-plan-splits-only",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-unfunded-after-wrong",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-off-this-year-only",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-off-earlier-years",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-cancel-writes",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-copy-switch-open",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-apply-keeps-mv",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-move-not-given",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-mandoff-not-saved",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-w3-draft-writes-board",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-view-saved-tiers",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-sheet-unfunded-beyond",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-left-drawn-not-directed",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-save-seeds-late",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-save-skips-over",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-leave-no-ask",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-year-no-ask",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-paste-one-row",
+  "caughtBy": "board / v2.23 W3 \u2014 Allocate: the held draft"
+ },
+ {
+  "id": "v223-w3-full-ignores-other",
+  "caughtBy": "board / v2.23 W3 \u2014 One lane"
+ },
+ {
+  "id": "v223-w3-move-unbounded",
+  "caughtBy": "board / v2.23 W3 \u2014 One lane"
+ },
+ {
+  "id": "v223-w3-view-copy-editable",
+  "caughtBy": "board / v2.23 W3 \u2014 One lane"
+ },
+ {
+  "id": "v223-w3-title-raw",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v223-w3-record-mand-shown",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-kpi-mand-shown",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-posture-mand-shown",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "v223-w3-fund-col-unmarked",
+  "caughtBy": "board / v2.23 W3 \u2014 mandatory funding off: the RULE"
+ },
+ {
+  "id": "alloc-lock-no-fsrcsvc",
+  "caughtBy": "import / v1.84 \u2014 the copy sends every field but the allocation"
+ },
+ {
+  "id": "v197w1-guard-setFsrcSvc",
+  "caughtBy": "board / v1.97 \u2014 typed money is read whole"
+ },
+ {
+  "id": "v209-rv2-clin-restore-before-panel",
+  "caughtBy": "audit-board / v2.09 second review \u2014 clin"
+ },
+ {
+  "id": "v223-rva-a1-redraw-unheld",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A1"
+ },
+ {
+  "id": "v223-rva-a1-page-unmarked",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A1"
+ },
+ {
+  "id": "v223-rva-a1-esc-no-revert",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A1"
+ },
+ {
+  "id": "v223-rva-a2-page-reads-view",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A2"
+ },
+ {
+  "id": "v223-rva-a2-page-note-gone",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A2"
+ },
+ {
+  "id": "v223-rva-a2-rank-banner-gone",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A2"
+ },
+ {
+  "id": "v223-rva-a3-disabled-first",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A3"
+ },
+ {
+  "id": "v223-rva-a4-lock-unsaid",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A4"
+ },
+ {
+  "id": "v223-rva-a4-lock-names-id",
+  "caughtBy": "board / v2.23 review RV-A \u2014 A4"
+ },
+ {
+  "id": "v208-f2-typing-not-marked",
+  "caughtBy": "board / v2.08 \u2014 the defects found mapping item 122"
+ },
+ {
+  "id": "v209-w1-row-typing-not-marked",
+  "caughtBy": "board / v2.09 \u2014 CLIN amounts"
+ },
+ {
+  "id": "v223-rvb-link-not-repointed",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-link-source-line-only",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-link-unsimulated",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-held-unchecked",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-held-cur-only",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-box-names-source",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-open-no-link",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-stat-names-source",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-no-directed",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-dir-drawn",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-cap-zero",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-mand-dir-drawn",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-mand-cap",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvb-total-mand-off-counted",
+  "caughtBy": "audit-board / v2.23 review RV-B"
+ },
+ {
+  "id": "v223-rvc-save-no-reread",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-moved-not-rebased",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-moved-unnamed",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-sync-plan-blind",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-drop-silent",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-shared-ignores-draft",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-pull-ignores-draft",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-draft-not-held",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate\u2019s draft and a board replaced under it"
+ },
+ {
+  "id": "v223-rvc-journal-offers-switch",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-journal-switch-unsaid",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-journal-unnamed",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-journal-yes-not-set",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-putback-mand-off",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-mandback-every-year",
+  "caughtBy": "board / v2.23 W3 \u2014 the mandatory-off box"
+ },
+ {
+  "id": "v223-rvc-copy-carries-mand",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-copy-silent",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-nd-blames-lane",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-drewwhy-off-ignored",
+  "caughtBy": "board / v2.23 review RV-C \u2014 mandatory off: its switch"
+ },
+ {
+  "id": "v223-rvc-leave-discards-early",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate: a switch that does not happen"
+ },
+ {
+  "id": "v223-rvc-mode-keeps-draft",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate: a switch that does not happen"
+ },
+ {
+  "id": "v223-rvc-paste-rounding-silent",
+  "caughtBy": "board / v2.23 review RV-C \u2014 Allocate: a switch that does not happen"
+ },
+ {
+  "id": "sidecar-typed-replaced",
+  "caughtBy": "import / v1.96 \u2014 a shared state file that answers late"
+ },
+ {
+  "id": "drew-line-silent",
+  "caughtBy": "board / directed vs drawn \u2014 a lane too short; a directed split states its own allocation"
+ },
+ {
+  "id": "drew-echoes-directed",
+  "caughtBy": "board / directed vs drawn \u2014 a lane too short; a directed split states its own allocation"
+ },
+ {
+  "id": "why-always-lane",
+  "caughtBy": "board / directed vs drawn \u2014 a lane too short; a directed split states its own allocation"
+ },
+ {
+  "id": "why-always-alloc",
+  "caughtBy": "board / directed vs drawn \u2014 a lane too short; a directed split states its own allocation"
+ },
+ {
+  "id": "v200-u13-pull-unchecked",
+  "caughtBy": "import / v2.00 (U13) \u2014 a refresh during a save loads nothing"
+ },
+ {
+  "id": "v223-rvd-cutline-full-budget-off",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-cutline-no-why",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-mandlive-ignores-off",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-mandlive-ignores-view",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-svc-banner-mandatory",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-moneybar-no-why",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-rank-line-no-why",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-rank-today-no-why",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-scenmand-off-drawn",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-mc-tile-even-with",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-mc-card-even-with",
+  "caughtBy": "board / v2.23 review RV-D \u2014 a year with mandatory off (and the \u25e8 view)"
+ },
+ {
+  "id": "v223-rvd-left-reads-walk",
+  "caughtBy": "board / v2.23 review RV-D \u2014 Mand remaining is what is left"
+ },
+ {
+  "id": "v223-rvd-fs-svc-walk",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-fs-total-walk",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-ba-block-walk",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-fs-no-note",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-screen-left-walk",
+  "caughtBy": "board / v2.23 review RV-D \u2014 Mand remaining is what is left"
+ },
+ {
+  "id": "v223-rvd-svcsum-left-walk",
+  "caughtBy": "board / v2.23 review RV-D \u2014 Mand remaining is what is left"
+ },
+ {
+  "id": "v223-rvd-plan-b-topline-mand",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-b-asks-mand",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-note-never",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-tab-no-note",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-forecast-no-note",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-cmp-no-note",
+  "caughtBy": "recon / v2.23 review RV-D \u2014 a year with mandatory off: Plan B is Plan A"
+ },
+ {
+  "id": "v223-rvd-plan-card-both-pots",
+  "caughtBy": "board / v2.23 review RV-D \u2014 in a year with mandatory off the Two Spend Plans panel"
+ },
+ {
+  "id": "v223-rvd-buys-card-no-why",
+  "caughtBy": "board / v2.23 review RV-D \u2014 in a year with mandatory off the Two Spend Plans panel"
+ },
+ {
+  "id": "v223-rvd-ed-full-mand",
+  "caughtBy": "board / v2.23 review RV-D \u2014 in a year with mandatory off the Two Spend Plans panel"
+ },
+ {
+  "id": "v223-rvd-ed-fullba-mand",
+  "caughtBy": "board / v2.23 review RV-D \u2014 in a year with mandatory off the Two Spend Plans panel"
+ }
+]

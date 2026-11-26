@@ -347,6 +347,48 @@ for (const build of BUILDS) {
     if (!cmdShown) record(build, theme, { sc: 'coverage', key: 'Ctrl K’s palette was not on screen to measure',
       detail: 'the palette with a requirement and an action in it, and the list’s search with its ✕, were NOT drawn', n: 1 });
     await page.evaluate(() => { try { cmdClose(); qClear(); } catch (e) {} });
+    // v2.23 W1 (item 156): THE REQUIREMENT PAGE (every tab), RANK BY BAND and THE FIVE-YEAR CHART, each measured on screen. All three
+    // must have been drawn, or the run fails: a surface measured by nothing would pass by being absent.
+    const w1Shown = { page: 0, board: false, chart: false };
+    if (await page.evaluate(() => typeof reqPgOpen === 'function')) {
+      const tabs = await page.evaluate(() => { try { reqPageOpen(gridIds()[0]); return [].map.call(document.querySelectorAll('#reqPage .rptab'), b => b.id.slice(6)); } catch (e) { return []; } });
+      for (const k of tabs) {
+        const on = await page.evaluate(k => { try { reqPageTab(k); const p = document.getElementById('reqPage'); return !!p && !p.hidden && p.getClientRects().length > 0; } catch (e) { return false; } }, k);
+        await page.waitForTimeout(80);
+        if (on) { w1Shown.page++; for (const f of await page.evaluate(PROBE)) record(build, theme, f); }
+      }
+      w1Shown.board = await page.evaluate(() => { try { reqPageClose(false); uiMode = 'rank'; uiApply(); rkSetView('board'); render();
+        return !!document.querySelector('#rkBoard:not([hidden]) .rkcard') && !!document.querySelector('#rkViewSw button[aria-pressed="true"]'); } catch (e) { return false; } });
+      await page.waitForTimeout(100);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      w1Shown.chart = await page.evaluate(() => { try { rkSetView('list'); uiMode = 'review'; uiApply(); render(); toggleFydp(); return !!document.querySelector('#fydpPanel.open .fydpchart .fyb'); } catch (e) { return false; } });
+      await page.waitForTimeout(100);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      await page.evaluate(() => { try { if (fydpOpen) toggleFydp(); } catch (e) {} });
+      if (w1Shown.page < 4 || !w1Shown.board || !w1Shown.chart) record(build, theme, { sc: 'coverage', key: 'the requirement page, the board by band or the five-year chart was not on screen to measure',
+        detail: `${w1Shown.page} of the page's tabs measured; the board ${w1Shown.board ? 'was' : 'was NOT'} drawn; the chart ${w1Shown.chart ? 'was' : 'was NOT'} drawn`, n: 1 });
+    }
+    // v2.23 W3 (item 159): ALLOCATE -- the Sheet with a changed figure and a refused one, One lane with a row selected and the move
+    // aside, Present, Review changes and the box mandatory off opens -- each measured as drawn. All must have been on screen, or the
+    // run fails: a control measured by nothing would pass by being absent.
+    const avSeen = [];
+    for (const st of ['sheet', 'lane', 'present', 'review', 'mandbox']) {
+      const ok = await page.evaluate(st => { try { window.confirm = function(){ return true; };
+        if (st === 'sheet') { uiSetMode('alloc'); const i = document.querySelector('#allocView input.avin'); i.value = '1'; avCell(i);
+          const j = document.querySelectorAll('#allocView input.avin')[3]; j.value = 'abc'; avCell(j); avDraw(); return !!document.querySelector('#allocView input.avin.chg') && !!document.querySelector('#allocView input.avin.bad'); }
+        if (st === 'lane') { avView('lane'); const c = document.querySelector('#allocView .avl input[type=checkbox]'); c.checked = true; avSel(c); avDraw();
+          return !!document.querySelector('#allocView .avl tr.sel') && !!document.querySelector('#allocView .avmove select'); }
+        if (st === 'present') { avPresent(true); return !!document.querySelector('#allocView.avpres .avro'); }
+        if (st === 'review') { avPresent(false); avView('sheet'); avReview(); return dlgIsOpen(document.getElementById('avRevPanel')); }
+        if (st === 'mandbox') { avReviewClose(); avDiscardAll(); avDraw(); mandSwitch(); const bg = document.getElementById('avMandPanel'); return !!bg && dlgIsOpen(bg); }
+      } catch (e) { return false; } }, st);
+      await page.waitForTimeout(150);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      if (ok) avSeen.push(st);
+    }
+    await page.evaluate(() => { try { mandBoxClose(); avDiscardAll(); uiSetMode('review'); } catch (e) {} });
+    if (avSeen.length !== 5) record(build, theme, { sc: 'coverage', key: 'Allocate was not all on screen to measure',
+      detail: 'measured: ' + (avSeen.join(', ') || 'nothing') + ' -- of the Sheet, One lane, Present, Review changes and the mandatory-off box', n: 1 });
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it
     // opened; the 🔧 list under Needs attention is measured open, then the award block of one, with ✓ Checked. Both must
     // be on screen, or the run fails: a control measured by nothing would pass by being absent.
@@ -475,6 +517,36 @@ for (const build of BUILDS) {
     await page.evaluate(() => { try { impFileShut(); _impFileLast = null; DIRTY = false; syncBtns(); } catch (e) {} });
     if (!ifShown.n || !ifResc) record(build, theme, { sc: 'coverage', key: 'the file route’s box was not on screen whole to measure',
       detail: `the box with step 1 ${ifShown.n ? 'was' : 'was NOT'} shown; with both rescues ${ifResc ? 'was' : 'was NOT'}` + (ifShown.err ? ' (' + ifShown.err + ')' : ''), n: 1 });
+
+    // v2.23 W2 (item 158): ACROSS THE FYDP -- the tab, with a second year started blank (so a year to add to and boxes in two years
+    // are drawn), then Add to a year and Fill across, each open. Until the requirement page is merged the tab is drawn the way the page
+    // draws it (REQPG_TABS' html into #reqPage); once reqPageOpen draws it, through that. Each must be on screen, or the run fails.
+    const xfShown = await page.evaluate(() => { try {
+      if (typeof REQPG_TABS === 'undefined' || !REQPG_TABS.some(t => t.k === 'fydp')) return { n: false };
+      openMenu = null; rowMenuId = null; syncBtns(); render();
+      const id = S.order[0], y = MS.cur + 1; window.__xfKeep = { y, had: !!MS.years[y] };
+      if (!MS.years[y]) MS.years[y] = pmoYearStart(y, false);
+      // a directed figure no lane can pay, so the line saying what it drew is measured too (put back after)
+      window.__xfKeep.fsrc = S.fsrc[id] ? JSON.stringify(S.fsrc[id]) : null;
+      S.fsrc[id] = { m: 'split', dv: SVC.map((_, i) => i ? 0 : 9e11), mv: SVC.map(() => 0) };
+      _recYrC = null;
+      try { reqPageOpen(id, 'fydp'); } catch (e) {}
+      const rp = document.getElementById('reqPage');
+      if (!(rp && !rp.hidden && rp.querySelector('#xfTab'))) { const t = REQPG_TABS.filter(x => x.k === 'fydp')[0]; rp.hidden = false; rp.innerHTML = t.html(id); t.after(id); window.__xfKeep.mine = true; }
+      const tab = !!rp.querySelector('#xfTab input.xfin') && !!rp.querySelector('#xfTab .xfaddb') && !!rp.querySelector('#xfTab .drew');
+      window.__xfKeep.id = id; return { n: tab };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const xfAdd = await page.evaluate(() => { try { xfAddOpen(window.__xfKeep.id, window.__xfKeep.y); return !!document.querySelector('#xfAddPanel.open #xfAddGo'); } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const xfFill = await page.evaluate(() => { try { xfAddClose(); xfFillOpen(window.__xfKeep.id); return !!document.querySelector('#xfFillPanel.open #xfFillGo'); } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { xfFillClose(); const k = window.__xfKeep || {}; if (k.y && !k.had) delete MS.years[k.y];
+      if (k.id) { if (k.fsrc) S.fsrc[k.id] = JSON.parse(k.fsrc); else delete S.fsrc[k.id]; }
+      const rp = document.getElementById('reqPage'); if (k.mine && rp) { rp.innerHTML = ''; rp.hidden = true; }
+      _recYrC = null; render(); } catch (e) {} });
+    if (!xfShown.n || !xfAdd || !xfFill) record(build, theme, { sc: 'coverage', key: 'Across the FYDP was not on screen whole to measure',
+      detail: `the tab with its boxes, an Add button and a drew line ${xfShown.n ? 'was' : 'was NOT'} shown; Add to a year ${xfAdd ? 'was' : 'was NOT'}; Fill across ${xfFill ? 'was' : 'was NOT'}` + (xfShown.err ? ' (' + xfShown.err + ')' : ''), n: 1 });
 
     // v2.19 (item 150): the cost estimate import's report and mapping box measures removed with their feature
     // v2.12 (item 134): THE OVERS, measured with one on screen (v2.19, item 150: Needs attention's list, attShow('over'), where the

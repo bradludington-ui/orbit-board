@@ -146,6 +146,61 @@ for (const k of ORDER) {
   console.log('');
 }
 
+// ---- v2.23 review RV-D: THE SAME FIXTURE IN A YEAR WITH MANDATORY FUNDING OFF ------------------------------------------------
+// Item 159's RULE: tiers() draws no mandatory in a year with S.mandOff true. Every surface above that states a quantity must state
+// the off year's too -- the mandatory lanes empty for the walk, so what would have spilled is unfunded -- and mandatory BUDGET
+// AUTHORITY is still the authority (Budget Management, the PPBE position, every Mand BA column): off draws none of it. The truth is
+// the same oracle with the walk's mandatory lanes empty, from the fixture alone. A surface may fall silent in an off year (the
+// dashboard has no mandatory card to read a BA from), so silence is not scored here; a stated figure that disagrees is.
+const offT = (() => {
+  const dR = FIX.disc.slice(), Q = {};
+  for (const id of FIX.order) {
+    const basis = basisOf(id), d = [], m = [], u = [];
+    basis.forEach((v, i) => { const dd = Math.min(v, Math.max(0, dR[i])); dR[i] -= dd; d[i] = dd; m[i] = 0; u[i] = v - dd; });
+    Q[id] = { d, m, u };
+  }
+  const o = {
+    ask: T.ask, discBA: T.discBA, mandBA: T.mandBA,
+    disc: sum(FIX.order.map(id => sum(Q[id].d))), mand: 0,
+    ufr1: sum(perSvc((id, i) => Math.max(0, askOf(id)[i] - Q[id].d[i]))),
+    ufr2: sum(perSvc((id, i) => Math.max(0, askOf(id)[i] - Q[id].d[i]))),
+    trim: T.trim,
+    beyond: sum(perSvc((id, i) => Math.max(0, Math.min(askOf(id)[i], basisOf(id)[i]) - Q[id].d[i]))),
+    mcTotal: T.mcTotal,
+    mcShort: sum(FIX.order.filter(id => FIX.mc[id]).map(id => sum(SVC.map((s, i) => Math.max(0, askOf(id)[i] - Q[id].d[i]))))),
+  };
+  o.funded = o.disc;
+  return o;
+})();
+const offFails = [];
+let offStated = 0;
+{
+  const O = boot(BOARD ? { html: readFileSync(BOARD, 'utf8') } : {});
+  seed(O.ev, FIX);
+  O.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  O.ev(`S.awards['A']={mode:'single',d:FYMON[1][0],day:1};
+    S.awards['B']={mode:'single',d:FYMON[2][0],day:1}; S.mandOff=true; applyState(S); save(); render(); 'ok'`);
+  const offOn = O.ev(`String(typeof mandOn==='function' && !mandOn())`);
+  if (offOn !== 'true') offFails.push({ q: 'mand', label: 'the fixture', surface: 'the board', kind: 'harness', got: NaN, want: NaN, why: 'this board has no year with mandatory off' });
+  const OS = harvest(O.ev);
+  console.log('THE SAME FIXTURE, MANDATORY FUNDING OFF FOR THE YEAR (v2.23 item 159) -- every stated cell against the off-year truth');
+  console.log('-'.repeat(120));
+  for (const s of OS) for (const k of ORDER) {
+    const v = s.cells[k]; if (v === undefined) continue;
+    offStated++;
+    const ok = Math.abs(v - offT[k]) <= s.tol;
+    if (!ok) offFails.push({ q: k, label: LABEL[k], surface: s.name + ' (mandatory off)', kind: s.kind, got: v, want: offT[k] });
+  }
+  // a pass that stated nothing would agree with anything: the workbook's lanes must be read here
+  for (const k of ['mandBA', 'mand', 'ufr2', 'beyond']) {
+    const fsS = OS.find(s => s.name === 'xl · Funding Streams');
+    if (!fsS || fsS.cells[k] === undefined) offFails.push({ q: k, label: LABEL[k], surface: 'xl · Funding Streams (mandatory off)', kind: 'Excel', got: NaN, want: offT[k], why: 'not stated' });
+  }
+  console.log(`  ${OS.length} surfaces · ${offStated} populated cells · ${offFails.length ? offFails.length + ' MISMATCH(ES)' : 'every stated cell agrees'}`);
+  offFails.forEach(f => console.log(`  ${f.label} -- ${f.surface}: says ${fm(f.got)}, the off-year truth is ${fm(f.want)}${f.why ? ' (' + f.why + ')' : ''}`));
+  console.log('');
+}
+
 const stated = surfaces.reduce((a, s) => a + ORDER.filter(k => s.cells[k] !== undefined).length, 0);
 console.log('='.repeat(120));
 console.log(`${surfaces.length} surfaces · ${ORDER.length} quantities · ${stated} populated cells`);
@@ -157,10 +212,12 @@ if (wentSilent.length) {
   console.log('off trace-stated.json in the same commit and say why.');
   process.exit(1);
 }
-if (!fails.length) {
+if (!fails.length && !offFails.length) {
   console.log('\nEVERY LINK HOLDS — every surface that states a quantity states the same one');
+  console.log(`(and in a year with mandatory funding off: ${offStated} stated cells agree)`);
   process.exit(0);
 }
+fails.push(...offFails);
 console.log(`\n${fails.length} BROKEN LINK(S) — a surface states a figure the rest of the board does not agree with:\n`);
 for (const f of fails)
   console.log(`  ${f.label}\n      ${f.kind}: ${f.surface}\n      says ${fm(f.got)}, the board says ${fm(f.want)}  (off by ${fm(f.got - f.want)})\n`);

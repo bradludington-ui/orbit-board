@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add the requirement to FY32</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#163F70}
+</style>
+</helmet>
+<div style="width: 600px; height: 600px; box-sizing: border-box; font-family: Carlito, Calibri, 'Segoe UI', sans-serif; color: #172331; background: rgba(23, 35, 49, 0.45); padding: 28px; display: flex; align-items: flex-start; justify-content: center">
+<div role="dialog" aria-label="Add to FY32" style="width: 100%; background: #FFFFFF; border-radius: 12px; border: 1px solid #C9D2DD; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.25); display: flex; flex-direction: column">
+<div style="padding: 14px 18px; border-bottom: 1px solid #DDE3EA; display: flex; align-items: center; gap: 8px">
+<h2 style="margin: 0; font-size: 19px; flex: 1 1 auto">Add to FY32</h2>
+<button type="button" aria-label="Close" style="font: inherit; font-size: 16px; width: 30px; height: 30px; border-radius: 6px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">✕</button>
+</div>
+<div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.4">
+<div><b>OGC Engine Module Repair Capacity</b> is not in FY32’s plan. Adding it makes a new FY32 requirement, linked to FY31’s as the same work, so the years read as one line.</div>
+<div style="border: 1px solid #DDE3EA; border-radius: 8px; padding: 10px 12px; background: #F7F9FB; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: #4A5664">STARTS FROM FY31</div>
+<div>Requirement by service, <b>$4,493,000</b> in all · office PSM · CCaR JSF5003 · PID9003 · the record fields</div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 14px"><input type="checkbox" checked style="width: 20px; height: 20px">Grow the requirement by <input type="text" aria-label="Growth percent" defaultValue="3" style="font: inherit; width: 44px; height: 26px; text-align: right; border: 1px solid #8F9BAA; border-radius: 5px"> % → <b>$4,628,000</b></label>
+</div>
+<div style="font-size: 14px; color: #4A5664">Not carried: Discretionary and Mandatory (FY32’s lanes decide those: set them on the grid), ★ Mission Critical, award dates. It goes last in FY32’s priority order, for the SFWG to place.</div>
+</div>
+<div style="padding: 12px 18px; border-top: 1px solid #DDE3EA; display: flex; justify-content: flex-end; gap: 8px">
+<button type="button" style="font: inherit; font-size: 15px; height: 38px; padding: 0 14px; border-radius: 8px; border: 1px solid #8F9BAA; background: #FFFFFF; color: #172331">Cancel</button>
+<button type="button" style="font: inherit; font-size: 15px; font-weight: 700; height: 38px; padding: 0 16px; border-radius: 8px; border: 0; background: #1F3A57; color: #FFFFFF">Add to FY32</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":600,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

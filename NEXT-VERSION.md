@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.21**; **v2.22** (item 155, with 154 and 149.18–149.53) is built and reviewed, its merge waiting on Brad's word; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
+Current version: **v2.22** (item 155, with 154 and 149.18–149.53; merged 25 Nov 2026, PR #81); **v2.23** (items 156, 158, 159) is built and reviewed, its merge waiting on Brad's word; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 
 ## Open
 
@@ -37,79 +37,6 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **Item 149.18-149.53 is folded into v2.22**: its findings touch the same rows, record and menus the new look redraws.
 - **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
 - **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
-
-#### 156. Three new views: the requirement page, Rank by band, the five-year chart (v2.23)
-- **The requirement as its own page** (*Open full page* from the RECORD card): tabs Overview, Funding by service, Awards,
-  Five years, History; the four figures; the month-by-month obligation chart (the award block's own landing rule, landSvc);
-  the impact statement; the record fields with what is missing flagged; recent changes from the change journal; next and
-  previous rank.
-- **Rank by band (view only):** a column per decision band, cards with rank, ask, office and lane status, the cutlines in the
-  band they fall in; a List / Board by band switch in Rank mode.
-- **The five-year spend plan as a chart:** requirement against funded by year with the gap, and the by-appropriation table with
-  a funded meter per cell, read from the model the panel and workbook already share (fydpBookModel).
-
-#### 158. One requirement across the FYDP, by service (v2.23)
-- **Asked:** Brad, 25 Nov 2026: *"pull up a requirement and manage the funding needs by service across all FYDP years. So if
-  my base year is 2028, I want to see the FY27-32 requirement values and funding allocations ... it's not user friendly to
-  only manage one year at a time for requirement and funding management."* On the mock-up: *"Not bad, I like it. This would
-  help me manage individual requirements across the FYDP."* Then: *"Log it for v2.23"*.
-- **Concept** (canvas https://claude.ai/artifact/SbaXf63b4EE8uvSRqHQXG6, page "One requirement, every year"; images
-  `recovery/v223/concept/158-*.png`, invented figures):
-  - **On the requirement page of item 156, a tab Across the FYDP:** one block per service with Requirement, Discretionary,
-    Mandatory and Unfunded, a column per year from the year before the base to base + 4 (base FY28: FY27-FY32), and an FYDP
-    total (base to base + 4). A figure typed in any year is written into THAT year's plan by the same setters as typing it
-    there; nothing switches year; one Save writes every year; the journal records each line with its year.
-  - **Each year's heading** carries that year's rank and lane status, read only (rank stays a per-year decision).
-  - **Where a lane cannot pay what was typed**, the box keeps the typed figure and says what it drew (the drewLine rule).
-  - **A five-year chart** above the grid: the requirement per year, funded green, unfunded red.
-  - **A year the requirement is not in:** *Add to FY32...*, a new requirement in that year linked to the nearest year's as the
-    same work (v2.06's `prior` link), starting from its requirement by service, office, CCaR, PID and record fields, with an
-    optional growth %; not carried: Disc/Mand, the star, award dates; last in that year's priority order.
-  - **A year nobody has started:** asked once, roll forward or start blank (as v2.09's five-year submittals ask).
-  - **Fill across...:** the requirement from one year into later years, copied or grown by N% a year, previewed as was ->
-    becomes; never Disc/Mand.
-  - **The RECORD card** keeps its one-year view and gains a year strip and *Manage across the FYDP*.
-- **Rules it must keep:** the years are joined by the WORK, never the id (`fydpLineKeys` / `fydpSameIn`, v2.16); each year's
-  figures from that year's own lane walk (`aceWithYear`); a locked cycle read only; in a PMO copy requirement values only, the
-  allocation locked (`allocLocked`).
-- **Open for Brad:** FY27 (the year before the base) editable, as drawn, or read only; four lines per service, or one line at a
-  time; whether Fill should ever offer Disc/Mand (left out: each year's lanes decide what can be paid).
-
-#### 159. Allocate every requirement in one year: the sheet, one service at a time, and mandatory on or off (v2.23)
-- **Asked:** Brad, 25 Nov 2026: *"a way to manage and adjust funding allocations to all listed requirements in a given FY ...
-  if I have 50 requirements, I need to be able to quickly give and take real funding allocations across the requirements in a
-  grid like format."* Of three mock-ups (A the sheet, B give and take, C one lane at a time): *"I like A and C. When working in a
-  group setting, the working group will need to see all the requirements and funding allocations. We also need to see the
-  requirement value as well so that we have a readily visible baseline funding need. This provides context and readily visible
-  funding goals."* Then: *"Give me the ability to turn on or off the need for mandatory funding. Will make the screen cleaner
-  and we may not need to allocate mandatory funding in future years."* Then: *"Log it for v2.23"*.
-- **Concept** (the same canvas, page "Every requirement, one year": A2, C2, A3 and the box; images
-  `recovery/v223/concept/159-*.png`, invented figures):
-  - **The sheet (A2), for the working group** (sized for a projector at 1920): every requirement in priority order; per
-    service the **requirement (the goal, shaded)**, Discretionary and Mandatory, the requirement cell underlined green where
-    that service's need is met and red where it is short; pinned lines Requirement, Budget authority, Allocated (with the
-    share of the requirement met), Left in the lane and Still unfunded; goal tiles (Requirement, Funded, Unfunded, Budget
-    authority, Left to give); each row's total requirement, funded, unfunded and funded %. Arrow keys, paste from Excel, a
-    changed cell outlined until Save, *Review changes* before Save. A lane given more than it holds is shown in red and not
-    refused, so money can be given first and taken second; Save says so first. **Present** makes it read only in larger type
-    for the room; **Edit** is for the one person typing.
-  - **One service at a time (C2):** service tabs with "asked, % met"; the service's requirement as the goal with a bar of
-    discretionary, mandatory and unfunded and a line at all that service's budget authority (what cannot be met however it is
-    moved); per requirement its requirement for that service, Disc and Mand boxes, a Met bar, Unfunded, and **Left after**
-    counting the lane down row by row; the cutline where the lane is gone; select rows to fund to the requirement, cut by %,
-    or set to $0; Full and $0 per row; a pinned total line.
-  - **Sheet / One lane** switches between the two on the same data.
-  - **Mandatory funding on or off, per year:** a switch in the header. Off hides mandatory for that year everywhere (both
-    views, the RECORD card's Mand box, the Funding tiles, the money bar's yellow, the FYDP grid's Mandatory line). Off in a
-    year that holds no mandatory money asks nothing; in one that does, a box lists what is there and offers **Clear them**
-    (journalled, each can be put back) or **Move what discretionary can cover** (the rest cleared), for that year only or that
-    year and every later year. Mandatory budget authority stays in Budget Management and the PPBE position; on again brings the
-    columns back empty. **Exports keep their Mandatory columns ($0)**, so every year's files keep one layout.
-- **Rules it must keep:** both views read and write the per-service directed split the RECORD card edits (`setFsrcSvc`); a
-  dollar is never funded past its service's requirement (the clamp, `basisSvcOf`); unfunded is `unfSvcOf`; nothing writes
-  while drawing; the switch is a setting on the year saved in the board, distinct from the ◨ discretionary-only what-if.
-- **Open for Brad:** Present as a separate read-only screen anyone can open on a second display while one person edits, or the
-  same screen switched; whether B's move panel (take from one requirement, give to another) joins C as an aside.
 
 #### 157. The leadership brief and the change bridge (v2.24)
 - **One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against
@@ -672,7 +599,142 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.22 — 25 Nov 2026: the new look (item 155), the Funding page's tiles (item 154), and the clicks, repeats and additions of the 21 Nov review (149.18–149.53) -- built on Brad's go of 25 Nov; merge waits on his word
+### v2.23 — 25 Nov 2026: the requirement as a page, Rank by band and the five-year chart (item 156); one requirement across the FYDP (item 158); Allocate every requirement in one year, and mandatory funding on or off (item 159) -- built on Brad's "Go on v2.23" of 25 Nov and his answers; merge waits on his word
+- **How it was built:** three builders to one contract (`recovery/v223/contract.md`): W1 the requirement page, Rank by band and
+  the five-year chart (156); W2 the page's Across the FYDP tab and the RECORD card's year strip (158); W3 Allocate (the sheet, One
+  lane, Edit / Present) and the mandatory switch (159). Each builder's record -- what it built, what it decided (each Brad's to
+  reverse), its checks and mutations, what it left -- is `recovery/v223/notes-W1.md`, `notes-W2.md`, `notes-W3.md`; its
+  screenshots `shots-W*/`.
+- **The integration:** *Open full page* on the RECORD card's bar (`reqPageOpen`); three browser checks join `verify:grid`
+  (`npm run reqpage`, `across`, `alloc`); the row-controls record takes the new button; two older checks expect it and the new tab;
+  seven W2 and W3 audit-board blocks now free their boards (audit-board whole ran out of an 8 GB heap on the merged board).
+- **The review** (four reviewers by area, each finding re-run by a skeptic) and what was fixed, by four fixers (`notes-RVA.md` to
+  `notes-RVD.md`):
+  - **A figure half typed on the requirement page was written when the page redrew under it** (a colleague's copy adopted from the
+    shared folder, another tab's cycle): the page now redraws through the board's own hold, and Esc keeps the stored figure (A1).
+  - **Allocate's draft was written over a newer board** (Put back work kept aside, Load theirs, a shared state, a folder copy):
+    Save re-reads every figure and writes nothing where one moved, naming it; a load that replaces the board drops the draft and
+    says so; the automatic loads count the draft as unsaved work (C1).
+  - **Add to a year linked the new requirement to the year it started from**, so an earlier year could be offered the same work
+    again: it links to the line the work is on, and refuses a year that already holds it (B1).
+  - **A year with mandatory off still described mandatory money:** a full-budget cutline and "draw MANDATORY" (on the list, the
+    money bar, the Rank board, the one-service banner), Plan B spending mandatory, "Full budget buys" counting it, Remaining that
+    did not close, and the MC tile's "even with mandatory". Each now says mandatory is off (or withheld, under ◨) (D4–D6, D11).
+  - The switch's own journal line is never put back; a year copied into one with mandatory off arrives with mandatory at $0; Put
+    back refuses a mandatory figure above $0 there; the fix list names the switch as the reason (C2, C3).
+  - Leaving Allocate drops the draft only once the switch is certain; a paste names what it rounded; the keyboard keeps its place
+    across Allocate's redraws and the mandatory box's (C7–C10).
+  - The requirement page reads the funded plan, as Across the FYDP does, and says so under ◨; the Rank board shows the list's ◨
+    banner; Edit awards lands in an enabled date box; a locked view names a requirement it does not hold (A2–A4).
+  - The five-year Disc and Mand totals say what was directed beside what was drawn (B2).
+- **Decided in the fixes, each Brad's to reverse:** in a year with mandatory off, Remaining shows the whole mandatory budget
+  (nothing can draw it), never $0; Plan B is Plan A there, asking only for discretionary; ◨ gets the same cutline treatment as an
+  off year; Put back is refused while mandatory is off (W3 had allowed it); a refused Allocate Save keeps the draft, rebased, so a
+  second Save writes it; a draft dropped by a load is not offered back; the requirement page reads the funded plan (W1 had it follow
+  ◨); the Rank board keeps ◨, since it draws the list's cutlines.
+- **Questions for Brad** (none blocks the merge):
+  - Allocate's Present at 1920 with six services and mandatory on scrolls sideways inside its frame in whole dollars: print it in $K?
+  - Brief shows a Mandatory column ($0) in a year with mandatory off: hide it there too?
+  - *Move what discretionary can cover* uses only the discretionary left after every requirement has drawn: should it also take
+    from requirements further down?
+  - The five-year workbook's join stops at the nearest year holding an id (`fydpLineKeys`, v2.16), so a rolled copy behind a year
+    that numbered other work prints as two lines there; the tab and the strip read it as one. Look past the nearest year?
+  - Add to a year's growth is applied once: or once per year between the source and the target?
+  - The five-year box's chart shows this appropriation only (the workbook reads all four): all four in the box too?
+  - Should the requirement page follow its requirement across a year switch (by the work), rather than say it is the other year's?
+  - Recent changes print a journal line as the journal does: plainer words per field, in the journal itself?
+- **Known gaps:** the Rank board hides the list's 🔒 locked-view line (the header and title still name the lock); a load the person
+  asks for drops an Allocate draft without asking first, though it says so; `npm run panels` and `dialogs` do not open Allocate's two
+  boxes (made on first use; `alloc` and `standards` cover them); Help does not describe the new views (it is at its size limit).
+- **Checks:** audit-board "v2.23 W1", "W2", "W3", "integration" and "review RV-A" to "RV-D"; audit-recon "v2.23 review RV-D"; `npm run
+  reqpage`, `across`, `alloc`; recon's sixth board shape (a year with mandatory off) and a second, off-year pass of the trace matrix.
+  Every suite whole on the merged board; every browser check (layout's carried D ×8, identical number for number on main's v2.22);
+  standards 0 new findings. **The gate** (`npm run validate:nightly`, 25 Nov, on the final tree): every stage holds but the
+  browser stage, which fails on layout's carried D ×8 alone, as on main (defect register 15 known, 41 mutations; coverage 19/19;
+  money map 252 cells, 97 proven, 155 n/a, 0 open; trace matrix 74 cells; suites 44.7 min, 8 banners + the legacy line; fuzz
+  seed 780073921; verify-file self-test held). **Mutations:** 188 new `v223-*` (W1, W2, W3, integration and the review's 72) and 12 retargets, proved
+  together on the final tree: **200 of 200 CAUGHT, each by a failed check** (`recovery/v223/proved-FINAL.jsonl`); four also
+  stop their block with a throw after a check has failed. The first run had four W3 mutations caught only by a throw (a check reading
+  `.textContent` off an element the mutant never draws); W3's blocks now read elements null-safely, so a missing one fails its check. No sweep (Brad's rule of 20 Oct).
+
+##### Brad's go of 25 Nov 2026: v2.23 (items 156, 158, 159)
+Brad, 25 Nov 2026: *"Go on v2.23"*, after v2.22 merged (PR #81), with his answers to the four questions left open under items
+158 and 159 (below, under each). Built to `recovery/v223/contract.md`.
+
+##### 156. Three new views: the requirement page, Rank by band, the five-year chart (v2.23)
+- **The requirement as its own page** (*Open full page* from the RECORD card): tabs Overview, Funding by service, Awards,
+  Five years, History; the four figures; the month-by-month obligation chart (the award block's own landing rule, landSvc);
+  the impact statement; the record fields with what is missing flagged; recent changes from the change journal; next and
+  previous rank.
+- **Rank by band (view only):** a column per decision band, cards with rank, ask, office and lane status, the cutlines in the
+  band they fall in; a List / Board by band switch in Rank mode.
+- **The five-year spend plan as a chart:** requirement against funded by year with the gap, and the by-appropriation table with
+  a funded meter per cell, read from the model the panel and workbook already share (fydpBookModel).
+
+##### 158. One requirement across the FYDP, by service (v2.23)
+- **Asked:** Brad, 25 Nov 2026: *"pull up a requirement and manage the funding needs by service across all FYDP years. So if
+  my base year is 2028, I want to see the FY27-32 requirement values and funding allocations ... it's not user friendly to
+  only manage one year at a time for requirement and funding management."* On the mock-up: *"Not bad, I like it. This would
+  help me manage individual requirements across the FYDP."* Then: *"Log it for v2.23"*.
+- **Concept** (canvas https://claude.ai/artifact/SbaXf63b4EE8uvSRqHQXG6, page "One requirement, every year"; images
+  `recovery/v223/concept/158-*.png`, invented figures):
+  - **On the requirement page of item 156, a tab Across the FYDP:** one block per service with Requirement, Discretionary,
+    Mandatory and Unfunded, a column per year from the year before the base to base + 4 (base FY28: FY27-FY32), and an FYDP
+    total (base to base + 4). A figure typed in any year is written into THAT year's plan by the same setters as typing it
+    there; nothing switches year; one Save writes every year; the journal records each line with its year.
+  - **Each year's heading** carries that year's rank and lane status, read only (rank stays a per-year decision).
+  - **Where a lane cannot pay what was typed**, the box keeps the typed figure and says what it drew (the drewLine rule).
+  - **A five-year chart** above the grid: the requirement per year, funded green, unfunded red.
+  - **A year the requirement is not in:** *Add to FY32...*, a new requirement in that year linked to the nearest year's as the
+    same work (v2.06's `prior` link), starting from its requirement by service, office, CCaR, PID and record fields, with an
+    optional growth %; not carried: Disc/Mand, the star, award dates; last in that year's priority order.
+  - **A year nobody has started:** asked once, roll forward or start blank (as v2.09's five-year submittals ask).
+  - **Fill across...:** the requirement from one year into later years, copied or grown by N% a year, previewed as was ->
+    becomes; never Disc/Mand.
+  - **The RECORD card** keeps its one-year view and gains a year strip and *Manage across the FYDP*.
+- **Rules it must keep:** the years are joined by the WORK, never the id (`fydpLineKeys` / `fydpSameIn`, v2.16); each year's
+  figures from that year's own lane walk (`aceWithYear`); a locked cycle read only; in a PMO copy requirement values only, the
+  allocation locked (`allocLocked`).
+- **Answered** (Brad, 25 Nov 2026, on his "Go on v2.23"): FY27, the year before the base, is **editable** like the others;
+  **four lines per service**, all shown; Fill across does **not** offer Disc/Mand.
+
+##### 159. Allocate every requirement in one year: the sheet, one service at a time, and mandatory on or off (v2.23)
+- **Asked:** Brad, 25 Nov 2026: *"a way to manage and adjust funding allocations to all listed requirements in a given FY ...
+  if I have 50 requirements, I need to be able to quickly give and take real funding allocations across the requirements in a
+  grid like format."* Of three mock-ups (A the sheet, B give and take, C one lane at a time): *"I like A and C. When working in a
+  group setting, the working group will need to see all the requirements and funding allocations. We also need to see the
+  requirement value as well so that we have a readily visible baseline funding need. This provides context and readily visible
+  funding goals."* Then: *"Give me the ability to turn on or off the need for mandatory funding. Will make the screen cleaner
+  and we may not need to allocate mandatory funding in future years."* Then: *"Log it for v2.23"*.
+- **Concept** (the same canvas, page "Every requirement, one year": A2, C2, A3 and the box; images
+  `recovery/v223/concept/159-*.png`, invented figures):
+  - **The sheet (A2), for the working group** (sized for a projector at 1920): every requirement in priority order; per
+    service the **requirement (the goal, shaded)**, Discretionary and Mandatory, the requirement cell underlined green where
+    that service's need is met and red where it is short; pinned lines Requirement, Budget authority, Allocated (with the
+    share of the requirement met), Left in the lane and Still unfunded; goal tiles (Requirement, Funded, Unfunded, Budget
+    authority, Left to give); each row's total requirement, funded, unfunded and funded %. Arrow keys, paste from Excel, a
+    changed cell outlined until Save, *Review changes* before Save. A lane given more than it holds is shown in red and not
+    refused, so money can be given first and taken second; Save says so first. **Present** makes it read only in larger type
+    for the room; **Edit** is for the one person typing.
+  - **One service at a time (C2):** service tabs with "asked, % met"; the service's requirement as the goal with a bar of
+    discretionary, mandatory and unfunded and a line at all that service's budget authority (what cannot be met however it is
+    moved); per requirement its requirement for that service, Disc and Mand boxes, a Met bar, Unfunded, and **Left after**
+    counting the lane down row by row; the cutline where the lane is gone; select rows to fund to the requirement, cut by %,
+    or set to $0; Full and $0 per row; a pinned total line.
+  - **Sheet / One lane** switches between the two on the same data.
+  - **Mandatory funding on or off, per year:** a switch in the header. Off hides mandatory for that year everywhere (both
+    views, the RECORD card's Mand box, the Funding tiles, the money bar's yellow, the FYDP grid's Mandatory line). Off in a
+    year that holds no mandatory money asks nothing; in one that does, a box lists what is there and offers **Clear them**
+    (journalled, each can be put back) or **Move what discretionary can cover** (the rest cleared), for that year only or that
+    year and every later year. Mandatory budget authority stays in Budget Management and the PPBE position; on again brings the
+    columns back empty. **Exports keep their Mandatory columns ($0)**, so every year's files keep one layout.
+- **Rules it must keep:** both views read and write the per-service directed split the RECORD card edits (`setFsrcSvc`); a
+  dollar is never funded past its service's requirement (the clamp, `basisSvcOf`); unfunded is `unfSvcOf`; nothing writes
+  while drawing; the switch is a setting on the year saved in the board, distinct from the ◨ discretionary-only what-if.
+- **Answered** (Brad, 25 Nov 2026, on his "Go on v2.23"): Present is **the same screen, switched** (Edit / Present); **B's move
+  panel joins One lane as an aside** (take from one requirement, give to another, an amount).
+
+### v2.22 — 25 Nov 2026: the new look (item 155), the Funding page's tiles (item 154), and the clicks, repeats and additions of the 21 Nov review (149.18–149.53) -- built on Brad's go of 25 Nov; merged on his "Merge it" of 25 Nov (PR #81)
 - **How it was built:** three builders to one contract (`recovery/v222/contract.md`): W1 the page and the Funding page, W2 Ctrl K,
   the list's search, Filter, the empty program, new years and the Add box, W3 the RECORD card and the edit box. Each builder's record
   -- what was built, what it decided (each Brad's to reverse), its checks and mutations, what it left -- is

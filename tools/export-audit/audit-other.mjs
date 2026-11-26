@@ -3795,7 +3795,7 @@ const w2Boot = (sc = W2F, o = {}) => {
     chk(name, 'actions', 'CONTROL: the left menu holds many items here', J(harvest.length > 40), 'true');
     chk(name, 'actions', 'every item on the left menu is offered, and nothing that is not on it', J(offered), J(harvest));
     chk(name, 'actions', 'the views are offered as views: Requirements, Funding, Cycles & compare, Brief',
-      ev(`cmdActions().filter(function(a){ return a.view; }).map(function(a){ return a.t+'·'+a.path; }).join(' | ')`), 'Requirements·Views | Funding·Views | Cycles & compare·Views | Brief·Views');
+      ev(`cmdActions().filter(function(a){ return a.view; }).map(function(a){ return a.t+'·'+a.path; }).join(' | ')`), 'Requirements·Views | Funding·Views | Allocate·Views | Cycles & compare·Views | Brief·Views');   // v2.23 W3: Allocate is a view (item 159)
     // > lists actions only
     ev(`cmdOpen(); __set('cmdQ', '>e'); 'ok'`);
     chk(name, 'actions', '> first: actions only, even where requirements and records hold the words', J(grp().map(g => g[0])), J(['Actions']));
@@ -3947,6 +3947,80 @@ const w2Boot = (sc = W2F, o = {}) => {
 // ==== end v2.22 W3 ====
 // ==== v2.22 integration (the lead) ====
 // ==== end v2.22 integration (the lead) ====
+// ==== v2.23 W1 ====
+// v2.23 W1 (item 156): THE FIVE-YEAR CHART, above the five-year spend plan's table, read from fydpBookModel (the model the box and the
+// workbook share). Its figures are held to the fixture's own numbers, worked by hand: USAF and ANG, discretionary [$250M, $40M], no
+// mandatory; A asks [$100M, $50M] and B [$200M, 0]. FY27: A draws $100M + $40M, B $150M -- requirement $350M, funded $290M, gap $60M.
+// FY28 (A's USAF raised to $160M): A $160M + $40M, B $90M -- requirement $410M, funded $290M, gap $120M. FY29-FY31 are not held.
+// The two years differ, so a chart that reads one year twice cannot pass; requirement and funded differ, so bars swapped cannot.
+// And the workbook is unchanged: exported from this board and from the slot commit's (git), the same bytes.
+// FAILS ON THE SLOT COMMIT (9f82139): there is no chart.
+await (async () => {
+  const name = 'v2.23 W1 — the five-year chart: requirement against funded by year with the gap, by appropriation with a meter, — for a year not held, the workbook byte for byte';
+  try {
+    const J = JSON.stringify, M = 1e6;
+    const FX = { services: ['USAF', 'ANG'], items: [['A', 'PSM', [100 * M, 50 * M]], ['B', 'AV', [200 * M, 0]]].map(([id, grp, ask]) => ({ id, grp, team: grp, sect: '', custom: false,
+      title: id + ' title', event: id + ' event', ccar: '', fy26: [0, 0], ask, alloc: null })), disc: [250 * M, 40 * M], mand: [0, 0], order: ['A', 'B'] };
+    const mk = html => { const B = boot(html ? { html } : {}); seed(B.ev, FX);
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; MS.base=MS.cur;
+        var y1=JSON.parse(JSON.stringify(S)); y1.asks=Object.assign({}, y1.asks||{}, {A:[${160 * M}, ${50 * M}]}); delete y1.pmoOrder; MS.years[MS.cur+1]=y1;
+        save(); render(); 'ok'`);
+      return B; };
+    const { ev } = mk();
+    const fy = (y) => JSON.parse(ev(`aceWithYear(${y}, function(){ var T=tiers(), r=0, f=0; S.order.forEach(function(id){ var it=itemById(id), p=T[id]; r+=askTot(it); f+=p.dT+p.mT; }); return JSON.stringify([r, f]); })`));
+    chk(name, 'fixture', 'CONTROL: FY27 asks $350M and funds $290M; FY28 asks $410M and funds $290M', J([fy(2027), fy(2028)]), J([[350 * M, 290 * M], [410 * M, 290 * M]]));
+    ev(`toggleFydp(); 'ok'`);
+    const bars = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#fydpBody .fydpchart .fyb'), function(b){ var i=b.querySelectorAll('.fybs i');
+      return [b.getAttribute('aria-label'), b.querySelector('.fygap').textContent, i.length? [i[0].className, parseFloat(i[0].style.height), i[1].className, parseFloat(i[1].style.height)] : null]; }))`));
+    const fm = v => ev(`fM(${v})`);
+    chk(name, 'by year', 'five years, each its requirement, funded and gap in words; FY29–FY31 not held', J(bars.map(b => b[0])),
+      J(['FY27: requirement ' + fm(350 * M) + ', funded ' + fm(290 * M) + ', gap ' + fm(60 * M), 'FY28: requirement ' + fm(410 * M) + ', funded ' + fm(290 * M) + ', gap ' + fm(120 * M),
+        'FY29: not held by this plan', 'FY30: not held by this plan', 'FY31: not held by this plan']));
+    chk(name, 'by year', 'the gap printed above each year, — where the year is not held', J(bars.map(b => b[1])), J(['gap $60.0M', 'gap $120.0M', '—', '—', '—']));
+    chk(name, 'by year', 'the bars: requirement then funded, heights as a share of the tallest (FY28’s requirement, $410M)', J(bars.slice(0, 2).map(b => b[2].map(x => typeof x === 'number' ? Math.round(x * 100) / 100 : x))),
+      J([['r', Math.round(350 / 410 * 10000) / 100, 'f', Math.round(290 / 410 * 10000) / 100], ['r', 100, 'f', Math.round(290 / 410 * 10000) / 100]]));
+    chk(name, 'by year', 'under each held year its figures in words', ev(`[].map.call(document.querySelectorAll('#fydpBody .fydpchart .fyb .fyf'), function(x){ return x.textContent; }).join(' | ')`),
+      '$350.0M req · $290.0M funded | $410.0M req · $290.0M funded | not held | not held | not held');
+    const app = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#fydpBody .fydpchart .fyapp tbody tr'), function(r){ return [].map.call(r.children, function(c){
+      var m=c.querySelector('.fym i'); return c.textContent+(m? '@'+Math.round(parseFloat(m.style.width)*100)/100 : ''); }); }))`));
+    chk(name, 'by appropriation', 'O&M: funded / requirement per year with its meter, — for a year not held, the FYDP total', J(app[0]),
+      J([ev(`appnName(mySlug())`), '$290.0M / $350.0M@' + Math.round(290 / 350 * 10000) / 100, '$290.0M / $410.0M@' + Math.round(290 / 410 * 10000) / 100, '—', '—', '—', '$580.0M / $760.0M@' + Math.round(580 / 760 * 10000) / 100]));
+    chk(name, 'by appropriation', 'the box says the other appropriations are the workbook’s, read from their own boards', /are read by the workbook, each from its own board/.test(ev(`document.querySelector('#fydpBody .fydpchart .fynote').textContent`)), true);
+    chk(name, 'agrees', 'the chart’s years are the table’s TOTAL row, in $M', ev(`(function(){ var t=[].filter.call(document.querySelectorAll('#fydpBody table.fydpbook tr.tot'), function(){ return true; })[0];
+      return [].slice.call(t.querySelectorAll('td')).slice(2, 6).map(function(c){ return c.textContent; }).join(','); })()`), '350.000,290.000,410.000,290.000');
+    // the workbook, byte for byte: this board's and the slot commit's, the same fixture, the same day
+    const bytesOf = B => B.ev(`(function(){ var keep=buildXlsx, out=null; buildXlsx=function(){ var b=keep.apply(this, arguments); out=b; return b; };
+      try{ exportFydpPlan('working'); } finally { buildXlsx=keep; } return out? Array.prototype.join.call(out, ',') : 'none'; })()`);
+    const mine = bytesOf({ ev });
+    const { execFileSync } = await import('node:child_process');
+    const root = _selfPath(new URL('../..', import.meta.url));
+    let slot = null;
+    try { slot = execFileSync('git', ['-C', root, 'show', '9f82139:prioritization-board-grid.html'], { encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { failures.push({ scenario: name, where: 'workbook', what: 'the slot commit’s board could not be read from git (a shallow clone? git fetch --unshallow): ' + String((e && e.message) || e).slice(0, 120), got: 'unread', want: 'read' }); }
+    if (slot) {
+      const O = mk(slot);
+      chk(name, 'workbook', 'CONTROL: the slot commit’s box has no chart', O.ev(`toggleFydp(); String(!!document.querySelector('#fydpBody .fydpchart'))`), 'false');
+      const theirs = bytesOf(O);
+      chk(name, 'workbook', 'CONTROL: both built a workbook', J([mine !== 'none' && mine.length > 1000, theirs !== 'none']), J([true, true]));
+      chk(name, 'workbook', 'the workbook is the slot commit’s, byte for byte', mine === theirs, true);
+    }
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+})();
+// ==== end v2.23 W1 ====
+// ==== v2.23 W2 ====
+// ==== end v2.23 W2 ====
+// ==== v2.23 W3 ====
+// ==== end v2.23 W3 ====
+// ==== v2.23 integration (the lead) ====
+// ==== v2.23 review RV-A ====
+// ==== end v2.23 review RV-A ====
+// ==== v2.23 review RV-B ====
+// ==== end v2.23 review RV-B ====
+// ==== v2.23 review RV-C ====
+// ==== end v2.23 review RV-C ====
+// ==== v2.23 review RV-D ====
+// ==== end v2.23 review RV-D ====
+// ==== end v2.23 integration (the lead) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

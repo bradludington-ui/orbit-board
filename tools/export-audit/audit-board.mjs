@@ -10482,8 +10482,9 @@ await (async () => {
         words: [].map.call(m.querySelectorAll('button[id^="uiNav_"]'), function(b){ return b.textContent.replace(/[▸]/g,'').trim(); }) }); })()`));
     chk(name, 'menu', 'no fold control, no icon, no tooltip stand-in for a word, no brand block; the menu follows the sticky top and comes before the page',
       J([mn.fold, mn.icons, mn.tips, mn.brand, mn.after, mn.before]), J([false, 0, 0, false, true, true]));
+    // v2.23 W3: Allocate (item 159), between Funding and FYDP
     chk(name, 'menu', 'its entries are words, in order', J(mn.words),
-      J(['Requirements', 'Funding', 'FYDP', 'Execution', 'Cycles & compare', 'Brief', 'Reports & exports', 'Imports & exports', 'Data', 'Program offices', 'Audit', 'History & recovery', 'Setup']));
+      J(['Requirements', 'Funding', 'Allocate', 'FYDP', 'Execution', 'Cycles & compare', 'Brief', 'Reports & exports', 'Imports & exports', 'Data', 'Program offices', 'Audit', 'History & recovery', 'Setup']));
     // 4. the rows' title band
     // v2.22 W1: the band's title is its own span now, beside the table's filter chips
     const band = () => ev(`(document.getElementById('gridBandT')||{}).textContent||''`);
@@ -10683,8 +10684,9 @@ await (async () => {
       return JSON.stringify({ key:got, inHdr:!!document.querySelector('.hdr #cmdOpen'), seq:seq, add:document.querySelectorAll('#uiAddBtn').length, toolAdd:document.getElementById('toolAdd').className,
         tbar:!!document.querySelector('#uiPage .uiHd .tbar'), top:!!document.querySelector('#topStack .tbar, #topStack #posture') }); })()`));
     chk(name, 'frame', 'the find box is in the header and opens the Ctrl K palette', J([fr.inHdr, fr.key]), J([true, ['palette open']]));
+    // v2.23 W3: Allocate (item 159) sits between Funding and FYDP
     chk(name, 'frame', 'the left menu reads PLAN, its pages, then BOARD from Reports & exports', J(fr.seq),
-      J(['[Plan]', 'req', 'fund', 'fydp', 'exec', 'cyc', 'brief', '[Board]', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup']));
+      J(['[Plan]', 'req', 'fund', 'alloc', 'fydp', 'exec', 'cyc', 'brief', '[Board]', 'rep', 'imp', 'data', 'pmo', 'aud', 'hist', 'setup']));
     chk(name, 'frame', 'one Add requirement, in the main-button look, the task bar in the page’s heading and nothing of it in the sticky top',
       J([fr.add, fr.toolAdd, fr.tbar, fr.top]), J([0, 'btn pri', true, false]));
     chk(name, 'errors', 'no page error', errors.length, 0);
@@ -10767,7 +10769,7 @@ await (async () => {
     const bar = () => JSON.parse(ev(`(function(){ var b=document.querySelector('#inspector .recbar'); return JSON.stringify(b? [b.querySelector('.recpos').textContent,
       [].map.call(b.querySelectorAll('button'), function(x){ return x.textContent+(x.disabled? ':off' : ''); })] : null); })()`));
     ev(`setCur('A'); 'ok'`);
-    chk(name, 'bar', 'A first: "#1 of 6", ‹ Previous off, Next ›, ✕ Close', J(bar()), J(['#1 of 6 · Record', ['‹ Previous:off', 'Next ›', '✕ Close']]));
+    chk(name, 'bar', 'A first: "#1 of 6", ‹ Previous off, Next ›, ✕ Close', J(bar()), J(['#1 of 6 · Record', ['‹ Previous:off', 'Next ›', 'Open full page', '✕ Close']]));   // v2.23 integration: the bar opens the requirement page (item 156)
     ev(`document.querySelector('#inspector .recbar [data-step="1"]').click(); 'ok'`);
     chk(name, 'bar', 'Next › steps to B', ev(`curRow`), 'B');
     ev(`document.querySelector('#inspector .recbar [data-step="-1"]').click(); 'ok'`);
@@ -10877,7 +10879,8 @@ await (async () => {
     chk(name, 'years', 'CONTROL: FY28’s own added requirement carries the same number as FY27’s, and is other work', J([ev(`window.__n28`), ev(`dispTitle(itemById(window.__n28))`)]), J([n27, 'Field team']));
     ev(`switchYear(2027); setCur(${J(n27)}); 'ok'`);
     // the line is filled once the page is idle (recYearsFill: working the years out is not done in the draw)
-    const yrs = async () => { await new Promise(r => setTimeout(r, 40)); return JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.textContent; }))`)); };
+    // v2.23 W2 (item 158): a year now carries its lane word in a span of its own after the figure; the figure is the first text
+    const yrs = async () => { await new Promise(r => setTimeout(r, 40)); return JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#inspector .recyrs .recyr'), function(e){ return e.tagName+':'+e.childNodes[0].textContent; }))`)); };
     chk(name, 'years', 'FY27’s added requirement: FY27 its own value; FY28 holds no such work, so a dash -- never FY28’s other requirement with its number',
       J(await yrs()), J(['SPAN:FY27 ' + fm(40), 'SPAN:FY28 —']));
     ev(`setAsk(${J(n27)}, 0, '45'); setCur(${J(n27)}); 'ok'`);
@@ -11007,10 +11010,11 @@ await (async () => {
       chk(name, 'refusal', 'it is kept as text: no control inside it', ev(`String(document.querySelectorAll('#recMsg button, #recMsg [onclick]').length)`), '0');
       // the years line: after an edit it is drawn (stale) with its buttons, and the fill keeps the very elements
       ev(`setCur('A'); recYearsFill(); 'ok'`);
-      const yb0 = ev(`String(document.querySelectorAll('#recYrs button').length)`);
+      // v2.23 W2 (item 158): the line now ends with Manage across the FYDP, a button of its own; the years are .recyr
+      const yb0 = ev(`String(document.querySelectorAll('#recYrs button.recyr').length)`);
       chk(name, 'years', 'the line has a button to the other year (a CONTROL)', yb0, '1');
       ev(`(function(){ var i=document.querySelector('#inspector .insp-split input[data-col="q"][data-si="0"]'); i.value='310'; i.dispatchEvent(new Event('change',{bubbles:true})); })(); window.__yb=document.querySelector('#recYrs button'); 'ok'`);
-      chk(name, 'years', 'after an edit the line is drawn with its button, marked stale -- not empty', J([ev(`String(document.querySelectorAll('#recYrs button').length)`), ev(`document.getElementById('recYrs').className`)]), J(['1', 'recyrs stale']));
+      chk(name, 'years', 'after an edit the line is drawn with its button, marked stale -- not empty', J([ev(`String(document.querySelectorAll('#recYrs button.recyr').length)`), ev(`document.getElementById('recYrs').className`)]), J(['1', 'recyrs stale']));
       ev(`recYearsFill(); 'ok'`);
       chk(name, 'years', 'the fill brings it up to date in place: the same button, no longer stale', J([ev(`String(document.querySelector('#recYrs button')===window.__yb)`), ev(`document.getElementById('recYrs').className`)]), J(['true', 'recyrs']));
       // a refusal typed on a locked view: said there as text (the view's own sentence carries a Leave button), and gone once the
@@ -11054,6 +11058,1361 @@ await (async () => {
   }
 })();
 // ==== end v2.22 integration (the lead) ====
+// ==== v2.23 W1 ====
+// v2.23 W1 (item 156; Brad, 25 Nov 2026: "Go on v2.23"). THE REQUIREMENT PAGE and RANK BY BAND, held in jsdom; what is about
+// layout, the keyboard and a real pointer is held in Chromium by tools/req-page.mjs (npm run reqpage). Every figure the page prints is
+// one the board already works out, so each check reads the page off the DOM and holds it to the fixture's own numbers, worked by hand
+// below, never to a helper the page itself calls. The fixture makes the alternatives disagree:
+//   P, A, B, C, D, F in that order on USAF and ANG; discretionary [450, 220], mandatory [200, 100].
+//   A asks [550, 100]: it draws USAF discretionary dry (400) and mandatory 150, ANG discretionary 100 -- so discretionary runs out AT A
+//     (the cutline, rank 2). Its four awards, the last dated after FY27: discretionary fills them forward from the first, mandatory
+//     backward from the last, so "forward" and "backward" put mandatory in different months, and the FY28 award's mandatory is
+//     Unscheduled; ANG's awards cover 80 of its 100, so 20 is Unscheduled by the award block's own rule. By hand: NOV 350 disc;
+//     MAR 100 disc; JUN 30 disc + 50 mand; Unscheduled 20 disc + 100 mand.
+//   B is trimmed to 120 of 150 and starred: its own shortfall (requirement less both lanes, 60) differs from what no lane could pay
+//     (beyond, 30), and it is the full-budget cutline (rank 3).
+//   F is on a split directing $50 of USAF discretionary after the lane is dry: it draws $0, and the page says "drew".
+//   Bands: P, A and F in PDM, B in Safety, C in KTLO, D in none -- so the discretionary line sits in PDM between P and A, the
+//     full-budget line in Safety above B, and a line read "at the top" or "at the foot" of its column is told apart.
+// FAILS ON THE SLOT COMMIT (9f82139): there is no page and no board.
+const { bootMark: _v223w1Mark, bootRelease: _v223w1Release, settleBoards: _v223w1Settle } = await import('./boot.mjs');
+const W1F = {
+  services: ['USAF', 'ANG'],
+  items: [it('P', 'PSM', [50, 20]), it('A', 'AV', [550, 100]), it('B', 'PSM', [100, 50]), it('C', 'PP', [0, 50]), it('D', 'AV', [10, 0]), it('F', 'PSM', [50, 0])],
+  disc: [450, 220], mand: [200, 100], order: ['P', 'A', 'B', 'C', 'D', 'F'], mc: { B: true },
+  alloc: { B: { m: 't', v: 120 } }, fsrc: { F: { m: 'split', dv: [50, 0], mv: [0, 0] } },
+};
+const w1Boot = () => {
+  const B = boot(); seed(B.ev, W1F);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+    S.band={P:'pdm', A:'pdm', B:'safety', C:'ktlo', F:'pdm'};
+    S.ccar.A='JSF5002'; S.pid.A='PID9002'; S.ptype.A='OGC';
+    S.awards.A={mode:'inc', inc:[{d:'2026-11', day:5, sv:[300,50]}, {d:'2027-03', day:10, sv:[200,0]}, {d:'2027-06', day:1, sv:[150,30]}, {d:'2028-02', day:2, sv:[100,0]}]};
+    S.cons.B='Line stops in March.';
+    save(); render(); window.confirm=function(){ return true; }; 'ok'`);
+  return B;
+};
+await (async () => {
+  const __bm = _v223w1Mark();
+  const name = 'v2.23 W1 — the requirement page: the header, the four figures, when the money obligates, the record, recent changes, the tabs, Back and Esc';
+  try {
+    const J = JSON.stringify;
+    const { ev } = w1Boot();
+    const fm = v => ev(`fM(${v})`);
+    const T = JSON.parse(ev(`JSON.stringify((function(){ var T=tiers(), o={}; S.order.forEach(function(id){ var p=T[id]; o[id]={d:p.d, m:p.m, u:p.u}; }); return o; })())`));
+    chk(name, 'fixture', 'CONTROL: A draws USAF discretionary 400 and mandatory 150, ANG discretionary 100', J([T.A.d, T.A.m]), J([[400, 100], [150, 0]]));
+    chk(name, 'fixture', 'CONTROL: B’s shortfall (60) is more than what no lane could pay (beyond, 30)', J([60, T.B.u[0] + T.B.u[1]]), J([60, 30]));
+    chk(name, 'fixture', 'CONTROL: F’s directed $50 is not drawn', T.F.d[0], 0);
+    // the journal: seven lines on A this year, one on A in FY28 (another year's requirement), one on B
+    ev(`MS.jrnl=[]; for(var i=0;i<7;i++) MS.jrnl.push({t:1700000000000+i*60000, by:'Pat'+i, fy:2027, p:['notes','A'], a:'n'+i, b:'n'+(i+1)});
+      MS.jrnl.push({t:1700000900000, by:'Other', fy:2028, p:['notes','A'], a:'', b:'FY28 NOTE'}); MS.jrnl.push({t:1700000950000, by:'Bea', fy:2027, p:['notes','B'], a:'', b:'B NOTE'}); 'ok'`);
+    // 1. it opens, in place of the list
+    ev(`setCur('A'); reqPageOpen('A'); 'ok'`);
+    const st = () => JSON.parse(ev(`JSON.stringify({on:document.documentElement.classList.contains('ui-reqpage'), hid:document.getElementById('reqPage').hidden,
+      k:REQPG && REQPG.k, id:REQPG && REQPG.id, text:document.getElementById('reqPage').textContent})`));
+    const s1 = st();
+    chk(name, 'open', 'the page is shown in place of the list, on Overview, for A', J([s1.on, s1.hid, s1.k, s1.id]), J([true, false, 'over', 'A']));
+    const hd = JSON.parse(ev(`(function(){ var p=document.getElementById('reqPage'); return JSON.stringify({eye:p.querySelector('.rpeye').textContent, title:p.querySelector('#rpTitle').textContent,
+      chips:[].map.call(p.querySelectorAll('.rpchips > span'), function(x){ return x.textContent; }), pill:p.querySelector('.rppill').getAttribute('data-lk'),
+      nav:[].map.call(p.querySelectorAll('.rpnav'), function(b){ return b.textContent+(b.disabled? ':off' : ''); }),
+      mc:p.querySelector('.rpmc').getAttribute('onclick'), row:document.querySelector('#row-A .mcb').getAttribute('onclick'), edit:p.querySelector('.rpedit').getAttribute('onclick')}); })()`));
+    chk(name, 'header', 'rank of N, office, the year and appropriation', hd.eye, '#2 of 6 · AV · FY2027 ' + ev('apLabel()'));
+    chk(name, 'header', 'the title', hd.title, ev(`dispTitle(itemById('A'))`));
+    chk(name, 'header', 'the chips: the lane in its word, CCaR, PID, OGC, the band', J(hd.chips.map(x => x.trim())), J(['Both lanes', 'CCaR JSF5002', 'PID PID9002', 'OGC', ev(`(function(){ var i=-1; BANDS_LIST().forEach(function(b,j){ if(b.id==='pdm') i=j; }); return i+' · '+BAND_DEF('A').n; })()`)]));
+    chk(name, 'header', 'the lane pill is laneOf’s (A draws both lanes)', hd.pill, 'split');
+    chk(name, 'header', 'Previous and Next carry the ranks either side (#1 and #3)', J(hd.nav), J(['↑ #1', '#3 ↓']));
+    chk(name, 'header', '★ is the row’s own call, Edit record opens the edit box', J([hd.mc === hd.row, hd.edit]), J([true, 'openEdit("A")']));
+    // 2. the four figures
+    const figs = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpk'), function(k){ return [k.querySelector('.l').textContent, +k.querySelector('.v').getAttribute('data-v')]; }))`));
+    chk(name, 'figures', 'A: Requirement 650, Discretionary 500, Mandatory 150, Unfunded 0', J(figs()), J([['Requirement', 650], ['Discretionary', 500], ['Mandatory', 150], ['Unfunded', 0]]));
+    // 3. when the money obligates: the award block's own landing, by hand
+    const mos = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpmo'), function(m){ return [+m.getAttribute('data-d'), +m.getAttribute('data-m')]; }))`));
+    const want = Array.from({ length: 13 }, () => [0, 0]); want[1] = [350, 0]; want[5] = [100, 0]; want[8] = [30, 50]; want[12] = [20, 100];
+    chk(name, 'obligates', 'twelve months and Unscheduled: NOV 350 disc, MAR 100, JUN 30 + 50 mand, Unscheduled 20 disc (no award covers it) + 100 mand (the FY28 award)', J(mos()), J(want));
+    chk(name, 'obligates', 'its line: 4 awards, 530 scheduled, 120 unscheduled', ev(`document.querySelector('#reqPage .rpchart .rpsub').textContent`), '4 awards · ' + fm(530) + ' scheduled · ' + fm(120) + ' unscheduled');
+    chk(name, 'obligates', 'the figures as text beside it, each month with its lanes', ev(`[].map.call(document.querySelectorAll('#reqPage .rpfigs li'), function(l){ return l.textContent; }).join(' | ')`),
+      ['NOV 26: ' + fm(350) + ' (discretionary ' + fm(350) + ', mandatory ' + fm(0) + ')', 'MAR 27: ' + fm(100) + ' (discretionary ' + fm(100) + ', mandatory ' + fm(0) + ')',
+        'JUN 27: ' + fm(80) + ' (discretionary ' + fm(30) + ', mandatory ' + fm(50) + ')', 'Unscheduled: ' + fm(120) + ' (discretionary ' + fm(20) + ', mandatory ' + fm(100) + ')'].join(' | '));
+    // 4. the record's fields and what is still needed (reqNeeds): A has no obligation category, WBS or Goes to
+    const miss = ev(`[].map.call(document.querySelectorAll('#reqPage .rpflds dd.miss'), function(d){ return d.getAttribute('data-k'); }).join(',')`);
+    chk(name, 'record', 'the fields reqNeeds finds missing are flagged, each by its key', miss,
+      ev(`reqNeeds(reqDraftOf('A')).filter(function(x){ return !x.ok && !x.w && ['titles','obCat','wbs','dest','destEnd','mipr','budgetAsg'].indexOf(x.k)>=0; }).map(function(x){ return x.k; }).join(',')`));
+    chk(name, 'record', 'CONTROL: and that is obligation category, WBS and Goes to', miss, 'obCat,wbs,dest');
+    chk(name, 'record', 'the page leaves the change journal’s own narrowing as it was (none)', ev('String(jrnlReq)'), 'null');
+    ev(`reqPgOpen('B'); 'ok'`);
+    chk(name, 'figures', 'B (trimmed): Requirement 150, Discretionary 40, Mandatory 50, Unfunded 60 -- its own shortfall, never beyond (30)', J(figs()), J([['Requirement', 150], ['Discretionary', 40], ['Mandatory', 50], ['Unfunded', 60]]));
+    ev(`reqPgOpen('A'); 'ok'`);
+    // 5. the impact statement: A's is not written -> the box and the button to the edit box at it
+    chk(name, 'impact', 'A: "Not written yet" and Write impact statement, to the edit box at the impact statement',
+      J([ev(`!!document.querySelector('#reqPage .rpimp .rpnone')`), ev(`document.querySelector('#reqPage .rpimp button').getAttribute('onclick')`)]), J([true, 'openEdit("A","cons")']));
+    // 6. recent changes: A's this year, newest first, five, and All 7 to History
+    const rec = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rprecent .rpj li'), function(l){ return l.querySelector('.rpjb').textContent.split(' · ')[0]; }))`));
+    chk(name, 'recent', 'the newest five of A’s seven lines in FY27, newest first: never FY28’s, never B’s', J(rec()), J(['Pat6', 'Pat5', 'Pat4', 'Pat3', 'Pat2']));
+    chk(name, 'recent', 'a line names its field and says was → now', ev(`document.querySelector('#reqPage .rprecent .rpjw').textContent`), ev(`jrnlFieldName({p:['notes','A']})`) + ' n6 → n7');
+    chk(name, 'recent', '"All 7 in History", and the History tab says 7', J([ev(`document.querySelector('#reqPage .rprecent button').textContent`), ev(`document.getElementById('rptab_hist').textContent`)]), J(['All 7 in History', 'History · 7']));
+    // 7. the tabs
+    chk(name, 'tabs', 'the tabs in order, buttons with aria-pressed, Overview pressed', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent+'='+b.getAttribute('aria-pressed'); }).join(',')`),
+      'Overview=true,Funding by service=false,Awards=false,Across the FYDP=false,History · 7=false');   // v2.23 integration: W2's tab, order 40
+    ev(`document.querySelector('#reqPage .rprecent button').click(); 'ok'`);
+    chk(name, 'history', '"All 7" opens History: all seven, newest first, the keyboard on its tab', J([ev(`REQPG.k`), ev(`document.querySelectorAll('#reqPage .rpj.all li').length`), ev(`document.activeElement.id`)]), J(['hist', 7, 'rptab_hist']));
+    chk(name, 'history', 'Put back stays in the change journal, narrowed to A', ev(`[].filter.call(document.querySelectorAll('#reqPage button'), function(b){ return /change journal/.test(b.textContent); })[0].getAttribute('onclick')`), 'jrnlFor("A")');
+    // 8. funding by service: A's figures per service, and F's directed $50 not drawn says what it drew
+    ev(`reqPageTab('svc'); 'ok'`);
+    const svc = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpsvc tbody tr, #reqPage .rpsvc tfoot tr'), function(r){ return [].map.call(r.children, function(c){ return c.textContent; }); }))`));
+    chk(name, 'by service', 'A: USAF 550 / 400 / 150 / —, ANG 100 / 100 / — / —, Total', J(svc()),
+      J([['USAF', fm(550), fm(400), fm(150), '—'], ['ANG', fm(100), fm(100), '—', '—'], ['Total', fm(650), fm(500), fm(150), fm(0)]]));
+    ev(`reqPgOpen('F', 'svc'); 'ok'`);
+    const sf = svc();
+    chk(name, 'by service', 'F: the $50 directed is shown with what it drew ($0), and the total says what was directed', J([sf[0][2], sf[2][2]]),
+      J([fm(50) + 'drew ' + fm(0), fm(0) + ev(`directedLine(50, 0, basisSvcOf(itemById('F')).reduce(function(a,b){ return a+b; },0)).replace(/<[^>]+>/g,'')`)]));
+    chk(name, 'by service', 'B: its unfunded is its own shortfall (60), not beyond (30)', ev(`(reqPgOpen('B','svc'), document.querySelector('#reqPage .rpsvc tfoot td.u').textContent)`), fm(60));
+    // 9. the awards: one block each, the split by the award block's rule, the FY28 one said, Unscheduled
+    ev(`reqPgOpen('A', 'awd'); 'ok'`);
+    const aw = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpawd'), function(b){ return [b.querySelector('.rpah').textContent, b.querySelector('.rpasp').textContent]; }))`));
+    chk(name, 'awards', 'four awards and Unscheduled: totals, splits, the FY28 one outside the year',
+      J(aw.map(a => [a[0].replace(/\s+/g, ' ').trim(), a[1]])),
+      J([['Award 1 · 5 NOV 26' + fm(350), 'discretionary ' + fm(350) + ' · mandatory ' + fm(0)], ['Award 2 · 10 MAR 27' + fm(200), 'discretionary ' + fm(100) + ' · mandatory ' + fm(0)],
+        ['Award 3 · 1 JUN 27' + fm(180), 'discretionary ' + fm(30) + ' · mandatory ' + fm(50)], ['Award 4 · 2 FEB 28 outside FY27 — Unscheduled in the chart' + fm(100), 'discretionary ' + fm(0) + ' · mandatory ' + fm(100)],
+        ['Unscheduled' + fm(20), 'discretionary ' + fm(20) + ' · mandatory ' + fm(0)]]));
+    // 10. mandatory off for the year (W3's switch, mandOn): the page hides every mandatory figure
+    ev(`window.__mo=mandOn; mandOn=function(){ return false; }; reqPgOpen('A'); 'ok'`);
+    chk(name, 'mandatory off', 'the four figures lose Mandatory, the chart its legend and lanes say nothing of it', J([figs().map(f => f[0]).join(','), ev(`/Mandatory|mandatory/.test(document.querySelector('#reqPage .rpchart').textContent)`)]), J(['Requirement,Discretionary,Unfunded', false]));
+    ev(`reqPageTab('svc'); 'ok'`);
+    chk(name, 'mandatory off', 'Funding by service has no Mandatory column', ev(`[].map.call(document.querySelectorAll('#reqPage .rpsvc thead th'), function(t){ return t.textContent; }).join(',')`), 'Service,Requirement,Discretionary,Unfunded');
+    ev(`mandOn=window.__mo; reqPgOpen('A'); 'ok'`);
+    // 11. Previous and Next by the list as shown
+    ev(`document.querySelector('#reqPage .rpnav[data-step="1"]').click(); 'ok'`);
+    chk(name, 'step', 'Next from A is B, selected behind the page, the keyboard on Next', J([ev('REQPG.id'), ev('curRow'), ev(`document.activeElement.getAttribute('data-step')`)]), J(['B', 'B', '1']));
+    ev(`document.querySelector('#reqPage .rpnav[data-step="-1"]').click(); document.querySelector('#reqPage .rpnav[data-step="-1"]').click(); 'ok'`);
+    chk(name, 'step', 'Previous twice: P, the first -- its Previous is off', J([ev('REQPG.id'), ev(`document.querySelector('#reqPage .rpnav[data-step="-1"]').disabled`)]), J(['P', true]));
+    ev(`document.body.focus(); try{ dlgSync(); }catch(e){} document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'j', bubbles:true, cancelable:true})); 'ok'`);
+    chk(name, 'step', 'J steps the page as Next does (the list’s J moved the selection behind it): A, selected, the record not opened', J([ev('REQPG.id'), ev('curRow'), ev(`document.getElementById('inspector').classList.contains('open')`)]), J(['A', 'A', false]));
+    // 12. a tab that throws shows its own failure; the page and the other tabs stand
+    ev(`REQPG_TABS.push({k:'boom', label:'Boom', order:45, html:function(){ throw new Error('kaput'); }}); reqPgOpen('A','boom'); 'ok'`);
+    chk(name, 'a tab fails', 'its own failure, under the header and the tabs', J([/The Boom tab could not be drawn — kaput/.test(ev(`(document.querySelector('#reqPage .rpbody')||{}).textContent||''`)), ev(`document.querySelectorAll('#reqPage .rptab').length`), ev(`(document.getElementById('rpTitle')||{}).textContent||''`)]),
+      J([true, 6, ev(`dispTitle(itemById('A'))`)]));   // v2.23 integration: five tabs and Boom
+    chk(name, 'a tab fails', 'the tabs by their order, a tab registered later in its place', ev(`[].map.call(document.querySelectorAll('#reqPage .rptab'), function(b){ return b.textContent; }).join(',')`),
+      'Overview,Funding by service,Awards,Across the FYDP,Boom,History · 7');   // v2.23 integration: Across the FYDP is order 40, Boom 45
+    ev(`REQPG_TABS.splice(REQPG_TABS.length-1, 1); reqPgOpen('A'); 'ok'`);
+    // 13. Back: the list again, A selected, the keyboard on A's row
+    ev(`document.querySelector('#reqPage .rpback').click(); 'ok'`);
+    chk(name, 'back', 'Back: the page is gone, A is selected and its row has the keyboard', J([st().on, st().hid, ev('curRow'), ev('document.activeElement.id')]), J([false, true, 'A', 'row-A']));
+    // 14. Esc closes it when nothing else has it; a menu open keeps it
+    ev(`reqPageOpen('C'); 'ok'`);
+    ev(`openMenu='view'; document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true, cancelable:true})); 'ok'`);
+    chk(name, 'esc', 'with a menu open, Esc is the menu’s: the page stays', ev('String(!!REQPG)'), 'true');
+    ev(`openMenu=null; try{ dlgSync(); }catch(e){} document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true, cancelable:true})); 'ok'`);
+    chk(name, 'esc', 'with nothing else open, Esc goes back to the list, C selected', J([ev('String(!!REQPG)'), ev('curRow'), ev('document.activeElement.id')]), J(['false', 'C', 'row-C']));
+    // 15. another view leaves the page: a mode chosen elsewhere, or a left-menu entry for another view
+    ev(`reqPageOpen('A'); uiSetMode('fund'); 'ok'`);
+    chk(name, 'leave', 'Fund chosen: the page has gone', J([ev('String(!!REQPG)'), st().hid]), J(['false', true]));
+    ev(`uiSetMode('review'); reqPageOpen('A'); document.getElementById('uiNav_req').click(); 'ok'`);
+    chk(name, 'leave', 'Requirements in the left menu: the page has gone, the list is shown', J([ev('String(!!REQPG)'), st().on]), J(['false', false]));
+    // 16. the year switched under it: A is FY27's -- FY28 (started from FY27, so it holds an A too) never shows its A here
+    ev(`reqPageOpen('A'); switchYear(2028); 'ok'`);
+    chk(name, 'another year', 'on FY28 the page says it was opened on FY27’s requirement, and offers Back', J([ev('MS.cur'), /opened on FY27’s/.test(st().text), !!ev(`!!document.querySelector('#reqPage .rpback')`), ev(`!!document.querySelector('#reqPage .rpkpis')`)]),
+      J([2028, true, true, false]));
+    ev(`switchYear(2027); 'ok'`);
+    chk(name, 'another year', 'back on FY27 it is A’s page again', J([ev('MS.cur'), ev(`document.getElementById('rpTitle').textContent`)]), J([2027, ev(`dispTitle(itemById('A'))`)]));
+    // 17. nothing is written: the page is the session's
+    ev(`reqPageClose(); 'ok'`);
+    const sv = ev(`buildSavedHtml()`);
+    const ps = sv.slice(sv.indexOf('id="pubState">'), sv.indexOf('</script>', sv.indexOf('id="pubState">')));
+    chk(name, 'nothing saved', 'CONTROL: the saved state is read', ps.length > 1000, true);
+    chk(name, 'nothing saved', 'the saved state carries no page state', /REQPG|reqPage|"over"|"hist"/.test(ps), false);
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _v223w1Release(__bm, []);
+  await _v223w1Settle();
+})();
+await (async () => {
+  const __bm = _v223w1Mark();
+  const name = 'v2.23 W1 — Rank by band: a column per band and No band yet, the list’s order and filters, the cutlines in their bands, a card opens the record, nothing written';
+  try {
+    const J = JSON.stringify;
+    const { ev } = w1Boot();
+    const fm = v => ev(`fM(${v})`);
+    ev(`uiSetMode('rank'); 'ok'`);
+    chk(name, 'switch', 'in Rank the switch is there, List pressed, and the list is shown', J([ev(`!!document.getElementById('rkViewSw')`), ev(`document.getElementById('rkv_list').getAttribute('aria-pressed')`), ev(`document.getElementById('rkBoard').hidden`)]), J([true, 'true', true]));
+    ev(`document.getElementById('rkv_board').click(); 'ok'`);
+    chk(name, 'switch', 'Board by band: pressed, the board shown, kept in this browser as spmtRankView', J([ev(`document.getElementById('rkv_board').getAttribute('aria-pressed')`), ev(`document.getElementById('rkBoard').hidden`), ev(`localStorage.getItem('spmtRankView')`), ev(`document.documentElement.classList.contains('ui-rkboard')`)]),
+      J(['true', false, 'board', true]));
+    const cols = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#rkBoard .rkcol'), function(c){ return {h:c.querySelector('.rkh b').textContent, n:c.querySelector('.rkn').textContent,
+      items:[].map.call(c.querySelectorAll('.rkcard, .rkcut'), function(x){ return x.classList.contains('rkcut')? 'LINE:'+x.className.replace('rkcut ','') : x.getAttribute('data-id'); })}; }))`));
+    const C = cols();
+    const ladder = JSON.parse(ev(`JSON.stringify(BANDS_LIST().map(function(b,i){ return i+' · '+b.n; }).concat(['No band yet']))`));
+    chk(name, 'columns', 'a column per band in the ladder’s order, then No band yet', J(C.map(c => c.h)), J(ladder));
+    const col = id => C.filter(c => c.h === ev(`(function(){ var i=-1; BANDS_LIST().forEach(function(b,j){ if(b.id===${J(id)}) i=j; }); return i+' · '+BANDS_LIST()[i].n; })()`))[0];
+    chk(name, 'cards', 'PDM: P, the discretionary line, A, F -- the line above the first card at or past where the lane runs out (A, #2)', J(col('pdm').items), J(['P', 'LINE:disc', 'A', 'F']));
+    chk(name, 'cards', 'Safety: the full-budget line above B (#3)', J(col('safety').items), J(['LINE:unf', 'B']));
+    chk(name, 'cards', 'KTLO: C; No band yet: D', J([col('ktlo').items, C[C.length - 1].items]), J([['C'], ['D']]));
+    chk(name, 'cards', 'each column’s count and requirement total', J([col('pdm').n, col('safety').n, C[C.length - 1].n]), J(['3 · ' + fm(70 + 650 + 50), '1 · ' + fm(150), '1 · ' + fm(10)]));
+    chk(name, 'cutlines', 'the discretionary line carries Mission Critical’s shortage (B is starred and short)', /★ Mission Critical short/.test(ev(`document.querySelector('#rkBoard .rkcut.disc').textContent`)), true);
+    chk(name, 'cutlines', 'the Today line: discretionary runs out at #2, the full-budget limit at #3', /discretionary runs out at #2.*full-budget limit at #3/.test(ev(`document.querySelector('#rkBoard .rktoday').textContent`)), true);
+    const card = JSON.parse(ev(`(function(){ var c=document.querySelector('#rkBoard .rkcard[data-id="B"]'); return JSON.stringify([c.tagName, c.querySelector('.rkr').textContent, c.querySelector('.rkm b').textContent, c.querySelector('.rko').textContent,
+      c.querySelector('.rppill').getAttribute('data-lk'), c.querySelector('.rppill').textContent, !!c.querySelector('.rkmc'), c.getAttribute('draggable')]); })()`));
+    chk(name, 'cards', 'B’s card: a button, #3, its requirement, PSM, its lane in its word, ★ MC; nothing draggable', J(card), J(['BUTTON', '#3', fm(150), 'PSM', ev(`laneOf(tiers()['B'])`), ev(`laneWord(laneOf(tiers()['B']))`), true, null]));
+    chk(name, 'view only', 'nothing on the board changes a band or the order: every control is a card that calls rkPick', ev(`[].every.call(document.querySelectorAll('#rkBoard button, #rkBoard input, #rkBoard select, #rkBoard [onclick], #rkBoard [draggable]'), function(b){ return /^rkPick\\(/.test(b.getAttribute('onclick')||''); })`), true);
+    ev(`document.querySelector('#rkBoard .rkcard[data-id="C"]').click(); 'ok'`);
+    chk(name, 'pick', 'a card selects its requirement and opens its record', J([ev('curRow'), ev(`document.getElementById('inspector').classList.contains('open')`), ev(`document.querySelector('#rkBoard .rkcard.sel').getAttribute('data-id')`)]), J(['C', true, 'C']));
+    // the list's filters apply: Mission Critical only leaves B
+    ev(`mcOnly=true; render(); 'ok'`);
+    chk(name, 'filters', 'Mission Critical only: B alone, still in Safety; the lines are drawn as the rows draw them', J(cols().map(c => c.items.filter(x => x.indexOf('LINE') < 0)).flat()), J(['B']));
+    ev(`mcOnly=false; filter='PSM'; render(); 'ok'`);
+    chk(name, 'filters', 'one office (PSM): its cards only, and no cutline (the rows draw none there)', J(cols().map(c => c.items).flat()), J(['P', 'F', 'B']));
+    ev(`filter='ALL'; render(); 'ok'`);
+    // never in the board, never off Rank
+    const sv = ev(`buildSavedHtml()`);
+    const ps = sv.slice(sv.indexOf('id="pubState">'), sv.indexOf('</script>', sv.indexOf('id="pubState">')));
+    chk(name, 'nothing saved', 'CONTROL: the saved state is read', ps.length > 1000, true);
+    chk(name, 'nothing saved', 'the saved state carries no Rank view', /spmtRankView|rkBoard|RKVIEW/.test(ps), false);
+    ev(`uiSetMode('review'); 'ok'`);
+    chk(name, 'other modes', 'in Review the board is hidden and the list is back', J([ev(`document.getElementById('rkBoard').hidden`), ev(`document.documentElement.classList.contains('ui-rkboard')`)]), J([true, false]));
+    ev(`uiSetMode('rank'); document.getElementById('rkv_list').click(); 'ok'`);
+    chk(name, 'switch', 'List again: kept as list, the board hidden', J([ev(`localStorage.getItem('spmtRankView')`), ev(`document.getElementById('rkBoard').hidden`)]), J(['list', true]));
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _v223w1Release(__bm, []);
+  await _v223w1Settle();
+})();
+// ==== end v2.23 W1 ====
+// ==== v2.23 W2 ====
+// v2.23 W2 (item 158): ONE REQUIREMENT ACROSS THE FYDP, BY SERVICE. Brad, 25 Nov 2026, and his answers (FY27, the year before the base,
+// editable; four lines per service; Fill never offers Disc/Mand). What jsdom can hold -- the fit, a real pointer and real keys are
+// tools/fydp-across.mjs's (npm run across) -- held here on a board where the alternatives disagree:
+//   - the year before the base is ON SCREEN (base FY28, FY27 shown), so a window that starts at the base, or a FYDP total that counts
+//     the year before it, both read differently;
+//   - FY29 was started blank and holds OTHER WORK under FY27's added requirement's own id (NEW-1), with FY27's work there as NEW-2,
+//     linked: a figure typed for FY29 that follows the id lands on the wrong requirement;
+//   - FY29's lanes are empty, so a directed discretionary dollar typed there cannot be paid (the box keeps it, the line says what drew);
+//   - a requirement from the board's data (A), whose FY28 value lives in S.asks, beside an added one whose value lives on itself;
+//   - FY30 and FY32 not started (Add asks to start them; Cancel starts nothing), FY31 rolled forward from the year on screen (it holds
+//     the very requirement, so Add must not make a second one).
+// Expectations come from the fixture's own figures (FY27's lanes are spent on A and B before NEW-1; FY29's are empty), never from the
+// tab's own reading. FAILS ON THE SLOT COMMIT (9f82139): REQPG_TABS holds no Across the FYDP tab there, and the strip has no Manage.
+const { bootMark: _v223Mark, bootRelease: _v223Release, settleBoards: _v223Settle } = await import('./boot.mjs');   // v2.23 integration: W2's and W3's blocks
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W2 — Across the FYDP: the years by the work, a figure for another year written there through its setter and journalled with its year, what a lane drew, Add to a year, Fill across, the year strip';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev, errors = B.errors;
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('B', 'AV', [200, 50])], disc: [400, 100], mand: [100, 50], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.order.forEach(function(id){ seedSplit(id); }); MS.base=2028;
+      window.__n=reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[40,0]}); save(); render();
+      window.__ans=[]; window.confirm=function(){ return window.__ans.length? window.__ans.shift() : true; }; window.alert=function(){};
+      window.__d=document.createElement('div'); document.body.appendChild(window.__d);
+      window.__xd=function(id){ var t=REQPG_TABS.filter(function(x){ return x.k==='fydp'; })[0]; window.__d.innerHTML=t.html(id||'NEW-1'); t.after(id||'NEW-1'); };
+      window.__in=function(y, k, si){ return window.__d.querySelector('input[data-y="'+y+'"][data-xf="'+k+'"][data-si="'+si+'"]'); };
+      window.__type=function(y, k, si, v){ var i=window.__in(y, k, si); if(!i) return 'no box'; i.value=v; i.dispatchEvent(new Event('change',{bubbles:true})); return 'ok'; };
+      // every leaf of every year, as a flat map, for "nothing else moved"
+      window.__flat=function(){ var o={}; (function w(v, p){ if(v && typeof v==='object'){ Object.keys(v).forEach(function(k){ if(p.length===1 && (k==='ts' || k==='sync' || k==='by')) return; w(v[k], p.concat(k)); }); }
+        else o[p.join('.')]=JSON.stringify(v); })(JSON.parse(JSON.stringify(MS.years)), []); return o; };
+      window.__diff=function(a, b){ var ks={}, out=[]; Object.keys(a).forEach(function(k){ ks[k]=1; }); Object.keys(b).forEach(function(k){ ks[k]=1; });
+        Object.keys(ks).forEach(function(k){ if(a[k]!==b[k]) out.push(k); }); return out.sort(); };
+      window.__ask=function(y, id){ var T=MS.years[y], x=T && yrItemOf(T, id); return x? x.ask.slice() : null; };
+      'ok'`);
+    const n = ev(`window.__n`);
+    chk(name, 'fixture', 'CONTROL: the added requirement is NEW-1, and the year on screen is FY27, the year before the base FY28', J([n, ev(`String(MS.cur)`), ev(`String(MS.base)`)]), J(['NEW-1', '2027', '2028']));
+    // 0. the strip on a board of one year: Manage across the FYDP is there (the line stood only with two years held)
+    ev(`setCur('NEW-1'); recYearsFill(); 'ok'`);
+    chk(name, 'strip', 'one year held: the strip shows FY27 with its lane word and Manage across the FYDP', J(JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#recYrs > *'), function(e){ return e.tagName+':'+e.textContent; }))`))),
+      J(['SPAN:Requirement by year', 'SPAN:FY27 ' + ev(`fM(40)`) + ' · Unfunded', 'BUTTON:Manage across the FYDP ›']));
+    // FY28 rolled forward; FY29 started blank with other work under NEW-1 and FY27's work as NEW-2, linked
+    ev(`window.__ans=[true]; switchYear(2028); switchYear(2027);
+      window.__ans=[false, true]; switchYear(2029);
+      window.__o=reqCreate('AV', {title:'Other work', event:'Other work', ask:[999,0]});
+      window.__l=reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[55,0]}, {y:2027, id:'NEW-1'}); save(); switchYear(2027); setCur('A'); 'ok'`);
+    chk(name, 'fixture', 'CONTROL: FY29 holds other work as NEW-1 and FY27’s Field kit as NEW-2, its lanes empty', J([ev(`window.__o`), ev(`window.__l`), ev(`JSON.stringify(MS.years[2029].discSvc)`)]), J(['NEW-1', 'NEW-2', '[0,0]']));
+    ev(`window.__xd('NEW-1'); 'ok'`);
+    // 1. the years: the year before the base to base + 4, each heading its rank and lane, and the FYDP total
+    const heads = JSON.parse(ev(`JSON.stringify([].map.call(window.__d.querySelectorAll('thead th.xfyh'), function(e){ return e.querySelector('b').textContent+' | '+(e.querySelector('.xfsub')||{}).textContent; }))`));
+    chk(name, 'years', 'FY27 (before the base, on screen) to FY32, then the FYDP total; each year held says its rank and lane, the others not in or not started',
+      J(heads), J(['FY27 | #3 of 3 · Unfunded', 'FY28 | #3 of 3 · Unfunded', 'FY29 | #2 of 2 · Unfunded', 'FY30 | not startedAdd to FY30…', 'FY31 | not startedAdd to FY31…', 'FY32 | not startedAdd to FY32…', 'FYDP | FY28–32 total']));
+    // the window is the year before the BASE, wherever the year on screen is: from FY28 it still starts at FY27
+    ev(`switchYear(2028); window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'years', 'from FY28 (the base) the years still start at FY27, the year before it', ev(`[].map.call(window.__d.querySelectorAll('thead th.xfyh b'), function(e){ return e.textContent; }).slice(0, 2).join(',')`), 'FY27,FY28');
+    ev(`switchYear(2027); setCur('A'); window.__xd('NEW-1'); 'ok'`);
+    // 2. the requirement in FY29 is NEW-2 -- the same work -- never FY29's NEW-1
+    chk(name, 'work', 'FY29’s boxes are NEW-2’s ($55), never the other work that carries FY27’s id ($999)',
+      J([ev(`window.__in(2029,'q',0).value`), ev(`window.__in(2029,'q',0).getAttribute('onchange')`)]), J(['55', 'xfSet(2029,"NEW-2","q",0,this.value)']));
+    // 3. the figures, from the fixture: FY27's lanes are spent on A and B, so NEW-1 is unfunded there and in FY28 (rolled); FY29 has no lanes
+    const unf = JSON.parse(ev(`JSON.stringify([].map.call(window.__d.querySelectorAll('tbody tr.xf-u')[0].querySelectorAll('td'), function(e){ return e.textContent; }))`));
+    const fm = v => ev(`fM(${v})`);
+    chk(name, 'figures', 'USAF unfunded by year: $40, $40, $55, three dashes, and the FYDP total FY28-FY32 ($95) -- the year before the base left out',
+      J(unf), J([fm(40), fm(40), fm(55), '—', '—', '—', fm(95)]));
+    // 4. a figure typed for FY29 lands in FY29's plan, on NEW-2, through the setter, in one save -- and nothing else in any year moves
+    const f0 = ev(`JSON.stringify(window.__flat())`), g0 = +ev(`String(_saveGen)`), j0 = +ev(`String(MS.jrnl.length)`);
+    ev(`window.__type(2029,'q',0,'70')`);
+    const f1 = ev(`JSON.stringify(window.__flat())`);
+    chk(name, 'write', 'typed 70 in FY29: NEW-2 there reads 70, FY29’s NEW-1 still 999, FY27’s and FY28’s Field kit still 40, FY27 on screen',
+      J([ev(`JSON.stringify(window.__ask(2029,'NEW-2'))`), ev(`JSON.stringify(window.__ask(2029,'NEW-1'))`), ev(`JSON.stringify(window.__ask(2027,'NEW-1'))`), ev(`JSON.stringify(window.__ask(2028,'NEW-1'))`), ev(`String(MS.cur)`)]),
+      J(['[70,0]', '[999,0]', '[40,0]', '[40,0]', '2027']));
+    chk(name, 'write', 'and that is the only figure that moved in any year', J(JSON.parse(ev(`JSON.stringify(window.__diff(${f0}, ${f1}))`))), J(['2029.custom.1.ask.0']));
+    chk(name, 'write', 'one save for the commit', +ev(`String(_saveGen)`) - g0, 1);
+    const jl = JSON.parse(ev(`JSON.stringify(MS.jrnl.slice(${j0}).map(function(e){ return [e.fy, e.p, e.a, e.b]; }))`));
+    chk(name, 'journal', 'the change journal files it under FY29, as typed there', J(jl), J([[2029, ['custom', 'NEW-2', 'ask', 0], 55, 70]]));
+    // 5. Put back of that line puts back FY29's figure, from FY27
+    ev(`jrnlUndo(${j0}); 'ok'`);
+    chk(name, 'put back', 'Put back from FY27 puts FY29’s figure back, and the years are as they were', J([ev(`JSON.stringify(window.__ask(2029,'NEW-2'))`), ev(`String(MS.cur)`),
+      J(JSON.parse(ev(`JSON.stringify(window.__diff(${f0}, window.__flat()))`)))]), J(['[55,0]', '2027', '[]']));
+    // 6. a board-data requirement's figure for another year: in FY28's S.asks, the year on screen untouched
+    ev(`window.__xd('A'); window.__type(2028,'q',0,'333'); 'ok'`);
+    chk(name, 'board data', 'A typed 333 for FY28 lands in FY28’s plan; FY27’s A is still 300', J([ev(`JSON.stringify(MS.years[2028].asks.A)`), ev(`JSON.stringify(itemById('A').ask)`)]), J(['[333,100]', '[300,100]']));
+    // 7. a directed figure FY29's lane cannot pay: written through setFsrcSvc (seeded the first time), the box keeps it, the line says what drew
+    ev(`window.__xd('NEW-1'); window.__type(2029,'d',0,'30'); window.__xd('NEW-1'); 'ok'`);
+    const dr = JSON.parse(ev(`JSON.stringify([MS.years[2029].fsrc['NEW-2'].dv, MS.years[2029].fsrc['NEW-2'].mv, window.__in(2029,'d',0).value, (window.__in(2029,'d',0).parentElement.querySelector('.drew')||{}).textContent||'none', window.__d.querySelectorAll('tbody tr.xf-u')[0].querySelectorAll('td')[2].textContent])`));
+    chk(name, 'lane', 'FY29 USAF discretionary 30: directed 30 (mandatory left as seeded), the box keeps 30, "drew $0" under it, and $55 still unfunded',
+      J(dr), J([[30, 0], [0, 0], '30', 'drew ' + fm(0), fm(55)]));
+    // 8. a figure it cannot read changes nothing and keeps what was typed
+    const g1 = +ev(`String(_saveGen)`);
+    ev(`window.__type(2029,'q',0,'12x'); 'ok'`);
+    chk(name, 'refusal', '"12x" changes nothing and is not saved; the box keeps it', J([ev(`JSON.stringify(window.__ask(2029,'NEW-2'))`), +ev(`String(_saveGen)`) - g1, ev(`window.__in(2029,'q',0).value`)]), J(['[55,0]', 0, '12x']));
+    // 9. mandatory off in a year (W3's switch, read through mandOn): that year's Mandatory boxes go; with it off everywhere, the line goes
+    ev(`window.__mo=mandOn; mandOn=function(St){ return !(St && St.__xfOff); }; MS.years[2028].__xfOff=1; _recYrC=null; window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'mandatory', 'off in FY28: FY28 has no Mandatory box, FY27 and FY29 still have theirs', J([!!+ev(`String(+!!window.__in(2028,'m',0))`), !!+ev(`String(+!!window.__in(2027,'m',0))`), !!+ev(`String(+!!window.__in(2029,'m',0))`)]), J([false, true, true]));
+    ev(`[2027,2029].forEach(function(y){ MS.years[y].__xfOff=1; }); _recYrC=null; window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'mandatory', 'off in every year: no Mandatory line at all', ev(`String(window.__d.querySelectorAll('tr.xf-m').length)`), '0');
+    ev(`[2027,2028,2029].forEach(function(y){ delete MS.years[y].__xfOff; }); mandOn=window.__mo; _recYrC=null; 'ok'`);
+    // 10. Add to FY30, not started: Cancel to both questions starts nothing; then started blank, grown 10%
+    ev(`MS.years[2029].mc=MS.years[2029].mc||{}; MS.years[2029].mc['NEW-2']=true; MS.years[2029].awards=MS.years[2029].awards||{};
+      MS.years[2029].awards['NEW-2']={mode:'single', d:'2029-03', day:4}; save(); 'ok'`);
+    ev(`window.__ans=[false, false]; xfAddOpen('NEW-1', 2030); 'ok'`);
+    chk(name, 'add', 'Cancel to roll forward and to blank: FY30 is not started and no box opens', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`)]), J(['false', false]));
+    ev(`window.__ans=[false, true]; xfAddOpen('NEW-1', 2030); 'ok'`);
+    // v2.23 RV-B (B1): the box starts from FY29 (the nearest year holding the work) and links to the LINE that work is on, whose anchor is
+    // FY27's NEW-1 (FY29's NEW-2 is linked there) -- it linked to FY29's NEW-2, which joins only while the link points back
+    chk(name, 'add', 'started blank: the box opens, starting from FY29, the nearest year holding the work, linked to FY27’s, the line it is on', J([ev(`String(!!MS.years[2030])`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`), /Starts from FY29/.test(ev(`document.getElementById('xfAddBody').textContent`)), /linked to FY27’s/.test(ev(`document.getElementById('xfAddBody').textContent`))]), J(['true', true, true, true]));
+    ev(`document.getElementById('xfAddGrow').checked=true; document.getElementById('xfAddPct').value='10'; xfAddSay(); xfAddDo(); 'ok'`);
+    // v2.23 RV-B (B1): FY30's new requirement is found by its title (its link names the line's anchor now, FY27's NEW-1)
+    const ad = JSON.parse(ev(`(function(){ var T=MS.years[2030], c=(T.custom||[]).filter(function(x){ return x.title==='Field kit'; })[0];
+      return JSON.stringify(c? [c.prior, c.ask, T.order[T.order.length-1]===c.id, !!(T.awards||{})[c.id], !!(T.mc||{})[c.id], grpOf(c, T), MS.cur] : null); })()`));
+    chk(name, 'add', 'FY30’s new requirement: linked to FY27’s NEW-1 (the line FY29’s NEW-2 is on), its requirement grown 10% to whole dollars, last in FY30’s order, no award dates, no star, PSM; FY27 still on screen',
+      J(ad), J([{ fy: 2027, id: 'NEW-1' }, [61, 0], true, false, false, 'PSM', 2027]));
+    ev(`window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'add', 'and the tab reads it as the same work in FY30', ev(`String((window.__in(2030,'q',0)||{}).value)`), '61');
+    // 11. Add to FY31 by rolling it forward from FY27: it holds the very requirement, so nothing more is added
+    ev(`window.__ans=[true]; xfAddOpen('NEW-1', 2031); 'ok'`);
+    chk(name, 'add', 'FY31 rolled forward from FY27 already holds Field kit: no second one, no box', J([ev(`String((MS.years[2031].custom||[]).filter(function(x){ return x.title==='Field kit'; }).length)`), ev(`document.getElementById('xfAddPanel').classList.contains('open')`)]), J(['1', false]));
+    // 12. Fill across, grown 10% a year from FY27: the requirement only, compounding, every year in one save; FY32 not filled
+    const al0 = ev(`JSON.stringify([2027,2028,2029,2030,2031].map(function(y){ return [MS.years[y].fsrc, MS.years[y].alloc]; }))`), g2 = +ev(`String(_saveGen)`), j2 = +ev(`String(MS.jrnl.length)`);
+    ev(`xfFillOpen('NEW-1'); document.querySelector('input[name="xfFillHow"][value="grow"]').checked=true; document.getElementById('xfFillPct').value='10'; xfFillPick(); 'ok'`);
+    chk(name, 'fill', 'the preview: FY27 into FY28-FY32, FY32 not filled with Add to FY32, four years to fill', J([ev(`document.getElementById('xfFillFrom').value`), ev(`document.getElementById('xfFillTo').value`),
+      /FY32: not filled/.test(ev(`document.getElementById('xfFillPrev').textContent`)), ev(`document.getElementById('xfFillGo').textContent`)]), J(['2027', '2032', true, 'Fill 4 years']));
+    ev(`xfFillDo(); 'ok'`);
+    chk(name, 'fill', 'Fill: $44, $48, $53, $59 by year (40 × 1.1^n, whole dollars), FY29’s other work still $999, FY27 still $40',
+      J(JSON.parse(ev(`JSON.stringify([window.__ask(2028,'NEW-1'), window.__ask(2029,'NEW-2'), (MS.years[2030].custom.filter(function(x){ return x.title==='Field kit'; })[0]||{}).ask, window.__ask(2031,'NEW-1'), window.__ask(2029,'NEW-1'), window.__ask(2027,'NEW-1')])`))),
+      J([[44, 0], [48, 0], [53, 0], [59, 0], [999, 0], [40, 0]]));
+    chk(name, 'fill', 'never a Disc or Mand figure, in any year', ev(`JSON.stringify([2027,2028,2029,2030,2031].map(function(y){ return [MS.years[y].fsrc, MS.years[y].alloc]; }))`), al0);
+    chk(name, 'fill', 'one save, and the journal files each year’s line under its year', J([+ev(`String(_saveGen)`) - g2, JSON.parse(ev(`JSON.stringify(MS.jrnl.slice(${j2}).map(function(e){ return e.fy; }).sort())`))]), J([1, [2028, 2029, 2030, 2031]]));
+    // 13. the strip: each year's requirement and lane word, the year on screen marked, each other year opening the same work, and Manage
+    ev(`setCur('NEW-1'); recYearsFill(); 'ok'`);
+    const sp = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#recYrs > button, #recYrs > .recyr'), function(e){ return e.tagName+':'+e.textContent+':'+(e.getAttribute('onclick')||''); }))`));
+    chk(name, 'strip', 'FY27 marked, FY28-FY31 each a button to the same work (FY29’s is NEW-2), each with its lane word; then Manage across the FYDP to the page at its tab',
+      J(sp), J(['SPAN:FY27 ' + fm(40) + ' · Unfunded:', 'BUTTON:FY28 ' + fm(44) + ' · Unfunded:recYearGo(2028,"NEW-1")', 'BUTTON:FY29 ' + fm(48) + ' · Unfunded:recYearGo(2029,"NEW-2")',
+        'BUTTON:FY30 ' + fm(53) + ' · Unfunded:recYearGo(2030,' + J(ev(`(MS.years[2030].custom.filter(function(x){ return x.title==='Field kit'; })[0]||{}).id`)) + ')',
+        'BUTTON:FY31 ' + fm(59) + ' · Unfunded:recYearGo(2031,"NEW-1")', 'BUTTON:Manage across the FYDP ›:reqPageOpen("NEW-1","fydp")']));
+    // 14. text from a file is drawn as text in the Add box
+    ev(`xfModel('NEW-1').ys.forEach(function(Y){ if(!Y.r) return; var T=MS.years[Y.y]; T.titles=T.titles||{}; T.titles[Y.id]='<img src=x onerror="window.__pw=1">'; });
+      applyState(S); save(); window.__ans=[false, true]; xfAddOpen('NEW-1', 2032); 'ok'`);
+    chk(name, 'text', 'a title holding markup is drawn as text in the Add box', J([ev(`String(document.querySelectorAll('#xfAddBody img').length)`), /<img src=x/.test(ev(`document.getElementById('xfAddBody').textContent`))]), J(['0', true]));
+    ev(`xfAddClose(); 'ok'`);
+    // 15. a locked view: read only, no Add, no Fill, and a figure handed to the writer anyway changes nothing
+    ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView(blKey('PB', MS.cur)); window.__xd('NEW-1'); 'ok'`);
+    chk(name, 'locked', 'on a locked view: no box to type in, no Add, no Fill', J([ev(`String(window.__d.querySelectorAll('input.xfin').length)`), ev(`String(window.__d.querySelectorAll('.xfaddb').length)`), /Fill across/.test(ev(`window.__d.textContent`))]), J(['0', '0', false]));
+    const lk0 = ev(`JSON.stringify(window.__ask(2028,'NEW-1'))`);
+    ev(`xfSet(2028,'NEW-1','q',0,'777'); cycLeave(); 'ok'`);
+    chk(name, 'locked', 'and xfSet on it writes nothing', ev(`JSON.stringify(window.__ask(2028,'NEW-1'))`), lk0);
+    chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+// ==== end v2.23 W2 ====
+// ==== v2.23 W3 ====
+// v2.23 W3 (item 159): MANDATORY FUNDING ON OR OFF PER YEAR, AND ALLOCATE. The RULE is stated at its line in tiers(); here it is held
+// against a lane walk worked out from the fixture's own figures (never read back from tiers()), on a fixture where the alternatives
+// disagree: a requirement on the legacy lane walk that spills into mandatory by itself (C), and splits that direct mandatory (B), so
+// "mandatory off" cannot be passed by clearing directed figures alone, nor by emptying the lanes only for a split.
+// FAILS ON 9f82139 (the slot commit): mandOn() answers true whatever the year holds, and the walk draws mandatory.
+const W3it = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+const W3base = ev => ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+// THE LANE ORACLE, restated from the fixture: per service, discretionary first, then mandatory (none when off), in priority order;
+// a split draws what it directs, inside its basis (directed, clamped to the ask); everything else its ask.
+const W3walk = (sc, off) => {
+  const n = sc.services.length, dR = sc.disc.slice(), mR = off ? sc.mand.map(() => 0) : sc.mand.slice(), out = {};
+  sc.order.forEach(id => {
+    const it = sc.items.find(x => x.id === id), f = (sc.fsrc || {})[id], d = [], m = [], u = [];
+    for (let i = 0; i < n; i++) {
+      const ask = it.ask[i] || 0, v = f ? Math.min((f.dv[i] || 0) + (f.mv[i] || 0), ask) : ask;
+      const dd = Math.min(f ? (f.dv[i] || 0) : v, Math.max(0, dR[i]), v); dR[i] -= dd;
+      const mm = Math.min(f ? (f.mv[i] || 0) : v - dd, Math.max(0, mR[i]), v - dd); mR[i] -= mm;
+      d.push(dd); m.push(mm); u.push(v - dd - mm);
+    }
+    out[id] = { d, m, u };
+  });
+  return out;
+};
+const W3SC = {
+  services: ['USAF', 'ANG'],
+  items: [W3it('A', 'PSM', [100, 40]), W3it('B', 'AV', [60, 0]), W3it('C', 'PP', [50, 20])],
+  disc: [120, 30], mand: [60, 15], order: ['A', 'B', 'C'],
+  fsrc: { B: { m: 'split', dv: [10, 0], mv: [40, 0] } },
+};
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W3 — mandatory funding off: the RULE in tiers(), the ◨ view still a view, the exports keep their layout';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, W3SC); W3base(ev);
+    const on = W3walk(W3SC, false), off = W3walk(W3SC, true);
+    chk(name, 'fixture', 'CONTROL: with mandatory on, C (on the lane walk) spills into mandatory by itself, and B draws its directed mandatory',
+      J([on.C.m, on.B.m, on.A.m]), J([[20, 5], [40, 0], [0, 10]]));
+    chk(name, 'fixture', 'CONTROL: the engine agrees with the oracle while mandatory is on', ev(`JSON.stringify(['A','B','C'].map(function(id){ var p=tiers()[id]; return [p.d,p.m,p.u]; }))`),
+      J(['A', 'B', 'C'].map(id => [on[id].d, on[id].m, on[id].u])));
+    const T0 = ev(`JSON.stringify(MS.years)`);
+    // ◨ is a VIEW: it moves what is shown and saves nothing
+    ev(`setScen('disc'); 'ok'`);
+    chk(name, '◨', 'the ◨ discretionary-only view saves nothing into the year (no mandOff, no change)', J([ev(`JSON.stringify(MS.years)`) === T0, ev(`String('mandOff' in S)`), ev(`String(mandOn())`)]), J([true, 'false', 'true']));
+    ev(`setScen('disc'); 'ok'`);
+    chk(name, '◨', 'and is off again: the walk draws mandatory as before', ev(`JSON.stringify(tiers().C.m)`), J(on.C.m));
+    // THE RULE
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'RULE', 'RULE: in a year with mandatory funding off, the walk draws no mandatory, on a split or on the lane walk, and what would have spilled is unfunded (per requirement, per service, against the oracle)',
+      ev(`JSON.stringify(['A','B','C'].map(function(id){ var p=tiers()[id]; return [p.d,p.m,p.u]; }))`), J(['A', 'B', 'C'].map(id => [off[id].d, off[id].m, off[id].u])));
+    // v2.23 review RV-D: the label said "left whole" over an assertion that the walk's lanes are EMPTY -- they are: the walk starts this
+    // year with nothing in them (what is left of the lane's budget authority is mandLeftOf, the RV-D block below)
+    chk(name, 'RULE', 'RULE: every mandatory lane is empty for the walk, so nothing can draw from it (tiers()\u2019 mRem starts and ends at $0)', ev(`JSON.stringify(tiers().__rem.mRem)`), J([0, 0]));
+    chk(name, 'RULE', 'RULE: discretionary draws are what they were with mandatory on (off moves no discretionary dollar)', ev(`JSON.stringify(['A','B','C'].map(function(id){ return tiers()[id].d; }))`), J(['A', 'B', 'C'].map(id => on[id].d)));
+    chk(name, 'RULE', 'mandOn reads the year: off here, on in a year state that does not say off', J([ev(`String(mandOn())`), ev(`String(mandOn({}))`), ev(`String(mandOn({mandOff:false}))`)]), J(['false', 'true', 'true']));
+    chk(name, 'RULE', 'unfunded is the ask less what discretionary paid, per service (unfSvcOf), on every requirement',
+      ev(`JSON.stringify(['A','B','C'].map(function(id){ return unfSvcOf(itemById(id), tiers()[id]); }))`),
+      J(['A', 'B', 'C'].map(id => W3SC.items.find(x => x.id === id).ask.map((a, i) => Math.max(0, a - off[id].d[i])))));
+    chk(name, 'RULE', 'the ◨ view over a year with mandatory off reads the same: one answer, not two', ev(`JSON.stringify(tiers(null,{noMand:true}).C)`) === ev(`JSON.stringify(tiers().C)`), true);
+    // a year's setting is on or absent: anything else reads as on and is not kept
+    ev(`S.mandOff='yes'; applyState(S); 'ok'`);
+    chk(name, 'normalise', 'a year holding mandOff that is not true opens as on, and the value is not kept', J([ev(`String('mandOff' in S)`), ev(`String(mandOn())`)]), J(['false', 'true']));
+    // setFsrcSvc refuses a mandatory figure in a year that has it off
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'setter', 'with mandatory off, a mandatory figure typed in the RECORD card is refused, and $0 is taken', J([ev(`String(setFsrcSvc('B','m',0,'25',{quiet:true}))`), ev(`String(setFsrcSvc('B','m',0,'0',{quiet:true}))`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['false', 'true', J([0, 0])]));
+    // hidden where off: the RECORD card's Mand box, the Funding tiles, the Requirements tiles, Fund mode's column
+    ev(`setCur('A'); 'ok'`);
+    chk(name, 'hidden', 'the RECORD card has no Mand box and no Mand column', J([ev(`String(document.querySelectorAll('#inspector .insp-split input.m').length)`), ev(`String(/Mand/.test((document.querySelector('#inspector .insp-split tr')||{}).textContent))`)]), J(['0', 'false']));
+    chk(name, 'hidden', 'the Requirements tiles carry no Mandatory tile', J([ev(`String(!!document.querySelector('#uiKpis .k.mand'))`), ev(`String(document.getElementById('uiKpis').classList.contains('n3'))`)]), J(['false', 'true']));
+    ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+    chk(name, 'hidden', 'the Funding page has no Mandatory tile, says why in its place, and its bar has no mandatory part',
+      J([ev(`String(!!document.querySelector('#posture .ppt.mand'))`), ev(`String(/Mandatory funding is off for FY27/.test((document.querySelector('#posture .ppt.mandoff')||{}).textContent))`), ev(`String(!!document.querySelector('#posture .segs .seg.m'))`)]),
+      J(['false', 'true', 'false']));
+    chk(name, 'hidden', 'Fund mode: the Mandatory column is marked to be hidden (header and every row), and the page says mandatory is off',
+      J([ev(`String((document.querySelector('#gridHead .mandc')||{}).textContent)`), ev(`String(document.querySelectorAll('#list .row > .mandc').length)`), ev(`String(document.documentElement.classList.contains('ui-mandoff'))`)]), J(['Mandatory', '3', 'true']));
+    ev(`uiMode='review'; uiApply(); delete S.mandOff; render(); 'ok'`);
+    chk(name, 'hidden', 'CONTROL: on again, every one of them is back', J([ev(`String(document.querySelectorAll('#inspector .insp-split input.m').length)`), ev(`String(!!document.querySelector('#uiKpis .k.mand'))`), ev(`String(document.documentElement.classList.contains('ui-mandoff'))`)]), J(['2', 'true', 'false']));
+    // THE EXPORTS KEEP THEIR MANDATORY COLUMNS ($0), so every year's files keep one layout
+    const xOn = JSON.parse(capture(ev));
+    ev(`S.mandOff=true; render(); 'ok'`);
+    const xOff = JSON.parse(capture(ev));
+    chk(name, 'exports', 'the workbook keeps every sheet, in order, with its columns', J(xOff.map(s => [s.name, s.cols])), J(xOn.map(s => [s.name, s.cols])));
+    const col = (s, re) => { for (let r = 0; r < s.rows.length; r++) { const row = s.rows[r] || []; const c = row.findIndex(x => re.test(String(x && x.v !== undefined ? x.v : x))); if (c >= 0) return { r, c }; } return null; };
+    const fs = xOff.find(s => s.name === 'Funding Streams'), fsOn = xOn.find(s => s.name === 'Funding Streams');
+    const mf = col(fs, /^Mand Funded$/), mb = col(fs, /^Mand BA$/);
+    const colVals = (s, at) => s.rows.slice(at.r + 1).map(r => (r || [])[at.c]).map(x => x && x.v !== undefined ? x.v : x).filter(v => typeof v === 'number');
+    chk(name, 'exports', 'Funding Streams keeps Mand Funded, every figure $0; Mand BA keeps the budget authority', J([!!mf, colVals(fs, mf).every(v => v === 0), colVals(fs, mb).some(v => v > 0)]), J([true, true, true]));
+    chk(name, 'exports', 'CONTROL: with mandatory on the same column carries the mandatory drawn', colVals(fsOn, col(fsOn, /^Mand Funded$/)).some(v => v > 0), true);
+    const db = xOff.find(s => s.name === 'Decision Bands'), dm = col(db, /^Mand$/);
+    chk(name, 'exports', 'Decision Bands keeps its Mand column, at $0', J([!!dm, colVals(db, dm).every(v => v === 0)]), J([true, true]));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+// NO FIGURE IN A YEAR WITH MANDATORY ON MAY MOVE. (1) Every sheet of exportExcel on a board with nothing turned off, against the
+// slot commit's own board on the same fixture (read from git: unshallow first); (2) FY28, on, exported before and after FY27 is
+// turned off. Both are CONTROLs on 9f82139 (it has no switch to turn), and both fail on a mutation that leaks the setting.
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W3 — mandatory funding on: no figure moves, on any sheet of the workbook';
+  try {
+    const J = JSON.stringify;
+    const { execFileSync } = await import('node:child_process');
+    let slotHtml = '';
+    try { slotHtml = execFileSync('git', ['show', '9f82139:prioritization-board-grid.html'], { encoding: 'utf8', maxBuffer: 64 << 20 }); } catch (e) { slotHtml = ''; }
+    chk(name, 'git', 'the slot commit’s board is read from git (run git fetch --unshallow if this fails)', slotHtml.length > 100000, true);
+    const B = boot(), ev = B.ev;
+    seed(ev, W3SC); W3base(ev);
+    const now = capture(ev);
+    if (slotHtml) {
+      const O = boot({ html: slotHtml }); seed(O.ev, W3SC); W3base(O.ev);
+      const was = capture(O.ev);
+      chk(name, 'vs 9f82139', 'CONTROL: every sheet of the workbook, every cell, is what the slot commit’s board prints on the same fixture', now === was, true);
+      chk(name, 'vs 9f82139', 'CONTROL: and the lane walk is the same, requirement by requirement', ev(`JSON.stringify(tiers())`), O.ev(`JSON.stringify(tiers())`));
+    }
+    // FY28 rolled forward (on), exported, then FY27 turned off: FY28 must print exactly what it printed
+    ev(`window.confirm=function(){ return true; }; switchYear(2028); 'ok'`);
+    const f28 = capture(ev);
+    ev(`switchYear(2027); mandSwitch(); MANDBOX.how='clear'; MANDBOX.all=false; mandOffApply(); 'ok'`);
+    chk(name, 'other year', 'CONTROL: FY27 is off and FY28 is still on', J([ev(`String(mandOn())`), ev(`String(mandOn(MS.years[2028]))`)]), J(['false', 'true']));
+    ev(`switchYear(2028); 'ok'`);
+    chk(name, 'other year', 'every sheet of FY28’s workbook is what it was before FY27 was turned off', capture(ev) === f28, true);
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+// THE BOX: Clear, or Move what discretionary can cover, for this year or this year and every later year; Cancel changes nothing.
+// Move walks the PRIORITY order against the room the discretionary lane has left at the end of the walk. The fixture makes size order
+// and priority order disagree: A (rank 1) draws $40 of mandatory, B (rank 2) $60 (of $90 directed), and the lane has $50 left -- by priority A takes 40
+// and B 10; by size B would take all 50. C, on the lane walk, spills into ANG mandatory by itself: turned off it must be converted to
+// a split holding no mandatory, or turning mandatory on again would refill it.
+// FAILS ON 9f82139: there is no switch.
+const W3BOX = {
+  services: ['USAF', 'ANG'],
+  items: [W3it('A', 'PSM', [60, 0]), W3it('B', 'AV', [100, 0]), W3it('C', 'PP', [50, 50])],
+  disc: [110, 30], mand: [100, 40], order: ['A', 'B', 'C'],
+  fsrc: { A: { m: 'split', dv: [10, 0], mv: [40, 0] }, B: { m: 'split', dv: [0, 0], mv: [90, 0] } },
+};
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W3 — the mandatory-off box: Clear, Move by priority, this year or every later year, Cancel, a PMO copy, a locked view';
+  try {
+    const J = JSON.stringify;
+    const row = (ev, id) => JSON.parse(ev(`(function(){ var p=tiers()['${id}']; return JSON.stringify({d:p.d, m:p.m, u:unfSvcOf(itemById('${id}'), p)}); })()`));
+    { // Cancel, then Move
+      const B = boot(), ev = B.ev;
+      seed(ev, W3BOX); W3base(ev);
+      chk(name, 'fixture', 'CONTROL: the lane has $50 of USAF discretionary left at the end of the walk, and C spills $20 into ANG mandatory by itself',
+        J([ev(`JSON.stringify(tiers().__rem.dRem)`), J(row(ev, 'C').m)]), J([J([50, 0]), J([0, 20])]));
+      const st0 = ev(`JSON.stringify(MS.years)`), j0 = +ev(`(MS.jrnl||[]).length`);
+      ev(`mandSwitch(); 'ok'`);
+      chk(name, 'box', 'turning off a year that holds mandatory money opens the box, listing each requirement with its mandatory and unfunded after',
+        ev(`[].map.call(document.querySelectorAll('#avMandPanel .mandlist tbody tr'), function(r){ return r.textContent; }).join(' | ')`),
+        ['1A event$40$50', '2B event$60$100', '3C event$20$20'].join(' | '));
+      chk(name, 'box', 'it is a box the controller drives: open, named, a close control', J([ev(`String(dlgIsOpen(document.getElementById('avMandPanel')))`), ev(`dlgName(document.getElementById('avMandPanel'))`)]), J(['true', 'Turn off mandatory funding for FY27?']));
+      ev(`MANDBOX.how='move'; mandBoxDraw(); 'ok'`);
+      chk(name, 'box', 'Move lists what each one keeps, by priority: A $40, B $10, C nothing (no ANG room)',
+        ev(`[].map.call(document.querySelectorAll('#avMandPanel .mandlist tbody tr'), function(r){ return r.cells[3].textContent+'/'+r.cells[4].textContent; }).join(' ')`), '$40/$10 $10/$90 $0/$20');
+      ev(`mandBoxClose(); 'ok'`);
+      chk(name, 'cancel', 'Keep mandatory on changes nothing: the year, the journal, mandatory still on', J([ev(`JSON.stringify(MS.years)`) === st0, +ev(`(MS.jrnl||[]).length`) === j0, ev(`String(mandOn())`)]), J([true, true, 'true']));
+      ev(`mandSwitch(); MANDBOX.how='move'; mandBoxDraw(); mandOffApply(); 'ok'`);
+      chk(name, 'move', 'Move by priority: A keeps all $40 as discretionary, B $10 (by size B would have taken all $50)', J([JSON.parse(S_(ev, 'A')), JSON.parse(S_(ev, 'B'))]),
+        J([{ dv: [50, 0], mv: [0, 0] }, { dv: [10, 0], mv: [0, 0] }]));
+      chk(name, 'move', 'and what each draws: A funded $50 of 60, B $10 of 100, C unchanged in USAF and short its ANG mandatory',
+        J([row(ev, 'A'), row(ev, 'B'), row(ev, 'C')]), J([{ d: [50, 0], m: [0, 0], u: [10, 0] }, { d: [10, 0], m: [0, 0], u: [90, 0] }, { d: [50, 30], m: [0, 0], u: [0, 20] }]));
+      chk(name, 'move', 'the box’s "unfunded after" was what the board now says', J([row(ev, 'A').u[0] + row(ev, 'A').u[1], row(ev, 'B').u[0], row(ev, 'C').u[1]]), J([20 - 10, 90, 20]));
+      chk(name, 'move', 'C, on the lane walk, is now a split holding no mandatory, seeded from what it drew', S_(ev, 'C'), J({ dv: [50, 30], mv: [0, 0] }));
+      ev(`mandSwitch(); 'ok'`);
+      chk(name, 'on again', 'turned on again, the columns come back EMPTY: no requirement draws mandatory, C included', ev(`JSON.stringify(['A','B','C'].map(function(id){ return tiers()[id].m; }))`), J([[0, 0], [0, 0], [0, 0]]));
+      chk(name, 'errors', 'no page error (move)', B.errors.length, 0);
+    }
+    { // Clear, for this year and every later one; an earlier year untouched; each line in the journal, and put back
+      const B = boot(), ev = B.ev;
+      seed(ev, W3BOX); W3base(ev);
+      ev(`window.confirm=function(){ return true; }; switchYear(2028); switchYear(2026); switchYear(2027); 'ok'`);
+      chk(name, 'years', 'CONTROL: FY26, FY27 and FY28 are held, each with B’s $90 of mandatory', ev(`JSON.stringify([2026,2027,2028].map(function(y){ return ((MS.years[y].fsrc||{}).B||{}).mv; }))`), J([[90, 0], [90, 0], [90, 0]]));
+      const f26 = ev(`JSON.stringify(MS.years[2026])`);
+      ev(`mandSwitch(); MANDBOX.how='clear'; MANDBOX.all=true; mandBoxDraw(); 'ok'`);
+      chk(name, 'years', 'the box offers FY27 and every later year held, and names FY28', ev(`(document.querySelector('#mandAll option[value="all"]')||{}).textContent`), 'FY27 and every later year held (FY28)');
+      ev(`mandOffApply(); 'ok'`);
+      chk(name, 'clear', 'Clear: FY27 and FY28 are off, FY26 (earlier) is not touched', J([ev(`String(mandOn(MS.years[2027]))`), ev(`String(mandOn(MS.years[2028]))`), ev(`JSON.stringify(MS.years[2026])`) === f26]), J(['false', 'false', true]));
+      chk(name, 'clear', 'Clear: every mandatory figure is $0 in both years, discretionary as it was', ev(`JSON.stringify([2027,2028].map(function(y){ var f=MS.years[y].fsrc; return [f.A.dv, f.A.mv, f.B.dv, f.B.mv, f.C.mv]; }))`),
+        J([[[10, 0], [0, 0], [0, 0], [0, 0], [0, 0]], [[10, 0], [0, 0], [0, 0], [0, 0], [0, 0]]]));
+      const jl = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p[0]==='fsrc' && e.p[2]==='mv'; }).map(function(e){ return [e.fy, e.p.join('.'), e.a, e.b]; }))`));
+      chk(name, 'journal', 'each mandatory figure cleared is a line in the change journal, with its year', J(jl.filter(x => x[1] === 'fsrc.B.mv.0').map(x => [x[0], x[2], x[3]]).sort()), J([[2027, 90, 0], [2028, 90, 0]]));
+      chk(name, 'journal', 'one save for the whole change: the year setting is journalled once per year', ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p[0]==='mandOff'; }).map(function(e){ return [e.fy, e.b]; }))`), J([[2027, true], [2028, true]]));
+      const ix = +ev(`(MS.jrnl||[]).findIndex(function(e){ return e.fy===2027 && e.p.join('.')==='fsrc.B.mv.0'; })`);
+      // v2.23 review RV-C (C3): while mandatory is off, the journal does not put a mandatory figure above $0 back (setFsrcSvc's own
+      // rule: it would be directed and never drawn, with no box to see it), and says why; turned on again, it does
+      ev(`jrnlUndo(${ix}); 'ok'`);
+      chk(name, 'journal', 'put back from the journal while mandatory is off: refused, saying why; B’s mandatory stays $0', J([ev(`JSON.stringify(S.fsrc.B.mv)`), /mandatory funding is off in FY27/.test(ev(`(document.getElementById('shareStat')||{}).textContent`))]), J([J([0, 0]), true]));
+      ev(`mandSwitch(); jrnlUndo(${ix}); 'ok'`);
+      chk(name, 'journal', 'mandatory on again, put back from the journal: B’s $90 of mandatory is directed again', J([ev(`String(mandOn())`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['true', J([90, 0])]));
+      chk(name, 'errors', 'no page error (clear)', B.errors.length, 0);
+    }
+    { // a year with no mandatory asks nothing; a locked view and a PMO copy refuse
+      const B = boot(), ev = B.ev;
+      seed(ev, { services: ['USAF'], items: [W3it('A', 'PSM', [50])], disc: [100], mand: [40], order: ['A'] }); W3base(ev);
+      ev(`mandSwitch(); 'ok'`);
+      chk(name, 'none', 'a year whose walk draws no mandatory turns off with no box', J([ev(`String(mandOn())`), ev(`String(dlgIsOpen(document.getElementById('avMandPanel')||document.body))`)]), J(['false', 'false']));
+      ev(`mandSwitch(); 'ok'`);
+      chk(name, 'none', 'and on again', ev(`String(mandOn())`), 'true');
+      const copy = ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()})`);
+      const C = boot({ html: copy });
+      chk(name, 'copy', 'a PMO copy refuses the switch and changes nothing', J([C.ev(`String(mandSwitch())`), C.ev(`String(mandOn())`)]), J(['false', 'true']));
+      ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView(blKey('PB', MS.cur)); 'ok'`);
+      chk(name, 'locked', 'a locked view refuses the switch', J([ev(`String(mandSwitch())`), ev(`String(mandOn())`)]), J(['false', 'true']));
+      ev(`cycLeave(); 'ok'`);
+      chk(name, 'errors', 'no page error (none)', B.errors.length + C.errors.length, 0);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+function S_(ev, id) { return ev(`JSON.stringify({dv:S.fsrc['${id}'].dv, mv:S.fsrc['${id}'].mv})`); }
+// MANDATORY OFF TRAVELS as a year's field does: save → reopen, a year rolled forward (decided: the copy carries its source's setting),
+// a PMO copy, and the import door accepts it and refuses one that is not true or false, by name.
+// FAILS ON 9f82139: the reopened board draws mandatory, and the door takes "yes".
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W3 — mandatory off travels: save and reopen, a year rolled forward, a PMO copy, the import door';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, W3SC); W3base(ev);
+    ev(`S.mandOff=true; save(); render(); 'ok'`);
+    const html = ev(`buildSavedHtml()`);
+    const R = boot({ html });
+    chk(name, 'reopen', 'saved and reopened, the year is still off and draws no mandatory', J([R.ev(`String(mandOn())`), R.ev(`JSON.stringify(tiers().C.m)`)]), J(['false', J([0, 0])]));
+    chk(name, 'door', 'the board’s own file passes the import door', ev(`inboundCheck(${J(html)})`), '');
+    const bad = html.replace('"mandOff":true', '"mandOff":"yes"');
+    chk(name, 'door', 'CONTROL: the fixture’s file carries the setting where the door will read it', bad !== html, true);
+    chk(name, 'door', 'a file whose year says mandOff "yes" is refused, naming the field', /mandOff is .*yes.*, not true or false/.test(ev(`inboundCheck(${J(bad)})`)), true);
+    ev(`window.confirm=function(){ return true; }; switchYear(2028); 'ok'`);
+    chk(name, 'roll', 'a year rolled forward from a year with mandatory off carries the setting (decided in the build)', ev(`String(mandOn())`), 'false');
+    ev(`switchYear(2027); 'ok'`);
+    const copy = ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()})`);
+    const C = boot({ html: copy });
+    chk(name, 'copy', 'a PMO copy carries the year’s setting, and its walk draws no mandatory', J([C.ev(`String(mandOn())`), C.ev(`JSON.stringify(tiers().C.m)`)]), J(['false', J([0, 0])]));
+    chk(name, 'errors', 'no page error', B.errors.length + R.errors.length + C.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+// ALLOCATE (item 159): a workspace mode under Views; the Sheet and One lane over one HELD DRAFT. The figures beside the boxes are the
+// lane engine's on the board with the draft laid over -- the fixture makes that visible: A's USAF discretionary cut from $100 to $60
+// frees $40 that B (on the lane walk) then draws, and C behind it gets mandatory it did not get before. Every expected figure below is
+// worked out by hand from the fixture, never read back from the page's engine. Arrow keys, paste in a real browser and the fit are
+// tools/alloc-view.mjs's (jsdom has no layout and fires no per-keystroke change).
+// FAILS ON 9f82139: there is no Allocate.
+const W3AV = {
+  services: ['USAF', 'ANG'],
+  items: [W3it('A', 'PSM', [100, 50]), W3it('B', 'AV', [80, 0]), W3it('C', 'PP', [60, 40])],
+  disc: [150, 60], mand: [50, 20], order: ['A', 'B', 'C'],
+};
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W3 — Allocate: the held draft, the figures it moves, Save through setFsrcSvc in one save, leaving asks, paste, One lane, read only';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, W3AV); W3base(ev);
+    // FY28 is held (rolled forward), so switching to it asks nothing of its own: only Allocate's question can keep the year on screen
+    ev(`window.confirm=function(){ return true; }; switchYear(2028); switchYear(2027); uiGo('alloc'); 'ok'`);
+    chk(name, 'mode', 'Allocate is a mode, reached from the left menu, and its view is shown', J([ev(`uiMode`), ev(`String(document.getElementById('allocView').hidden)`), ev(`String(document.getElementById('uiNav_alloc').classList.contains('on'))`), ev(`(document.getElementById('uiTitle')||{}).textContent`)]),
+      J(['alloc', 'false', 'true', 'Allocate']));
+    const tot = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#allocView .avs tbody tr[data-id]'), function(r){ return r.getAttribute('data-id')+':'+[].map.call(r.querySelectorAll('td.tot'), function(c){ return c.textContent; }).join('/'); }))`));
+    chk(name, 'sheet', 'every requirement in priority order, its requirement, funded, unfunded and funded % (by hand: B spills $30 to mandatory, C is short $50)',
+      J(tot()), J(['A:$150/$150/—/100%', 'B:$80/$80/—/100%', 'C:$100/$50/$50/50%']));
+    const pin = cls => ev(`[].map.call(document.querySelectorAll('#allocView .avs thead tr.pin.${cls} td'), function(c){ return c.textContent; }).join('|')`);
+    chk(name, 'sheet', 'the pinned Requirement line: per service and in total', pin('goal'), '$240|||$90|||$330|||');
+    chk(name, 'sheet', 'the pinned Budget authority line: Disc and Mand per service, and in total', pin('ba'), '|$150|$50||$60|$20||$280||');
+    // nothing writes while drawing
+    const st0 = ev(`JSON.stringify(MS)`), g0 = +ev(`_saveGen`);
+    ev(`avDraw(); AV.view='lane'; avDraw(); AV.view='sheet'; avDraw(); 'ok'`);
+    chk(name, 'draw', 'drawing the Sheet and One lane writes nothing: the board and the save count are as they were', J([ev(`JSON.stringify(MS)`) === st0, +ev(`_saveGen`) === g0]), J([true, true]));
+    // a figure typed is a draft, not the board
+    const type = (k, v) => ev(`(function(){ var i=document.querySelector('#allocView input.avin[data-k="${k}"]'); i.value=${J(v)}; avCell(i); avDraw(); return 'ok'; })()`);
+    type('A|d|0', '60');
+    chk(name, 'draft', 'a typed figure is held: one change, outlined, and nothing on the board moved', J([+ev(`avChangeN()`), ev(`String(document.querySelector('#allocView input.avin[data-k="A|d|0"]').classList.contains('chg'))`), ev(`JSON.stringify(S.fsrc)`), ev(`JSON.stringify(MS)`) === st0]),
+      J([1, 'true', '{}', true]));
+    chk(name, 'draft', 'the figures follow the draft (by hand: A funded $110 short $40; B, on the lane walk, now draws all $80; C gets $50 of USAF mandatory)',
+      J(tot()), J(['A:$150/$110/$40/73%', 'B:$80/$80/—/100%', 'C:$100/$90/$10/90%']));
+    chk(name, 'draft', 'the pinned Allocated line counts what the draft directs: USAF Disc $150 = A $60 + B $80 (on the lane walk, as it will draw) + C $10; share met 200 of 240', pin('alloc').split('|').slice(0, 3).join('|'), '83%|$150|$50');
+    chk(name, 'draft', 'and Left in the lane what is left', pin('left').split('|').slice(1, 3).join('|'), '$0|$0');
+    // a lane given more than it holds is shown in red and not refused
+    type('A|d|0', '200');
+    chk(name, 'over', 'a lane given more than it holds is shown over, in red, and the figure is kept', J([pin('left').split('|')[1], ev(`String(!!document.querySelector('#allocView .avs thead tr.pin.left b.over'))`), ev(`String(AV.draft['A|d|0'])`)]), J(['over $100', 'true', '200']));
+    type('A|d|0', '60');
+    // refusals keep the typing; rounding is said
+    type('C|d|1', 'abc');
+    chk(name, 'refuse', 'a figure that is not one is refused by name, the typing kept and marked', J([ev(`(document.querySelector('#allocView input.avin[data-k="C|d|1"]')||{}).value`), ev(`String(document.querySelector('#allocView input.avin[data-k="C|d|1"]').classList.contains('bad'))`), /not an amount/.test(ev(`(document.getElementById('shareStat')||{}).textContent`))]),
+      J(['abc', 'true', true]));
+    chk(name, 'refuse', 'and Save is refused while a box holds one', J([ev(`String(avSave())`), ev(`JSON.stringify(S.fsrc)`)]), J(['false', '{}']));
+    type('C|d|1', '10.6');
+    chk(name, 'refuse', 'a figure with cents is taken in whole dollars, and said', J([ev(`String(AV.draft['C|d|1'])`), /whole dollars/.test(ev(`(document.getElementById('shareStat')||{}).textContent`))]), J(['11', true]));
+    type('C|d|1', '10');
+    chk(name, 'refuse', 'a figure typed back to what is stored leaves the draft', +ev(`avChangeN()`), 1);
+    // Review changes
+    ev(`avReview(); 'ok'`);
+    chk(name, 'review', 'Review changes lists requirement, service, lane, was and now', ev(`(document.querySelector('#avRevPanel tbody')||{}).textContent`), '1A eventUSAFDiscretionary$100$60');
+    ev(`avReviewClose(); 'ok'`);
+    // leaving asks
+    ev(`window.confirm=function(){ return false; }; uiSetMode('review'); switchYear(2028); 'ok'`);
+    chk(name, 'leave', 'leaving the view or the year with a draft asks; Cancel stays, the draft kept', J([ev(`uiMode`), ev(`String(MS.cur)`), +ev(`avChangeN()`)]), J(['alloc', '2027', 1]));
+    // SAVE: through setFsrcSvc, one save(). C changed too (its ANG discretionary $10 to $15): every requirement in the draft is seeded
+    // from ONE lane walk -- the board as saved -- before any figure is written, so C keeps the USAF it drew there ($0 disc, $20 mand)
+    // and not what it would draw once A's change is in (seeded after A, it would read $10 and $50)
+    type('C|d|1', '15');
+    const shown = J(tot());
+    chk(name, 'save', 'CONTROL: the draft holds two changes, and the view shows C funded $50 of $100', J([+ev(`avChangeN()`), JSON.parse(shown)[2]]), J([2, 'C:$100/$50/$50/50%']));
+    ev(`window.__sv=0; var _s0=save; save=function(){ window.__sv++; return _s0.apply(this, arguments); }; window.confirm=function(){ return true; }; 'ok'`);
+    ev(`avSave(); 'ok'`);
+    chk(name, 'save', 'Save writes each change through setFsrcSvc, seeding A and C from the walk as saved first, in ONE save()', J([ev(`JSON.stringify(S.fsrc.A)`), ev(`JSON.stringify(S.fsrc.C)`), +ev(`window.__sv`), +ev(`avChangeN()`)]),
+      J([J({ m: 'split', dv: [60, 50], mv: [0, 0] }), J({ m: 'split', dv: [0, 15], mv: [20, 20] }), 1, 0]));
+    chk(name, 'save', 'and the board now draws what the draft showed (by hand)', ev(`JSON.stringify(['A','B','C'].map(function(id){ var p=tiers()[id]; return [p.d,p.m]; }))`), J([[[60, 50], [0, 0]], [[80, 0], [0, 0]], [[0, 10], [20, 20]]]));
+    chk(name, 'save', 'every row reads after Save exactly as the view showed it before', J(tot()), shown);
+    chk(name, 'save', 'the change journal holds the line', /fsrc/.test(ev(`JSON.stringify((MS.jrnl||[]).slice(-3))`)), true);
+    // over a lane: Save says so first; Cancel writes nothing and keeps the draft
+    type('B|d|0', '200');
+    ev(`window.__cf=''; window.confirm=function(m){ window.__cf=m; return false; }; avSave(); 'ok'`);
+    chk(name, 'save', 'Save names a lane given more than it holds and, on Cancel, writes nothing', J([/USAF discretionary: over by \$110/.test(ev(`window.__cf`)), ev(`String((S.fsrc||{}).B)`), +ev(`avChangeN()`)]), J([true, 'undefined', 1]));
+    ev(`window.confirm=function(){ return true; }; avSave(); 'ok'`);
+    chk(name, 'save', 'OK writes it, not refused: B directed $200 draws what the lane has', J([ev(`JSON.stringify(S.fsrc.B.dv)`), ev(`JSON.stringify(tiers().B.d)`)]), J([J([200, 0]), J([80, 0])]));
+    // paste a block from Excel
+    const pr = JSON.parse(ev(`(function(){ var i=document.querySelector('#allocView input.avin[data-k="A|d|0"]'); var r=avPasteGrid(i, '10\\t20\\nabc\\t5\\n'); return JSON.stringify({n:r.n, bad:r.bad, d:AV.draft}); })()`));
+    chk(name, 'paste', 'a block pasted fills from the box pasted into, along the boxes drawn, and names the cell that is not a figure',
+      J([pr.n, pr.bad.length, /^row 2, column 1: .*not an amount/.test(pr.bad[0] || ''), pr.d]), J([3, 1, true, { 'A|d|0': 10, 'A|m|0': 20, 'B|m|0': 5 }]));
+    ev(`window.confirm=function(){ return true; }; avDiscard(); 'ok'`);
+    chk(name, 'discard', 'Discard empties the draft and changes nothing', J([+ev(`avChangeN()`), ev(`JSON.stringify(S.fsrc.B.dv)`)]), J([0, J([200, 0])]));
+    // Present: the same screen, read only
+    ev(`avPresent(true); 'ok'`);
+    chk(name, 'present', 'Present is the same sheet, read only: no box, the figures as text', J([ev(`String(document.querySelectorAll('#allocView input.avin').length)`), ev(`String(document.querySelectorAll('#allocView .avro').length>0)`), ev(`String(document.getElementById('allocView').classList.contains('avpres'))`)]), J(['0', 'true', 'true']));
+    ev(`avPresent(false); 'ok'`);
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.23 W3 — One lane: Left after down the priority order, the cutline, Full and $0, the selected rows, the move aside; mandatory off; read only';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, W3AV); W3base(ev);
+    ev(`window.confirm=function(){ return true; }; uiGo('alloc'); avView('lane'); avSvc(0); 'ok'`);
+    const rows = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#allocView .avl tbody tr'), function(r){ return r.classList.contains('avcut')? 'CUT' : r.getAttribute('data-id')+':'+r.cells[r.cells.length-2].textContent; }))`));
+    chk(name, 'lane', 'USAF: Left after counts the discretionary lane down in priority order, and the cutline falls where it is gone (by hand: 150-100, then -50)',
+      J(rows()), J(['A:$50', 'B:$0', 'CUT', 'C:$0']));
+    chk(name, 'lane', 'the tabs say each service’s asked and % met (by hand: USAF $240, 200 of it met)', ev(`(document.querySelector('#allocView .avtab[aria-pressed="true"]')||{}).textContent`), 'USAF$240 asked · 83% met');
+    ev(`document.querySelector('#allocView tr[data-id="C"] .avq').click(); 'ok'`);
+    chk(name, 'lane', 'Full on C: the lane being edited carries what the other lane does not, up to the requirement (60 - 20 mandatory)', ev(`String(AV.draft['C|d|0'])`), '40');
+    ev(`[].filter.call(document.querySelectorAll('#allocView tr[data-id="A"] .avq'), function(b){ return b.textContent==='$0'; })[0].click(); 'ok'`);
+    chk(name, 'lane', '$0 on A', ev(`String(AV.draft['A|d|0'])`), '0');
+    ev(`['B','C'].forEach(function(id){ var c=document.querySelector('#allocView tr[data-id="'+id+'"] input[type=checkbox]'); c.checked=true; avSel(c); }); 'ok'`);
+    await new Promise(r => setTimeout(r, 10));
+    ev(`window.prompt=function(){ return '50'; }; avBulk('cut'); 'ok'`);
+    chk(name, 'lane', 'Cut by 50% on the two selected rows (B 50 to 25, C 40 to 20)', J([ev(`String(AV.draft['B|d|0'])`), ev(`String(AV.draft['C|d|0'])`)]), J(['25', '20']));
+    ev(`AV.mv={from:'C', to:'B', lane:'d', amt:'999'}; avDraw(); avMove(); 'ok'`);
+    chk(name, 'move', 'the move aside refuses more than the source is directed', J([/cannot be taken from it/.test(ev(`(document.getElementById('shareStat')||{}).textContent`)), ev(`String(AV.draft['C|d|0'])`)]), J([true, '20']));
+    ev(`AV.mv={from:'C', to:'B', lane:'d', amt:'10'}; avDraw(); avMove(); 'ok'`);
+    chk(name, 'move', 'and moves an amount from one requirement’s lane to another’s, in the draft', J([ev(`String(AV.draft['C|d|0'])`), ev(`String(AV.draft['B|d|0'])`), ev(`JSON.stringify(S.fsrc)`)]), J(['10', '35', '{}']));
+    ev(`avDiscardAll(); avDraw(); 'ok'`);
+    // mandatory off: no Mand columns in either view; the switch says off for the year
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'mand off', 'One lane: no Mandatory box or column', J([ev(`String(document.querySelectorAll('#allocView input.avin[data-k$="|m|0"]').length)`), ev(`String(/Mandatory/.test((document.querySelector('#allocView .avl thead')||{}).textContent))`)]), J(['0', 'false']));
+    ev(`avView('sheet'); 'ok'`);
+    chk(name, 'mand off', 'the Sheet: no Mand column, no mandatory box, and the switch says off for FY27', J([ev(`String(/Mand/.test((document.querySelector('#allocView .avs thead tr.h2')||{}).textContent))`), ev(`String(document.querySelectorAll('#allocView input.avin[data-k*="|m|"]').length)`), ev(`(document.querySelector('#allocView .avmand')||{}).textContent`), ev(`(document.querySelector('#allocView .avmand')||{getAttribute:function(){ return null; }}).getAttribute('aria-checked')`)]),
+      J(['false', '0', 'Mandatory funding: Off for FY27', 'false']));
+    ev(`delete S.mandOff; render(); 'ok'`);
+    // a PMO copy, a locked view: read only
+    const copy = ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()})`);
+    const C = boot({ html: copy });
+    C.ev(`uiGo('alloc'); 'ok'`);
+    chk(name, 'copy', 'in a PMO copy Allocate is read only, and says the portfolio team sets it', J([C.ev(`String(document.querySelectorAll('#allocView input.avin').length)`), /portfolio team/.test(C.ev(`(document.querySelector('#allocView .avro-line')||{}).textContent`))]), J(['0', true]));
+    ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView(blKey('PB', MS.cur)); 'ok'`);
+    chk(name, 'locked', 'on a locked view Allocate is read only', J([ev(`String(document.querySelectorAll('#allocView input.avin').length)`), /locked cycle/.test(ev(`(document.querySelector('#allocView .avro-line')||{}).textContent`))]), J(['0', true]));
+    ev(`cycLeave(); 'ok'`);
+    chk(name, 'errors', 'no page error', B.errors.length + C.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);   // v2.23 integration: free this block's boards, as W1 and the review blocks do (audit-board ran out of an 8 GB heap whole)
+  await _v223Settle();
+})();
+// ==== end v2.23 W3 ====
+// ==== v2.23 integration (the lead) ====
+// ==== v2.23 review RV-A ====
+// v2.23 review RV-A (item 156, the review of W1's requirement page). Four findings, each reproduced by a reviewer and a skeptic; each
+// block FAILS ON 56aa6c6 (the slot commit of the review's fixers) unless a check is labelled a CONTROL. All on w1Boot's board (W1's
+// fixture above: A draws USAF discretionary 400 and mandatory 150, ANG discretionary 100; A's awards are incremental).
+const { bootMark: _rvaMark, bootRelease: _rvaRelease } = await import('./boot.mjs');
+// A1. A FIGURE HALF TYPED IS NEVER WRITTEN BY A REDRAW NOBODY ASKED FOR. Chromium fires change on the focused field as innerHTML removes
+// it (jsdom fires nothing), so the stand-in fires it WHERE the browser does: in #reqPage's innerHTML setter, when the focused box holds
+// a value other than the one it took the keyboard with or last committed (the browser's own baseline). The load is any render the
+// person did not cause (here ★ toggled behind the page, as a Live view adoption or another tab's cycle would). The real-path proof,
+// with a timer and the real keyboard, is tools/fydp-across.mjs G.
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A1: a figure half typed on the page is not written by a redraw; Esc puts the stored figure back, Enter applies it once';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    ev(`(function(){
+      document.addEventListener('focus', function(e){ var t=e.target; if(t && t.tagName==='INPUT') t.__base=t.value; }, true);
+      document.addEventListener('change', function(e){ var t=e.target; if(t && t.tagName==='INPUT') t.__base=t.value; }, true);
+      var pg=document.getElementById('reqPage'), D=Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+      Object.defineProperty(pg, 'innerHTML', {configurable:true, get:function(){ return D.get.call(this); }, set:function(v){
+        var a=document.activeElement;
+        if(a && a.tagName==='INPUT' && this.contains(a) && a.value!==a.__base){ a.__base=a.value; a.dispatchEvent(new Event('change', {bubbles:true})); }
+        D.set.call(this, v); }});
+      window.__box=function(){ return document.querySelector('#reqPage input.xfin[data-y="2027"][data-xf="q"][data-si="0"]'); };
+      window.__type=function(v){ var i=window.__box(); if(!i) return 'no box'; i.focus(); i.value=v; i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; };
+      window.__key=function(k){ (document.activeElement||document.body).dispatchEvent(new KeyboardEvent('keydown', {key:k, bubbles:true, cancelable:true})); return 'ok'; };
+      // a journal line on A carrying the typed 12 (the line files the vector: ['asks','A'], [12,100])
+      window.__j12=function(n0){ return (MS.jrnl||[]).slice(n0).filter(function(e){ return JSON.stringify(e.p||'').indexOf('"A"')>=0
+        && (e.a===12 || e.b===12 || JSON.stringify(e.b||null).indexOf('[12,')===0); }).length; };
+      return 'ok'; })()`);
+    for (const how of ['Escape', 'Enter']) {
+      ev(`setCur('A'); reqPageOpen('A', 'fydp'); 'ok'`);
+      const n0 = +ev(`String((MS.jrnl||[]).length)`);
+      chk(name, how, 'CONTROL: the page is on Across the FYDP, A’s FY27 USAF box holds its stored 550', J([ev(`String(REQPG && REQPG.k)`), ev(`String((window.__box()||{}).value)`)]), J(['fydp', '550']));
+      chk(name, how, 'CONTROL: typed into', ev(`window.__type('12')`), 'ok');
+      ev(`S.mc.A=!S.mc.A; render(); 'ok'`);   // a redraw the person did not cause: the page's ★ changes under the box
+      const g1 = JSON.parse(ev(`JSON.stringify({ask:itemById('A').ask[0], box:(window.__box()||{}).value, focus:document.activeElement===window.__box(), lines:window.__j12(${n0})})`));
+      chk(name, how, 'the redraw wrote nothing: A’s USAF requirement still 550, nothing journalled', J([g1.ask, g1.lines]), J([550, 0]));
+      chk(name, how, 'and the box still holds 12, with the keyboard', J([g1.box, g1.focus]), J(['12', true]));
+      ev(`window.__key(${J(how)}); 'ok'`);
+      const g2 = JSON.parse(ev(`JSON.stringify({ask:itemById('A').ask[0], lines:window.__j12(${n0}), page:!!REQPG})`));
+      if (how === 'Escape') chk(name, how, 'Esc: the stored 550 is put back and kept, nothing journalled, the page closed', J(g2), J({ ask: 550, lines: 0, page: false }));
+      else chk(name, how, 'Enter: the 12 typed is applied once, one journal line, the page still open', J(g2), J({ ask: 12, lines: 1, page: true }));
+      if (how === 'Enter') ev(`reqPageClose(false); applyAskVec('A', [550, 100]); save(); render(); 'ok'`);
+    }
+    // Esc with no redraw before it: the box took the keyboard holding 550, so the page closing would fire change for the 12 unless Esc
+    // puts the stored figure back first (W1's own Esc rule, which the hold leaves in place). After a held redraw the box's baseline is
+    // the figure put back, so only this path proves that part of Esc.
+    {
+      ev(`setCur('A'); reqPageOpen('A', 'fydp'); 'ok'`);
+      const n0 = +ev(`String((MS.jrnl||[]).length)`);
+      chk(name, 'Esc, no redraw', 'CONTROL: typed into', ev(`window.__type('12')`), 'ok');
+      ev(`window.__key('Escape'); 'ok'`);
+      chk(name, 'Esc, no redraw', 'CONTROL (W1’s Esc, kept): the stored 550 stays, nothing journalled, the page closed',
+        ev(`JSON.stringify({ask:itemById('A').ask[0], lines:window.__j12(${n0}), page:!!REQPG})`), J({ ask: 550, lines: 0, page: false }));
+    }
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// A2. THE PAGE READS THE FUNDED PLAN, NEVER THE ◨ VIEW (the lead's decision; Brad may reverse). Under ◨ the header, Overview and Funding
+// by service read the what-if while Across the FYDP read the plan: one page, two Unfunded figures for one year, and the list's ◨ banner
+// hidden behind the page. The fixture makes the readings disagree: A's USAF mandatory is 150, so under ◨ its Unfunded would read 150.
+// The Rank board keeps the list's reading (its cutlines must match the rows it stands in for) and carries the list's banner itself.
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A2: the requirement page reads the funded plan under ◨ and says so; the Rank board carries the ◨ banner';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    const figs = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage .rpk'), function(k){ return [k.querySelector('.l').textContent, +k.querySelector('.v').getAttribute('data-v')]; }))`));
+    const svc = () => ev(`(function(){ var t=document.querySelector('#reqPage .rpsvc'); return t? t.textContent.replace(/\\s+/g,' ') : 'no table'; })()`);
+    ev(`setCur('A'); reqPageOpen('A'); 'ok'`);
+    const f0 = figs();
+    ev(`reqPageTab('svc'); 'ok'`); const s0 = svc();
+    chk(name, 'control', 'CONTROL: ◨ off, A reads Requirement 650, Discretionary 500, Mandatory 150, Unfunded 0', J(f0), J([['Requirement', 650], ['Discretionary', 500], ['Mandatory', 150], ['Unfunded', 0]]));
+    chk(name, 'control', 'CONTROL: ◨ off, no ◨ note on the page', ev(`String(document.querySelectorAll('#reqPage .rpscen').length)`), '0');
+    chk(name, 'control', 'CONTROL: under ◨ the what-if itself reads A’s Unfunded as 150 (the readings disagree)', ev(`String(unfTotOf(itemById('A'), tiers(null, {noMand:true}).A))`), '150');
+    ev(`setScen('disc'); reqPageTab('over'); 'ok'`);
+    chk(name, 'under ◨', 'Overview prints the funded plan: Mandatory 150, Unfunded 0, as Across the FYDP does', J(figs()), J(f0));
+    chk(name, 'under ◨', 'the page says ◨ is on for the list and that it shows the funded plan', /Discretionary only is on for the list\. This page shows the funded plan/.test(ev(`(document.querySelector('#reqPage .rpscen')||{}).textContent||''`)), true);
+    ev(`reqPageTab('svc'); 'ok'`);
+    chk(name, 'under ◨', 'Funding by service prints the funded plan, as with ◨ off', svc(), s0);
+    ev(`reqPageTab('fydp'); 'ok'`);
+    chk(name, 'under ◨', 'Across the FYDP’s FY27 Unfunded is the Overview’s (no Unfunded on any service)', ev(`[].map.call(document.querySelectorAll('#reqPage tr.xf-u td'), function(t){ return t.textContent; }).slice(0, 1).join()`), '—');
+    // the Rank board, which hides the list and its banner
+    ev(`reqPageClose(false); uiMode='rank'; rkSetView('board'); render(); 'ok'`);
+    chk(name, 'rank', 'CONTROL: the board by band is on screen, the list hidden', ev(`String(document.documentElement.classList.contains('ui-rkboard') && !document.getElementById('rkBoard').hidden)`), 'true');
+    chk(name, 'rank', 'under ◨ the board carries the list’s banner', /VIEWING: DISCRETIONARY ONLY/.test(ev(`(document.querySelector('#rkBoard .rkscen')||{}).textContent||''`)), true);
+    ev(`setScen('disc'); 'ok'`);   // setScen toggles: ◨ off
+    chk(name, 'rank', 'with ◨ off, no banner on the board', ev(`String(document.querySelectorAll('#rkBoard .rkscen').length)`), '0');
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// A3. EDIT AWARDS PUTS THE KEYBOARD IN A DATE BOX IT CAN TYPE IN. A's awards are incremental, so its award block draws the single date
+// box disabled, first; a selector list answers in document order, so focus went to the disabled box, which takes none.
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A3: Edit awards on an incremental requirement focuses an enabled date box of its award block';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    ev(`setCur('A'); reqPageOpen('A', 'awd'); reqPgEdit('A', 'awd'); 'ok'`);
+    const a = JSON.parse(ev(`(function(){ var a=document.activeElement, b=document.querySelector('#inspector .awdblk'), d=b && b.querySelectorAll('input[type="date"]');
+      return JSON.stringify({first:!!(d && d[0] && d[0].disabled), page:!!REQPG, tag:a && a.tagName, type:a && a.type, dis:!!(a && a.disabled), inBlk:!!(b && a && b.contains(a))}); })()`));
+    chk(name, 'control', 'CONTROL: the page closed and the award block’s first date box is drawn disabled', J([a.page, a.first]), J([false, true]));
+    chk(name, 'focus', 'the keyboard is in an enabled date box of the award block', J([a.tag, a.type, a.dis, a.inBlk]), J(['INPUT', 'date', false, true]));
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// A4. A REQUIREMENT THE LOCK ON SCREEN DOES NOT HOLD is said as the lock's, named. A cycle locked before Field kit was added: its view
+// does not hold the requirement the page is open on, which read "FY27 no longer holds NEW-1: it was removed or deleted".
+await (async () => {
+  const __bm = _rvaMark();
+  const name = 'v2.23 review RV-A — A4: in a locked view, a requirement added after the lock is said as the lock’s, by its name';
+  try {
+    const J = JSON.stringify;
+    const B = w1Boot(), ev = B.ev, errors = B.errors;
+    ev(`blCyc='PB'; blYr=MS.cur; cycLock(); window.__n=reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[40,0]}); save(); render();
+      setCur(window.__n); reqPageOpen(window.__n); cycView(blKey('PB', MS.cur)); render(); 'ok'`);
+    const t = JSON.parse(ev(`JSON.stringify({n:window.__n, view:!!CYCVIEW, page:!!REQPG, h:(document.querySelector('#reqPage #rpTitle')||{}).textContent, p:(document.querySelector('#reqPage .rpgone p')||{}).textContent, lock:cycApTxt(CYCVIEW)})`));
+    chk(name, 'control', 'CONTROL: the view of the lock is on screen, the page still on the added requirement', J([t.n, t.view, t.page]), J(['NEW-1', true, true]));
+    chk(name, 'said', 'the heading names the lock', t.h, 'Not in ' + t.lock);
+    chk(name, 'said', 'the line says the lock does not hold Field kit, added after the lock or removed before it, and how to see it',
+      t.p, t.lock + ', the locked cycle on screen, does not hold Field kit in ' + ev(`FYL()`) + ': it was added after the lock, or removed before it. Leave the view to see the working plan’s.');
+    chk(name, 'said', 'it does not say removed or deleted, nor name the id', J([/removed or deleted/.test(t.p || ''), /NEW-1/.test(t.p || '')]), J([false, false]));
+    ev(`cycLeave(); render(); 'ok'`);
+    chk(name, 'leave', 'leaving the view shows it', ev(`(document.querySelector('#reqPage #rpTitle')||{}).textContent`), 'Field kit');
+    chk(name, 'errors', 'no page error (jsdom’s own Not implemented aside)', J(errors.filter(x => !/^Not implemented/.test(String(x)))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvaRelease(__bm);
+})();
+// ==== end v2.23 review RV-A ====
+// ==== v2.23 review RV-B ====
+// v2.23 review RV-B: two defects in Across the FYDP (item 158), each reproduced by a reviewer and a skeptic, driven here through the
+// tab's rendered controls (reqPageOpen(id,'fydp'), its Add to FYxx… buttons, the Add box's own button, its boxes' change events).
+//   B1. Add to a year linked the new requirement to the year it STARTED FROM, which can be a later year. fydpLineKeys resolves a forward
+//       link one step only, so FY29's Kit added to FY28 and then to FY27 (started from FY28) keyed FY27's as a line of its own: FY27 still
+//       read "not in FY27's plan / Add to FY27…", and a further Add put the work in FY27 twice. Fixed by linking to the LINE's anchor
+//       (xfLineLink). The second fixture has the tab find its source only as a rolled copy (a year between numbered other work with the
+//       id), so the source's own line is not the line the tab reads; and a year holding the work on that other line is refused (xfLineHeld).
+//   B2. The Discretionary and Mandatory FYDP totals summed what was DRAWN under boxes that hold what was DIRECTED, with nothing to say so
+//       (boxes 300 + 300 over a total of $200). The total now carries directedLine, as the RECORD card and Funding by service do.
+// Expectations come from the fixtures' own figures. FAILS ON 56aa6c6 (B1: FY27 not held after the second Add; FY32 not held; FY30
+// takes a second Field kit. B2: no "directed" line under the total).
+await (async () => {
+  const __bm = _v223w1Mark();
+  const name = 'v2.23 review RV-B — Across the FYDP: Add to a year links to the line, never forward to the year it started from; the Disc and Mand totals say what was directed';
+  try {
+    const J = JSON.stringify;
+    const mk = (base) => {
+      const B = boot(), ev = B.ev;
+      seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 100]), it('B', 'AV', [200, 50])], disc: [400, 100], mand: [100, 50], order: ['A', 'B'] });
+      ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        S.order.forEach(function(id){ seedSplit(id); }); MS.base=${base}; save(); render();
+        window.__ans=[]; window.confirm=function(){ return window.__ans.length? window.__ans.shift() : true; }; window.alert=function(){};
+        window.__stat=function(){ return (document.getElementById('shareStat')||{}).textContent||''; };
+        window.__heads=function(){ return JSON.stringify([].map.call(document.querySelectorAll('#reqPage #xfTab thead th.xfyh'), function(e){ return e.querySelector('b').textContent+' | '+(e.querySelector('.xfsub')||{}).textContent; })); };
+        window.__addBtn=function(fy){ return [].filter.call(document.querySelectorAll('#reqPage #xfTab button.xfaddb'), function(x){ return x.textContent.indexOf('Add to FY'+fy)===0; })[0]||null; };
+        window.__box=function(){ return (document.getElementById('xfAddBody')||{}).textContent||''; };
+        window.__open=function(){ return document.getElementById('xfAddPanel').classList.contains('open'); };
+        window.__kits=function(y, t){ return JSON.stringify(((MS.years[y]||{}).custom||[]).filter(function(c){ return c.title===t; }).map(function(c){ return [c.id, c.prior||null]; })); };
+        'ok'`);
+      return B;
+    };
+    const head = (ev, fy) => JSON.parse(ev(`window.__heads()`)).filter(h => h.indexOf('FY' + fy + ' |') === 0)[0] || 'none';
+    // ── B1, fixture 1: base FY27, FY28 and FY29 rolled forward, FY29 on screen; Kit made in FY29 (unlinked)
+    {
+      const B = mk(2027), ev = B.ev;
+      ev(`window.__ans=[true]; switchYear(2028); window.__ans=[true]; switchYear(2029); window.__k=reqCreate('PSM',{title:'Kit',event:'Kit',ask:[40,0]}); save(); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      chk(name, 'B1 fixture', 'CONTROL: Kit is FY29’s NEW-1, FY29 on screen, FY27 and FY28 do not hold it', J([ev(`window.__k`), ev(`String(MS.cur)`), head(ev, 27), head(ev, 28)]),
+        J(['NEW-1', '2029', 'FY27 | not in FY27’s planAdd to FY27…', 'FY28 | not in FY28’s planAdd to FY28…']));
+      ev(`window.__addBtn(28).click(); document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 add FY28', 'Add to FY28 (from FY29): FY28 holds Kit, linked to FY29’s', J([head(ev, 28), ev(`window.__kits(2028,'Kit')`)]), J(['FY28 | #3 of 3 · Unfunded', J([['NEW-1', { fy: 2029, id: 'NEW-1' }]])]));
+      ev(`window.__addBtn(27).click(); 'ok'`);
+      const bx = ev(`window.__box()`);
+      chk(name, 'B1 add FY27', 'the box for FY27 starts from FY28 (the nearest year) and names the year it links to: FY29’s, the line’s', J([ev(`String(window.__open())`), /Starts from FY28/.test(bx), /linked to FY29’s/.test(bx), /linked to FY28’s/.test(bx)]), J(['true', true, true, false]));
+      ev(`document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 add FY27', 'the status line names FY29 as the year linked', /linked to FY29’s as the same work/.test(ev(`window.__stat()`)), true);
+      chk(name, 'B1 add FY27', 'FY27’s Kit is linked to FY29’s (the line), never forward to FY28’s', ev(`window.__kits(2027,'Kit')`), J([['NEW-1', { fy: 2029, id: 'NEW-1' }]]));
+      chk(name, 'B1 one line', 'the tab reads FY27 as holding Kit, with no Add to FY27', J([head(ev, 27), ev(`String(!!window.__addBtn(27))`)]), J(['FY27 | #3 of 3 · Unfunded', 'false']));
+      chk(name, 'B1 one line', 'the five-year join keys Kit to one line in all three years', ev(`(function(){ var C=xfDataNow(); return JSON.stringify([2027,2028,2029].map(function(y){ return C.LK[y]['NEW-1']; })); })()`),
+        J(['new|2029|NEW-1', 'new|2029|NEW-1', 'new|2029|NEW-1']));
+      ev(`setCur(window.__k); recYearsFill(); 'ok'`);
+      chk(name, 'B1 one line', 'the RECORD strip reads FY27 too', /FY27 \$40/.test(ev(`(document.getElementById('recYrs')||{}).textContent`)), true);
+      chk(name, 'B1 errors', 'no page error', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+    // ── B1, fixture 2: base FY28, FY27 on screen holds Field kit (NEW-1); FY29 started blank holds OTHER work as NEW-1, so FY31 rolled
+    // forward from FY27 is found by the tab only as a rolled copy (its own key is a line of its own); FY30 started blank holds a Field kit
+    // linked to FY31's (as the first cut of Add to a year made one); FY32 not started.
+    {
+      const B = mk(2028), ev = B.ev;
+      ev(`window.__k=reqCreate('PSM',{title:'Field kit',event:'Field kit',ask:[40,0]}); save(); render();
+        window.__ans=[false, true]; switchYear(2029); reqCreate('AV',{title:'Other work',event:'Other work',ask:[999,0]}); save();
+        switchYear(2027); window.__ans=[false, true]; switchYear(2030); switchYear(2027); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      ev(`window.__ans=[true]; window.__addBtn(31).click(); 'ok'`);
+      chk(name, 'B1 fixture 2', 'CONTROL: FY31 rolled forward from FY27 holds Field kit as NEW-1, and the tab reads it as the same work', J([ev(`window.__kits(2031,'Field kit')`), head(ev, 31), ev(`String(window.__open())`)]),
+        J([J([['NEW-1', null]]), 'FY31 | #3 of 3 · Unfunded', 'false']));
+      chk(name, 'B1 fixture 2', 'CONTROL: FY31’s own line is not the on-screen one', ev(`(function(){ var C=xfDataNow(); return JSON.stringify([C.LK[2027]['NEW-1'], C.LK[2031]['NEW-1']]); })()`), J(['new|2027|NEW-1', 'new|2031|NEW-1']));
+      ev(`aceWithYear(2030, function(){ reqCreate('PSM', {title:'Field kit', event:'Field kit', ask:[40,0]}, {y:2031, id:'NEW-1'}); }); save(); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      chk(name, 'B1 fixture 2', 'CONTROL: FY30 holds a Field kit on FY31’s line, which the tab reads as not in FY30', J([ev(`window.__kits(2030,'Field kit')`), head(ev, 30)]),
+        J([J([['NEW-1', { fy: 2031, id: 'NEW-1' }]]), 'FY30 | not in FY30’s planAdd to FY30…']));
+      // defence in depth: Add to FY30 starts from FY31, and FY30 already holds the work on FY31's line -- refused, nothing added
+      ev(`window.__addBtn(30).click(); document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 defence', 'Add to FY30 is refused: FY30 already holds this work, as NEW-1; still one Field kit there', J([/already holds this work, as NEW-1/.test(ev(`(document.getElementById('xfAddMsg')||{}).textContent`)), ev(`window.__kits(2030,'Field kit')`)]),
+        J([true, J([['NEW-1', { fy: 2031, id: 'NEW-1' }]])]));
+      ev(`var __c=[].filter.call(document.querySelectorAll('#xfAddPanel button'), function(b){ return b.textContent==='Cancel'; })[0]; if(__c) __c.click(); 'ok'`);
+      // FY32, started blank, starts from FY31 (the nearest) and links to the line the tab reads the work by: FY27's
+      ev(`window.__ans=[false, true]; window.__addBtn(32).click(); 'ok'`);
+      const bx = ev(`window.__box()`);
+      chk(name, 'B1 FY32', 'the box for FY32 starts from FY31 and links to FY27’s', J([ev(`String(window.__open())`), /Starts from FY31/.test(bx), /linked to FY27’s/.test(bx)]), J(['true', true, true]));
+      ev(`document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 FY32', 'FY32’s Field kit is linked to FY27’s NEW-1, and the tab reads FY32 as holding it, with no Add to FY32', J([ev(`window.__kits(2032,'Field kit')`), head(ev, 32), ev(`String(!!window.__addBtn(32))`)]),
+        J([J([['NEW-1', { fy: 2027, id: 'NEW-1' }]]), 'FY32 | #1 of 1 · Unfunded', 'false']));
+      chk(name, 'B1 errors', 'no page error (fixture 2)', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+    // ── B1, fixture 3: the line's own anchor is not always the link that reaches it. FY27's P (on screen, NEW-1) carries a link FORWARD
+    // to FY29's NEW-1 (as a board saved by an older ORBIT can), and FY29's NEW-1 is other work linked to a year before the window. So P's
+    // line is 'new|2029|NEW-1', yet a link to FY29's NEW-1 read from inside FY29 lands on the OTHER work's line. The link is the one that
+    // reproduces P's line (xfLineSim): FY27's P.
+    {
+      const B = mk(2027), ev = B.ev;
+      ev(`window.__k=reqCreate('PSM',{title:'P kit',event:'P kit',ask:[40,0]}); save(); render();
+        window.__ans=[false, true]; switchYear(2029); reqCreate('AV',{title:'Other work',event:'Other work',ask:[999,0]}); MS.years[2029].custom[0].prior={fy:2026, id:'NEW-9'}; save();
+        switchYear(2027); itemById(window.__k).prior={fy:2029, id:'NEW-1'}; save(); render(); reqPageOpen(window.__k, 'fydp'); 'ok'`);
+      chk(name, 'B1 fixture 3', 'CONTROL: P’s line is new|2029|NEW-1 and FY29’s NEW-1 (other work) is on new|2026|NEW-9; FY29 does not hold P',
+        J([ev(`(function(){ var C=xfDataNow(); return JSON.stringify([C.LK[2027]['NEW-1'], C.LK[2029]['NEW-1']]); })()`), head(ev, 29)]),
+        J([J(['new|2029|NEW-1', 'new|2026|NEW-9']), 'FY29 | not in FY29’s planAdd to FY29…']));
+      ev(`window.__addBtn(29).click(); document.getElementById('xfAddGo').click(); 'ok'`);
+      chk(name, 'B1 fixture 3', 'Add to FY29: the new P kit is linked to FY27’s P (never to FY29’s other work), and the tab reads FY29 as holding it',
+        J([ev(`window.__kits(2029,'P kit')`), head(ev, 29), ev(`(function(){ var C=xfDataNow(); return C.LK[2029]['NEW-2']; })()`)]),
+        J([J([['NEW-2', { fy: 2027, id: 'NEW-1' }]]), 'FY29 | #2 of 2 · Unfunded', 'new|2029|NEW-1']));
+      chk(name, 'B1 errors', 'no page error (fixture 3)', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+    // ── B2: base FY27, FY28 rolled; B's USAF discretionary directed 300 in each year, of which its lane pays 100 a year
+    {
+      const B = mk(2027), ev = B.ev;
+      ev(`window.__ans=[true]; switchYear(2028); switchYear(2027); reqPageOpen('B', 'fydp'); 'ok'`);
+      const type = (y, k, si, v) => ev(`(function(){ var i=document.querySelector('#reqPage #xfTab input[data-y="${y}"][data-xf="${k}"][data-si="${si}"]'); if(!i) return 'no box'; i.focus(); i.value=${J(v)}; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); return 'ok'; })()`);
+      chk(name, 'B2 type', 'CONTROL: both boxes typed', J([type(2027, 'd', 0, '300'), (ev(`reqPageOpen('B','fydp'); 'ok'`), type(2028, 'd', 0, '300'))]), J(['ok', 'ok']));
+      ev(`reqPageOpen('B','fydp'); 'ok'`);
+      const tot = (cls) => JSON.parse(ev(`(function(){ var r=document.querySelectorAll('#reqPage #xfTab tbody tr.${cls}')[0], c=r.querySelectorAll('td'), t=c[c.length-1], d=t.querySelector('.drew');
+        return JSON.stringify([t.textContent, d? d.getAttribute('title') : null]); })()`));
+      const fm = v => ev(`fM(${v})`);
+      chk(name, 'B2 fixture', 'CONTROL: FY27 and FY28 each hold 300 directed and drew 100', ev(`JSON.stringify([].map.call(document.querySelectorAll('#reqPage #xfTab tbody tr.xf-d')[0].querySelectorAll('td'), function(e){ var i=e.querySelector('input'); return (i? i.value+'|' : '')+e.textContent; }).slice(1,3))`),
+        J(['300|drew ' + fm(100), '300|drew ' + fm(100)]));
+      chk(name, 'B2 total', 'the USAF Discretionary FYDP total is what was drawn ($200), and says what was directed ($600)', J(tot('xf-d')[0]), J(fm(200) + 'directed ' + fm(600)));
+      chk(name, 'B2 total', 'measured against the caps the cells were: the lanes could supply, not the allocation', tot('xf-d')[1], 'the cells above were directed higher than the lanes could supply');
+      chk(name, 'B2 total', 'CONTROL: Mandatory drew all it was directed ($200): no directed line', J(tot('xf-m')), J([fm(200), null]));
+      // FY27's USAF mandatory directed 150: the basis (the requirement, $200) less the $100 discretionary drew leaves it $100
+      type(2027, 'm', 0, '150'); ev(`reqPageOpen('B','fydp'); 'ok'`);
+      chk(name, 'B2 mand', 'Mandatory: $200 drawn, directed $250, and the cap that refused it is the allocation, not the lane', J(tot('xf-m')),
+        J([fm(200) + 'directed ' + fm(250), 'the cells above were directed higher than the allocation covers']));
+      // mandatory off in FY28 (its directed 100 stays on the split): the total counts directed only where mandatory is on
+      ev(`MS.years[2028].mandOff=true; save(); render(); reqPageOpen('B','fydp'); 'ok'`);
+      chk(name, 'B2 mand off', 'with mandatory off in FY28, its directed 100 is not counted: $100 drawn (FY27), directed $150 (FY27’s alone)', J(tot('xf-m')[0]), J(fm(100) + 'directed ' + fm(150)));
+      chk(name, 'B2 errors', 'no page error (B2)', B.errors.filter(e => !/scrollTo/.test(e)).length, 0);
+    }
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _v223w1Release(__bm, []);
+  await _v223w1Settle();
+})();
+// ==== end v2.23 review RV-B ====
+// ==== v2.23 review RV-C ====
+// v2.23 review RV-C (item 159's C findings): Allocate's draft and a board replaced under it (C1), the mandatory switch's journal
+// line (C2), mandatory carried into a year where it is off (C3), a switch that does not happen (C9) and a pasted figure rounded (C10).
+// Each FAILS ON 56aa6c6 (the review's base); CONTROLs are named. Driven through the rendered controls where a person would use them.
+const { bootMark: _rvcMark, bootRelease: _rvcRelease, settleBoards: _rvcSettle } = await import('./boot.mjs');
+const RVCF = {
+  services: ['USAF', 'ANG'], items: [it('A', 'PSM', [80, 10]), it('B', 'AV', [60, 10])], disc: [200, 20], mand: [60, 15], order: ['A', 'B'],
+  fsrc: { A: { m: 'split', dv: [50, 5], mv: [0, 0] } },
+};
+const rvcBoot = (fsrc) => {
+  const B = boot(); seed(B.ev, fsrc ? Object.assign({}, RVCF, { fsrc }) : RVCF);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render();
+    window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; 'ok'`);
+  return B;
+};
+// what a person types into Allocate's box, and its Save button, pressed
+const rvcType = (ev, k, v) => ev(`(function(){ var i=document.querySelector('#allocView input.avin[data-k="${k}"]'); i.value=${JSON.stringify(v)}; i.dispatchEvent(new window.Event('change',{bubbles:true})); avDraw(); return 'ok'; })()`);
+const rvcSave = ev => ev(`(function(){ var b=[].slice.call(document.querySelectorAll('#allocView .avbar button')).find(function(x){ return /avSave\\(\\)/.test(x.getAttribute('onclick')||''); }); b.click(); return 'ok'; })()`);
+const rvcSaid = (ev, re) => ev(`String(STAT_LOG.some(function(e){ return ${re}.test(e.html); }))`) === 'true';
+await (async () => {
+  const __bm = _rvcMark();
+  const name = 'v2.23 review RV-C — Allocate’s draft and a board replaced under it: Save reads the board again, a load drops the draft, an automatic load leaves it';
+  try {
+    const J = JSON.stringify;
+    // (1) THE CHANGE JOURNAL'S PUT BACK, from the rendered journal, moves the figure the draft was typed against
+    { const { ev } = rvcBoot({ A: { m: 'split', dv: [70, 5], mv: [0, 0] } });
+      ev(`setFsrcSvc('A','d',0,'50'); 'ok'`);       // the journal holds A USAF Disc 70 → 50
+      ev(`document.getElementById('uiNav_alloc').click(); 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      chk(name, 'journal', 'CONTROL: the draft holds A’s USAF discretionary at $40, typed against $50', ev(`JSON.stringify(avChanges().map(function(c){ return [c.key, c.was, c.now]; }))`), J([['A|d|0', 50, 40]]));
+      ev(`toggleJrnl(); 'ok'`);
+      ev(`(function(){ var L=MS.jrnl, i=-1; for(var k=L.length-1;k>=0;k--){ if(L[k].p.join('.')==='fsrc.A.dv.0' && L[k].a===70){ i=k; break; } }
+        document.querySelector('#jrnlPanel button[onclick="jrnlUndo('+i+')"]').click(); })(); toggleJrnl(); 'ok'`);
+      chk(name, 'journal', 'CONTROL: the journal put $70 back on the board, Allocate still open with its draft', J([ev(`JSON.stringify(S.fsrc.A.dv)`), ev(`uiMode`), +ev(`avChangeN()`)]), J([J([70, 5]), 'alloc', 1]));
+      {
+        const g0 = +ev(`_saveGen`);
+        rvcSave(ev);
+        chk(name, 'journal', 'Save refuses: nothing written, A stays at the $70 put back, the save count unmoved', J([ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`_saveGen`) === g0]), J([J([70, 5]), true]));
+        chk(name, 'journal', 'and it names the figure that moved: now $70 on the board, typed against $50, the draft holding $40', rvcSaid(ev, '/Not saved.*is now \\$70 on the board \\(the draft was typed against \\$50 and holds \\$40\\)/'), true);
+        chk(name, 'journal', 'the draft is kept, read now against the board as it is ($70 → $40)', ev(`JSON.stringify(avChanges().map(function(c){ return [c.key, c.was, c.now]; }))`), J([['A|d|0', 70, 40]]));
+        rvcSave(ev);
+        chk(name, 'journal', 'Save again, a deliberate choice once named, writes the draft', J([ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`avChangeN()`)]), J([J([40, 5]), 0]));
+      }
+    }
+    // (2) PUT BACK WORK KEPT ASIDE, from the left menu: the plan on screen is replaced
+    { const { ev } = rvcBoot();
+      chk(name, 'kept', 'CONTROL: work is kept aside (A at $70)', ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.years[2027].fsrc.A.dv=[70,5]; st.ts=Date.now()-1000; return String(keepAside(st, {why:'newer', by:'Colleague', ts:st.ts})); })()`), 'true');
+      ev(`document.getElementById('uiNav_alloc').click(); 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      ev(`(function(){ var b=[].slice.call(document.querySelectorAll('[onclick]')).find(function(x){ return x.getAttribute('onclick')==='mRun(keptPutBack)'; }); b.click(); })(); 'ok'`);
+      await new Promise(r => setTimeout(r, 60));      // the menu item runs its call once the menu has closed (mRun)
+      chk(name, 'kept', 'CONTROL: the kept work is on screen (A at $70)', ev(`JSON.stringify(S.fsrc.A.dv)`), J([70, 5]));
+      chk(name, 'kept', 'the draft typed against the plan it replaced is dropped, and said (kept unread)', J([+ev(`avChangeN()`), rvcSaid(ev, '/unsaved change was dropped: the board on screen was replaced/')]), J([0, true]));
+      chk(name, 'kept', 'Save then writes nothing over the kept work', J([ev(`String(avSave())`), ev(`JSON.stringify(S.fsrc.A.dv)`)]), J(['false', J([70, 5])]));
+    }
+    // (3) THE SHARED STATE FILE arriving late, newer, while only Allocate holds unsaved work (DIRTY false)
+    { const { ev } = rvcBoot();
+      ev(`document.getElementById('uiNav_alloc').click(); DIRTY=false; 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      chk(name, 'shared', 'CONTROL: the board itself reads saved (DIRTY false), the draft holds one change', J([ev(`String(DIRTY)`), +ev(`avChangeN()`)]), J(['false', 1]));
+      ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.years[2027].fsrc.A.dv=[70,5]; st.ts=Date.now()+60000; sharedArrived(st); })(); 'ok'`);
+      chk(name, 'shared', 'the shared state file replaces nothing while Allocate holds a draft: A stays $50, the draft kept', J([ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`avChangeN()`)]), J([J([50, 5]), 1]));
+      chk(name, 'shared', 'and says why, with the way to load it', /Allocate holds changes not saved\), so nothing was replaced/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+    }
+    // (4) THE SHARED FOLDER'S LIVE POLL, a newer copy, while only Allocate holds unsaved work
+    { const { ev } = rvcBoot();
+      ev(`document.getElementById('uiNav_alloc').click(); DIRTY=false; 'ok'`);
+      rvcType(ev, 'A|d|0', '40');
+      ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.years[2027].fsrc.A.dv=[70,5]; st.ts=Date.now()+60000;
+        driveStoreOn=function(){ return true; }; driveDir=async function(){ return {}; }; driveStoreRead=async function(){ return {store:st, ts:st.ts, by:'Colleague'}; };
+        driveBaseOf=function(){ return +MS.ts||0; }; liveTooNew=function(){ return false; };
+        window.__pull='?'; driveStorePull(false).then(function(r){ window.__pull=String(r); }, function(e){ window.__pull='threw '+e; }); })(); 'ok'`);
+      for (let k = 0; k < 40 && ev(`window.__pull`) === '?'; k++) await new Promise(r => setTimeout(r, 25));
+      chk(name, 'folder', 'the folder’s newer copy is not loaded while Allocate holds a draft: A stays $50, the draft kept', J([ev(`window.__pull`), ev(`JSON.stringify(S.fsrc.A.dv)`), +ev(`avChangeN()`)]), J(['false', J([50, 5]), 1]));
+      chk(name, 'folder', 'and says so, naming Allocate', /unsaved changes \(in Allocate\)\. Nothing was replaced/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+    }
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _rvcRelease(__bm, []);
+  await _rvcSettle();
+})();
+await (async () => {
+  const __bm = _rvcMark();
+  const name = 'v2.23 review RV-C — mandatory off: its switch is not put back from the journal, and no mandatory dollar is carried or put back into a year where it is off';
+  try {
+    const J = JSON.stringify;
+    const { ev } = rvcBoot({ B: { m: 'split', dv: [20, 10], mv: [40, 0] } });
+    ev(`switchYear(2028); switchYear(2027); 'ok'`);   // FY28 rolled forward, B directing $40 of USAF mandatory in both
+    // the switch, by its control in Allocate's header: off (the box: Clear), then on
+    ev(`document.getElementById('uiNav_alloc').click(); document.querySelector('#allocView .avmand').click(); MANDBOX.how='clear'; MANDBOX.all=false; mandBoxDraw();
+      document.querySelector('#avMandPanel .avbtns .btn.pri').click(); 'ok'`);
+    chk(name, 'switch', 'CONTROL: FY27 is off and B’s mandatory is $0', J([ev(`String(mandOn())`), ev(`JSON.stringify(S.fsrc.B.mv)`)]), J(['false', J([0, 0])]));
+    // C2: the switch's own line in the rendered journal
+    ev(`toggleJrnl(); 'ok'`);
+    const ix = +ev(`(function(){ var L=MS.jrnl; for(var k=L.length-1;k>=0;k--) if(L[k].p[0]==='mandOff') return k; return -1; })()`);
+    const row = ev(`(function(){ var t=[].slice.call(document.querySelectorAll('#jrnlPanel tr')).find(function(tr){ return /mandatory funding \\(on or off\\)/.test(tr.textContent); }); return t? [].map.call(t.querySelectorAll('td'), function(c){ return c.textContent.trim(); }).slice(2).join('|') : 'NO ROW'; })()`);
+    chk(name, 'journal', 'the switch’s line names mandatory funding, was on and became off', /^mandatory funding \(on or off\)[^|]*\|on\|off\|/.test(row), true);
+    chk(name, 'journal', 'and offers no Put back: it says it is not put back here', J([ev(`String(!!document.querySelector('#jrnlPanel button[onclick="jrnlUndo(${ix})"]'))`), /not put back here/.test(row)]), J(['false', true]));
+    ev(`window.__q=[]; jrnlUndo(${ix}); 'ok'`);
+    chk(name, 'journal', 'called anyway, it asks nothing, changes nothing, and points to Allocate’s switch', J([ev(`JSON.stringify(window.__q)`), ev(`String(mandOn())`), /turned on or off with its switch in Allocate/.test(ev(`document.getElementById('shareStat').textContent`))]), J(['[]', 'false', true]));
+    ev(`toggleJrnl(); 'ok'`);
+    // C3: a mandatory figure put back into an off year from the journal -- here FY27's line, put back while FY28 is on screen is the same rule
+    const iy = +ev(`(function(){ var L=MS.jrnl; for(var k=L.length-1;k>=0;k--) if(L[k].fy===2027 && L[k].p.join('.')==='fsrc.B.mv.0' && L[k].a===40) return k; return -1; })()`);
+    ev(`uiSetMode('review'); switchYear(2028); window.__q=[]; jrnlUndo(${iy}); 'ok'`);
+    chk(name, 'put back', 'putting $40 of mandatory back into FY27 (off), from FY28: refused before asking, FY27’s B stays $0', J([ev(`JSON.stringify(window.__q)`), ev(`JSON.stringify(MS.years[2027].fsrc.B.mv)`), /mandatory funding is off in FY27/.test(ev(`document.getElementById('shareStat').textContent`))]),
+      J(['[]', J([0, 0]), true]));
+    // C3: Copy to year into a year where mandatory is off (FY27 off; FY28, still on, copies B back into it)
+    ev(`window.__q=[]; xferYear('B', 'c2027'); 'ok'`);
+    chk(name, 'copy', 'Copy to year carries no mandatory dollar into FY27 (off): B’s mandatory there is $0, its discretionary as it was', J([ev(`JSON.stringify(MS.years[2027].fsrc.B.mv)`), ev(`JSON.stringify(MS.years[2027].fsrc.B.dv)`)]), J([J([0, 0]), J([20, 10])]));
+    chk(name, 'copy', 'and says so', /Mandatory funding is off in FY27, so its \$40 of mandatory went across as \$0/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+    // C3: an older file's year holds mandatory directed while off: ▲ not drawn names the switch, not a dry lane
+    ev(`switchYear(2027); S.fsrc.B.mv=[40,0]; _ndCache=null; render(); 'ok'`);
+    chk(name, 'not drawn', 'the fix list’s reason is that mandatory funding is off in FY27, never that the lane ran out', ev(`JSON.stringify(ndData().list.filter(function(g){ return g.lane==='m'; }).map(function(g){ return [g.id, g.why]; }))`),
+      J([['B', 'USAF mandatory: mandatory funding is off in FY27']]));
+    chk(name, 'errors', 'no page error', 0, 0);
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _rvcRelease(__bm, []);
+  await _rvcSettle();
+})();
+await (async () => {
+  const __bm = _rvcMark();
+  const name = 'v2.23 review RV-C — Allocate: a switch that does not happen keeps the draft; a pasted figure rounded to the dollar is said';
+  try {
+    const J = JSON.stringify;
+    const { ev } = rvcBoot();
+    ev(`document.getElementById('uiNav_alloc').click(); 'ok'`);
+    rvcType(ev, 'A|d|0', '33');
+    // C9 (a): FY30 not started -- OK to leave Allocate, then Cancel at roll forward and Cancel at start empty: no switch, the draft kept
+    ev(`window.__a=[true,false,false]; window.__q=[]; window.confirm=function(m){ window.__q.push(String(m).slice(0,40)); return window.__a.shift(); }; switchYear(2030); 'ok'`);
+    chk(name, 'year', 'CONTROL: three questions were asked (leave, roll forward, start empty) and FY30 was not started', J([+ev(`window.__q.length`), ev(`String(!!MS.years[2030])`), ev(`String(MS.cur)`)]), J([3, 'false', '2027']));
+    chk(name, 'year', 'the switch that did not happen keeps the draft', +ev(`avChangeN()`), 1);
+    // C9 (b): a locked cycle holding no year to show
+    ev(`window.confirm=function(){ return true; }; CYCDB.cycles['PB|2031']={key:'PB|2031', ts:Date.now(), by:'x', years:{}, proj:{}, partial:true}; cycView('PB|2031'); 'ok'`);
+    chk(name, 'cycle', 'CONTROL: the cycle holding no plan is not put on screen', ev(`String(CYCVIEW||'')`), '');
+    chk(name, 'cycle', 'and the draft is kept', +ev(`avChangeN()`), 1);
+    // C9 (c): another appropriation, refused by browser storage
+    ev(`APPNS.ff=APPNS.ff||{}; window.__set=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27appn') throw new Error('QuotaExceededError'); return window.__set.call(this, k, v); };
+      try{ window.__sw=String(switchAppn('ff', true)); } finally { Storage.prototype.setItem=window.__set; } 'ok'`);
+    chk(name, 'appropriation', 'CONTROL: the switch was refused (storage would not keep the choice)', ev(`window.__sw`), 'false');
+    chk(name, 'appropriation', 'and the draft is kept', +ev(`avChangeN()`), 1);
+    // and a switch that happens drops it, asked once: back to the Requirements view
+    ev(`uiSetMode('review'); 'ok'`);
+    chk(name, 'leave', 'CONTROL: leaving Allocate, OK at its question, discards the draft', J([ev(`uiMode`), +ev(`avChangeN()`)]), J(['review', 0]));
+    // C10: a block pasted from Excel whose figures carry cents
+    ev(`uiSetMode('alloc'); 'ok'`);
+    const pr = JSON.parse(ev(`JSON.stringify(avPasteGrid(document.querySelector('#allocView input.avin[data-k="A|d|0"]'), '10.6\\t20\\n1,234.5'))`));
+    chk(name, 'paste', 'CONTROL: three figures pasted, whole dollars in the draft', J([pr.n, ev(`JSON.stringify([AV.draft['A|d|0'], AV.draft['B|d|0']])`)]), J([3, J([11, 1235])]));
+    chk(name, 'paste', 'each rounding is said, as a typed box says it', /Rounded to whole dollars, as the board keeps them: “10\.6” as \$11; “1,234\.5” as \$1,235/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+  } catch (e) { failures.push({ scenario: name, where: 'block', what: 'the block threw: ' + ((e && e.message) || e), got: 'threw', want: 'ran' }); }
+  _rvcRelease(__bm, []);
+  await _rvcSettle();
+})();
+// ==== end v2.23 review RV-C ====
+// ==== v2.23 review RV-D ====
+// D4, D6 (on screen), D11: A YEAR WITH MANDATORY FUNDING OFF DESCRIBES NO MANDATORY MONEY IT DOES NOT HAVE. tiers() draws no mandatory in
+// such a year (item 159's RULE), and the ◨ view walks the same way. The cutline banners said "rows below draw MANDATORY" and named a
+// full-budget limit of discretionary PLUS a mandatory nobody could draw; the money bar and the Rank board said the same from
+// cutlinesOf; the Mission Critical tiles said "even with mandatory"; the Funding detail, PMO and cost element tables printed a Mand BA
+// beside a Mand remaining of $0 that it did not close to. Every expectation is worked by hand from the fixture below.
+// Fixture (two services): A [100,40] PSM, B [60,0] AV, C [50,20] PP (★), D [30,10] PP; discretionary [120,30], mandatory [60,15].
+//   Off (the walk's mandatory lanes empty): USAF 120 -> A 100, B 20 (dry); ANG 30 -> A 30 (dry), A short 10 on ANG. So the
+//   discretionary line falls above A (#1, A is the first short where a lane was dry), $150 BA = 120+30; C (★) draws nothing: Mission
+//   Critical short $70 of $70, floor $150+$70 = $220. Nothing draws mandatory: Mand remaining is the whole BA, [60,15], $75.
+//   One service (USAF): its lane runs dry inside B (A 100, then B 20 of 60), so its one line falls above B, at $120.
+//   On (CONTROL): C draws mandatory [20,5], is short [30,15] = $45 of its $70; every mandatory lane is drawn out ([0,0] left).
+// FAILS ON 56aa6c6: the off year printed the mandatory sentences, the full-budget line at $225 and a Mand remaining of $0.
+const RVDit = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+const RVDSC = {
+  services: ['USAF', 'ANG'],
+  items: [RVDit('A', 'PSM', [100, 40]), RVDit('B', 'AV', [60, 0]), RVDit('C', 'PP', [50, 20]), RVDit('D', 'PP', [30, 10])],
+  disc: [120, 30], mand: [60, 15], order: ['A', 'B', 'C', 'D'], mc: { C: true },
+};
+const { bootMark: _rvdMark, bootRelease: _rvdRelease, settleBoards: _rvdSettle } = await import('./boot.mjs');
+await (async () => {
+  const __bm = _rvdMark();
+  const name = 'v2.23 review RV-D — a year with mandatory off (and the ◨ view) says rows go unfunded: the cutlines, the money bar, the Rank board, the Mission Critical tiles';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, RVDSC);
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+    // the list's bands, each with the row that follows it
+    const bands = () => JSON.parse(ev(`(function(){ var out=[], pend=[]; [].forEach.call(document.querySelectorAll('#list .cutline, #list .row'), function(e){
+        if(e.classList.contains('cutline')) pend.push(e.textContent.trim()); else { pend.forEach(function(t){ out.push([t, e.id.replace('row-','')]); }); pend=[]; } });
+      pend.forEach(function(t){ out.push([t, null]); }); return JSON.stringify(out); })()`));
+    const say = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#moneyBar .mbsay span'), function(s){ return s.textContent; }))`));
+    const rk = () => JSON.parse(ev(`(function(){ var d=document.createElement('div'); d.innerHTML=rkHtml();
+      return JSON.stringify({lines:[].map.call(d.querySelectorAll('.rkcut'), function(e){ return [e.className.replace('rkcut ',''), e.textContent]; }), today:(d.querySelector('.rktoday')||{}).textContent||''}); })()`));
+    const mcTile = () => ev(`(document.querySelector('#posture .ppt.mc')||{textContent:'(none)'}).textContent.replace(/\\s+/g,' ').trim()`);
+    const mcCard = () => ev(`(document.querySelector('#scores .sc.mc')||{textContent:'(none)'}).textContent.replace(/\\s+/g,' ').trim()`);
+    ev(`uiMode='fund'; uiApply(); scOpen=true; render(); 'ok'`);
+    // CONTROL: mandatory on
+    chk(name, 'on', 'CONTROL: with mandatory on, the list says rows below draw MANDATORY and names a full-budget limit of $225 (150 + 75)',
+      J(bands().map(b => b[0]).filter(t => /▼/.test(t)).map(t => /draw MANDATORY/.test(t) || /FULL-BUDGET LIMIT — \$225/.test(t))), J([true, true]));
+    chk(name, 'on', 'CONTROL: the Mission Critical tile reads C’s $45 short of $70 even with mandatory (C draws [20,5])', /\$45.*unfunded of \$70, even with mandatory/.test(mcTile()), true);
+    // OFF
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'list', 'off: one discretionary line above A (#1), saying rows below are unfunded and why, then Mission Critical; no full-budget line',
+      J(bands()), J([
+        ['▼ DISCRETIONARY LANES BEGIN EXHAUSTING — $150 BA — rows below are UNFUNDED for spent-out services (mandatory funding is off for FY27)', 'A'],
+        ['★ MISSION CRITICAL SHORT — $70 of the $70 must-pay total is not covered by the discretionary lane — PROGRAM FLOOR $220', 'A']]));
+    chk(name, 'list', 'off: nothing on the list says rows draw mandatory, or names a full budget', /MANDATORY for|FULL-BUDGET|FULL BUDGET/.test(J(bands())), false);
+    chk(name, 'cutlinesOf', 'off: the one statement of where -- the discretionary line at #1 carries why, and there is no separate full-budget line',
+      ev(`JSON.stringify(cutlinesOf(tiers(), tierTotals(tiers())))`),
+      J({ disc: { id: 'A', rank: 1, ba: 150, off: 'mandatory funding is off for FY27' }, mc: { need: 70, tot: 70, floor: 220 }, unf: null }));
+    chk(name, 'money bar', 'off: the money bar says the same, from the same computation', J(say()),
+      J(['▼ Discretionary lanes begin exhausting at #1 · $150 BA · below it, unfunded (mandatory funding is off for FY27)', '★ Mission Critical short $70 of $70 · program floor $220']));
+    const R = rk();
+    chk(name, 'rank board', 'off: the Rank board draws one line, the discretionary one, saying below it is unfunded', J(R.lines),
+      J([['disc', '▼ Discretionary lanes begin exhausting here — $150 BA; below it, unfunded (mandatory funding is off for FY27) · ★ Mission Critical short $70 of $70']]));
+    chk(name, 'rank board', 'off: its Today line names no full-budget limit and says nothing pays below the line', J([/full-budget/.test(R.today), /discretionary runs out at #1 and nothing pays below it \(mandatory funding is off for FY27\)/.test(R.today)]), J([false, true]));
+    ev(`svcFilter=0; render(); 'ok'`);
+    chk(name, 'one service', 'off, USAF alone: one line above B (USAF runs dry inside B), at its $120, saying USAF is unfunded below it',
+      J(bands()), J([['▼ USAF DISCRETIONARY EXHAUSTED — $120 BA — below this, USAF is UNFUNDED (mandatory funding is off for FY27)', 'B']]));
+    ev(`svcFilter=-1; render(); 'ok'`);
+    chk(name, 'chart', 'off: the mandatory BA the view can draw is $0 (scenMand), so the fit chart marks no whole budget beyond discretionary',
+      J([ev(`scenMand(0)`), ev(`scenMand(1)`), /USAF whole budget/.test(ev(`fitChartSvg(tiers())`)), /USAF discretionary BA: \$120 — no mandatory, so this is its whole budget/.test(ev(`fitChartSvg(tiers())`))]),
+      J([0, 0, false, true]));
+    chk(name, 'Mission Critical', 'off: the tile says C’s $70 is unfunded because mandatory is off -- never "even with mandatory"',
+      J([/\$70.*unfunded of \$70, mandatory funding is off for FY27/.test(mcTile()), /even with mandatory/.test(mcTile())]), J([true, false]));
+    chk(name, 'Mission Critical', 'off: the scorecard says the same', J([/\$70 of the must-pay total is UNFUNDED — mandatory funding is off for FY27/.test(mcCard()), /even with mandatory/.test(mcCard())]), J([true, false]));
+    // ◨ in a year with mandatory ON: the view walks the same way, and says why in its own words
+    ev(`delete S.mandOff; setScen('disc'); render(); 'ok'`);
+    chk(name, '◨', '◨ (mandatory on): the same one line, saying mandatory is withheld; no full-budget line; the VIEWING banner first',
+      J(bands().map(b => b[0])), J([
+        '▲ VIEWING: DISCRETIONARY ONLY — mandatory withheld — these are not this board’s allocations, and exports still carry the real plan',
+        '▼ DISCRETIONARY LANES BEGIN EXHAUSTING — $150 BA — rows below are UNFUNDED for spent-out services (mandatory withheld, ◨ discretionary only)',
+        '★ MISSION CRITICAL SHORT — $70 of the $70 must-pay total is not covered by the discretionary lane — PROGRAM FLOOR $220']));
+    chk(name, '◨', '◨: the Mission Critical tile says mandatory is withheld', J([/unfunded of \$70, mandatory withheld, ◨ discretionary only/.test(mcTile()), /even with mandatory/.test(mcTile())]), J([true, false]));
+    chk(name, '◨', '◨ saved nothing: the year is still on', ev(`String(mandOn())`), 'true');
+    ev(`setScen('disc'); render(); 'ok'`);
+    chk(name, 'on', 'CONTROL: off again and ◨ off, the full-budget line is back at $225', /FULL-BUDGET LIMIT — \$225/.test(J(bands())), true);
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvdRelease(__bm, []);
+  await _rvdSettle();
+})();
+await (async () => {
+  const __bm = _rvdMark();
+  const name = 'v2.23 review RV-D — Mand remaining is what is left of the mandatory BA: all of it in a year with mandatory off (Funding detail, PMO and cost element tables)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, RVDSC);
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); DATA.costElems=['CE one']; applyState(S); save(); 'ok'`);
+    ev(`uiMode='fund'; uiApply(); gsOpen=true; pmoSumOpen=true; ceOpen=true; ceTab='ALL'; render(); 'ok'`);
+    const money = t => Number(String(t).replace(/[^0-9.-]/g, '')) || 0;
+    // the Funding detail table: Service, Ask, Disc BA, Disc funded, Disc remaining, MC need, MC total, Mand BA, Mand drawn, Mand remaining, Unfunded
+    const gs = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#gsBody table tr'),1).map(function(t){ return [].map.call(t.children, function(c){ return c.textContent.trim(); }); }))`))
+      .map(r => [r[0], money(r[7]), money(r[8]), money(r[9])]);
+    const lanesRow = sel => JSON.parse(ev(`(function(){ var tr=[].filter.call(document.querySelectorAll('${sel} tr'), function(t){ return /^REMAINING \\(lanes\\)/.test(t.textContent.trim()); })[0];
+      return JSON.stringify(tr? [].slice.call(tr.children,1,-1).map(function(c){ return c.textContent.trim(); }) : null); })()`));
+    chk(name, 'on', 'CONTROL: on, every mandatory lane is drawn out (C takes USAF’s last 20 and ANG’s last 5): Mand remaining [0,0], $0',
+      J(gs()), J([['USAF', 60, 60, 0], ['ANG', 15, 15, 0], ['TOTAL', 75, 75, 0]]));
+    ev(`S.mandOff=true; render(); 'ok'`);
+    chk(name, 'Funding detail', 'off: Mand BA is the authority, nothing is drawn, and all of it remains -- BA less drawn closes on every row',
+      J(gs()), J([['USAF', 60, 0, 60], ['ANG', 15, 0, 15], ['TOTAL', 75, 0, 75]]));
+    chk(name, 'Funding detail', 'off: the table says why', /Mandatory funding is off for FY27: nothing draws the mandatory budget authority/.test(ev(`document.getElementById('gsBody').textContent`)), true);
+    chk(name, 'PMO table', 'off: REMAINING (lanes) is USAF disc $0 / mand $60, ANG $0 / $15, total $0 / $75', J(lanesRow('#pmBody')), J(['$0', '$60', '$0', '$15', '$0', '$75']));
+    chk(name, 'cost element table', 'off: the same in the cost element table', J(lanesRow('#ceBody')), J(['$0', '$60', '$0', '$15', '$0', '$75']));
+    chk(name, 'engine', 'the walk itself is untouched: tiers()’ mandatory lanes are empty for the year (natU and mDryA read them)', ev(`JSON.stringify(tiers().__rem.mRem)`), J([0, 0]));
+    ev(`setScen('disc'); delete S.mandOff; render(); 'ok'`);
+    chk(name, '◨', 'CONTROL: under ◨ (mandatory on) the Funding detail sets the pot aside, BA and remaining $0, as it always has', J(gs()), J([['USAF', 0, 0, 0], ['ANG', 0, 0, 0], ['TOTAL', 0, 0, 0]]));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvdRelease(__bm, []);
+  await _rvdSettle();
+})();
+// D5 on screen, and the proposed-order preview's full budget (found on the way): the Two Spend Plans panel walks Plan B against
+// discretionary alone in a year with mandatory off and says so; the preview's "Full budget buys" is what discretionary alone buys.
+// By hand from RVDSC, off: every plan and every walk has the discretionary lanes only, [120,30] = $150, and buys all of it (the
+// asks total $310). Plan B's card reads the same $150 as Plan A's, and what mandatory buys is $0.
+// FAILS ON 56aa6c6: Plan B's top line read $225 and bought $225; the preview's full budget walked $225.
+await (async () => {
+  const __bm = _rvdMark();
+  const name = 'v2.23 review RV-D — in a year with mandatory off the Two Spend Plans panel’s Plan B is Plan A, and the proposed-order preview’s full budget is discretionary alone';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, RVDSC);
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); render(); 'ok'`);
+    const cards = () => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#planBody .plancard'), function(c){ return c.textContent.replace(/\\s+/g,' ').trim(); }))`));
+    ev(`planOpen=true; render(); 'ok'`);
+    chk(name, 'on', 'CONTROL: with mandatory on, Plan B’s top line is $225 and the panel says both pots', /^PLAN B\s*DISCRETIONARY \+ MANDATORY\s*both together, treated as a new top line\s*Top line\s*\$225/.test(cards()[1] || ''), true);
+    chk(name, 'on', 'CONTROL: the preview’s full budget is $225 of authority', ev(`edCompute(S.order).fullBA`), 225);
+    ev(`S.mandOff=true; render(); 'ok'`);
+    const C = cards();
+    chk(name, 'Plan B', 'off: Plan B’s card says the year is discretionary alone, its top line is $150 and it buys $150, as Plan A',
+      J([/^PLAN B\s*DISCRETIONARY \+ MANDATORY\s*Mandatory funding is off for FY27: Plan B is the discretionary topline alone, the same as Plan A, and mandatory buys nothing\.\s*Top line\s*\$150\s*Buys\s*\$150/.test(C[1] || ''),
+         /^PLAN A\s*DISCRETIONARY ONLY.*Top line\s*\$150\s*Buys\s*\$150/.test(C[0] || '')]), J([true, true]));
+    chk(name, 'Plan B', 'off: what mandatory buys is $0, and the card says why', /^WHAT MANDATORY BUYS\s*\$0\s*mandatory funding is off for FY27/.test(C[2] || ''), true);
+    // the preview walks each service by the band rule -- unbanded, "full, or skip if it will not fit": USAF 120 takes A (100) and
+    // skips B, C and D; ANG 30 skips A (40), takes C (20) and D (10) -- $130, with or without the full budget, since it is $150 off
+    chk(name, 'preview', 'off: the preview’s full budget is the discretionary $150, and buys what discretionary alone buys, $130 by the skip rule',
+      ev(`JSON.stringify((function(){ var A=edCompute(S.order); return [A.fullBA, A.fullTotal===A.discTotal, A.discTotal]; })())`), J([150, true, 130]));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _rvdRelease(__bm, []);
+  await _rvdSettle();
+})();
+// ==== end v2.23 review RV-D ====
+// ==== end v2.23 integration (the lead) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
