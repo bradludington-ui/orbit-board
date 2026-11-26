@@ -155,15 +155,21 @@ try {
     C.chk('before one is picked the side panel says so', /Pick a requirement/.test(T.doc.getElementById('uiFindDet').textContent));
     T.click([...m.querySelectorAll('#uiFindRes .tg')].find(b => b.textContent === 'Tessa F')); await settle();
     const det = T.doc.getElementById('uiFindDet');
-    C.eq('the one picked lists its plan events by month, in words',
-      [...det.querySelectorAll('.fevs li')].map(li => [li.querySelector('.fd').textContent, li.querySelector('.fp').textContent.replace(/\s+/g, ' ').trim(), li.querySelector('.fa').textContent]),
-      [['Aug 2026', 'T6 lot two Not awarded', '0.50'], ['Oct 2026', 'T6 lot one Awarded', '1.00'], ['Feb 2027', 'T6 lot three', '2.00']]);
-    C.eq('… and its money, PMO, appropriation and budget', [...det.querySelectorAll('.kv')].map(k => k.textContent),
-      ['Planned ($M)3.50', 'Awarded ($M)1.00', 'Still to award ($M)2.50', 'PMOAir Vehicle (AV)', 'AppropriationO&M FY2027', 'Budget' + B_OM]);
+    // §66: one line per plan event, most money first, a word only when it is Awarded, Part awarded or Late; each opens to its months
+    const evRows = () => [...det.querySelectorAll('.fevg')].map(g => [g.querySelector('.fevn').textContent.replace(/\s+/g, ' ').trim(), g.querySelector('.fevm').textContent,
+      [...g.querySelectorAll('.fmon')].map(x => x.textContent.replace(/\s+/g, ' ').trim())]);
+    C.eq('the one picked lists its plan events, most money first, each with its months in words', evRows(),
+      [['T6 lot three', '2.00', ['Feb 20272.00']], ['T6 lot one Awarded', '1.00', ['Oct 2026 · awarded1.00']], ['T6 lot two Late', '0.50', ['Aug 2026 · not awarded0.50']]]);
+    C.chk('… each closed until clicked', [...det.querySelectorAll('.fevg')].every(g => !g.open));
+    C.eq('… and its money, and where it sits on one line', [[...det.querySelectorAll('.ffig div')].map(k => k.textContent), /^[^ ·]+ · O&M FY2027 · Air Vehicle \(AV\)$/.test(det.querySelector('.fctx').textContent)],
+      [['Planned ($M)3.50', 'Awarded ($M)1.00', 'Still to award ($M)2.50'], true]);
+    C.eq('… the bar says how much is awarded', [det.querySelector('.fbar').getAttribute('aria-label'), det.querySelector('.fbar i').style.width], ['29% of the planned money awarded', '29%']);
+    C.eq('… and its budget folded behind its count', [det.querySelector('.fref summary').textContent, det.querySelector('.fref').open, /O&M/.test(det.querySelector('.frefl').textContent)], ['1 budget', false, true]);
+    C.chk('… with nothing else on it', !det.querySelector('.kv, .fevs'));
     C.chk('its row is marked as the one open', T.main().querySelector('#uiFindRes tr.cur .tg').textContent === 'Tessa F'
       && T.main().querySelector('#uiFindRes tr.cur .tg').getAttribute('aria-expanded') === 'true');
     T.click(det.querySelector('[data-act=view]')); await settle();
-    C.eq('Open O&M goes to the O&M view', T.pressed(), 'om');
+    C.eq('Open O&M spend plan goes to the O&M view', T.pressed(), 'om');
     m = await T.view('find');
     C.chk('coming back, the one picked is still open', T.doc.getElementById('uiFindDet').querySelector('h3').textContent.startsWith('Tessa F'));
     // a month that has not closed is not late: with Data through Jul-2026, August is still to come
