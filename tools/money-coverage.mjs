@@ -84,7 +84,7 @@ const REGISTRY = {
   exportProposedOrder: { money: false, reason:
     'writes the ORDER — rank and identity only. It moves no dollars and prints none.' },
   exportRlgPlan: { money: false, reason: 'RLG plan narrative fields, no dollar columns.' },
-  exportExView:  { money: false, reason: 'writes the saved VIEW (filters, sort, open panel), not figures.' },
+  // v2.24 (item 162): exportExView went with Active Year Execution
   exportOneAppn: { money: false, reason: 'writes a working board holding one appropriation: its saved state copied '
     + 'verbatim, computing nothing. That the figures survive is checked by reopening the file and comparing '
     + 'every total (audit-import, v1.86).' },

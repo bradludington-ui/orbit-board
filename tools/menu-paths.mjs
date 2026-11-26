@@ -31,7 +31,7 @@ const sc = { services: SVCN, items, disc: [5000000, 1000000, 500000],
 // v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the LEFT MENU, and each item of File
 // went to one place there: Imports & exports, Program offices, Audit, History & recovery, Setup, or Save's ▾. A path names
 // the left-menu entry; what it holds is read from the list the board draws for it (a box's or a flyout's), and FYDP ▸,
-// Execution ▸ and History & recovery ▸, which draw their own, are drawn into the page to be read (FLYDRAW).
+// Budget Year ▸ (Execution ▸ until v2.24) and History & recovery ▸, which draw their own, are drawn into the page to be read (FLYDRAW).
 const MENUS = {
   'Reports &amp; exports': 'dd_reports',
   'Reports & exports':     'dd_reports',
@@ -44,7 +44,7 @@ const MENUS = {
   'History &amp; recovery': 'mp_fly_hist',
   'History & recovery':     'mp_fly_hist',
   'FYDP':        'mp_fly_fydp',
-  'Execution':   'mp_fly_exec',
+  'Budget Year': 'mp_fly_exec',   // v2.24 (item 162): Execution until v2.24; its key stays 'exec'
   'Filter':      'm_view',
   'PMO':         'm_pmo',
   'Fiscal year': 'm_fy',

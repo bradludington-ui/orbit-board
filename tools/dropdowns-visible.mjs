@@ -24,7 +24,7 @@
 // beside the list there. At 1400 and narrower docked is a drawer, as the first pass already has it.
 //
 // v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the LEFT MENU. Every flyout there (FYDP,
-// Execution, Program offices, Audit, History & recovery, Setup with each folded group opened, Save's ▾) and every box it opens
+// Budget Year, Program offices, Audit, History & recovery, Setup with each folded group opened, Save's ▾) and every box it opens
 // (Imports & exports, Reports & exports, Data) is opened from its entry the way a person does, at every size and in both
 // fonts, and judged as a toolbar menu is: in the window, every item in it and on top.
 //

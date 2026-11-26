@@ -653,21 +653,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .rlg-svc{display:inline-flex;align-items:center;gap:5px}
 .rlg-avail{font-size:9px;color:var(--dim)}
 .rlg-avail.bad{color:var(--amber);font-weight:700}
-.rlg-part{color:var(--amber);font-size:8.5px;margin-left:3px}
-.obl-scope{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:12px}
-.obl-lbl{font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);font-weight:800;margin-right:3px}
-.obl-step{font-size:11px;padding:2px 8px;font-weight:800}
-.obl-fig{margin-left:auto;font-size:10px;color:var(--mut);white-space:nowrap}
-.obl-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;margin-top:6px}
-.obl-half{min-width:0;display:flex;flex-direction:column}
-.obl-cap{font-size:10px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:0 0 3px}
-.obl-box{flex:1;min-width:0;background:var(--panelA);border:1px solid var(--lineSoft);border-radius:6px;padding:6px 8px;display:flex;flex-direction:column;justify-content:center}
-.obl-chart{padding:4px 6px 2px}
-.obl-note{grid-column:1/-1;margin-top:4px;font-size:9px}
-.fctab.obl-svc{width:100%;table-layout:fixed}
-.fctab.obl-svc th{font-size:8.5px;padding:3px 4px}
-.fctab.obl-svc td{padding:3px 4px;font-size:10px}
-@media(max-width:820px){.obl-pair{grid-template-columns:1fr}}
 .note-detail{grid-column:1/-1;background:var(--sink);border-radius:6px;padding:8px 12px}
 .note-detail textarea{width:100%;min-height:44px;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:11.5px;padding:6px 8px;font-family:inherit;resize:vertical}
 /* The pop-up editor borrows the same shape. Without font-family:inherit a bare textarea falls back to the browser's monospace, which reads as a different application. */
@@ -2552,7 +2537,7 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
   <button type="button" class="uiNi" id="uiNav_fund" onclick="uiGo('fund',this)"><span class="t">Funding</span></button>
   <button type="button" class="uiNi" id="uiNav_alloc" onclick="uiGo('alloc',this)"><span class="t">Allocate</span></button>
   <button type="button" class="uiNi" id="uiNav_fydp" aria-haspopup="true" onclick="uiGo('fydp',this)"><span class="t">FYDP</span><span class="car">&#9656;</span></button>
-  <button type="button" class="uiNi" id="uiNav_exec" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="t">Execution</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_exec" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="t">Budget Year</span><span class="car">&#9656;</span></button>
   <button type="button" class="uiNi" id="uiNav_cyc" onclick="uiGo('cyc',this)"><span class="t">Cycles &amp; compare</span></button>
   <button type="button" class="uiNi" id="uiNav_brief" onclick="uiGo('brief',this)"><span class="t">Brief</span></button>
   <div class="uiGrp">Board</div>
@@ -2613,7 +2598,6 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
   <input type="file" id="stateFile" accept=".json,.txt,.html,.htm" style="display:none" onchange="importState(this)">
   <input type="file" id="fullFile" accept=".html,.htm" style="display:none" onchange="importFullBoard(this)">
   <input type="file" id="multiFile" accept=".html,.htm" multiple style="display:none" onchange="importBoards(this)">
-  <input type="file" id="srcFile" accept=".xlsx" style="display:none" onchange="importSrc(this)">
   <input type="file" id="budFile" accept=".xlsx" style="display:none" onchange="importBud(this)">
   <input type="file" id="ccarFile" accept=".xlsx" style="display:none" onchange="importCcarRecs(this)">
 </div>
@@ -2790,7 +2774,7 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 <p>In <b>PPBE Budget Positions</b> each service can be set to <i>figures entered in $K</i>, for exhibits printed in thousands: a plain number typed there is read as that many thousand dollars (15,828 is $15,828,000), a figure with its own unit (15.8M) is read as written, the boxes show thousands, and every total is in dollars. Setting it on a service that already holds figures asks whether those were typed in $K; if they were, they are multiplied by 1,000, and <i>undo the ×1,000</i> beside the setting puts them back.</p>
 <div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
 <h4>Everything else on the requirement</h4>
-<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title opens the record at it), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line prints the budget and says how it was settled — chosen, by rule — not picked, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b> — one box for the whole record: the plan event, the CCaR record and PID, prime contract or OGC, PMO (to hand a requirement to another office; it asks first and says what follows), obligation category, the cost element, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z; a destination that is not a government activity clears which awards to and the MIPR type), the description, the impact statement and the note. The CCaR record name is read from the CCaR records list and is not typed. The box lists what is still needed; you can save before it is complete. In a copy, it says at the top when what you change will not be sent — another office’s requirement, or a year the copy cannot submit — and the 🧾 CLIN drill is read only: nothing in it is sent.</p>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title opens the record at it), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line prints the budget and says how it was settled — chosen, by rule — not picked, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b> — one box for the whole record: the plan event, the CCaR record and PID, prime contract or OGC, PMO (to hand a requirement to another office; it asks first and says what follows), obligation category, the cost element, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z; a destination that is not a government activity clears which awards to and the MIPR type), the description, the impact statement and the note. The CCaR record name is read from the CCaR records list and is not typed. The box lists what is still needed; you can save before it is complete. In a copy, it says at the top when what you change will not be sent — another office’s requirement, or a year the copy cannot submit — and the 🧾 CLIN drill is read only: nothing in it is sent.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
 <p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. One box builds the whole record, for the office this copy submits for and no other (it asks once, if the copy does not know the office yet): the plan event, prime contract or OGC, the CCaR record and PID, the requirement value by service with a BAE budget for each service that has a value, the classification, where the money goes, and the narrative. The record’s name is never typed: it is read from the CCaR records list as the record is typed, and the list’s short description fills an empty description. The band, ★ Mission Critical, the award dates and RCN / EEIC are not in the box: the portfolio team sets them. It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
@@ -2908,7 +2892,7 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 <p>In <b>CR Cash Needs</b> and the 1A9A return, each award’s dollars sit in the half of the month its own date falls in: the 1st to the 15th, or the 16th to the end. An award saved with a month and no day counts as the 1st. Nothing switches a half by hand — to move cash, change the award’s date. Two awards on the same date are taken in the order they arrived on it: one whose date you change goes to the bottom of that date’s group.</p>
 <p>The award block shows <b>Balance to schedule — discretionary + mandatory</b> for each service, and beside each award how it splits between the two; <b>↵ put on last</b> puts the whole remaining balance on the latest award, and every funded dollar then has a date. <b>Needs attention</b> lists every requirement whose awards fall short of its funding.</p>
 <p>An award arriving in a file is checked first: real months, days 1 to 31, whole dollars, one figure per service. An import or a submittal that carries one the board cannot read is refused, and the message names it; a figure written as text in an older file is converted, and said. A saved board you open is never refused for an award and never loses one. A list for the wrong number of services keeps its total, spread over the requirement’s values and marked <b>SPLIT INFERRED</b>; a figure or date that cannot be read is marked <b>NEEDS REPAIR</b>, and its cash is UNSCHEDULED until you enter it again. Each such award keeps the record as it was saved, shown in its award block, and is listed under <b>Needs attention › 🔧</b> with what was done and the split used, until you press <b>✓ Checked</b>.</p>
-<p><span class="mp" data-m="exec">Execution › Spend Plan Forecast…</span> and <span class="mp" data-m="exec">Execution › CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share, in whole dollars that add up to the requirement. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens.</p>
+<p><span class="mp" data-m="exec">Budget Year › Spend Plan Forecast…</span> and <span class="mp" data-m="exec">Budget Year › CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share, in whole dollars that add up to the requirement. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens.</p>
 </section>
 <section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
 <p><span class="mp" data-m="setup">Setup › Who and where › Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
@@ -2965,12 +2949,6 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
   </div>
 </div>
 
-<div class="modal-bg" id="divPanel" onclick="if(event.target===this)toggleDiv()">
-  <div class="modal" style="width:1080px;max-width:96vw;max-height:88vh">
-    <h3>⚖ ORBIT vs CCaR <button class="x" onclick="toggleDiv()">✕ Close</button></h3>
-    <div id="divBody"></div>
-  </div>
-</div>
 
 <div class="modal-bg" id="pfPanel" onclick="if(event.target===this)togglePf()">
   <div class="modal" style="width:1080px;max-width:96vw;max-height:88vh">
@@ -3011,14 +2989,6 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
       <button type="button" class="btn" onclick="toggleDiag()">Cancel</button>
       <button type="button" class="btn on" id="diagSave" onclick="diagSave()">💾 Save diagnostics</button>
     </div>
-  </div>
-</div>
-
-
-<div class="modal-bg" id="exwPanel" onclick="if(event.target===this)toggleExw()">
-  <div class="modal" style="width:1000px;max-width:96vw">
-    <h3>🧱 WBS FROM EXECUTION DATA <button class="x" onclick="toggleExw()">✕ Close</button></h3>
-    <div id="exwBody"></div>
   </div>
 </div>
 
@@ -3089,12 +3059,6 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
     <div id="xfFillBody"></div></div>
 </div>
 
-<div class="modal-bg" id="exPanel" onclick="if(event.target===this)toggleEx()">
-  <div class="modal" style="width:1320px;max-width:97vw">
-    <h3>📈 ACTIVE YEAR EXECUTION — SPEND PLAN vs OBLIGATIONS (source: CCaR QPE) <button class="x" onclick="toggleEx()">✕ Close</button></h3>
-    <div id="exBody"></div>
-  </div>
-</div>
 
 <div class="modal-bg" id="pkgPanel" onclick="if(event.target===this)togglePkg()">
   <div class="modal" style="width:1040px;max-width:96vw">
@@ -3130,13 +3094,6 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
     <h3>📌 PPBE CYCLES — lock the five-year spend plan under a cycle, tag the working plan, read its deltas
       <button class="x" onclick="toggleBl()">✕ Close</button></h3>
     <div id="blBody"></div>
-  </div>
-</div>
-<div class="modal-bg" id="qpePanel" onclick="if(event.target===this)toggleQpe()">
-  <div class="modal" style="width:1120px;max-width:97vw">
-    <h3>📥 QPE COVERAGE — which columns come back, and which ones ORBIT needs
-      <button class="x" onclick="toggleQpe()">✕ Close</button></h3>
-    <div id="qpeBody"></div>
   </div>
 </div>
 <div class="modal-bg" id="posPanel" onclick="if(event.target===this)togglePos()">
@@ -3225,7 +3182,7 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
   </div>
 </div>
 <!-- Reports & exports: what the Reports & exports menu held, its six groups laid out as sections, each item one click. A view with
-     a section of its own on the left (FYDP ▸, Execution ▸) is opened there, and its section here says so. -->
+     a section of its own on the left (FYDP ▸, Budget Year ▸) is opened there, and its section here says so. -->
 <div class="modal-bg" id="uiRepPanel" onclick="if(event.target===this)uiRepClose()">
   <div class="modal uiRepM uiPanel">
     <h3>Reports &amp; exports <button type="button" class="x" onclick="uiRepClose()">✕ Close</button></h3>
@@ -3263,7 +3220,7 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 //   §05  FIT, NOT-DRAWN AND NEEDS ATTENTION
 //   §06  MONEY AND COLOUR UTILITIES
 //   §07  SERVICE LIST EDITING
-//   §08  ACE TIE-OUT, WBS FROM EXECUTION, APPEARANCE
+//   §08  ACE TIE-OUT, APPEARANCE
 //   §09  FUNDING REALIGNMENT
 //   §10  RCN/EEIC, DESTINATIONS, EXECUTIVE DECISION AND SERVICES PANELS
 //   §11  LOADING A BOARD
@@ -3281,10 +3238,10 @@ html.ui-on #uiKpis.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 //   §23  SPEND-PLAN FORECAST AND CONTINUING RESOLUTION
 //   §24  READING WORKBOOKS
 //   §25  SHARED-FOLDER CONNECTION, BUDGET LIST, IDS EXPORT, PRE-FLIGHT
-//   §26  CCaR, WBS, ACE MAPPING, BAE IMPORT, EXECUTION HELPERS
+//   §26  CCaR, WBS, ACE MAPPING, BAE IMPORT
 //   §27  FUNDS FLOW
-//   §28  ACTIVE-YEAR EXECUTION AND THE SPEND PLAN SOURCE EXPORT
-//   §29  DECISION BANDS, QPE COVERAGE, PROPOSED ORDER, TWO SPEND PLANS
+//   §28  THE SPEND PLAN SOURCE EXPORT
+//   §29  DECISION BANDS, PROPOSED ORDER, TWO SPEND PLANS
 //   §30  EXECUTIVE DECISION WALK, WRITTEN FIELDS, HELP GUIDE
 //   §31  PPBE CYCLES, FIVE-YEAR SPEND PLAN, BUDGET POSITIONS, SPRUILLS
 //   §32  SNAPSHOTS, BUDGET MANAGEMENT, CR AND FORECAST PANELS
@@ -5125,133 +5082,9 @@ function svcMove(i,d){
 let svcPanelOpen=false;
 function toggleSvcPanel(){ svcPanelOpen=!svcPanelOpen; render(); }
 // ==============================================================================================================
-// §08  ACE TIE-OUT, WBS FROM EXECUTION, APPEARANCE
-//      cost estimate tie-out panel, WBS paragraphs from execution rows, themes and densities
+// §08  ACE TIE-OUT, APPEARANCE
+//      themes and densities (v2.24: WBS paragraphs from execution rows went with the CCaR pull)
 // ==============================================================================================================
-let exwOpen=false;
-function toggleExw(){ exwOpen=!exwOpen; render(); }
-function exwApply(){
-  const r=execWbsApply(null);
-  setStat('🧱 WBS from execution data — <b>'+r.wrote+'</b> written'
-    +(r.skipped? ', '+r.skipped+' left alone (already had one)':'')
-    +(r.locked? ', '+r.locked+' on a CLIN left alone (a PMO copy\u2019s CLINs are the portfolio team\u2019s)':'')
-    +(r.scan.conflicts.length? ', '+r.scan.conflicts.length+' in conflict and skipped':'')
-    +((r.scan.unlisted||[]).length? ', '+r.scan.unlisted.length+' naming a paragraph longer than a WBS code may be, not written':'')
-    +((r.scan.primeNoClin||[]).length? ', '+r.scan.primeNoClin.length+' prime contract'+(r.scan.primeNoClin.length===1?'':'s')+' named by no CLIN, not written':'')+'.');
-  render();
-}
-function exwBody(){
-  const bg=document.getElementById('exwPanel'), el=document.getElementById('exwBody');
-  if(!bg||!el) return;
-  bg.className='modal-bg'+(exwOpen?' open':'');
-  if(!exwOpen){ el.innerHTML=''; return; }
-  const sc=execWbsScan(null);
-  let h='';
-  if(!sc.rows){
-    el.innerHTML='<div class="hint">No execution data has been imported for '
-      +esc(APPN_LBL[mySlug()]||mySlug())+' yet. Data › Import CCaR QPE loads the '
-      +'Spend Plan Source workbook — this reads the WBS column out of it.</div>';
-    return;
-  }
-  h+='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:10.5px">'
-    +'<span>'+sc.rows+' imported rows</span>'
-    +'<span><b>'+sc.withWbs+'</b> carry a WBS</span>'
-    +'<span>matched to a requirement <b style="color:'+(sc.matchedRows?'var(--green)':'var(--amber)')+'">'
-      +sc.matchedRows+'</b></span>'
-    +'<span>ready to write <b style="color:var(--green)">'+sc.props.length+'</b></span>'
-    +(sc.conflicts.length? '<span>in conflict <b style="color:var(--amber)">'+sc.conflicts.length+'</b></span>':'')
-    +(sc.asSent.length? '<span>already set, as sent <b>'+sc.asSent.length+'</b></span>':'')
-    +(sc.unlisted.length? '<span>too long for a WBS code <b style="color:var(--amber)">'+sc.unlisted.length+'</b></span>':'')
-    +(sc.primeNoClin.length? '<span>a prime, no CLIN named <b style="color:var(--amber)">'+sc.primeNoClin.length+'</b></span>':'')
-    +'</div>';
-  if(!sc.withWbs){
-    h+='<div class="hint">The imported rows carry no WBS in the paragraph column. That column is '
-      +'headed <b>Spares WBS</b> in the source file today and is read for every appropriation — '
-      +'nothing here depends on its name.</div>';
-    el.innerHTML=h; return;
-  }
-  if(sc.props.length){
-    h+='<div style="overflow-x:auto"><table class="fctab" style="min-width:820px">'
-      +'<colgroup><col style="width:420px"><col style="width:110px"><col style="width:140px">'
-      +'<col style="width:90px"></colgroup>'
-      +'<tr><th style="text-align:left">Requirement</th><th>CLIN</th>'
-      +'<th style="text-align:left">WBS</th><th>Rows</th></tr>';
-    sc.props.slice(0,150).forEach(function(pr){
-      h+='<tr><td style="text-align:left">'+esc(pr.label)+'</td>'
-        +'<td>'+(pr.clin? esc(pr.clin):'—')+'</td>'
-        +'<td style="text-align:left">'+esc(pr.para)+'</td>'
-        +'<td>'+pr.rows+'</td></tr>';
-    });
-    h+='</table></div>';
-    if(sc.props.length>150) h+='<div class="hint">showing the first 150 of '+sc.props.length+'.</div>';
-    h+='<div style="margin:10px 0"><button class="btn" style="border-color:var(--gold)" '
-      +'onclick="exwApply()">Write these '+sc.props.length+' WBS paragraph'
-      +(sc.props.length===1?'':'s')+'</button> '
-      +'<span style="font-size:9.5px;color:var(--dim)">a requirement that already has a WBS is left alone</span></div>';
-  }
-  if(sc.sharedRows){
-    const nm=Object.keys(sc.sharedNames);
-    h+='<div class="hint" style="margin-top:8px"><b>'+sc.sharedRows+'</b> row'
-      +(sc.sharedRows===1?'':'s')+' named a CCaR Record Name that <b>more than one</b> requirement '
-      +'carries, so the paragraph was offered to each of them. Record names are not unique on this '
-      +'board. Where those requirements drew different paragraphs they appear as conflicts below:<br>'
-      +nm.slice(0,8).map(function(n){
-          return '\u00b7 '+esc(n)+' \u2014 '+sc.sharedNames[n]+' requirements'; }).join('<br>')
-      +(nm.length>8? '<br>\u2026 and '+(nm.length-8)+' more':'')
-      +'</div>';
-  }
-  if(sc.conflicts.length){
-    h+='<div class="hint" style="margin-top:8px"><b>'+sc.conflicts.length+'</b> requirement'
-      +(sc.conflicts.length===1?'':'s')+' had rows naming DIFFERENT paragraphs. These are skipped — '
-      +'choosing one would write a paragraph nobody assigned, and it would reconcile perfectly '
-      +'afterwards. Set them by hand:<br>'
-      +sc.conflicts.slice(0,12).map(function(c){
-          return '· '+esc(c.label)+(c.clin? ' (CLIN '+esc(c.clin)+')':'')
-            +' — '+esc(c.paras.join(', ')); }).join('<br>')
-      +'</div>';
-  }
-  // v2.12 RV5 (S16): what the rows name that is already set, and what cannot be a WBS code (v2.19: its length)
-  const exwLine=function(c, ps){ return '· '+esc(c.label)+(c.clin? ' (CLIN '+esc(c.clin)+')':'')+' — '+esc(ps.join(', ')); };
-  if(sc.unlisted.length){
-    h+='<div class="hint exw-off" style="margin-top:8px"><b>'+sc.unlisted.length+'</b> requirement'
-      +(sc.unlisted.length===1?'':'s')+' had rows naming a paragraph longer than a WBS code may be. '
-      +'Not written. Set the paragraph in the requirement’s record:<br>'
-      +sc.unlisted.slice(0,12).map(function(c){ return exwLine(c, c.off); }).join('<br>')
-      +'</div>';
-  }
-  // v2.15 W4 (item 135): a prime's rows that name none of its CLINs -- its WBS is its CLINs', so nothing is written for the prime
-  if(sc.primeNoClin.length){
-    h+='<div class="hint exw-prime" style="margin-top:8px"><b>'+sc.primeNoClin.length+'</b> prime contract'
-      +(sc.primeNoClin.length===1?'':'s')+' had rows naming no CLIN '+(sc.primeNoClin.length===1?'it holds':'they hold')+'. A prime’s WBS is set on its CLINs, '
-      +'so nothing was written: set the paragraph on each CLIN in its 🧾 CLIN drill:<br>'
-      +sc.primeNoClin.slice(0,12).map(function(c){ return exwLine(c, c.paras); }).join('<br>')
-      +'</div>';
-  }
-  if(sc.asSent.length){
-    h+='<div class="hint exw-sent" style="margin-top:8px"><b>'+sc.asSent.length+'</b> requirement'
-      +(sc.asSent.length===1?' already carries':'s already carry')+' exactly the paragraphs '+(sc.asSent.length===1?'its':'their')
-      +' rows name, as the Spend Plan Source sent them (a WBS split goes out a line per paragraph). Already set, as sent — nothing to write:<br>'
-      +sc.asSent.slice(0,12).map(function(c){ return exwLine(c, c.paras); }).join('<br>')
-      +'</div>';
-  }
-  if(sc.unmatched.length){
-    const rws=sc.unmatched.reduce(function(a,u){ return a+u.rows; },0);
-    h+='<div class="hint" style="margin-top:8px"><b>'+rws+'</b> row'+(rws===1?'':'s')+' carrying a WBS '
-      +'named no requirement on this board. Matching is on the <b>CCaR Record Name</b> first and the '
-      +'CCaR number second. Prior-year rows legitimately name requirements this board no longer '
-      +'holds:<br>'
-      +sc.unmatched.slice(0,10).map(function(u){
-          return '· '+esc(u.title||'(no title)')+' — '+esc(u.para)+' ×'+u.rows; }).join('<br>')
-      +(sc.unmatched.length>10? '<br>… and '+(sc.unmatched.length-10)+' more':'')
-      +'</div>';
-  }
-  if(sc.unparsed.length){
-    h+='<div class="hint" style="margin-top:8px"><b>'+sc.unparsed.length+'</b> value'
-      +(sc.unparsed.length===1?'':'s')+' did not parse as a paragraph and were ignored: '
-      +esc(sc.unparsed.slice(0,4).join(' | '))+'</div>';
-  }
-  el.innerHTML=h;
-}
 /* ---- Appearance ------------------------------------------------------------------------
    Five palettes over ONE set of tokens. Adding another is a value list in the stylesheet plus a
    line here -- never another sweep of the sheet, which is why the tinted badges became tokens.
@@ -5355,20 +5188,16 @@ try{ uiLoad(); uiApply(); }catch(e){ /* a board that cannot read its own setting
 /* ================= FUNDING REALIGNMENT =========================================================
    Source a lump sum out of one fiscal year by moving WHOLE requirements into another.
 
-   Two pools, two sources, because obligation status is not a board fact:
-     'exec'  the active year, read from the execution store -- a plan event that is not obligated
-             is realignable. Exact, no join.
-     a year  a board year (budget year or an out-year), read from the plan. Nothing planned is
-             obligated until execution for that year exists, and the pool checks rather than
-             assumes, so the gate begins to bind by itself when the data arrives.
+   The pool is a board year (the budget year or an out-year), read from the plan. Until v2.24 (item 162) it
+   could also be an active year read from an imported CCaR pull -- its not-obligated plan events, the
+   receiving year's unobligated ceiling, and the UPL pots flagged in the pull. ORBIT takes no more CCaR
+   pulls (Brad, 26 Nov 2026), so all of that went: a pull a board file still carries is kept, never read here.
 
    Nothing here writes. It proposes; xferYear does the moving, one requirement at a time, with its
    own confirmation. A tool that rearranged a fiscal year on one click is not something to build. */
-// The primary movement is ACTIVE YEAR -> BUDGET YEAR, so that is what it opens on: the source
-// defaults to the execution year and the destination to the board's own budget year.
-let rlgOpen=false, rlgTarget=505, rlgLabel='', rlgSrc='exec', rlgTo=null,
+// It opens on the year on screen ('' = that year).
+let rlgOpen=false, rlgTarget=505, rlgLabel='', rlgSrc='', rlgTo=null,
     rlgCredits={}, rlgManual=[], rlgFloor=0, rlgStrat='few', rlgDrill=false, rlgOnly='',
-    rlgCapOverride=0,        // $M typed over the derived receiving-year ceiling; 0 = derived
     rlgSvcNeed={};           // per-service amounts in $M; any entry switches the solve to per-service
 function rlgSetSvc(sv, v){
   const r=amtReadM(v);                  // v1.97 (item 75): read whole; a typo keeps the need it had
@@ -5388,9 +5217,6 @@ function rlgSvcSupply(pieces){
   });
   return out;
 }
-function rlgSetCap(v){ const r=amtReadM(v);   // v1.97 (item 75): read whole; a typo keeps the cap it had
-  if(r.why){ setStat('⚠ <b>The cap was not changed.</b> '+esc(r.why)+'.'); render(); return; }
-  rlgCapOverride=(r.v>0)? r.v/1e6 : 0; render(); }
 // A requirement can carry an ordinary name and be a UPL pot. Nothing in the data says so, so
 // the person says so, per year, keyed exactly as the pool keys its pieces.
 function rlgUplMap(){ if(!S.upl) S.upl={}; return S.upl; }
@@ -5415,54 +5241,6 @@ function rlgToggleUpl(key, fy){
   else m[k]=1;
   save(); render();
 }
-// A title usually appears in several active years, and a pot is normally a pot in all of them.
-// Marking each separately is right when they differ and tedious when they do not, so this marks
-// every year the title appears in at once. Measured: 2 of 7 UPL titles span more than one year.
-function rlgUplYearsOf(title){
-  const out=[], all=execAllOf()||{};
-  Object.keys(all).forEach(function(ap){
-    const ex=all[ap]; if(!ex||!ex.rows) return;
-    Object.keys(ex.rows).map(Number).forEach(function(fy){
-      if(out.indexOf(fy)>=0) return;
-      if((ex.rows[fy]||[]).some(function(r){ return String(r[3]||'').trim()===title; })) out.push(fy);
-    });
-  });
-  return out.sort(function(a,b){ return a-b; });
-}
-function rlgToggleUplAll(title){
-  const yrs=rlgUplYearsOf(title);
-  if(!yrs.length) return;
-  const m=rlgUplMap();
-  const on=yrs.every(function(fy){ return !!m[rlgUplKey(fy,'x|'+title)] || !!m['x|'+title]; });
-  yrs.forEach(function(fy){
-    const k=rlgUplKey(fy,'x|'+title);
-    if(on){ delete m[k]; delete m['x|'+title]; } else m[k]=1;
-  });
-  save(); render();
-  setStat((on?'\u2717 Unmarked':'\u2713 Marked')+' <b>'+esc(title)+'</b> as a UPL pot in '
-    +yrs.map(function(y){ return 'FY'+(y%100); }).join(', ')+'.');
-}
-// The obligation date on a plan event, as YYYY-MM. Column 8 carries it, sometimes as an Excel
-// serial and sometimes as text — measured, every movable plan event in FY25 and FY26 has one.
-function rlgObYm(v){
-  if(typeof v==='number' && isFinite(v) && v>20000){
-    const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);
-    return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
-  }
-  const t=String(v==null?'':v).trim();
-  let m=/^(\d{4})[-\/](\d{1,2})/.exec(t);
-  if(m) return m[1]+'-'+String(+m[2]).padStart(2,'0');
-  m=/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/.exec(t);
-  if(m) return m[3]+'-'+String(+m[1]).padStart(2,'0');
-  return '';
-}
-// Months from the reporting month to an obligation month. Negative means the date has already gone
-// by with the money still unobligated — reported as a fact, never read as a reason.
-function rlgMonthsOut(ym, rep){
-  if(!ym || !rep) return null;
-  const a=ym.split('-'), b=rep.split('-');
-  return (+a[0]-+b[0])*12 + (+a[1]-+b[1]);
-}
 // What the timing says about where a requirement should go. The owner's own logic: something
 // awarding soon needs money NOW, so it moves BACK onto a prior year's dollars; something not
 // awarding for a long time does not need this year's money at all, so it DEFERS forward.
@@ -5482,60 +5260,6 @@ const RLG_STRATS=[
   {k:'bal',  n:'Low priority, tight', d:'a floor on rank, then the closest fit beneath it'},
   {k:'late', n:'Latest awarding first', d:'work backwards from what is not awarding for longest'}
 ];
-// Every fiscal year the imported execution data holds for THIS appropriation, with what each
-// one is carrying. This is the "look across my active years" view: procurement executes across
-// three of them, so one year on its own never shows where the room is.
-function rlgExecYears(){
-  const ex=(execAllOf()||{})[mySlug()];
-  if(!ex||!ex.rows) return [];
-  return Object.keys(ex.rows).map(Number).sort(function(a,b){ return a-b; })
-    .map(function(fy){
-      const byT=Object.create(null); let tot=0, obl=0;
-      (ex.rows[fy]||[]).forEach(function(r){
-        const t=String(r[3]||'').trim()||'(untitled)';
-        const a=+r[9]||0;
-        if(!byT[t]) byT[t]={tot:0, obl:0};
-        byT[t].tot+=a; tot+=a;
-        if(isAlloc(r[10])){ byT[t].obl+=a; obl+=a; }
-      });
-      let free=0, movers=0;
-      Object.keys(byT).forEach(function(t){
-        const f=byT[t].tot-byT[t].obl;
-        if(f>5e3){ free+=f; movers++; }
-      });
-      return {fy:fy, tot:tot, obl:obl, free:free, events:Object.keys(byT).length, movers:movers};
-    });
-}
-// What a receiving year can absorb, and what that costs.
-// THE CEILING IS DERIVED AND STATED, NEVER ASSUMED SILENTLY. The execution file carries plan
-// events, not budget authority, so "available" here is the year's UNOBLIGATED plan value — which
-// is only the same thing as spare appropriation if the year's BA equals its planned total. It also
-// is not empty space: every dollar of it stands behind that year's own not-yet-obligated events,
-// so consuming it displaces something with a name. Both are put on the page, and the figure can be
-// typed over, because the owner knows the real available balance and this file does not.
-function rlgCapacity(fy){
-  const out={fy:fy, cap:0, events:[], derived:true};
-  if(fy===null||fy===undefined||fy==='') return out;
-  const y=rlgExecYears().filter(function(x){ return x.fy===+fy; })[0];
-  if(!y) return out;
-  out.cap=y.free;
-  const ex=(execAllOf()||{})[mySlug()];
-  const byT=Object.create(null);
-  ((ex&&ex.rows&&ex.rows[+fy])||[]).forEach(function(r){
-    const t=String(r[3]||'').trim()||'(untitled)';
-    const a=+r[9]||0;
-    if(!byT[t]) byT[t]={t:t, tot:0, obl:0, pmo:PMO_SHORT(r[18])};
-    byT[t].tot+=a;
-    if(isAlloc(r[10])) byT[t].obl+=a;
-  });
-  Object.keys(byT).forEach(function(t){
-    const f=byT[t].tot-byT[t].obl;
-    if(f>5e3) out.events.push({t:t, v:f, pmo:byT[t].pmo});
-  });
-  out.events.sort(function(a,b){ return b.v-a.v; });
-  if(rlgCapOverride>0){ out.cap=rlgCapOverride*1e6; out.derived=false; }
-  return out;
-}
 function rlgYears(){
   const ys=Object.keys(MS.years||{}).map(Number).filter(function(y){ return y>1990&&y<2100; });
   return ys.sort(function(a,b){ return a-b; });
@@ -5565,63 +5289,9 @@ function rlgBandName(id){
   const b=(BANDS_LIST()||[]).filter(function(x){ return x.id===((S.band||{})[id]||''); })[0];
   return b? b.n : '';
 }
-/* What can be moved, and what it is worth. `src` is '' (the board's current year), a fiscal year,
-   or 'exec' for the active execution year. */
-// EVERY UPL POT THE BOARD CAN SEE, across every appropriation the execution store holds and every
-// fiscal year in each. Two populations, deliberately kept apart:
-//   'file'   the source flags the row itself (col 17 or col 20 = UPL)
-//   'mark'   the owner marked it, because money is parked in a requirement with an ordinary name
-// Conflating them would put a judgement and a fact under one heading.
-function rlgUplScan(){
-  const out=[], all=execAllOf()||{};
-  Object.keys(all).forEach(function(ap){
-    const ex=all[ap]; if(!ex||!ex.rows) return;
-    Object.keys(ex.rows).map(Number).sort().forEach(function(fy){
-      const byT=Object.create(null);
-      (ex.rows[fy]||[]).forEach(function(r){
-        if(isAlloc(r[10])) return;                       // obligated money is not available
-        const t=String(r[3]||'').trim()||'(untitled)';
-        const a=+r[9]||0;
-        // TWO AMOUNTS, because the two populations are counted differently. The source flags
-        // individual ROWS, so only those are UPL; a manual mark is on the REQUIREMENT, so the whole
-        // of its unobligated money is the pot. Summing the title for a file-flagged row overstated
-        // FY24 Full Fund by 24x — 4.9M claimed against 0.2M actually flagged.
-        if(!byT[t]) byT[t]={t:t, vAll:0, vFile:0, ev:Object.create(null), evUpl:Object.create(null), pmo:PMO_SHORT(r[18]), file:false};
-        byT[t].vAll+=a;
-        const e=String(r[7]||'').trim(); if(e) byT[t].ev[e]=1;
-        if(flowIsUpl(r)){ byT[t].file=true; byT[t].vFile+=a; if(e) byT[t].evUpl[e]=1; }
-      });
-      Object.keys(byT).forEach(function(t){
-        const g=byT[t];
-        const marked=rlgIsUpl('x|'+t, fy);
-        if(!g.file && !marked) return;
-        // A MARK CLAIMS THE WHOLE REQUIREMENT; A FLAG CLAIMS ONLY THE ROWS IT IS ON.
-        const v = marked? g.vAll : g.vFile;
-        if(v<=5e3) return;
-        // and when only part of a title is flagged, say so — otherwise the row reads as the whole
-        // requirement being available when most of it is ordinary planned work
-        const partial = !marked && g.vFile < g.vAll-5e3;
-        out.push({ap:ap, fy:fy, t:t, v:v, pmo:g.pmo,
-                  ev:Object.keys(marked? g.ev : (Object.keys(g.evUpl).length? g.evUpl : g.ev)),
-                  src:marked?'mark':'file', partial:partial, vAll:g.vAll,
-                  key:ap+'|'+fy+'|'+t});
-      });
-    });
-  });
-  out.sort(function(a,b){ return (a.fy-b.fy) || (b.v-a.v); });
-  return out;
-}
-// Which pots the owner has ticked to spend. Not persisted: it is a working choice inside one drill,
-// and a panel reopening with money already committed that nobody chose today is how a wrong figure
-// gets briefed.
-let rlgUplUse={};
-function rlgToggleUplUse(k){ if(rlgUplUse[k]) delete rlgUplUse[k]; else rlgUplUse[k]=1; render(); }
-function rlgUplUseTotal(){
-  return rlgUplScan().reduce(function(a,x){ return a+(rlgUplUse[x.key]? x.v : 0); },0);
-}
-function rlgUplUsed(){ return rlgUplScan().filter(function(x){ return !!rlgUplUse[x.key]; }); }
+/* What can be moved, and what it is worth. `src` is '' (the board's current year) or a fiscal year. */
 // THE OUTCOME OF THE DRILL, as data: every line of funding, where it comes from, which fiscal year
-// it sits in and how much. UPL first because it moves nothing, then the requirements that vacate.
+// it sits in and how much: the requirements that vacate.
 // One shape, so the on-screen table and the workbook cannot disagree.
 // The per-service answer, drawn the same way whether it is accepted or refused. It used to live
 // inside the success branch of the panel, which meant the refusal - the case that exists to name
@@ -5657,11 +5327,6 @@ function rlgSvcTable(res, toFy){
 }
 function rlgPlanRows(res, toFy){
   const rows=[];
-  rlgUplUsed().forEach(function(x){
-    rows.push({kind:'UPL', ap:APPN_LBL[x.ap]||x.ap, fy:x.fy, name:x.t,
-               ev:(x.ev||[]).join(' | '), pmo:x.pmo||'', v:x.v, to:'', note:
-               x.src==='file'? 'flagged UPL in the source file' : 'marked as a UPL pot here'});
-  });
   ((res&&res.pick)||[]).forEach(function(p){
     // WHICH WAY IT SHOULD GO, from its obligation date. Awarding soon -> it needs money now, so it
     // moves BACK onto a prior year's dollars. Not awarding for a long time -> it does not need this
@@ -5681,22 +5346,17 @@ function rlgPlanRows(res, toFy){
   return rows;
 }
 function exportRlgPlan(){
-  const toExec2 = (typeof rlgTo==='string' && String(rlgTo).indexOf('exec:')===0)
-    ? +String(rlgTo).slice(5) : null;
   const pool=rlgPool(rlgSrc);
-  const credits=rlgCreditTotal()+rlgUplUseTotal();
+  const credits=rlgCreditTotal();
   const target=rlgSvcOn()? rlgSvcTotal() : rlgTarget*1e6;
-  const capV=(toExec2!==null && rlgSvcOn())? rlgSvcSupply(rlgPool('exec:'+toExec2).pieces) : null;
   const res=rlgSvcOn()
-    ? rlgSolveSvc(rlgSvcVec(), pool.pieces, rlgStrat, rlgFloor, capV)
-    : rlgSolve(Math.max(0,target-credits), pool.pieces, rlgStrat, rlgFloor,
-               toExec2!==null? rlgCapacity(toExec2).cap : 0);
-  const rows=rlgPlanRows(res, toExec2);
-  if(!rows.length){ setStat('\u26a0 Nothing to export yet \u2014 no UPL selected and no move suggested.'); return; }
+    ? rlgSolveSvc(rlgSvcVec(), pool.pieces, rlgStrat, rlgFloor, null)
+    : rlgSolve(Math.max(0,target-credits), pool.pieces, rlgStrat, rlgFloor, 0);
+  const rows=rlgPlanRows(res, null);
+  if(!rows.length){ setStat('\u26a0 Nothing to export yet \u2014 no move suggested.'); return; }
   const H=2, B=1, N=3, NB=4, SEC=6, TI=7;
   const out=[[{v:'FUNDING PLAN \u2014 '+(rlgLabel||'new requirement'), s:TI}],
              [{v:'Requirement costs', s:B},{v:target, s:N}],
-             [{v:'Covered by UPL already free', s:B},{v:rlgUplUseTotal(), s:N}],
              [{v:'Covered by typed-in credits', s:B},{v:rlgCreditTotal(), s:N}],
              [{v:'Freed by moving requirements', s:B},{v:(res&&res.freed)||0, s:N}],
              []];
@@ -5740,52 +5400,6 @@ function exportRlgPlan(){
 
 function rlgPool(src){
   const out={pieces:[], basis:'', note:'', obligated:0, total:0, holdCrit:0, holdRank:0};
-  // 'exec' is the latest year (what this always did); 'exec:<fy>' names one. Reading only the
-  // last year meant FY26 was reachable by accident of ordering and FY25 not at all.
-  if(src==='exec' || String(src).indexOf('exec:')===0){
-    const ex=(execAllOf()||{})[mySlug()];
-    if(!ex||!ex.rows){ out.note='No execution data imported for this appropriation.'; return out; }
-    const fys=Object.keys(ex.rows).map(Number).sort();
-    const want=String(src).indexOf('exec:')===0? +String(src).slice(5) : null;
-    const fy=(want!==null && fys.indexOf(want)>=0)? want : fys[fys.length-1];
-    out.basis='FY'+(fy%100)+' execution (as reported)';
-    // group the year's plan events by title; a title is the unit a person recognises, and the
-    // execution file has no requirement id
-    const byT=Object.create(null);
-    (ex.rows[fy]||[]).forEach(function(r){
-      const t=String(r[3]||'').trim()||'(untitled)';
-      const a=+r[9]||0;
-      if(!byT[t]) byT[t]={t:t, tot:0, obl:0, pmo:PMO_SHORT(r[18]), ev:Object.create(null), ym:'',
-                          sv:SVC.map(function(){ return 0; })};
-      // The EARLIEST obligation month across the event's rows: the first moment any of it is
-      // committed is what decides whether it can be deferred.
-      { const oy=rlgObYm(r[8]); if(oy && (!byT[t].ym || oy<byT[t].ym)) byT[t].ym=oy; }
-      // COL 3 IS THE CCaR RECORD TITLE AND COL 7 IS THE PLAN EVENT, and measured they differ on
-      // 1797 of 1882 rows. The drill labelled by title and never showed the event, which is the
-      // string that names the service and the year ("PSM USAF UPL FY26").
-      { const e=String(r[7]||'').trim(); if(e) byT[t].ev[e]=1; }
-      byT[t].tot+=a;
-      out.total+=a;
-      if(isAlloc(r[10])){ byT[t].obl+=a; out.obligated+=a; }
-      else {
-        // the service dimension, kept: a plan event can carry four of them at once
-        const bs=svcBoardOf(svcOfBudget(r[4])), bi=SVC.indexOf(bs);
-        if(bi>=0) byT[t].sv[bi]+=a;
-      }
-    });
-    Object.keys(byT).forEach(function(t){
-      const g=byT[t], free=g.tot-g.obl;
-      if(free<=5e3) return;                       // obligated money cannot be realigned
-      out.pieces.push({key:'x|'+t, id:null, name:t, pmo:g.pmo, v:free, rank:null,
-                       band:'', crit:false, part:g.obl>5e3, upl:rlgIsUpl('x|'+t, fy),
-                       ev:Object.keys(g.ev), fy:fy, ym:g.ym,
-                       mo:rlgMonthsOut(g.ym, repYmOf(ex)),
-                       sv:g.sv});   // free money per BOARD service — moving the event moves all of it
-    });
-    out.note='Only the NOT-ALLOCATED portion of each plan event is offered. '
-      +fM2(out.obligated)+' of '+fM2(out.total)+' is already obligated and cannot move.';
-    return out;
-  }
   // a board year
   const fy=src? +src : MS.cur;
   const St=(fy===MS.cur)? S : (MS.years||{})[fy];
@@ -5811,15 +5425,9 @@ function rlgPool(src){
     });
   };
   if(fy===MS.cur) walk(); else aceWithYear(fy, walk);
-  // Nothing planned is obligated until execution for that year exists. Asked, not assumed, so the
-  // gate starts binding on its own the moment FY27 execution lands.
-  const ex=(execAllOf()||{})[mySlug()];
-  const hasExec=!!(ex&&ex.rows&&ex.rows[fy]);
-  out.note=hasExec
-    ? 'FY'+(fy%100)+' has execution data; obligated money in it cannot be realigned — use the '
-      +'execution basis to see what is still free.'
-    : 'No execution has been reported against FY'+(fy%100)+' yet, so none of it is obligated and '
-      +'all of it can be realigned.';
+  // v2.24 (item 162): what is obligated is CCaR's to say, and ORBIT reads no CCaR pull, so the plan is offered whole.
+  out.note='The whole of FY'+(fy%100)+'\u2019s plan is offered; what is already obligated is not something this board holds \u2014 '
+    +'check it in CCaR before a move is briefed.';
   return out;
 }
 /* Credits: unfunded requirements whose cash is already free, plus anything typed in. */
@@ -6073,13 +5681,8 @@ function rlgSet(k,v){
     rlgTarget=(r.v>0)? r.v/1e6 : 0; }
   else if(k==='label') rlgLabel=String(v||'').slice(0,80);
   else if(k==='src') rlgSrc=String(v||'');
-  // The destination is a board year (a NUMBER) or another active execution year ('exec:<fy>').
-  // `+v` on the second form yields NaN, which reads as "not chosen" and silently drops the
-  // ceiling — the whole point of pushing into an active year.
-  else if(k==='to'){
-    const t=String(v||'');
-    rlgTo = !t? null : (t.indexOf('exec:')===0? t : (+t || null));
-  }
+  // The destination is a board year (a NUMBER); v2.24 took out the active execution year ('exec:<fy>').
+  else if(k==='to'){ const t=String(v||''); rlgTo = !t? null : (+t || null); }
   else if(k==='strat') rlgStrat=String(v||'few');
   else if(k==='floor') rlgFloor=Math.max(0, parseInt(v)||0);
   render();
@@ -6109,23 +5712,17 @@ function rlgBody(){
 
   const years=rlgYears();
   const pool=rlgPool(rlgSrc);
-  // UPL ticked in ANY year is already-free cash and counts before anything is moved.
-  const credits=rlgCreditTotal()+rlgUplUseTotal();
+  const credits=rlgCreditTotal();
   // With service shares typed, THEY are the requirement — the single box stops being the truth,
   // so it is not read and the total is shown from the shares instead.
   const target=rlgSvcOn()? rlgSvcTotal() : rlgTarget*1e6;
   const need=Math.max(0, target-credits);
-  // The destination decides whether there is a ceiling at all. Pushing into another ACTIVE year
-  // is bounded by what that year can still obligate; pushing into the budget year is not something
-  // this file can see, so it stays unbounded and the panel says so.
-  const toExec = (typeof rlgTo==='string' && String(rlgTo).indexOf('exec:')===0)? +String(rlgTo).slice(5) : null;
-  const capInfo = toExec!==null? rlgCapacity(toExec) : {cap:0, events:[], derived:true};
-  // Per-service the moment any share is typed; the single-amount path is untouched otherwise.
+  // A board year has no ceiling this file can see (v2.24: the receiving active year's ceiling, read from a CCaR
+  // pull, went with the pull), so the solve is unbounded. Per-service the moment any share is typed.
   const svcOn=rlgSvcOn();
-  const capVec = (toExec!==null && svcOn)? rlgSvcSupply(rlgPool('exec:'+toExec).pieces) : null;
   const res = svcOn
-    ? rlgSolveSvc(rlgSvcVec(), pool.pieces, rlgStrat, rlgFloor, capVec)
-    : rlgSolve(need, pool.pieces, rlgStrat, rlgFloor, capInfo.cap);
+    ? rlgSolveSvc(rlgSvcVec(), pool.pieces, rlgStrat, rlgFloor, null)
+    : rlgSolve(need, pool.pieces, rlgStrat, rlgFloor, 0);
 
   let h='';
   // ---- what is being sourced, and out of what
@@ -6145,99 +5742,22 @@ function rlgBody(){
     +'<div class="rlg-row">'
     +'<span class="rlg-lbl">Fund it in</span>'
     +'<select class="btn" style="font-size:10px;padding:3px 8px" onchange="rlgSet(&quot;src&quot;,this.value)">'
-    // Active years first (they carry real execution), then every year the FYDP plans across.
-    +rlgExecYears().map(function(y){
-        return '<option value="exec:'+y.fy+'"'+(String(rlgSrc)==='exec:'+y.fy?' selected':'')
-          +'>FY'+(y.fy%100)+' execution</option>'; }).join('')
+    // every year the FYDP plans across
     +rlgAllYears().map(function(y){ return '<option value="'+esc(y)+'"'
         +((rlgSrc===''&&y===MS.cur)||rlgSrc==String(y)?' selected':'')
         +'>FY'+(y%100)+' plan'+(y===MS.cur?' (budget)':'')
         +(rlgYearEmpty(y)?' \u2014 empty':'')+'</option>'; }).join('')
-    +'<option value="exec"'+(rlgSrc==='exec'?' selected':'')+'>Latest active year</option>'
     +'</select>'
     +'<span class="rlg-arrow">\u2192</span>'
     +'<span class="rlg-lbl">make room by moving work to</span>'
     +'<select class="btn" style="font-size:10px;padding:3px 8px" onchange="rlgSet(&quot;to&quot;,this.value)">'
     +'<option value="">— not chosen —</option>'
-    // ANOTHER ACTIVE YEAR is the case with a real ceiling, so it is offered first and carries the
-    // room it has left. Pushing back a year is the manoeuvre; whether it fits is the question.
-    +rlgExecYears().map(function(y){
-        return '<option value="exec:'+y.fy+'"'+(String(rlgTo)==='exec:'+y.fy?' selected':'')
-          +'>FY'+(y.fy%100)+' execution</option>'; }).join('')
     // The whole FYDP window, not just the years with state and the one after them.
     +rlgAllYears().map(function(y){ return '<option value="'+esc(y)+'"'+(rlgTo===y?' selected':'')
         +'>FY'+(y%100)+(y===MS.cur?' (budget year)':' plan')
         +(rlgYearEmpty(y)?' \u2014 empty':'')+'</option>'; }).join('')
     +'</select>'
     +'</div>';
-
-  // ---- UPL ACROSS THE YEARS. Spend what is already free before moving real work. Every
-  // appropriation the execution store holds, every fiscal year in it.
-  {
-    const U=rlgUplScan();
-    const used=rlgUplUsed();
-    h+='<div class="rlg-cap">UNFUNDED PRIORITY LIST \u2014 what is already free, by year'
-      +(used.length? ' \u2014 using <b style="color:var(--green)">'+fM2(rlgUplUseTotal())
-        +'</b> from '+used.length+' pot'+(used.length===1?'':'s') : '')+'</div>';
-    if(!U.length){
-      h+='<div class="hint">No UPL in the imported execution data for any appropriation or year '
-        +'\u2014 neither flagged by the source nor marked here. Import a Spend Plan Source file, '
-        +'or mark a requirement below.</div>';
-    } else {
-      // grouped by appropriation then year, because "what is available in FY24, FY25 and FY26" is
-      // the question and a flat list buries it
-      const aps={};
-      U.forEach(function(x){ (aps[x.ap]=aps[x.ap]||{})[x.fy]=(aps[x.ap][x.fy]||[]).concat([x]); });
-      // .fctab is table-layout:fixed, so with no colgroup all seven columns take an equal
-      // share — the two name columns need far more than a PMO code or a flag.
-      h+='<div class="rlg-drill" style="max-height:230px"><table class="fctab rlg-tab">'
-        +'<colgroup><col style="width:46px"><col style="width:52px"><col style="width:86px">'
-        +'<col style="width:48px"><col><col><col style="width:56px"></colgroup>'
-        +'<tr><th>Use</th><th>FY</th><th>Amount</th><th>PMO</th>'
-        +'<th style="text-align:left">Requirement</th>'
-        +'<th style="text-align:left">Plan event</th><th>Flag</th></tr>';
-      Object.keys(aps).forEach(function(ap){
-        const yrs=Object.keys(aps[ap]).map(Number).sort();
-        const apTot=yrs.reduce(function(a,y){
-          return a+aps[ap][y].reduce(function(b,x){ return b+x.v; },0); },0);
-        h+='<tr><td colspan="7" style="text-align:left;background:var(--panel2)"><b>'
-          +esc(APPN_LBL[ap]||ap)+'</b> \u2014 '+fM2(apTot)+' across '
-          +yrs.map(function(y){ return 'FY'+(y%100); }).join(', ')+'</td></tr>';
-        yrs.forEach(function(fy){
-          aps[ap][fy].forEach(function(x){
-            const on=!!rlgUplUse[x.key];
-            h+='<tr'+(on?' class="rlg-pot"':'')+'>'
-              +'<td><button class="btn'+(on?' on':'')+'" style="font-size:9px;padding:1px 7px" '
-              +'onclick="rlgToggleUplUse('+jsa(x.key)+')" '
-              +'title="count this toward the new requirement before anything is moved">'
-              +(on?'\u2713':'use')+'</button></td>'
-              +'<td><b>FY'+(x.fy%100)+'</b></td><td>'+fM2(x.v)+'</td>'
-              +'<td>'+esc(x.pmo||'\u2014')+'</td>'
-              +'<td style="text-align:left" title="'+esc(x.t)+'">'+esc(exClip(x.t))+'</td>'
-              +'<td style="text-align:left;color:var(--dim)" title="'+esc(x.ev.join(' | '))+'">'
-              +esc(exClip(x.ev[0]||'\u2014'))+(x.ev.length>1? ' +'+(x.ev.length-1) : '')+'</td>'
-              +'<td>'+(x.src==='file'
-                ? ('<span title="the source file flags this UPL">file</span>'
-                   +(x.partial? '<span class="rlg-part" title="only part of this requirement is '
-                     +'flagged UPL \u2014 the rest ('+fM2((x.vAll||0)-x.v)+') is ordinary planned '
-                     +'work and is NOT available here">\u00b7part</span>' : ''))
-                : '<b style="color:var(--gold)" title="you marked this whole requirement as a parked pot">marked</b>')+'</td>'
-              +'</tr>';
-          });
-        });
-      });
-      h+='</table></div>';
-      const yrsUsed={};
-      used.forEach(function(x){ yrsUsed[x.fy]=1; });
-      const srcFyNow = String(rlgSrc).indexOf('exec:')===0? +String(rlgSrc).slice(5) : null;
-      const other = Object.keys(yrsUsed).map(Number).filter(function(y){ return srcFyNow!==null && y!==srcFyNow; });
-      if(other.length) h+='<div class="hint" style="color:var(--amber);margin-top:3px">'
-        +'Spending UPL from '+other.map(function(y){ return 'FY'+(y%100); }).join(', ')
-        +' funds part of this requirement with <b>that year\u2019s dollars</b>, not FY'
-        +(srcFyNow%100)+'\u2019s. Real for multi-year procurement money, and a real constraint on '
-        +'what the work can be \u2014 check it before briefing the move.</div>';
-    }
-  }
 
   // ---- THE NEW REQUIREMENT, BY SERVICE. Money is not fungible across services, so a total on
   // its own cannot be sourced: USAF dollars will not fund a USN share. Each box shows what that
@@ -6268,72 +5788,10 @@ function rlgBody(){
       +' from another year, or reduce the share.</div>';
   }
 
-  // ---- ACROSS THE ACTIVE YEARS. Procurement executes across three of them, so a single year
-  // never shows where the room is — and whether a push BACK is possible is entirely a fact about
-  // the other years, not about the one being sourced.
-  {
-    const EY=rlgExecYears();
-    if(EY.length){
-      h+='<div class="rlg-cap">ACTIVE YEARS \u2014 '+esc(APPN_LBL[mySlug()]||mySlug())
-        +', as reported</div>';
-      h+='<table class="fctab rlg-tab rlg-yrs"><tr><th style="text-align:left">Fiscal year</th>'
-        +'<th>Total</th><th>Obligated</th><th>Movable</th><th>In how many events</th>'
-        +'<th style="text-align:left">Role</th></tr>';
-      EY.forEach(function(y){
-        const isSrc = String(rlgSrc)==='exec:'+y.fy
-          || (rlgSrc==='exec' && y.fy===EY[EY.length-1].fy);
-        const isTo  = toExec===y.fy;
-        h+='<tr'+(isSrc||isTo? ' class="rlg-pot"':'')+'>'
-          +'<td style="text-align:left"><b>FY'+(y.fy%100)+'</b></td>'
-          +'<td>'+fM2(y.tot)+'</td><td>'+fM2(y.obl)+'</td>'
-          +'<td><b>'+fM2(y.free)+'</b></td><td>'+y.movers+' of '+y.events+'</td>'
-          +'<td style="text-align:left;color:var(--dim)">'
-          +(isSrc? '<b style="color:var(--gold)">sourcing from</b>' : '')
-          +(isSrc&&isTo? ' \u00b7 ' : '')
-          +(isTo? '<b style="color:var(--green)">receiving</b>' : '')
-          +'</td></tr>';
-      });
-      h+='</table>';
-      h+='<div class="hint" style="margin-top:3px">Movable is the <b>not-allocated</b> part \u2014 '
-        +'obligated money cannot be realigned. A year with little movable money cannot receive a '
-        +'push however much it was appropriated.</div>';
-    }
-  }
-
-  // ---- THE RECEIVING YEAR'S CEILING, and what spending it costs.
-  if(toExec!==null){
-    h+='<div class="rlg-basis" style="border-color:var(--green)">'
-      +'<b>Receiving FY'+(toExec%100)+' can take '+fM2(capInfo.cap)+'.</b> '
-      +(capInfo.derived
-        ? 'That is its <b>unobligated</b> plan value. The execution file carries plan events, not '
-          +'budget authority, so this assumes FY'+(toExec%100)+'\u2019s appropriation equals its '
-          +'planned total \u2014 type the real available balance over it if you know better.'
-        : 'Typed in, not derived from the file.')
-      +' <span class="rlg-lbl">Capacity</span>'
-      +'<input class="rlg-in" style="width:88px" value="'+(rlgCapOverride||'')+'" placeholder="'
-      +(capInfo.cap/1e6).toFixed(1)+'" onchange="rlgSetCap(this.value)" '
-      +'title="override the receiving year\u2019s capacity, in $M \u2014 blank returns to the derived figure">'
-      +' <span style="font-size:10px;color:var(--dim)">$M</span>'
-      +'</div>';
-    if(capInfo.events.length){
-      h+='<div class="rlg-cap">WHAT THAT CAPACITY IS STANDING BEHIND \u2014 FY'+(toExec%100)
-        +'\u2019s own not-yet-obligated events</div>';
-      h+='<div class="rlg-drill" style="max-height:150px"><table class="fctab rlg-tab">'
-        +'<tr><th>Free</th><th>PMO</th><th style="text-align:left">Plan event</th></tr>';
-      capInfo.events.slice(0,40).forEach(function(e){
-        h+='<tr><td>'+fM2(e.v)+'</td><td>'+esc(e.pmo||'\u2014')+'</td>'
-          +'<td style="text-align:left" title="'+esc(e.t)+'">'+esc(exClip(e.t))+'</td></tr>';
-      });
-      h+='</table></div>';
-      h+='<div class="hint" style="margin-top:3px">This is not empty space. Every dollar pushed '
-        +'into FY'+(toExec%100)+' obligates against money one of these is currently standing on.</div>';
-    }
-  }
-
   // A year with no plan on this board has nothing to release. That is an answer, not a fault, and
   // it is different from "the search failed" — say which.
   {
-    const sf = String(rlgSrc).indexOf('exec')===0? null : (rlgSrc===''? MS.cur : +rlgSrc);
+    const sf = rlgSrc===''? MS.cur : +rlgSrc;
     if(sf!==null && rlgYearEmpty(sf))
       h+='<div class="rlg-basis" style="border-color:var(--amber)">'
         +'<b>FY'+(sf%100)+' holds nothing on this board yet.</b> A requirement can be funded IN it '
@@ -6352,7 +5810,7 @@ function rlgBody(){
   const potTot=pool.pieces.filter(function(x){ return x.upl; })
                           .reduce(function(a,x){ return a+x.v; },0);
   h+='<div class="rlg-cap">'
-    +(rlgSrc==='exec'? 'NOT-ALLOCATED PLAN EVENTS' : 'REQUIREMENTS THAT COULD MOVE')
+    +'REQUIREMENTS THAT COULD MOVE'
     +' \u2014 '+pool.pieces.length+' in this basis'
     +(potTot>5e3? ', of which '+fM2(potTot)+' is marked UPL' : '')
     +' <button class="qb" onclick="rlgSetDrill('+(rlgDrill?'false':'true')+')">'
@@ -6383,11 +5841,6 @@ function rlgBody(){
         +(x.fy==null?'null':x.fy)+')" '
         +'title="mark this as a UPL pot — its money is treated as free and taken first">'
         +(x.upl?'\u2713 UPL':'mark')+'</button>'
-        +(rlgUplYearsOf(x.name).length>1
-          ? '<button class="qb" style="font-size:8.5px;margin-left:3px" '
-            +'onclick="rlgToggleUplAll('+jsa(x.name)+')" '
-            +'title="mark this requirement as a UPL pot in every active year it appears in">'
-            +'all yrs</button>' : '')
         +'</td>'
         +'<td>'+(x.rank===null?'\u2014':'#'+x.rank)+'</td>'
         +'<td>'+esc(x.pmo||'\u2014')+'</td>'
@@ -6475,7 +5928,7 @@ function rlgBody(){
   if(!res.ok){
     h+='<div class="hint" style="margin-top:8px;border-left:3px solid var(--red);padding-left:8px">'
       +(res.note||'No combination reaches the target.')+'</div>';
-    if(svcOn && res.bySvc && (res.overSvc||[]).length) h+=rlgSvcTable(res, toExec);
+    if(svcOn && res.bySvc && (res.overSvc||[]).length) h+=rlgSvcTable(res, null);
   } else if(!res.pick.length){
     h+='<div class="hint" style="margin-top:8px;border-left:3px solid var(--green);padding-left:8px">'
       +(res.note||'The credits already cover the target — nothing needs to move.')+'</div>';
@@ -6493,56 +5946,12 @@ function rlgBody(){
       +'</div>';
     // ---- PER SERVICE. A cover set frees money in every service the moved events touch, so it
     // meets some exactly and overshoots others. One total hides both.
-    if(svcOn && res.bySvc) h+=rlgSvcTable(res, toExec);
+    if(svcOn && res.bySvc) h+=rlgSvcTable(res, null);
 
-    // WHAT IT DOES TO EACH YEAR. Freeing the money is only half the claim — the other half is
-    // that the year receiving the displaced work can carry it. Neither year's before/after was on
-    // the page, and that is the arithmetic this gets briefed on.
-    {
-      const srcFy = String(rlgSrc).indexOf('exec:')===0? +String(rlgSrc).slice(5)
-                  : (rlgSrc==='exec'? ((rlgExecYears()[rlgExecYears().length-1]||{}).fy) : null);
-      const EY=rlgExecYears();
-      const sY = srcFy!==null? EY.filter(function(y){ return y.fy===srcFy; })[0] : null;
-      const tY = toExec!==null? EY.filter(function(y){ return y.fy===toExec; })[0] : null;
-      if(sY || tY){
-        h+='<div class="rlg-cap">WHAT THIS DOES TO EACH YEAR</div>';
-        h+='<table class="fctab rlg-tab rlg-yrs"><tr><th style="text-align:left">Fiscal year</th>'
-          +'<th>Planned now</th><th>Change</th><th>Planned after</th>'
-          +'<th style="text-align:left">Why</th></tr>';
-        if(sY){
-          // the new requirement LANDS here; the displaced work leaves here
-          const delta = target - res.freed;
-          h+='<tr class="rlg-pot"><td style="text-align:left"><b>FY'+(sY.fy%100)+'</b></td>'
-            +'<td>'+fM2(sY.tot)+'</td>'
-            +'<td><b style="color:'+(delta>5e3?'var(--amber)':'var(--green)')+'">'
-              +(delta>=0?'+':'')+fM2(delta)+'</b></td>'
-            +'<td>'+fM2(sY.tot+delta)+'</td>'
-            +'<td style="text-align:left;color:var(--dim)">the new requirement lands here ('
-            +fM2(target)+') and '+res.pick.length+' existing requirement'
-            +(res.pick.length===1?'':'s')+' leave ('+fM2(res.freed)+')</td></tr>';
-        }
-        if(tY){
-          h+='<tr class="rlg-pot"><td style="text-align:left"><b>FY'+(tY.fy%100)+'</b></td>'
-            +'<td>'+fM2(tY.tot)+'</td>'
-            +'<td><b style="color:var(--amber)">+'+fM2(res.freed)+'</b></td>'
-            +'<td>'+fM2(tY.tot+res.freed)+'</td>'
-            +'<td style="text-align:left;color:var(--dim)">it takes on the displaced work, against '
-            +fM2(capInfo.cap)+' of room</td></tr>';
-        }
-        h+='</table>';
-        if(sY && (target-res.freed) < -5e3){
-          h+='<div class="hint" style="margin-top:3px">More room was made than the new requirement '
-            +'needs \u2014 FY'+(sY.fy%100)+' ends up <b>'+fM2(res.freed-target)+'</b> lighter than '
-            +'it is now. That is spare, not a problem, but it is '+fM2(res.freed-target)
-            +' of work sitting in FY'+(tY?(tY.fy%100):'the other year')+' for no reason. The '
-            +'<b>tightest fit</b> strategy minimises it.</div>';
-        }
-      }
-    }
     // ---- THE PLAN. Every line of funding with the fiscal year it sits in, which is the fact
     // that makes it actionable and the one the panel could not state before.
     {
-      const rows=rlgPlanRows(res, toExec);
+      const rows=rlgPlanRows(res, null);
       h+='<div class="rlg-cap">THE PLAN \u2014 what to use, what to move, and where each sits'
         +' <button class="qb" onclick="exportRlgPlan()" title="take it into the meeting">'
         +'\u2b07 export</button></div>';
@@ -13457,7 +12866,7 @@ function importStores(inc){
   const said=[];
   if(!inc || typeof inc!=='object') return said;
 
-  // ---- the imported CCaR execution: the Active Year view, the QPE coverage report, the flow
+  // ---- the CCaR execution data a file carries (v2.24, item 162: no view reads it now -- it is carried, never dropped)
   const ex=inc.execDb;
   if(ex && ex.all && Object.keys(ex.all).length){
     const mine=+((typeof EXDB!=='undefined' && EXDB && EXDB.ts)||0), theirs=+(ex.ts||0);
@@ -17229,8 +16638,6 @@ async function xlsxRead(buf){
   }
   return sheets;
 }
-const xlDate=n=>{ if(typeof n!=='number') return ''+(n||''); const d=new Date(Date.UTC(1899,11,30)+Math.round(n)*86400000); return d.toISOString().slice(0,10); };
-const xlYm=n=> xlDate(n).slice(0,7);
 const SRC_TABS={om:'O&M Raw Data', ff:'FF Raw Data', sp:'Spares Raw Data', opn:'OPN Raw Data'};
 const SRC_NCOL=32;
 // Measured from the Spend Plan Source workbook itself (tools/qpe_exact_format.py). All four tabs
@@ -17372,84 +16779,6 @@ function srcSerial(ym, day){
   return Math.round(d/86400000)+25569;
 }
 function mySlug(){ return (typeof _AP!=='undefined')? _AP.slug : ((STATEFILE.match(/-(om|ff|sp|opn)\./)||[])[1]||'om'); }
-function normSrcRow(r){
-  const out=[];
-  for(let i=0;i<SRC_NCOL;i++){
-    let v=r[i]!==undefined? r[i]:'';
-    if(i===1) v=xlYm(v);            // Month
-    else if(i===8) v=xlDate(v);     // Date
-    else if(i===9) v=(typeof v==='number')? v : (parseFloat((''+v).replace(/[^0-9.\-]/g,''))||0);   // Amount
-    out.push(v);
-  }
-  return out;
-}
-function buildExec(rows){
-  // `noFy` is the count of rows discarded for having no usable fiscal year in column 0. Dropping
-  // them silently looks exactly like an appropriation with no data, which is the one thing this
-  // import must never be ambiguous about.
-  const ex={hdr:rows[0]? rows[0].slice(0,SRC_NCOL):[], asOf:'', rows:{}, read:Math.max(0,rows.length-1), noFy:0};
-  for(let i=1;i<rows.length;i++){
-    const r=normSrcRow(rows[i]);
-    const fy=parseInt(r[0]); if(!fy){ ex.noFy++; continue; }
-    if(!ex.rows[fy]) ex.rows[fy]=[];
-    ex.rows[fy].push(r);
-    if(r[1]>ex.asOf) ex.asOf=r[1];
-  }
-  return ex;
-}
-async function importSrc(inp){
-  const f=inp.files&&inp.files[0];
-  if(!f) return;
-  try{
-    const buf=await f.arrayBuffer();
-    setStat('\ud83d\udce5 Reading '+esc(f.name)+'\u2026');
-    const sheets=await xlsxRead(buf);
-    const msg=[], report=[];
-    // v1.99 (item 95): STAGED. Every tab is read into a copy, and the board takes it only once all of them are read. It wrote
-    // EXDB.all one tab at a time, so a tab that threw part-way left the earlier ones replaced in memory, not stored and not
-    // counted as unsaved -- the next 💾 Save wrote that half-import into the file.
-    const nextAll=Object.assign({}, EXDB.all||{});
-    // A tab that has been renamed, re-cased, or has picked up a stray space is still the tab the
-    // owner means. Try it exactly, then normalised, and record which way it matched so a loose
-    // hit is visible rather than silently relied upon.
-    const norm=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-    const byNorm={};
-    Object.keys(sheets).forEach(nm=>{ const k=norm(nm); if(!(k in byNorm)) byNorm[k]=nm; });
-    Object.keys(SRC_TABS).forEach(slug=>{
-      const tab=SRC_TABS[slug];
-      let found=null, how='';
-      if(sheets[tab]){ found=tab; how='exact'; }
-      else if(byNorm[norm(tab)]){ found=byNorm[norm(tab)]; how='matched loosely'; }
-      if(!found){
-        report.push({slug:slug, tab:tab, found:'', how:'NOT FOUND', read:0, kept:0, noFy:0, fys:'', asOf:''});
-        msg.push(tab+': not found'); return;
-      }
-      const ex=buildExec(sheets[found]);
-      const n=Object.keys(ex.rows).reduce((a,fy)=>a+ex.rows[fy].length,0);
-      ex.at=Date.now();        // v2.02 (D4): when THIS appropriation's data came in -- the shared folder merges by it
-      nextAll[slug]=ex;
-      report.push({slug:slug, tab:tab, found:found, how:how, read:ex.read, kept:n, noFy:ex.noFy||0,
-                   fys:Object.keys(ex.rows).join('/'), asOf:ex.asOf});
-      msg.push(found+': '+n+' plan events (FY '+Object.keys(ex.rows).join('/')+', thru '+ex.asOf+')');
-    });
-    // everything the reader saw, kept with the data so it can be read long after the status line
-    EXDB.all=nextAll;
-    EXDB.report={ts:Date.now(), file:f.name, tabs:report,
-                 sheetsInFile:(XLSX_LAST&&XLSX_LAST.names)||[],
-                 unreadable:(XLSX_LAST&&XLSX_LAST.unreadable)||[]};
-    EXDB.ts=Date.now();
-    const stored=persistExdb();      // a refusal is counted unsaved by lsSet; the message below must not hide it
-    exA=null; exFy=null; exX=Object.create(null); exXT={};
-    render();
-    const bad=report.filter(t=>!t.found).length;
-    statKeep((stored===false? '\u26a0 <b>Browser storage refused the import</b> \u2014 it is on this board, in memory, and unsaved: 💾 Save keeps it in the file. ' : '')
-             +(bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
-               : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Execution \u203a \ud83d\udcc8 Active Year Execution, on the left menu.'+esc(xlsxEscSaid()));
-  }catch(e){
-    setStat('\u26a0 Import failed: '+esc((e&&e.message)||e));
-  }
-  inp.value='';
-}
 // ---------- Annual Cost Estimate import ----------
 /* ============ REFERENCE REGISTRIES FOR THE SPEND PLAN SOURCE EXPORT ========================
    Two imported lists the board does not generate itself.
@@ -17597,19 +16926,6 @@ function budCandidates(id, svc, lane){
   const exact=pool.filter(function(b){ return b.dm===lane; });
   return exact.length? exact : pool.filter(function(b){ return !b.dm; });
 }
-// Rule 5's evidence: the budget names CCaR files this record under, from the last pull. One read of
-// the pull per import and year, not one per line.
-let _budCcMemo=null;
-function budCcarBuds(id){
-  const it=itemById(id); if(!it) return null;
-  const num=ccarNorm(ccarOf(it)); if(!num) return null;
-  const key=((typeof EXDB!=='undefined' && EXDB)? (EXDB.ts||0) : 0)+'|'+MS.cur;
-  if(!_budCcMemo || _budCcMemo.key!==key){
-    let by={}; try{ by=divCcarSide().by||{}; }catch(e){}
-    _budCcMemo={key:key, by:by};
-  }
-  const c=_budCcMemo.by[num]; return c? c.buds : null;
-}
 // The (service, lane) pairs that carry money on this requirement -- exactly the lines the Spend
 // Plan Source writes, so exactly the pairs that need a budget.
 function budPairs(id, T){
@@ -17623,7 +16939,7 @@ function budPairs(id, T){
 }
 // ── v1.91 (item 35): THE BAE BUDGET, IN THE RECORD PANEL ─────────────────────────────────────────────────
 // Every service with a requirement value gets a line, funded or not. A funded line is named by its lane and
-// says how its budget was settled -- chosen, automatic by rule, from CCaR, not set, or legacy (pick again) --
+// says how its budget was settled -- chosen, automatic by rule, not set, or legacy (pick again) --
 // by the same steps budForRow() takes, and budForRow() is what the Spend Plan Source prints, so the panel
 // cannot show one budget while the file carries another. A service with no money yet gets one line, "not
 // funded yet": the budget chosen there carries its own lane (a discretionary name is kept for the
@@ -17657,8 +16973,10 @@ function budLines(id, T){
 function budRuleOf(id, svc, lane){
   const c=budCandidates(id, svc, lane);
   if(c.length===1) return {n:c[0].n, how:'rule', many:1};
-  if(c.length>1){ const on=budCcarBuds(id);
-    if(on){ const hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return {n:hit[0].n, how:'ccar', many:c.length}; } }
+  // v2.24 (item 162, Brad, 26 Nov 2026: "Leave it as Not Set"): where the rule leaves more than one name, the line is
+  // NOT SET and a person picks. Until v2.24 a fifth step chose the one name CCaR filed the record under in the last
+  // Spend Plan Source pull; ORBIT takes no more CCaR pulls, so that step would only ever read an old one. A pull a
+  // board file still carries is kept (EXDB) and never read for the budget.
   return {n:'', how:'unset', many:c.length};
 }
 // ── v1.92: ONE AUTHORITY ON A LINE'S BUDGET ──────────────────────────────────────────────────────────────
@@ -17671,7 +16989,7 @@ function budRuleOf(id, svc, lane){
 // retired budget, one no longer in the list, or the AV budget of a requirement since moved to PSM. Now the
 // choice stays stored and is shown for what it is, the line has NO budget (the IDS export lists it as not
 // uploaded, the Spend Plan Source refuses), and a person picks again or clears it.
-// Pure: it reads and never writes. status: chosen | rule | ccar | ambiguous | none | no-list | invalid.
+// Pure: it reads and never writes. status: chosen | rule | ambiguous | none | no-list | invalid ('ccar', the CCaR tiebreak, went in v2.24).
 const BUD_WHY={
   notbud:  'not a requirement budget name',
   legacy:  'a legacy budget (no PMO in the name)',
@@ -17818,7 +17136,7 @@ function budClearAll(id){
 }
 // v1.92: how a line's budget was settled, in the resolver's words -- the panel never judges a name itself.
 // v2.22 W3 (149.24 c, Brad: "the record stops saying 'automatic' for a line nobody picked"): by rule -- not picked
-const BUD_HOW={chosen:'chosen', rule:'by rule \u2014 not picked', ccar:'from CCaR',
+const BUD_HOW={chosen:'chosen', rule:'by rule \u2014 not picked',
   ambiguous:'not set \u2014 several fit; pick one', none:'not set \u2014 none fits', 'no-list':'not set \u2014 no BAE list'};
 function budRecordHtml(id, it){
   const head='<div class="insp-lbl">BAE budget <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">'
@@ -18685,7 +18003,7 @@ function preflight(){
     add('note','crmoved','CR half-month: moved to the first half by the award\u2019s own date',
       'The CR views and the 1A9A now place each award in the half of the month its own date falls in. An old '
       +'half-month mark had these in the second half; their dates put them in the first. A wrong date is changed '
-      +'in the award block; if the dates are right, Execution \u203a \u2696 CR Cash Needs clears the old marks.',
+      +'in the award block; if the dates are right, Budget Year \u203a CR Cash Needs clears the old marks.',
       crMovedList().map(function(e){ return {id:e.id, label:pfName(e.id), sub:'award '+crMovedLbl(e)+' \u00b7 '+fM(e.amt)}; }));
   }
 
@@ -18765,7 +18083,7 @@ function pfBody(){
   el.innerHTML=h;
 }
 // ==============================================================================================================
-// §26  CCaR, WBS, ACE MAPPING, BAE IMPORT, EXECUTION HELPERS
+// §26  CCaR, WBS, ACE MAPPING, BAE IMPORT
 // ==============================================================================================================
 /* ---- CCaR records ------------------------------------------------------------------------- */
 /* ---- Obligation Category ------------------------------------------------------------------
@@ -18874,154 +18192,6 @@ function ccarDescUse(id){
   setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2014 Description '+(cur? 'replaced with' : 'filled from')+' the CCaR list. It is ordinary Description text now: edit it in \ud83d\udcc4 '+esc(FL('dn'))+'.');
 }
 
-/* ============ WBS FROM THE IMPORTED EXECUTION DATA ==========================================
-   Column 23 of the Spend Plan Source carries a WBS paragraph. It is headed "Spares WBS" in the
-   file today and the owner is renaming it; it is used for every appropriation now, so nothing
-   here keys on that word.
-
-   The values are "paragraph - description" ("P1.1.1 - Air Vehicle - Spares (GSP/BSP)"), and the
-   paragraph is the leading token. Measured: 3 of 3 distinct values parse, and the shape matches
-   the estimate's own (P6.5.2 exists in the real 2025ACE).
-
-   THE JOIN RATE IS NOT ASSUMED. Every row carrying a WBS is counted, matched, and accounted for,
-   and the panel states what happened to all of it -- matched, unmatched, and in conflict. On the
-   file this was built against, every WBS-bearing row is prior-year execution naming requirements
-   this board does not hold, so the rate measured 0% and says nothing about a populated file. A
-   feature that reported a number instead of measuring one would have been wrong the first time
-   it ran on real data. */
-const EXWBS_OK=/^[A-Z]?[0-9]+(\.[0-9]+)*[A-Z]*$/;
-function srcWbsPara(v){
-  const raw=String(v==null?'':v).trim();
-  if(!raw) return '';
-  // "P1.1.1 - Air Vehicle - Spares (GSP/BSP)" -> "P1.1.1". Split on a spaced dash so a hyphen
-  // inside a paragraph (there are none today, but the estimate is not ours) cannot cut one short.
-  // v2.12 RV5 (S16): read by the one reader of a paragraph's code (wbsCodeIn), as the pickers and the export read it
-  const head=wbsCodeIn(raw);
-  return EXWBS_OK.test(head)? head : '';
-}
-// Every row of imported execution for this appropriation, across the years asked for.
-function execRowsFor(fys){
-  const box=((EXDB&&EXDB.all)||{})[mySlug()];
-  if(!box||!box.rows) return [];
-  const out=[];
-  (fys&&fys.length? fys : Object.keys(box.rows).map(Number)).forEach(function(fy){
-    (box.rows[fy]||[]).forEach(function(r){ out.push(r); });
-  });
-  return out;
-}
-// What the execution data proposes, and what it could not place. Nothing is written here.
-function execWbsScan(fys){
-  const rows=execRowsFor(fys);
-  const scan={rows:rows.length, withWbs:0, unparsed:[], props:[], conflicts:[], unmatched:[], asSent:[], unlisted:[], primeNoClin:[],
-              matchedRows:0, sharedRows:0, sharedNames:Object.create(null), byKey:{}};
-  if(!rows.length) return scan;
-
-  // index the board both ways; record name first because it is the key the funds flow measured
-  // at 97.3% of O&M dollars, against 7.5% for the CCaR number
-  const byRec={}, byCcar={};
-  S.order.forEach(function(id){
-    const it=itemById(id); if(!it) return;
-    // the file's own name AND any rename — same rule as the funds-flow index
-    [recNameSrc(it), recName(it)].forEach(function(n){
-      const rn=String(n||'').trim().toUpperCase();
-      if(rn && (byRec[rn]||[]).indexOf(id)<0) (byRec[rn]=byRec[rn]||[]).push(id);
-    });
-    const cc=String(ccarOf(it)||'').trim().toUpperCase();
-    if(cc) (byCcar[cc]=byCcar[cc]||[]).push(id);
-  });
-
-  const bucket={};
-  const unm={};
-  rows.forEach(function(r){
-    const rawW=r[23];
-    if(String(rawW==null?'':rawW).trim()==='') return;
-    scan.withWbs++;
-    const para=srcWbsPara(rawW);
-    if(!para){ scan.unparsed.push(String(rawW)); return; }
-
-    const t=String(r[3]||'').trim().toUpperCase();
-    const c=String(r[2]||'').trim().toUpperCase();
-    let ids=byRec[t]||byCcar[c]||null;
-    if(!ids||!ids.length){
-      const k=(String(r[3]||'')||'(no title)')+'|'+para;
-      if(!unm[k]) unm[k]={title:String(r[3]||''), para:para, rows:0};
-      unm[k].rows++;
-      return;
-    }
-    scan.matchedRows++;
-    // A record name is not unique -- 108 of 155 O&M requirements share one. So this row names
-    // EVERY requirement carrying that name and the paragraph is offered to each. Counted, because
-    // a conflict caused by a shared name is a different problem from one requirement's own rows
-    // disagreeing, and they are indistinguishable once both are just "conflict".
-    if(ids.length>1){
-      scan.sharedRows++;
-      scan.sharedNames[String(r[3]||'')]=ids.length;
-    }
-    // A prime holds WBS at the CLIN. Use the row's own CLIN when it names one this prime has.
-    ids.forEach(function(id){
-      let kind='req', ckey='', clinNo='';
-      const cno=String(r[25]||'').trim();
-      if(cno && clinApplies(id)){
-        const hit=clinList(id).filter(function(x){ return String(x.clin||'')===cno; })[0];
-        if(hit){ kind='clin'; ckey=hit.key; clinNo=cno; }
-      }
-      const key=kind+'|'+id+'|'+ckey;
-      if(!bucket[key]) bucket[key]={kind:kind, id:id, clinKey:ckey, clin:clinNo, paras:{}, rows:0};
-      bucket[key].rows++;
-      bucket[key].paras[para]=(bucket[key].paras[para]||0)+1;
-    });
-  });
-
-  // v2.12 RV5 (S16): THE PICK RULE, AND ORBIT'S OWN SPLIT COMING BACK. Since v2.12 the Spend Plan Source sends a requirement split
-  // across paragraphs as a line per paragraph (item 132, Brad's decision 4: "ORBIT reads the same column back"), so the pull
-  // brought every such split back as rows naming DIFFERENT paragraphs -- "set them by hand", on a requirement that already held
-  // exactly that split -- and a requirement already on the one paragraph its rows name was offered as "ready to write". Rows that
-  // name what the requirement (or the CLIN) already holds, as a set, are said as already set, as sent. And a paragraph is picked
-  // from the estimate, here as in every box (wbsTake, the one rule): one the estimate the pickers offer does not hold is listed
-  // apart and never written -- written, it was flagged under ≠ WBS not in the estimate only once it was stored, while the edit
-  // box refused the same code. With no estimate naming this appropriation a paragraph is taken as before.
-  const held=function(b){ const L=(b.kind==='clin')? wbsClin(b.id, b.clinKey) : wbsReq(b.id);
-    return (Array.isArray(L)? L : []).map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; }).filter(function(c, i, a){ return c && a.indexOf(c)===i; }); };
-  Object.keys(bucket).forEach(function(k){
-    const b=bucket[k];
-    const ps=Object.keys(b.paras);
-    const it=itemById(b.id);
-    const rec={kind:b.kind, id:b.id, clinKey:b.clinKey, clin:b.clin, rows:b.rows,
-               label:dispTitle(it), paras:ps};
-    // v2.15 W4 (item 135): A PRIME'S WBS IS ITS CLINs' (wbsStateOf, the one rule). Rows for a prime that name none of its CLINs were
-    // proposed for the prime's own requirement-level paragraph (S.wbs), which nothing reads: written, it changed nothing any surface
-    // shows, and Write said it had set it. They are listed apart, with the CLINs to set the paragraph on, and never written.
-    if(b.kind==='req' && clinApplies(b.id)){ scan.primeNoClin.push(rec); return; }
-    const has=held(b);
-    if(has.length===ps.length && ps.every(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }
-    // v2.19 (item 150): a paragraph is refused only for its length now (wbsTake), with no estimate to pick from
-    const off=ps.filter(function(p){ return !!wbsTake(p).why; });
-    if(off.length){ rec.off=off; scan.unlisted.push(rec); return; }
-    // Rows that disagree are reported and skipped. Picking one would write a paragraph nobody
-    // assigned, and it would reconcile perfectly against itself afterwards.
-    if(ps.length===1){ rec.para=ps[0]; scan.props.push(rec); }
-    else scan.conflicts.push(rec);
-  });
-  scan.unmatched=Object.keys(unm).map(function(k){ return unm[k]; })
-    .sort(function(a,b){ return b.rows-a.rows; });
-  return scan;
-}
-// Write the agreed proposals. Only ever the ones every row agreed on.
-function execWbsApply(fys){
-  const scan=execWbsScan(fys);
-  let wrote=0, skipped=0, locked=0;
-  scan.props.forEach(function(pr){
-    // v2.08 (F6): a PMO copy's CLINs are the portfolio team's -- counted apart, not refused one alert at a time
-    if(pr.kind==='clin' && typeof SANDBOX!=='undefined' && SANDBOX){ locked++; return; }
-    const cur=(pr.kind==='clin')? wbsClin(pr.id, pr.clinKey) : wbsReq(pr.id);
-    // Never overwrite a paragraph somebody typed. The execution file is a source, not an authority.
-    if(cur && cur.length && cur.some(function(e){ return e.w; })){ skipped++; return; }
-    wbsStore(pr.kind, pr.id, pr.clinKey, [{w:pr.para, v:[]}]);
-    wrote++;
-  });
-  save(); render();
-  return {wrote:wrote, skipped:skipped, locked:locked, scan:scan};
-}
 /* ===================== ACE MAPPING: requirements <-> cost estimate =========================
    The estimate is imported and locked elsewhere; this ties it to the board.
 
@@ -19135,169 +18305,6 @@ async function importBud(inp){
   inp.value='';
 }
 // ---- CCaR records --------------------------------------------------------------------------
-// ============================================================ CCaR RECONCILIATION
-const DIV_TOL=1.0;          // dollars; below this it is rounding, not a difference
-const DIV_CAP=60;           // rows listed per finding; the count is always the true one
-function divBoardAmt(it, T){
-  return srcSvcOf(it, T).reduce(function(a,b){ return a+(+b||0); },0);
-}
-function divOne(set){ const k=Object.keys(set); return k.length===1? k[0] : ''; }
-
-// What CCaR holds, from the last Spend Plan Source pull, keyed by CCaR number.
-function divCcarSide(){
-  const by=Object.create(null), rows=(typeof execRowsFor==='function')? execRowsFor([MS.cur]) : [];
-  rows.forEach(function(r){
-    const num=ccarNorm(r[2]); if(!num) return;
-    const b=by[num] || (by[num]={amt:0, n:0, titles:Object.create(null), buds:Object.create(null), oprs:Object.create(null), pmos:Object.create(null), raw:String(r[2]||'').trim()});
-    b.amt += (+r[9]||0); b.n++;
-    const t=String(r[3]||'').trim(); if(t) b.titles[t]=1;
-    const bu=String(r[4]||'').trim(); if(bu) b.buds[bu]=1;
-    const o=String(r[12]||'').trim(); if(o) b.oprs[o]=1;
-    const pm=String(r[18]||'').trim(); if(pm) b.pmos[pm]=1;
-  });
-  return {by:by, rows:rows.length};
-}
-
-function ccarDiv(){
-  // ONE lane walk for the whole reconciliation. It must be the same dollars the Spend Plan Source
-  // sends, or this check reconciles the board against a figure it never exported.
-  const DT=tiers();
-  const C=divCcarSide(), find=[], seen={};
-  const add=(k,title,why,rows)=>{ if(rows.length) find.push({k:k, t:title, why:why, rows:rows}); };
-  const order=(S.order||[]);
-  const amt=[], title=[], bud=[], opr=[], missing=[], noNum=[];
-  let compared=0, agreed=0;
-
-  order.forEach(function(id){
-    const it=itemById(id); if(!it) return;
-    const raw=ccarOf(it);
-    if(!raw){ noNum.push({id:id, label:dispTitle(it)}); return; }
-    const num=ccarNorm(raw);
-    seen[num]=1;
-    const c=C.by[num];
-    if(!c){ missing.push({id:id, label:dispTitle(it), sub:raw}); return; }
-    compared++;
-
-    const b=divBoardAmt(it, DT), d=b-c.amt;
-    if(Math.abs(d)>DIV_TOL){
-      amt.push({id:id, label:dispTitle(it),
-                sub:(d>0? 'board is higher by ':'CCaR is higher by ')+fM(Math.abs(d))});
-    } else agreed++;
-
-    const ct=divOne(c.titles);
-    if(ct && ct!==(dispTitle(it)||'')) title.push({id:id, label:dispTitle(it), sub:'CCaR calls it: '+ct});
-
-    const co=divOne(c.oprs), bo=(typeof ccarOprOf==='function'? ccarOprOf(it) : '')||'';
-    if(co && bo && co!==bo) opr.push({id:id, label:dispTitle(it), sub:bo+' here, '+co+' in CCaR'});
-
-    // the budget the board would send for each service that carries money on this requirement
-    const cb=divOne(c.buds);
-    if(cb){
-      const mine={};
-      budPairs(id, DT).forEach(function(q){
-        let n=null; try{ n=budForRow(id, q.svc, q.lane); }catch(e){}
-        if(n) mine[n]=1;
-      });
-      const bn=divOne(mine);
-      if(bn && bn!==cb) bud.push({id:id, label:dispTitle(it), sub:'CCaR has: '+cb});
-    }
-  });
-
-  const extra=Object.keys(C.by).filter(function(n){ return !seen[n]; })
-    .map(function(n){ return {id:'', label:C.by[n].raw||n, sub:fM(C.by[n].amt)+' in CCaR'}; });
-
-  add('amt','The amount does not match CCaR',
-    'The board would send one figure and CCaR holds another. This is the difference that makes a '
-    +'spend plan fail to tie.', amt);
-  add('missing','On the board, with nothing in CCaR under that number',
-    'The requirement carries a CCaR number, and the last pull has no rows for it. Either it has not '
-    +'reached CCaR yet, or the number is wrong.', missing);
-  add('extra','In CCaR, with no requirement here',
-    'The pull carries these numbers and no requirement on this board claims them. Somebody else '
-    +'may own them, or one was retired here and not there.', extra);
-  add('bud','A different budget name',
-    'The board would send this line against one budget and CCaR holds it against another. The money '
-    +'lands in the wrong place.', bud);
-  add('title','A different title',
-    'Harmless to the money and confusing to everyone reading both systems.', title);
-  add('opr','A different OPR', 'Worth knowing before somebody is asked who owns it.', opr);
-  add('nonum','No CCaR number on the requirement',
-    'Nothing to compare against. These cannot be reconciled until they have one.', noNum);
-
-  return {find:find, compared:compared, agreed:agreed, ccarRows:C.rows,
-          ccarNums:Object.keys(C.by).length, reqs:order.length};
-}
-
-let divOpen=false, divShow={};
-function toggleDiv(){ divOpen=!divOpen; render(); if(divOpen) divBody(); }
-function divToggleOne(k){ divShow[k]=!divShow[k]; divBody(); }
-function divCopy(){
-  const R=ccarDiv(), L=[];
-  L.push('ORBIT vs CCaR — '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100));
-  L.push(new Date().toLocaleString());
-  L.push(R.compared+' compared, '+R.agreed+' agree on amount');
-  R.find.forEach(function(f){
-    L.push(''); L.push(f.t.replace(/<[^>]+>/g,'')+' ('+f.rows.length+')');
-    f.rows.forEach(function(r){ L.push('   '+r.label+(r.sub? '  ['+r.sub+']':'')); });
-  });
-  const txt=L.join(String.fromCharCode(10));
-  try{ navigator.clipboard.writeText(txt).then(function(){ setStat('✓ Reconciliation copied.'); },
-        function(){ setStat('Could not reach the clipboard.'); }); }
-  catch(e){ setStat('Could not reach the clipboard.'); }
-}
-function divBody(){
-  const el=document.getElementById('divBody'); if(!el) return;
-  const pn=document.getElementById('divPanel'); if(pn) pn.className='modal-bg'+(divOpen?' open':'');
-  if(!divOpen){ el.innerHTML=''; return; }
-  let R;
-  try{ R=ccarDiv(); }
-  catch(e){ el.innerHTML='<div class="hint" style="color:var(--red)">The comparison could not run — '
-    +esc((e&&e.message)||String(e))+'</div>'; return; }
-
-  if(!R.ccarRows){
-    el.innerHTML='<div class="hint" style="border-left:3px solid var(--amber);padding-left:9px">'
-      +'<b>No CCaR pull has been read for FY'+(MS.cur%100)+' on this board.</b> '
-      +'Use <b>Active Year → 📥 Import CCaR QPE</b> and run this again. There is nothing to compare '
-      +'the board against until then.</div>'
-      +'<div class="fr" style="justify-content:flex-end;margin-top:10px">'
-      +'<button class="btn" onclick="toggleDiv()">Close</button></div>';
-    return;
-  }
-  const off=R.compared-R.agreed;
-  let h='<div class="hint" style="margin-bottom:10px;border-left:3px solid '
-    +(off? 'var(--red)':'var(--green)')+';padding-left:9px">'
-    +(off? '<b style="color:var(--red)">'+off+' of '+R.compared+'</b> compared requirement'
-           +(R.compared===1?'':'s')+' do not match CCaR on amount.'
-         : '<b style="color:var(--green)">✓ Every one of the '+R.compared+' compared requirement'
-           +(R.compared===1?'':'s')+' matches CCaR on amount.</b>')
-    +' <span style="color:var(--dim)">Against the last pull: '+R.ccarRows+' row'+(R.ccarRows===1?'':'s')
-    +' under '+R.ccarNums+' CCaR number'+(R.ccarNums===1?'':'s')+'. Compared like for like with the '
-    +'figure the Spend Plan Source export writes. Nothing here changes anything.</span></div>';
-
-  R.find.forEach(function(f){
-    const open=!!divShow[f.k];
-    const col=(f.k==='amt'||f.k==='bud')? 'var(--red)' : (f.k==='nonum'? 'var(--dim)' : 'var(--amber)');
-    h+='<div style="border:1px solid var(--line);border-left:3px solid '+col
-      +';border-radius:5px;padding:9px 12px;margin-bottom:6px">'
-      +'<button type="button" class="nb fr" style="gap:10px;width:100%" aria-expanded="'+(open?'true':'false')+'" onclick="divToggleOne('+jsa(f.k)+')">'
-      +'<b style="color:'+col+'">'+f.rows.length+'</b><b style="flex:1">'+f.t+'</b>'
-      +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></button>'
-      +'<div class="hint" style="margin-top:3px">'+f.why+'</div>';
-    if(open){
-      h+='<div style="margin-top:7px;font-size:11.5px;line-height:1.7">'
-        +f.rows.slice(0,DIV_CAP).map(function(r){
-          return '<div>• '+esc(r.label)+(r.sub? ' <span style="color:var(--dim)">'+esc(r.sub)+'</span>':'')+'</div>'; }).join('')
-        +(f.rows.length>DIV_CAP? '<div style="color:var(--dim)">… and '+(f.rows.length-DIV_CAP)+' more</div>':'')
-        +'</div>';
-    }
-    h+='</div>';
-  });
-  if(!R.find.length) h+='<div class="hint">Nothing differs.</div>';
-  h+='<div class="fr" style="justify-content:flex-end;gap:8px;margin-top:12px">'
-    +'<button class="btn" onclick="divCopy()">Copy the list</button>'
-    +'<button class="btn" onclick="toggleDiv()">Close</button></div>';
-  el.innerHTML=h;
-}
 async function importCcarRecs(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
@@ -19367,23 +18374,6 @@ async function importCcarRecs(inp){
   }
   inp.value='';
 }
-// ---- the mapping box: a title this file does not carry, or carries twice, asked about once ----
-// ---- the import report ----
-// ---------- OSD obligation goals (computed): O&M linear yr1; procurement 0–80/80–90/90–100 ----------
-function osdGoal(fy, asOfYm, isOM){
-  const m=/^(\d{4})-(\d{2})$/.exec(asOfYm||''); if(!m) return null;
-  const y=parseInt(m[1]), mo=parseInt(m[2]);
-  const fyMonth = mo>=10? mo-9 : mo+3;                    // Oct=1 … Sep=12
-  const asOfFy = mo>=10? y+1 : y;
-  const life = asOfFy - fy + 1;                            // year of life
-  if(isOM) return life>=2? 1 : Math.min(1, fyMonth/12);
-  if(life<=0) return null;
-  if(life===1) return 0.80*fyMonth/12;
-  if(life===2) return 0.80+0.10*fyMonth/12;
-  if(life===3) return 0.90+0.10*fyMonth/12;
-  return 1;
-}
-const PMO_SHORT=s=>{ const m=/\(([^)]+)\)/.exec(''+s); return m? m[1] : (''+s).slice(0,6); };
 const svcOfBudget=b=>{ b=''+b;
   if(/USMC STOVL/i.test(b)) return 'STOVL';
   if(/USMC CV/i.test(b)) return 'USMC-C';
@@ -19410,101 +18400,7 @@ function svcBoardOf(sv){
   const a=SVC_ALIAS[sv];
   return (a && SVC.indexOf(a)>=0)? a : '';
 }
-let exOpen=false, exFy=null, exX=Object.create(null), exXT={}, exA=null, exSvc='ALL', exView='appn';
-// Scopes the BOTTOM PAIR only. Not persisted: it is a way of looking, not a property of the
-// board, and a panel reopening into a filter nobody set is how a partial figure gets read as
-// the whole. Reset whenever the appropriation or the fiscal year moves, because a PMO that
-// exists in one may not exist in the other.
-let exPmo='ALL';
-function exSetPmo(v){ exPmo=v; render(); }
-// step through the offices in the order the grid lists them, wrapping at both ends
-function exCyclePmo(d){
-  const L=['ALL'].concat(exPmoList());
-  let i=L.indexOf(exPmo); if(i<0) i=0;
-  exPmo=L[(i+d+L.length)%L.length];
-  render();
-}
-let _exPmoList=[];
-function exPmoList(){ return _exPmoList.slice(); }
 let pkgOpen=false;
-// APPN_LBL is declared with APPN_SLUGS in the first module - see the note there.
-const EX_SVCS=['USAF','ANG','AFRC','STOVL','USMC-C','USN','Other'];
-function execAllOf(){
-  if(EXDB&&EXDB.all&&Object.keys(EXDB.all).length) return EXDB.all;
-  if(MS.execAll&&Object.keys(MS.execAll).length) return MS.execAll;
-  if(MS.exec&&MS.exec.rows) return {[mySlug()]:MS.exec};
-  return {};
-}
-function exSetA(a){ exA=a; exView='appn'; exFy=null; exX=Object.create(null); exXT={}; exPmo='ALL'; render(); }
-function exSetView(v){ exView=v; render(); }
-function exSetSvc(v){ exSvc=v; exX=Object.create(null); exXT={}; render(); }
-function exWindow(){
-  const d=new Date();
-  const AFY=(d.getMonth()+1)>=10? d.getFullYear()+1 : d.getFullYear();
-  const MN=['PRIOR','OCT','NOV','DEC','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','FY'+((AFY+1)%100)+'+'];
-  const NCOL=14, ws=(AFY-1)*12+9, nowAm=d.getFullYear()*12+d.getMonth();
-  const ymIdx=ym=>{ const m=/^(\d{4})-(\d{2})$/.exec(ym); if(!m) return -1;
-    const am=parseInt(m[1])*12+parseInt(m[2])-1, k=am-ws; return k<0? 0 : (k>11? 13 : k+1); };
-  const PAST=Array(NCOL).fill(false).map((_,k)=> k===0 || (k>=1&&k<=12&&(ws+k-1)<nowAm));
-  return {AFY,MN,NCOL,ymIdx,PAST};
-}
-function repYmOf(ex){
-  let m='';
-  Object.keys(ex.rows||{}).forEach(fy=>ex.rows[fy].forEach(r=>{ const ym=''+r[1]; if(isAlloc(r[10])&&/^\d{4}-\d{2}$/.test(ym)&&ym>m) m=ym; }));
-  if(!m) m=''+(ex.asOf||'');
-  const d=new Date(), now=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  return m>now? now : m;
-}
-// `pmo` scopes the whole aggregate to one office. It is OPTIONAL and the monthly grid passes
-// nothing, so that view is untouched. It lives here rather than beside the caller because the grid
-// decides a row's PMO with PMO_SHORT(r[18]) and anything reading a different rule would put the
-// same requirement in two different offices on one screen.
-function exAgg(ex,fy,pmo){
-  const W=exWindow();
-  const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;
-  (ex.rows[fy]||[]).forEach(r=>{
-    const sv=svcOfBudget(r[4]);
-    if(exSvc!=='ALL'&&sv!==exSvc) return;
-    if(pmo&&pmo!=='ALL'&&PMO_SHORT(r[18])!==pmo) return;
-    const amt=r[9]||0, ok=isAlloc(r[10]);
-    tot+=amt; if(ok) obl+=amt;
-    const g=PMO_SHORT(r[18]);
-    if(!byP[g]) byP[g]={m:Array(W.NCOL).fill(0), tot:0, obl:0, titles:Object.create(null)};
-    const P=byP[g];
-    const k=W.ymIdx(r[1]); if(k>=0) P.m[k]+=amt;
-    P.tot+=amt; if(ok) P.obl+=amt;
-    const t=''+r[3];
-    if(!P.titles[t]) P.titles[t]={m:Array(W.NCOL).fill(0),tot:0,obl:0,ev:[]};
-    if(k>=0) P.titles[t].m[k]+=amt;
-    P.titles[t].tot+=amt; if(ok) P.titles[t].obl+=amt;
-    P.titles[t].ev.push(r);
-    if(!byS[sv]) byS[sv]={tot:0,obl:0};
-    byS[sv].tot+=amt; if(ok) byS[sv].obl+=amt;
-  });
-  return {byP, byS, tot, obl, W};
-}
-function exSummaryRows(){
-  const EA=execAllOf(); const out=[]; let thru='';
-  APPN_SLUGS.forEach(s=>{
-    const ex=EA[s]; if(!ex||!ex.rows) return;
-    const rym=repYmOf(ex); if(rym>thru) thru=rym;
-    Object.keys(ex.rows).map(Number).sort().forEach(fy=>{
-      let tot=0,obl=0;
-      ex.rows[fy].forEach(r=>{ if(exSvc!=='ALL'&&svcOfBudget(r[4])!==exSvc) return; const a=r[9]||0; tot+=a; if(isAlloc(r[10])) obl+=a; });
-      if(Math.abs(tot)<1e-9&&Math.abs(obl)<1e-9) return;
-      const goal=osdGoal(fy, rym, s==='om');
-      const pct=tot>0? obl/tot:0;
-      const delta=goal!==null? (pct-goal)*100:null;
-      out.push({slug:s, appn:APPN_LBL[s], fy, tot, obl, unob:tot-obl, pct, goal, delta});
-    });
-  });
-  return {rows:out, thru};
-}
-function toggleEx(){
-  exOpen=!exOpen;
-  document.getElementById('exPanel').className='modal-bg'+(exOpen?' open':'');
-  render();
-}
 // ==============================================================================================================
 // §27  FUNDS FLOW
 //      configuration, calculation, charts, drill-down and exports
@@ -19513,10 +18409,6 @@ function toggleEx(){
 // Reads the imported CCaR QPE for one fiscal year and follows the money: what came in by
 // appropriation, what went to the primes, what went everywhere else.
 function flowDefRules(){ return {lm:'LM', pw:'PW, P&W, PRATT', where:'both'}; }
-function flowIsUpl(r){
-  const a=String(r[17]||'').trim(), b=String(r[20]||'').trim();
-  return /^UPL$/i.test(a) || /^UPL$/i.test(b);
-}
 // Where money can go. Seeded from what this file already knows about — the two primes the flow
 // matches, and the Navy activities the Workforce tier measured — and editable, because the list is
 // the owner's, not this tool's. `gov` entities are the ones a MIPR can pass through.
@@ -20387,330 +19279,10 @@ function flowEntEditor(){
 
 
 // ==============================================================================================================
-// §28  ACTIVE-YEAR EXECUTION AND THE SPEND PLAN SOURCE EXPORT
+// §28  THE SPEND PLAN SOURCE EXPORT
 // ==============================================================================================================
-// Column geometry for the execution grid. The label column holds a PMO, a requirement title
-// indented 20px, or a plan event indented 40px; measured on the current file the titles run to 90
-// characters and the events to 87. EX_LABW is sized for the 90th percentile on one line and lets
-// the rest wrap; the table's min-width makes a narrow panel scroll instead of shrinking the type.
-const EX_LABW=360, EX_MONW=54, EX_SUMW=68;
 const EX_CAP=96;            // just above the longest name measured — bounds row height, does not cut
-function exGrid(nMon){
-  const w=EX_LABW+nMon*EX_MONW+4*EX_SUMW;
-  return {minW:w,
-    cols:'<colgroup><col style="width:'+EX_LABW+'px">'
-      +Array(nMon).fill('<col style="width:'+EX_MONW+'px">').join('')
-      +Array(4).fill('<col style="width:'+EX_SUMW+'px">').join('')
-      +'</colgroup>'};
-}
 function exClip(t){ t=''+t; return t.length>EX_CAP? t.slice(0,EX_CAP)+'\u2026' : t; }
-/* ---- obligation against the OSD goal, month by month -------------------------------------------
-   The series is CUMULATIVE, because the OSD metric is a cumulative share of approved and a goal
-   line means nothing against a per-month bar.
-
-   The span is Oct of the fiscal year through the REPORTING month, not the twelve months of the
-   year. Measured on the real file: procurement obligates for up to 35 months (Full Fund FY24 runs
-   Oct-2023 to Aug-2026, with more dollars after its own year than inside it), nothing obligates
-   before the year opens, and nothing arrives without a month. So this span holds every obligated
-   dollar and the last point equals the panel's own Obl % -- which is the property the check
-   asserts, because a curve disagreeing with the figure printed above it is the whole risk. */
-function oblCurve(ex, fy, isOM, pmo){
-  const rym=repYmOf(ex);
-  const rows=(ex.rows[fy]||[]).filter(function(r){
-    if(exSvc!=='ALL' && svcOfBudget(r[4])!==exSvc) return false;
-    // the SAME rule exAgg uses, so the curve and the figures beside it cannot scope differently
-    if(pmo && pmo!=='ALL' && PMO_SHORT(r[18])!==pmo) return false;
-    return true; });
-  let tot=0; const byMon={};
-  rows.forEach(function(r){
-    const a=+r[9]||0; tot+=a;
-    if(!isAlloc(r[10])) return;
-    const ym=''+(r[1]||'');
-    if(!/^\d{4}-\d{2}$/.test(ym)) return;
-    byMon[ym]=(byMon[ym]||0)+a;
-  });
-  // walk from October of the fiscal year to the reporting month
-  const out=[]; let y=fy-1, mo=10, cum=0, guard=0;
-  const start=(fy-1)+'-10';
-  // The span must reach the LAST obligated month, not merely the reporting month. repYmOf caps at
-  // today, so a row marked obligated and dated later would sit inside the panel's total and
-  // outside the curve -- the curve would end below the figure printed above it. Today's file has
-  // no such row, which is exactly why the invariant has to be structural rather than observed.
-  let lastObl='';
-  Object.keys(byMon).forEach(function(k){ if(k>lastObl) lastObl=k; });
-  let stop=(rym && rym>=start)? rym : (fy+'-09');
-  if(lastObl>stop) stop=lastObl;
-  while(guard++<600){
-    const ym=y+'-'+String(mo).padStart(2,'0');
-    cum+=(byMon[ym]||0);
-    out.push({ym:ym, mo:mo, cum:cum, pct:tot>0? cum/tot : 0, goal:osdGoal(fy, ym, isOM)});
-    if(ym>=stop) break;
-    mo++; if(mo>12){ mo=1; y++; }
-  }
-  // anything the walk did not reach still belongs to the total, or the curve would end below the
-  // figure printed above it
-  let seen=0; out.forEach(function(o,i){ seen = o.cum; });
-  let all=0; Object.keys(byMon).forEach(function(k){ all+=byMon[k]; });
-  return {pts:out, tot:tot, obl:all, unreached:all-seen, rym:rym, span:out.length};
-}
-const OBL_MON=['','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-function oblChartSvg(C, isOM){
-  const P=C.pts;
-  if(!P.length || C.tot<=0){
-    return '<div class="hint">No approved value in this fiscal year, so there is no curve to draw.</div>';
-  }
-  // T reserves a band for the legend ABOVE the plot. Inside the plot it measured clear on
-  // every chart in the current file purely because those curves rise late; one that obligated
-  // early would run straight through it.
-  const W=560, H=214, L=40, R=14, T=32, B=30, LEG=11;
-  const pw=W-L-R, ph=H-T-B;
-  const x=function(i){ return P.length<2? L+pw/2 : L + pw*i/(P.length-1); };
-  const y=function(v){ return T + ph*(1-Math.max(0,Math.min(1,v))); };
-  let g='';
-  // grid, with the value stated on the axis rather than inferred from spacing
-  [0,0.25,0.5,0.75,1].forEach(function(v){
-    g+='<line x1="'+L+'" y1="'+y(v).toFixed(1)+'" x2="'+(W-R)+'" y2="'+y(v).toFixed(1)
-      +'" stroke="var(--lineSoft)" stroke-width="1"/>'
-      +'<text x="'+(L-6)+'" y="'+(y(v)+3.5).toFixed(1)+'" text-anchor="end" font-size="8.5" '
-      +'fill="var(--dim)">'+Math.round(v*100)+'%</text>';
-  });
-  // month ticks; thinned when the span runs long, which it does for procurement
-  const step=P.length>26? 6 : (P.length>14? 3 : 1);
-  P.forEach(function(o,i){
-    if(i%step && i!==P.length-1) return;
-    g+='<text x="'+x(i).toFixed(1)+'" y="'+(H-B+13)+'" text-anchor="middle" font-size="8" '
-      +'fill="var(--dim)">'+OBL_MON[o.mo]+'</text>';
-    if(o.mo===10) g+='<line x1="'+x(i).toFixed(1)+'" y1="'+T+'" x2="'+x(i).toFixed(1)+'" y2="'
-      +(H-B)+'" stroke="var(--line)" stroke-width="1"/>';
-  });
-  // the goal: dashed and open, so it reads as a target rather than as measured money — the
-  // difference is carried by line texture, not by hue
-  const gp=P.map(function(o,i){ return (i?'L':'M')+x(i).toFixed(1)+' '+y(o.goal===null?0:o.goal).toFixed(1); }).join(' ');
-  // the actual: solid, with an area beneath it
-  const ap=P.map(function(o,i){ return (i?'L':'M')+x(i).toFixed(1)+' '+y(o.pct).toFixed(1); }).join(' ');
-  const area=ap+' L'+x(P.length-1).toFixed(1)+' '+y(0).toFixed(1)+' L'+x(0).toFixed(1)+' '+y(0).toFixed(1)+' Z';
-  g+='<path d="'+area+'" fill="var(--green)" opacity=".14"/>';
-  g+='<path d="'+gp+'" fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="6 4"/>';
-  g+='<path d="'+ap+'" fill="none" stroke="var(--green)" stroke-width="2.4"/>';
-  const last=P[P.length-1];
-  const behind = last.goal!==null && last.pct < last.goal;
-  g+='<circle cx="'+x(P.length-1).toFixed(1)+'" cy="'+y(last.pct).toFixed(1)+'" r="4.5" '
-    +'fill="'+(behind?'var(--red)':'var(--green)')+'" stroke="var(--panel)" stroke-width="1.5"/>';
-  // The two figures a reader wants, stated rather than measured off the plot -- laid out in one
-  // row in the reserved band, where no curve can reach them.
-  const dl=last.goal===null? null : ((last.pct-last.goal)*100);
-  g+='<line x1="'+L+'" y1="'+(LEG-3)+'" x2="'+(L+11)+'" y2="'+(LEG-3)+'" stroke="var(--green)" stroke-width="2.4"/>'
-    +'<text x="'+(L+15)+'" y="'+LEG+'" font-size="9.5" font-weight="800" fill="var(--green)">'
-    +'obligated '+(last.pct*100).toFixed(1)+'%</text>'
-    +'<line x1="'+(L+128)+'" y1="'+(LEG-3)+'" x2="'+(L+139)+'" y2="'+(LEG-3)+'" stroke="var(--gold)" stroke-width="2" stroke-dasharray="4 3"/>'
-    +'<text x="'+(L+143)+'" y="'+LEG+'" font-size="9.5" font-weight="800" fill="var(--gold)">'
-    +'OSD goal '+(last.goal===null?'\u2014':(last.goal*100).toFixed(1)+'%')+'</text>'
-    +(dl===null? '' : '<text x="'+(W-R)+'" y="'+LEG+'" text-anchor="end" font-size="9.5" '
-      +'font-weight="800" fill="'+(behind?'var(--red)':'var(--green)')+'">'
-      +(dl>=0?'+':'')+dl.toFixed(1)+' pp vs goal</text>')
-    +'<text x="'+L+'" y="'+(LEG+13)+'" font-size="8" fill="var(--dim)">through '
-    +esc(C.rym||'')+' \u00b7 '+P.length+' month'+(P.length===1?'':'s')+' from OCT</text>';
-  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Cumulative obligation against the '
-    +'OSD goal, by month" style="display:block;width:100%;height:auto;overflow:visible">'
-    +g+'</svg>';
-}
-function exBody(){
-  const el=document.getElementById('exBody');
-  if(!exOpen){ if(el) el.innerHTML=''; return; }
-  const EA=execAllOf();
-  const slugs=APPN_SLUGS.filter(s=>EA[s]&&EA[s].rows&&Object.keys(EA[s].rows).length);
-  if(!slugs.length){
-    el.innerHTML='<div class="hint">No execution data yet — Data › Import CCaR QPE and pick your monthly "Spend Plan Source File.xlsx". FY24–FY26 plan events (with the Alloc obligation flag) load per appropriation.</div>';
-    return;
-  }
-  const pct=v=> (v*100).toFixed(1)+'%';
-  const PBG='background:rgba(125,140,175,.16)';
-  let h='<div style="margin-bottom:6px">'
-    +APPN_SLUGS.map(s=>'<button class="btn '+(exView==='appn'&&exA===s?'on':'')+'"'+(EA[s]?'':' disabled title="not in the last import"')+' style="font-size:10px;padding:4px 12px;font-weight:700'+(EA[s]?'':';opacity:.35')+'" onclick="exSetA('+jsa(s)+')">'+APPN_LBL[s]+'</button>').join(' ')
-    +' <button class="btn '+(exView==='summary'?'on':'')+'" style="font-size:10px;padding:4px 12px;font-weight:700" onclick="exSetView(\'summary\')">SUMMARY</button>'
-
-    +('<span style="display:inline-block;width:14px"></span>'
-    +'<select class="btn" style="font-size:10px;padding:4px 8px" onchange="exSetSvc(this.value)" title="Filter by Service">'
-    +'<option value="ALL"'+(exSvc==='ALL'?' selected':'')+'>ALL SERVICES</option>'
-    +EX_SVCS.map(s=>'<option value="'+esc(s)+'"'+(exSvc===s?' selected':'')+'>'+esc(s)+'</option>').join('')
-    +'</select>'
-    +' <button class="btn" style="font-size:10px;padding:4px 12px" onclick="exportExView()">⬇ Export this view</button>')
-    +'</div>';
-  if(exView==='flow') exView='appn';         // the flow moved out to its own panel
-  if(exView==='summary'){
-    const SD=exSummaryRows();
-    let t='<div style="font-size:10px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:4px 0 3px">F-35 SUSTAINMENT FINANCE — EXECUTION SUMMARY <span style="color:var(--dim);font-weight:400">data through '+esc(SD.thru)+(exSvc!=='ALL'?' · Service: '+esc(exSvc):'')+'</span></div>';
-    t+='<div style="overflow-x:auto"><table class="fctab"><tr><th style="text-align:left">Appropriation</th><th>FY</th><th>Approved ($M)</th><th>Authorized ($M)</th><th>Obligated ($M)</th><th>Unobligated ($M)</th><th>Obl %</th><th>OSD Goal %</th><th>Delta (pp)</th><th>Status</th></tr>';
-    let last=''; let Tt=0, To=0;
-    SD.rows.forEach(r=>{
-      Tt+=r.tot; To+=r.obl;
-      const col=r.delta===null?'':(r.delta>=0?'var(--green)':(r.delta>-10?'var(--amber)':'var(--red)'));
-      const dot=r.delta===null?'':'<span style="display:inline-block;width:10px;height:10px;border-radius:5px;background:'+col+'"></span>';
-      t+='<tr><td style="text-align:left;font-weight:700">'+(r.appn===last?'':r.appn)+'</td><td>FY'+r.fy+'</td>'
-        +'<td>'+fM2(r.tot)+'</td><td>'+fM2(r.tot)+'</td><td style="color:var(--green)">'+fM2(r.obl)+'</td><td style="color:var(--amber)">'+fM2(r.unob)+'</td>'
-        +'<td style="font-weight:700">'+pct(r.pct)+'</td><td>'+(r.goal!==null?pct(r.goal):'—')+'</td>'
-        +'<td style="font-weight:700;color:'+(col||'var(--ink)')+'">'+(r.delta!==null?(r.delta>=0?'+':'')+r.delta.toFixed(1):'—')+'</td><td>'+dot+'</td></tr>';
-      last=r.appn;
-    });
-    t+='<tr class="tot"><td style="text-align:left">TOTAL — SUSTAINMENT</td><td></td><td>'+fM2(Tt)+'</td><td>'+fM2(Tt)+'</td><td>'+fM2(To)+'</td><td>'+fM2(Tt-To)+'</td><td>'+pct(Tt>0?To/Tt:0)+'</td><td></td><td></td><td></td></tr></table></div>';
-    t+='<div class="hint" style="margin-top:8px">Legend (Status): <span style="color:var(--green);font-weight:700">GREEN</span> = obligation % at/above OSD goal · <span style="color:var(--amber);font-weight:700">YELLOW</span> = within 10 pp below goal · <span style="color:var(--red);font-weight:700">RED</span> = more than 10 pp below goal. Same layout as the Spend Plan Workbook Summary tab, including OPN.</div>';
-    el.innerHTML=h+t; return;
-  }
-  if(exA===null||!EA[exA]) exA=slugs.includes(mySlug())? mySlug() : slugs[0];
-  const ex=EA[exA];
-  const fys=Object.keys(ex.rows).map(Number).sort();
-  if(exFy===null||!ex.rows[exFy]) exFy=fys[fys.length-1];
-  const isOM=(exA==='om');
-  const A=exAgg(ex,exFy), W=A.W, byP=A.byP, byS=A.byS, tot=A.tot, obl=A.obl;
-  const MN=W.MN, PAST=W.PAST;
-  const nEvents=(ex.rows[exFy]||[]).filter(r=>exSvc==='ALL'||svcOfBudget(r[4])===exSvc).length;
-  const rym=repYmOf(ex);
-  const goal=osdGoal(exFy, rym, isOM);
-  const oblPct=tot>0? obl/tot:0;
-  const delta=goal!==null? (oblPct-goal)*100 : null;
-  h+='<div style="margin-bottom:6px">'
-    +fys.map(f=>'<button class="btn '+(exFy===f?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="exFy='+f+';exPmo=&quot;ALL&quot;;render()">FY'+(f%100)+'</button>').join(' ')
-    +' <span style="font-size:9.5px;color:var(--dim);margin-left:8px">data through <b>'+esc(rym)+'</b> · '+nEvents+' plan events'+(exSvc!=='ALL'?' · Service: <b>'+esc(exSvc)+'</b>':'')+' · active year <b>FY'+(W.AFY%100)+'</b> (OCT '+(W.AFY-1)+' – SEP '+W.AFY+')</span></div>';
-  h+='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">'
-    +'<span>Approved <b style="color:var(--ink)">'+fM2(tot)+'</b></span>'
-    +'<span>Obligated <b style="color:var(--green)">'+fM2(obl)+'</b></span>'
-    +'<span>Unobligated <b style="color:var(--amber)">'+fM2(tot-obl)+'</b></span>'
-    +'<span>Obl % <b style="color:'+(delta!==null&&delta<0?'var(--red)':'var(--green)')+'">'+pct(oblPct)+'</b>'
-    +(goal!==null? ' <span style="color:var(--dim)">vs OSD '+pct(goal)+' ('+(delta>=0?'+':'')+delta.toFixed(1)+' pp)</span>':'')+'</span></div>';
-  const EG=exGrid(MN.length);
-  h+='<div style="overflow-x:auto"><table class="fctab" style="min-width:'+EG.minW+'px">'+EG.cols
-    +'<tr><th style="text-align:left">PMO</th>'+MN.map((x,k)=>'<th'+(PAST[k]?' style="'+PBG+'"':'')+'>'+x+'</th>').join('')+'<th style="border-left:1px solid var(--line)">Approved</th><th>Obligated</th><th>Not Alloc</th><th style="border-left:1px solid var(--gold)">Obl %</th></tr>';
-  Object.keys(byP).sort().forEach(g=>{
-    const P=byP[g], pp=P.tot>0? P.obl/P.tot:0;
-    h+='<tr><td style="text-align:left;font-weight:800;color:var(--gold)"><button type="button" class="nb" aria-expanded="'+(exX[g]?'true':'false')+'" onclick="exX['+jsa(g)+']=!exX['+jsa(g)+'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+esc(g)+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></button></td>'
-      +P.m.map((v,k)=>'<td'+(PAST[k]?' style="'+PBG+'"':'')+'>'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
-      +'<td style="border-left:1px solid var(--line)">'+fM2(P.tot)+'</td><td style="color:var(--green)">'+fM2(P.obl)+'</td><td style="color:'+(P.tot-P.obl>5e3?'var(--amber)':'var(--dim)')+'">'+fM2(P.tot-P.obl)+'</td>'
-      +'<td style="border-left:1px solid var(--gold);font-weight:800;color:'+(goal!==null&&pp<goal?'var(--red)':'var(--green)')+'">'+pct(pp)+'</td></tr>';
-    if(exX[g]){
-      Object.keys(P.titles).sort().forEach(t=>{
-        const T=P.titles[t], tk=g+'|'+t;
-        h+='<tr style="opacity:.94"><td style="text-align:left;padding-left:20px;font-size:9px"><button type="button" class="nb" aria-expanded="'+(exXT[tk]?'true':'false')+'" onclick="exXT['+jsa(tk)+']=!exXT['+jsa(tk)+'];render()" title="'+esc(t)+'">'+(exXT[tk]?'\u25be ':'\u25b8 ')+esc(exClip(t))+'</button></td>'
-          +T.m.map((v,k)=>'<td style="font-size:8.5px'+(PAST[k]?';'+PBG:'')+'">'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
-          +'<td style="font-size:9px">'+fM2(T.tot)+'</td><td style="font-size:9px;color:var(--green)">'+fM2(T.obl)+'</td><td style="font-size:9px;color:var(--amber)">'+(T.tot-T.obl>5e3?fM2(T.tot-T.obl):'\u2014')+'</td>'
-          +'<td style="font-size:9px;font-weight:700">'+pct(T.tot>0?T.obl/T.tot:0)+'</td></tr>';
-        if(exXT[tk]){
-          T.ev.forEach(r=>{
-            h+='<tr style="opacity:.85;font-size:8.5px"><td style="text-align:left;padding-left:40px" title="'+esc(''+r[7])+'">'+esc(exClip(r[7]))+' <span style="color:var(--dim)">'+esc(svcOfBudget(r[4]))+'</span></td>'
-              +'<td colspan="14" style="text-align:left;color:var(--dim)">'+esc(''+r[1])+' · dated '+esc(''+r[8])+(r[2]?' · '+esc(''+r[2]):'')+'</td>'
-              +'<td>'+fM2(r[9]||0)+'</td><td colspan="2">'+(isAlloc(r[10])?'<span style="color:var(--green);font-weight:800">OBLIGATED</span>':'<span style="color:var(--amber);font-weight:800">NOT ALLOCATED</span>')+'</td><td></td></tr>';
-          });
-        }
-      });
-    }
-  });
-  h+='<tr class="tot"><td style="text-align:left">TOTAL</td>'+Array(W.NCOL).fill(0).map((_,k)=>{const v=Object.values(byP).reduce((a,P)=>a+P.m[k],0);return '<td'+(PAST[k]?' style="'+PBG+'"':'')+'>'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>';}).join('')
-    +'<td style="border-left:1px solid var(--line)">'+fM2(tot)+'</td><td>'+fM2(obl)+'</td><td>'+fM2(tot-obl)+'</td><td style="border-left:1px solid var(--gold)">'+pct(oblPct)+'</td></tr></table></div>';
-  // The by-service breakout is compressed to a left-hand column and the obligation curve sits
-  // beside it. Both answer "how are we doing against the goal"; side by side they are read once.
-  //
-  // Both are scoped by exPmo, and the FIGURES BESIDE THEM ARE THE SCOPED ONES. Showing the
-  // whole appropriation's totals over a table holding one office is two answers to one
-  // question, and each would be correct on its own.
-  _exPmoList=Object.keys(byP).sort();
-  if(exPmo!=='ALL' && _exPmoList.indexOf(exPmo)<0) exPmo='ALL';   // gone with the year or appn
-  const scoped = exPmo==='ALL'? A : exAgg(ex, exFy, exPmo);
-  const sByS=scoped.byS, sTot=scoped.tot, sObl=scoped.obl;
-  const OC=oblCurve(ex, exFy, isOM, exPmo);
-  const sGoal=osdGoal(exFy, rym, isOM);
-  const sPct=sTot>0? sObl/sTot : 0;
-  h+='<div class="obl-scope">'
-    +'<span class="obl-lbl">Scope</span>'
-    +'<button class="btn obl-step" onclick="exCyclePmo(-1)" title="previous office">\u2039</button>'
-    +['ALL'].concat(_exPmoList).map(function(g){
-        return '<button class="btn'+(exPmo===g?' on':'')+'" style="font-size:10px;padding:3px 9px" '
-          +'onclick="exSetPmo('+jsa(g)+')">'+esc(g==='ALL'?'All PMOs':g)+'</button>'; }).join('')
-    +'<button class="btn obl-step" onclick="exCyclePmo(1)" title="next office">\u203a</button>'
-    +'<span class="obl-fig">Approved <b>'+fM2(sTot)+'</b> \u00b7 Obligated <b style="color:var(--green)">'
-      +fM2(sObl)+'</b> \u00b7 <b style="color:'+(sGoal!==null&&sPct<sGoal?'var(--red)':'var(--green)')+'">'
-      +pct(sPct)+'</b>'+(sGoal!==null? ' vs OSD '+pct(sGoal):'')+'</span>'
-    +'</div>';
-  h+='<div class="obl-pair">'
-    +'<section class="obl-half">'
-    +'<div class="obl-cap">BY SERVICE '+(exPmo==='ALL'? '(from budget lines)' : '\u2014 '+esc(exPmo))+'</div>'
-    +'<div class="obl-box"><table class="fctab obl-svc">'
-    +'<colgroup><col style="width:26%"><col style="width:19%"><col style="width:19%"><col style="width:19%"><col style="width:17%"></colgroup>'
-    +'<tr><th style="text-align:left">Service</th><th>Appr</th><th>Obl</th><th>Not&nbsp;Alloc</th><th>%</th></tr>'
-    +(Object.keys(sByS).length? Object.keys(sByS).sort().map(sv=>{const B=sByS[sv];return '<tr><td style="text-align:left;font-weight:700">'+esc(sv)+'</td><td>'+fM2(B.tot)+'</td><td style="color:var(--green)">'+fM2(B.obl)+'</td><td style="color:var(--amber)">'+(B.tot-B.obl>5e3?fM2(B.tot-B.obl):'\u2014')+'</td><td style="font-weight:700">'+pct(B.tot>0?B.obl/B.tot:0)+'</td></tr>';}).join('')
-      : '<tr><td colspan="5" style="text-align:left;color:var(--dim)">Nothing in this office for FY'+(exFy%100)+'.</td></tr>')
-    +'</table></div></section>'
-    +'<section class="obl-half">'
-    +'<div class="obl-cap">OBLIGATED vs OSD GOAL \u2014 CUMULATIVE, BY MONTH'
-    +(exPmo==='ALL'? '' : ' \u2014 '+esc(exPmo))+'</div>'
-    +'<div class="obl-box obl-chart">'+oblChartSvg(OC, isOM)+'</div>'
-    +'</section>'
-    // The note spans the pair rather than sitting inside the right half. Inside, it made
-    // that half's box shorter than the other by exactly its own height, so the two panels a
-    // reader sees were different sizes even though the columns were identical.
-    +'<div class="hint obl-note">Obligations as reported, from OCT '+(exFy-1)+' to the data-through '
-    +'month \u2014 not the twelve months of FY'+(exFy%100)+', because procurement obligates for years '
-    +'after its own. The line stops where the data does.'
-    +(OC.unreached>5e3? ' <b style="color:var(--amber)">'+fM2(OC.unreached)+' obligated outside this span.</b>':'')
-    +'</div>'
-    +'</div>';
-  h+='<div class="hint" style="margin-top:8px">Monthly columns show ALL plan-event dollars by execution month — obligations AND forecast — in the ACTIVE fiscal year window (FY'+(W.AFY%100)+': OCT '+(W.AFY-1)+' \u2013 SEP '+W.AFY+'). <span style="'+PBG+';padding:1px 6px">Greyed columns</span> = months already past (actual obligations); clear columns = current/future months (forecast — drill to a plan event for its OBLIGATED / NOT ALLOCATED status). PRIOR = before 1 OCT '+(W.AFY-1)+'; FY'+((W.AFY+1)%100)+'+ = after 30 SEP '+W.AFY+' \u2014 procurement money (Full Fund / Initial Spares) executes across three years. The window rolls forward automatically each 1 OCT. OSD goal computed at the data-through month. Re-import the source file at each month-end to refresh.</div>';
-  el.innerHTML=h;
-}
-function exportExView(){
-  const EA=execAllOf(); const H=2;
-  const sheets=[]; let label='';
-  const dstr=new Date().toISOString().slice(0,10);
-  if(exView==='summary'){
-    const SD=exSummaryRows();
-    const rows=[
-      [{v:'F-35 Sustainment Finance — Execution Summary',s:7}],
-      ['Data through '+SD.thru+(exSvc!=='ALL'?' · Service: '+exSvc:'')],
-      [],
-      ['Appropriation','FY','Approved ($M)','Authorized ($M)','Obligated ($M)','Unobligated ($M)','Obl %','OSD Goal %','Delta (pp)','Status'].map(v=>({v,s:H}))
-    ];
-    let last=''; let Tt=0,To=0;
-    SD.rows.forEach(r=>{
-      Tt+=r.tot; To+=r.obl;
-      const status=r.delta===null?'':(r.delta>=0?'GREEN':(r.delta>-10?'YELLOW':'RED'));
-      rows.push([r.appn===last?'':r.appn,'FY'+r.fy,{v:r.tot/1e6,s:10},{v:r.tot/1e6,s:10},{v:r.obl/1e6,s:10},{v:r.unob/1e6,s:10},(r.pct*100).toFixed(1)+'%',r.goal!==null?(r.goal*100).toFixed(1)+'%':'',r.delta!==null?r.delta.toFixed(1):'',status]);
-      last=r.appn;
-    });
-    rows.push([{v:'TOTAL — Sustainment',s:4},'',{v:Tt/1e6,s:11},{v:Tt/1e6,s:11},{v:To/1e6,s:11},{v:(Tt-To)/1e6,s:11},(Tt>0?(To/Tt*100).toFixed(1):'0.0')+'%','','','']);
-    rows.push([]);
-    rows.push(['Legend (Status): GREEN = at/above OSD goal · YELLOW = within 10 pp below · RED = more than 10 pp below']);
-    sheets.push({name:'Summary', cols:[18,9,14,14,14,15,9,11,10,9], rows});
-    label='Summary'+(exSvc!=='ALL'?' '+exSvc:'');
-  } else {
-    const ex=EA[exA]; if(!ex){ alert('Nothing to export.'); return; }
-    const A=exAgg(ex,exFy), W=A.W;
-    const rows=[
-      [{v:'ORBIT — Active Year Execution — '+APPN_LBL[exA]+' FY'+exFy,s:7}],
-      ['Data through '+repYmOf(ex)+' · Service: '+exSvc+' · active year FY'+(W.AFY%100)+' (OCT '+(W.AFY-1)+' – SEP '+W.AFY+') · monthly cells = all plan-event $M (obligations + forecast); months before the current month are actuals'],
-      [],
-      ['PMO'].concat(W.MN).concat(['Approved ($M)','Obligated ($M)','Not Alloc ($M)','Obl %']).map(v=>({v,s:H}))
-    ];
-    Object.keys(A.byP).sort().forEach(g=>{
-      const P=A.byP[g];
-      rows.push([g].concat(P.m.map(v=>({v:v/1e6,s:10}))).concat([{v:P.tot/1e6,s:10},{v:P.obl/1e6,s:10},{v:(P.tot-P.obl)/1e6,s:10},(P.tot>0?(P.obl/P.tot*100).toFixed(1):'0.0')+'%']));
-    });
-    rows.push([{v:'TOTAL',s:4}].concat(Array(W.NCOL).fill(0).map((_,k)=>({v:Object.values(A.byP).reduce((a,P)=>a+P.m[k],0)/1e6,s:11}))).concat([{v:A.tot/1e6,s:11},{v:A.obl/1e6,s:11},{v:(A.tot-A.obl)/1e6,s:11},(A.tot>0?(A.obl/A.tot*100).toFixed(1):'0.0')+'%']));
-    rows.push([]);
-    rows.push([{v:'BY SERVICE',s:6}]);
-    rows.push(['Service','Approved ($M)','Obligated ($M)','Not Alloc ($M)','Obl %'].map(v=>({v,s:H})));
-    Object.keys(A.byS).sort().forEach(sv=>{
-      const B=A.byS[sv];
-      rows.push([sv,{v:B.tot/1e6,s:10},{v:B.obl/1e6,s:10},{v:(B.tot-B.obl)/1e6,s:10},(B.tot>0?(B.obl/B.tot*100).toFixed(1):'0.0')+'%']);
-    });
-    sheets.push({name:(APPN_LBL[exA]+' FY'+(exFy%100)).slice(0,31), cols:[26].concat(Array(W.NCOL).fill(10)).concat([13,13,13,8]), rows});
-    label=APPN_LBL[exA]+' FY'+(exFy%100)+(exSvc!=='ALL'?' '+exSvc:'');
-  }
-  const bytes=buildXlsx(sheets, null, xlsxHouse('Active Year Execution'));
-  if(!bytes) return;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('ORBIT Active Year Execution - '+label+' '+dstr+'.xlsx');
-  a.click();
-  setStat('\u2b07 Exported: Active Year Execution — '+label+'.');
-}
 // One requirement becomes one row per funded service, in the source's column order. A cell the
 // board has no equivalent for stays EMPTY - RCN, EEIC, Navy SI and Cost Element exist here only as
 // service-level PPBE lines, and prorating one of those down to a requirement would put a number in
@@ -20718,11 +19290,11 @@ function exportExView(){
 // v2.12 (item 132): THE WBS COLUMN (23, Spares WBS) CARRIES EACH LINE'S PARAGRAPH (Brad, 28 Oct 2026: "Yes, the WBS in ORBIT
 // should populate in the WBS column of that file for that line item"), so CCaR's plan events inherit it instead of Brad's team
 // typing it into each one. The cell is the paragraph's code and, when the estimate names it, " - " and its own name -- the
-// shape the column already holds, which srcWbsPara reads back to the code. A requirement, or a prime's CLIN, on several
+// shape the column already holds. A requirement, or a prime's CLIN, on several
 // paragraphs goes out a line per paragraph: each line's amount is split by apportion() over the paragraphs' own dollars for that
 // service (wbsResolve: the split as the office typed it), and what they leave unassigned goes on a line with the column blank,
 // so the lines add up to the line they replace, to the dollar, and every other cell is that line's own. No other column moves:
-// QPE_READS reads the file by position. A line with no paragraph goes out blank, and the export names those requirements.
+// CCaR reads the file by position. A line with no paragraph goes out blank, and the export names those requirements.
 function srcWbsCell(c, P){ if(!c) return ''; const nm=(P && P.has[c])? P.name[c] : ''; return c+(nm? ' - '+nm : ''); }
 // v2.12 RV2 (K01, K05, K09, K14): each part says, when its column goes out blank, WHY (a third element): 'none' no paragraph,
 // 'clin' a CLIN with no paragraph, 'rest' the part of a WBS split not yet assigned, 'line' a split's line with no paragraph,
@@ -21043,7 +19615,7 @@ function exportSrc(){
       +'the active year, and pricing a past year off this year\u2019s lanes would be a guess.' : ''));
 }
 // ==============================================================================================================
-// §29  DECISION BANDS, QPE COVERAGE, PROPOSED ORDER, TWO SPEND PLANS
+// §29  DECISION BANDS, PROPOSED ORDER, TWO SPEND PLANS
 // ==============================================================================================================
 let crOpen=false, crX={}, crMode='half', crBy='svc';
 let bmOpen=false;
@@ -21498,190 +20070,7 @@ function bandImport(inp){
   rd.readAsText(f);
 }
 let bandPanelOpen=false;
-/* ================= QPE COVERAGE: WHICH COLUMNS COME BACK, AND WHICH ONES MATTER ==============
-   Once CCaR is the system of record, ORBIT is fed by the monthly QPE and every question it can
-   answer depends on which of the 32 columns actually arrive filled in. A column that comes back
-   empty does not fail: the import succeeds, the totals are right, and one feature quietly stops
-   working. This says which, so it can be fixed in CCaR rather than discovered months later.
 
-   THE IMPORT KEEPS ALL 32 COLUMNS. `normSrcRow` copies every one - nothing is discarded on the way
-   in, only unused - so anything CCaR returns is already in the store and the only question is
-   whether it is populated and whether anything reads it.
-
-   THREE ANSWERS, AND THEY ARE DIFFERENT PROBLEMS:
-     NEEDED AND EMPTY      ORBIT reads it and it is not there. That feature is off, silently.
-     SENT AND NOT RETURNED ORBIT writes it on export and gets it back blank - the round trip loses
-                           it, which is a CCaR-side fix.
-     RETURNED AND UNUSED   it is arriving and nothing here reads it. Not a fault; an opening.
-
-   WHAT ORBIT WRITES IS DERIVED, NOT DECLARED - `qpeWrites()` runs the real export and looks. A
-   hand-kept list of that would go stale the first time a column was added to the export, and this
-   repo has been bitten by hand-kept lists twice. What ORBIT READS cannot be derived at runtime, so
-   it is declared below with a reason each, and the report says plainly that it is a declared list. */
-
-// column -> what depends on it. Declared: there is no way to ask the running page this.
-const QPE_READS = {
-  0:  'the fiscal year every row is filed under',
-  1:  'the obligation month every curve is drawn on',
-  2:  'the CCaR number the reconciliation joins on',
-  3:  'the record title the requirement join runs on',
-  4:  'the budget line the service is read back out of',
-  7:  'the plan event',
-  8:  'the obligation date the realignment reads',
-  9:  'the amount',
-  10: 'whether the row counts as obligated',
-  12: 'the OPR',
-  17: 'the obligation category, and the UPL mark',
-  18: 'the PMO',
-  20: 'the category, read for the UPL mark',
-  23: 'the WBS paragraph the execution pull reads',
-  25: 'the CLIN'
-};
-// Held in ORBIT with NO column in this file at all. These can never survive a round trip through
-// CCaR, whatever it returns - so ORBIT stays the system of record for them, and that is a fact to
-// state rather than a gap to chase.
-const QPE_NOHOME = ['decision band', 'tier within the band', 'consequence text', 'mission-critical mark',
-  'destination (who the money goes to)', 'cost-estimate mapping', 'funding-source override',
-  'budget (BAE) assignment', 'minimum useful increment'];
-
-// DERIVED: run the real export and see which columns it actually fills. Never a declared list.
-function qpeWrites(){
-  const out={};
-  let rows=[];
-  try{ rows=srcRowsOf(MS.cur, S)||[]; }catch(e){ return out; }
-  rows.forEach(function(r){
-    for(let i=0;i<SRC_NCOL;i++){
-      const c=r[i];
-      const v=(c && typeof c==='object')? c.v : c;
-      if(v!==undefined && v!==null && String(v)!=='') out[i]=(out[i]||0)+1;
-    }
-  });
-  return out;
-}
-
-/* How full each column comes back, per appropriation. `rows` is stated beside every count because
-   0 of 0 and 0 of 1966 look identical as a percentage and are completely different facts. */
-function qpeCoverage(){
-  const out=[];
-  const all=(typeof EXDB!=='undefined' && EXDB && EXDB.all)? EXDB.all : {};
-  APPN_SLUGS.forEach(function(slug){
-    const ex=all[slug];
-    if(!ex || !ex.rows) return;
-    const fill={}, n={rows:0};
-    Object.keys(ex.rows).forEach(function(fy){
-      (ex.rows[fy]||[]).forEach(function(r){
-        n.rows++;
-        for(let i=0;i<SRC_NCOL;i++){
-          const v=r[i];
-          if(v!==undefined && v!==null && String(v).trim()!=='') fill[i]=(fill[i]||0)+1;
-        }
-      });
-    });
-    out.push({slug:slug, rows:n.rows, fill:fill, asOf:ex.asOf||'',
-              fys:Object.keys(ex.rows).map(Number).sort()});
-  });
-  return out;
-}
-
-/* The three lists, which is the whole point of the report. A column is judged against the
-   appropriations that actually have rows - an appropriation nobody has imported says nothing about
-   whether CCaR returns a column, and counting it as empty would invent a problem. */
-function qpeGaps(){
-  const cov=qpeCoverage().filter(function(c){ return c.rows>0; });
-  const wr=qpeWrites();
-  const needEmpty=[], sentLost=[], backUnused=[];
-  if(!cov.length) return {cov:cov, needEmpty:needEmpty, sentLost:sentLost, backUnused:backUnused,
-                          none:true};
-  for(let i=0;i<SRC_NCOL;i++){
-    const name=SRC_HDR[i]||('column '+i);
-    const per=cov.map(function(c){ return {slug:c.slug, n:c.fill[i]||0, of:c.rows}; });
-    const anywhere=per.reduce(function(a,p){ return a+p.n; },0);
-    const total=per.reduce(function(a,p){ return a+p.of; },0);
-    const row={i:i, name:name, per:per, n:anywhere, of:total, why:QPE_READS[i]||'', sent:!!wr[i]};
-    if(QPE_READS[i]){ if(anywhere<total) needEmpty.push(row); }
-    else if(wr[i]){ if(!anywhere) sentLost.push(row); else backUnused.push(row); }
-  }
-  return {cov:cov, needEmpty:needEmpty, sentLost:sentLost, backUnused:backUnused, none:false};
-}
-
-let qpeOpen=false;
-function toggleQpe(){ qpeOpen=!qpeOpen; render(); if(qpeOpen) qpeBody(); }
-function qpePct(n, of){ return of? Math.round(1000*n/of)/10 : 0; }
-function qpeBody(){
-  const bg=document.getElementById('qpePanel'), el=document.getElementById('qpeBody');
-  if(!bg||!el) return;
-  bg.className='modal-bg'+(qpeOpen?' open':'');
-  if(!qpeOpen){ el.innerHTML=''; return; }
-  const g=qpeGaps();
-  if(g.none){
-    el.innerHTML='<div class="hint">No CCaR QPE has been imported on this board, so there is '
-      +'nothing to measure. This report says which of the 32 columns come back filled in and which '
-      +'do not — run it after a monthly pull. <b>Import CCaR QPE…</b> is in this same menu.</div>';
-    return;
-  }
-  const who=g.cov.map(function(c){ return appnLbl(c.slug)+' '+c.rows+' rows'
-    +(c.asOf? ' thru '+esc(c.asOf) : ''); }).join(' · ');
-  let h='<div class="hint">Measured on what is in the store now: '+who+'. Every column below is '
-    +'judged only against appropriations that actually have rows — an appropriation nobody has '
-    +'imported says nothing about what CCaR returns.</div>';
-
-  const block=function(title, sub, rows, kind){
-    h+='<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px">'
-      +'<div style="font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--'
-      +(kind==='bad'?'red':kind==='warn'?'gold':'green')+');text-transform:uppercase">'+esc(title)+'</div>'
-      +'<div style="font-size:10px;color:var(--mut);margin:2px 0 6px">'+sub+'</div>';
-    if(!rows.length){ h+='<div class="hint">None.</div></div>'; return; }
-    h+='<table class="fctab"><colgroup><col style="width:46px"><col style="width:190px">'
-      +'<col><col style="width:150px"></colgroup>'
-      +'<tr><th>Col</th><th>Name</th><th>What depends on it</th><th>Filled</th></tr>';
-    rows.forEach(function(r){
-      const pc=qpePct(r.n, r.of);
-      h+='<tr><td>'+r.i+'</td><td style="text-align:left"><b>'+esc(r.name)+'</b></td>'
-        +'<td style="text-align:left;white-space:normal;font-size:10px">'
-        +esc(r.why || (r.sent? 'nothing here reads it yet — ORBIT writes it on export' : ''))+'</td>'
-        +'<td>'+r.n.toLocaleString()+' of '+r.of.toLocaleString()
-        +' <span style="color:var(--'+(pc===0?'red':pc<100?'gold':'green')+')">'+pc+'%</span></td></tr>';
-    });
-    h+='</table></div>';
-  };
-
-  block('Needed, and not fully there',
-    'ORBIT reads these. Where one is short, that feature is degraded and nothing on screen says so.',
-    g.needEmpty, 'bad');
-  block('Sent, and not coming back',
-    'ORBIT writes these on the Spend Plan Source export and CCaR returns them empty — the round '
-    +'trip loses them. This is the list to take to whoever maintains CCaR.',
-    g.sentLost, 'warn');
-  block('Coming back, and not used yet',
-    'CCaR is returning these and nothing in ORBIT reads them. Not a fault — an opening.',
-    g.backUnused, 'ok');
-
-  h+='<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px">'
-    +'<div style="font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--gold);'
-    +'text-transform:uppercase">No column exists for these at all</div>'
-    +'<div class="hint" style="margin-top:4px">'+QPE_NOHOME.map(esc).join(' · ')+'. '
-    +'These cannot survive a round trip through CCaR whatever it returns, so ORBIT stays the system '
-    +'of record for them. That is a fact to plan around, not a gap to chase.</div></div>';
-
-  // WHAT THE EXPORT ACTUALLY WROTE, NAMED. qpeWrites() measures today's data, not the tool's
-  // capability - with no RCN/EEIC assigned and no PIDs set, those columns are written as nothing,
-  // so they land in NO list above and would simply be absent. An absence nobody explains is the
-  // ambiguity this whole report exists to remove, so it is stated.
-  const wrote=qpeWrites();
-  const wroteN=Object.keys(wrote).length;
-  const empty=[];
-  for(let i=0;i<SRC_NCOL;i++) if(!wrote[i] && !QPE_READS[i]) empty.push(SRC_HDR[i]||('col '+i));
-  h+='<div class="hint" style="margin-top:10px"><b>This board’s export currently fills '+wroteN
-    +' of '+SRC_NCOL+' columns.</b> The ones it leaves empty are not judged above — with nothing '
-    +'sent there is nothing to notice coming back. Right now that is: '+esc(empty.join(' · '))
-    +'. Assign the classification behind one of those and it starts being exported, and this '
-    +'report will then say whether CCaR gives it back.</div>';
-  h+='<div class="hint" style="margin-top:6px">Which columns ORBIT WRITES is measured by running '
-    +'the real export. Which columns it READS is a declared list held beside this report — there is '
-    +'no way to ask a running page that, so if a feature starts reading a new column, add it there '
-    +'or this report will not know.</div>';
-  el.innerHTML=h;
-}
 
 function toggleBands(){ bandPanelOpen=!bandPanelOpen; render(); }
 function bandPanelBody(){
@@ -30363,7 +28752,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  arSync(); scoreboard(); chips(); attBody(); pmoBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); ppBody(); exBody(); pkgBody(); syncBtns();
+  arSync(); scoreboard(); chips(); attBody(); pmoBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); entBody(); rcnBody(); budRegBody(); jrnlBody(); pfBody(); liveBody(); driveBar(); rlgBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); ppBody(); pkgBody(); syncBtns();
   const q=listSearchQ();   // v2.22 W2 (item 149.25): the search's text, read by the one predicate below (listSearchHit)
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -31156,8 +29545,6 @@ function syncBtns(){
     fc: mi('📅 '+FYL()+' Spend Plan Forecast…',"mRun(toggleFc)",fcOpen,'Oct '+((MS.cur-1)%100)+' – Sep '+(MS.cur%100)+' · $M'),
     cr: mi('⚖ CR Cash Needs…',"mRun(toggleCr)",crOpen,'half/full month · Service/PMO'),
     plans: ri('Two Spend Plans\u2026',"mRun(togglePlans)",'VIEW','Discretionary only vs. the whole top line'),
-    // views: the active years
-    ex: mi('📈 Active Year Execution…',"mRun(toggleEx)",exOpen,'obligations vs OSD goals'),
     // views: the FYDP
     fydp: mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'each appropriation, service and PMO, base year + 4, in $M — the working plan or a locked cycle'),
     ppbe: mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN'),
@@ -31174,9 +29561,6 @@ function syncBtns(){
     link: '<button type="button" class="uiRlink" onclick="mRun(linkOpen)" title="'+(linkCfg().name? esc(linkCfg().name) : 'not linked yet — click to set the file name')+'">'+esc(linkName())+'</button>',
     linkset: mi('Linked tool\u2026',"mRun(linkSet)",false,linkCfg().name? esc(linkName())+' · an .html tool kept beside this file' : 'an .html tool kept beside this file'),
     // bringing data in
-    qpe: mi('📥 Import CCaR QPE…',"mRun(()=>document.getElementById('srcFile').click())",false,'monthly CCaR pull (.xlsx)'),
-    qpecov: mi('📈 QPE coverage…',"mRun(toggleQpe)",qpeOpen,'which columns come back filled in — and which ORBIT needs'),
-    div: mi('⚖ ORBIT vs CCaR…',"mRun(toggleDiv)",divOpen,'where the board and the last pull disagree'),
     ccar: mi('📇 Import CCaR Records…',"mRun(()=>document.getElementById('ccarFile').click())",false,
         ccarIdx()? ((wholeOr(MS.ccarIdx.n,0))+' record'+(wholeOr(MS.ccarIdx.n,0)===1?'':'s')+' — Title and OPR') : 'sources Title and OPR'),
     bae: mi('💰 Import Budget Extract (BAE)…',"mRun(()=>document.getElementById('budFile').click())",false,
@@ -31195,8 +29579,6 @@ function syncBtns(){
         'allocations by code and service — O&M only') : ''),
     rlg: mi('💱 Funding realignment…',"mRun(toggleRlg)",rlgOpen,
         'source a lump sum by moving whole requirements between years'),
-    exw: mi('🧱 WBS from execution data…',"mRun(toggleExw)",exwOpen,
-        'read the WBS column out of the imported Spend Plan Source'),
     mat: mi('🗂 Classify requirements…',"mRun(toggleMat)",matOpen,
         'find what is unanswered and set it across many at once'),
     base: mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window'),
@@ -31241,7 +29623,7 @@ function syncBtns(){
   // ✈ Pre-flight check stays unfolded on top: the house rule is to run it before every export.
   { const fe=document.activeElement, findFocus=!!(fe && fe.id==='mFind'), at=findFocus? fe.selectionStart : 0;
   // v2.00 (menu, 19 Oct): A BOX ON THE LEFT MENU, its groups laid out as sections (sec), every item one click. A view whose
-  // home is FYDP ▸ or Execution ▸ on the left menu is opened there and nowhere else -- one home each.
+  // home is FYDP ▸ or Budget Year ▸ on the left menu is opened there and nowhere else -- one home each.
   // v2.05 (item 114; Brad, 23 Oct 2026: "Has too much going on"): TWO PLAIN LISTS, NOT SIX CARDS. A section is a heading with a
   // rule under it, nothing boxed, so nothing stands half empty; each item is a title and one line of hint with its format on a
   // tag (ri). Pre-Flight Check sits beside Find. The three sentences saying where the views went are one line at the foot, with
@@ -31257,23 +29639,21 @@ function syncBtns(){
     +'</div><div class="uiRcol">'
     +sec('ccar','CCaR Files', I.src)
     +'</div></div>'
-    +'<p class="uiRfoot"><span class="uiRsV">On-screen views are in the left menu: Spend Plan Forecast and CR Cash Needs under <b>Execution ▸</b>; '
+    +'<p class="uiRfoot"><span class="uiRsV">On-screen views are in the left menu: Spend Plan Forecast and CR Cash Needs under <b>Budget Year ▸</b>; '
       +'the five-year spend plan and PPBE Budget Positions under <b>FYDP ▸</b>.</span>'
       +'<span>Companion tool: '+I.link+'</span></p>'
     +'<div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
   menuFindApply();
   if(findFocus){ try{ const f=document.getElementById('mFind'); f.focus({preventScroll:true}); f.setSelectionRange(at,at); }catch(e){} } }
-  // v1.96 (item 65): WBS from execution data reads the imported execution data, so it is with the imports
   // v2.00 (menu, 19 Oct): A BOX ON THE LEFT MENU, ONE CARD PER SOURCE -- what it is, when it was last loaded (read from what the
-  // board holds; nothing is worked out) and its items. QPE coverage and ORBIT vs CCaR are views, under Execution ▸ only.
+  // board holds; nothing is worked out) and its items. v2.24 (item 162): the CCaR QPE card went -- ORBIT takes no more CCaR
+  // pulls (Brad, 26 Nov 2026), so WBS from execution data, QPE coverage and ORBIT vs CCaR went with it. A pull a board file
+  // still carries is kept (EXDB), and nothing shows it.
   { const when=function(f){ try{ return f()||''; }catch(e){ return ''; } };
     const card=function(k, title, what, last, body, seen){ return '<section class="uiDc" data-g="'+k+'"><h4>'+title+'</h4>'
       +'<p class="w">'+what+'</p><p class="t">'+(last? 'Last loaded '+last : 'Not loaded yet')+'</p>'+body
       +(seen? '<p class="uiRsV">'+seen+'</p>' : '')+'</section>'; };
   document.getElementById('dd_data').innerHTML=uiPlain('<div class="uiDg">'+
-    card('qpe', 'Execution — CCaR QPE', 'The monthly CCaR pull (the Spend Plan Source File, .xlsx): plan events and obligations for the active years.',
-      when(function(){ const r=EXDB.report||{}, t=r.ts||EXDB.ts; return t? esc(fmtTs(t))+(r.file? ' · '+esc(r.file) : '') : ''; }),
-      lbl('Execution — CCaR')+I.qpe+I.exw, '📈 QPE coverage and ⚖ ORBIT vs CCaR are views, under <b>Execution ▸</b>')+
     card('ccar', 'CCaR records', 'The CCaR records file: each record’s Title and OPR.',
       when(function(){ const x=MS.ccarIdx; return x && x.ts? esc(fmtTs(x.ts))+(x.file? ' · '+esc(x.file) : '') : ''; }), I.ccar)+
     card('bae', 'Budget extract (BAE)', 'The USAF and DON budget extracts: the budget names the Spend Plan Source export files money under.',
@@ -38058,7 +36438,7 @@ function uiSaveKey(e){
 // v2.00 (menu, 19 Oct): AN ITEM IN A LEFT-MENU BOX OR FLYOUT RUNS AS ITS MENU ITEM DID, AND THE BOX OR FLYOUT CLOSES FIRST.
 // Taken on the way down (capture), before the item's own call (mRun) redraws the list it sits in: the item is the call its
 // menu item made, unchanged, and the keyboard goes back to the left-menu entry that opened it, so a box the item opens hands
-// the keyboard back there when it closes -- FYDP ▸ and Execution ▸ included, whose items closed their flyout and left the
+// the keyboard back there when it closes -- FYDP ▸ and Budget Year ▸ included, whose items closed their flyout and left the
 // keyboard on nothing. A folded group's heading opens in place and closes nothing.
 function uiPanelRun(e){
   const t=e.target, b=(t && t.closest)? t.closest('#uiImpPanel button.mi, #uiRepPanel button.mi, #uiDataPanel button.mi, #uiFly button:not(.gh)') : null;
@@ -38083,13 +36463,12 @@ function uiFlyItems(k){
   if(k==='fydp') return '<div class="uiFh">FYDP</div>'
     + it('Five-year spend plan…', 'by requirement · PMO · service — a locked cycle or the working plan', 'toggleFydp')
     + it('PPBE Budget Positions…', 'POM · BES · PB · DoN', 'toggleP2');
-  if(k==='exec') return '<div class="uiFh">Execution</div>'
-    + it('Active Year Execution…', 'obligations vs OSD goals', 'toggleEx')
+  // v2.24 (item 162, Brad, 26 Nov 2026): the section is BUDGET YEAR -- preparing for the coming budget year. Its key stays
+  // 'exec' (and its button uiNav_exec) so nothing that names the section moves; Active Year Execution, QPE coverage and
+  // ORBIT vs CCaR went with the CCaR pull they read.
+  if(k==='exec') return '<div class="uiFh">Budget Year</div>'
     + it('Spend Plan Forecast…', 'the budget year, month by month', 'toggleFc')
-    + it('CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr')
-    + sep
-    + it('QPE coverage…', 'which columns come back filled in', 'toggleQpe')
-    + it('ORBIT vs CCaR…', 'where the board and the last pull disagree', 'toggleDiv');
+    + it('CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr');
   // v2.00 (menu): the change journal and the save history are under Audit; History keeps the copies and the work kept aside
   if(k==='hist') return '<div class="uiFh">History &amp; recovery</div>'
       + it('Earlier copies…', 'kept in the shared folder — in Live view', 'toggleLive')
@@ -38116,7 +36495,7 @@ function uiFlyOpen(k, btn){
   uiFlyPark();
   f.innerHTML=uiFlyItems(k);
   [].slice.call(f.querySelectorAll('[data-host]')).forEach(function(p){ const d=document.getElementById(p.getAttribute('data-host')); if(d) p.parentNode.replaceChild(d, p); });
-  f.setAttribute('aria-label', ({fydp:'FYDP', exec:'Execution', pmo:'Program offices', aud:'Audit', hist:'History and recovery', setup:'Setup', save:'Save'})[k]||'Section items');
+  f.setAttribute('aria-label', ({fydp:'FYDP', exec:'Budget Year', pmo:'Program offices', aud:'Audit', hist:'History and recovery', setup:'Setup', save:'Save'})[k]||'Section items');
   UI2.fly=k; f.classList.add('open');
   // v2.21 (item 152): an entry of the left menu opens its list beside it (a row of entries below 900px: under it); Save's ▾, in the
   // header, opens its list under itself

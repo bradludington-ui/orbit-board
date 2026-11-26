@@ -91,7 +91,7 @@ const census = await page.evaluate(() => {
     });
   // v2.00 (menu, 19 Oct): THE LEFT MENU holds what Reports & exports, Data, Setup and File held, each item in one place: its
   // boxes (Reports & exports' sections, Data's cards, Imports & exports' cards) and its flyouts (Program offices, Audit,
-  // History & recovery, Setup with its folded groups, Save's ▾, FYDP, Execution). Each is read as a menu: its entry on the
+  // History & recovery, Setup with its folded groups, Save's ▾, FYDP, Budget Year). Each is read as a menu: its entry on the
   // left is its header, a section's, card's or flyout's heading is a group, and every item in order with its call and hint.
   const LISTS = [['rep', 'dd_reports'], ['imp', 'dd_boards'], ['data', 'dd_data'], ['pmo', 'dd_offices'], ['aud', 'dd_audit'],
                  ['hist', null], ['setup', 'dd_setup'], ['save', 'dd_save'], ['fydp', null], ['exec', null]];

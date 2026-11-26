@@ -6382,15 +6382,17 @@ await (async () => {
 
     // ---- D. EVERY CALLER ----
     const XD = boot();
-    seed(XD.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0]), it('R2', 'PSM', [300, 0, 50])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'R2'] });
+    // v2.24 (item 162): in thousands of dollars where it was in dollars -- the realignment's plan came from the active execution
+    // year until v2.24; read off the year on screen it offers only requirements drawing more than $5,000, so the figures grew
+    seed(XD.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900000, 200000, 0]), it('R2', 'PSM', [300000, 0, 50000])], disc: [5000000, 5000000, 5000000], mand: [0, 0, 0], order: ['R1', 'R2'] });
     XD.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); save();
       MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working';
-      var xr=function(ym, t, a){ var r=[]; for(var i=0;i<26;i++) r.push(''); r[1]=ym; r[2]='J1'; r[3]=t; r[4]='USAF X'; r[7]='EV '+t; r[9]=a; r[10]='Not Allocated'; r[18]='Office (AV)'; return r; };
-      EXDB.all={}; EXDB.all[mySlug()]={rows:{}}; EXDB.all[mySlug()].rows[MS.cur]=[xr(MS.cur+'-05', 'Exec line one', 400000), xr(MS.cur+'-08', 'Exec line two', 300000)];
-      rlgSrc='exec'; rlgTarget=0.2;
+      // v2.24 (item 162): Active Year Execution (exportExView) and the realignment's active-year source went with the
+      // CCaR pull ORBIT no longer takes; the realignment is read off the year on screen
+      rlgSrc=''; rlgTarget=0.2;
       pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:MS.cur,ts:Date.now(),by:'PMO Lead',fromTs:1, svc:SVC.slice(), items:{R1:{cons:'Their wording.'}}, base:{R1:{cons:null}}},'s.json');
-      fcView='p:AV'; exView='summary'; 'ok'`);
+      fcView='p:AV'; 'ok'`);
     XD.ev(HELP);
     const XO = boot({ appn: 'O&M' });
     seed(XO.ev, { services: ['STOVL', 'USMC CV', 'USN'], items: [it('R1', 'AV', [900, 200, 100])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
@@ -6398,7 +6400,7 @@ await (async () => {
       S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); save(); 'ok'`);
     XO.ev(HELP);
     // v2.19 (item 150): the IDS file, the funds flow, the ACE tie-out and the chart of accounts are gone from the routes
-    const ROUTES = [[XD, 'exportRlgPlan()'], [XD, 'pmoReport()'], [XO, 'crExport()'], [XD, 'exportExView()'],
+    const ROUTES = [[XD, 'exportRlgPlan()'], [XD, 'pmoReport()'], [XO, 'crExport()'],
       [XD, 'exportSrc()'], [XD, 'exportPlans()'], [XD, 'exportFydpPlan()'], [XD, 'exportCycCompare()'], [XD, 'exportFcView()'],
       [XD, 'exportCSV()'], [XD, 'exportExcel()']];   // v2.05 (item 114): the deck went
     const callOf = (c) => c;

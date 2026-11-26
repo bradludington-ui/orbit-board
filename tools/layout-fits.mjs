@@ -200,11 +200,12 @@ console.log('\n' + FILE.split('/').pop());
   // v2.19 (item 150): toggleSp, toggleAce, the aceFile import, toggleCoa, toggleFlow, exportAceTieout, exportCoa and toggleIds
   // removed with the Spruills, the cost estimate, the Chart of Accounts, the Funds Flow and the IDS export
   const OLD = {
-    'Active year': ['toggleEx', "getElementById('srcFile').click()", 'toggleQpe', 'toggleDiv'],
+    // v2.24 (item 162): the Active year menu's four (toggleEx, the srcFile import, toggleQpe, toggleDiv) and Tools' toggleExw
+    // went with Active Year Execution, the CCaR QPE import, QPE coverage, ORBIT vs CCaR and WBS from execution data
     'Budget year': ['toggleFc', 'toggleCr', 'toggleAdd', 'toggleBm', 'convertAllToSplit', 'togglePlans', "setScen('disc')",
                     "setScen('')", 'toggleCycChg', 'toggleBl', 'togglePos', 'toggleBands', 'togglePreviewOrder', 'resetOrder'],
     'FYDP': ['toggleFydp', 'toggleCycCmp', 'toggleP2'],
-    'Tools': ['toggleSvcPanel', 'togglePmo', 'toggleEnt', 'toggleRcn', 'toggleSi', 'toggleRlg', 'toggleExw', 'toggleMat',
+    'Tools': ['toggleSvcPanel', 'togglePmo', 'toggleEnt', 'toggleRcn', 'toggleSi', 'toggleRlg', 'toggleMat',
               'themeSetIdx(0)', 'themeSetIdx(1)', 'themeSetIdx(2)', 'themeSetIdx(3)', 'themeSetIdx(4)',
               "getElementById('budFile').click()", 'toggleBudReg', "getElementById('ccarFile').click()"],
     // v2.04 (item 112): the five-year workbook is reached through its plan picker (fydpPickExport), which exports it
@@ -215,7 +216,7 @@ console.log('\n' + FILE.split('/').pop());
   const calls = await p.evaluate(() => {
     try { syncBtns(); } catch (e) {}
     const out = [];
-    // v2.00 (menu, 19 Oct): the left menu is a home too -- its boxes' and flyouts' lists, and the flyouts FYDP ▸, Execution ▸
+    // v2.00 (menu, 19 Oct): the left menu is a home too -- its boxes' and flyouts' lists, and the flyouts FYDP ▸, Budget Year ▸ (Execution ▸ until v2.24)
     // and History & recovery ▸ draw for themselves (uiFlyItems)
     ['dd_reports', 'dd_data', 'dd_setup', 'dd_boards', 'dd_offices', 'dd_audit', 'dd_kept', 'dd_save', 'dd_basis', 'dd_fy',
      't_review', 't_rank', 't_fund', 't_compare', 't_brief'].forEach(id => {

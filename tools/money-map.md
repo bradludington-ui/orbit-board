@@ -8,8 +8,8 @@ Codex's acceptance condition for launch (NEXT-VERSION item 59): integer-dollar r
 
 | | surfaces | cells | proven | of which arithmetic / agreement / both | n/a | **open** |
 |---|---:|---:|---:|---|---:|---:|
-| **every registered surface** | 36 | 252 | 97 | 44 / 39 / 14 | 155 | **0** |
-| money-coverage registry | 23 | 161 | 59 | 35 / 16 / 8 | 102 | **0** |
+| **every registered surface** | 35 | 245 | 97 | 44 / 39 / 14 | 148 | **0** |
+| money-coverage registry | 22 | 154 | 59 | 35 / 16 / 8 | 95 | **0** |
 | trace-matrix surfaces | 13 | 91 | 38 | 9 / 23 / 6 | 53 | **0** |
 
 The two registries overlap (a trace surface is a sheet, slide or view of a money-coverage surface), so a figure can be counted under both; each row is mapped on its own evidence.
@@ -60,7 +60,6 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `fitModel` | money-coverage | n/a | proven·A | proven·A | proven·A | n/a | n/a | proven·A |
 | `exportProposedOrder` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `exportRlgPlan` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| `exportExView` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `exportOneAppn` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `engine (tiers)` | trace › `tiers` | n/a | n/a | proven·A | proven·A | n/a | n/a | proven·A |
 | `locked cycle (projection)` | trace › `cycProjOf` | n/a | proven·G | proven·G | proven·G | n/a | n/a | proven·G |
@@ -363,18 +362,6 @@ Money-coverage surface. Carries no money (money-coverage REGISTRY).
 - **Funding lane** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
 
 ### `exportRlgPlan`
-
-Money-coverage surface. Carries no money (money-coverage REGISTRY).
-
-- **Appropriation** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-- **Fiscal year** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-- **Service** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-- **Requirement** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-- **Month** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-- **CR half** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-- **Funding lane** — n/a: The money-coverage REGISTRY records that this surface carries no money (its reason is quoted above); nothing to reconcile.
-
-### `exportExView`
 
 Money-coverage surface. Carries no money (money-coverage REGISTRY).
 

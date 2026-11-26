@@ -352,20 +352,16 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
   }
 }
 {
-  const F = 'K2 execution rows keyed by title, office and month (exAgg, rlgExecYears, rlgCapacity, rlgUplScan, rlgPool, posExec)';
+  // v2.24 (item 162): Active Year Execution (exAgg) and the realignment's active-year scans (rlgExecYears, rlgCapacity,
+  // rlgUplScan, the 'exec:' pool) went with the CCaR pull ORBIT no longer takes. The PPBE position's execution column
+  // (posExec) still reads a pull a file carries, so it is still driven here.
+  const F = 'K2 execution rows keyed by title, office and month (posExec)';
   const B = fresh();
   const out = probe(B, F, `(function(){ var rows=${XROWS}; EXDB.all={}; EXDB.all[mySlug()]={rows:{2027:rows}};
     var o={};
-    try{ var a=exAgg({rows:{2027:rows}}, 2027), t=0;
-      Object.keys(a.byP).forEach(function(g){ Object.keys(a.byP[g].titles).forEach(function(k){ t+=a.byP[g].titles[k].tot; }); });
-      o.exTot=a.tot; o.exTitles=t; }catch(e){ o.exThrew=e.message; }
-    try{ rlgExecYears(); rlgCapacity(2027); rlgUplScan(); rlgPool('exec:2027'); o.rlg='ran'; }catch(e){ o.rlg=e.message; }
     try{ var p=posExec(2027), s=0; Object.keys(p.pos).forEach(function(k){ var x=posTot(p.pos,k); s+=x.ob+x.pl; }); o.pos=s; }catch(e){ o.pos=e.message; }
     o.polluted=${POLLUTED}; return JSON.stringify(o); })()`);
   if (out) {
-    chk(F, 'the execution grid aggregates without stopping', out.exThrew || '', '');
-    chk(F, 'every title\'s dollars are under a title (15,000 of 15,000)', out.exTitles, 15000);
-    chk(F, 'the reallocation scans run', out.rlg, 'ran');
     chk(F, 'the execution position counts every row (15,000 of 15,000)', out.pos, 15000);
     chk(F, 'nothing is written onto Object.prototype', out.polluted, '');
   }
@@ -496,7 +492,7 @@ bootRelease(bm, []);
     ['A3f fsrc mode (lane chip title)', "funding source SET manually ('+esc(t.set.toUpperCase()"],
     ['A3g award id attribute (awardBlockHtml)', 'id="awdM-${esc(it.id)}"'],
     ['A3j budget-list file count (budBody)', `esc(x.file)+'</td><td>'+esc(x.n)`],
-    ['A4 QPE office (exBody)', `esc(g)+' <span style="color:var(--dim);font-size:8.5px">`],
+    // (v2.24, item 162: A4's QPE office sink went with Active Year Execution, exBody)
     ['A5 shared-folder peer reqs (liveBody)', 'sum? esc(sum.reqs)'],
     // found by the v2.00 self-audit, beyond the review's 27: an imported destination key and a funds-flow FY
     ['A6 destination key, "Goes to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).to===e.k`],
@@ -506,14 +502,13 @@ bootRelease(bm, []);
     ['N1 BAE import department token (importBud status line)', `('+esc(D.depts.join(', '))+')`],
     // lower severity: a file name a macOS/Linux/ZIP user can choose
     ['C1 file names in status lines (importState, importSrc, importAce)', `Imported saved state from '+esc(f.name)`],
-    ['C1 file names in status lines (importState, importSrc, importAce)', `'\\ud83d\\udce5 Reading '+esc(f.name)`],
+    // (v2.24, item 162: C1's "Reading" line in importSrc went with the CCaR QPE import)
     ['C1 file names in status lines (importState, importSrc, importAce)', `— "'+esc(h.name||FNAME)+'" now carries this state.`],
     // found by the full sweep of the board (8 Oct)
     ['N4 CCaR records count (Data menu)', `ccarIdx()? ((wholeOr(MS.ccarIdx.n,0))+' record'`],
     ['N5 roll panel year count (rollBody)', `n=st&&Array.isArray(st.order)? st.order.length : 0;`],
     ['N6 workbook and error text in status lines', `In-place save failed ('+esc((e&&e.message)||e)+')`],
-    ['N6 workbook and error text in status lines', `esc(msg.join(' \\u00b7 '))`],
-    ['N6 workbook and error text in status lines', `setStat('\\u26a0 Import failed: '+esc((e&&e.message)||e));`],
+    // (v2.24, item 162: N6's QPE import summary and its "Import failed" line went with importSrc)
     ['E2 writer, office, service and team names', `esc(WRITER.by)+' holds the pen'`],
     ['E2 writer, office, service and team names', 'title="${esc(s)} award for '],
     ['E2 writer, office, service and team names', "${g==='ALL'?'Cost Element (ALL PMOs)':esc(g)}</button>"],
@@ -521,12 +516,8 @@ bootRelease(bm, []);
     ['E2 writer, office, service and team names', '>⓪ Zero ${esc(filter)} allocations</button>'],
     ['E2 writer, office, service and team names', '↺ ${esc(filter)} as-requested</button>'],
     // the key sweep (8-9 Oct): every map a workbook or estimate value is a key in, and the two refusals
-    ['K5 safe maps and refusals (source)', `const byT=Object.create(null); let tot=0, obl=0;`],
-    ['K5 safe maps and refusals (source)', `ev:Object.create(null), evUpl:Object.create(null), pmo:PMO_SHORT(r[18]), file:false};`],
-    ['K5 safe maps and refusals (source)', `pmo:PMO_SHORT(r[18]), ev:Object.create(null), ym:'',`],
-    ['K5 safe maps and refusals (source)', `sharedNames:Object.create(null), byKey:{}};`],
-    ['K5 safe maps and refusals (source)', `titles:Object.create(null), buds:Object.create(null), oprs:Object.create(null), pmos:Object.create(null), raw:`],
-    ['K5 safe maps and refusals (source)', `const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;`],
+    // (v2.24, item 162: the maps of rlgExecYears, rlgUplScan, execWbsScan, divCcarSide and exAgg went with the CCaR pull
+    // ORBIT no longer takes -- the realignment's active-year source, WBS from execution data, ORBIT vs CCaR, Active Year Execution)
     ['K5 safe maps and refusals (source)', `none:0, pos:Object.create(null), cand:Object.create(null), imported:false};`],
     ['K5 safe maps and refusals (source)', `const reqs=[], pmo=Object.create(null);`],
     // (v2.05, item 114: the deck's PMO roll-up map, `const byG=Object.create(null), seenIds={};`, went with the deck)
@@ -541,10 +532,7 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `const byId=Object.create(null); mine.forEach(`],
     ['K5 safe maps and refusals (source)', `function destRefs(states){\n  const r=Object.create(null);`],
     // found by re-verifying the key sweep (11 Oct): maps no runtime check reaches
-    ['K5 safe maps and refusals (source)', `let exOpen=false, exFy=null, exX=Object.create(null), exXT={}`],
-    ['K5 safe maps and refusals (source)', `    exA=null; exFy=null; exX=Object.create(null); exXT={};`],
-    ['K5 safe maps and refusals (source)', `exFy=null; exX=Object.create(null); exXT={}; exPmo='ALL'; render(); }`],
-    ['K5 safe maps and refusals (source)', `function exSetSvc(v){ exSvc=v; exX=Object.create(null); exXT={}; render(); }`],
+    // (v2.24, item 162: Active Year Execution's expander maps, exX, went with the view)
     // v2.04 (item 112): the five-year workbook groups by office and by CCaR record through maps with no prototype
     ['K5 safe maps and refusals (source)', `  const pm=Object.create(null);\n  got.forEach(function(p){ p.M.order.forEach(function(id){`],
     ['K5 safe maps and refusals (source)', `  const recs=[], by=Object.create(null), loose=[];`],

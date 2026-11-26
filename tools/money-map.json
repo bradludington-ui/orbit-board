@@ -1502,41 +1502,6 @@
     }
    }
   },
-  "exportExView": {
-   "registry": "money-coverage",
-   "money": false,
-   "what": "Carries no money (money-coverage REGISTRY).",
-   "cells": {
-    "appropriation": {
-     "status": "n/a",
-     "why": "@notMoney"
-    },
-    "fiscalYear": {
-     "status": "n/a",
-     "why": "@notMoney"
-    },
-    "service": {
-     "status": "n/a",
-     "why": "@notMoney"
-    },
-    "requirement": {
-     "status": "n/a",
-     "why": "@notMoney"
-    },
-    "month": {
-     "status": "n/a",
-     "why": "@notMoney"
-    },
-    "crHalf": {
-     "status": "n/a",
-     "why": "@notMoney"
-    },
-    "lane": {
-     "status": "n/a",
-     "why": "@notMoney"
-    }
-   }
-  },
   "exportOneAppn": {
    "registry": "money-coverage",
    "money": false,

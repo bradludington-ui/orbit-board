@@ -118,13 +118,13 @@ const INLINE = {
 // Setup; the Fund tools carry the spend plan basis menu, and below 1100px (or when the task bar is too
 // full) the mode's tools fold into one menu. PREP puts the board in the state each one is shown in.
 // v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the left menu. Reports & exports and
-// Data are boxes there (swept with the boxes above); Setup, Program offices, Audit, History & recovery, FYDP, Execution and
+// Data are boxes there (swept with the boxes above); Setup, Program offices, Audit, History & recovery, FYDP, Budget Year and
 // the ▾ beside Save are flyouts, each opened from its entry and held to what a menu is held to here (LEFT, below).
 // v2.13 (item 136): the PPBE cycle in the context bar (#m_cyc), opened with the plan tagged BES28 and O&M's BES28 position logged
 // (POS_SEED), so its list draws every appropriation's line, the cycles to put them on -- one with "controls entered" -- and the
 // plan on screen.
 const MENUS = { view: 'Filter', fy: 'FY', cyc: 'PPBE cycle', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
-const LEFT = { fydp: 'FYDP', exec: 'Execution', pmo: 'Program offices', aud: 'Audit', hist: 'History & recovery', setup: 'Setup', save: 'Save ▾' };
+const LEFT = { fydp: 'FYDP', exec: 'Budget Year', pmo: 'Program offices', aud: 'Audit', hist: 'History & recovery', setup: 'Setup', save: 'Save ▾' };
 const PREP = { basis: `uiMode='fund'; uiApply(); render();`,
                modetools: `uiMode='fund'; uiApply(); render();`,     // and a 1000px window: see below
                cyc: POS_SEED + `baLiveAll(); save(); render();` };
@@ -203,10 +203,12 @@ for (const f of ['prioritization-board-grid.html']) {
   // it straight back. Reset the flags, re-render, then strip whatever survived.
   // v2.19 (item 150): aceOpen, coaPanelOpen, flowEntOpen, flowOpen, flowRepOpen, flowRuleOpen, idsOpen, spOpen, fdcOpen,
   // aceRepOpen, aceColOpen and fitOpen removed with their features
-  const FALSE = ['bandPanelOpen','blOpen','bmOpen','budOpen','crOpen','divOpen',
-    'entOpen','exOpen','exwOpen','fcOpen',
+  // v2.24 (item 162): divOpen, exOpen, exwOpen and qpeOpen removed with ORBIT vs CCaR, Active Year Execution, WBS from
+  // execution data and QPE coverage
+  const FALSE = ['bandPanelOpen','blOpen','bmOpen','budOpen','crOpen',
+    'entOpen','fcOpen',
     'hardOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
-    'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','subOpen',
+    'posOpen','ppOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','subOpen',
     'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen'];
   const NUL = ['wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {

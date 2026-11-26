@@ -5528,8 +5528,11 @@ const V197W2 = (() => {
       live: 'JSON.stringify(CYCDB)', file: p => J(((p.cycDb || {}).byAp || {}).om),
       mark: `JSON.stringify(Object.keys(CYCDB.cycles).map(function(k){ var c=CYCDB.cycles[k]; return k+':'+c.locked+':'+(c.unlocks||[]).length; }))` },
     // v2.19 (item 150): the cost estimates (importAce, ACEDB) left the lists with ORBIT's estimates
-    { k: 'exec', what: 'the execution data (a CCaR QPE imported)',
-      edit: t => `importSrc({files:[__wb([{name:'O&M Raw Data', rows:[SRC_HDR.slice(), [2027,'2026-10','C1',${J(t)},'B1','','','PE','',12345]]}], 'QPE.xlsx')], value:''})`,
+    // v2.24 (item 162): ORBIT takes no more CCaR pulls -- the QPE import (importSrc) went. The execution data a file
+    // carries is still carried, so it is changed through its carrier's own door, persistExdb, as v2.02 did for the log,
+    // and the file must still carry it and the board read unsaved
+    { k: 'exec', what: 'the execution data (a carried pull changed)',
+      edit: t => `(function(){ EXDB.all=EXDB.all||{}; EXDB.all.om={asOf:'2026-10', hdr:SRC_HDR.slice(), read:1, noFy:0, rows:{2027:[[2027,'2026-10','C1',${J(t)},'B1','','','PE','',12345]]}}; EXDB.ts=Date.now(); persistExdb(); render(); return 'ok'; })()`,
       live: 'JSON.stringify(EXDB)', file: p => J(p.execDb),
       mark: `JSON.stringify(((EXDB.all||{}).om||{}).rows||null)` },
     { k: 'bud', what: 'the BAE budget list (an extract imported)', saves: true,
@@ -6039,8 +6042,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // v2.19 (item 150): removed with its feature -- v1.99 — a cost estimate the folder kept can be put back, keeping what is there first (item 96)
 
 // v1.99 (item 95, from item 82): SIDE LISTS -- STAGED IMPORTS, A FAILED SHARE KEPT AND SAID, AND UNSAVED SURVIVES A RELOAD.
-// (a) An execution import that fails on a later tab takes nothing: it wrote each tab into the board as it went, so the
-//     tabs before the failure were replaced in memory, never stored and not counted unsaved.
+// (a) An execution import that fails on a later tab takes nothing (v2.24, item 162: removed with the QPE import).
 // (b) A cost-estimate check of the folder that fails part-way takes nothing (v2.19, item 150: removed with the estimates).
 // (c) A reprogramming-log share whose folder write fails keeps the merged log in browser storage and says "kept in this
 //     browser, not shared"; when storage refuses it too, it is unsaved and the message says so.
@@ -6055,23 +6057,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   try {
   const { J, wire, KEY, status, baseFile, folder, connect, lsOf } = W1H;
   const ev0 = (B, c) => { try { return B.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
-  // (a) THE EXECUTION IMPORT: three tabs; the second cannot be read
-  {
-    const B = boot();
-    const was = ev0(B, `EXDB.all={om:{asOf:'2026-01', hdr:[], read:1, noFy:0, rows:{2026:[['2026','2026-01','JSF1','Old row','USAF O&M',0,0,'',0,111]]}}}; EXDB.ts=1; persistExdb(); JSON.stringify(EXDB.all)`);
-    const out = await B.ev(`(async function(){
-      const tabs=Object.keys(SRC_TABS), sheets={};
-      tabs.forEach(function(s){ sheets[SRC_TABS[s]]=[['FY','Month'],['2026','2026-02','JSF9','New '+s,'USAF',0,0,'',0,999]]; });
-      const xr=xlsxRead; xlsxRead=async function(){ return sheets; };
-      const be=buildExec; let n=0; buildExec=function(r){ if(++n===2) throw new Error('a tab could not be read'); return be(r); };
-      try{ await importSrc({files:[{name:'QPE.xlsx', arrayBuffer:async function(){ return new ArrayBuffer(8); }}], value:'x'}); }
-      finally{ xlsxRead=xr; buildExec=be; }
-      return JSON.stringify([JSON.stringify(EXDB.all), localStorage.getItem('prio27execdb')? JSON.stringify(JSON.parse(localStorage.getItem('prio27execdb')).all) : null,
-        /Import failed/.test(document.getElementById('shareStat').textContent)]); })()`);
-    let o; try { o = JSON.parse(out); } catch { o = [out]; }
-    chk(name, '(a) an execution import whose second tab fails', 'nothing is taken: the board and browser storage hold the execution data as it was, and it says the import failed',
-      J([o[0] === was, o[1] === was, o[2]]), J([true, true, true]));
-  }
+  // (a) THE EXECUTION IMPORT, staged across its tabs, went with the CCaR QPE import (importSrc) in v2.24 (item 162):
+  //     ORBIT takes no more CCaR pulls. The execution data a file carries is still carried (the v2.24 item 162 block).
   // (b) CHECKING THE FOLDER FOR COST ESTIMATES went with the estimates (v2.19, item 150).
   // (c) SHARING THE LOG, whose folder write fails, went with driveRpPush in v2.02.
   // (d) A DESTINATION LIST FOLDED FROM AN OLDER PLAN, WHICH ONLY JOINS A NAME

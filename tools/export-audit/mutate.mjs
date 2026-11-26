@@ -1292,9 +1292,7 @@ const MUTATIONS = [
     find: "'Production Engineering Support':'PES',",
     repl: "'Production Engineering Support':'PRODUCTION ENGINEERING SUPPORT'," },
   // v1.92, revised: retargeted to budRuleOf(), the one place the rule is worked out
-  { id: 'bud-ccar-ignored', area: 'budRuleOf', what: "the budget CCaR already files the record under is never consulted",
-    find: " if(hit.length===1) return {n:hit[0].n, how:'ccar', many:c.length}; } }",
-    repl: " } }" },
+  // bud-ccar-ignored: retired as obsolete in v2.24 (item 162) -- the BAE rule's CCaR tiebreak (step 5) is gone (Brad: "Leave it as Not Set") (it guarded: the budget CCaR already files the record under is never consulted)
   { id: 'bud-guesses-first', area: 'budRuleOf', what: "where several names fit, the first is printed -- a guess",
     find: "  if(c.length===1) return {n:c[0].n, how:'rule', many:1};",
     repl: "  if(c.length>=1) return {n:c[0].n, how:'rule', many:1};" },
@@ -1916,9 +1914,7 @@ const MUTATIONS = [
   { id: 'bud-unfunded-line-missing', area: 'budLines', what: 'a service with unfunded dollars and no discretionary line gets no line, so its budget cannot be seen or chosen',
     find: "    if(!d && (+unf[i]||0)>0) out.push(m? {svc:sv, lane:'', part:true} : {svc:sv, lane:''});\n",
     repl: "" },
-  { id: 'bud-panel-ccar-unseen', area: 'budHow', what: 'the panel says "not set" where the CCaR pull settles the line and the file prints it',
-    find: "  if(c.length>1){ const on=budCcarBuds(id);",
-    repl: "  if(false){ const on=budCcarBuds(id);" },
+  // bud-panel-ccar-unseen: retired as obsolete in v2.24 (item 162) -- the RECORD panel's "from CCaR" status went with the BAE rule's CCaR tiebreak (Brad: "Leave it as Not Set") (it guarded: the panel says "not set" where the CCaR pull settles the line and the file prints it)
   // v1.92, revised: retargeted -- the panel reads budResolve(); this is the panel failing to say a choice is unusable
   { id: 'bud-panel-legacy-chosen', area: 'budRecordHtml', what: 'the panel does not show an unusable choice for what it is',
     find: "    if(r.status==='invalid'){\n      // SHOWN FOR WHAT IT IS",
@@ -2741,9 +2737,7 @@ const MUTATIONS = [
   { id: 'menu-base-year-twice', area: 'syncBtns', what: 'Set base year is on two menus again',
     find: "    grp('setup','codes','Codes and structure', I.bands+I.rcn+I.si)+sep+",   // v2.19: retargeted, Chart of Accounts gone
     repl: "    grp('setup','codes','Codes and structure', I.bands+I.rcn+I.si+I.base)+sep+" },
-  { id: 'menu-wbs-not-in-data', area: 'syncBtns', what: 'WBS from execution data is not with the data it reads',
-    find: "      lbl('Execution — CCaR')+I.qpe+I.exw, '",
-    repl: "      lbl('Execution — CCaR')+I.qpe, '" },
+  // menu-wbs-not-in-data: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone with the CCaR pull ORBIT no longer takes (it guarded: WBS from execution data is not with the data it reads)
   { id: 'menu-find-no-filter', area: 'menuFindApply', what: 'Find lists everything whatever is typed',
     find: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || (e.getAttribute('data-k')||'').indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);",
     repl: "    const hit=true;" },   // v2.05 (item 114): retargeted, the line reads the tag's words too
@@ -3382,9 +3376,7 @@ const MUTATIONS = [
   // v199-exec-any-appn: retired as obsolete in v2.19 -- flowYearKind went with item 150 (a year with execution for any appropriation is executed for every one)
   // v199-ace-estonly-dropped: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (an office with only estimate lines is left off the block and its total)
   // v199-ace-estonly-panel: retired as obsolete in v2.19 -- aceBody went with item 150 (the panel leaves an office with only estimate lines off its table and total)
-  { id: "v199-exec-import-unstaged", area: "importSrc", what: "an execution import writes each tab into the board as it reads it",
-    find: "      nextAll[slug]=ex;",
-    repl: "      nextAll[slug]=ex; EXDB.all[slug]=ex;" },
+  // v199-exec-import-unstaged: retired as obsolete in v2.24 (item 162) -- the CCaR QPE import (importSrc) is gone: ORBIT no longer takes a CCaR pull (it guarded: an execution import writes each tab into the board as it reads it)
   // v199-ace-pull-unstaged: retired as obsolete in v2.19 -- driveAcePull went with item 150 (a check of the folder takes each estimate as it reads it)
   // v2.02: v199-rp-kept-after RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: "v199-dest-touched-dropped", area: "destMigrate", what: "a destination list that only joins a name is changed in memory and never stored",
@@ -3504,9 +3496,7 @@ const MUTATIONS = [
   { id: "v200-budlist-n-raw", area: "budBody", what: "the budget-list file count is drawn raw (review A3j)",
     find: "esc(x.file)+'</td><td>'+esc(x.n)+'</td>'",
     repl: "esc(x.file)+'</td><td>'+x.n+'</td>'" },
-  { id: "v200-exbody-office-raw", area: "exBody", what: "the QPE office name is drawn raw in the execution panel (review A4)",
-    find: "esc(g)+' <span style=\"color:var(--dim);font-size:8.5px\">",
-    repl: "g+' <span style=\"color:var(--dim);font-size:8.5px\">" },
+  // v200-exbody-office-raw: retired as obsolete in v2.24 (item 162) -- Active Year Execution (exBody) is gone (it guarded: the QPE office name is drawn raw in the execution panel (review A4))
   { id: "v200-livebody-reqs-raw", area: "liveBody", what: "a shared-folder peer's requirement count is drawn raw (review A5)",
     find: "(sum? esc(sum.reqs) : '—')",
     repl: "(sum? sum.reqs : '—')" },
@@ -3516,9 +3506,7 @@ const MUTATIONS = [
   { id: "v200-fname-state-raw", area: "importState", what: "the state-import status line draws the file name raw (review C1)",
     find: "Imported saved state from '+esc(f.name)",
     repl: "Imported saved state from '+f.name" },
-  { id: "v200-fname-qpe-raw", area: "importSrc", what: "the QPE import status line draws the file name raw (review C1)",
-    find: "'\\ud83d\\udce5 Reading '+esc(f.name)",
-    repl: "'\\ud83d\\udce5 Reading '+f.name" },
+  // v200-fname-qpe-raw: retired as obsolete in v2.24 (item 162) -- the CCaR QPE import (importSrc) is gone (it guarded: the QPE import status line draws the file name raw (review C1))
   // v200-fname-ace-raw: retired as obsolete in v2.19 -- importAce went with item 150 (the cost-estimate import status line draws the file name raw (review C1))
   { id: "v200-jrnl-door-open", area: "inShapeWhy", what: "the import check no longer refuses a journal entry whose path names __proto__/constructor/prototype",
     find: "if(IN_KEY_BAD.has(String(e.p[j]))) return 'the change journal entry at '",
@@ -3549,12 +3537,8 @@ const MUTATIONS = [
   { id: "v200-saveinplace-err-raw", area: "saveInPlace", what: "the in-place save failure draws the error text raw (full sweep)",
     find: "In-place save failed ('+esc((e&&e.message)||e)+')",
     repl: "In-place save failed ('+((e&&e.message)||e)+')" },
-  { id: "v200-qpe-msg-raw", area: "importSrc", what: "the QPE import status line draws the workbook's sheet names and as-of text raw (full sweep)",
-    find: "esc(msg.join(' \\u00b7 '))",
-    repl: "msg.join(' \\u00b7 ')" },
-  { id: "v200-qpe-err-raw", area: "importSrc", what: "the QPE import failure draws the reader's error text raw (full sweep)",
-    find: "setStat('\\u26a0 Import failed: '+esc((e&&e.message)||e));",
-    repl: "setStat('\\u26a0 Import failed: '+((e&&e.message)||e));" },
+  // v200-qpe-msg-raw: retired as obsolete in v2.24 (item 162) -- the CCaR QPE import (importSrc) is gone (it guarded: the QPE import status line draws the workbook's sheet names and as-of text raw (full sweep))
+  // v200-qpe-err-raw: retired as obsolete in v2.24 (item 162) -- the CCaR QPE import (importSrc) is gone (it guarded: the QPE import failure draws the reader's error text raw (full sweep))
   // v200-acestamp-lines-raw: retired as obsolete in v2.19 -- aceStamp went with item 150 (the cost-estimate stamp draws a non-list lines' length (full sweep))
   // v200-acetie-lines-raw: retired as obsolete in v2.19 -- aceBody went with item 150 (the ACE tie-out draws a non-list lines' length (full sweep))
   { id: "v200-writer-raw", area: "File menu", what: "the Take the pen line draws the writer's name raw (annex E2)",
@@ -3632,36 +3616,16 @@ const MUTATIONS = [
     find: "    if(o.pmo!==undefined && o.pmo!==null && o.pmo!=='' && (w=inNameWhy(o.pmo, 'the office at '+path+'.pmo'))) return w;\n",
     repl: "" },
   // v200-ace-key-open: retired as obsolete in v2.19 -- importAce went with item 150 (an estimate is filed under a built-in name its file carries (key sweep))
-  { id: "v200-exagg-plain", area: "exAgg", what: "the execution grid groups rows by office in a plain object (key sweep)",
-    find: "  const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;",
-    repl: "  const byP={}, byS={}; let tot=0, obl=0;" },
-  { id: "v200-exagg-titles-plain", area: "exAgg", what: "the execution grid groups an office's rows by title in a plain object (key sweep)",
-    find: "if(!byP[g]) byP[g]={m:Array(W.NCOL).fill(0), tot:0, obl:0, titles:Object.create(null)};",
-    repl: "if(!byP[g]) byP[g]={m:Array(W.NCOL).fill(0), tot:0, obl:0, titles:{}};" },
-  { id: "v200-rlgyears-plain", area: "rlgExecYears", what: "the active-years scan groups rows by title in a plain object (key sweep)",
-    find: "      const byT=Object.create(null); let tot=0, obl=0;",
-    repl: "      const byT={}; let tot=0, obl=0;" },
-  { id: "v200-rlgcap-plain", area: "rlgCapacity", what: "the receiving-year capacity groups rows by title in a plain object (key sweep)",
-    find: "  const byT=Object.create(null);\n  ((ex&&ex.rows&&ex.rows[+fy])||[]).forEach(function(r){",
-    repl: "  const byT={};\n  ((ex&&ex.rows&&ex.rows[+fy])||[]).forEach(function(r){" },
-  { id: "v200-rlgupl-plain", area: "rlgUplScan", what: "the UPL scan groups rows by title in a plain object (key sweep)",
-    find: "      const byT=Object.create(null);\n      (ex.rows[fy]||[]).forEach(function(r){\n        if(isAlloc(r[10])) return;",
-    repl: "      const byT={};\n      (ex.rows[fy]||[]).forEach(function(r){\n        if(isAlloc(r[10])) return;" },
-  { id: "v200-rlgupl-ev-plain", area: "rlgUplScan", what: "the UPL scan lists a title's plan events in plain objects (key sweep)",
-    find: "ev:Object.create(null), evUpl:Object.create(null), pmo:PMO_SHORT(r[18]), file:false};",
-    repl: "ev:{}, evUpl:{}, pmo:PMO_SHORT(r[18]), file:false};" },
-  { id: "v200-rlgpool-plain", area: "rlgPool", what: "the reallocation pool groups rows by title in a plain object (key sweep)",
-    find: "    const byT=Object.create(null);\n    (ex.rows[fy]||[]).forEach(function(r){\n      const t=String(r[3]||'').trim()||'(untitled)';",
-    repl: "    const byT={};\n    (ex.rows[fy]||[]).forEach(function(r){\n      const t=String(r[3]||'').trim()||'(untitled)';" },
-  { id: "v200-rlgpool-ev-plain", area: "rlgPool", what: "the reallocation pool lists a title's plan events in a plain object (key sweep)",
-    find: "pmo:PMO_SHORT(r[18]), ev:Object.create(null), ym:'',",
-    repl: "pmo:PMO_SHORT(r[18]), ev:{}, ym:''," },
-  { id: "v200-wbsscan-plain", area: "execWbsScan", what: "the WBS scan counts shared record names in a plain object (key sweep)",
-    find: "sharedNames:Object.create(null), byKey:{}};",
-    repl: "sharedNames:{}, byKey:{}};" },
-  { id: "v200-ccarside-plain", area: "divCcarSide", what: "the CCaR reconciliation lists titles, budgets, OPRs and offices in plain objects (key sweep)",
-    find: "(by[num]={amt:0, n:0, titles:Object.create(null), buds:Object.create(null), oprs:Object.create(null), pmos:Object.create(null), raw:",
-    repl: "(by[num]={amt:0, n:0, titles:{}, buds:{}, oprs:{}, pmos:{}, raw:" },
+  // v200-exagg-plain: retired as obsolete in v2.24 (item 162) -- Active Year Execution (exAgg) is gone (it guarded: the execution grid groups rows by office in a plain object (key sweep))
+  // v200-exagg-titles-plain: retired as obsolete in v2.24 (item 162) -- Active Year Execution (exAgg) is gone (it guarded: the execution grid groups an office's rows by title in a plain object (key sweep))
+  // v200-rlgyears-plain: retired as obsolete in v2.24 (item 162) -- the realignment's active-year source (rlgExecYears) is gone (it guarded: the active-years scan groups rows by title in a plain object (key sweep))
+  // v200-rlgcap-plain: retired as obsolete in v2.24 (item 162) -- the realignment's receiving-year ceiling read from the pull (rlgCapacity) is gone (it guarded: the receiving-year capacity groups rows by title in a plain object (key sweep))
+  // v200-rlgupl-plain: retired as obsolete in v2.24 (item 162) -- the realignment's UPL pots read from the pull (rlgUplScan) are gone (it guarded: the UPL scan groups rows by title in a plain object (key sweep))
+  // v200-rlgupl-ev-plain: retired as obsolete in v2.24 (item 162) -- the realignment's UPL pots read from the pull (rlgUplScan) are gone (it guarded: the UPL scan lists a title's plan events in plain objects (key sweep))
+  // v200-rlgpool-plain: retired as obsolete in v2.24 (item 162) -- the realignment's active-year pool branch is gone (it guarded: the reallocation pool groups rows by title in a plain object (key sweep))
+  // v200-rlgpool-ev-plain: retired as obsolete in v2.24 (item 162) -- the realignment's active-year pool branch is gone (it guarded: the reallocation pool lists a title's plan events in a plain object (key sweep))
+  // v200-wbsscan-plain: retired as obsolete in v2.24 (item 162) -- WBS from execution data (execWbsScan) is gone (it guarded: the WBS scan counts shared record names in a plain object (key sweep))
+  // v200-ccarside-plain: retired as obsolete in v2.24 (item 162) -- ORBIT vs CCaR's pull side (divCcarSide) is gone (it guarded: the CCaR reconciliation lists titles, budgets, OPRs and offices in plain objects (key sweep))
   { id: "v200-posexec-plain", area: "posExec", what: "the execution position groups by service and month in plain objects (key sweep)",
     find: "    if(!out.pos[key]) out.pos[key]=Object.create(null);\n    if(!out.pos[key][sv]) out.pos[key][sv]=Object.create(null);",
     repl: "    if(!out.pos[key]) out.pos[key]={};\n    if(!out.pos[key][sv]) out.pos[key][sv]={};" },
@@ -3748,18 +3712,10 @@ const MUTATIONS = [
   { id: "v200-acealign-door-open", area: "inShapeWhy", what: "an estimate office alignment to a built-in name is taken (key re-verification)",
     find: "  if(o.aceAlign && typeof o.aceAlign==='object' && (w=eachKey(o.aceAlign, function(set, m){",
     repl: "  if(false && o.aceAlign && typeof o.aceAlign==='object' && (w=eachKey(o.aceAlign, function(set, m){" },
-  { id: "v200-exx-plain", area: "exBody", what: "the execution panel's open rows are kept in a plain object (key re-verification)",
-    find: "let exOpen=false, exFy=null, exX=Object.create(null), exXT={}, exA=null, exSvc='ALL', exView='appn';",
-    repl: "let exOpen=false, exFy=null, exX={}, exXT={}, exA=null, exSvc='ALL', exView='appn';" },
-  { id: "v200-exx-reset-plain", area: "importSrc", what: "the execution panel's open rows are reset to a plain object after an import (key re-verification)",
-    find: "    exA=null; exFy=null; exX=Object.create(null); exXT={};",
-    repl: "    exA=null; exFy=null; exX={}; exXT={};" },
-  { id: "v200-exx-seta-plain", area: "exSetA", what: "the execution panel's open rows are reset to a plain object on an appropriation switch (key re-verification)",
-    find: "function exSetA(a){ exA=a; exView='appn'; exFy=null; exX=Object.create(null); exXT={}; exPmo='ALL'; render(); }",
-    repl: "function exSetA(a){ exA=a; exView='appn'; exFy=null; exX={}; exXT={}; exPmo='ALL'; render(); }" },
-  { id: "v200-exx-setsvc-plain", area: "exSetSvc", what: "the execution panel's open rows are reset to a plain object on a service switch (key re-verification)",
-    find: "function exSetSvc(v){ exSvc=v; exX=Object.create(null); exXT={}; render(); }",
-    repl: "function exSetSvc(v){ exSvc=v; exX={}; exXT={}; render(); }" },
+  // v200-exx-plain: retired as obsolete in v2.24 (item 162) -- Active Year Execution's expanders (exX) are gone (it guarded: the execution panel's open rows are kept in a plain object (key re-verification))
+  // v200-exx-reset-plain: retired as obsolete in v2.24 (item 162) -- Active Year Execution's expanders (exX) are gone (it guarded: the execution panel's open rows are reset to a plain object after an import (key re-verification))
+  // v200-exx-seta-plain: retired as obsolete in v2.24 (item 162) -- Active Year Execution's expanders (exX) are gone (it guarded: the execution panel's open rows are reset to a plain object on an appropriation switch (key re-verification))
+  // v200-exx-setsvc-plain: retired as obsolete in v2.24 (item 162) -- Active Year Execution's expanders (exX) are gone (it guarded: the execution panel's open rows are reset to a plain object on a service switch (key re-verification))
   // v2.04 (item 112): retargeted to the five-year workbook's new code -- the same defect, where it now lives
   { id: 'v200-fydprows-plain', area: "fydpBookModel", what: "the five-year plan finds its offices in a plain object, so an office named after a built-in is lost or answers as a function",
     find: "  const pm=Object.create(null);\n  got.forEach(function(p){ p.M.order.forEach(",
@@ -4928,9 +4884,7 @@ const MUTATIONS = [
     repl: "freeze:6, rows:out}], SRC_XTRA);\n" },
   // v200-u37-guard-exportidsreq: retired as obsolete in v2.19 -- exportIdsReq went with item 150 (the refused writer’s null is not checked: exportIdsReq goes on to a Blob, a download and its own word after th)
   // v200-u37-guard-exportflow: retired as obsolete in v2.19 -- exportFlow went with item 150 (the refused writer’s null is not checked: exportFlow goes on to a Blob, a download and its own word after the )
-  { id: "v200-u37-guard-exportexview", area: "exportExView", what: "the refused writer’s null is not checked: exportExView goes on to a Blob, a download and its own word after the refusal",
-    find: "  const bytes=buildXlsx(sheets, null, xlsxHouse('Active Year Execution'));\n  if(!bytes) return;\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Active Year Execution - '",
-    repl: "  const bytes=buildXlsx(sheets, null, xlsxHouse('Active Year Execution'));\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Active Year Execution - '" },
+  // v200-u37-guard-exportexview: retired as obsolete in v2.24 (item 162) -- Active Year Execution's export (exportExView) is gone (it guarded: the refused writer’s null is not checked: exportExView goes on to a Blob, a download and its own word after th)
   { id: "v200-u37-guard-exportsrc", area: "exportSrc", what: "the refused writer’s null is not checked: exportSrc goes on to a Blob, a download and its own word after the refusal",
     find: "  const bytes=buildXlsx(sheets, SRC_XTRA);\n  if(!bytes) return;\n",
     repl: "  const bytes=buildXlsx(sheets, SRC_XTRA);\n" },
@@ -7065,8 +7019,7 @@ const MUTATIONS = [
     find: "              applies:function(it){ return rcnEligible(it) && rcnFundedSvcs(it.id).indexOf(sv)>=0; },\n", repl: "" },
   { id: 'v208-rv-proposal-moved', area: "setGrp", what: "Classify moves a copy's own proposal to another office, and Submit withholds it",
     find: "  if(typeof SANDBOX!=='undefined' && SANDBOX && grpOf(itm)!==g && pmoProposalIds().indexOf(id)>=0){", repl: "  if(false){" },
-  { id: 'v208-rv-exw-alerts', area: "execWbsApply", what: "WBS from execution data in a copy alerts once per CLIN and counts the refused writes as written",
-    find: "    if(pr.kind==='clin' && typeof SANDBOX!=='undefined' && SANDBOX){ locked++; return; }\n", repl: "" },
+  // v208-rv-exw-alerts: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: WBS from execution data in a copy alerts once per CLIN and counts the refused writes as written)
   { id: 'v208-rv-ccar-clear-says-saved', area: "erSave", what: "clearing a CCaR record the file carries says it saved, and changes nothing",
     find: "  if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar && !((S.ccar||{})[id]))\n", repl: "  if(false)\n" },   // v2.08 second review: retargeted
   { id: 'v208-rv-step-snapshot', area: "openEdit", what: "after next ↓ the box controller compares the next record's fields with the first's",
@@ -8386,15 +8339,11 @@ const MUTATIONS = [
   { id: 'v212-rv5-blank-line-unnamed', area: "srcWbsParts", what: "Without a WBS says \"no paragraph\" for a prime whose CLIN has one blank WBS line, naming no CLIN",
     find: "  if(list.length===1){ const c1=wbsCodeIn(list[0].w); return [[amt, c1, c1? '' : (clin? 'clin' : 'none')]]; }", repl: "  if(list.length===1){ const c1=wbsCodeIn(list[0].w); return [[amt, c1, c1? '' : 'none']]; }" },
   // S16: WBS from execution data reads ORBIT's own column back, and picks from the estimate
-  { id: 'v212-rv5-exw-split-conflict', area: "execWbsScan", what: "a requirement's WBS split, sent by the Spend Plan Source and read back, is a conflict to set by hand; one already on its paragraph is ready to write",
-    find: "    if(has.length===ps.length && ps.every(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }", repl: "" },
-  { id: 'v212-rv5-exw-overlap-as-sent', area: "execWbsScan", what: "rows naming a paragraph the requirement does not carry, beside one it does, are taken as already set",
-    find: "    if(has.length===ps.length && ps.every(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }", repl: "    if(ps.some(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }" },
-  { id: 'v212-rv5-exw-unlisted-written', area: "execWbsScan", what: "WBS from execution data writes a paragraph the estimate the pickers offer does not hold",
-    find: "    if(off.length){ rec.off=off; scan.unlisted.push(rec); return; }", repl: "" },
+  // v212-rv5-exw-split-conflict: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: a requirement's WBS split, sent by the Spend Plan Source and read back, is a conflict to set by hand; one alre)
+  // v212-rv5-exw-overlap-as-sent: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: rows naming a paragraph the requirement does not carry, beside one it does, are taken as already set)
+  // v212-rv5-exw-unlisted-written: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: WBS from execution data writes a paragraph the estimate the pickers offer does not hold)
   // v212-rv5-exw-unnamed: retired as obsolete in v2.19 -- its line in exwBody went with item 150 (WBS from execution data shows a paragraph ready to write with no name)
-  { id: 'v212-rv5-exw-para-whole', area: "srcWbsPara", what: "the column's \"code - name\" is not read to its code, so ORBIT's own Spend Plan Source is read back as nothing",
-    find: "  const head=wbsCodeIn(raw);", repl: "  const head=raw.toUpperCase();" },
+  // v212-rv5-exw-para-whole: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: the column's \"code - name\" is not read to its code, so ORBIT's own Spend Plan Source is read back as nothing)
   // S20: the draw writes nothing, measured from a state no draw has touched
   { id: 'v212-rv5-draw-leaves-new-containers', area: "clinReadOnly", what: "a draw of Needs attention leaves behind the CLIN containers it made for a prime that had none",
     find: "    if(!w.has){ if(own(w.box, pid)) delete w.box[pid]; return; }", repl: "    if(!w.has){ return; }" },
@@ -10204,10 +10153,8 @@ const MUTATIONS = [
   { id: 'v215-w4-house-colb-flush', area: '_housePlan', what: 'column B’s text is written indent="1" with no horizontal alignment',
     find: `(ci===1? {h:'left', v:'center', indent:1} : {v:'center'})`, repl: `(ci===1? {v:'center', indent:1} : {v:'center'})` },
   // v2.15 W4 (item 135): audit-board "v2.15 W4 — WBS from execution data never proposes a prime’s own paragraph"
-  { id: 'v215-w4-exw-prime-proposed', area: 'execWbsScan', what: 'a prime’s row naming none of its CLINs is proposed for the prime’s own paragraph, which nothing reads, and written',
-    find: `    if(b.kind==='req' && clinApplies(b.id)){ scan.primeNoClin.push(rec); return; }`, repl: `` },
-  { id: 'v215-w4-exw-prime-silent', area: 'exwBody', what: 'WBS from execution data leaves a prime’s row out without a word',
-    find: `  if(sc.primeNoClin.length){`, repl: `  if(false){` },
+  // v215-w4-exw-prime-proposed: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: a prime’s row naming none of its CLINs is proposed for the prime’s own paragraph, which nothing reads, and wri)
+  // v215-w4-exw-prime-silent: retired as obsolete in v2.24 (item 162) -- WBS from execution data is gone (it guarded: WBS from execution data leaves a prime’s row out without a word)
   { id: 'v215-w4-clin-ask-text', area: 'clinAskTot', what: 'a CLIN request of text figures is summed as text: 5 and 7 read 057',
     // v2.15 review RV-D: retargeted -- a request's figures are read once, where the list is read (clinAskIn); summed as stored, text joins
     find: `function clinAskIn(v){ return Array.isArray(v)? Array.from(v, clinFig) : []; }`, repl: `function clinAskIn(v){ return Array.isArray(v)? v.slice() : []; }` },
@@ -11286,6 +11233,33 @@ const MUTATIONS = [
     find: "Each line goes in the change journal, and can be put back once mandatory funding is on again.</label>'", repl: "Each line goes in the change journal, where it can be put back.</label>'" },
   { id: 'v224-161-status-wording', area: 'mandOffApply', what: "the line after Clear says each figure can be put back, while Put back is refused until mandatory is on again",
     find: "and a cleared mandatory figure can be put back once mandatory funding is on again.", repl: "where it can be put back." },
+  // item 162 (Brad, 26 Nov 2026): Budget Year holds the forecast and CR cash; ORBIT takes no CCaR pull in; a pull a file carries
+  // is kept, saved back and carried by a full import, and never read to choose a budget ("Leave it as Not Set")
+  { id: 'v224-162-label-execution', area: 'uiNav', what: "the left menu's section reads Execution again",
+    find: '<span class="t">Budget Year</span>', repl: '<span class="t">Execution</span>' },
+  { id: 'v224-162-flyout-heading', area: 'uiFlyItems', what: "the section's flyout is headed Execution again",
+    find: "'<div class=\"uiFh\">Budget Year</div>'", repl: "'<div class=\"uiFh\">Execution</div>'" },
+  // (an item is drawn only where its function exists, so a third item is put back on a function the board still has)
+  { id: 'v224-162-flyout-item-back', area: 'uiFlyItems', what: 'the Budget Year flyout holds a third item again (Active Year Execution, on the realignment)',
+    find: "+ it('CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr');",
+    repl: "+ it('CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr') + it('Active Year Execution…', 'spend plan vs obligations', 'toggleRlg');" },
+  { id: 'v224-162-help-execution-path', area: 'helpDoc', what: 'the guide names an Execution path again',
+    find: '<span class="mp" data-m="exec">Budget Year › Spend Plan Forecast…</span>', repl: '<span class="mp" data-m="exec">Execution › Spend Plan Forecast…</span>' },
+  { id: 'v224-162-data-qpe-card', area: 'syncBtns', what: 'the Data panel offers a CCaR QPE card again',
+    find: "card('ccar', 'CCaR records', 'The CCaR records file: each record’s Title and OPR.',",
+    repl: "card('ccar', 'CCaR records', 'The CCaR records file: each record’s Title and OPR. Execution — CCaR QPE: the monthly pull.'," },
+  { id: 'v224-162-realign-exec-source', area: 'rlgBody', what: "the realignment offers the active execution year as a source again",
+    find: "onchange=\"rlgSet(&quot;src&quot;,this.value)\">'",
+    repl: "onchange=\"rlgSet(&quot;src&quot;,this.value)\">'+'<option value=\"exec:'+MS.cur+'\">FY'+(MS.cur%100)+' active (CCaR)</option>'" },
+  { id: 'v224-162-bae-tiebreak-back', area: 'budRuleOf', what: "the BAE rule's CCaR tiebreak is put back: a carried pull picks between two names that fit",
+    find: "return {n:'', how:'unset', many:c.length};",
+    repl: "if(c.length>1){ var on=Object.create(null); try{ var nm=ccarNorm(ccarOf(itemById(id))); ((((EXDB.all||{})[mySlug()]||{}).rows||{})[MS.cur]||[]).forEach(function(r){ if(ccarNorm(r[2])===nm) on[String(r[4]||'').trim()]=1; }); }catch(e){} var hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return {n:hit[0].n, how:'rule', many:c.length}; } return {n:'', how:'unset', many:c.length};" },
+  { id: 'v224-162-exdb-not-saved', area: 'savedHtmlOf', what: 'a saved board file no longer carries the execution data',
+    find: "execDb:L('execDb', EXDB), ", repl: "" },
+  { id: 'v224-162-exdb-not-read', area: 'boot', what: "opening a board file no longer reads the execution data it carries",
+    find: "const fb=(PUB&&PUB.execDb)||null;", repl: "const fb=null;" },
+  { id: 'v224-162-fullimport-drops-exec', area: 'fullImportText', what: 'a full import no longer carries the execution data',
+    find: "ex=has.ex? JSON.parse(JSON.stringify(J.execDb)) : null,", repl: "ex=null," },
   // ==== end v2.24 ====
 
 ];
