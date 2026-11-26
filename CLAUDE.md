@@ -5471,6 +5471,10 @@ Brad, 26 Nov 2026: *"Print Present in $K and fix the wording"*, after the v2.23 
   records list. The pull a file already holds (`EXDB`) is **carried** -- read, saved back byte for byte, carried by every file this page
   writes -- and read by nothing that decides a figure but `srcActiveFy` (an open question) and Snapshots. **Do not add a reader of
   `EXDB`.** The BAE rule has four steps now: more than one fitting name is Not set, picked by hand.
+- **Dead code is found by `npm run deadcode` (item 163)**, never by counting names: run it after any removal, and remove what it lists
+  unless a test calls it (it lists those). **A draw reads the lanes through `tiersDraw()`** and the sorted destinations through
+  `flowEntsAZ()`, one walk / one sort per draw, emptied when a draw starts and ends and taken again after any save. A new per-draw cache
+  follows the same rule, with a check that an edit between two draws is seen.
 - **The Budget Year screens (item 164) are one quiet table style** (`bytab`, `<style id="v224by">`): no inline colour on a figure,
   TOTAL navy with white in every cell, notes behind `<details>`. **A figure never carries an inline colour inside a `tr.tot`**: it beats
   the row's white and, in Harbor, gold IS the navy. `npm run standards` now measures both screens with figures.

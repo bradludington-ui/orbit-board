@@ -650,7 +650,19 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 - **Checks:** audit-board "v2.24 item 164" (19 fail on adeec0c, the figures held cell by cell from a hand-worked fixture); 12
   `v224-164-*` mutations, 12 of 12 caught (`proved-164.jsonl`); before/after screens in `recovery/v224/shots-164/`.
 ##### 163. Dead code and repeated work (Brad, 26 Nov 2026: "let's optimize our code and remove inefficiencies or dead code")
-- ITEM163
+- **Built:** `tools/dead-code.mjs` (`npm run deadcode`; `--json`, `--board FILE`), committed so it can be run after any removal: a
+  parser-built call graph from the top-level code, the markup and every handler, reporting functions and names nothing reaches, names
+  called and never declared, style rules that match nothing, and storage keys written and never read; names only the tests call are
+  listed as kept for them. Removed: `uiCycLabel`, `POS_SHARED` and 63 dead style rules (the board 7,021 bytes smaller); the shared
+  folder's execution-data share (`driveExecPush`, `driveExecPull`, "share mine", the automatic pulls), which brought a colleague's CCaR
+  pull in. It now reports 0 unreachable, 0 undeclared, 0 dead rules, 0 unread keys (8 rules with some dead selectors left alone).
+- **Repeated work:** on a 120-requirement, six-service board one redraw walked the lanes 130 times (each row's "to complete" line walked
+  them again) and sorted the destination list 124 times. One walk serves the whole draw now (`tiersDraw`, taken again after any save,
+  emptied when a draw starts and ends) and the sorted list likewise (`flowEntsAZ`, each caller its own copy): 9 walks a redraw,
+  `basisSvcOf` 26,081 calls → 1,881; a redraw in Review mode 153 → 111 ms in Chromium (median of 15).
+- **Guard:** `node tools/export-delta.mjs --ref 0fa083c`: 2,096 figures, none moved; every suite whole; the browser checks (layout's
+  carried D ×8 alone failing, as on main). **Checks:** audit-board "v2.24 item 163" (an edit between two draws, or a list written mid-draw,
+  is never served from the cache); 7 `v224-163-*` mutations, 7 of 7 caught; 4 retired with the share (`v202-d4-*`).
 
 ### v2.23 — 25 Nov 2026: the requirement as a page, Rank by band and the five-year chart (item 156); one requirement across the FYDP (item 158); Allocate every requirement in one year, and mandatory funding on or off (item 159) -- built on Brad's "Go on v2.23" of 25 Nov and his answers; merged on his "Merge it when it passes" of 26 Nov (PR #85)
 - **How it was built:** three builders to one contract (`recovery/v223/contract.md`): W1 the requirement page, Rank by band and
