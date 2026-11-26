@@ -128,7 +128,6 @@ html[data-theme="harbor"]{--edge:#627185;--edge2:#4b5665}
 .hdr .brand{display:flex;align-items:center;gap:12px}
 /* The ORBIT wordmark: an inline SVG so the saved file carries it; one colour from --ink, the satellite from --gold. */
 .brand .logo{height:30px;width:auto;flex:none;color:var(--ink);--orbit-accent:var(--gold)}
-.brand .eyebrow{font-size:8px;letter-spacing:2.2px;color:var(--gold);font-weight:800;margin-bottom:1px}
 /* toolbar: CONTEXT (what you are looking at) | TOOLS (what you can do) */
 .tbar{position:sticky;top:var(--hdrH,56px);z-index:49;background:var(--panel);border-bottom:1px solid var(--line);padding:5px 18px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tlbl{font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);font-weight:800;white-space:nowrap}
@@ -316,8 +315,6 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    Below 1400px there is no room for both, and the row already carries every control, so it goes. */
 .gridsplit{display:grid;grid-template-columns:minmax(0,1fr) clamp(420px,30vw,600px);gap:10px;align-items:start}
 .inspector{background:var(--panelA);border:1px solid var(--line);border-radius:9px;position:sticky;top:calc(var(--hdrH,56px) + var(--tbarH,32px) + var(--scsH,0px) + 8px);max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,32px) - var(--scsH,0px) - 16px);overflow:auto;font-size:11px}
-.insp-hd{display:flex;align-items:center;gap:8px;padding:7px 11px;border-bottom:1px solid var(--line2);background:var(--panel2);position:sticky;top:0}
-.insp-hd b{font-size:10px;letter-spacing:.13em}
 .insp-bd{padding:10px 11px}
 .insp-ttl{font-size:14px;font-weight:800;line-height:1.25;margin-bottom:5px}
 .insp-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}
@@ -345,10 +342,6 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-f.big .fv{font-size:16px;font-weight:800}
 .insp-f.empty{border-style:dashed;color:var(--dim)}
 .insp-lbl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800;margin:10px 0 4px}
-.insp-svc{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
-.insp-svc>div{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:5px 7px;min-width:0}
-.insp-svc .fl{overflow-wrap:anywhere}
-.insp-svc .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 /* One ROW per service rather than one column: six services and seven-figure dollars do not fit
    across a narrow panel, and the split is read down the list anyway — set Disc and Mand, and UFR
    is whatever the requirement still needs. UFR is never typed; it is the remainder. */
@@ -396,7 +389,6 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-split .drew.ls span{display:block}
 .insp-f .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .insp-empty{padding:26px 16px;text-align:center;color:var(--dim);font-size:11px;line-height:1.6}
-.insp-kbd{font:10px ui-monospace,Menlo,monospace;background:var(--panel);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--mut)}
 /* BELOW 1400 THE PANEL BECOMES A DRAWER, IT DOES NOT DISAPPEAR. It used to be display:none here,
    and because this build deliberately retired the row editor -- the row is triage, the RECORD panel
    is the editor -- hiding it left NO editor at all: on a 1366x768 laptop, the commonest screen
@@ -431,7 +423,6 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 /* Chips echoed into the RECORD panel are STATUS, never controls: the row is where they are set.
    Whatever gave a chip its pointer -- an inline style or its class -- it stops being an invitation
    here. */
-.chipsro .rchip, .chipsro .rchip *{cursor:default}
 .inspector .drawerbar{display:none; align-items:center; justify-content:space-between; gap:8px;
   position:sticky; top:0; z-index:2; background:var(--panelA); border-bottom:1px solid var(--line);
   padding:7px 10px; margin:-1px -1px 8px; font-weight:800; letter-spacing:.04em; font-size:10px}
@@ -442,8 +433,6 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    24px, 2.5.8's minimum */
 .inspector .drawerbar button{border-color:var(--edge); min-height:24px; min-width:24px}
 .inspector .drawerbar button:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
-.gridhead .nums>div{text-align:right}
-.row .nums .l{display:none}
 .row .tt{line-height:1.2}
 .row .ev{margin-top:1px}
 .row .rowchips{margin-top:2px;gap:3px}
@@ -489,10 +478,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 /* The second reading under a split editor's cell: what the lane could actually supply. */
 .drew{font-size:8px;font-weight:800;letter-spacing:.02em;color:var(--red);text-align:right;
   margin-top:1px;white-space:nowrap}
-.chipm{position:relative;display:inline-block}
-.chipm .mdd{left:0;right:auto;min-width:212px;max-height:340px;overflow-y:auto}
-.chipm.open .rchip{background:var(--gold);border-color:var(--gold);color:var(--onGold)}
-.chipm .mi{font-size:11px;padding:6px 9px}
 .teamtag{display:inline-block;font-size:8.5px;font-weight:800;border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:middle;letter-spacing:.4px}
 .teamtag.atl{background:var(--tintO);color:var(--tintOi);border:1px solid var(--tintOb)}
 .teamtag.btl{background:var(--tintB);color:var(--tintBi);border:1px solid var(--tintBb)}
@@ -521,17 +506,9 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .gchip{font-size:10.5px;font-weight:800;text-align:center;padding:4px 4px;border-radius:5px;color:var(--onChip)}
 .tt{font-size:12.5px;font-weight:600;line-height:1.25}
 .ev{font-size:10px;color:var(--mut);margin-top:2px}
-.sect-new{display:inline-block;font-size:9px;font-weight:700;background:var(--gold);color:var(--onGold);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle}
-.recname.edit{cursor:pointer}
-.recname.edit:hover{color:var(--gold)}
-.recname{display:block;font-size:9.5px;font-weight:400;color:var(--dim);line-height:1.3;margin-top:1px}
 .tedit{color:var(--dim);font-size:11px;cursor:pointer;margin-left:6px;vertical-align:middle}
 .tedit:hover{color:var(--gold)}
 .tedit.ren{color:var(--gold)}
-.nums{display:grid;grid-template-columns:100px 100px 88px;gap:6px;font-size:11px;align-items:center;justify-items:end;justify-content:end}
-.nums .b{text-align:right;width:100%}
-.nums .l{color:var(--dim);font-size:9px;text-transform:uppercase}
-.nums .v{font-weight:700;font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tierlbl{font-size:9px;font-weight:800;border-radius:4px;padding:3px 5px;width:100%;text-align:center}
 .tl-disc{background:var(--greenD);color:var(--green)}
 .tl-split{background:var(--tintB);color:var(--tintBi)}
@@ -573,17 +550,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .hint{font-size:10px;color:var(--dim);line-height:1.5}
 /* The record panel. Two columns of labelled fields; a cell knows whether it is SET, because
    an unset field is a blank cell in the Spend Plan Source export. */
-.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 20px;margin-top:4px}
-.rec-f{min-width:0}
-.rec-f>span.rl{display:block;font-size:8.5px;color:var(--dim);letter-spacing:.5px;
-  font-weight:800;text-transform:uppercase;margin-bottom:3px}
-.rec-f .cesel{width:100%;max-width:none;margin:0;font-size:10.5px;padding:4px 5px}
-.rec-f .btn{width:100%;text-align:left;font-size:10.5px;padding:5px 8px}
-.rec-f.un>span.rl:after{content:' \2014 not set';color:var(--amber);font-weight:700}
-.rec-sec{grid-column:1/-1;font-size:9px;color:var(--gold);letter-spacing:.6px;font-weight:800;
-  text-transform:uppercase;border-bottom:1px solid var(--lineSoft);padding-bottom:3px;margin-top:6px}
-.rec-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10.5px;margin-bottom:6px}
-.rec-hd .nav{margin-left:auto;display:flex;gap:6px}
 /* The classification matrix. Cells hold the record panel's own controls, sized down. */
 .mat-cov{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px}
 .mat-bulk{margin-top:6px;background:var(--panel2);border-radius:6px;padding:5px 8px}
@@ -597,14 +563,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .mat-c.un{box-shadow:inset 2px 0 0 var(--amber)}
 .mat-na{color:var(--dim);text-align:center}
 .mode-tag{font-size:8.5px;font-weight:800;color:var(--blue);border:1px solid var(--blue);border-radius:3px;padding:1px 4px}
-.svc-detail{grid-column:1/-1;background:var(--sink);border-radius:6px;padding:8px 12px;font-size:11px}
-.svc-detail table{width:100%;border-collapse:collapse}
-.svc-detail th{color:var(--dim);font-size:9.5px;text-transform:uppercase;padding:3px 6px;text-align:center}
-.svc-detail th:first-child{text-align:left}
-.svc-detail td{padding:3px 6px;text-align:right;font-variant-numeric:tabular-nums;color:var(--mut)}
-.svc-detail td:first-child{text-align:left;color:var(--ink);font-weight:600}
-.svc-detail input{width:104px;background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--amber);font-size:11px;font-weight:700;padding:3px 6px;text-align:right}
-.svc-detail input:focus{outline:none;border-color:var(--amber)}
 .svc-hint{font-size:9px;color:var(--dim);margin-top:4px}
 .clin-detail{grid-column:1/-1;background:var(--sink);border:1px solid var(--gold);border-radius:6px;padding:10px 12px;font-size:11px}
 .clin-detail .ch{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
@@ -653,17 +611,9 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .rlg-svc{display:inline-flex;align-items:center;gap:5px}
 .rlg-avail{font-size:9px;color:var(--dim)}
 .rlg-avail.bad{color:var(--amber);font-weight:700}
-.note-detail{grid-column:1/-1;background:var(--sink);border-radius:6px;padding:8px 12px}
-.note-detail textarea{width:100%;min-height:44px;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:11.5px;padding:6px 8px;font-family:inherit;resize:vertical}
 /* The pop-up editor borrows the same shape. Without font-family:inherit a bare textarea falls back to the browser's monospace, which reads as a different application. */
-.note-detail textarea:focus{outline:none;border-color:var(--gold)}
-.note-snip{font-size:10px;color:var(--amber);margin-top:2px;font-style:italic}
 .stdtag{font-size:8px;font-weight:800;letter-spacing:.5px;padding:1px 5px;border-radius:3px;
   background:var(--gold);color:var(--onGold);vertical-align:middle}
-.consbtn{font-size:9px;font-weight:800;border:1px solid var(--line2);color:var(--mut);border-radius:4px;padding:2px 7px;cursor:pointer;display:inline-block;margin-right:4px}
-.consbtn.has{border-color:var(--amber);color:var(--amber)}
-.consbtn.need{border-color:var(--red);color:var(--red)}
-.note-detail.cons textarea{border-color:var(--amber)}
 .cesel.band-b0{border-color:#ff6b81;color:var(--ink)}
 .cesel.band-b1{border-color:#d6a24a;color:var(--ink)}
 .cesel.band-b2{border-color:#e0703a;color:var(--ink)}
@@ -698,10 +648,6 @@ table.pk .z{color:var(--line2)}
 .po td{padding:3px 6px;border-bottom:1px solid var(--lineSoft)}
 .po tr.chg td{background:rgba(255,210,94,.08)}
 .spscroll{overflow-x:auto;max-width:100%}
-.drillbar{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin:8px 0 4px}
-.drillbar .dl{font-size:9.5px;font-weight:800;letter-spacing:.5px;color:var(--mut);margin-right:4px}
-.svclvl{font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 5px;border-radius:3px;
-  background:var(--panel2);color:var(--amber);border:1px solid var(--amber);margin-left:5px}
 .pmoh{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin-bottom:3px}
 /* ── THE FIVE-YEAR PLAN TABLE: a year is a block. Each year's three columns start at a 2px rule and
    its header is centred over them, so the eye finds where one year ends and the next begins; the
@@ -718,11 +664,6 @@ table.pk .z{color:var(--line2)}
 .fydpbook .fydptot{background:color-mix(in srgb,var(--gold) 14%,var(--panel))}
 .fydpbook tr.tot td{border-top:2px double var(--edge);font-weight:700}
 .fydpsec{margin:12px 0 4px;font-size:12px;color:var(--ink);border-bottom:2px solid var(--edge);padding-bottom:2px}
-.edcard{background:var(--panelA);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-.edcard .l{font-size:9px;letter-spacing:.8px;color:var(--dim);font-weight:800;text-transform:uppercase}
-.edcard .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
-.edcard .s{font-size:9.5px;color:var(--mut);margin-top:3px;line-height:1.4}
-.note-detail.desc textarea{border-color:var(--line2)}
 .cesel{margin-top:3px;background:var(--sink);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:9.5px;padding:2px 4px;max-width:220px}
 .cesel.unset{color:var(--dim);border-style:dashed}
 .rowtags{display:inline-flex;gap:4px;flex-wrap:wrap;vertical-align:middle}
@@ -847,8 +788,7 @@ input.mfind:focus-visible{outline:2px solid var(--gold);outline-offset:0}
   .sc .rm,.sc .sub{white-space:normal}      /* a headline figure may wrap before the page does */
   .row{grid-template-columns:minmax(0,1fr);gap:6px;padding:8px 10px}
   .rank{justify-content:flex-start}
-  .nums{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:start}
-  .acts{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:stretch}
+    .acts{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:stretch}
   .acts .rowmenu{justify-self:end}
   .rowchips{flex-wrap:wrap}
   /* Two-dimensional by nature: let them scroll rather than reflow, which is what the criterion
@@ -861,10 +801,7 @@ input.mfind:focus-visible{outline:2px solid var(--gold);outline-offset:0}
      clipped to 282px of its 919px and sat above rows that no longer line up with it. So it goes,
      and the row's own labels come back. */
   .gridhead{display:none}
-  .row .nums .l{display:block}
-  .nums{justify-items:start}
-  .nums .b{text-align:left}
-}
+      }
 /* ── 1.4.11 applied: every control that drew its edge in --line draws it in --edge (states keep their own). */
 .btn,.qb,.mcb,.perb,.chip,.search,.rlg-in,.rank .ud button,.buys input,.rank input,.acts input,.addp input,.addp select,
 .svc-detail input,.clin-detail .ch select,.clin-detail input,.note-detail textarea,.rchip,.rchip.add,.fitchip,
@@ -883,7 +820,6 @@ input.mfind:focus-visible{outline:2px solid var(--gold);outline-offset:0}
 .tt span[onclick]{padding-top:5px;padding-bottom:5px}
 .ev span[onclick]{padding-top:7px;padding-bottom:7px}
 span.tedit[onclick],.tt span.tedit[onclick],button.tedit[onclick]{display:inline-block;min-width:25px;text-align:center;padding:8px 0;margin:-8px 0}
-.tt span.recname.edit[onclick]{padding:7px 0;margin:-6px 0 -7px}
 .rchip,.lanechip{min-height:24px;box-sizing:border-box;display:inline-flex;align-items:center}
 .rowtags .rchip{margin-top:0}
 input:not([type=checkbox]):not([type=radio]),select{min-height:24px;box-sizing:border-box}
@@ -1157,7 +1093,6 @@ html[data-mode="brief"] .posture{min-height:74px}
 .uplline .u b{font-weight:800}
 /* ---- the RECORD panel: the same content, a legible scale, editable fields that look editable ------- */
 .inspector{border-radius:6px}
-.insp-hd b{font-size:10.5px}
 .insp-ttl{font-size:calc(var(--t1) + 2px)}
 .insp-meta{font-size:var(--t2)}
 .insp-act .a1{font-size:11px}
@@ -1266,7 +1201,6 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 :is(#addPanel,#editPanel) .ar-sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
 :is(#addPanel,#editPanel) .ar-sec>h4 span{font-weight:600;letter-spacing:0;text-transform:none;color:var(--dim);margin-left:6px}
 :is(#addPanel,#editPanel) .ar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
-:is(#addPanel,#editPanel) .ar-grid.ar-g3{grid-template-columns:repeat(3,minmax(0,1fr))}
 :is(#addPanel,#editPanel) .ar-grid.ar-g1{grid-template-columns:minmax(0,1fr)}
 :is(#addPanel,#editPanel) .ar-f{display:flex;flex-direction:column;gap:2px;min-width:0}
 :is(#addPanel,#editPanel) .ar-f.span2{grid-column:1 / -1}
@@ -7006,6 +6940,14 @@ let _cycRefusedAt=0;
 // back to it is a switch.)
 let _fyMoves=0;
 let _cycDeltaCache=null;        // {fy, ref, d}: the deltas against the reference, once per render
+// v2.24 (item 163): THE LANE WALK, ONCE PER DRAW, for the readers drawn once per ROW. A row's "N to complete" reads the record's
+// draft (reqDraftRead -> budLines), and budLines walked every lane again for each row: 130 walks for one redraw of 120 requirements,
+// most of a redraw's time. tiersDraw() hands those readers one walk per draw: valid only while a render runs (_rPass, set by
+// render's wrapper) and only while nothing has been saved since it was taken (_rTGen, the save count) -- an edit made during a
+// draw (Chromium fires change as innerHTML replaces a field) is never answered from the walk before it. Outside a draw it is
+// tiers() itself. Read-only: budLines reads one requirement's lanes from it and writes nothing.
+var _rPass=0, _rT=null, _rTGen=-1, _rAZ={};   // var, not let: the board draws while the script is still being read (applyStore), before this line runs
+function tiersDraw(){ if(!_rPass) return tiers(); if(!_rT || _rTGen!==_saveGen){ _rT=tiers(); _rTGen=_saveGen; } return _rT; }
 const BASE_FY_DEFAULT=2027;
 const FYL = ()=> 'FY'+(MS? MS.cur%100 : 27);
 function freshYearState(){
@@ -12883,8 +12825,7 @@ function pkgApply(pkg, fname){
    EACH STORE KEEPS THE RULE IT ALREADY HAS. These questions were settled once for the shared
    folder, and the answer does not change because the bytes arrived through a different door —
    two doors with two rules for the same data is how a store starts depending on how it got here:
-     EXECUTION      newer timestamp wins outright. A monthly refresh where newer is strictly
-                    better, exactly as driveExecPull has it.
+     EXECUTION      newer timestamp wins outright (a carried store since v2.24: nothing new comes in).
      COST ESTIMATE  per set — a key we do not hold is TAKEN, a key we hold with the same
                     fingerprint is a NO-OP, a key we hold with a DIFFERENT fingerprint is REPORTED
                     and LEFT ALONE. An approved estimate is fixed for life and the import itself
@@ -16993,7 +16934,7 @@ function budAskSvcs(id){
 // exactly as a service with no money is. A service drawing discretionary needs none: that line carries the rest.
 function budLines(id, T){
   const it=itemById(id); if(!it) return [];
-  const p=(T||tiers())[id]||{}, out=[], unf=unfSvcOf(it, p);
+  const p=(T||tiersDraw())[id]||{}, out=[], unf=unfSvcOf(it, p);
   SVC.forEach(function(sv,i){
     const d=(+(p.d||[])[i]||0)>0.005, m=(+(p.m||[])[i]||0)>0.005;
     if(d) out.push({svc:sv, lane:'disc'});
@@ -17508,7 +17449,6 @@ async function driveAutoConnect(){
   }
   _driveDir=h; _driveNeed='';
   await driveStorePull(false);
-  try{ await driveExecPull(true); }catch(e){}
   _driveLive=true;
   if(liveCfg().on) liveStart();
   driveBar(); render();
@@ -17533,7 +17473,6 @@ async function driveConnectNow(){
   }
   _driveNeed='';
   await driveStorePull(false);
-  try{ await driveExecPull(true); }catch(e){}
   _driveLive=true;
   if(liveCfg().on) liveStart();
   driveBar(); render();
@@ -18466,9 +18405,18 @@ function flowEnts(){
 // holding dA twice offered dA under both names, and R1's Goes to showed the second, "Bravo Yard", where the funds flow, the MIPR
 // rule and every message read R1 as on "Alpha Depot". `all`: every entry, as the destinations panel lists them.
 function flowEntsAZ(all){
-  return flowEnts().filter(function(e,i,L){ return all || L.findIndex(function(x){ return x.k===e.k; })===i; })
+  // v2.24 (item 163): ONCE PER DRAW. Every row's record fields offer the destinations (recFields -> the Goes to options), so a
+  // redraw of 120 requirements sorted the whole list 124 times (localeCompare, and a findIndex per entry). Inside a draw the
+  // sorted list is kept while nothing is saved and no side list (the destination list is one) is written; each caller gets its
+  // own copy. Outside a draw it is worked out every time, as before.
+  const key=all? 1 : 0;
+  if(_rPass && _rAZ[key] && _rAZ.gen===_saveGen && _rAZ.side===_sideGen && _rAZ.ents===DESTDB.ents) return _rAZ[key].slice();
+  const L=flowEnts().filter(function(e,i,L){ return all || L.findIndex(function(x){ return x.k===e.k; })===i; })
     .sort(function(a,b){
     return String(a.n||'').trim().localeCompare(String(b.n||'').trim(), undefined, {sensitivity:'base', numeric:true}); });
+  if(_rPass){ if(_rAZ.gen!==_saveGen || _rAZ.side!==_sideGen || _rAZ.ents!==DESTDB.ents) _rAZ={gen:_saveGen, side:_sideGen, ents:DESTDB.ents};
+    _rAZ[key]=L.slice(); }
+  return L;
 }
 // Two destinations are the same destination when their NAMES match, ignoring case and extra
 // spaces. One nobody has named yet is never merged with another.
@@ -24250,7 +24198,6 @@ function fdcPosHeld(Q, y){
 // §32  SNAPSHOTS, BUDGET MANAGEMENT, CR AND FORECAST PANELS
 // ==============================================================================================================
 const POS_NONE = '— matched no requirement —';
-const POS_SHARED = '— title shared by several requirements —';
 
 function posStore(){ if(!MS.snaps || typeof MS.snaps!=='object') MS.snaps={}; return MS.snaps; }
 function posGet(k){ return posStore()[k]||null; }
@@ -30135,7 +30082,7 @@ async function drivePoll(quiet){
   await driveClaimIfViewing(dir);
   // WORKING OUT OF THE FOLDER MEANS THE REFRESH IS ALSO A LOAD. It adopts only what is newer and
   // only when nothing local is unsaved; both guards live in driveStorePull.
-  if(driveStoreOn()){ await driveStorePull(true); await driveExecPull(true); }
+  if(driveStoreOn()){ await driveStorePull(true); }   // v2.24 (item 163): no execution data is taken from the folder
   const peers={}, locks={};
   const want='spmt-'+MS.cur+'-';
   for await (const ent of dir.values()){
@@ -30187,7 +30134,6 @@ async function driveRelease(){
 // ---- the folder AS THE STORE ------------------------------------------------------------------
 // Published copies became the work itself. Everything below exists to make that safe rather than
 // merely possible.
-const DRIVE_EXEC='spmt-exec.json';
 // '<appropriation>|<year>' -> the time of the shared-folder copy the work on screen was last loaded from
 // or written to. Kept in this browser beside the board (baseGet().folder, v1.89). It lived in memory
 // only, so a reopen forgot it and took the folder's CURRENT copy as the one the work came from: a
@@ -30810,65 +30756,10 @@ async function driveRestore(i){
     setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
   }
 }
-// ---- the execution data is shared too, or every team lead re-imports the same workbook
-// v2.02 (D4; Brad, 21 Oct): THE SHARED FOLDER'S EXECUTION DATA IS MERGED PER APPROPRIATION, newest copy of each winning --
-// the rule a file import already keeps (importStores, v1.86). The folder's copy replaced this browser's whole store when it
-// was newer, and a share wrote this browser's whole store over the folder's: a lead who had imported Full Fund and not yet
-// shared it lost that import on the next refresh after a colleague shared O&M, and a share could put an older O&M over the
-// colleague's newer one. An appropriation's data is dated by when it was imported (`at`, from v2.02), else by its store.
-// Both sides are kept whole where the other holds nothing; nothing is dropped. It narrows the window, it does not close it:
-// two shares at the same instant still write in turn (a file share has no atomic write; the hosted rebuild's eTags do).
-function exAt(e, ts){ return +((e && e.at) || ts || 0); }
-function exMerge(mine, theirs){
-  const M=(mine && mine.all)? mine : {ts:0, all:{}}, T=(theirs && theirs.all)? theirs : {ts:0, all:{}};
-  const out={ts:Math.max(+M.ts||0, +T.ts||0), all:Object.assign({}, M.all)}, took=[];
-  Object.keys(T.all).forEach(function(k){
-    const t=T.all[k], m=M.all[k];
-    if(!t || typeof t!=='object') return;
-    if(!m || exAt(t, T.ts)>exAt(m, M.ts)){ out.all[k]=t; took.push(k); }
-  });
-  return {db:out, took:took};
-}
-async function driveExecPush(quiet){
-  if(!driveStoreOn()) return false;
-  try{
-    const dir=await driveDir(true);
-    // what the folder holds first: an appropriation a colleague shared that is newer than this browser's stays as theirs.
-    // Not there is nothing to keep; a copy that cannot be read is not written over.
-    let cur=null;
-    try{ cur=driveParse(await driveRead(dir, DRIVE_EXEC)); }
-    catch(e){ if(!(e && e.name==='NotFoundError')){
-      setStat('⚠ The execution data was <b>not shared</b>: the shared folder’s copy could not be read ('+esc((e&&e.message)||String(e))
-        +'), and it is not written over unread. Nothing in the folder was changed.'); return false; } }
-    const merged=(cur && cur.exec)? exMerge(cur.exec, EXDB).db : EXDB;
-    await driveWrite(dir, DRIVE_EXEC, JSON.stringify({v:1, by:whoAmI()||'unknown',
-      ts:Date.now(), exec:merged}));
-    if(!quiet) setStat('⬆ Execution data shared to the folder — everyone gets it on their next '
-      +'refresh, so nobody re-imports the workbook.');
-    return true;
-  }catch(e){
-    setStat('⚠ Could not share the execution data — '+esc((e&&e.message)||String(e)));
-    return false;
-  }
-}
-async function driveExecPull(quiet){
-  if(!driveStoreOn()) return false;
-  try{
-    const dir=await driveDir(false,'read');
-    const j=driveParse(await driveRead(dir, DRIVE_EXEC));
-    if(!j||!j.exec) return false;
-    // v2.02 (D4): per appropriation, newest wins; what this browser holds and the folder does not is kept
-    const theirs=Object.assign({}, j.exec, {ts:+(j.exec.ts||j.ts||0)});
-    const r=exMerge(EXDB, theirs);
-    if(!r.took.length) return false;      // ours is current or newer, appropriation by appropriation
-    EXDB=r.db;
-    persistExdb(); render();
-    if(!quiet) setStat('⬇ Execution data updated from the shared folder for '
-      +esc(r.took.map(function(k){ return APPN_LBL[k]||k; }).join(', '))+' — shared by <b>'
-      +esc(j.by||'unknown')+'</b> '+esc(liveAge(+j.ts||0))+'. What this browser holds for any other appropriation is kept.');
-    return true;
-  }catch(e){ return false; }
-}
+// v2.24 (item 163; Brad, 26 Nov 2026: "I don't plan on importing any CCaR data from here out"): the shared folder's execution
+// share is gone -- driveExecPush / driveExecPull, the merge they used (exMerge, exAt) and DRIVE_EXEC. It copied a colleague's CCaR
+// pull into this board, and ORBIT takes no CCaR data in. The folder's spmt-exec.json is left where it is, read by nothing; the
+// execution data a board file carries is carried, untouched (EXDB, item 162).
 // ---- the COST ESTIMATE is shared too, or every lead re-imports the same 3 MB workbook
 // ---- the REPROGRAMMING LOG is shared too, and it merges rather than replaces
 //
@@ -31116,8 +31007,6 @@ function liveBody(){
       +'</div>';
     if(liveCfg().store)
       h+='<div class="rlg-sum" style="margin-top:6px">'
-        +'<span>Execution data <button class="qb" onclick="driveExecPush(false)">share mine</button>'
-        +'</span>'
         +'<span>Loaded <b>'+esc(liveAge(LIVEDB.last))+'</b></span>'
         +'<span>Saved <b>'+esc(liveAge(LIVEDB.pub))+'</b></span>'
         +'</div>';
@@ -35756,7 +35645,9 @@ function dlgInit(){
 try{ dlgInit(); }catch(e){}
 // A RECORD PANEL THAT FAILED TO REDRAW IS EMPTIED, NEVER LEFT STANDING (v1.89). This catch was empty:
 // the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
-render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
+render = function(){ _rPass++; _rT=null; _rAZ={}; try{ return renderDraw.apply(this, arguments); } finally{ _rPass--; if(!_rPass){ _rT=null; _rAZ={}; } } };
+// v2.24 (item 163): the draw itself, inside the pass above (tiersDraw)
+function renderDraw(){ let fm=null; try{ fm=focusMark(); }catch(e){}
   _diagSec=null;                            // v1.92 (item 18): a message after this is cleaned against what is on screen now
   // v2.09 (item 125): A REDRAW KEEPS WHAT IS TYPED IN A ROW, as v2.08 made the RECORD panel keep it (inspectorBody): the
   // field with the keyboard, typed into and not yet committed, is read before the rows are drawn and put back after, the
@@ -36237,11 +36128,6 @@ function uiPenOther(){
 function pmoBtnLabel(){ return (filter==='ALL'? 'All offices' : String(filter))+(ptypeFilter? ' · '+(ptypeFilter==='PRIME'?'Primes':'OGC') : ''); }
 function uiPmoLabel(){ try{ return pmoBtnLabel(); }catch(e){ return ''; } }
 // v2.13 (item 136): the plan on screen, for the heading's line -- a locked cycle, or the working plan and the cycle it is on
-function uiCycLabel(){
-  try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) return blLblTxt(CYCVIEW)+' locked, read only'; }catch(e){}
-  try{ if(MS && typeof MS.cycle==='string' && MS.cycle) return blLblTxt(MS.cycle)+' working plan'; }catch(e){}
-  return 'working plan';
-}
 // the active section, the heading, the cycle and the Editable chip -- read from the board's own state
 function uiSync(){
   if(!UI2 || !UI2.on) return;

@@ -6017,14 +6017,10 @@ const MUTATIONS = [
   // v202-d5a-funded-on-first-line: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (a requirement's funded dollars all go on its first line)
   // v202-d5a-column-unprinted: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the Funded column prints nothing)
   // v2.02 (D4; Brad, 21 Oct): audit-import "v2.02 (D4)".
-  { id: "v202-d4-pull-replaces", area: "driveExecPull", what: "a refresh replaces this browser's whole execution store with the folder's: an import not yet shared is lost",
-    find: "    const r=exMerge(EXDB, theirs);", repl: "    const r={db:theirs, took:Object.keys(theirs.all||{})};" },
-  { id: "v202-d4-push-whole", area: "driveExecPush", what: "a share writes this browser's whole store over the folder's: a colleague's newer appropriation is put back to an older one",
-    find: "    const merged=(cur && cur.exec)? exMerge(cur.exec, EXDB).db : EXDB;", repl: "    const merged=EXDB;" },
-  { id: "v202-d4-newest-ignored", area: "exMerge", what: "the other side always wins, newer or not",
-    find: "    if(!m || exAt(t, T.ts)>exAt(m, M.ts)){ out.all[k]=t; took.push(k); }", repl: "    { out.all[k]=t; took.push(k); }" },
-  { id: "v202-d4-unread-overwritten", area: "driveExecPush", what: "a folder copy that could not be read is written over as if there were none",
-    find: "    catch(e){ if(!(e && e.name==='NotFoundError')){\n      setStat('⚠ The execution data was <b>not shared</b>", repl: "    catch(e){ if(false){\n      setStat('⚠ The execution data was <b>not shared</b>" },
+  // v202-d4-pull-replaces: retired as obsolete in v2.24 -- driveExecPull went with item 163 (a refresh replaced the whole execution store)
+  // v202-d4-push-whole: retired as obsolete in v2.24 -- driveExecPush went with item 163 (a share wrote the whole store over the folder's)
+  // v202-d4-newest-ignored: retired as obsolete in v2.24 -- exMerge went with item 163 (the other side always won)
+  // v202-d4-unread-overwritten: retired as obsolete in v2.24 -- driveExecPush went with item 163 (an unreadable folder copy written over)
   // v2.02 (D5c, D6a, D7b, D7c; Brad, 21 Oct): audit-board "v2.02 (D5c, D6a, D7b, D7c)".
   { id: "v202-d5c-unrounded", area: "bmSeedFromPp", what: "a position a file carries with a fraction is taken into the base budget authority with the fraction",
     // v2.12 RV6: retargeted -- Take reads a position through ppLanesOf (S04), which rounds at the door for every reader; the same
@@ -11286,6 +11282,22 @@ const MUTATIONS = [
   { id: 'v224-164-svc-row-silent', area: 'crBody', what: "a CR service row no longer says whether it is open",
     find: "class=\"nb byx\" aria-expanded=\"'+(crX[s]?'true':'false')+'\"", repl: "class=\"nb byx\"" },
   // ==== end v2.24 item 164 ====
+  // ==== v2.24 item 163: the clean-up (Brad, 26 Nov 2026: "optimize our code and remove inefficiencies or dead code") ====
+  { id: 'v224-163-walk-always-cached', area: 'tiersDraw', what: "outside a draw the lane walk is served from a cache: a figure read after an edit is the walk before it",
+    find: "function tiersDraw(){ if(!_rPass) return tiers(); ", repl: "function tiersDraw(){ " },
+  { id: 'v224-163-walk-save-ignored', area: 'tiersDraw', what: "an edit saved during a draw is not seen by the rows drawn after it: the draw's walk is from before",
+    find: "if(!_rT || _rTGen!==_saveGen){ _rT=tiers(); _rTGen=_saveGen; } return _rT;", repl: "if(!_rT){ _rT=tiers(); _rTGen=_saveGen; } return _rT;" },
+  { id: 'v224-163-draw-not-reset', area: 'render', what: "a draw starts from what the last draw cached: a walk or a destination list from before (a year switched) is served to its rows",
+    find: "render = function(){ _rPass++; _rT=null; _rAZ={}; try{", repl: "render = function(){ _rPass++; try{" },
+  { id: 'v224-163-az-shared', area: 'flowEntsAZ', what: "every caller in a draw gets the one cached list: one that changes it changes it for every row after",
+    find: "_rAZ.ents===DESTDB.ents) return _rAZ[key].slice();", repl: "_rAZ.ents===DESTDB.ents) return _rAZ[key];" },
+  { id: 'v224-163-az-keys-ignored', area: 'flowEntsAZ', what: "a destination saved during a draw is not offered by the rows drawn after it: the sorted list is from before",
+    find: "if(_rPass && _rAZ[key] && _rAZ.gen===_saveGen && _rAZ.side===_sideGen && _rAZ.ents===DESTDB.ents) return", repl: "if(_rPass && _rAZ[key]) return" },
+  { id: 'v224-163-az-always-cached', area: 'flowEntsAZ', what: "outside a draw the destination list is served from a cache",
+    find: "  if(_rPass && _rAZ[key] && _rAZ.gen", repl: "  if(_rAZ[key] && _rAZ.gen" },
+  { id: 'v224-163-share-button-back', area: 'liveBody', what: "Live view working out of a folder offers to share execution data again",
+    find: "        +'<span>Loaded <b>'+esc(liveAge(LIVEDB.last))+'</b></span>'", repl: "        +'<span>Execution data <button class=\"qb\" onclick=\"setStat(1)\">share mine</button></span>'+'<span>Loaded <b>'+esc(liveAge(LIVEDB.last))+'</b></span>'" },
+  // ==== end v2.24 item 163 ====
   // ==== end v2.24 ====
 
 ];
