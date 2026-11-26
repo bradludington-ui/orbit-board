@@ -120,6 +120,15 @@ hardening, no longer a stopgap. Each item below waits for his go, as every item 
   board's folder. Two code comments that name the Azure build (the Content-Security-Policy's, and the removed transports')
   say the same. Wording only; any small version can carry it.
 
+#### 172. The Spend Plan Source's active year is decided by the base year alone (Brad, 26 Nov 2026: "Budget Year/Base Year is the source for the spend plan source file")
+- **Why:** `srcActiveFy` (it sets the Spend Plan Source's allocation-text column) counts a year as active when it is before the
+  base (budget) year *or* a carried CCaR pull holds data for it. ORBIT takes no pull in since v2.24, so the second test reads a
+  store nothing can update, and a board carrying an old pull answers differently from one that carries none.
+- **What:** the year alone: a year before the base year is active (*Forecast allocated to a Plan Event*); the base year and the
+  FYDP years are *Not Allocated*. The carried pull is still carried, byte for byte; it decides nothing. Its comment says so.
+- **Check:** the same board with and without a carried pull holding the base year prints the same column; the mutation puts
+  the pull's test back.
+
 #### 149. The Requirements page and the RECORD panel: the review of 21 Nov 2026 (Brad, 21 Nov 2026: "Go with recommendations")
 - **149.18–149.53 were built in v2.22** (folded into item 155 on Brad's go of 25 Nov); see Shipped › v2.22.
 - **Asked:** Brad, 21 Nov 2026: *"review the front landing page where my requirements are listed to include the pop up window after clicking a requirement ... for redundant clicks and information ... simplicity but usefulness."*
