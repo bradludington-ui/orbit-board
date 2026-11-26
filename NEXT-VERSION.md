@@ -39,9 +39,11 @@ Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eS
 - **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
 - **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
 
-#### 157. The leadership brief and the change bridge (v2.25)
-- **One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against
-  requirement by office, the Mission Critical shortfalls; Print / save as PDF and Present full screen.
+#### 157. The change bridge (v2.25)
+**v2.25's scope (Brad, 26 Nov 2026):** this item's change bridge, with items 168, 171 and 172. The one-page leadership brief is
+dropped from v2.25 ("Leadership brief can be removed"; asked, he answered *drop it from v2.25 only*): the Brief view as it is stays.
+- ~~**One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against
+  requirement by office, the Mission Critical shortfalls; Print / save as PDF and Present full screen.~~ Dropped, 26 Nov.
 - **What changed since a locked cycle:** before-and-after tiles, a bridge of why unfunded moved (added, values changed, rank
   moves, removed) whose steps add exactly to the change, and the change list with who and when, from cycCmpData and the
   journal.
