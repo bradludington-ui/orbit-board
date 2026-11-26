@@ -693,7 +693,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const G = JSON.parse(ev('JSON.stringify(GROUPS)')).filter(g => ['AV', 'TSS', 'PSM'].includes(g));
   chk(name, 'picker', 'in the title line, with the export beside it', pick.inTitle + ' ' + pick.exp, 'true true');
   chk(name, 'picker', 'whole portfolio, then each office, then each service', J(pick.opts), J([''].concat(G.map(g => 'p:' + g), ['s:0', 's:1'])));
-  chk(name, 'picker', 'choosing TSS retitles the box and the roll-up', /— TSS/.test(pick.after) + ' ' + /ROLLUP — PRIME CONTRACTS \+ MISCELLANEOUS OGC — TSS/.test(pick.rollHead), 'true true');
+  chk(name, 'picker', 'choosing TSS retitles the box and the roll-up', /— TSS/.test(pick.after) + ' ' + /Rollup — prime contracts and miscellaneous OGC — TSS/.test(pick.rollHead), 'true true');   // v2.24 (item 164): the heading in sentence case
   chk(name, 'picker', 'the box always opens on the whole portfolio', pick.reopened, '|');
   // EXPORT THIS VIEW: exactly the rows on screen, in dollars, each TOTAL the sum of the figures above it
   const X = JSON.parse(ev(`(function(){ var dl=[], got=null, ob=buildXlsx, oc=HTMLAnchorElement.prototype.click;
@@ -12473,6 +12473,71 @@ await (async () => {
   _v223Release(__bm, []);
   await _v223Settle();
 })();
+// ==== v2.24 item 164 ====
+// THE TWO BUDGET YEAR BOXES, PLAIN (item 164, Brad, 26 Nov 2026: "Simplicity but professional"). Restyle only: the same figures, the
+// same controls and handlers, the long notes behind <details>, no emoji in a title, and no inline colour on a figure -- v2.21's navy
+// TOTAL row could not reach the TOTAL and Unscheduled cells' inline gold and amber, which were unreadable on it. The contrast itself is
+// a browser property (npm run standards, which opens both boxes); this holds the markup that decides it.
+// The fixture, worked by hand: one service; A (PSM) $1,200,000 awarded 5 Nov; B (AV) $300,000 with no award date; discretionary BA
+// $2,000,000, so both are funded whole. The forecast's roll-up holds them in one Miscellaneous OGC line: Nov $1.20M, Unscheduled $0.30M,
+// total $1.50M; by PMO, PSM Nov $1.20M and AV Unscheduled $0.30M. CR: USAF 1-15 Nov $1.20M, No date $0.30M, $1.20M in the window;
+// cumulative $0.00M through October, then $1.20M.
+// FAILS ON adeec0c: the titles carried 📅 and ⚖, the TOTAL rows' end cells their inline colours, the notes were plain divs.
+const V224F = { services: ['USAF'], items: [W3it('A', 'PSM', [1200000]), W3it('B', 'AV', [300000])], disc: [2000000], mand: [0], order: ['A', 'B'] };
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.24 item 164 — the Budget Year boxes, plain: no emoji, no inline colour on a figure, the notes behind details, the same figures';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, V224F); W3base(ev);
+    ev(`S.awards['A']={mode:'single', d:FYMON[1][0], day:5}; save(); render(); 'ok'`);
+    const rows = sel => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll(${J(sel)}), function(r){ return [].map.call(r.cells, function(c){ return c.textContent.trim(); }); }))`));
+    const inl = sel => +ev(`[].filter.call(document.querySelectorAll(${J(sel)}), function(c){ return /color/i.test(c.getAttribute('style')||''); }).length`);
+    const blank = n => Array(n).fill('');
+    // ---- the forecast ----
+    ev(`fcOpen=false; toggleFc(); 'ok'`);
+    chk(name, 'forecast', 'the title is plain, sentence case, no emoji', ev(`document.getElementById('fcTitle').textContent`), 'FY27 spend plan forecast · Oct 2026 – Sep 2027');
+    const ft = rows('#fcBody table tr'), F = n => ft[n] || [];
+    chk(name, 'forecast', 'the header: the months, then Unscheduled and Total', J(F(0).slice(13)), J(['Unscheduled', 'Total']));
+    chk(name, 'forecast', 'the roll-up line, worked by hand: Nov $1.20M, Unscheduled $0.30M, total $1.50M, every other month blank',
+      J(F(1)), J(['Miscellaneous OGC Efforts', '', '$1.20M'].concat(blank(10), ['$0.30M', '$1.50M'])));
+    chk(name, 'forecast', 'its Total row, the same', J(F(2)), J(['Total', '', '$1.20M'].concat(blank(10), ['$0.30M', '$1.50M'])));
+    chk(name, 'forecast', 'by PMO: PSM in November, AV unscheduled, and their Total',
+      J([F(4), F(5), F(6)]), J([['PSM', '', '$1.20M'].concat(blank(10), ['', '$1.20M']), ['AV'].concat(blank(12), ['$0.30M', '$0.30M']), ['Total', '', '$1.20M'].concat(blank(10), ['$0.30M', '$1.50M'])]));
+    chk(name, 'forecast', 'no figure carries an inline colour: the Total rows read in the row’s white on navy', inl('#fcBody table td, #fcBody table th'), 0);
+    chk(name, 'forecast', 'section headings are plain, not gold capitals', ev(`[].map.call(document.querySelectorAll('#fcBody .byh4'), function(d){ return d.textContent; }).join(' | ')`),
+      'Rollup — prime contracts and miscellaneous OGC ($M, funded dollars spread by award schedule) | By PMO ($M)');
+    chk(name, 'forecast', 'one short note, the rule behind How this is worked out', J([!!ev(`!!document.querySelector('#fcBody p.bynote')`), /An award is the whole award/.test(ev(`(document.querySelector('#fcBody details.byhow')||{}).textContent||''`))]), J([true, true]));
+    ev(`toggleFc(); 'ok'`);
+    // ---- CR cash needs ----
+    ev(`crMode='half'; crBy='svc'; crX={}; toggleCr(); 'ok'`);
+    chk(name, 'CR', 'the title is plain, sentence case, no emoji', ev(`document.getElementById('crTitle').textContent`), 'Continuing resolution cash needs · Oct – Mar');
+    const ct = rows('#crBody table tr'), C = n => ct[n] || [];
+    chk(name, 'CR', 'the header: the twelve half-months, then No date and Total in window', J([C(0).length, C(0)[1], C(0)[13], C(0)[14]]), J([15, '1–15 OCT', 'No date', 'Total in window']));
+    chk(name, 'CR', 'USAF, worked by hand: 1–15 Nov $1.20M, No date $0.30M, $1.20M in the window', J(C(1).slice(1)), J(['', '', '$1.20M'].concat(blank(9), ['$0.30M', '$1.20M'])));
+    chk(name, 'CR', 'its Total row, the same', J(C(2)), J(['Total', '', '', '$1.20M'].concat(blank(9), ['$0.30M', '$1.20M'])));
+    chk(name, 'CR', 'Cumulative, a row of its own: $0.00M through October, then $1.20M', J([ev(`(document.querySelector('#crBody tr.cum')||{}).className||''`), C(3)]),
+      J(['cum', ['Cumulative', '$0.00M', '$0.00M'].concat(Array(10).fill('$1.20M'), ['', ''])]));
+    chk(name, 'CR', 'no figure carries an inline colour: Total and Cumulative read in their row’s colour', inl('#crBody table td, #crBody table th'), 0);
+    chk(name, 'CR', 'the service row is a native button that says if it is open, with the count beside the name',
+      J([ev(`(function(){ var b=document.querySelector('#crBody button.byx'); return b? b.tagName+'|'+b.getAttribute('aria-expanded')+'|'+b.textContent.replace(/\\s+/g,' ').trim() : ''; })()`)]), J(['BUTTON|false|▸USAF 1 req']));   // the list under a service is what lands in the window: A; B has no date
+    ev(`(function(){ var b=document.querySelector('#crBody button.byx'); if(b) b.click(); return 'ok'; })()`);
+    chk(name, 'CR', 'pressing it lists the requirement under it, by its rank and plan event', J([ev(`(document.querySelector('#crBody button.byx')||{getAttribute:function(){ return null; }}).getAttribute('aria-expanded')`), +ev(`document.querySelectorAll('#crBody tr.bysub').length`), (rows('#crBody tr.bysub')[0] || [])[0]]), J(['true', 1, '#1 A event']));
+    const sw = () => ev(`[].map.call(document.querySelectorAll('#crBody .bysw button'), function(b){ return b.textContent+':'+b.getAttribute('aria-pressed'); }).join(' ')`);
+    chk(name, 'CR', 'the switches say which is on', sw(), 'Half-month:true Full month:false By Service:true By PMO:false');
+    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#crBody .bysw button'), function(b){ return b.textContent==='Full month'; })[0]; if(b) b.click(); return 'ok'; })()`);
+    chk(name, 'CR', 'and switch it: Full month folds the halves, and its switch is on', J([ev(`crMode`), sw(), (rows('#crBody table tr')[0] || []).length]), J(['month', 'Half-month:false Full month:true By Service:true By PMO:false', 9]));
+    chk(name, 'CR', 'one short note, the rule behind How this is worked out', J([!!ev(`!!document.querySelector('#crBody p.bynote')`), /Obligations after March fall outside the CR window/.test(ev(`(document.querySelector('#crBody details.byhow')||{}).textContent||''`))]), J([true, true]));
+    ev(`crMode='half'; toggleCr(); 'ok'`);
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);
+  await _v223Settle();
+})();
+// ==== end v2.24 item 164 ====
 // ==== end v2.24 ====
 
 {

@@ -11286,6 +11286,32 @@ const MUTATIONS = [
     find: "Each line goes in the change journal, and can be put back once mandatory funding is on again.</label>'", repl: "Each line goes in the change journal, where it can be put back.</label>'" },
   { id: 'v224-161-status-wording', area: 'mandOffApply', what: "the line after Clear says each figure can be put back, while Put back is refused until mandatory is on again",
     find: "and a cleared mandatory figure can be put back once mandatory funding is on again.", repl: "where it can be put back." },
+  // ==== v2.24 item 164: the Budget Year boxes, plain (Brad, 26 Nov 2026: "Simplicity but professional") ====
+  { id: 'v224-164-total-gold', area: 'fcBody', what: "the forecast's Total cell is gold again, unreadable on the navy TOTAL row",
+    find: "+'<td class=\"bysep\">'+fM2(b.tot)+'</td></tr>';", repl: "+'<td class=\"bysep\" style=\"color:var(--gold)\">'+fM2(b.tot)+'</td></tr>';" },
+  { id: 'v224-164-unsch-amber', area: 'fcBody', what: "the forecast's Unscheduled cell is amber again, unreadable on the navy TOTAL row",
+    find: "+'<td class=\"bysep\">'+(b.unsch>5e3?fM2(b.unsch):'')+'</td>'", repl: "+'<td class=\"bysep\" style=\"color:var(--amber)\">'+(b.unsch>5e3?fM2(b.unsch):'')+'</td>'" },
+  { id: 'v224-164-empty-dash', area: 'fcBody', what: "an empty month prints a dash in every cell again",
+    find: "+b.m.map(v=>'<td>'+(v>5e3?fM2(v):'')+'</td>').join('')", repl: "+b.m.map(v=>'<td>'+(v>5e3?fM2(v):'\u2014')+'</td>').join('')" },
+  { id: 'v224-164-fc-emoji', area: 'fcBody', what: "the forecast's title carries its emoji again",
+    find: "if(ttl) ttl.innerHTML=FYL()+' spend plan forecast", repl: "if(ttl) ttl.innerHTML='\\ud83d\\udcc5 '+FYL()+' spend plan forecast" },
+  { id: 'v224-164-cr-emoji', area: 'crTitle', what: "the CR title carries its emoji again",
+    find: "<span id=\"crTitle\">Continuing resolution cash needs", repl: "<span id=\"crTitle\">\u2696 Continuing resolution cash needs" },
+  { id: 'v224-164-by-head-shout', area: 'fcBody', what: "the breakdown's heading is the export's capitals again",
+    find: "const byHead=(view && view.pmo)? esc(view.label)+' by service' : (view? esc(view.label)+' by PMO' : 'By PMO');", repl: "const byHead=esc(D.by.head);" },
+  { id: 'v224-164-fc-no-details', area: 'fcBody', what: "the forecast's long note is a plain block again, not behind How this is worked out",
+    find: "+'<details class=\"byhow\"><summary>How this is worked out</summary><p>Funded = Discretionary", repl: "+'<div class=\"hint\"><p>Funded = Discretionary" },
+  { id: 'v224-164-cr-no-details', area: 'crBody', what: "the CR's long note is a plain block again, not behind How this is worked out",
+    find: "+'<details class=\"byhow\"><summary>How this is worked out</summary><p>Cash = funded dollars", repl: "+'<div class=\"hint\"><p>Cash = funded dollars" },
+  { id: 'v224-164-cum-as-total', area: 'crBody', what: "Cumulative is a second navy TOTAL row again",
+    find: "h+='<tr class=\"cum\"><td", repl: "h+='<tr class=\"tot\"><td" },
+  { id: 'v224-164-cr-nodate-amber', area: 'crBody', what: "the CR Total row's No date cell is amber again",
+    find: "h+='<tr class=\"tot\"><td>Total</td>'+totF.map(cell).join('')+'<td class=\"bysep\">'", repl: "h+='<tr class=\"tot\"><td>Total</td>'+totF.map(cell).join('')+'<td class=\"bysep\" style=\"color:var(--amber)\">'" },
+  { id: 'v224-164-sw-unpressed', area: 'crBody', what: "the CR switches never say which is on",
+    find: "'<button type=\"button\" aria-pressed=\"'+(on?'true':'false')+'\" onclick=\"'+js+'\">'", repl: "'<button type=\"button\" aria-pressed=\"false\" onclick=\"'+js+'\">'" },
+  { id: 'v224-164-svc-row-silent', area: 'crBody', what: "a CR service row no longer says whether it is open",
+    find: "class=\"nb byx\" aria-expanded=\"'+(crX[s]?'true':'false')+'\"", repl: "class=\"nb byx\"" },
+  // ==== end v2.24 item 164 ====
   // ==== end v2.24 ====
 
 ];

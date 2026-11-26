@@ -389,6 +389,24 @@ for (const build of BUILDS) {
     await page.evaluate(() => { try { mandBoxClose(); avDiscardAll(); uiSetMode('review'); } catch (e) {} });
     if (avSeen.length !== 5) record(build, theme, { sc: 'coverage', key: 'Allocate was not all on screen to measure',
       detail: 'measured: ' + (avSeen.join(', ') || 'nothing') + ' -- of the Sheet, One lane, Present, Review changes and the mandatory-off box', n: 1 });
+    // v2.24 (item 164): THE TWO BUDGET YEAR BOXES, measured with figures in them -- Spend Plan Forecast (the whole portfolio), and CR
+    // Cash Needs by service with a service open and by PMO. Neither was ever opened here, so their TOTAL rows' gold and amber figures
+    // on the APEX navy (v2.21-v2.23) were never measured. All three must be on screen, or the run fails.
+    const bySeen = [];
+    for (const st of ['forecast', 'cr', 'cr-pmo']) {
+      const ok = await page.evaluate(st => { try {
+        if (st === 'forecast') { if (!fcOpen) toggleFc(); return document.querySelectorAll('#fcPanel.open #fcBody table tr').length > 2; }
+        if (st === 'cr') { if (fcOpen) toggleFc(); crMode = 'half'; crBy = 'svc'; crX = {}; crX[SVC[0]] = true; if (!crOpen) toggleCr(); else render();
+          return document.querySelectorAll('#crPanel.open #crBody table tr').length > 3; }
+        crBy = 'pmo'; render(); return document.querySelectorAll('#crPanel.open #crBody table tr').length > 2;
+      } catch (e) { return false; } }, st);
+      await page.waitForTimeout(100);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      if (ok) bySeen.push(st);
+    }
+    await page.evaluate(() => { try { crBy = 'svc'; crX = {}; if (crOpen) toggleCr(); if (fcOpen) toggleFc(); } catch (e) {} });
+    if (bySeen.length !== 3) record(build, theme, { sc: 'coverage', key: 'the Budget Year boxes were not on screen to measure',
+      detail: 'measured: ' + (bySeen.join(', ') || 'nothing') + ' -- of the forecast, CR Cash Needs by service and by PMO', n: 1 });
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it
     // opened; the 🔧 list under Needs attention is measured open, then the award block of one, with ✓ Checked. Both must
     // be on screen, or the run fails: a control measured by nothing would pass by being absent.
