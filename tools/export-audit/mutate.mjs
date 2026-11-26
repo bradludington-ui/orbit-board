@@ -11257,6 +11257,36 @@ const MUTATIONS = [
     find: "(S.discSvc||[]).reduce((a,b)=>a+b,0)+(mandOn()? (S.mandSvc||[]).reduce((a,b)=>a+b,0) : 0),", repl: "(S.discSvc||[]).reduce((a,b)=>a+b,0)+(S.mandSvc||[]).reduce((a,b)=>a+b,0)," },
   // ==== end v2.23 review RV-D ====
   // ==== end v2.23 integration (the lead) ====
+  // ==== v2.24 (items 160, 161) ====
+  // item 160: Present prints $K (Brad, 26 Nov 2026: "Print Present in $K"); the exact dollar stays on hover
+  { id: 'v224-160-present-dollars', area: 'avM', what: "Present prints whole dollars again, and six services with mandatory on run past a 1920 screen",
+    find: "function avM(v){ return AV.present? avK(v) : fM(v); }", repl: "function avM(v){ return fM(v); }" },
+  { id: 'v224-160-edit-in-k', area: 'avM', what: "Edit prints $K too, where the person typing needs the whole dollar",
+    find: "function avM(v){ return AV.present? avK(v) : fM(v); }", repl: "function avM(v){ return avK(v); }" },
+  { id: 'v224-160-k-floors', area: 'avK', what: "$K is cut down, not rounded: $8,073,850 reads $8,073K",
+    find: "const k=Math.round(Math.abs(v)/1000);", repl: "const k=Math.floor(Math.abs(v)/1000);" },
+  { id: 'v224-160-under-1k-zero', area: 'avK', what: "a figure under a thousand reads $0K, as if there were nothing there",
+    find: "(k===0 && Math.abs(v)>=0.5? '<$1K' : '$'+k.toLocaleString()+'K')", repl: "'$'+k.toLocaleString()+'K'" },
+  { id: 'v224-160-box-dollars', area: 'avBox', what: "Present's directed figures print in whole dollars beside $K everywhere else",
+    find: "(AV.present? avK(v) : avFig(v))", repl: "avFig(v)" },
+  { id: 'v224-160-box-no-exact', area: 'avBox', what: "a directed figure in Present loses its exact dollar on hover",
+    find: "(AV.present? ' title=\"'+esc(fM(v))+'\"' : '')", repl: "''" },
+  { id: 'v224-160-header-dollars', area: 'avDraw', what: "Present still says its figures are whole dollars while it prints $K",
+    find: "(AV.present? ' Figures in $K, rounded to the nearest thousand; hover for the exact dollar.' : ' Figures in whole dollars.')", repl: "' Figures in whole dollars.'" },
+  { id: 'v224-160-row-total-dollars', area: 'avDraw', what: "a row's totals in Present print whole dollars",
+    find: "h+='<td class=\"tot\">'+avM(ask)+'</td><td class=\"tot\">'+avM(f)+'</td>", repl: "h+='<td class=\"tot\">'+fM(ask)+'</td><td class=\"tot\">'+fM(f)+'</td>" },
+  { id: 'v224-160-pin-goal-dollars', area: 'avDraw', what: "the pinned Requirement line in Present prints whole dollars",
+    find: "return cell(avM(M.tot.ask[i]), {cls:'q'})", repl: "return cell(fM(M.tot.ask[i]), {cls:'q'})" },
+  { id: 'v224-160-tile-dollars', area: 'avDraw', what: "the tiles in Present print whole dollars",
+    find: "+(v<0? '−'+avM(-v) : avM(v))+'</div>'", repl: "+(v<0? '−'+fM(-v) : fM(v))+'</div>'" },
+  { id: 'v224-160-lane-goal-dollars', area: 'avDraw', what: "One lane's goal in Present prints whole dollars",
+    find: "requirement (the goal)</span><b>'+avM(a)+'</b>", repl: "requirement (the goal)</span><b>'+fM(a)+'</b>" },
+  // item 161: a cleared mandatory figure is put back only once mandatory funding is on again (v2.23 review RV-C, jrnlMandBack)
+  { id: 'v224-161-box-wording', area: 'mandBoxDraw', what: "the box says each cleared line can be put back, while Put back is refused until mandatory is on again",
+    find: "Each line goes in the change journal, and can be put back once mandatory funding is on again.</label>'", repl: "Each line goes in the change journal, where it can be put back.</label>'" },
+  { id: 'v224-161-status-wording', area: 'mandOffApply', what: "the line after Clear says each figure can be put back, while Put back is refused until mandatory is on again",
+    find: "and a cleared mandatory figure can be put back once mandatory funding is on again.", repl: "where it can be put back." },
+  // ==== end v2.24 ====
 
 ];
 

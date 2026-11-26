@@ -12413,6 +12413,67 @@ await (async () => {
 })();
 // ==== end v2.23 review RV-D ====
 // ==== end v2.23 integration (the lead) ====
+// ==== v2.24 (items 160, 161) ====
+// PRESENT PRINTS $K (item 160, Brad, 26 Nov 2026: "Print Present in $K"), AND THE MANDATORY BOX SAYS WHEN A CLEARED FIGURE CAN BE PUT BACK
+// (item 161, "fix the wording": v2.23 review RV-C refuses a Put back of a mandatory figure while that year's mandatory funding is off).
+// The fixture makes the rounding matter: A's USAF $8,073,450 rounds to $8,073K, its total $8,073,850 rounds UP to $8,074K, and ANG's $400
+// and $300 are under a thousand and not nothing (<$1K). Every expected figure is worked out by hand from the fixture, never read back:
+//   A USAF: ask 8,073,450, disc 5,000,000 (the lane dry), mand 3,000,000, short 73,450;  A ANG: ask 400, disc 300, mand 0, short 100;
+//   B USAF: ask 17,941,000, nothing drawn.  A funded 8,000,300, short 73,550;  the board asks 26,014,850.
+// FAILS ON ea0a273 (v2.23): Present printed whole dollars, and the box said a cleared figure "can be put back" with no condition.
+const V224 = {
+  services: ['USAF', 'ANG'],
+  items: [W3it('A', 'PSM', [8073450, 400]), W3it('B', 'AV', [17941000, 0])],
+  disc: [5000000, 300], mand: [3000000, 0], order: ['A', 'B'],
+};
+await (async () => {
+  const __bm = _v223Mark();
+  const name = 'v2.24 — Present prints $K, the exact dollar on hover; the mandatory box says a cleared figure comes back once mandatory is on (items 160, 161)';
+  try {
+    const J = JSON.stringify;
+    const B = boot(), ev = B.ev;
+    seed(ev, V224); W3base(ev);
+    ev(`window.confirm=function(){ return true; }; uiGo('alloc'); 'ok'`);
+    const tot = id => ev(`[].map.call(document.querySelectorAll('#allocView .avs tbody tr[data-id="${id}"] td.tot'), function(c){ return c.textContent; }).join('/')`);
+    const ro = id => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#allocView .avs tbody tr[data-id="${id}"] .avro'), function(s){ return [s.textContent, s.getAttribute('title')]; }))`));
+    const sub = () => ev(`(document.querySelector('#allocView .avsub')||{}).textContent||''`);
+    // Edit: whole dollars, as v2.23
+    chk(name, 'edit', 'CONTROL: Edit prints whole dollars: A asks $8,073,850, funded $8,000,300, short $73,550', tot('A'), '$8,073,850/$8,000,300/$73,550/99%');
+    chk(name, 'edit', 'CONTROL: Edit says its figures are whole dollars', /Figures in whole dollars\./.test(sub()), true);
+    const st0 = ev(`JSON.stringify(MS)`), g0 = +ev(`_saveGen`);
+    ev(`avPresent(true); 'ok'`);
+    chk(name, 'present', 'Present prints the row in $K, rounded to the nearest thousand: $8,073,850 is $8,074K, $73,550 is $74K', tot('A'), '$8,074K/$8,000K/$74K/99%');
+    chk(name, 'present', 'and B, which draws nothing: $17,941K asked, $0K funded, all of it short', tot('B'), '$17,941K/$0K/$17,941K/0%');
+    chk(name, 'present', 'each directed figure prints in $K with the exact dollar on hover; $300 is under a thousand and not nothing: <$1K',
+      J(ro('A')), J([['$5,000K', '$5,000,000'], ['$3,000K', '$3,000,000'], ['<$1K', '$300'], ['$0K', '$0']]));
+    chk(name, 'present', 'the pinned Requirement line: $8,073,450 + $17,941,000 is $26,014K, ANG’s $400 is <$1K',
+      ev(`[].map.call(document.querySelectorAll('#allocView .avs thead tr.pin.goal td'), function(c){ return c.textContent; }).filter(function(t){ return t; }).join('|')`), '$26,014K|<$1K|$26,015K');
+    chk(name, 'present', 'a tile prints $K and keeps the exact dollar it shows ($26,014,850 asked)',
+      J([ev(`document.querySelector('#allocView .avt .v').textContent`), ev(`document.querySelector('#allocView .avt .v').getAttribute('data-v')`)]), J(['$26,015K', '26014850']));
+    chk(name, 'present', 'Present says its figures are $K, rounded, with the exact dollar on hover', /Figures in \$K, rounded to the nearest thousand; hover for the exact dollar\./.test(sub()), true);
+    ev(`AV.view='lane'; avDraw(); 'ok'`);
+    chk(name, 'present', 'One lane in Present: the USAF goal, funded and unfunded in $K',
+      ev(`[].map.call(document.querySelectorAll('#allocView .avgoal .avgf b'), function(b){ return b.textContent; }).slice(0, 3).join('|')`), '$26,014K|$8,000K|$18,014K');
+    ev(`AV.view='sheet'; avPresent(false); 'ok'`);
+    chk(name, 'present', 'Present changes how figures print, nothing the board holds: the plan and the save count as they were',
+      J([ev(`JSON.stringify(MS)`) === st0, +ev(`_saveGen`) === g0]), J([true, true]));
+    chk(name, 'edit', 'back in Edit: whole dollars again', tot('A'), '$8,073,850/$8,000,300/$73,550/99%');
+    // item 161: the box and the line after it say a cleared mandatory figure comes back once mandatory funding is on again
+    ev(`mandSwitch(); 'ok'`);
+    const lbl = ev(`(function(){ var r=document.querySelector('#avMandPanel input[name="mandHow"][value="clear"]'); return r? r.closest('label').textContent : ''; })()`);
+    chk(name, 'wording', 'the box: each cleared line can be put back once mandatory funding is on again', J([/can be put back once mandatory funding is on again\./.test(lbl), /where it can be put back/.test(lbl)]), J([true, false]));
+    ev(`MANDBOX.how='clear'; MANDBOX.all=false; mandOffApply(); 'ok'`);
+    const said = ev(`String((STAT_LOG[STAT_LOG.length-1]||{}).html||'')`);
+    chk(name, 'wording', 'the line after Clear says the same', J([/Mandatory funding is off for FY27/.test(said), /a cleared mandatory figure can be put back once mandatory funding is on again\./.test(said), /where it can be put back/.test(said)]), J([true, true, false]));
+    chk(name, 'wording', 'CONTROL: and it is so -- Clear took A’s $3,000,000 USAF mandatory to $0', ev(`JSON.stringify(S.fsrc.A.mv)`), J([0, 0]));
+    chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v223Release(__bm, []);
+  await _v223Settle();
+})();
+// ==== end v2.24 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

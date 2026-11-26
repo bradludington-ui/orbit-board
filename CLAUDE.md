@@ -5457,6 +5457,17 @@ a review by area with a skeptic per finding, four fixers. `NEXT-VERSION.md` › 
   by a failed check. **A check reads an element null-safely** (`(document.querySelector(q)||{}).textContent`): four W3 mutations
   were first caught only because a read off a control the mutant never drew threw the whole block.
 
+### v2.24 (items 160, 161): Allocate's Present prints $K; the mandatory box says when a cleared figure comes back
+
+Brad, 26 Nov 2026: *"Print Present in $K and fix the wording"*, after the v2.23 screens. `NEXT-VERSION.md` › Shipped › v2.24.
+
+- **What Allocate PRINTS goes through `avM(v)`**: `avK(v)` in Present (thousands, rounded; `<$1K` for a figure under a thousand
+  that is not nothing), `fM(v)` in Edit. Tooltips, screen-reader labels and `data-v` keep the exact dollar (`fM`). **A new figure on
+  Allocate prints through `avM`, never `fM`, or Present mixes units in one column.** Present's styles fit six services with mandatory
+  on at 1920; `npm run alloc` B measures the frame, not only the page.
+- **Wording that names Put back follows `jrnlMandBack`**: a cleared mandatory figure comes back once mandatory funding is on again.
+- **Checks:** audit-board "v2.24 — …"; alloc B; 13 `v224-*` mutations, 13 of 13 caught.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

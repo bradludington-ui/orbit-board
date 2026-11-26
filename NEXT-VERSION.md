@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.22** (item 155, with 154 and 149.18–149.53; merged 25 Nov 2026, PR #81); **v2.23** (items 156, 158, 159) is built and reviewed, its merge waiting on Brad's word; v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
+Current version: **v2.23** (items 156, 158, 159; merged 26 Nov 2026, PR #85); **v2.24** (items 160, 161: Allocate's Present in $K, and the mandatory box's wording) is built, its merge waiting on Brad's word; v2.22 (item 155, with 154 and 149.18–149.53) merged 25 Nov 2026 (PR #81); v2.19 (item 150, the scope-down) merged 24 Nov 2026 (PR #78). **v2.20** (item 151, copy one PPBE cycle's controls into another) merged 24 Nov 2026 (PR #79). **v2.21** (items 152 and 153, ORBIT in APEX's look and cleaner code) merged 25 Nov 2026 (PR #80). Then v2.22 (item 155, the new look, with items 154 and 149.18–149.53 folded in), v2.23 (item 156) and v2.24 (item 157): Brad's go of 25 Nov. Item 133 is withdrawn.
 
 ## Open
 
@@ -33,12 +33,13 @@ Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His ans
 Brad, 25 Nov 2026, on the concept canvas (https://claude.ai/artifact/72NE2hE19eSaH3rFcjEygq, eight screens, invented figures):
 *"I like it all from your previous screenshots and I like the new items. Let's go"*, and his answers:
 - **Three versions, each gated and merged on his word:** v2.22 = item 155 (and items 154 and 149.18-149.53 folded in);
-  v2.23 = item 156; v2.24 = item 157. *(25 Nov: items 158 and 159 join v2.23, on Brad's "Log it for v2.23".)*
+  v2.23 = item 156; v2.24 = item 157. *(25 Nov: items 158 and 159 join v2.23, on Brad's "Log it for v2.23". 26 Nov: Brad's "Print
+  Present in $K and fix the wording" became v2.24 (items 160, 161), so item 157 is v2.25.)*
 - **Item 149.18-149.53 is folded into v2.22**: its findings touch the same rows, record and menus the new look redraws.
 - **The requirement page keeps the RECORD card:** a row click still opens the quick record; *Open full page* goes to the page.
 - **Rank by band is view only:** it groups requirements by band; a band is still changed only in the RECORD panel.
 
-#### 157. The leadership brief and the change bridge (v2.24)
+#### 157. The leadership brief and the change bridge (v2.25)
 - **One-page leadership brief** (the Brief view): the bottom line in one sentence, four figures, the money bar, funded against
   requirement by office, the Mission Critical shortfalls; Print / save as PDF and Present full screen.
 - **What changed since a locked cycle:** before-and-after tiles, a bridge of why unfunded moved (added, values changed, rank
@@ -599,7 +600,28 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.23 — 25 Nov 2026: the requirement as a page, Rank by band and the five-year chart (item 156); one requirement across the FYDP (item 158); Allocate every requirement in one year, and mandatory funding on or off (item 159) -- built on Brad's "Go on v2.23" of 25 Nov and his answers; merge waits on his word
+### v2.24 — 26 Nov 2026: Allocate's Present prints $K, and the mandatory box says when a cleared figure comes back (items 160, 161) -- built on Brad's "Print Present in $K and fix the wording" of 26 Nov; merge waits on his word
+##### 160. Allocate's Present prints $K (Brad, 26 Nov 2026: "Print Present in $K")
+- **What he saw** (the v2.23 screens of 26 Nov): Present at 1920 with six services and mandatory on ran past the sheet's frame in whole
+  dollars; USN was cut off and had to be scrolled to.
+- **Built:** Present prints every figure in thousands, rounded to the nearest $1K (`avK`; one under a thousand and not nothing reads
+  `<$1K`), through one formatter (`avM`): $K in Present, whole dollars in Edit. Only what is printed changes: every tooltip and
+  screen-reader label keeps the exact dollar, a directed figure in Present carries it on hover, the tiles keep it in `data-v`, and
+  nothing the board stores or works out moves. The sentence under the title says "Figures in $K, rounded to the nearest thousand;
+  hover for the exact dollar" in Present. Present's boxes lost the 80px minimum sized for whole dollars, its cells pad 5px, and the
+  requirement column is 170–220px: the sheet is 1,718px in a 1,718px frame at 1920 (v2.23: 2,310px).
+- **Decided, Brad's to reverse:** whole thousands, not one decimal; rows, pinned lines and tiles all in $K, so a column does not
+  mix units; Edit stays in whole dollars (the person typing needs the dollar the box holds).
+##### 161. The mandatory box says when a cleared figure comes back (Brad, 26 Nov 2026: "fix the wording")
+- The box's Clear option and the line after it said each cleared figure "can be put back". Since v2.23's review (RV-C), Put back of
+  a mandatory figure is refused while that year's mandatory funding is off. Both now say a cleared figure can be put back once
+  mandatory funding is on again. Allocate's Save line ("where it can be put back") is still true and is unchanged.
+- **Checks:** audit-board "v2.24 — Present prints $K, …" (fails 9 checks on v2.23, its controls passing); `npm run alloc` B: Present at
+  1920 with six services and mandatory on fits its frame, and all 854 figures it prints read in $K (both fail on v2.23). **Mutations:**
+  13 new (`v224-160-*` 11, `v224-161-*` 2), 13 of 13 caught by a failed check (`recovery/v224/proved.jsonl`); the fit proved by hand
+  (the 80px minimum put back: 2,061px in a 1,718px frame, alloc B fails). 3,607 targets, each once. No sweep (Brad's rule of 20 Oct).
+
+### v2.23 — 25 Nov 2026: the requirement as a page, Rank by band and the five-year chart (item 156); one requirement across the FYDP (item 158); Allocate every requirement in one year, and mandatory funding on or off (item 159) -- built on Brad's "Go on v2.23" of 25 Nov and his answers; merged on his "Merge it when it passes" of 26 Nov (PR #85)
 - **How it was built:** three builders to one contract (`recovery/v223/contract.md`): W1 the requirement page, Rank by band and
   the five-year chart (156); W2 the page's Across the FYDP tab and the RECORD card's year strip (158); W3 Allocate (the sheet, One
   lane, Edit / Present) and the mandatory switch (159). Each builder's record -- what it built, what it decided (each Brad's to
@@ -634,6 +656,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   ◨); the Rank board keeps ◨, since it draws the list's cutlines.
 - **Questions for Brad** (none blocks the merge):
   - Allocate's Present at 1920 with six services and mandatory on scrolls sideways inside its frame in whole dollars: print it in $K?
+    *Answered 26 Nov: yes (v2.24, item 160).*
   - Brief shows a Mandatory column ($0) in a year with mandatory off: hide it there too?
   - *Move what discretionary can cover* uses only the discretionary left after every requirement has drawn: should it also take
     from requirements further down?

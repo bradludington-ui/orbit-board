@@ -2413,7 +2413,11 @@ html.ui-on[data-mode="alloc"] .gridsplit,html.ui-on[data-mode="alloc"] #uiKpis,h
 .allocview .vh,#avMandPanel .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .allocview.avpres{font-size:15px}
 .allocview.avpres table{font-size:15.5px}
-.allocview.avpres .avro{display:inline-block;min-width:80px;padding:3px 0}
+.allocview.avpres .avro{display:inline-block;padding:3px 0}
+/* v2.24 (item 160): Present prints $K, so a figure no longer needs an 80px box, and the sheet fits a 1920 screen with six services and
+   mandatory on (tools/alloc-view.mjs B measures it: the frame does not scroll sideways) */
+.allocview.avpres .avs td,.allocview.avpres .avs th{padding-left:5px;padding-right:5px}
+.allocview.avpres .avs td.t{min-width:170px;max-width:220px}
 .allocview.avpres .avt .v{font-size:27px}
 .allocview.avpres .avttl{font-size:27px}
 .allocview.avpres .avscroll{max-height:none}
@@ -4241,7 +4245,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.23 (25 Nov 2026)';
+const BUILD='v2.24 (26 Nov 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -40624,10 +40628,16 @@ function avOverOf(M){
 // ---- drawing ---------------------------------------------------------------------------------------------------------------
 function avPct(a, b){ return b>0? Math.max(0, Math.min(100, a/b*100)) : 0; }
 function avFig(v){ return Math.round(v).toLocaleString(); }
+// v2.24 (item 160, Brad, 26 Nov 2026: "Print Present in $K"): what Allocate PRINTS. Present, for the room, prints thousands -- six services
+// with mandatory on did not fit a 1920 screen in whole dollars -- rounded to the nearest $1K (a figure under it, not nothing, reads <$1K);
+// Edit prints whole dollars. Only what is printed: every tooltip and aria-label keeps the exact dollar (fM), so a hover in Present
+// still says what the board holds, and nothing the board stores or works out changes.
+function avK(v){ v=+v||0; const k=Math.round(Math.abs(v)/1000); return (v<0? '−' : '')+(k===0 && Math.abs(v)>=0.5? '<$1K' : '$'+k.toLocaleString()+'K'); }
+function avM(v){ return AV.present? avK(v) : fM(v); }
 function avBox(M, id, k, i, r, c, title){
   const key=avKeyOf(id, k, i), b=AV.bad[key];
   const v=M.R[id].dir[k][i], chg=(key in AV.draft) && AV.draft[key]!==AV.was[key];
-  if(AV.present || avRO()) return '<span class="avro'+(chg? ' chg' : '')+'">'+avFig(v)+'</span>';
+  if(AV.present || avRO()) return '<span class="avro'+(chg? ' chg' : '')+'"'+(AV.present? ' title="'+esc(fM(v))+'"' : '')+'>'+(AV.present? avK(v) : avFig(v))+'</span>';
   const drew=M.R[id].p[k][i]||0;
   return '<input class="avin'+(chg? ' chg' : '')+(b? ' bad' : '')+'" data-k="'+esc(key)+'" data-r="'+r+'" data-c="'+c+'" inputmode="numeric" autocomplete="off"'
     +' value="'+esc(b? b.t : avFig(v))+'"'+(b? ' aria-invalid="true"' : '')
@@ -40666,7 +40676,7 @@ function avTiles(M){
   const dir=avSum(M.tot.dD)+avSum(M.tot.dM), left=ba-dir, nShort=M.order.filter(function(id){ return avSum(M.R[id].u)>0.5; }).length;
   const ov=avOverOf(M), under=[];
   SVC.forEach(function(sv, i){ if(M.ba.d[i]-M.tot.dD[i]>0.5) under.push(sv+' Disc'); if(M.mOn && M.ba.m[i]-M.tot.dM[i]>0.5) under.push(sv+' Mand'); });
-  const tile=function(cls, l, v, x, m, col){ return '<div class="avt '+cls+'"><div class="l">'+l+'</div><div class="v" data-v="'+Math.round(v)+'">'+(v<0? '−'+fM(-v) : fM(v))+'</div>'
+  const tile=function(cls, l, v, x, m, col){ return '<div class="avt '+cls+'"><div class="l">'+l+'</div><div class="v" data-v="'+Math.round(v)+'">'+(v<0? '−'+avM(-v) : avM(v))+'</div>'
     +'<div class="km" aria-hidden="true"><i style="width:'+m.toFixed(2)+'%;background:'+col+'"></i></div><div class="x">'+x+'</div></div>'; };
   return '<div class="avtiles">'
     +tile('ask', 'Requirement (the goal)', ask, M.order.length+' requirement'+(M.order.length===1?'':'s')+', '+SVC.length+' service'+(SVC.length===1?'':'s'), 100, 'var(--apxNav)')
@@ -40674,7 +40684,7 @@ function avTiles(M){
     +tile('unf'+(u>0.5?' short':''), 'Unfunded', u, nShort+' of '+M.order.length+' requirement'+(M.order.length===1?'':'s')+' short', avPct(u, ask), 'var(--apxBad)')
     +tile('ba', 'Budget authority', ba, Math.round(avPct(ba, ask))+'% of the requirement'+(M.mOn? '' : ' · discretionary only'), avPct(ba, ask), 'var(--apxNav)')
     +tile('left'+(left<-0.5?' short':''), 'Left to give', left,
-      (ov.length? esc(ov.map(function(o){ return o.sv+' '+(o.k==='d'?'Disc':'Mand')+' over '+fM(o.over); }).join(', ')) : 'no lane is given more than it holds')
+      (ov.length? esc(ov.map(function(o){ return o.sv+' '+(o.k==='d'?'Disc':'Mand')+' over '+avM(o.over); }).join(', ')) : 'no lane is given more than it holds')
       +(under.length? '; '+esc(under.slice(0, 3).join(', '))+(under.length>3? ' and '+(under.length-3)+' more' : '')+' ha'+(under.length===1?'s':'ve')+' money left' : ''),
       avPct(Math.max(0, left), ba), 'var(--apxOk)')
     +'</div>';
@@ -40688,19 +40698,19 @@ function avSheet(M){
     +'<tr class="h2">'+SVC.map(function(){ return '<th class="q">Req</th><th>Disc</th>'+(mOn? '<th>Mand</th>' : ''); }).join('')+'</tr>';
   const pin=function(cls, lbl, cells, tot){ return '<tr class="pin '+cls+'"><th class="n"></th><th class="t" colspan="2">'+lbl+'</th>'+cells+tot+'</tr>'; };
   const cell=function(v, o){ o=o||{}; return '<td class="'+(o.cls||'')+'">'+(v===null? '' : v)+'</td>'; };
-  const leftTxt=function(v){ return v<-0.5? '<b class="over">over '+fM(-v)+'</b>' : fM(v); };
+  const leftTxt=function(v){ return v<-0.5? '<b class="over">over '+avM(-v)+'</b>' : avM(v); };
   const askT=avSum(M.tot.ask), fT=avSum(M.tot.d)+avSum(M.tot.m);
-  h+=pin('goal', 'Requirement (the goal)', SVC.map(function(_, i){ return cell(fM(M.tot.ask[i]), {cls:'q'})+cell('')+(mOn? cell('') : ''); }).join(''),
-       cell(fM(askT), {cls:'tot'})+cell('')+cell('')+cell(''));
-  h+=pin('ba', 'Budget authority', SVC.map(function(_, i){ return cell('', {cls:'q'})+cell(fM(M.ba.d[i]))+(mOn? cell(fM(M.ba.m[i])) : ''); }).join(''),
-       cell('')+cell(fM(avSum(M.ba.d)+avSum(M.ba.m)), {cls:'tot'})+cell('')+cell(''));
+  h+=pin('goal', 'Requirement (the goal)', SVC.map(function(_, i){ return cell(avM(M.tot.ask[i]), {cls:'q'})+cell('')+(mOn? cell('') : ''); }).join(''),
+       cell(avM(askT), {cls:'tot'})+cell('')+cell('')+cell(''));
+  h+=pin('ba', 'Budget authority', SVC.map(function(_, i){ return cell('', {cls:'q'})+cell(avM(M.ba.d[i]))+(mOn? cell(avM(M.ba.m[i])) : ''); }).join(''),
+       cell('')+cell(avM(avSum(M.ba.d)+avSum(M.ba.m)), {cls:'tot'})+cell('')+cell(''));
   h+=pin('alloc', 'Allocated <span class="avh">(Req: share met)</span>', SVC.map(function(_, i){
-       return cell(Math.round(avPct(M.tot.d[i]+M.tot.m[i], M.tot.ask[i]))+'%', {cls:'q'})+cell(fM(M.tot.dD[i]))+(mOn? cell(fM(M.tot.dM[i])) : ''); }).join(''),
-       cell('')+cell(fM(avSum(M.tot.dD)+avSum(M.tot.dM)), {cls:'tot'})+cell('')+cell(''));
+       return cell(Math.round(avPct(M.tot.d[i]+M.tot.m[i], M.tot.ask[i]))+'%', {cls:'q'})+cell(avM(M.tot.dD[i]))+(mOn? cell(avM(M.tot.dM[i])) : ''); }).join(''),
+       cell('')+cell(avM(avSum(M.tot.dD)+avSum(M.tot.dM)), {cls:'tot'})+cell('')+cell(''));
   h+=pin('left', 'Left in the lane', SVC.map(function(_, i){
        return cell('', {cls:'q'})+cell(leftTxt(M.ba.d[i]-M.tot.dD[i]))+(mOn? cell(leftTxt(M.ba.m[i]-M.tot.dM[i])) : ''); }).join(''), cell('')+cell('')+cell('')+cell(''));
-  h+=pin('unf', 'Still unfunded', SVC.map(function(_, i){ return cell(fM(M.tot.u[i]), {cls:'q uf'})+cell('')+(mOn? cell('') : ''); }).join(''),
-       cell('')+cell('')+cell(fM(avSum(M.tot.u)), {cls:'tot uf'})+cell(''));
+  h+=pin('unf', 'Still unfunded', SVC.map(function(_, i){ return cell(avM(M.tot.u[i]), {cls:'q uf'})+cell('')+(mOn? cell('') : ''); }).join(''),
+       cell('')+cell('')+cell(avM(avSum(M.tot.u)), {cls:'tot uf'})+cell(''));
   h+='</thead><tbody>';
   if(M.narrowed) h+='<tr class="avnote"><td colspan="'+(3+SVC.length*nc+4)+'">The lines above are the whole board’s: '+M.shown.length+' of '+M.order.length
     +' requirements are shown here (the list’s filters and search apply).</td></tr>';
@@ -40711,11 +40721,11 @@ function avSheet(M){
       const ask=x.ask[i], has=ask>0 || x.dir.d[i]>0 || x.dir.m[i]>0;
       if(!has){ h+='<td class="q none">·</td><td class="none"></td>'+(mOn? '<td class="none"></td>' : ''); return; }
       const met=x.u[i]<=0.5;
-      h+='<td class="q '+(ask>0? (met? 'met' : 'short') : '')+'" title="'+esc(sv+' requirement '+fM(ask)+(met? ', met' : ', short '+fM(x.u[i])))+'">'+fM(ask)+'</td>'
+      h+='<td class="q '+(ask>0? (met? 'met' : 'short') : '')+'" title="'+esc(sv+' requirement '+fM(ask)+(met? ', met' : ', short '+fM(x.u[i])))+'">'+avM(ask)+'</td>'
         +'<td>'+avBox(M, id, 'd', i, r, i*2, ttl)+'</td>'+(mOn? '<td>'+avBox(M, id, 'm', i, r, i*2+1, ttl)+'</td>' : '');
     });
     const ask=avSum(x.ask), f=avSum(x.p.d)+avSum(x.p.m), u=avSum(x.u), pc=avPct(f, ask);
-    h+='<td class="tot">'+fM(ask)+'</td><td class="tot">'+fM(f)+'</td><td class="tot'+(u>0.5? ' uf' : '')+'">'+(u>0.5? fM(u) : '—')+'</td>'
+    h+='<td class="tot">'+avM(ask)+'</td><td class="tot">'+avM(f)+'</td><td class="tot'+(u>0.5? ' uf' : '')+'">'+(u>0.5? avM(u) : '—')+'</td>'
       +'<td class="tot pc"><span class="avm" aria-hidden="true"><i style="width:'+pc.toFixed(2)+'%"></i></span>'+Math.round(pc)+'%</td></tr>';
   });
   if(!M.shown.length) h+='<tr class="avnote"><td colspan="'+(3+SVC.length*nc+4)+'">'+(M.order.length? 'No requirement is shown: the list’s filters hide them all.' : 'This year holds no requirements.')+'</td></tr>';
@@ -40732,15 +40742,15 @@ function avLane(M){
       +'<span class="avm" aria-hidden="true"><i style="width:'+pc.toFixed(2)+'%"></i></span></button>'; }).join('')+'</div>';
   const a=M.tot.ask[i], dD=M.tot.d[i], dM=M.tot.m[i], u=M.tot.u[i], bD=M.ba.d[i], bM=M.ba.m[i];
   const lD=bD-M.tot.dD[i], lM=bM-M.tot.dM[i], all=bD+bM, cant=Math.max(0, a-all);
-  const lf=function(v){ return v<-0.5? ' · <b class="over">over '+fM(-v)+'</b>' : (v<=0.5? ' · all given' : ' · '+fM(v)+' left'); };
-  h+='<div class="avgoal"><div class="avgf"><div><span>'+esc(sv)+' requirement (the goal)</span><b>'+fM(a)+'</b></div><div><span>Funded</span><b>'+fM(dD+dM)+'</b></div>'
-    +'<div><span>Unfunded</span><b class="'+(u>0.5?'uf':'')+'">'+fM(u)+'</b></div><div><span>Discretionary BA · left</span><b>'+fM(bD)+lf(lD)+'</b></div>'
-    +(mOn? '<div><span>Mandatory BA · left</span><b>'+fM(bM)+lf(lM)+'</b></div>' : '')+'</div>'
+  const lf=function(v){ return v<-0.5? ' · <b class="over">over '+avM(-v)+'</b>' : (v<=0.5? ' · all given' : ' · '+avM(v)+' left'); };
+  h+='<div class="avgoal"><div class="avgf"><div><span>'+esc(sv)+' requirement (the goal)</span><b>'+avM(a)+'</b></div><div><span>Funded</span><b>'+avM(dD+dM)+'</b></div>'
+    +'<div><span>Unfunded</span><b class="'+(u>0.5?'uf':'')+'">'+avM(u)+'</b></div><div><span>Discretionary BA · left</span><b>'+avM(bD)+lf(lD)+'</b></div>'
+    +(mOn? '<div><span>Mandatory BA · left</span><b>'+avM(bM)+lf(lM)+'</b></div>' : '')+'</div>'
     +'<div class="avbig" role="img" aria-label="'+esc(sv+': discretionary '+fM(dD)+', mandatory '+fM(dM)+', unfunded '+fM(u)+' of the '+fM(a)+' requirement; all '+sv+' budget authority '+fM(all))+'">'
     +'<i class="d" style="width:'+avPct(dD, a).toFixed(2)+'%"></i>'+(mOn? '<i class="m" style="width:'+avPct(dM, a).toFixed(2)+'%"></i>' : '')
     +'<i class="u" style="width:'+avPct(u, a).toFixed(2)+'%"></i><span class="line" style="left:'+avPct(all, a).toFixed(2)+'%"></span></div>'
     +'<div class="avgn"><span>Bar = the '+esc(sv)+' requirement. Green discretionary'+(mOn? ', yellow mandatory' : '')+', red still unfunded.</span>'
-    +'<span>| the line: all '+esc(sv)+' budget authority ('+fM(all)+')'+(cant>0.5? ', so '+fM(cant)+' of the requirement cannot be met however it is moved' : '')+'</span></div></div>';
+    +'<span>| the line: all '+esc(sv)+' budget authority ('+avM(all)+')'+(cant>0.5? ', so '+avM(cant)+' of the requirement cannot be met however it is moved' : '')+'</span></div></div>';
   const ro=avRO()||AV.present;
   const ids=M.shown.filter(function(id){ const x=M.R[id]; return x.ask[i]>0 || x.dir.d[i]>0 || x.dir.m[i]>0; });
   const nSel=ids.filter(function(id){ return AV.sel[id]; }).length;
@@ -40765,11 +40775,11 @@ function avLane(M){
     const x=M.R[id], ttl=dispTitle(x.it), a1=x.ask[i], f=(x.p.d[i]||0)+(x.p.m[i]||0), pc=avPct(f, a1), lv=left[id];
     h+='<tr data-id="'+esc(id)+'"'+(AV.sel[id]? ' class="sel"' : '')+'>'
       +(ro? '' : '<td class="cb"><input type="checkbox" data-k="'+esc('ui:sel|'+id)+'" aria-label="'+esc('Select '+ttl)+'"'+(AV.sel[id]? ' checked' : '')+' data-id="'+esc(id)+'" onchange="avSel(this)"></td>')
-      +'<td class="n">'+M.rank[id]+'</td><td class="t"><b>'+esc(ttl)+'</b><small>'+esc(grpOf(x.it))+' · whole requirement '+fM(avSum(x.ask))+'</small></td>'
-      +'<td class="r">'+fM(a1)+'</td><td class="r">'+avBox(M, id, 'd', i, r, 0, ttl)+'</td>'+(mOn? '<td class="r">'+avBox(M, id, 'm', i, r, 1, ttl)+'</td>' : '')
+      +'<td class="n">'+M.rank[id]+'</td><td class="t"><b>'+esc(ttl)+'</b><small>'+esc(grpOf(x.it))+' · whole requirement '+avM(avSum(x.ask))+'</small></td>'
+      +'<td class="r">'+avM(a1)+'</td><td class="r">'+avBox(M, id, 'd', i, r, 0, ttl)+'</td>'+(mOn? '<td class="r">'+avBox(M, id, 'm', i, r, 1, ttl)+'</td>' : '')
       +'<td class="met"><span class="avm2" aria-hidden="true"><i class="d" style="width:'+avPct(x.p.d[i]||0, a1).toFixed(2)+'%"></i>'+(mOn? '<i class="m" style="width:'+avPct(x.p.m[i]||0, a1).toFixed(2)+'%"></i>' : '')+'</span>'+Math.round(pc)+'%</td>'
-      +'<td class="r'+(x.u[i]>0.5? ' uf' : '')+'">'+(x.u[i]>0.5? fM(x.u[i]) : '—')+'</td>'
-      +'<td class="r'+(lv<-0.5? ' over' : '')+'">'+(lv<-0.5? '−'+fM(-lv) : fM(lv))+'</td>'
+      +'<td class="r'+(x.u[i]>0.5? ' uf' : '')+'">'+(x.u[i]>0.5? avM(x.u[i]) : '—')+'</td>'
+      +'<td class="r'+(lv<-0.5? ' over' : '')+'">'+(lv<-0.5? '−'+avM(-lv) : avM(lv))+'</td>'
       +(ro? '' : '<td class="qk"><button type="button" class="avq" data-k="'+esc('ui:full|'+id)+'" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;full&quot;)" title="'+esc('Fund '+ttl+' to its '+sv+' requirement in this lane')+'">Full</button>'
         +'<button type="button" class="avq" data-k="'+esc('ui:zero|'+id)+'" data-id="'+esc(id)+'" onclick="avQuick(this,&quot;zero&quot;)" title="'+esc('Set '+ttl+'’s '+sv+' '+(L==='d'?'discretionary':'mandatory')+' to $0')+'">$0</button></td>')+'</tr>';
     if(!cut && lv<=0.5 && r<ids.length-1){ cut=true;
@@ -40778,8 +40788,8 @@ function avLane(M){
   });
   if(!ids.length) h+='<tr class="avnote"><td colspan="'+((ro? 7 : 9)+(mOn? 1 : 0))+'">No requirement shown asks for '+esc(sv)+'.</td></tr>';
   h+='</tbody><tfoot><tr>'+(ro? '' : '<td></td>')+'<td></td><td class="t">'+esc(sv)+' total · '+M.order.filter(function(id){ return M.R[id].ask[i]>0; }).length+' requirements'+(M.narrowed? ' (the whole board)' : '')+'</td>'
-    +'<td class="r">'+fM(a)+'</td><td class="r">'+fM(M.tot.dD[i])+'</td>'+(mOn? '<td class="r">'+fM(M.tot.dM[i])+'</td>' : '')+'<td>'+Math.round(avPct(dD+dM, a))+'% met</td>'
-    +'<td class="r uf">'+fM(u)+'</td><td class="r'+((L==='d'? lD : lM)<-0.5? ' over' : '')+'">'+((L==='d'? lD : lM)<-0.5? 'over '+fM(-(L==='d'? lD : lM)) : fM(L==='d'? lD : lM)+' left')+'</td>'+(ro? '' : '<td></td>')+'</tr></tfoot></table></div>';
+    +'<td class="r">'+avM(a)+'</td><td class="r">'+avM(M.tot.dD[i])+'</td>'+(mOn? '<td class="r">'+avM(M.tot.dM[i])+'</td>' : '')+'<td>'+Math.round(avPct(dD+dM, a))+'% met</td>'
+    +'<td class="r uf">'+avM(u)+'</td><td class="r'+((L==='d'? lD : lM)<-0.5? ' over' : '')+'">'+((L==='d'? lD : lM)<-0.5? 'over '+avM(-(L==='d'? lD : lM)) : avM(L==='d'? lD : lM)+' left')+'</td>'+(ro? '' : '<td></td>')+'</tr></tfoot></table></div>';
   if(!ro) h+=avMoveHtml(M, i, ids);
   return h;
 }
@@ -40802,7 +40812,7 @@ function avHtml(){
     +'<p class="avsub">'+M.order.length+' requirement'+(M.order.length===1?'':'s')+' in priority order. '+(AV.view==='lane'
       ? 'Every requirement that asks for the service: its requirement (the goal), what each lane gives it, and what is left after it.'
       : 'For each service: the requirement (the goal, shaded), then Discretionary'+(M.mOn? ' and Mandatory' : '')+'.')
-      +(M.mOn? '' : ' Mandatory funding is off for '+esc(FYL())+', so its columns and lines are gone.')+' Figures in whole dollars.</p>';
+      +(M.mOn? '' : ' Mandatory funding is off for '+esc(FYL())+', so its columns and lines are gone.')+(AV.present? ' Figures in $K, rounded to the nearest thousand; hover for the exact dollar.' : ' Figures in whole dollars.')+'</p>';
   if(!SVC.length) return h+'<p class="avsub">This board has no services yet.</p>';
   h+=(AV.view==='lane'? '' : avTiles(M))+(AV.view==='lane'? avLane(M) : avSheet(M));
   return h;
@@ -41077,7 +41087,7 @@ function mandBoxDraw(){
       +(MANDBOX.how==='move'? '<td class="r">'+fM(avSum(r.take))+'</td>' : '')+'<td class="r uf">'+fM(r.unfAfter)+'</td></tr>'; }).join('')+'</tbody></table>'
     +(P.rows.length>lim? '<p class="avh">and '+(P.rows.length-lim)+' more · <button type="button" class="nb lnk" id="mandMore" onclick="MANDBOX.more=true;mandBoxDraw()">list them all</button></p>' : '')
     +'<fieldset class="mandhow"><legend class="vh">What happens to the mandatory money</legend>'
-    +'<label><input type="radio" name="mandHow" value="clear"'+(MANDBOX.how==='clear'?' checked':'')+' onchange="MANDBOX.how=\'clear\';mandBoxDraw()"> <b>Clear them.</b> Those requirements lose their mandatory dollars and the shortfall shows as unfunded. Each line goes in the change journal, where it can be put back.</label>'
+    +'<label><input type="radio" name="mandHow" value="clear"'+(MANDBOX.how==='clear'?' checked':'')+' onchange="MANDBOX.how=\'clear\';mandBoxDraw()"> <b>Clear them.</b> Those requirements lose their mandatory dollars and the shortfall shows as unfunded. Each line goes in the change journal, and can be put back once mandatory funding is on again.</label>'
     +'<label><input type="radio" name="mandHow" value="move"'+(MANDBOX.how==='move'?' checked':'')+' onchange="MANDBOX.how=\'move\';mandBoxDraw()"> <b>Move what discretionary can cover.</b> Each requirement keeps its money where its service’s discretionary lane has room left after every requirement has drawn ('
       +fM(avSum(P.room))+' of it'+(MANDBOX.all && later.length? ' in '+esc(FYL()) : '')+'), in priority order; the rest is cleared.</label></fieldset>'
     +'<p><label>Applies to <select id="mandAll" onchange="MANDBOX.all=this.value===\'all\';mandBoxDraw()"><option value="one"'+(MANDBOX.all?'':' selected')+'>'+esc(FYL())+' only</option>'
@@ -41121,7 +41131,7 @@ function mandOffApply(){
   save(); render();
   try{ setStat('Mandatory funding is off for '+yrs.map(function(y){ return 'FY'+(y%100); }).join(', ')+'. '
     +(how==='move'? fM(moved)+' moved to discretionary and ' : '')+fM(cleared)+' cleared on '+nReq+' requirement'+(nReq===1?'':'s')
-    +'; each figure is a line in the change journal, where it can be put back. The mandatory budget authority stays in Budget Management.'); }catch(e){}
+    +'; each figure is a line in the change journal, and a cleared mandatory figure can be put back once mandatory funding is on again. The mandatory budget authority stays in Budget Management.'); }catch(e){}
   return true;
 }
 
