@@ -7763,19 +7763,18 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   for (const [how, perm] of [['connect', true], ['auto', false]]) {
     const sc = '(6a) ' + REFRESH[how] + ' during a save, with newer execution data in the folder';
     const fold = withCopy(REMOTE);
-    const X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Alice', KEY.alice); connect(X.ev, X.w, fold);
-    X.ev(`(function(){ const t=Date.now();
-      EXDB={ts:t, all:{om:{fy:2027, rows:[['EXEC-1', 5000]]}}}; persistExdb(); return 'ok'; })()`);
-    // v2.02: the reprogramming log is no longer shared through the folder (driveRpPush went with the tracker)
-    const shared = [await X.ev('driveExecPush(true)')]; await pause(5);
+    // v2.24 (item 163): the folder's execution share is gone, so the execution data is a file an older ORBIT left in the folder;
+    // the Connect must now take NOTHING from it (it took it until v2.24)
+    { const t = Date.now(); fold.root.files['spmt-exec.json'] = JSON.stringify({ v: 1, by: 'Alice', ts: t, exec: { ts: t, all: { om: { fy: 2027, rows: [['EXEC-1', 5000]] } } } }); }
+    const shared = [!!fold.root.files['spmt-exec.json']];
     const { B } = await reopen(fold, perm);
     const extra = ev => JSON.parse(ev(`JSON.stringify([Object.keys(EXDB.all||{})])`));
-    chk(name, sc, 'Alice shared it; Brad’s board does not hold it; WORKING on screen; REMOTE the folder’s copy (a CONTROL)',
+    chk(name, sc, 'the folder holds it; Brad’s board does not; WORKING on screen; REMOTE the folder’s copy (a CONTROL)',
       J([...shared, ...extra(B.ev), ...scr(B.ev), ...head(fold)]), J([true, [], 'WORKING', 700, 'REMOTE', 650]));
     const h = await held(B, fold); const s0 = state(B.ev);
     const r = await B.ev(REFRESH[how]); await pause(5); const st = status(B.ev);
-    chk(name, sc, 'while the save is held, the Connect loads the execution data but not the board’s copy -- [returned, a save under way, nothing changed byte for byte, execution data]',
-      J([r, B.ev('_saveBusy') > 0, state(B.ev) === s0, ...extra(B.ev)]), J([true, true, true, ['om']]));
+    chk(name, sc, 'while the save is held, the Connect loads neither the board’s copy nor (v2.24) the folder’s execution data -- [returned, a save under way, nothing changed byte for byte, execution data]',
+      J([r, B.ev('_saveBusy') > 0, state(B.ev) === s0, ...extra(B.ev)]), J([true, true, true, []]));
     chk(name, sc, 'and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing was changed]',
       J([st, /Nothing was loaded/i.test(st), /Nothing was changed/i.test(st)]), J([SAID, false, false]));
     h.g.open(); await h.p; await pause(5);
@@ -10484,46 +10483,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.02 (U47) ====
 
-// ==== v2.02 (D4): the shared folder's execution data is merged per appropriation, newest of each winning ====
-// Brad, 21 Oct 2026. A refresh replaced this browser's whole execution store with the folder's when the folder's was newer, and
-// a share wrote this browser's whole store over the folder's: Alice imported Full Fund and had not shared it, Bob shared O&M,
-// and Alice's next refresh lost her Full Fund import. Two browsers, one stand-in folder; every figure written out.
-await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
-  const __bm = bootMark();
-  const name = 'v2.02 (D4) — the shared folder’s execution data is merged per appropriation, newest of each winning';
-  try {
-  const { J, wire, KEY, baseFile, folder, connect, pause } = W1H;
-  const F1 = baseFile('Brad', KEY.brad), fold = folder();
-  const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
-  const B = boot({ html: F1 }); await pause(80); wire(B.ev, 'Bob', KEY.bob); connect(B.ev, B.w, fold);
-  const T = Date.now();
-  const has = ev => JSON.parse(ev(`JSON.stringify(Object.keys(EXDB.all||{}).sort().map(function(k){ return k+':'+EXDB.all[k].rows[0][0]; }))`));
-  const inFold = () => { const t = fold.root.files['spmt-exec.json']; if (!t) return null; const a = JSON.parse(t).exec.all; return Object.keys(a).sort().map(k => k + ':' + a[k].rows[0][0]); };
-  // Alice has imported Full Fund (not shared); Bob imports O&M later and shares it
-  A.ev(`EXDB={ts:${T}, all:{ff:{fy:2027, rows:[['FF-ALICE', 100]], at:${T}}}}; persistExdb(); 'ok'`);
-  B.ev(`EXDB={ts:${T + 1000}, all:{om:{fy:2027, rows:[['OM-BOB', 200]], at:${T + 1000}}}}; persistExdb(); 'ok'`);
-  chk(name, '1 Bob shares O&M', 'the folder holds Bob’s O&M', J([await B.ev('driveExecPush(true)'), inFold()]), J([true, ['om:OM-BOB']]));
-  chk(name, '2 Alice refreshes', 'she takes Bob’s O&M and keeps her Full Fund import', J([await A.ev('driveExecPull(false)'), has(A.ev)]), J([true, ['ff:FF-ALICE', 'om:OM-BOB']]));
-  chk(name, '2 Alice refreshes', 'the line names what came across and says the rest is kept', /updated from the shared folder for O&M — shared by Bob .*What this browser holds for any other appropriation is kept\.$/.test(A.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), true);
-  // Alice shares: Bob's O&M in the folder stays as his, and her Full Fund joins it
-  chk(name, '3 Alice shares', 'the folder holds both', J([await A.ev('driveExecPush(true)'), inFold()]), J([true, ['ff:FF-ALICE', 'om:OM-BOB']]));
-  // Bob re-imports O&M (newer still) while Alice's browser holds the older O&M: Alice's share must not put hers back over his
-  B.ev(`EXDB.all.om={fy:2027, rows:[['OM-BOB-2', 300]], at:${T + 5000}}; EXDB.ts=${T + 5000}; persistExdb(); 'ok'`);
-  await B.ev('driveExecPush(true)');
-  chk(name, '4 Bob re-imports O&M and shares; Alice shares her older copy after', 'Bob’s newer O&M stays in the folder', J([await A.ev('driveExecPush(true)'), inFold()]), J([true, ['ff:FF-ALICE', 'om:OM-BOB-2']]));
-  chk(name, '5 Bob refreshes', 'he takes Alice’s Full Fund and keeps his newer O&M', J([await B.ev('driveExecPull(true)'), has(B.ev)]), J([true, ['ff:FF-ALICE', 'om:OM-BOB-2']]));
-  chk(name, '6 CONTROL nothing newer', 'a refresh with nothing newer takes nothing', J([await B.ev('driveExecPull(true)'), has(B.ev)]), J([false, ['ff:FF-ALICE', 'om:OM-BOB-2']]));
-  // a folder copy that cannot be read is not written over
-  const raw0 = fold.root.files['spmt-exec.json'];
-  A.w.eval(`globalThis.__fr=new Error('the share is syncing')`); fold.failRead['spmt-exec.json'] = A.w.__fr;
-  chk(name, '7 the folder’s copy cannot be read', 'nothing is shared, the copy is untouched, and the line says why', J([await A.ev('driveExecPush(false)'), fold.root.files['spmt-exec.json'] === raw0,
-    /The execution data was not shared: the shared folder’s copy could not be read \(the share is syncing\), and it is not written over unread\./.test(A.ev(`(document.getElementById('shareStat')||{}).textContent||''`))]), J([false, true, true]));
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
-  await settleBoards();   // and let the loop turn: a closed board is freed only then
-})();
+// ==== v2.02 (D4): retired in v2.24 (item 163) ====
+// The shared folder's execution share (driveExecPush / driveExecPull, merged per appropriation, newest of each winning) went with
+// item 163: ORBIT takes no CCaR data in (Brad, 26 Nov 2026). The scenario that held the merge, and its four mutations, are retired;
+// v2.24 item 163's block in audit-board holds that a Connect takes nothing from the folder's spmt-exec.json.
 // ==== end v2.02 (D4) ====
 // ==== v2.00 (U20): a save waiting for another tab's save is under way ====
 // A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as

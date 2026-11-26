@@ -66,7 +66,8 @@
     "csp": "node tools/csp-check.mjs",
     "sp:build": "node apex/build.mjs",
     "sp:check": "node apex/build.mjs --check",
-    "sp:test": "node apex/test/run-all.mjs"
+    "sp:test": "node apex/test/run-all.mjs",
+    "deadcode": "node tools/dead-code.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

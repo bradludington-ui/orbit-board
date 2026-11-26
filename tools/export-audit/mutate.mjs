@@ -6017,14 +6017,10 @@ const MUTATIONS = [
   // v202-d5a-funded-on-first-line: retired as obsolete in v2.19 -- aceAlignRows went with item 150 (a requirement's funded dollars all go on its first line)
   // v202-d5a-column-unprinted: retired as obsolete in v2.19 -- exportAceTieout went with item 150 (the Funded column prints nothing)
   // v2.02 (D4; Brad, 21 Oct): audit-import "v2.02 (D4)".
-  { id: "v202-d4-pull-replaces", area: "driveExecPull", what: "a refresh replaces this browser's whole execution store with the folder's: an import not yet shared is lost",
-    find: "    const r=exMerge(EXDB, theirs);", repl: "    const r={db:theirs, took:Object.keys(theirs.all||{})};" },
-  { id: "v202-d4-push-whole", area: "driveExecPush", what: "a share writes this browser's whole store over the folder's: a colleague's newer appropriation is put back to an older one",
-    find: "    const merged=(cur && cur.exec)? exMerge(cur.exec, EXDB).db : EXDB;", repl: "    const merged=EXDB;" },
-  { id: "v202-d4-newest-ignored", area: "exMerge", what: "the other side always wins, newer or not",
-    find: "    if(!m || exAt(t, T.ts)>exAt(m, M.ts)){ out.all[k]=t; took.push(k); }", repl: "    { out.all[k]=t; took.push(k); }" },
-  { id: "v202-d4-unread-overwritten", area: "driveExecPush", what: "a folder copy that could not be read is written over as if there were none",
-    find: "    catch(e){ if(!(e && e.name==='NotFoundError')){\n      setStat('⚠ The execution data was <b>not shared</b>", repl: "    catch(e){ if(false){\n      setStat('⚠ The execution data was <b>not shared</b>" },
+  // v202-d4-pull-replaces: retired as obsolete in v2.24 -- driveExecPull went with item 163 (a refresh replaced the whole execution store)
+  // v202-d4-push-whole: retired as obsolete in v2.24 -- driveExecPush went with item 163 (a share wrote the whole store over the folder's)
+  // v202-d4-newest-ignored: retired as obsolete in v2.24 -- exMerge went with item 163 (the other side always won)
+  // v202-d4-unread-overwritten: retired as obsolete in v2.24 -- driveExecPush went with item 163 (an unreadable folder copy written over)
   // v2.02 (D5c, D6a, D7b, D7c; Brad, 21 Oct): audit-board "v2.02 (D5c, D6a, D7b, D7c)".
   { id: "v202-d5c-unrounded", area: "bmSeedFromPp", what: "a position a file carries with a fraction is taken into the base budget authority with the fraction",
     // v2.12 RV6: retargeted -- Take reads a position through ppLanesOf (S04), which rounds at the door for every reader; the same
