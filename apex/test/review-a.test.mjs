@@ -33,7 +33,7 @@ const B_OM = 'USAF O&M- Quill Base Discretionary AV', B_SP = 'USAF APN Spares Te
 const row = (FY, ccar, Title, Budget, pe, Date, Amount, Alloc, PMO, more) => Object.assign({ FY, 'CCaR No': ccar, Title, Budget, 'Plan Event': pe, Date, Amount, Alloc, PMO: PMO || AV }, more || {});
 // Data through Oct-2026.
 //   O&M FY2026  Tessa C  TS0003 awarded Dec 2025; Tessa D  TS0004 "Depot Work" planned Dec 2026, SRRB Yes
-//   O&M FY2027  Garnet Rework TS0007 no date; Kestrel Pump KP0001 plan event "Tessa lens" Apr 2027 (a title with no "tessa" in it);
+//   O&M FY2027  Garnet Rework TS0007 no date; Kestrel Pump KP0001 plan event "Tessa lens" Apr 2027 0.4 and May 2027 0.1 (a title with no "tessa" in it);
 //               Tessa A TS0001 awarded; Tessa B TS0002 "Depot Work" Mar 2027 on five budgets (1.0 each);
 //               Tessa F TS0006 1.0 awarded Oct, 0.5 late Aug 2026, 2.0 Feb 2027; its rows carry a description, a PID, a Sub-PMO and a
 //               PM/TPOC name (invented)
@@ -49,6 +49,7 @@ const OM = [
   row(2027, 'TS0006', 'Tessa F', B_OM, 'T6 lot three', '2027-02-01', '2000000', NA, AV, MORE),
   row(2027, 'TS0007', 'Garnet Rework', B_OM, 'T7', '', '700000', NA),
   row(2027, 'KP0001', 'Kestrel Pump', B_OM, 'Tessa lens', '2027-04-01', '400000', NA),
+  row(2027, 'KP0001', 'Kestrel Pump', B_OM, 'Tessa lens', '2027-05-01', '100000', NA),   // §66: one plan event over two months
 ];
 const SPR = [row(2027, 'TS0005', 'Tessa E', B_SP, 'T5', '2027-06-01', '1000000', NA, PP)];
 const K = k => k * 100000;
@@ -97,20 +98,27 @@ try {
   await T.type('');
   T.click([...T.main().querySelectorAll('#uiFindRes [data-act=findsel]')].find(b => b.textContent === 'Tessa F')); await settle();
   const det = () => doc.getElementById('uiFindDet');
-  C.eq('I52: the detail shows the Sub-PMO and the PID', [...det().querySelectorAll('.kv')].map(k => k.textContent).filter(x => /^(Sub-PMO|PID)/.test(x)), ['Sub-PMOAvionics Sub', 'PIDPID-4471']);
-  C.eq('I52: … and each plan event its description', [...det().querySelectorAll('.fevs .fdesc')].map(x => x.textContent), ['Invented engine overhaul', 'Invented engine overhaul', 'Invented engine overhaul']);
+  C.chk('I52: the detail shows the Sub-PMO on its line, and the PID in its fold', /› Avionics Sub$/.test(det().querySelector('.fctx').textContent)
+    && det().querySelector('.fref summary').textContent.startsWith('1 PID') && /PID-4471/.test(det().querySelector('.frefl').textContent));
+  C.eq('I52: … and each plan event its description, once', [...det().querySelectorAll('.fevg .fdesc')].map(x => x.textContent), ['Invented engine overhaul', 'Invented engine overhaul', 'Invented engine overhaul']);
   C.chk('I52: no person’s name is on the page', !/Inventedname|Madeupname/.test(doc.body.textContent));
   C.chk('I52: the search box says what it reads', /description or PID/.test(doc.getElementById('uiFindQ').getAttribute('placeholder')));
 
   // ================================================================ I04 plan events before budgets; many budgets fold
   T.click([...T.main().querySelectorAll('#uiFindRes [data-act=findsel]')].find(b => b.textContent === 'Tessa B')); await settle();
-  { const d = det(), evAt = [...d.children].indexOf(d.querySelector('h3.fev')), bud = d.querySelector('details.fbud');
-    C.chk('I04: five budgets fold behind their count, closed', !!bud && bud.querySelector('summary').textContent === '5 budgets' && !bud.open);
-    C.chk('I04: the plan events come before the budgets', !!bud && evAt >= 0 && evAt < [...d.children].indexOf(bud));
-    C.chk('I04: a requirement with one budget still shows it as a line', (T.click([...T.main().querySelectorAll('#uiFindRes [data-act=findsel]')].find(b => b.textContent === 'Tessa A')), await settle(),
-      [...det().querySelectorAll('.kv')].some(k => k.textContent === 'Budget' + B_OM) && !det().querySelector('details.fbud'))); }
+  { const d = det(), evAt = [...d.children].indexOf(d.querySelector('h4.fev')), ref = d.querySelector('details.fref');
+    C.chk('I04: five budgets fold behind their count, closed', !!ref && /5 budgets$/.test(ref.querySelector('summary').textContent) && !ref.open);
+    C.chk('I04: the plan events come before the budgets', !!ref && evAt >= 0 && evAt < [...d.children].indexOf(ref));
+    C.chk('§66: one budget folds too, behind "1 budget"', (T.click([...T.main().querySelectorAll('#uiFindRes [data-act=findsel]')].find(b => b.textContent === 'Tessa A')), await settle(),
+      /1 budget$/.test(det().querySelector('details.fref summary').textContent) && det().querySelector('.frefl').textContent.includes(B_OM))); }
   await T.type('line 4'); T.click(T.main().querySelector('#uiFindRes [data-act=findsel]')); await settle();
-  C.chk('I04: a search that matched a budget opens the fold', T.rows().join() === 'Tessa B' && det().querySelector('details.fbud').open);
+  C.chk('I04: a search that matched a budget opens the fold', T.rows().join() === 'Tessa B' && det().querySelector('details.fref').open);
+  C.chk('§66: … and leaves the plan events closed', [...det().querySelectorAll('.fevg')].every(g => !g.open));
+  await T.type('');
+  T.click([...T.main().querySelectorAll('#uiFindRes [data-act=findsel]')].find(b => b.textContent === 'Kestrel Pump')); await settle();
+  C.eq('§66: a plan event over two months is one line, its months added up, opening to each month',
+    [...det().querySelectorAll('.fevg')].map(g => [g.querySelector('.fevn').textContent, g.querySelector('.fevm').textContent, [...g.querySelectorAll('.fmon')].map(x => x.textContent)]),
+    [['Tessa lens', '0.50', ['Apr 20270.40', 'May 20270.10']]]);
   await T.type('');
 
   // ================================================================ I33 title and CCaR matches first; Enter opens the first
@@ -194,12 +202,12 @@ try {
   T.click(T.main().querySelector('tr.udetail [data-act=reqfind]')); await settle();
   C.eq('I14: a line in the plan lands on its one requirement, in its own appropriation and year, opened',
     [T.pressed(), doc.getElementById('uiFindQ').value, T.main().querySelector('select[data-f=ap]').selectedOptions[0].textContent, T.main().querySelector('select[data-f=fy]').selectedOptions[0].textContent,
-      T.rows(), (det().querySelector('h3') || {}).textContent], ['find', 'TS0006', 'O&M', 'FY2027', ['Tessa F'], 'Tessa F TS0006']);
+      T.rows(), (det().querySelector('h3') || {}).textContent + ' ' + ((det().querySelector('.fctx') || {}).textContent || '').split(' · ')[0]], ['find', 'TS0006', 'O&M', 'FY2027', ['Tessa F'], 'Tessa F TS0006']);
   C.chk('I14: … the keyboard is on the requirement, never in the search box', doc.activeElement !== doc.getElementById('uiFindQ') && doc.activeElement === T.main().querySelector('#uiFindRes tr.cur [data-act=findsel]'));
   m = await T.view('srrb');
   T.click([...T.main().querySelectorAll('#uiSrrbT [data-act=reqfind]')].find(b => b.textContent === 'Depot Work')); await settle();
   C.eq('I14: an SRRB line lands in its own year: "Depot Work" of O&M FY2026 is Tessa D alone (FY2027’s Tessa B shares the name)',
-    [T.pressed(), doc.getElementById('uiFindQ').value, T.rows(), (det().querySelector('h3') || {}).textContent], ['find', 'Depot Work', ['Tessa D'], 'Tessa D TS0004']);
+    [T.pressed(), doc.getElementById('uiFindQ').value, T.rows(), (det().querySelector('h3') || {}).textContent + ' ' + ((det().querySelector('.fctx') || {}).textContent || '').split(' · ')[0]], ['find', 'Depot Work', ['Tessa D'], 'Tessa D TS0004']);
   // a Special CCaR line keeps listing every part, with nothing narrowing (§21, §28)
   { await T.view('find'); T.SP.setSettings({ special: ['TS0002'] }); await settle(40);
     m = await T.view('cal');

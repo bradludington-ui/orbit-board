@@ -2782,3 +2782,21 @@ pictures are not changed. The last section of `src/style.css` lays it over the r
 - **Tiles:** a small spaced label, the figure large, the line under it muted. **Lists of requirements** (My PMO): the name
   semibold in the link colour, underlined on hover. **The menu:** 13px items, group headings 11px and quieter.
 - Kept: Calibri; the navy bands, the appropriation tables laid out as the slides are, every status's colour and word.
+
+## 66. The requirement opened on Find a requirement, plainer (Brad, 26 Nov 2026)
+
+Brad, 26 Nov 2026: *"make it more professional and ensure it is presenting useful information"*, keeping the list of plan
+events, then *"a lot going on"* on the first mock-up and *"Build it as shown"* on the second. `ui_findDetail` draws, top to
+bottom:
+
+- **The name**, and one line beneath it: CCaR number · appropriation and FY · PMO › Sub-PMO.
+- **Planned, Awarded and Still to award ($M)**, large, and a thin bar of the share awarded (its words in `aria-label`).
+- **Plan events:** one line each, its name (and its tag, Unprogrammed or Forecast, when it has one) and its months added up,
+  most money first. A word only where it says something: **Late** (a month past the data date not awarded), **Awarded** (all
+  of it), **Part awarded**. Each line opens to its description, once, and its months, each with its amount and, where it
+  applies, "awarded" or "not awarded". A line the search matched opens by itself.
+- **PIDs and budgets** folded behind one line ("82 PIDs · 58 budgets"), opened when the search matched one (review I04 kept;
+  a single budget is folded too now).
+- **Open <appropriation> spend plan.**
+
+Nothing on the card is a new figure: every amount is the requirement's or its plan events', as before.

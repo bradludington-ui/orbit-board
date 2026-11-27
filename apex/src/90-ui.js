@@ -650,27 +650,42 @@ function ui_reqWhen(r) {
   if (r.state === 'planned') return '<span class="when w-plan">' + ui_e(SP.ymWords(r.next)) + '</span>';
   return '<span class="when w-none" title="Nothing left to award carries a date">No date</span>';
 }
-// the one opened. Its money and where it sits, then its plan events by month (each with its description, review I52), then its
-// budgets: more than three fold behind their count (review I04), opened when the search matched one of them.
-const UI_FIND_BUD_OPEN = 3;
+// §66 the one opened (Brad, 26 Nov 2026: "make it more professional ... presenting useful information", then "a lot going on":
+// the plainer one). Its name, one line of where it sits, its three figures and a bar of how much is awarded; then one line per
+// plan event (its months added up, most money first) with a word only when it is Awarded, Part awarded or Late, opening to its
+// description and its months; then its PIDs and budgets folded behind their count, opened when the search matched one (I04).
+// A plan event is its name and its tag (Unprogrammed, Forecast): the same name under two tags is two lines.
 function ui_findDetail(r) {
   if (!r) return '<aside class="card finddet" id="uiFindDet"><p class="cardnote">Pick a requirement to see its plan events.</p></aside>';
-  const kv = (k, v) => '<div class="kv"><span>' + k + '</span><b>' + v + '</b></div>';
-  const words = ui_findWords(), budHit = words.length > 0 && r.budgets.some(b => words.some(w => b.toLowerCase().includes(w)));
+  const M = c => ui_e(SP.fmtMText(c)), words = ui_findWords(), hit = t => words.length > 0 && words.some(w => String(t).toLowerCase().includes(w));
   const pid = r.pid || [], sub = r.sub || [];
-  const buds = r.budgets.length > UI_FIND_BUD_OPEN
-    ? '<details class="fbud"' + (budHit ? ' open' : '') + '><summary>' + SP.fmtInt(r.budgets.length) + ' budgets</summary><div class="fbudl">' + r.budgets.map(ui_e).join('<br>') + '</div></details>'
-    : kv(r.budgets.length === 1 ? 'Budget' : 'Budgets', r.budgets.length ? r.budgets.map(ui_e).join('<br>') : '(none)');
-  return '<aside class="card finddet" id="uiFindDet" aria-label="' + ui_e(r.title) + '"><h3 id="uiFindDetH" tabindex="-1">' + ui_e(r.title) + ' <span class="fccar">' + ui_e(r.ccar) + '</span></h3>'
-    + kv('Planned ($M)', ui_e(SP.fmtMText(r.planned))) + kv('Awarded ($M)', ui_e(SP.fmtMText(r.awarded))) + kv('Still to award ($M)', ui_e(SP.fmtMText(r.remaining)))
-    + kv('PMO', ui_e(r.pmo)) + (sub.length ? kv('Sub-PMO', sub.map(ui_e).join(', ')) : '') + kv('Appropriation', ui_e(r.apLabel) + ' FY' + r.fy)
-    + (pid.length ? kv(pid.length === 1 ? 'PID' : 'PIDs', pid.map(ui_e).join(', ')) : '')
-    + '<h3 class="fev">Plan events</h3><ul class="fevs">' + r.events.map(e => '<li><span class="fd">' + (e.ym ? ui_e(SP.ymWords(e.ym)) : 'No date') + '</span><span class="fp">' + ui_e(e.pe)
-      + (e.awarded ? ' <span class="when st-green">Awarded</span>' : e.late ? ' <span class="when st-red">Not awarded</span>' : '')
-      + (e.tag ? ' <span class="when w-none">' + ui_e(e.tag) + '</span>' : '')
-      + (e.desc && e.desc.length ? '<span class="fdesc">' + e.desc.map(ui_e).join(' · ') + '</span>' : '') + '</span><span class="fa">' + ui_e(SP.fmtMText(e.cents)) + '</span></li>').join('') + '</ul>'
-    + buds
-    + '<div class="acts"><button type="button" data-act="view" data-v="' + ui_e(r.ap) + '" data-fkey="find:open">Open ' + ui_e(r.apLabel) + '</button></div></aside>';
+  const G = new Map();
+  for (const e of r.events) {
+    const k = e.pe + '\u0000' + (e.tag || '');
+    let g = G.get(k);
+    if (!g) G.set(k, g = { pe: e.pe, tag: e.tag || '', desc: [], cents: 0, aw: 0, late: 0, ms: [] });
+    for (const d of e.desc || []) if (!g.desc.includes(d)) g.desc.push(d);
+    g.cents += e.cents; if (e.awarded) g.aw += e.cents; if (e.late) g.late += e.cents; g.ms.push(e);
+  }
+  const gs = [...G.values()].sort((a, b) => b.cents - a.cents || (a.pe < b.pe ? -1 : a.pe > b.pe ? 1 : 0));
+  const flag = g => g.late > 0 ? ' <span class="fst bad">Late</span>' : g.aw > 0 && g.aw >= g.cents ? ' <span class="fst ok">Awarded</span>' : g.aw > 0 ? ' <span class="fst part">Part awarded</span>' : '';
+  const evs = gs.map(g => '<details class="fevg"' + (hit(g.pe) || g.desc.some(hit) ? ' open' : '') + '><summary><span class="fevn">' + ui_e(g.pe)
+    + (g.tag ? ' <span class="ftag">' + ui_e(g.tag) + '</span>' : '') + flag(g) + '</span><span class="fevm">' + M(g.cents) + '</span></summary><div class="fevb">'
+    + (g.desc.length ? '<p class="fdesc">' + g.desc.map(ui_e).join(' · ') + '</p>' : '')
+    + g.ms.map(e => '<div class="fmon"><span>' + (e.ym ? ui_e(SP.ymWords(e.ym)) : 'No date') + (e.awarded ? ' · awarded' : e.late ? ' · <span class="bad">not awarded</span>' : '')
+      + '</span><span>' + M(e.cents) + '</span></div>').join('') + '</div></details>').join('');
+  const pct = r.planned > 0 ? Math.max(0, Math.min(100, Math.round(r.awarded / r.planned * 100))) : 0;
+  const refs = [pid.length ? SP.fmtInt(pid.length) + (pid.length === 1 ? ' PID' : ' PIDs') : '', r.budgets.length ? SP.fmtInt(r.budgets.length) + (r.budgets.length === 1 ? ' budget' : ' budgets') : ''].filter(Boolean).join(' · ');
+  const refOpen = pid.some(hit) || r.budgets.some(hit);
+  return '<aside class="card finddet" id="uiFindDet" aria-label="' + ui_e(r.title) + '"><h3 id="uiFindDetH" tabindex="-1">' + ui_e(r.title) + '</h3>'
+    + '<p class="fctx">' + ui_e(r.ccar) + ' · ' + ui_e(r.apLabel) + ' FY' + r.fy + ' · ' + ui_e(r.pmo) + (sub.length ? ' › ' + sub.map(ui_e).join(', ') : '') + '</p>'
+    + '<div class="ffig"><div><span>Planned ($M)</span><b>' + M(r.planned) + '</b></div><div><span>Awarded ($M)</span><b>' + M(r.awarded) + '</b></div><div><span>Still to award ($M)</span><b>' + M(r.remaining) + '</b></div></div>'
+    + '<div class="fbar" role="img" aria-label="' + pct + '% of the planned money awarded"><i style="width:' + pct + '%"></i></div>'
+    + '<h4 class="fev">Plan events</h4>' + (evs || '<p class="cardnote">None.</p>')
+    + (refs ? '<details class="fref"' + (refOpen ? ' open' : '') + '><summary>' + refs + '</summary><div class="frefl">'
+      + (pid.length ? '<p><b>' + (pid.length === 1 ? 'PID' : 'PIDs') + '</b><br>' + pid.map(ui_e).join(', ') + '</p>' : '')
+      + (r.budgets.length ? '<p><b>' + (r.budgets.length === 1 ? 'Budget' : 'Budgets') + '</b><br>' + r.budgets.map(ui_e).join('<br>') + '</p>' : '') + '</div></details>' : '')
+    + '<div class="acts"><button type="button" data-act="view" data-v="' + ui_e(r.ap) + '" data-fkey="find:open">Open ' + ui_e(r.apLabel) + ' spend plan</button></div></aside>';
 }
 function ui_findRes(M) {
   const list = ui_findList(M), sel = list.find(r => r.key === ui.find.sel) || null;
