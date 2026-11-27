@@ -1,0 +1,16 @@
+{"id":"fc-weights-not-dollars","status":"caught","by":"board","ms":9920,"tried":1}
+{"id":"fc-drops-unscheduled","status":"caught","by":"board","ms":20675,"tried":1}
+{"id":"mon-grand-skips-none","status":"caught","by":"excel","ms":12911,"tried":1}
+{"id":"mon-block-drops-nod","status":"caught","by":"excel","ms":12252,"tried":1}
+{"id":"fc-mand-not-carried","status":"caught","by":"board","ms":55373,"tried":1}
+{"id":"fc-plan-literal","status":"caught","by":"board","ms":75753,"tried":2}
+{"id":"inc-residual-netted","status":"caught","by":"board","ms":39632,"tried":1}
+{"id":"inc-residual-basis","status":"caught","by":"board","ms":52722,"tried":1}
+{"id":"inc-residual-ignores-prior","status":"caught","by":"board","ms":51403,"tried":1}
+{"id":"cut-natm-unguarded","status":"caught","by":"board","ms":55466,"tried":1}
+{"id":"fc-board-weighted","status":"caught","by":"recon[21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39]","ms":146174,"tried":4}
+{"id":"cut-natu-half-guarded","status":"caught","by":"board","ms":41274,"tried":1}
+{"id":"abs-take-netted","status":"caught","by":"board","ms":45937,"tried":1}
+{"id":"abs-floor-not-spread","status":"caught","by":"board","ms":759759,"tried":1}
+{"id":"sb-floor-drops-mc","status":"caught","by":"board","ms":870067,"tried":2}
+{"id":"sb-mc-coverage","status":"caught","by":"board","ms":144637,"tried":3}
