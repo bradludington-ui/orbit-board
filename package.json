@@ -70,6 +70,8 @@
     "deadcode": "node tools/dead-code.mjs"
   },
   "devDependencies": {
+    "acorn": "8.19.0",
+    "acorn-walk": "8.3.5",
     "jsdom": "^27.0.0"
   },
   "dependencies": {
